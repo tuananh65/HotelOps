@@ -84,6 +84,9 @@ internal static class SprintTaskDashboardScenario
         crossing.ClosedAt = crossing.EffectiveEndedAt = boundary.AddMinutes(10);
         db.WorkIntervals.Add(crossing); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var complete = await Read();
+        Check(Metric(complete, "averageTaskCompletionHours").ValueKind == JsonValueKind.Null
+            && complete.GetProperty("missingSources").EnumerateArray().Any(s => s.GetString()!.StartsWith("KPI-05:")),
+            "Closed task without proven processing-cycle receipts reports N/A, never guessed duration");
         Check(Metric(complete, "taskEffortHours").GetDecimal() == 2m / 3m
             && Metric(complete, "taskProvisionalHours").GetDecimal() >= 1m / 6m
             && Metric(complete, "taskOpenIntervals").GetInt32() == 1,
@@ -108,6 +111,17 @@ internal static class SprintTaskDashboardScenario
         Check(states.Contains("PAUSED") && states.Contains("PENDING_VERIFICATION") && states.Contains("CLOSED"),
             "canonical lifecycle distribution distinguishes physical IN_PROGRESS stages");
         var workloadPath = $"/api/branches/{branch}/task-workload?departmentId={department.DepartmentId}&from={now.AddDays(-1):yyyy-MM-dd}&to={now:yyyy-MM-dd}";
+        var taskPath = workloadPath.Replace("task-workload?", "task-workload/tasks?") + "&calendar=UTC";
+        foreach (var (population, expectedCount) in new[] { ("OPEN", 4), ("OVERDUE", 2), ("CLOSED_IN_PERIOD", 1) })
+        {
+            var populationResult = await send(HttpMethod.Get, taskPath + "&taskSet=" + population, null, null, true);
+            Check(populationResult.Status == 200 && populationResult.Body.GetProperty("totalCount").GetInt32() == expectedCount
+                && populationResult.Body.GetProperty("tasks").GetArrayLength() == expectedCount
+                && populationResult.Body.GetProperty("tasks").EnumerateArray().All(t => t.GetProperty("currentAssigneeId").ValueKind == JsonValueKind.Null),
+                population + " drill-down matches dashboard population and includes tasks without current assignment");
+        }
+        Check((await send(HttpMethod.Get, taskPath + "&taskSet=ALL", null, null, true)).Status == 400,
+            "unknown dashboard task population rejected");
         var utcWorkload = await send(HttpMethod.Get, workloadPath + "&calendar=UTC", null, null, true);
         Check(utcWorkload.Status == 200 && utcWorkload.Body.GetProperty("calendar").GetString() == "UTC"
             && utcWorkload.Body.GetProperty("items").EnumerateArray().Single(r => r.GetProperty("userId").GetInt64() == actor).GetProperty("closedEffortSeconds").GetInt64() == 2400,
@@ -142,6 +156,7 @@ internal static class SprintTaskDashboardScenario
         var viewGrantIds = viewGrants.Select(g => g.RolePermissionId).ToArray();
         await db.RolePermissions.Where(g => viewGrantIds.Contains(g.RolePermissionId)).ExecuteDeleteAsync(ct);
         Check((await send(HttpMethod.Get, workloadPath + "&calendar=UTC", null, null, true)).Status == 403
+            && (await send(HttpMethod.Get, taskPath + "&taskSet=OPEN", null, null, true)).Status == 403
             && (await send(HttpMethod.Get, path, null, null, true)).Status == 200,
             "DASHBOARD_VIEW does not replace revoked TASK_VIEW for workload drill-down");
         foreach (var grant in viewGrants) db.RolePermissions.Add(new() { RoleId = grant.RoleId, PermissionId = grant.PermissionId, DataScope = grant.DataScope, GrantedAt = grant.GrantedAt });

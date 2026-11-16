@@ -51,6 +51,23 @@ const snapshot = {
   pageSize: 20,
 };
 const page = { ...snapshot, items: [row], totalCount: 1, messageCode: null };
+
+test("dashboard task population includes unassigned tasks and rejects mismatched scope/state", async (t) => {
+  const task = { taskId: 99, code: "S-99", title: "Unassigned", departmentId: 2, department: "Synthetic",
+    state: "PENDING_ASSIGNMENT", priorityId: null, priority: null, deadline: null,
+    currentAssigneeId: null, completedBy: null, completedAt: null, overdue: false };
+  let response = { ...snapshot, taskSet: "OPEN", tasks: [task], totalCount: 1, messageCode: null };
+  t.mock.method(globalThis, "fetch", async (path) => {
+    assert.equal(new URL(path, "https://example.invalid").pathname, "/api/branches/1/task-workload/tasks");
+    return Response.json(response);
+  });
+  assert.deepEqual(await readWorkload(1, { taskSet: "OPEN", departmentId: 2 }, 1, null, signal), response);
+  for (const change of [{ state: "CLOSED" }, { departmentId: 3 }, { taskId: 0 }]) {
+    response = { ...response, tasks: [{ ...task, ...change }] };
+    await assert.rejects(readWorkload(1, { taskSet: "OPEN", departmentId: 2 }, 1, null, signal), /population/);
+  }
+  await assert.rejects(readWorkload(1, { taskSet: "OPEN", employeeId: 7 }, 1, null, signal), /population/);
+});
 test("explicit UTC calendar is sent and must be confirmed by the response", async (t) => {
   let response = { ...page, calendar: "UTC" };
   t.mock.method(globalThis, "fetch", async (path) => {

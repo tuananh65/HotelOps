@@ -8,6 +8,15 @@ namespace HotelOps.Dev1.RegressionTests;
 
 public sealed class TaskWorkloadContractTests
 {
+    [Theory]
+    [InlineData("OPEN")]
+    [InlineData("OVERDUE")]
+    [InlineData("CLOSED_IN_PERIOD")]
+    public void Dashboard_population_is_explicit_and_unknown_values_are_rejected(string taskSet)
+    {
+        RoomTypeCreationService.ValidateWorkloadQuery(new(TaskSet: taskSet));
+        Assert.Throws<ValidationException>(() => RoomTypeCreationService.ValidateWorkloadQuery(new(TaskSet: "ALL")));
+    }
     private static readonly DateTime Now = new(2026, 11, 15, 18, 0, 0, DateTimeKind.Utc);
     [Fact]
     public void Explicit_utc_calendar_preserves_dashboard_boundaries_without_changing_hotel_default()

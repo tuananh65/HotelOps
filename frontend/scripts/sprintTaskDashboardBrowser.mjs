@@ -47,11 +47,34 @@ try {
   await page.getByRole("table", { name: "Employee workload" }).getByRole("cell", { name: "2400", exact: true }).waitFor();
   assert.equal(await page.getByLabel("Workload department ID").inputValue(), String(fixture.department));
   await page.getByText("Period calendar: UTC.", { exact: true }).waitFor();
+  for (const [label, count, taskSet] of [["Open tasks", 4, "OPEN"], ["Overdue tasks", 2, "OVERDUE"], ["Tasks closed in period", 1, "CLOSED_IN_PERIOD"]]) {
+    stage = `${taskSet} population drill-down`;
+    await page.goBack();
+    await page.getByRole("region", { name: "Dashboard indicators" }).waitFor();
+    // Dashboard filters are page-local; restore the selected department and UTC dates.
+    await filters.getByLabel("Branch", { exact: true }).selectOption(String(fixture.branch));
+    await filters.getByLabel("Department", { exact: true }).selectOption(String(fixture.department));
+    await filters.getByLabel("From (UTC)").fill(fixture.from);
+    await filters.getByLabel("To (UTC)").fill(fixture.to);
+    const refreshed = page.waitForResponse(r => new URL(r.url()).pathname === "/api/dashboards/operations"
+      && new URL(r.url()).searchParams.get("departmentId") === String(fixture.department));
+    await filters.getByRole("button", { name: "Apply filters" }).click();
+    assert.equal((await refreshed).status(), 200);
+    const populationResponse = page.waitForResponse(r => new URL(r.url()).pathname === `/api/branches/${fixture.branch}/task-workload/tasks`);
+    await indicators.locator("div").filter({ has: page.getByText(label, { exact: true }) }).getByRole("link", { name: "Review workload", exact: true }).click();
+    const population = await populationResponse;
+    assert.equal(population.status(), 200);
+    assert.equal(new URL(population.url()).searchParams.get("taskSet"), taskSet);
+    const rows = page.getByRole("table", { name: "Matching tasks" }).locator("tbody tr");
+    await rows.first().waitFor();
+    assert.equal(await rows.count(), count);
+    assert.equal(await rows.getByText("No current assignment", { exact: true }).count(), count);
+  }
   stage = "logout";
   await page.goto("https://localhost:7142/profile");
   await page.getByRole("button", { name: "Logout", exact: true }).click();
   await page.waitForURL("https://localhost:7142/login");
-  process.stdout.write(JSON.stringify({ success: true, checks: ["canonical dashboard filters reach HTTPS", "open=4 overdue=2 closedInPeriod=1 rendered", "Paused/Pending Verification/Closed rendered separately", "closed effort 0.67 hours and one open interval rendered separately", "dashboard effort link opens authorized Workload with same UTC scope and 2400 closed seconds"] }));
+  process.stdout.write(JSON.stringify({ success: true, checks: ["canonical dashboard filters reach HTTPS", "open=4 overdue=2 closedInPeriod=1 rendered", "Paused/Pending Verification/Closed rendered separately", "closed effort 0.67 hours and one open interval rendered separately", "dashboard effort link opens authorized Workload with same UTC scope and 2400 closed seconds", "all three task-count links reconcile task populations including no current assignment"] }));
 } catch {
   process.stdout.write(JSON.stringify({ success: false, stage })); process.exitCode = 1;
 } finally { if (browser) await browser.close(); }

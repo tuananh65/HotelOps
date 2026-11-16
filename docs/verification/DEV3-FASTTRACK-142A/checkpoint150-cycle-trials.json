@@ -1,0 +1,44 @@
+[
+    {
+        "records":  163,
+        "trial":  1,
+        "failure":  "Exception: unverified linked request creation fails closed",
+        "success":  false,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  163,
+        "trial":  2,
+        "failure":  "Exception: linked request without required link contract is rejected before mutation",
+        "success":  false,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  208,
+        "trial":  3,
+        "failure":  "Exception: one Closed task, never number of processing cycles, is KPI denominator",
+        "success":  false,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  317,
+        "trial":  4,
+        "failure":  null,
+        "success":  true,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  290,
+        "trial":  5,
+        "failure":  "Exception: canonical browser workload filters and employee drill-down use HTTPS and SQL",
+        "success":  false,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  319,
+        "trial":  6,
+        "failure":  null,
+        "success":  true,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    }
+]

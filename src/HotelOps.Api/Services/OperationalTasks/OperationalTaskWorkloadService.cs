@@ -17,7 +17,8 @@ public sealed partial class RoomTypeCreationService
             || query.DepartmentId <= 0 || query.EmployeeId <= 0 || query.PriorityId <= 0
             || query.Status != null && !TaskWorkflowRead.States.Contains(query.Status)
             || query.Search?.Length > 150 || query.Search?.Any(char.IsControl) == true
-            || query.DeadlineTo < query.DeadlineFrom || query.Calendar is not ("UTC" or "Asia/Ho_Chi_Minh"))
+            || query.DeadlineTo < query.DeadlineFrom || query.Calendar is not ("UTC" or "Asia/Ho_Chi_Minh")
+            || query.TaskSet is not (null or "OPEN" or "OVERDUE" or "CLOSED_IN_PERIOD"))
             throw new ValidationException("Invalid workload filters.");
     }
 
@@ -38,9 +39,11 @@ public sealed partial class RoomTypeCreationService
     }
 
     public Task<RoomTypeBatchResult> ReadTaskWorkloadAsync(SessionReference ticket, long sid, long branch,
-        TaskWorkloadQuery query, long? employee, CancellationToken ct)
+        TaskWorkloadQuery query, long? employee, CancellationToken ct, bool tasksOnly = false)
     {
         ValidateWorkloadQuery(query);
+        if (query.TaskSet != null && !tasksOnly || tasksOnly && (employee != null || query.EmployeeId != null))
+            throw new ValidationException("Task population filters require the task list, without employee attribution.");
         if (employee <= 0 || employee.HasValue && query.EmployeeId.HasValue && query.EmployeeId != employee)
             throw new ValidationException("Invalid employee identity.");
         var includesShiftData = false;
@@ -78,6 +81,19 @@ public sealed partial class RoomTypeCreationService
                     CompletedAt = t.CompletedAt, Overdue = s.State != "CLOSED" && s.State != "CANCELLED" && t.DueAt < now };
             if (query.Status != null) facts = facts.Where(t => t.State == query.Status);
             if (query.OverdueOnly) facts = facts.Where(t => t.Overdue);
+            if (tasksOnly)
+            {
+                if (query.TaskSet == "OPEN") facts = facts.Where(t => t.State != "CLOSED" && t.State != "CANCELLED");
+                if (query.TaskSet == "OVERDUE") facts = facts.Where(t => t.Overdue);
+                if (query.TaskSet == "CLOSED_IN_PERIOD") facts = facts.Where(t => t.State == "CLOSED"
+                    && t.CompletedAt >= period.Start && t.CompletedAt < period.End && t.CompletedAt <= now);
+                var total = await facts.CountAsync(token);
+                var rows = await facts.OrderBy(t => t.Code).ThenBy(t => t.TaskId)
+                    .Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(token);
+                return new(RoomTypeBatchStatus.Success, new TaskWorkloadTasksPage(branch, period.From, period.To, WorkloadUtc(now),
+                    rows.Select(t => t with { Deadline = UtcTaskDate(t.Deadline), CompletedAt = UtcTaskDate(t.CompletedAt) }).ToArray(),
+                    total, query.Page, query.PageSize, total == 0 ? "MSG10" : null, query.Calendar, query.TaskSet));
+            }
             var ids = facts.Select(t => t.TaskId);
             var intervals = db.WorkIntervals.AsNoTracking().Where(i => i.BranchId == branch && i.WorkItemKind == "TASK" && ids.Contains(i.WorkItemId)
                 && db.Workdays.Any(d => d.WorkdayId == i.WorkdayId && d.BranchId == branch && d.UserId == i.UserId

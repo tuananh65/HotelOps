@@ -1,0 +1,6 @@
+{
+    "status":  "INTERRUPTED_NOT_PASS",
+    "sessionExitCode":  -1,
+    "reason":  "Broad suite deliberately stopped; focused changed-module 10 PASS and Auth HTTP/state/router 158 PASS are separate completed runs",
+    "outputLines":  886
+}

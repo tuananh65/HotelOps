@@ -13,10 +13,12 @@ test("dashboard workload navigation retains exact scope and explicit UTC period"
     assert.equal(url.pathname, "/operational-tasks");
     assert.equal(url.searchParams.get("branchId"), "7");
     assert.deepEqual(parse(url.searchParams), { from: filters.from, to: filters.to, calendar: "UTC", departmentId: 8,
+      ...({ openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD" }[key] ? { taskSet: { openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD" }[key] } : {}),
       ...(key === "overdueTasks" ? { overdueOnly: true } : {}), ...(key === "closedTasksInPeriod" ? { status: "CLOSED" } : {}) });
   }
 });
 test("navigation never chooses an arbitrary branch or silently truncates unsupported periods", () => {
+  assert.equal(link(filters, "averageTaskCompletionHours"), link(filters, "closedTasksInPeriod"));
   for (const invalid of [{ branchIds: [7, 8] }, { branchIds: [] }, { branchIds: [0] }, { calendar: "LOCAL" },
     { from: "2026-02-30" }, { from: "2027-01-01" }, { from: "1899-01-01" }, { from: "2020-01-01" }, { departmentId: -1 }])
     assert.equal(link({ ...filters, ...invalid }, "openTasks"), null);

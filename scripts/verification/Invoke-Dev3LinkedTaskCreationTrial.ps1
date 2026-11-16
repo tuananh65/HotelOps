@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Trial,
- [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion','CompletionUi','Escalation','EscalationUi','HandoverDelivery','OwnTimeLog','ReportActors','TaskExecution')][string]$Workflow='LinkedWork')
+ [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion','CompletionUi','Escalation','EscalationUi','HandoverDelivery','OwnTimeLog','ReportActors','TaskExecution','TaskCycles')][string]$Workflow='LinkedWork')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Set-Location -LiteralPath $workspace
@@ -17,6 +17,7 @@ try {
  # Adapt only identity literals in previously reviewed scripts to the independently
  # verified new clone. The original disposable source schema remains unchanged.
  $capabilities=if($Workflow -eq 'TaskExecution'){@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline')}elseif($Workflow -in @('Escalation','EscalationUi')){@('InternalRequestCompletion','InternalRequestEscalation','InternalRequestEscalation','NotificationAcknowledgment')}elseif($Workflow -in @('Completion','CompletionUi')){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover','InternalRequestCompletion','InternalRequestCompletion')}elseif($Workflow -eq 'CompletionWork'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover')}elseif($Workflow -in @('Handover','HandoverDelivery')){@('InternalRequestHandover','InternalRequestHandover')}elseif($Workflow -eq 'Intake'){@('InternalRequestIntake','InternalRequestIntake')}elseif($Workflow -eq 'IncidentLink'){@('InternalRequestIncidentLinks','InternalRequestIncidentLinks')}elseif($Workflow -in @('IncidentRead','OwnTimeLog','ReportActors')){@()}elseif($Workflow -eq 'Withdrawal'){@('InternalRequestWithdrawal','InternalRequestWithdrawal')}else{@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')}
+ if($Workflow -eq 'TaskCycles'){$capabilities=@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','TaskReopen')}
  foreach($cap in $capabilities) {
   $sourcePath=Join-Path $PSScriptRoot "CanonicalDatabase/${cap}Isolated.sql"
   $sql=[IO.File]::ReadAllText($sourcePath)
@@ -72,7 +73,7 @@ try {
   try{$response=Invoke-WebRequest https://localhost:7142/api/auth/csrf -UseBasicParsing -TimeoutSec 3;if($response.StatusCode -eq 200){$ready=$true;break}}catch{Start-Sleep -Milliseconds 400}
  }
  if(!$ready){throw 'Owned HTTPS host unavailable'}
- $probeMode=if($Workflow -eq 'TaskExecution'){'--sprint-task-decline'}else{'--sprint-linked-task-creation'}
+ $probeMode=if($Workflow -in @('TaskExecution','TaskCycles')){'--sprint-task-decline'}else{'--sprint-linked-task-creation'}
  dotnet scripts/verification/CanonicalDatabase/ModelProbe/bin/Debug/net10.0/ModelProbe.dll $probeMode $receiptPath "$prefix-runtime.json" > "$prefix-probe.log" 2>&1
  if($LASTEXITCODE -ne 0){throw "Linked creation trial failed: $prefix-runtime.json"}
 } finally {

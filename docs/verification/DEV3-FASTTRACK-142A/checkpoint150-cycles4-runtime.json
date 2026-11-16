@@ -1,0 +1,3167 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_cdbdf14b",
+  "fixtureUserId": 1141282,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/71069/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "entryCheck": "unauthenticated accept denied"
+    },
+    {
+      "entryCheck": "unauthenticated start denied"
+    },
+    {
+      "entryCheck": "both mutations require ETag"
+    },
+    {
+      "entryCheck": "both mutations require CSRF"
+    },
+    {
+      "entryCheck": "unassigned acceptance denied"
+    },
+    {
+      "entryCheck": "unassigned start denied"
+    },
+    {
+      "entryCheck": "foreign branch denied"
+    },
+    {
+      "entryCheck": "Assigned task cannot skip Accept"
+    },
+    {
+      "entryCheck": "entry denials do not change task version, history, interval or audit"
+    },
+    {
+      "entryCheck": "missing entry capability fails closed"
+    },
+    {
+      "entryCheck": "revoked executor permission denies both entry operations"
+    },
+    {
+      "entryCheck": "inactive source department denies acceptance"
+    },
+    {
+      "entryCheck": "prestart progress mutation refused server-side"
+    },
+    {
+      "entryCheck": "failed acceptance audit rolls back state, version, parent and history"
+    },
+    {
+      "entryCheck": "concurrent Accept produces exactly one success and one stale response"
+    },
+    {
+      "entryCheck": "fresh retry cannot accept twice"
+    },
+    {
+      "entryCheck": "Accept does not start time or require a workday"
+    },
+    {
+      "entryCheck": "Start requires Working workday and returns MSG30"
+    },
+    {
+      "entryCheck": "missing workday rolls back workflow and parent writes"
+    },
+    {
+      "entryCheck": "another open interval returns MSG31 and rolls back all writes"
+    },
+    {
+      "entryCheck": "lost current responsibility prevents Start"
+    },
+    {
+      "entryCheck": "assignment changes invalidate the old ETag"
+    },
+    {
+      "entryCheck": "injected final task audit failure rejects Start"
+    },
+    {
+      "entryCheck": "audit failure rolls back workflow, first start, progress, interval and both audits"
+    },
+    {
+      "entryCheck": "concurrent Start creates exactly one interval"
+    },
+    {
+      "entryCheck": "first actual start equals authoritative server interval timestamp"
+    },
+    {
+      "entryCheck": "running task rejects fresh Accept and Start retries"
+    },
+    {
+      "entryCheck": "exactly two entry audits and one interval audit persist"
+    },
+    {
+      "entryCheck": "MAINTENANCE_STAFF accepts and starts under its real scoped executor permission"
+    },
+    {
+      "entryCheck": "STOREKEEPER accepts and starts under its real scoped executor permission"
+    },
+    {
+      "entryCheck": "starting an Accepted task with a prior first start preserves that timestamp"
+    },
+    {
+      "success": true,
+      "stage": "logout protects task route",
+      "checks": [
+        "canonical login",
+        "read assigned task",
+        "accept task",
+        "reload accepted state",
+        "start task",
+        "save real progress",
+        "pause with approved catalog",
+        "resume without new reason",
+        "reload and persisted history",
+        "logout protects task route"
+      ],
+      "requests": [
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "action": "accept",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "action": "start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "action": "pause",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "resume",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "entryCheck": "canonical browser Accept/Start/Progress/Pause/Resume workflow accepted"
+    },
+    {
+      "entryCheck": "browser persists progress, two work intervals and original first start across pause/resume"
+    },
+    {
+      "declineCheck": "Department Head session established"
+    },
+    {
+      "declineCheck": "anonymous Decline with CSRF denied"
+    },
+    {
+      "declineCheck": "Decline requires strong ETag"
+    },
+    {
+      "declineCheck": "Decline requires CSRF"
+    },
+    {
+      "declineCheck": "manager cannot decline another assignee\u0027s task"
+    },
+    {
+      "declineCheck": "foreign branch Decline denied"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 0"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 4"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 4001"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 10"
+    },
+    {
+      "declineCheck": "all input and authority denials leave state, assignment, audit, progress and time unchanged"
+    },
+    {
+      "declineCheck": "missing decline capability fails closed"
+    },
+    {
+      "declineCheck": "missing workflow filter capability fails closed"
+    },
+    {
+      "declineCheck": "revoked executor permission denies Decline"
+    },
+    {
+      "declineCheck": "stale Decline refused"
+    },
+    {
+      "declineCheck": "audit failure rolls back Decline and cannot publish notification intent"
+    },
+    {
+      "declineCheck": "final permission gate revalidates after assignment removal and rolls back revocation and decline"
+    },
+    {
+      "declineCheck": "concurrent Decline commits once; loser has lost assignment authority"
+    },
+    {
+      "declineCheck": "Decline confirms MSG19 and fresh version; short nonblank reason accepted"
+    },
+    {
+      "declineCheck": "assignee removed without erasing assignment history or original note"
+    },
+    {
+      "declineCheck": "manager reads canonical Pending Assignment while legacy status remains valid"
+    },
+    {
+      "declineCheck": "former assignee cannot read task detail or progress"
+    },
+    {
+      "declineCheck": "OWN list excludes declined tasks"
+    },
+    {
+      "declineCheck": "workflow filter applies before pagination/count"
+    },
+    {
+      "declineCheck": "legacy status is not accepted as an invented workflow"
+    },
+    {
+      "declineCheck": "intent includes only eligible Department Head in branch"
+    },
+    {
+      "declineCheck": "revoked manager denied delivery"
+    },
+    {
+      "declineCheck": "delivery failure rolls back notification but preserves durable intent"
+    },
+    {
+      "declineCheck": "concurrent delivery retries converge"
+    },
+    {
+      "declineCheck": "exactly one manager delivery receipt"
+    },
+    {
+      "declineCheck": "eligible recipient opens task source"
+    },
+    {
+      "declineCheck": "source opening revalidates manager authority"
+    },
+    {
+      "declineCheck": "MAINTENANCE_STAFF declines with real scoped permission"
+    },
+    {
+      "declineCheck": "STOREKEEPER declines with real scoped permission"
+    },
+    {
+      "declineCheck": "Assigned task with historical first start can accept without losing time history"
+    },
+    {
+      "declineCheck": "Accepted task cannot Decline"
+    },
+    {
+      "declineCheck": "Accept versus Decline commits exactly one assignment response"
+    },
+    {
+      "success": true,
+      "mode": "decline",
+      "stage": "logout revokes browser session",
+      "checks": [
+        "canonical login",
+        "scoped workflow list",
+        "assignment details and disabled blank decline",
+        "committed decline and clear own task",
+        "reload cannot recover lost own access",
+        "logout revokes browser session"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/assignment",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/decline",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "declineCheck": "canonical decline browser \u003C\u003Ef__AnonymousType247\u00606"
+    },
+    {
+      "declineCheck": "browser committed decline delivered to manager"
+    },
+    {
+      "success": true,
+      "mode": "manager",
+      "stage": "logout revokes browser session",
+      "checks": [
+        "canonical login",
+        "scoped workflow list",
+        "manager sees pending assignment and decline history",
+        "inbox opens authorized declined task",
+        "logout revokes browser session"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/notifications/1207/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450520/submission",
+          "method": "GET",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "declineCheck": "canonical decline browser \u003C\u003Ef__AnonymousType247\u00606"
+    },
+    {
+      "declineCheck": "Decline never opens or closes unrelated existing work intervals"
+    },
+    {
+      "assignmentCheck": "new executor authenticated"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "executor cannot inspect other executors workload"
+    },
+    {
+      "assignmentCheck": "executor cannot assign tasks"
+    },
+    {
+      "assignmentCheck": "assignment requires ETag"
+    },
+    {
+      "assignmentCheck": "assignment requires CSRF"
+    },
+    {
+      "assignmentCheck": "manager cannot assign outside branch"
+    },
+    {
+      "assignmentCheck": "anonymous assignment denied"
+    },
+    {
+      "assignmentCheck": "stale assignment rejected"
+    },
+    {
+      "assignmentCheck": "invalid executor rejected: inactive"
+    },
+    {
+      "assignmentCheck": "invalid executor rejected: department"
+    },
+    {
+      "assignmentCheck": "invalid executor rejected: branch"
+    },
+    {
+      "assignmentCheck": "invalid executor rejected: role"
+    },
+    {
+      "assignmentCheck": "invalid executor rejected: expired"
+    },
+    {
+      "assignmentCheck": "authority, eligibility and stale denials preserve full task state and time"
+    },
+    {
+      "assignmentRace": "account",
+      "userLockWaitObserved": true,
+      "httpStatus": 400,
+      "taskUnchanged": true
+    },
+    {
+      "assignmentRace": "role",
+      "userLockWaitObserved": true,
+      "httpStatus": 400,
+      "taskUnchanged": true
+    },
+    {
+      "assignmentCheck": "new executor has no PLANNED shift"
+    },
+    {
+      "assignmentCheck": "assign after Decline without PLANNED shift commits once under concurrent retry"
+    },
+    {
+      "assignmentCheck": "assignment preserves original decline attribution"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "same owner cannot reset lifecycle"
+    },
+    {
+      "assignmentCheck": "reassignment requires nonblank reason"
+    },
+    {
+      "assignmentCheck": "new assignee Accept after assignment"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "Accepted reassigns to Assigned with short nonblank reason"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "Assigned reassigns to Assigned"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "audit failure rejects In Progress reassignment"
+    },
+    {
+      "assignmentCheck": "audit failure rolls back interval closure, old/new assignment, progress and workflow"
+    },
+    {
+      "assignmentCheck": "final executor eligibility loss rejects reassignment"
+    },
+    {
+      "assignmentCheck": "final eligibility failure rolls back closure and injected role change"
+    },
+    {
+      "assignmentCheck": "In Progress reassign closes interval and commits new owner"
+    },
+    {
+      "assignmentCheck": "old interval closed at server time by authorized manager"
+    },
+    {
+      "assignmentCheck": "reassign preserves historical first start"
+    },
+    {
+      "assignmentCheck": "previous owner loses execute and OWN read"
+    },
+    {
+      "assignmentCheck": "manager workload includes closed effective effort today"
+    },
+    {
+      "assignmentCheck": "new executor cannot Start before Accept"
+    },
+    {
+      "assignmentCheck": "reassigned executor must Accept again"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "executionUserLock": "Start",
+      "taskWaitObserved": true,
+      "competingUserLockBlockedByApi": true,
+      "httpStatus": 200,
+      "committedState": "IN_PROGRESS",
+      "openIntervals": 1
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "new executor pauses with approved reason"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "executionUserLock": "Resume",
+      "taskWaitObserved": true,
+      "competingUserLockBlockedByApi": true,
+      "httpStatus": 200,
+      "committedState": "IN_PROGRESS",
+      "openIntervals": 1
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "executor pauses again before reassignment"
+    },
+    {
+      "assignmentCheck": "manager assignment snapshot available"
+    },
+    {
+      "assignmentCheck": "Paused reassign returns Assigned without opening time"
+    },
+    {
+      "assignmentCheck": "paused reassignment opens no interval"
+    },
+    {
+      "assignmentCheck": "revoked previous executor is not notified"
+    },
+    {
+      "assignmentCheck": "assignment notification concurrent retries converge"
+    },
+    {
+      "assignmentCheck": "one notice receipt each for previous and new owner"
+    },
+    {
+      "assignmentCheck": "generic removal notice never grants previous owner source access"
+    },
+    {
+      "assignmentCheck": "new owner opens source with current authorization"
+    },
+    {
+      "assignmentCheck": "PENDING_VERIFICATION cannot reassign even with fresh version"
+    },
+    {
+      "assignmentCheck": "CLOSED cannot reassign even with fresh version"
+    },
+    {
+      "success": true,
+      "stage": "new executor accepts again",
+      "checks": [
+        "manager opens pending assignment",
+        "eligible executor and scoped workload",
+        "assign commits and refreshes current owner",
+        "reload preserves assignment",
+        "executor accepts assigned task",
+        "accepted state survives reload",
+        "manager reassigns Accepted task with reason",
+        "new executor accepts again"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/accept",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/assignment",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450521/accept",
+          "method": "POST",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "assignmentCheck": "canonical manager Assign then executor Accept browser workflow"
+    },
+    {
+      "assignmentCheck": "browser assignment and acceptance persisted to SQL"
+    },
+    {
+      "planningCheck": "manager loads scoped approved categories and priority catalog"
+    },
+    {
+      "planningCheck": "executor cannot create or inspect manager creation options"
+    },
+    {
+      "planningCheck": "Create requires CSRF"
+    },
+    {
+      "planningCheck": "anonymous Create denied"
+    },
+    {
+      "planningCheck": "Create respects current branch authority"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "invalid task definition or planning rejected"
+    },
+    {
+      "planningCheck": "linked request without source If-Match is rejected before mutation"
+    },
+    {
+      "planningCheck": "specialized category cannot bypass its workflow: CLEANING"
+    },
+    {
+      "planningCheck": "specialized category cannot bypass its workflow: INCIDENT"
+    },
+    {
+      "planningCheck": "specialized category cannot bypass its workflow: MATERIAL"
+    },
+    {
+      "planningCheck": "unclassified category fails closed"
+    },
+    {
+      "planningCheck": "inactive category cannot create"
+    },
+    {
+      "planningCheck": "Create validation and authority failures preserve task, criteria, audit and time"
+    },
+    {
+      "planningCheck": "Create rejects audit persistence failure"
+    },
+    {
+      "planningCheck": "Create audit failure rolls back definition, criteria and sole workflow state"
+    },
+    {
+      "planningCheck": "concurrent same-key Create converges to one task"
+    },
+    {
+      "planningCheck": "idempotent Create records one audit"
+    },
+    {
+      "planningCheck": "same key different definition cannot overwrite created task"
+    },
+    {
+      "planningCheck": "public Create persists immutable criteria without outcomes"
+    },
+    {
+      "planningCheck": "new Pending Assignment plan exposes requested outcome and safe cancellation"
+    },
+    {
+      "planningCheck": "Plan requires strong ETag and CSRF"
+    },
+    {
+      "planningCheck": "pending plan update commits new concurrency version"
+    },
+    {
+      "planningCheck": "stale planning rejected"
+    },
+    {
+      "planningCheck": "public created task enters verified assignment workflow"
+    },
+    {
+      "planningCheck": "assigned plan change requires reason"
+    },
+    {
+      "planningCheck": "assigned plan audit failure rejected"
+    },
+    {
+      "planningCheck": "Plan audit failure rolls back priority, deadline, duration, progress and version"
+    },
+    {
+      "planningCheck": "concurrent Plan commits exactly one new history event"
+    },
+    {
+      "planningCheck": "old deadline retained in ordered plan history"
+    },
+    {
+      "planningCheck": "current executor can review plan without gaining manager writes"
+    },
+    {
+      "planningCheck": "Plan delivery rechecks recipient authorization"
+    },
+    {
+      "planningCheck": "Plan notification concurrent retry is idempotent"
+    },
+    {
+      "planningCheck": "Plan notification has one recipient and authorized source"
+    },
+    {
+      "planningCheck": "Cancel requires GBR012 reason"
+    },
+    {
+      "planningCheck": "assigned public task accepted before cancellation"
+    },
+    {
+      "planningCheck": "Cancel audit failure rejected"
+    },
+    {
+      "planningCheck": "Cancel audit failure restores active responsibility and lifecycle"
+    },
+    {
+      "planningCheck": "concurrent Cancel of Accepted task commits exactly once"
+    },
+    {
+      "planningCheck": "Cancel persists physical and sole lifecycle with ended responsibility and no work time"
+    },
+    {
+      "planningCheck": "Cancel notification retries converge"
+    },
+    {
+      "planningCheck": "generic cancellation notification does not restore lost source access"
+    },
+    {
+      "planningCheck": "Cancelled plan remains historical and immutable"
+    },
+    {
+      "planningCheck": "Cancelled task cannot be replanned"
+    },
+    {
+      "planningCheck": "reassigned task with historical work cannot be cancelled despite prestart current state"
+    },
+    {
+      "success": true,
+      "stage": "public create and confirmed prestart cancellation",
+      "taskId": 450524,
+      "cancelledTaskId": 450525,
+      "checks": [
+        "public creation with criteria and expected outcome",
+        "manager plans before assignment",
+        "Save and assign continues verified assignment",
+        "assigned deadline reason and previous deadline history",
+        "executor reads plan and accepts public task",
+        "Start creates actual work interval",
+        "Progress persists public completion criterion",
+        "Pause and Resume preserve active effort",
+        "Submit public task with completed criterion",
+        "creator cannot self verify requested work",
+        "independent manager verifies and closes task",
+        "public create and confirmed prestart cancellation"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "POST",
+          "status": 201
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/accept",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/pause-reasons",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/pause",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/resume",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks",
+          "method": "POST",
+          "status": 201
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/cancel",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/verification",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/submission",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450525/verification",
+          "method": "GET",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "planningCheck": "public Create through Closed and prestart cancellation canonical browser workflows"
+    },
+    {
+      "planningCheck": "public browser task Closed persists SQL completion"
+    },
+    {
+      "planningCheck": "browser Pause Resume Submit preserve two closed intervals excluding paused time"
+    },
+    {
+      "taskCompletionCheck": "dashboard actor retains scoped Department Head authority",
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionCheck": "public producer persisted expected accepted processing cycles",
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionCheck": "authorized dashboard returns HTTP200 for real Closed task",
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionMetrics": [
+        {
+          "key": "activeRooms",
+          "label": "Active rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRooms",
+          "label": "Ready rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRatio",
+          "label": "Ready rooms ratio",
+          "value": null,
+          "unit": "percent",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "openTasks",
+          "label": "Open tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 canonical lifecycle at snapshot",
+          "drillDown": null
+        },
+        {
+          "key": "overdueTasks",
+          "label": "Overdue tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 due before snapshot; excludes Closed/Cancelled",
+          "drillDown": null
+        },
+        {
+          "key": "closedTasksInPeriod",
+          "label": "Tasks closed in period",
+          "value": null,
+          "unit": "count",
+          "source": "Canonical Closed; completion timestamp in UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskEffortHours",
+          "label": "Task effort",
+          "value": 0.0108333333333333333333333333,
+          "unit": "hours",
+          "source": "Closed effective TASK intervals clipped to selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskProvisionalHours",
+          "label": "Task effort in open intervals",
+          "value": 0,
+          "unit": "hours",
+          "source": "Provisional only; clipped at server snapshot and UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskOpenIntervals",
+          "label": "Open task intervals",
+          "value": 0,
+          "unit": "count",
+          "source": "Open intervals overlapping selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "averageTaskCompletionHours",
+          "label": "Average task completion time",
+          "value": 0.0002115947777777777777777778,
+          "unit": "hours",
+          "source": "KPI-05: sum of first Start to accepted Submit per cycle, averaged once per current Closed task in selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "openIncidents",
+          "label": "Open incidents",
+          "value": null,
+          "unit": "count",
+          "source": "incidents: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "lowStockItems",
+          "label": "Items below minimum",
+          "value": 0,
+          "unit": "warehouse-item pairs",
+          "source": "KPI-11: same available=sum(signed_base_qty) semantics as frozen Inventory",
+          "drillDown": "/inventory/dashboard"
+        },
+        {
+          "key": "firstInspectionPassRate",
+          "label": "First-time inspection pass rate",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "responseHours",
+          "label": "Average response time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "resolutionHours",
+          "label": "Average resolution time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "slaCompliance",
+          "label": "SLA compliance",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "reopenedIncidents",
+          "label": "Reopened incidents",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "transferLosses",
+          "label": "Transfer losses",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        }
+      ],
+      "missingSources": [
+        "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
+        "KPI-03: first-inspection cleaning-cycle contract unavailable",
+        "KPI-08/09/10: accepted timestamp, current-cycle SLA deadlines and reopened source contract unavailable",
+        "UC133: preventive occurrence lifecycle is not approved; no inferred due/overdue counts",
+        "UC131: rooms/cleaning have no approved department mapping; department-filtered figures withheld",
+        "KPI-04: task lifecycle or location is inconsistent; open/overdue/closed totals withheld, UNKNOWN rows shown separately",
+        "UC133: incident department relationship unavailable; incident figures withheld",
+        "KPI-13: cross-branch transfer-loss visibility policy unresolved; losses withheld"
+      ],
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionCheck": "one persisted Closed task, never number of processing cycles, is KPI denominator",
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionCheck": "KPI05 matches persisted first-Start to accepted-Submit elapsed cycles, excluding verification and Closed gaps",
+      "expectedCycles": 1
+    },
+    {
+      "taskCompletionCheck": "period without Closed tasks yields N/A instead of zero or historical cycle count",
+      "expectedCycles": 1
+    },
+    {
+      "reopenCheck": "independent verifier session established"
+    },
+    {
+      "reopenCheck": "public browser Closed task exposes eligible Reopen command"
+    },
+    {
+      "reopenCheck": "anonymous Reopen denied"
+    },
+    {
+      "reopenCheck": "executor may read history without manager command"
+    },
+    {
+      "reopenCheck": "executor cannot reopen own Closed task"
+    },
+    {
+      "reopenCheck": "Reopen requires strong ETag"
+    },
+    {
+      "reopenCheck": "Reopen requires CSRF"
+    },
+    {
+      "reopenCheck": "cross-branch Reopen denied"
+    },
+    {
+      "reopenCheck": "invalid reason instructions or identity rejected"
+    },
+    {
+      "reopenCheck": "invalid reason instructions or identity rejected"
+    },
+    {
+      "reopenCheck": "invalid reason instructions or identity rejected"
+    },
+    {
+      "reopenCheck": "invalid reason instructions or identity rejected"
+    },
+    {
+      "reopenCheck": "invalid reason instructions or identity rejected"
+    },
+    {
+      "reopenCheck": "manager without executor role and department rejected as assignee"
+    },
+    {
+      "reopenCheck": "inactive executor rejected"
+    },
+    {
+      "reopenCheck": "revoked executor role rejected"
+    },
+    {
+      "reopenCheck": "invalid and unauthorized Reopen preserve all workflow tables"
+    },
+    {
+      "reopenCheck": "missing Reopen schema fails closed"
+    },
+    {
+      "reopenCheck": "Reopen injected failure rejected: audit_logs"
+    },
+    {
+      "reopenCheck": "Reopen atomic rollback after audit_logs"
+    },
+    {
+      "reopenCheck": "Reopen injected failure rejected: task_completion_criteria"
+    },
+    {
+      "reopenCheck": "Reopen atomic rollback after task_completion_criteria"
+    },
+    {
+      "reopenCheck": "same-version concurrent Reopen commits one cycle and one assignment"
+    },
+    {
+      "reopenCheck": "retry after ambiguous Reopen cannot create another cycle"
+    },
+    {
+      "reopenCheck": "new cycle resets current results under explicit criterion guard"
+    },
+    {
+      "reopenCheck": "Reopen preserves first actual start and historical intervals without opening work"
+    },
+    {
+      "reopenCheck": "previous completion snapshot remains unchanged"
+    },
+    {
+      "reopenCheck": "Reopen cannot skip Accept"
+    },
+    {
+      "reopenCheck": "Reopen notification delivery rechecks current recipient authority"
+    },
+    {
+      "reopenCheck": "Reopen concurrent notification retries converge"
+    },
+    {
+      "reopenCheck": "one notification recipient opens currently authorized source"
+    },
+    {
+      "reopenCheck": "reopened executor accepts new cycle"
+    },
+    {
+      "reopenCheck": "new cycle Start opens a fresh interval under workday guard"
+    },
+    {
+      "reopenCheck": "new cycle submits its own result snapshot"
+    },
+    {
+      "reopenCheck": "same-assignee new cycle independently verified Closed"
+    },
+    {
+      "reopenCheck": "old cycle result remains addressable after later submission"
+    },
+    {
+      "reopenCheck": "unknown historical submission fails closed"
+    },
+    {
+      "reopenCheck": "first actual start survives second completion"
+    },
+    {
+      "taskCompletionCheck": "dashboard actor retains scoped Department Head authority",
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionCheck": "public producer persisted expected accepted processing cycles",
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionCheck": "authorized dashboard returns HTTP200 for real Closed task",
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionMetrics": [
+        {
+          "key": "activeRooms",
+          "label": "Active rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRooms",
+          "label": "Ready rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRatio",
+          "label": "Ready rooms ratio",
+          "value": null,
+          "unit": "percent",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "openTasks",
+          "label": "Open tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 canonical lifecycle at snapshot",
+          "drillDown": null
+        },
+        {
+          "key": "overdueTasks",
+          "label": "Overdue tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 due before snapshot; excludes Closed/Cancelled",
+          "drillDown": null
+        },
+        {
+          "key": "closedTasksInPeriod",
+          "label": "Tasks closed in period",
+          "value": null,
+          "unit": "count",
+          "source": "Canonical Closed; completion timestamp in UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskEffortHours",
+          "label": "Task effort",
+          "value": 0.0108333333333333333333333333,
+          "unit": "hours",
+          "source": "Closed effective TASK intervals clipped to selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskProvisionalHours",
+          "label": "Task effort in open intervals",
+          "value": 0,
+          "unit": "hours",
+          "source": "Provisional only; clipped at server snapshot and UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskOpenIntervals",
+          "label": "Open task intervals",
+          "value": 0,
+          "unit": "count",
+          "source": "Open intervals overlapping selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "averageTaskCompletionHours",
+          "label": "Average task completion time",
+          "value": 0.0002258431388888888888888889,
+          "unit": "hours",
+          "source": "KPI-05: sum of first Start to accepted Submit per cycle, averaged once per current Closed task in selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "openIncidents",
+          "label": "Open incidents",
+          "value": null,
+          "unit": "count",
+          "source": "incidents: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "lowStockItems",
+          "label": "Items below minimum",
+          "value": 0,
+          "unit": "warehouse-item pairs",
+          "source": "KPI-11: same available=sum(signed_base_qty) semantics as frozen Inventory",
+          "drillDown": "/inventory/dashboard"
+        },
+        {
+          "key": "firstInspectionPassRate",
+          "label": "First-time inspection pass rate",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "responseHours",
+          "label": "Average response time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "resolutionHours",
+          "label": "Average resolution time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "slaCompliance",
+          "label": "SLA compliance",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "reopenedIncidents",
+          "label": "Reopened incidents",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "transferLosses",
+          "label": "Transfer losses",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        }
+      ],
+      "missingSources": [
+        "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
+        "KPI-03: first-inspection cleaning-cycle contract unavailable",
+        "KPI-08/09/10: accepted timestamp, current-cycle SLA deadlines and reopened source contract unavailable",
+        "UC133: preventive occurrence lifecycle is not approved; no inferred due/overdue counts",
+        "UC131: rooms/cleaning have no approved department mapping; department-filtered figures withheld",
+        "KPI-04: task lifecycle or location is inconsistent; open/overdue/closed totals withheld, UNKNOWN rows shown separately",
+        "UC133: incident department relationship unavailable; incident figures withheld",
+        "KPI-13: cross-branch transfer-loss visibility policy unresolved; losses withheld"
+      ],
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionCheck": "one persisted Closed task, never number of processing cycles, is KPI denominator",
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionCheck": "KPI05 matches persisted first-Start to accepted-Submit elapsed cycles, excluding verification and Closed gaps",
+      "expectedCycles": 2
+    },
+    {
+      "taskCompletionCheck": "period without Closed tasks yields N/A instead of zero or historical cycle count",
+      "expectedCycles": 2
+    },
+    {
+      "success": true,
+      "stage": "prior completion remains readable after third cycle",
+      "taskId": 450524,
+      "checks": [
+        "manager reviews Closed result and previous cycle history",
+        "manager reopens to a different eligible executor",
+        "new executor sees remediation and must Accept again",
+        "new cycle starts with cleared criterion and records new work",
+        "new cycle submits and cannot self verify",
+        "prior-cycle performer can independently verify the new cycle",
+        "prior completion remains readable after third cycle"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/accept",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/progress",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/creation-options",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/plan",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/assignment",
+          "method": "GET",
+          "status": 409
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/reopen",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/operational-tasks/450524/submission",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "reopenCheck": "browser Reopen new assignee through independent Closed and preserved prior results"
+    },
+    {
+      "reopenCheck": "new-cycle segregation includes only new-cycle performers"
+    },
+    {
+      "reopenCheck": "actual effort remains cumulative across cycles and excludes paused time"
+    },
+    {
+      "reopenCheck": "three completed historical assignments and no leaked open intervals"
+    },
+    {
+      "taskCompletionCheck": "dashboard actor retains scoped Department Head authority",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "public producer persisted expected accepted processing cycles",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "authorized dashboard returns HTTP200 for real Closed task",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionMetrics": [
+        {
+          "key": "activeRooms",
+          "label": "Active rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRooms",
+          "label": "Ready rooms",
+          "value": null,
+          "unit": "count",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "readyRatio",
+          "label": "Ready rooms ratio",
+          "value": null,
+          "unit": "percent",
+          "source": "rooms: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "openTasks",
+          "label": "Open tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 canonical lifecycle at snapshot",
+          "drillDown": null
+        },
+        {
+          "key": "overdueTasks",
+          "label": "Overdue tasks",
+          "value": null,
+          "unit": "count",
+          "source": "KPI-04 due before snapshot; excludes Closed/Cancelled",
+          "drillDown": null
+        },
+        {
+          "key": "closedTasksInPeriod",
+          "label": "Tasks closed in period",
+          "value": null,
+          "unit": "count",
+          "source": "Canonical Closed; completion timestamp in UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskEffortHours",
+          "label": "Task effort",
+          "value": 0.0108333333333333333333333333,
+          "unit": "hours",
+          "source": "Closed effective TASK intervals clipped to selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskProvisionalHours",
+          "label": "Task effort in open intervals",
+          "value": 0,
+          "unit": "hours",
+          "source": "Provisional only; clipped at server snapshot and UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "taskOpenIntervals",
+          "label": "Open task intervals",
+          "value": 0,
+          "unit": "count",
+          "source": "Open intervals overlapping selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "averageTaskCompletionHours",
+          "label": "Average task completion time",
+          "value": 0.0003269118611111111111111111,
+          "unit": "hours",
+          "source": "KPI-05: sum of first Start to accepted Submit per cycle, averaged once per current Closed task in selected UTC period",
+          "drillDown": null
+        },
+        {
+          "key": "openIncidents",
+          "label": "Open incidents",
+          "value": null,
+          "unit": "count",
+          "source": "incidents: no department relationship",
+          "drillDown": null
+        },
+        {
+          "key": "lowStockItems",
+          "label": "Items below minimum",
+          "value": 0,
+          "unit": "warehouse-item pairs",
+          "source": "KPI-11: same available=sum(signed_base_qty) semantics as frozen Inventory",
+          "drillDown": "/inventory/dashboard"
+        },
+        {
+          "key": "firstInspectionPassRate",
+          "label": "First-time inspection pass rate",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "responseHours",
+          "label": "Average response time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "resolutionHours",
+          "label": "Average resolution time",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "slaCompliance",
+          "label": "SLA compliance",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "reopenedIncidents",
+          "label": "Reopened incidents",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        },
+        {
+          "key": "transferLosses",
+          "label": "Transfer losses",
+          "value": null,
+          "unit": "unavailable",
+          "source": "See missingSources",
+          "drillDown": null
+        }
+      ],
+      "missingSources": [
+        "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
+        "KPI-03: first-inspection cleaning-cycle contract unavailable",
+        "KPI-08/09/10: accepted timestamp, current-cycle SLA deadlines and reopened source contract unavailable",
+        "UC133: preventive occurrence lifecycle is not approved; no inferred due/overdue counts",
+        "UC131: rooms/cleaning have no approved department mapping; department-filtered figures withheld",
+        "KPI-04: task lifecycle or location is inconsistent; open/overdue/closed totals withheld, UNKNOWN rows shown separately",
+        "UC133: incident department relationship unavailable; incident figures withheld",
+        "KPI-13: cross-branch transfer-loss visibility policy unresolved; losses withheld"
+      ],
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "one persisted Closed task, never number of processing cycles, is KPI denominator",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "KPI05 matches persisted first-Start to accepted-Submit elapsed cycles, excluding verification and Closed gaps",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "period without Closed tasks yields N/A instead of zero or historical cycle count",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionCheck": "browser displays KPI05 from three real processing cycles through HTTPS and SQL",
+      "expectedCycles": 3
+    },
+    {
+      "taskCompletionBrowser": {
+        "success": true,
+        "cycles": 3,
+        "taskDenominator": 1,
+        "verified": "KPI05 browser HTTPS SQL reconciliation"
+      }
+    },
+    {
+      "reopenCheck": "old Reopen notice cannot restore previous executor access after reassignment"
+    },
+    {
+      "workloadCheck": "manager workload uses current branch and canonical workflow"
+    },
+    {
+      "workloadCheck": "closed workload preserves each executor\u0027s accepted cycles without double counting task per executor"
+    },
+    {
+      "workloadCheck": "employee task detail uses historical participation"
+    },
+    {
+      "workloadCheck": "closed effort equals persisted per-executor intervals; no provisional time after closure"
+    },
+    {
+      "workloadCheck": "time-log details and workload use the same seconds contract"
+    },
+    {
+      "workloadCheck": "employee task detail uses historical participation"
+    },
+    {
+      "workloadCheck": "closed effort equals persisted per-executor intervals; no provisional time after closure"
+    },
+    {
+      "workloadCheck": "time-log details and workload use the same seconds contract"
+    },
+    {
+      "workloadCheck": "own TASK_VIEW cannot read manager workload"
+    },
+    {
+      "workloadCheck": "foreign branch workload denied"
+    },
+    {
+      "workloadCheck": "reversed period rejected"
+    },
+    {
+      "workloadCheck": "physical status cannot replace workflow filter"
+    },
+    {
+      "workloadCheck": "oversize pagination rejected"
+    },
+    {
+      "workloadCheck": "empty workload preserves filters and MSG10"
+    },
+    {
+      "workloadCheck": "workload and time-log reads do not mutate audit or workflow"
+    },
+    {
+      "success": true,
+      "stage": "clearing filters restores employee results",
+      "checks": [
+        "manager workload preserves two executors across three cycles",
+        "employee drill-down separates task intervals from shift time",
+        "Closed filter returns accepted-cycle workload",
+        "overdue excludes Closed and shows MSG10",
+        "clearing filters restores employee results"
+      ],
+      "requests": [
+        {
+          "path": "/api/branches/71069/task-workload",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/task-workload/1141285",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/task-workload",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/task-workload",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/task-workload",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/71069/task-workload",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "workloadCheck": "canonical browser workload filters and employee drill-down use HTTPS and SQL"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026pageSize=1"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026pageSize=1\u0026page=2"
+    },
+    {
+      "workloadCheck": "stable employee pagination has no duplicate boundary rows"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026departmentId=569\u0026priorityId=755\u0026employeeId=1141282"
+    },
+    {
+      "workloadCheck": "department priority and employee filters intersect within branch"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026from=2026-11-17\u0026to=2026-11-17"
+    },
+    {
+      "workloadCheck": "future period does not borrow closed historical effort"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23"
+    },
+    {
+      "workloadCheck": "Operations Manager with existing TASK_VIEW branch grant is allowed by SRS113"
+    },
+    {
+      "workloadCheck": "revoked manager roles deny workload without stale session authority"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23"
+    },
+    {
+      "workloadCheck": "TASK_VIEW does not grant branch shift-time access"
+    },
+    {
+      "workloadCheck": "public Reopen begins live workload fixture"
+    },
+    {
+      "workloadCheck": "public Accept Start opens live provisional interval"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23"
+    },
+    {
+      "workloadCheck": "open interval contributes provisional time and open workload separately"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026overdueOnly=true\u0026status=IN_PROGRESS"
+    },
+    {
+      "workloadCheck": "GBR135 flags an open past-deadline task"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23\u0026deadlineFrom=2026-11-16\u0026deadlineTo=2026-11-16"
+    },
+    {
+      "workloadCheck": "hotel-date deadline filter includes the effective deadline"
+    },
+    {
+      "workloadCheck": "live workload cycle closes interval through public Submit"
+    },
+    {
+      "workloadCheck": "live workload fixture independently closes"
+    },
+    {
+      "workloadCheck": "scoped workload query succeeds: search=TASK-8C9BF918952446E6AECE17FE8401BC23"
+    },
+    {
+      "workloadCheck": "closing converts provisional to recorded effort without duplicating distinct task count"
+    },
+    {
+      "criteriaTriggerPreserved": true,
+      "wholeCloneDropRequired": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Real UC104 Assign/Reassign plus UC107 Accept/Decline, workload, current ownership, atomic interval closure, rollback, notification and canonical browser; isolated clone cleanup required"
+}

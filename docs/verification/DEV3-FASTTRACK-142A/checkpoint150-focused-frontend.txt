@@ -1,0 +1,18 @@
+✔ dashboard workload navigation retains exact scope and explicit UTC period (1.6586ms)
+✔ navigation never chooses an arbitrary branch or silently truncates unsupported periods (0.2024ms)
+✔ malformed deep links cannot auto-load different filters (0.1962ms)
+✔ dashboard task population includes unassigned tasks and rejects mismatched scope/state (16.5879ms)
+✔ explicit UTC calendar is sent and must be confirmed by the response (0.745ms)
+✔ workload preserves filters, identity and read-only request safety (0.3963ms)
+✔ invalid periods, physical states and identities never issue a request (0.2924ms)
+✔ foreign or inconsistent workload aggregates fail closed (1.1791ms)
+✔ employee intervals separate closed effort, provisional and unavailable shift time (0.6357ms)
+✔ forbidden and aborted reads are not retried (0.2885ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 365.4056

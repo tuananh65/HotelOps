@@ -49,7 +49,7 @@ internal static class SprintTaskPlanningScenario
         Check((await Send(managerHttp,HttpMethod.Post,$"/api/branches/{foreign}/operational-tasks",input)).Status==403,"Create respects current branch authority");
         foreach(var invalid in new[]{input with{Title=" "},input with{RequestedResult=" "},input with{Criteria=[]},input with{Criteria=[new("Same",true),new(" same ",false)]},input with{DueAt=input.PlannedStartAt!.Value.AddMinutes(-1)},input with{SlaMinutes=0},input with{RoomId=1,AreaId=1},input with{DepartmentId=long.MaxValue},input with{CategoryId=long.MaxValue},input with{PriorityId=long.MaxValue}})
             Check((await Send(managerHttp,HttpMethod.Post,root,invalid)).Status==400,"invalid task definition or planning rejected");
-        Check((await Send(managerHttp,HttpMethod.Post,root,input with{InternalRequestId=long.MaxValue})).Status==503,"unverified linked request creation fails closed");
+        Check((await Send(managerHttp,HttpMethod.Post,root,input with{InternalRequestId=long.MaxValue})).Status==428,"linked request without source If-Match is rejected before mutation");
         foreach(var process in new[]{"CLEANING","INCIDENT","MATERIAL"}){
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_category_processes SET process_code={process} WHERE category_id={category.CategoryId}",ct);
             Check((await Send(managerHttp,HttpMethod.Post,root,input)).Status==400,"specialized category cannot bypass its workflow: "+process);

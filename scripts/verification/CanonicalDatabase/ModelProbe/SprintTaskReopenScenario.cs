@@ -15,6 +15,7 @@ internal static class SprintTaskReopenScenario
     {
         void Check(bool pass, string name) { if (!pass) throw new Exception(name); checks.Add(new { reopenCheck = name }); }
         var root = $"/api/branches/{branch}/operational-tasks/{task}";
+        await SprintTaskCompletionDashboardScenario.RunAsync(db, managerHttp, manager.UserId, branch, task, 1, checks, ct, manager.Username, password);
         async Task<(int Status, JsonElement Body, string? Tag)> Send(HttpClient client, HttpMethod method, string path, object? body = null, string? tag = null, bool csrf = true)
         {
             using var request = new HttpRequestMessage(method, path);
@@ -97,6 +98,7 @@ internal static class SprintTaskReopenScenario
         Check(await db.OperationalTasks.AnyAsync(t => t.TaskId == task && t.Status == "TODO" && t.CompletedAt == null && t.ProgressPercent == 0 && t.ActualStartAt == closedTask.ActualStartAt, ct)
             && await Json("work_intervals", "interval_id") == oldIntervals, "Reopen preserves first actual start and historical intervals without opening work");
         Check((await Send(managerHttp, HttpMethod.Get, root + "/submission")).Body.GetRawText() == oldResult.Body.GetRawText(), "previous completion snapshot remains unchanged");
+        await SprintTaskCompletionDashboardScenario.VerifyExcludedAsync(db, managerHttp, branch, task, "Reopened", checks, ct);
         Check((await Send(executor, HttpMethod.Post, root + "/start", tag: progress.Tag)).Status == 409, "Reopen cannot skip Accept");
         var audit = await db.AuditLogs.Where(a => a.EntityType == "operational_tasks" && a.EntityId == task.ToString()).OrderByDescending(a => a.AuditId).FirstAsync(ct);
         await db.UserRoles.Where(r => r.UserId == actor).ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, false), ct);
@@ -112,11 +114,13 @@ internal static class SprintTaskReopenScenario
         progress = await Send(executor, HttpMethod.Get, root + "/progress");
         var items = progress.Body.GetProperty("items").EnumerateArray().Select(i => new { id = i.GetProperty("id").GetInt64(), outcome = "PASS", note = "Corrected result" }).ToArray();
         Check((await Send(executor, HttpMethod.Post, root + "/submit", new { items, resultNote = "Second processing cycle corrected", handoverNote = "Independent check required" }, progress.Tag)).Status == 200, "new cycle submits its own result snapshot");
+        await SprintTaskCompletionDashboardScenario.VerifyExcludedAsync(db, managerHttp, branch, task, "Pending Verification", checks, ct);
         var verification = await Send(nextHttp, HttpMethod.Get, root + "/verification");
         Check((await Send(nextHttp, HttpMethod.Post, root + "/verification", new { submissionId = verification.Body.GetProperty("submissionId").GetInt64(), decision = "ACCEPT", note = "Correction independently checked" }, verification.Tag)).Status == 200, "same-assignee new cycle independently verified Closed");
         Check((await Send(managerHttp, HttpMethod.Get, root + "/submission?submission=" + oldSubmission)).Body.GetProperty("resultNote").GetString() == oldResult.Body.GetProperty("resultNote").GetString(), "old cycle result remains addressable after later submission");
         Check((await Send(managerHttp, HttpMethod.Get, root + "/submission?submission=" + long.MaxValue)).Status == 404, "unknown historical submission fails closed");
         Check(await db.OperationalTasks.AnyAsync(t => t.TaskId == task && t.ActualStartAt == closedTask.ActualStartAt, ct), "first actual start survives second completion");
+        await SprintTaskCompletionDashboardScenario.RunAsync(db, managerHttp, manager.UserId, branch, task, 2, checks, ct, manager.Username, password);
         var managerRole = await db.Roles.Where(r => r.RoleCode == "DEPT_MANAGER").Select(r => r.RoleId).SingleAsync(ct);
         var actorManager = new UserRole { UserId = actor, RoleId = managerRole, BranchId = branch, IsActive = true, AssignedAt = DateTime.UtcNow.AddMinutes(-1) };
         db.UserRoles.Add(actorManager); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
@@ -138,6 +142,7 @@ internal static class SprintTaskReopenScenario
         Check(await db.OperationalTaskAssignments.CountAsync(a => a.TaskId == task && a.AssignmentStatus == "COMPLETED", ct) == 3
             && !await db.WorkIntervals.AnyAsync(i => i.WorkItemKind == "TASK" && i.WorkItemId == task && i.ClosedAt == null, ct), "three completed historical assignments and no leaked open intervals");
         await db.UserRoles.Where(r => r.UserRoleId == actorManager.UserRoleId).ExecuteDeleteAsync(ct);
+        await SprintTaskCompletionDashboardScenario.RunAsync(db, managerHttp, manager.UserId, branch, task, 3, checks, ct, manager.Username, password);
         Check((await Send(executor, HttpMethod.Get, $"/api/notifications/{notice.NotificationId}/source")).Status == 404, "old Reopen notice cannot restore previous executor access after reassignment");
         await SprintTaskWorkloadScenario.RunAsync(db, managerHttp, executor, branch, foreign, task, checks, ct, manager.Username, password, nextHttp, actor);
     }

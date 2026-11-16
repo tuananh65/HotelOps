@@ -1,0 +1,49 @@
+{
+    "instance":  "meita",
+    "sharedDatabaseMutation":  false,
+    "httpsListeners":  0,
+    "clones":  [
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles1-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_d337547d",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles2-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_d6ff2c7a",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles3-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_2ecffecd",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles4-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_cdbdf14b",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles5-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_306c90b8",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-cycles6-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_2c90ceaa",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint150-trial1-clone.json.cleanup.json",
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_46fc02f4",
+                       "databaseAbsent":  true
+                   }
+               ]
+}

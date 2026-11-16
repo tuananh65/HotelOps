@@ -24,6 +24,9 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpGet("api/branches/{branch:long}/task-workload/{employee:long}")]
     public Task<IActionResult> WorkloadEmployee(long branch, long employee, [FromQuery] TaskWorkloadQuery query, CancellationToken ct)
         => Execute((ticket, sid) => service.ReadTaskWorkloadAsync(ticket, sid, branch, query, employee, ct), false);
+    [HttpGet("api/branches/{branch:long}/task-workload/tasks")]
+    public Task<IActionResult> WorkloadTasks(long branch, [FromQuery] TaskWorkloadQuery query, CancellationToken ct)
+        => Execute((ticket, sid) => service.ReadTaskWorkloadAsync(ticket, sid, branch, query, null, ct, tasksOnly: true), false);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/reopen")]
     public Task<IActionResult> ReadReopen(long branch, long id, CancellationToken ct, int page = 1, string? search = null)
         => Execute((ticket, sid) => service.ReadTaskReopenAsync(ticket, sid, branch, id, page, search, ct), false);

@@ -9,6 +9,7 @@ import {
   type WorkloadDetail,
   type WorkloadFilters,
   type WorkloadPage,
+  type WorkloadTaskPage,
 } from "./workload";
 
 export function TaskWorkloadPanel({
@@ -41,7 +42,7 @@ export function TaskWorkloadPanel({
     employee: number | null;
     revision: number;
   } | null>(initialFilters ? { filters: initialFilters, page: 1, employee: null, revision: 0 } : null);
-  const [result, setResult] = useState<WorkloadPage | WorkloadDetail | null>(
+  const [result, setResult] = useState<WorkloadPage | WorkloadDetail | WorkloadTaskPage | null>(
     null,
   );
   const [busy, setBusy] = useState(false);
@@ -81,7 +82,7 @@ export function TaskWorkloadPanel({
     return () => controller.abort();
   }, [branch, owner, actions, query]);
   function load() {
-    const filters: WorkloadFilters = { overdueOnly: form.overdueOnly, calendar: initialFilters?.calendar };
+    const filters: WorkloadFilters = { overdueOnly: form.overdueOnly, calendar: initialFilters?.calendar, taskSet: initialFilters?.taskSet };
     for (const key of [
       "from",
       "to",
@@ -117,8 +118,9 @@ export function TaskWorkloadPanel({
     return <button onClick={load}>Review workload and time logs</button>;
   const page = result && "items" in result ? result : null;
   const detail = result && "userId" in result ? result : null;
+  const taskPage = result && "taskSet" in result ? result : null;
   const total =
-    page?.totalCount ??
+    taskPage?.totalCount ?? page?.totalCount ??
     (detail
       ? Math.max(detail.taskCount, detail.intervalCount, detail.shiftCount ?? 0)
       : 0);
@@ -165,6 +167,7 @@ export function TaskWorkloadPanel({
             inputMode="numeric"
             pattern="[1-9][0-9]*"
             value={form.employeeId}
+            disabled={initialFilters?.taskSet !== undefined}
             onChange={(e) => field("employeeId", e.target.value)}
           />
         </label>
@@ -238,9 +241,24 @@ export function TaskWorkloadPanel({
       </button>
       {result && (
         <p>
-          Hotel dates {result.from} through {result.to} (Asia/Ho_Chi_Minh).
+          Dates {result.from} through {result.to} ({result.calendar ?? "Asia/Ho_Chi_Minh"}).
           Snapshot {result.asOf}. Durations are seconds within this period.
         </p>
+      )}
+      {taskPage && (
+        <section aria-label="Matching workload tasks">
+          <h4>Tasks matching {taskPage.taskSet?.replaceAll("_", " ")}</h4>
+          <p>{taskPage.totalCount} matching tasks, including tasks without a current assignee.</p>
+          {taskPage.messageCode === "MSG10" && <p role="status">MSG10: No tasks match these filters.</p>}
+          <table aria-label="Matching tasks">
+            <thead><tr><th>Task</th><th>State</th><th>Current assignee</th><th>Deadline</th><th>Closed at</th></tr></thead>
+            <tbody>{taskPage.tasks.map(t => <tr key={t.taskId}>
+              <td><Link to={`/operational-tasks?branchId=${branch}&taskId=${t.taskId}`}>{t.code}: {t.title}</Link></td>
+              <td>{t.state}</td><td>{t.currentAssigneeId ?? "No current assignment"}</td>
+              <td>{t.deadline ?? "—"}{t.overdue && " · Overdue"}</td><td>{t.completedAt ?? "—"}</td>
+            </tr>)}</tbody>
+          </table>
+        </section>
       )}
       {page && (
         <>

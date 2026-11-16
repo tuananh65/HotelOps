@@ -4,7 +4,11 @@ public sealed record TaskWorkloadQuery(DateOnly? From = null, DateOnly? To = nul
     long? DepartmentId = null, long? EmployeeId = null, string? Status = null,
     long? PriorityId = null, DateOnly? DeadlineFrom = null, DateOnly? DeadlineTo = null,
     bool OverdueOnly = false, string? Search = null, int Page = 1, int PageSize = 20,
-    string Calendar = "Asia/Ho_Chi_Minh");
+    string Calendar = "Asia/Ho_Chi_Minh", string? TaskSet = null);
+
+public sealed record TaskWorkloadTasksPage(long BranchId, DateOnly From, DateOnly To, DateTimeOffset AsOf,
+    IReadOnlyList<TaskWorkloadTask> Tasks, int TotalCount, int Page, int PageSize, string? MessageCode,
+    string Calendar, string? TaskSet);
 
 public sealed record TaskWorkloadEmployee(long UserId, string Name, string EmployeeCode,
     int OpenTasks, int OverdueTasks, int ClosedTasks, long ClosedEffortSeconds, long ProvisionalSeconds);

@@ -2,6 +2,7 @@ import { taskWorkflowStates } from "./api";
 import { planningRequest } from "./planning";
 
 export interface WorkloadFilters {
+  taskSet?: "OPEN" | "OVERDUE" | "CLOSED_IN_PERIOD";
   calendar?: "UTC" | "Asia/Ho_Chi_Minh";
   from?: string;
   to?: string;
@@ -78,6 +79,12 @@ export interface WorkloadDetail extends Snapshot {
   shifts: WorkloadShift[] | null;
   shiftCount: number | null;
 }
+export interface WorkloadTaskPage extends Snapshot {
+  tasks: WorkloadTask[];
+  totalCount: number;
+  messageCode: "MSG10" | null;
+  taskSet: WorkloadFilters["taskSet"];
+}
 const count = (n: number) => Number.isSafeInteger(n) && n >= 0;
 const id = (n: number) => count(n) && n > 0;
 const date = (s: string) =>
@@ -108,7 +115,7 @@ export async function readWorkload(
   page: number,
   employee: number | null,
   signal: AbortSignal,
-): Promise<WorkloadPage | WorkloadDetail> {
+): Promise<WorkloadPage | WorkloadDetail | WorkloadTaskPage> {
   if (
     !id(branch) ||
     !id(page) ||
@@ -158,15 +165,20 @@ export async function readWorkload(
     params.set("search", filters.search);
   }
   if (filters.overdueOnly) params.set("overdueOnly", "true");
+  if (filters.taskSet !== undefined) {
+    if (!["OPEN", "OVERDUE", "CLOSED_IN_PERIOD"].includes(filters.taskSet) || employee !== null || filters.employeeId !== undefined)
+      throw Error("Invalid task population");
+    params.set("taskSet", filters.taskSet);
+  }
   if (filters.calendar !== undefined) {
     if (filters.calendar !== "UTC" && filters.calendar !== "Asia/Ho_Chi_Minh") throw Error("Invalid calendar");
     params.set("calendar", filters.calendar);
   }
   const response = await planningRequest(
-    `/api/branches/${branch}/task-workload${employee === null ? "" : `/${employee}`}?${params}`,
+    `/api/branches/${branch}/task-workload${filters.taskSet ? "/tasks" : employee === null ? "" : `/${employee}`}?${params}`,
     signal,
   );
-  const data = (await response.json()) as WorkloadPage | WorkloadDetail;
+  const data = (await response.json()) as WorkloadPage | WorkloadDetail | WorkloadTaskPage;
   if (
     !data ||
     (data.calendar ?? "Asia/Ho_Chi_Minh") !== (filters.calendar ?? "Asia/Ho_Chi_Minh") ||
@@ -181,7 +193,22 @@ export async function readWorkload(
     (filters.to && data.to !== filters.to)
   )
     throw Error("Invalid workload snapshot");
-  if (employee === null) {
+  if (filters.taskSet) {
+    if (!("taskSet" in data) || data.taskSet !== filters.taskSet || !Array.isArray(data.tasks)
+      || data.tasks.length > 20 || !count(data.totalCount) || data.totalCount < data.tasks.length
+      || data.messageCode !== (data.totalCount === 0 ? "MSG10" : null)
+      || new Set(data.tasks.map(t => t.taskId)).size !== data.tasks.length
+      || data.tasks.some(t => !t || !id(t.taskId) || !id(t.departmentId) || typeof t.code !== "string" || typeof t.title !== "string"
+        || typeof t.department !== "string" || !(taskWorkflowStates as readonly string[]).includes(t.state)
+        || !nullableId(t.priorityId) || t.priority !== null && typeof t.priority !== "string"
+        || !nullableTime(t.deadline) || !nullableTime(t.completedAt) || !nullableId(t.currentAssigneeId)
+        || !nullableId(t.completedBy) || typeof t.overdue !== "boolean"
+        || filters.departmentId !== undefined && t.departmentId !== filters.departmentId
+        || filters.taskSet === "OPEN" && ["CLOSED", "CANCELLED"].includes(t.state)
+        || filters.taskSet === "OVERDUE" && !t.overdue
+        || filters.taskSet === "CLOSED_IN_PERIOD" && (t.state !== "CLOSED" || t.completedAt === null)))
+      throw Error("Invalid workload task population");
+  } else if (employee === null) {
     if (
       !("items" in data) ||
       !Array.isArray(data.items) ||
