@@ -32,7 +32,11 @@ public sealed record ReplenishmentReceiptDto(long LinkId, long ReplenishmentLine
     DateTime LinkedAt, long LinkedBy);
 public sealed record ReplenishmentLineDto(long ReplenishmentLineId, int LineNo, long ItemId, long BaseUomId, string SourceType,
     long? SourceThresholdId, long? SourceMaterialRequestLineId, long? SourceMaterialRequestId, decimal RequestedBaseQty,
-    decimal GrossCreditedBaseQty, decimal NetReceivedBaseQty, decimal RemainingBaseQty, bool IsOpenCoverage, string? Note);
+    decimal GrossCreditedBaseQty, decimal NetReceivedBaseQty, decimal RemainingBaseQty, bool IsOpenCoverage, string? Note)
+{
+    public string ItemName { get; init; } = "";
+    public string UnitName { get; init; } = "";
+}
 public sealed record ReplenishmentDto(long ReplenishmentId, string ReplenishmentNo, string RawStatus, string RowVersion,
     long WarehouseId, long BranchId, long RequestedBy, string? SupplierName, DateOnly? ExpectedOn, DateTime CreatedAt,
     DateTime? UpdatedAt, DateTime? ClosedAt, long? ClosedBy, string? CloseReason, IReadOnlyList<ReplenishmentLineDto> Lines,

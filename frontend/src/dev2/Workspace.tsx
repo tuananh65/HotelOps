@@ -26,6 +26,8 @@ import { MaterialHistoryView } from "./MaterialHistoryView";
 import { ReplenishmentCloseFields, replenishmentCanClose } from "./ReplenishmentCloseFields";
 import { ReplenishmentReceiptFields } from "./ReplenishmentReceiptFields";
 import { ReplenishmentListView } from "./ReplenishmentListView";
+import { ReplenishmentDetailView } from "./ReplenishmentDetailView";
+import { MaterialListView } from "./MaterialListView";
 import { ReplenishmentWaitingRequests } from "./ReplenishmentWaitingRequests";
 import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
 import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
@@ -614,7 +616,9 @@ function Screen({
       )}
       {data !== undefined && (operation.id === "A004A-040" && isObject(data)
         ? <MaterialAvailabilityView data={data} /> : operation.id === "A004A-052" && isObject(data)
-        ? <ReplenishmentListView data={data} /> : <DataView data={data} title={config.name} />)}
+        ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)
+        ? <ReplenishmentDetailView record={data} /> : operation.id === "A004A-037" && isObject(data)
+        ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {module === "replenishments" && operation.id === "A004A-053" && record.replenishmentId != null

@@ -52,14 +52,19 @@ public sealed partial class ReplenishmentService
     }
     private async Task<ReplenishmentDto?> Read(long id, CancellationToken ct)
     {
-        var r = await db.MaterialReplenishments.AsNoTracking().Include(x => x.Warehouse).Include(x => x.MaterialReplenishmentLines).ThenInclude(x => x.SourceMaterialRequestLine).SingleOrDefaultAsync(x => x.ReplenishmentId == id, ct);
+        var r = await db.MaterialReplenishments.AsNoTracking().Include(x => x.Warehouse)
+            .Include(x => x.MaterialReplenishmentLines).ThenInclude(x => x.SourceMaterialRequestLine)
+            .Include(x => x.MaterialReplenishmentLines).ThenInclude(x => x.Item)
+            .Include(x => x.MaterialReplenishmentLines).ThenInclude(x => x.BaseUom)
+            .SingleOrDefaultAsync(x => x.ReplenishmentId == id, ct);
         if (r is null) return null;
         await Reconcile(db, r, ct);
         var links = await Links(db, id, ct); var originals = links.Select(x => x.StockDocumentLine.DocumentId).Distinct().ToArray();
         var reversals = await db.StockDocuments.AsNoTracking().Where(x => x.ReversalOfDocumentId != null && originals.Contains(x.ReversalOfDocumentId.Value) && x.DocumentType == "REVERSAL" && x.Status == "POSTED").Select(x => new { Original = x.ReversalOfDocumentId!.Value, x.DocumentId }).ToListAsync(ct);
         return new(r.ReplenishmentId, r.ReplenishmentNo, r.Status, Convert.ToBase64String(r.RowVersion), r.WarehouseId, r.Warehouse.BranchId, r.RequestedBy, r.SupplierName, r.ExpectedOn, Utc(r.CreatedAt), Utc(r.UpdatedAt), Utc(r.ClosedAt), r.ClosedBy, r.CloseReason,
             r.MaterialReplenishmentLines.OrderBy(x => x.LineNo).Select(x => new ReplenishmentLineDto(x.ReplenishmentLineId, x.LineNo, x.ItemId, x.BaseUomId, x.SourceType, x.SourceThresholdId, x.SourceMaterialRequestLineId, x.SourceMaterialRequestLine?.RequestId,
-                x.RequestedBaseQty, links.Where(l => l.ReplenishmentLineId == x.ReplenishmentLineId).Sum(l => l.CreditedBaseQty), x.ReceivedBaseQty, x.RequestedBaseQty - x.ReceivedBaseQty, x.IsOpenCoverage, x.Note)).ToArray(),
+                x.RequestedBaseQty, links.Where(l => l.ReplenishmentLineId == x.ReplenishmentLineId).Sum(l => l.CreditedBaseQty), x.ReceivedBaseQty, x.RequestedBaseQty - x.ReceivedBaseQty, x.IsOpenCoverage, x.Note)
+                { ItemName = x.Item.ItemName, UnitName = x.BaseUom.UomName }).ToArray(),
             links.OrderBy(x => x.ReplenishmentReceiptLineId).Select(x => new ReplenishmentReceiptDto(x.ReplenishmentReceiptLineId, x.ReplenishmentLineId, x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.StockDocumentLineId,
                 x.CreditedBaseQty, x.StockDocumentLine.Document.Status == "POSTED" ? x.CreditedBaseQty : 0, x.StockDocumentLine.Document.Status, reversals.SingleOrDefault(l => l.Original == x.StockDocumentLine.DocumentId)?.DocumentId, Utc(x.LinkedAt), x.LinkedBy)).ToArray());
     }
