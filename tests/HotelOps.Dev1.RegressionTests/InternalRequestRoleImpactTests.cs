@@ -26,4 +26,45 @@ public sealed class InternalRequestRoleImpactTests
         Assert.Equal(RevokeCapabilityImpact.Unknown,RevokeRoleGrantImpact.InternalRequestHandler("CLOSED",grants,[],1,Now));
         Assert.Equal(RevokeCapabilityImpact.Unknown,RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",grants,[],2,Now));
     }
+
+    [Theory]
+    [InlineData("OPERATIONS_MANAGER")]
+    [InlineData("OWNER")]
+    [InlineData("SYS_ADMIN")]
+    public void IneligibleActorCannotReplaceHandlerEvenWithBothPermissions(string role)
+    {
+        var handler = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var replacement = Grant(2, "IR_PROCESS") with { RoleCode = role };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = role };
+        Assert.Equal(RevokeCapabilityImpact.Lost, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [handler, replacement, read], [replacement, read], 1, Now));
+    }
+
+    [Theory]
+    [InlineData("HK_STAFF")]
+    [InlineData("HK_SUPERVISOR")]
+    [InlineData("MAINTENANCE_STAFF")]
+    [InlineData("MAINTENANCE_LEAD")]
+    [InlineData("STOREKEEPER")]
+    [InlineData("DEPT_MANAGER")]
+    public void EligibleSurvivorStillRequiresDepartmentAndResponsibilityProof(string role)
+    {
+        var handler = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var replacement = Grant(2, "IR_PROCESS") with { RoleCode = role };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = role };
+        Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [handler, replacement, read], [replacement, read], 1, Now));
+    }
+
+    [Fact]
+    public void ForeignOrExpiredActorGrantCannotPreserveHandlerCapability()
+    {
+        var handler = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = "HK_STAFF" };
+        var foreign = Grant(2, "IR_PROCESS", 2) with { RoleCode = "HK_STAFF" };
+        var expired = handler with { AssignmentId = 2, Path = handler.Path with { ExpiresAt = Now } };
+        foreach (var alternative in new[] { foreign, expired })
+            Assert.Equal(RevokeCapabilityImpact.Lost, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+                [handler, alternative, read], [alternative, read], 1, Now));
+    }
 }

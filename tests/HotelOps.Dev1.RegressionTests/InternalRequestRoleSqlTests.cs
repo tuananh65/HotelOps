@@ -57,7 +57,7 @@ public sealed class InternalRequestRoleSqlTests
             var label=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
             Assert.False(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
             Assert.Contains(label,(await Read()).Blockers);
-            // A second scoped grant preserves permission but cannot certify role/department semantics.
+            // Operations Manager retains permissions but is not an allowed current-handler actor.
             var alternate=new UserRole{UserId=user.UserId,RoleId=role.RoleId,BranchId=branch.BranchId,AssignedAt=now.AddMinutes(-1),IsActive=true};
             // Duplicate active user-role keys may be forbidden: use a separate existing role.
             alternate.RoleId=await db.Roles.Where(r=>r.RoleCode=="OPERATIONS_MANAGER").Select(r=>r.RoleId).SingleAsync(ct);
@@ -67,7 +67,27 @@ public sealed class InternalRequestRoleSqlTests
             }
             db.UserRoles.Add(alternate);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             Assert.True(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
-            var preserved=await Read();Assert.DoesNotContain(label,preserved.Blockers);Assert.Contains(label+"_UNKNOWN",preserved.Unresolved);
+            var preserved=await Read();Assert.Contains(label,preserved.Blockers);
+            var counterfactual = new RevokeRoleResponsibilities(db, TimeProvider.System);
+            Assert.Contains(label, (await counterfactual.ReadAsync(user.UserId, selected.UserRoleId, false, ct)).Blockers);
+            await db.UserRoles.Where(r => r.UserRoleId == selected.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, false), ct);
+            var actualAfter = await counterfactual.ReadAsync(user.UserId, selected.UserRoleId, true, ct);
+            Assert.Contains(label, actualAfter.Blockers);
+            Assert.DoesNotContain("POST_REVOKE_GRANTS_CHANGED", actualAfter.Unresolved);
+            await db.UserRoles.Where(r => r.UserRoleId == selected.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, true), ct);
+            var executorRole = await db.Roles.SingleAsync(r => r.RoleCode == "HK_STAFF" && r.IsActive, ct);
+            foreach (var code in new[] { "IR_PROCESS", "IR_VIEW" })
+            {
+                var p = await db.Permissions.SingleAsync(p => p.PermissionCode == code, ct);
+                if (!await db.RolePermissions.AnyAsync(g => g.RoleId == executorRole.RoleId && g.PermissionId == p.PermissionId, ct))
+                    db.RolePermissions.Add(new() { RoleId = executorRole.RoleId, PermissionId = p.PermissionId, DataScope = "OWN", GrantedAt = now });
+            }
+            await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+            await db.UserRoles.Where(r => r.UserRoleId == alternate.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, executorRole.RoleId), ct);
+            var eligibleAlternative = await Read();
+            Assert.DoesNotContain(label, eligibleAlternative.Blockers);
+            Assert.Contains(label + "_UNKNOWN", eligibleAlternative.Unresolved);
+            await db.UserRoles.Where(r => r.UserRoleId == alternate.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, alternate.RoleId), ct);
             await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,now),ct);
             Assert.Contains(label,(await Read()).Blockers);
             await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(u=>u.SetProperty(a=>a.AssignedAt,now.AddDays(1)),ct);

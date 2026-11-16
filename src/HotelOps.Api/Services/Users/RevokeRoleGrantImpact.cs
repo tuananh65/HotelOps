@@ -1,8 +1,9 @@
 using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.InternalRequests;
 
 namespace HotelOps.Api.Services.Users;
 
-public sealed record RevokeGrant(long AssignmentId, PermissionGrantPath Path);
+public sealed record RevokeGrant(long AssignmentId, PermissionGrantPath Path, string? RoleCode = null);
 public enum RevokeCapabilityImpact { Preserved, Lost, Unknown }
 
 /// <summary>Counterfactual grant evaluation, never writer or release authorization.</summary>
@@ -59,7 +60,17 @@ public static class RevokeRoleGrantImpact
         // allowed actor roles, current department eligibility or mapping.
         var process=Evaluate(before,after,"IR_PROCESS",branch,true,nowUtc);
         var read=Evaluate(before,after,"IR_VIEW",branch,true,nowUtc);
-        return process==RevokeCapabilityImpact.Lost||read==RevokeCapabilityImpact.Lost
-            ? RevokeCapabilityImpact.Lost:RevokeCapabilityImpact.Unknown;
+        if (process == RevokeCapabilityImpact.Lost || read == RevokeCapabilityImpact.Lost)
+            return RevokeCapabilityImpact.Lost;
+        if (branch is null or <= 0 || nowUtc.Kind != DateTimeKind.Utc)
+            return RevokeCapabilityImpact.Unknown;
+        // A permission on an ineligible actor role cannot replace a handler's role.
+        // Missing role provenance cannot establish loss; keep legacy callers fail-closed.
+        if (before.Concat(after).Any(g => g.Path.PermissionCode == "IR_PROCESS" && g.RoleCode is null))
+            return RevokeCapabilityImpact.Unknown;
+        bool Eligible(RevokeGrant grant) => grant.RoleCode is {} role
+            && InternalRequestProgressAuthority.EligibleHandler(role, grant.Path, branch.Value, nowUtc);
+        if (before.Any(Eligible) && !after.Any(Eligible)) return RevokeCapabilityImpact.Lost;
+        return RevokeCapabilityImpact.Unknown;
     }
 }

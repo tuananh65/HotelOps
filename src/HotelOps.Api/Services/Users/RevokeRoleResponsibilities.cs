@@ -30,7 +30,7 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
             select new RevokeGrant(a.UserRoleId, new PermissionGrantPath(g.Permission.PermissionCode, g.DataScope,
                 a.BranchId, a.IsActive, a.Role.IsActive, a.AssignedAt, a.ExpiresAt,
                 a.Branch != null && a.Branch.IsActive,
-                db.UserBranchAccesses.Any(m => m.UserId == target && m.BranchId == a.BranchId && m.RevokedAt == null && m.GrantedAt <= now))))
+                db.UserBranchAccesses.Any(m => m.UserId == target && m.BranchId == a.BranchId && m.RevokedAt == null && m.GrantedAt <= now)), a.Role.RoleCode))
             .ToArrayAsync(ct);
         var blockers = new SortedSet<string>(StringComparer.Ordinal);
         // These contracts cannot be certified by an empty SQL result or surviving grant.
