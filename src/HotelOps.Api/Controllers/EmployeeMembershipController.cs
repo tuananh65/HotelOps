@@ -17,6 +17,9 @@ public sealed class EmployeeMembershipController(EmployeeMembershipService servi
     }
     [HttpGet] public Task<EmployeeMembershipPage> Read(long userId,long branchId,CancellationToken ct)
     {var(t,s)=Identity();return service.ReadAsync(t,s,userId,branchId,ct);}
+    [HttpGet("/api/users/{userId:long}/department-membership-branches")]
+    public Task<IReadOnlyList<EmployeeMembershipBranch>> Branches(long userId,CancellationToken ct)
+    {var(t,s)=Identity();return service.BranchesAsync(t,s,userId,ct);}
     [HttpPost] public async Task<IActionResult> Add(long userId,long branchId,EmployeeMembershipInput input,CancellationToken ct)
     {
         var(t,s)=Identity();await service.AddAsync(t,s,userId,branchId,Version(),input,ct);return NoContent();

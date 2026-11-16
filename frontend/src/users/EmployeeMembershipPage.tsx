@@ -10,12 +10,25 @@ function member(v:unknown):v is Membership{return isObject(v)&&positive(v.depart
 export function EmployeeMembershipPage(){
   const {id}=useParams(),target=Number(id),{state,actions}=useAuth(),owner=state.authorityGeneration;
   const [branch,setBranch]=useState(""),[department,setDepartment]=useState(""),[reason,setReason]=useState("");
+  const [branches,setBranches]=useState<{id:number;name:string;isPrimary:boolean}[]>([]),[branchesLoading,setBranchesLoading]=useState(false),[branchAttempt,setBranchAttempt]=useState(0);
   const [page,setPage]=useState<Page|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
   const [removing,setRemoving]=useState<Membership|null>(null),[confirmed,setConfirmed]=useState(false);
   const abort=useRef<AbortController|null>(null),sending=useRef(false),current=useRef(owner);current.current=owner;
   useEffect(()=>{setPage(null);setRemoving(null);setConfirmed(false);setMessage("");return()=>abort.current?.abort();},[owner,target]);
+  useEffect(()=>{
+    const controller=new AbortController();setBranches([]);setBranch("");setPage(null);setBranchesLoading(true);
+    if(!positive(target)){setBranchesLoading(false);return()=>controller.abort();}
+    void createHttpClient()({method:"GET",url:`/api/users/${target}/department-membership-branches`,expectedStatus:200,signal:controller.signal,
+      decode(v){if(!Array.isArray(v)||!v.every(b=>isObject(b)&&positive(b.id)&&typeof b.name==="string"&&typeof b.isPrimary==="boolean"))return;
+        return v as {id:number;name:string;isPrimary:boolean}[];}}).then(result=>{
+      if(controller.signal.aborted||current.current!==owner)return;
+      setBranchesLoading(false);
+      if(result.ok){setBranches(result.data);if(result.data.length===1)setBranch(String(result.data[0].id));}
+      else{setMessage("Current branch memberships could not be loaded. Reload to refresh your authorization.");if(result.error.kind==="http"&&result.error.status===401)actions.invalidateSession(owner);}
+    });return()=>controller.abort();
+  },[owner,target,branchAttempt]);
   async function load(){
-    if(sending.current||!positive(target)||!positive(Number(branch)))return;
+    if(sending.current||!positive(target)||!branches.some(b=>b.id===Number(branch)))return;
     const b=Number(branch),controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setPage(null);setRemoving(null);setConfirmed(false);setMessage("");setDepartment("");
     try{
       const result=await createHttpClient()({method:"GET",url:"/api/users/"+target+"/branches/"+b+"/departments",expectedStatus:200,signal:controller.signal,
@@ -52,7 +65,10 @@ export function EmployeeMembershipPage(){
   if(!positive(target))return <p role="alert">Invalid user.</p>;
   return <main><h1>Employee department memberships</h1><Link to={"/users/"+target}>User {target}</Link>
     <p>Manage working departments inside a branch already granted to this employee. Removal preserves history and requires resolving dependent work. Role grants and primary department are managed separately.</p>
-    <form onSubmit={e=>{e.preventDefault();void load();}}><fieldset disabled={busy}><label>Branch ID<input required inputMode="numeric" value={branch} onChange={e=>{setBranch(e.target.value);setPage(null);setMessage("");}}/></label><button>Load memberships</button></fieldset></form>
+    <form onSubmit={e=>{e.preventDefault();void load();}}><fieldset disabled={busy||branchesLoading}><label>Current branch<select required value={branch} onChange={e=>{setBranch(e.target.value);setPage(null);setMessage("");}}>
+      <option value="">Select branch</option>{branches.map(b=><option key={b.id} value={b.id}>{b.name}{b.isPrimary?" (primary)":""}</option>)}</select></label><button disabled={!branch}>Load memberships</button>
+      <button type="button" onClick={()=>setBranchAttempt(n=>n+1)}>Reload branches</button></fieldset></form>
+    {branchesLoading&&<p role="status">Loading current branches...</p>}
     {message&&<p role="status">{message}</p>}{page&&<><table><thead><tr><th>Department</th><th>Granted</th><th>Revoked</th><th>Provenance</th><th>Action</th></tr></thead><tbody>{page.memberships.map(m=><tr key={m.departmentId}><td>{m.name}</td><td>{m.grantedAt}</td><td>{m.revokedAt??"Active"}</td><td>{m.provenance}</td><td><button disabled={busy||m.revokedAt!==null&&!page.departments.some(d=>d.id===m.departmentId)} onClick={()=>{setRemoving(m);setConfirmed(false);setReason("");}}>{m.revokedAt===null?"Remove":"Restore"} membership</button></td></tr>)}</tbody></table>
       {page.history.length>0&&<details><summary>Previous membership periods</summary><table><thead><tr><th>Department</th><th>Granted</th><th>Revoked</th><th>Provenance</th><th>Recorded by</th><th>Restored</th><th>Restored by</th></tr></thead><tbody>{page.history.map(h=><tr key={h.historyId}><td>{h.name}</td><td>{h.grantedAt}</td><td>{h.revokedAt}</td><td>{h.provenance}</td><td>{h.recordedBy}</td><td>{h.restoredAt}</td><td>{h.restoredBy}</td></tr>)}</tbody></table></details>}
       {removing?<form onSubmit={e=>{e.preventDefault();void save(true);}}><fieldset disabled={busy}><legend>{removing.revokedAt===null?"Remove":"Restore"} {removing.name}</legend>

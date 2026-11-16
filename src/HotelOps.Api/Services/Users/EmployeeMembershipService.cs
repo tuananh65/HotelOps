@@ -11,12 +11,13 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Users;
 public sealed record EmployeeMembershipInput(long DepartmentId,string Reason);
 public sealed record EmployeeMembershipOption(long Id,string Name);
+public sealed record EmployeeMembershipBranch(long Id,string Name,bool IsPrimary);
 public sealed record EmployeeMembershipRow(long DepartmentId,string Name,DateTime GrantedAt,DateTime? RevokedAt,string Provenance);
 public sealed record EmployeeMembershipPage(long UserId,long BranchId,string Version,IReadOnlyList<EmployeeMembershipRow> Memberships,IReadOnlyList<EmployeeMembershipOption> Departments)
 {public IReadOnlyList<EmployeeMembershipPeriod> History{get;init;}=[];}
 public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,ISqlSessionService sessions,UserCredentialResetAccess authority)
 {
-    private async Task Gate(SessionReference ticket,long sid,long target,long branch,CancellationToken ct)
+    private async Task Gate(SessionReference ticket,long sid,long target,long? branch,CancellationToken ct)
     {
         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
             throw new InternalRequestReadException(401,"SESSION_INVALID");
@@ -29,13 +30,26 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         if(!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==actor.UserId&&r.Role.RoleCode=="SYS_ADMIN"&&r.IsActive&&r.Role.IsActive&&r.AssignedAt<=now
             &&(r.ExpiresAt==null||r.ExpiresAt>now)&&(r.BranchId==null||r.Branch!=null&&r.Branch.IsActive&&db.UserBranchAccesses.Any(b=>b.UserId==actor.UserId&&b.BranchId==r.BranchId&&b.RevokedAt==null&&b.GrantedAt<=now)),ct))
             throw new InternalRequestReadException(403,"ADMINISTRATOR_REQUIRED");
-        if(!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==target&&a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now&&a.Branch.IsActive
+        if(branch!=null&&!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==target&&a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now&&a.Branch.IsActive
             &&a.User.DeletedAt==null&&a.User.AccountStatus=="ACTIVE"&&a.User.EmploymentStatus=="ACTIVE",ct))throw new InternalRequestReadException(409,"ACTIVE_TARGET_BRANCH_ACCESS_REQUIRED");
         if(!await WorkdayMembershipStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"EMPLOYEE_MEMBERSHIP_STORAGE_REQUIRED");
         if(!await EmployeeMembershipHistory.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"EMPLOYEE_MEMBERSHIP_HISTORY_REQUIRED");
     }
     private async Task Begin(SessionReference ticket,long sid,long target,long branch,CancellationToken ct)
     {await new UserEligibilityLock(db).LockAsync([ticket.UserId,target],ct);await authority.LockAuthorityAsync(ticket.UserId,target,ct);await Gate(ticket,sid,target,branch,ct);}
+    public async Task<IReadOnlyList<EmployeeMembershipBranch>> BranchesAsync(SessionReference ticket,long sid,long target,CancellationToken ct)
+    {
+        if(target<=0)throw new InternalRequestReadException(400,"INVALID_SCOPE");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId,target],ct);await authority.LockAuthorityAsync(ticket.UserId,target,ct);
+        await Gate(ticket,sid,target,null,ct);
+        var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        var rows=await db.UserBranchAccesses.AsNoTracking().Where(a=>a.UserId==target&&a.RevokedAt==null&&a.GrantedAt<=now
+            &&a.Branch.IsActive&&a.User.DeletedAt==null&&a.User.AccountStatus=="ACTIVE"&&a.User.EmploymentStatus=="ACTIVE")
+            .OrderByDescending(a=>a.IsPrimary).ThenBy(a=>a.Branch.BranchName)
+            .Select(a=>new EmployeeMembershipBranch(a.BranchId,a.Branch.BranchName,a.IsPrimary)).ToArrayAsync(ct);
+        await Gate(ticket,sid,target,null,ct);await tx.CommitAsync(ct);return rows;
+    }
     public async Task<EmployeeMembershipPage> ReadAsync(SessionReference ticket,long sid,long target,long branch,CancellationToken ct)
     {
         if(target<=0||branch<=0)throw new InternalRequestReadException(400,"INVALID_SCOPE");
