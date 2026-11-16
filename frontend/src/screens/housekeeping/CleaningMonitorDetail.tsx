@@ -15,6 +15,7 @@ export default function CleaningMonitorDetail({
   kind: string;
   id: string;
 }) {
+  const [cancelled, setCancelled] = useState(false);
   const [page, setPage] = useState(1),
     [retry, setRetry] = useState(0);
   const [result, setResult] = useState<MonitorDetail | null>(null),
@@ -40,6 +41,7 @@ export default function CleaningMonitorDetail({
   return (
     <>
       <h1>Cleaning Task Detail</h1>
+      {cancelled && <p role="status">Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.</p>}
       {kind === "cleaning" && (
         <Link to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}>
           Start / Reassign
@@ -58,11 +60,17 @@ export default function CleaningMonitorDetail({
       )}
       {result && (
         <>
-          {kind === "cleaning" && (
+          {kind === "cleaning" && !cancelled && (
             <CleaningCancellationPanel
               key={`${branch}/${id}`}
               branch={branch}
               task={id}
+              onCancelled={() => {
+                setCancelled(true);
+                setResult(null);
+                setPage(1);
+                setRetry(v => v + 1);
+              }}
             />
           )}
           <h2>

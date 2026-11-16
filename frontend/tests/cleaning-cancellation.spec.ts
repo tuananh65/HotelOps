@@ -1,7 +1,17 @@
 import { test, expect, type Page } from "@playwright/test";
+// Browser contract checks only: all API calls stay in synthetic route fixtures.
+test.beforeEach(async ({ page }) => {
+  await page.route(url => url.pathname.startsWith("/api/"), r => r.fulfill({ status: 403, json: { title: "UNMOCKED_API" } }));
+});
 const tag = '"0000000000000001"',
   next = '"0000000000000002"';
-async function open(page: Page, capability = "PROVISIONAL_V1") {
+async function open(page: Page, capability = "PROVISIONAL_V1", cancelled = () => false) {
+  await page.route("**/api/auth/session", r => r.fulfill({ json: {
+    user: { id: "42", username: "supervisor", name: "Synthetic Supervisor" },
+    expiresAt: new Date(Date.now() + 3600000).toISOString(),
+    absoluteExpiresAt: new Date(Date.now() + 7200000).toISOString(),
+    mustChangePassword: false, csrfToken: "synthetic-test"
+  } }));
   await page.route("**/api/auth/csrf", (r) =>
     r.fulfill({
       json: { headerName: "X-CSRF-TOKEN", csrfToken: "synthetic-test" },
@@ -19,8 +29,8 @@ async function open(page: Page, capability = "PROVISIONAL_V1") {
           roomNumber: "101",
           floorId: 2,
           floorName: null,
-          recordedStatus: "PENDING",
-          workflowState: "ASSIGNED",
+          recordedStatus: cancelled() ? "CANCELLED" : "PENDING",
+          workflowState: cancelled() ? "CANCELLED" : "ASSIGNED",
           priorityId: null,
           priorityCode: null,
           assigneeId: 5,
@@ -85,7 +95,7 @@ test("confirmation and reason gate cancellation; uncertain retry keeps exact key
       },
     });
   });
-  await open(page);
+  await open(page, "PROVISIONAL_V1", () => requests.length === 2);
   const panel = page.getByRole("region", { name: "Hủy công việc vệ sinh" });
   const button = panel.getByRole("button", {
     name: "Hủy công việc",
@@ -98,7 +108,9 @@ test("confirmation and reason gate cancellation; uncertain retry keeps exact key
   await button.click();
   await expect(panel.getByLabel("Lý do hủy", { exact: true })).toBeDisabled();
   await panel.getByRole("button", { name: "Kiểm tra lại yêu cầu hủy" }).click();
-  await expect(panel.getByRole("status")).toContainText("Đã hủy công việc");
+  await expect(page.getByRole("status")).toContainText("\u0110\u00e3 h\u1ee7y c\u00f4ng vi\u1ec7c");
+  await expect(page.getByText(/CANCELLED/)).toBeVisible();
+  await expect(panel).toHaveCount(0);
   expect(requests).toHaveLength(2);
   expect(requests[0]).toEqual(requests[1]);
 });

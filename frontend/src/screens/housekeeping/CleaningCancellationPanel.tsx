@@ -10,10 +10,13 @@ import {
 export default function CleaningCancellationPanel({
   branch,
   task,
+  onCancelled,
 }: {
   branch: string;
   task: string;
+  onCancelled: () => void;
 }) {
+  const mounted = useRef(false);
   const [options, setOptions] = useState<CancellationOptions | null>(null);
   const [confirmed, setConfirmed] = useState(false),
     [reason, setReason] = useState("");
@@ -26,6 +29,7 @@ export default function CleaningCancellationPanel({
     options: CancellationOptions;
   } | null>(null);
   useEffect(() => {
+    mounted.current = true;
     const abort = new AbortController();
     setOptions(null);
     setDone(false);
@@ -41,7 +45,7 @@ export default function CleaningCancellationPanel({
         if (!abort.signal.aborted && e instanceof ApiError && e.status !== 403)
           setMessage("Chưa thể xác minh quyền hoặc điều kiện hủy.");
       });
-    return () => abort.abort();
+    return () => { mounted.current = false; abort.abort(); };
   }, [branch, task]);
   if (!options && !message) return null;
   const retry = pending.current;
@@ -66,10 +70,12 @@ export default function CleaningCancellationPanel({
     setMessage("");
     try {
       await cancelCleaning(command.options, true, command.reason, command.key);
+      if (!mounted.current) return;
       setDone(true);
       pending.current = null;
-      setMessage("Đã hủy công việc. Tải lại chi tiết để xem lịch sử mới.");
+      onCancelled();
     } catch (error) {
+      if (!mounted.current) return;
       if (
         error instanceof ApiError &&
         [400, 401, 403, 404, 409, 412, 428].includes(error.status)
@@ -84,7 +90,7 @@ export default function CleaningCancellationPanel({
           "Chưa xác nhận kết quả. Thử lại cùng yêu cầu để kiểm tra; không sửa lý do.",
         );
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   return (
