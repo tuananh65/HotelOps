@@ -18,10 +18,10 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class MaterialReadContract
 {
     private static readonly object DisclosedScopeKey = new();
-    private const string Policy = "Material list/detail/availability: HTTPS current unrestricted SQL session; independent MR_VIEW; "
+    private const string Policy = "Material list/detail/availability/fulfillment receipts: HTTPS current unrestricted SQL session; independent MR_VIEW; "
         + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch; "
         + "serializable through final disclosure; no reservation, mutation or raw audit authority";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040" }.Select(id =>
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042" }.Select(id =>
         new Dev2ActionContract(id, "DEV3_142A_MATERIAL_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             RequirementsAsync,
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new Resolver(a),
@@ -67,7 +67,9 @@ internal static class MaterialReadContract
         if (!a.Http.Request.IsHttps || a.Identity.ControllerType != typeof(MaterialRequestsController) || a.Identity.HttpMethod != "GET"
             || !(a.Identity.DecisionId == "A004A-037" && a.Identity.ActionName == "List"
                 || a.Identity.DecisionId == "A004A-038" && a.Identity.ActionName == "Get"
-                || a.Identity.DecisionId == "A004A-040" && a.Identity.ActionName == "Availability")) return false;
+                || a.Identity.DecisionId == "A004A-040" && a.Identity.ActionName == "Availability"
+                || a.Identity.DecisionId == "A004A-041" && a.Identity.ActionName == "Fulfillments"
+                || a.Identity.DecisionId == "A004A-042" && a.Identity.ActionName == "Fulfillment")) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         await using var admission = db.Database.CurrentTransaction == null ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
@@ -89,6 +91,9 @@ internal static class MaterialReadContract
         {
             if (!await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == Id(a), ct)) throw new Dev2AccessDenied(404);
             if (!await MaterialReadProvenance.ValidAsync(db, Id(a), scope.BranchId, ct)) throw new Dev2AccessDenied(404);
+            if (a.Identity.ActionName == "Fulfillment" && (a.Arguments.GetValueOrDefault("fulfillmentId") is not long fulfillmentId
+                || fulfillmentId <= 0 || !await db.MaterialFulfillments.AsNoTracking().AnyAsync(f => f.FulfillmentId == fulfillmentId && f.RequestId == Id(a), ct)))
+                throw new Dev2AccessDenied(404);
             if (a.Identity.ActionName == "Availability" && !await db.MaterialRequests.AsNoTracking().AnyAsync(r => r.RequestId == Id(a)
                 && r.SourceWarehouse != null && r.SourceWarehouse.IsActive && r.SourceWarehouse.BranchId == r.BranchId, ct))
                 throw new Dev2AccessDenied(404);
@@ -106,6 +111,13 @@ internal static class MaterialReadContract
         try
         {
             if (a.Identity.ActionName == "List") return new OkObjectResult(await MaterialRequestService.ListAsync(scope.Apply(db.MaterialRequests.AsNoTracking()), Page(a), ct));
+            if (a.Identity.ActionName is "Fulfillments" or "Fulfillment")
+            {
+                var service = a.Http.RequestServices.GetRequiredService<MaterialRequestService>();
+                object? receipt = a.Identity.ActionName == "Fulfillments" ? await service.Fulfillments(Id(a), ct)
+                    : await service.Fulfillment(Id(a), (long)a.Arguments["fulfillmentId"]!, ct);
+                return receipt == null ? new NotFoundResult() : new OkObjectResult(receipt);
+            }
             if (a.Identity.ActionName == "Availability")
             {
                 var availability = await a.Http.RequestServices.GetRequiredService<MaterialRequestService>().Availability(Id(a), ct);

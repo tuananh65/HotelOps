@@ -575,7 +575,16 @@ function Screen({
         </p>
       )}
       {data !== undefined && <DataView data={data} title={config.name} />}
-      {operation.id === "A004A-040" && recordId && <Link to={`/operations/material-requests/${encodeURIComponent(recordId)}`}>Return to material request</Link>}
+      {["A004A-040", "A004A-041", "A004A-042"].includes(operation.id) && recordId && <Link to={`/operations/material-requests/${encodeURIComponent(recordId)}`}>Return to material request</Link>}
+      {module === "material-requests" && record.requestId != null && Array.isArray(record.fulfillments) && (
+        <section aria-label="Material issue receipts"><p>Issue receipts</p>
+          <ul>{record.fulfillments.filter(isObject).map(f => <li key={String(f.fulfillmentId)}>
+            <Link to={`/operations/material-requests/${encodeURIComponent(String(record.requestId))}?action=A004A-042&fulfillmentId=${encodeURIComponent(String(f.fulfillmentId))}`}>
+              {String(f.fulfillmentNo)}
+            </Link>
+          </li>)}</ul>
+        </section>
+      )}
       {module === "material-requests" && record.requestId != null && record.requesterId != null && Array.isArray(record.lines) && (
         <section aria-label="Material request review context">
           <Link to={`/operations/material-requests/${record.requestId}?action=A004A-040`}>View available stock</Link>

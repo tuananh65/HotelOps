@@ -418,3 +418,22 @@ The worker remains opt-in and was not enabled or executed against a database her
 Backend build PASS (0 warnings/errors); no frontend edits, SQL changes or runtime/
 business tests in this batch. No COMPLETE_VERIFIED promotion. Storekeeper approval/
 closure notices and full workflow runtime acceptance remain outstanding.
+
+## Authorized fulfillment receipt navigation (2026-11-16)
+
+Issue returns a Location pointing to its fulfillment receipt; that GET previously
+remained outside compiled admission. A004A-041/042 now use the current HTTPS/SQL
+session, independent MR_VIEW, parent-request branch/ownership scope and descendant
+provenance checks of the material read contract. A child receipt must belong to
+the exact authorized parent request; a substituted fulfillment ID is rejected.
+The scoped read transaction and final authority recheck cover returned receipts.
+
+Canonical request detail links each fulfillment number to its receipt, with a
+return-to-request path. Permission metadata uses MR_VIEW instead of the former
+demo code. No stock movement/audit endpoint or inventory mutation authority is
+conferred by these receipt reads.
+
+Backend build PASS (0 warnings/errors), frontend typecheck/build PASS with existing
+router/chunk warnings; no DB writes or business/API/browser tests. Storekeeper
+recipient contract is pending user clarification: eligible branch Storekeepers
+versus Warehouse.ManagerUserId. No UC acceptance promotion from these checks.
