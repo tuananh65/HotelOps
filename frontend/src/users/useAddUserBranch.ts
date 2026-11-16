@@ -5,6 +5,14 @@ import { createUserProfileApi } from "./userProfileApi";
 import { createUserBranchMembershipApi } from "./userBranchMembershipApi";
 import type { UserProfileDto } from "./userProfileContracts";
 import type { UserBranchMembershipDto } from "./userBranchMembershipContracts";
+import { createHttpClient, isObject } from "../auth/http";
+export type BranchAssignmentOption={id:number;name:string;departments:{id:number;name:string}[]};
+const positiveId=(v:unknown):v is number=>typeof v==="number"&&Number.isSafeInteger(v)&&v>0;
+function options(v:unknown):BranchAssignmentOption[]|undefined{
+  if(!Array.isArray(v)||!v.every(b=>isObject(b)&&positiveId(b.id)&&typeof b.name==="string"&&Array.isArray(b.departments)
+    &&b.departments.every(d=>isObject(d)&&positiveId(d.id)&&typeof d.name==="string")))return;
+  return v as BranchAssignmentOption[];
+}
 
 export const unknownMembershipMessage =
   "Branch membership addition outcome could not be confirmed. The membership may already have been created. Do not retry automatically. Ask an authorized administrator to verify the current membership before making another change.";
@@ -13,7 +21,7 @@ export function destinationBranchId(value: string): number | null {
     value.length > 0 && !/[^0-9]/.test(value) ? Number(value) : NaN;
   return Number.isSafeInteger(number) && number > 0 ? number : null;
 }
-type Snapshot = { profile: UserProfileDto; etag: string; revision: number };
+type Snapshot = { profile: UserProfileDto; etag: string; revision: number; options:BranchAssignmentOption[] };
 type Read = { owner: PublicSession; target: number; generation: number } & (
   | { kind: "loading" }
   | { kind: "error"; message: string }
@@ -107,7 +115,8 @@ export function useAddUserBranch(target: number | null) {
     setRead({ owner, target, generation, kind: "loading" });
     void Promise.resolve().then(async () => {
       if (abort.signal.aborted || generation !== readGeneration.current) return;
-      const result = await profileApi.getProfile(target, abort.signal);
+      const [result,destinations] = await Promise.all([profileApi.getProfile(target, abort.signal),
+        createHttpClient()({method:"GET",url:`/api/users/${target}/branch-assignment-options`,expectedStatus:200,signal:abort.signal,decode:options})]);
       if (
         !mounted.current ||
         abort.signal.aborted ||
@@ -116,7 +125,12 @@ export function useAddUserBranch(target: number | null) {
         current.current.target !== target
       )
         return;
-      if (result.ok)
+      if (result.ok&&!destinations.ok){
+        setRead({owner,target,generation,kind:"error",message:"Available branch/department assignments could not be loaded. Reload to refresh your authorization."});
+        if(destinations.error.kind==="http")recover(destinations.error.status);
+        return;
+      }
+      if (result.ok&&destinations.ok)
         setRead({
           owner,
           target,
@@ -126,9 +140,10 @@ export function useAddUserBranch(target: number | null) {
             profile: result.data,
             etag: result.etag,
             revision: ++revision.current,
+            options:destinations.data,
           },
         });
-      else {
+      else if(!result.ok) {
         setRead({
           owner,
           target,
@@ -177,7 +192,8 @@ export function useAddUserBranch(target: number | null) {
       paused.current ||
       ["unknown", "stale", "confirmed"].includes(phase.current) ||
       !Number.isSafeInteger(branchId) ||
-      branchId <= 0 || !Number.isSafeInteger(departmentId) || departmentId <= 0
+      branchId <= 0 || !Number.isSafeInteger(departmentId) || departmentId <= 0 ||
+      !snapshot.options.some(b=>b.id===branchId&&b.departments.some(d=>d.id===departmentId))
     )
       return;
     busy.current = true;

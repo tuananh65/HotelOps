@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Security;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.InternalRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,8 +14,17 @@ namespace HotelOps.Api.Controllers;
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [UserAccountActivationErrors] // Existing route-local413 translation; other failures retain middleware500/503.
+[InternalRequestReadErrors]
 public sealed class UserBranchAssignmentController(UserBranchAssignmentService assignments) : ControllerBase
 {
+    [HttpGet("{userId:long}/branch-assignment-options")]
+    public async Task<IActionResult> Options([FromRoute, Range(1, long.MaxValue)] long userId, CancellationToken ct)
+    {
+        if (!Request.IsHttps) return Failure(400, "HTTPS_REQUIRED");
+        if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId)) return Failure(401, "SESSION_INVALID");
+        return Ok(await assignments.OptionsAsync(reference!, sessionId, userId, ct));
+    }
+
     [HttpPost("{userId}/branches")]
     [RequestSizeLimit(16 * 1024)]
     public async Task<IActionResult> Add([FromRoute, Range(1, long.MaxValue)] long userId, [FromBody] JsonElement body, CancellationToken ct)

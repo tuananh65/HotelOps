@@ -14,10 +14,48 @@ namespace HotelOps.Api.Services.Users;
 
 public enum AddBranchStatus { Success, Forbidden, SessionInvalid, NotFound, Inactive, InvalidBranch, Stale, Duplicate, RoleConflict, OperationsManagerConflict, InvalidDepartment, StorageRequired }
 public sealed record AddBranchResult(AddBranchStatus Status, UserBranchMembershipDto? Membership = null, byte[]? Version = null);
+public sealed record BranchAssignmentDepartment(long Id, string Name);
+public sealed record BranchAssignmentOption(long Id, string Name, IReadOnlyList<BranchAssignmentDepartment> Departments);
 
 public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranchAssignmentAccess access,
     ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock)
 {
+    public async Task<IReadOnlyList<BranchAssignmentOption>> OptionsAsync(SessionReference reference, long sessionId, long targetId, CancellationToken ct)
+    {
+        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId || actor.IsRestricted || reference.IsRestricted)
+            throw new InternalRequests.InternalRequestReadException(401, "SESSION_INVALID");
+        if (actor.UserId == targetId) throw new InternalRequests.InternalRequestReadException(403, "SELF_SCOPE_CHANGE_FORBIDDEN");
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await new UserEligibilityLock(db).LockAsync([actor.UserId, targetId], ct);
+        await access.LockAuthorityAsync(actor.UserId, targetId, ct);
+        async Task Session()
+        {
+            var valid = await sessions.ValidateSessionAsync(reference, ct);
+            if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted)
+                throw new InternalRequests.InternalRequestReadException(401, "SESSION_INVALID");
+        }
+        await Session();
+        var candidates = await db.Branches.AsNoTracking().Where(b => b.IsActive
+            && db.Users.Any(u => u.UserId == targetId && u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE")
+            && !db.UserBranchAccesses.Any(a => a.UserId == targetId && a.BranchId == b.BranchId))
+            .OrderBy(b => b.BranchName).Select(b => new { b.BranchId, b.BranchName }).ToArrayAsync(ct);
+        var result = new List<BranchAssignmentOption>();
+        foreach (var branch in candidates)
+        {
+            // Each destination requires both existing target visibility and current destination authority.
+            if (!await access.CanAddAsync(targetId, branch.BranchId, null, ct)) continue;
+            var departments = await db.Departments.AsNoTracking().Where(d => d.BranchId == branch.BranchId && d.IsActive)
+                .OrderBy(d => d.DepartmentName).Select(d => new BranchAssignmentDepartment(d.DepartmentId, d.DepartmentName)).ToArrayAsync(ct);
+            if (departments.Length > 0) result.Add(new(branch.BranchId, branch.BranchName, departments));
+        }
+        await Session();
+        // Scope grants may expire while reading; do not return a destination whose authorization no longer holds.
+        for (var i = result.Count - 1; i >= 0; i--)
+            if (!await access.CanAddAsync(targetId, result[i].Id, null, ct)) result.RemoveAt(i);
+        await tx.CommitAsync(ct);
+        return result;
+    }
+
     public async Task<AddBranchResult> AddAsync(SessionReference reference, long sessionId, long targetId,
         long branchId, byte[] expectedVersion, CancellationToken ct, long departmentId = 0)
     {

@@ -4,14 +4,17 @@ import {
   destinationBranchId,
   unknownMembershipMessage,
   type useAddUserBranch,
+  type BranchAssignmentOption,
 } from "./useAddUserBranch";
 
 function ConfirmationForm({
   target,
   add,
+  options,
 }: {
   target: number;
   add(branchId: number, departmentId: number): Promise<void>;
+  options:BranchAssignmentOption[];
 }) {
   const [draft, setDraft] = useState("");
   const [departmentDraft, setDepartmentDraft] = useState("");
@@ -21,9 +24,9 @@ function ConfirmationForm({
   function preview() {
     const branch = destinationBranchId(draft);
     const department = destinationBranchId(departmentDraft);
-    if (branch === null || department === null) {
+    if (branch === null || department === null || !options.some(b=>b.id===branch&&b.departments.some(d=>d.id===department))) {
       setError(
-        "Enter positive Branch and Department IDs using decimal digits only.",
+        "Select an available branch and working department.",
       );
       return;
     }
@@ -45,28 +48,29 @@ function ConfirmationForm({
       onSubmit={(e) => e.preventDefault()}
     >
       <label>
-        Destination Branch ID
-        <input
-          type="text"
-          inputMode="numeric"
+        Destination branch
+        <select
           name="branchId"
-          autoComplete="off"
           required
           value={draft}
           onChange={(e) => {
             setDraft(e.target.value);
+            setDepartmentDraft("");
             reviewed.current = null;
             setReview(null);
             setError("");
           }}
-        />
+        ><option value="">Select branch</option>{options.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}</select>
       </label>
-      <label>Working Department ID
-        <input type="text" inputMode="numeric" name="departmentId" autoComplete="off" required value={departmentDraft}
-          onChange={e=>{setDepartmentDraft(e.target.value);reviewed.current=null;setReview(null);setError("");}}/>
+      <label>Working department
+        <select name="departmentId" required value={departmentDraft}
+          onChange={e=>{setDepartmentDraft(e.target.value);reviewed.current=null;setReview(null);setError("");}}>
+          <option value="">Select department</option>{options.find(b=>b.id===Number(draft))?.departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
       </label>
       <p>The department must be active and belong to the destination branch. Both memberships are saved together.</p>
-      <button type="button" onClick={preview}>
+      {options.length===0&&<p role="status">No new branch with an active department is available in your current management scope.</p>}
+      <button type="button" disabled={!draft||!departmentDraft} onClick={preview}>
         Review Add Branch
       </button>
       {review !== null && (
@@ -156,6 +160,7 @@ export function AddUserBranchPage({
               key={snapshot.revision}
               target={target}
               add={flow.add}
+              options={snapshot.options}
             />
           )}
         </section>
