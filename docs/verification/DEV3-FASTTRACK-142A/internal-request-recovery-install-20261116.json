@@ -1,0 +1,14 @@
+{
+    "recordedUtc":  "2026-11-16T08:23:33.4954661Z",
+    "database":  "HotelOps_DEV3_142A_Recovery_2b221f40",
+    "sourceSha256":  "6ED83E267F06F5887A037E6C29576A111BA25855CC1ADD93E16FB4C7C8B179AC",
+    "trialApplied":  false,
+    "tablesAfterRollback":  0,
+    "applied":  true,
+    "idempotentReapply":  true,
+    "tables":  7,
+    "departmentMappings":  0,
+    "backupSetId":  4,
+    "businessRowsInserted":  0,
+    "scope":  "Disposable schema only"
+}
