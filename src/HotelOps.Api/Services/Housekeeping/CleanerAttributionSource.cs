@@ -24,6 +24,9 @@ public sealed partial class RoomTypeCreationService
     }
 
     private async Task<bool> CleanerAttributionInstalled(CancellationToken ct)
+        => await CleanerAttributionInstalled(db, ct);
+
+    internal static async Task<bool> CleanerAttributionInstalled(HotelOps.Api.Data.HotelOpsDbContext db, CancellationToken ct)
         => await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN OBJECT_ID('dbo.fe04_cleaner_attributions','U') IS NOT NULL
               AND OBJECT_ID('dbo.fe04_capture_cleaner_attribution','P') IS NOT NULL

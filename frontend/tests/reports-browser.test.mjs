@@ -92,7 +92,7 @@ async function fixture(run) {
       const q = req.postDataJSON();
       return json({
         snapshotId: "b".repeat(32),
-        key: "tasks",
+        key: path.split("/")[3],
         snapshot: "2026-11-15T00:00:00Z",
         filters: {
           branchIds: [1],
@@ -111,6 +111,7 @@ async function fixture(run) {
         totalCount: 1,
         missingSources: [],
         exportFormats: ["csv"],
+        appliedFilters: Object.fromEntries(Object.entries(q).map(([k, v]) => [k, String(v)])),
       });
     }
     if (path.endsWith("/export"))
@@ -134,6 +135,23 @@ async function preview(page) {
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await page.getByText("PRIVATE REPORT ROW", { exact: true }).waitFor();
 }
+
+test("inspection actor filters are explicit and editing removes the frozen preview", async () => fixture(async (page, state) => {
+  await page.getByLabel("Report type", { exact: true }).selectOption("inspections");
+  await page.getByLabel("Housekeeper ID", { exact: true }).fill("42");
+  await page.getByLabel("Inspector ID", { exact: true }).fill("43");
+  await preview(page);
+  const sent = state.calls.findLast(c => c.path.endsWith("/preview"));
+  assert.equal(sent.path, "/api/reports/inspections/preview");
+  assert.equal(sent.body.housekeeperId, 42); assert.equal(sent.body.inspectorId, 43);
+  await page.getByLabel("Housekeeper ID", { exact: true }).fill("44");
+  assert.equal(await page.getByText("PRIVATE REPORT ROW", { exact: true }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Export CSV", exact: true }).count(), 0);
+  await page.getByLabel("Report type", { exact: true }).selectOption("tasks");
+  await preview(page);
+  const task = state.calls.findLast(c => c.path.endsWith("/preview"));
+  assert.equal(task.body.housekeeperId, undefined); assert.equal(task.body.inspectorId, undefined);
+}));
 test("revoked export clears cached report and offers no download", async () =>
   fixture(async (page, state) => {
     await preview(page);

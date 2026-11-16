@@ -36,6 +36,14 @@ const snapshot = () => ({
   missingSources: ["Partial report"],
   exportFormats: ["csv"],
 });
+
+test("inspection snapshots must confirm each requested actor filter", () => {
+  const data = { ...snapshot(), key: "inspections", appliedFilters: { housekeeperId: "42", inspectorId: "43" } };
+  const filters = { ...query, housekeeperId: 42, inspectorId: 43 };
+  assert.equal(decodeSnapshot(data, "inspections", filters).key, "inspections");
+  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: null }, "inspections", filters), /Unconfirmed report filter/);
+  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: { housekeeperId: "43", inspectorId: "43" } }, "inspections", filters), /Unconfirmed report filter/);
+});
 test("XLSX requires advertised capability and preserves format and MIME", async () => {
   const report = snapshot();
   report.exportFormats = ["csv", "xlsx"];

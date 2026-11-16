@@ -94,8 +94,16 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && (i.Room.AreaId == null || i.Room.Area!.BranchId == i.Room.BranchId)
                     && (i.CleaningTaskId == null || i.CleaningTask!.RoomId == i.RoomId)
                     && i.InspectedAt >= start && i.InspectedAt < end && (query.InspectorId == null || i.InspectorUserId == query.InspectorId));
-                // Housekeeper membership in historical assignments is not a proven cycle actor.
-                if (query.HousekeeperId is not null) throw new InsightException(503, "HOUSEKEEPER_CYCLE_UNAPPROVED", "Historical housekeeper report coverage unavailable.");
+                if (query.HousekeeperId is {} housekeeper)
+                {
+                    if (!await HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.CleanerAttributionInstalled(db, ct))
+                        throw new InsightException(503, "HOUSEKEEPER_CYCLE_UNAPPROVED", "Official cleaner attribution is unavailable.");
+                    var proof = HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.HistoricalInspectionCleaners(db);
+                    // Do not silently drop unknown historical attribution and present a complete report.
+                    if (await inspections.AnyAsync(i => !proof.Any(p => p.InspectionId == i.InspectionId), ct))
+                        throw new InsightException(503, "HOUSEKEEPER_HISTORY_INCOMPLETE", "Selected period contains inspections without verified cleaner attribution.");
+                    inspections = inspections.Where(i => proof.Any(p => p.InspectionId == i.InspectionId && p.UserId == housekeeper));
+                }
                 await Add("room_inspections", inspections.OrderBy(i => i.InspectionId).Select(i => new { Id = i.InspectionId,
                     i.RoomId, i.CleaningTaskId, i.InspectorUserId, i.Status, i.Result, i.InspectedAt }),
                     "id", "roomId", "cleaningTaskId", "inspectorUserId", "status", "result", "inspectedAt");
@@ -103,7 +111,9 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                 await Add("inspection_defects", db.InspectionDefects.AsNoTracking().Where(d => ids.Contains(d.InspectionId))
                     .OrderBy(d => d.DefectId).Select(d => new { Id = d.DefectId, d.InspectionId, d.ChecklistItemId, d.SeverityId, d.Status }),
                     "id", "inspectionId", "checklistItemId", "severityId", "status");
-                missing.Add("first inspection/cycle and rework aggregation unavailable; historical housekeeper coverage is incomplete");
+                missing.Add("first inspection/cycle and rework aggregation unavailable");
+                if (query.HousekeeperId is null)
+                    missing.Add("historical housekeeper coverage has not been verified for this unfiltered report");
                 break;
             }
             case "incidents":

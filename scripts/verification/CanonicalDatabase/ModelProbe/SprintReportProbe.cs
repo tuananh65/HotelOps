@@ -133,6 +133,30 @@ internal static class SprintReportProbe
             Check(frozenCsv.Contains("overdue") && frozenCsv.Contains("true"), "CSV includes the frozen overdue indicator");
             Check(results["rooms"].Rows.Count == 1 && results["rooms"].Sections.Single(s => s.Key == "cleaning_tasks").Rows.Count == 1, "room report contains scoped room and cleaning rows");
             Check(results["inspections"].Rows.Count == 1, "inspection report contains its scoped dated row");
+            var cleanerQuery = new ReportQuery { BranchId = branch, HousekeeperId = actor };
+            rejected = false;
+            try { await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct); }
+            catch (InsightException e) when (e.Code == "HOUSEKEEPER_CYCLE_UNAPPROVED") { rejected = true; }
+            Check(rejected, "housekeeper filter refuses absent official attribution capability");
+            await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintCleanerAttribution.sql", ct), ct);
+            rejected = false;
+            try { await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct); }
+            catch (InsightException e) when (e.Code == "HOUSEKEEPER_HISTORY_INCOMPLETE") { rejected = true; }
+            Check(rejected, "housekeeper filter refuses incomplete period coverage instead of silently omitting rows");
+            var cleaningTask = (await db.RoomInspections.Where(i => i.InspectionId == inspection).Select(i => i.CleaningTaskId).SingleAsync(ct))!.Value;
+            var officialCleaner = await SprintApproveProbe.SeedCleanerAsync(db, actor, branch, cleaningTask, "recipient-normal", ct);
+            cleanerQuery.HousekeeperId = officialCleaner;
+            var cleanerReport = await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct);
+            Check(cleanerReport.Rows.Count == 1 && cleanerReport.AppliedFilters!["housekeeperId"] == officialCleaner.ToString(), "report filters by immutable official cleaner and records applied filter");
+            cleanerQuery.HousekeeperId = actor;
+            Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Rows.Count == 0, "inspector and assignment issuer are not inferred as cleaner");
+            await db.Users.Where(u => u.UserId == officialCleaner).ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "INACTIVE"), ct);
+            cleanerQuery.HousekeeperId = officialCleaner;
+            Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Rows.Count == 1, "historical cleaner attribution survives later account inactivity");
+            cleanerQuery.InspectorId = officialCleaner;
+            Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Rows.Count == 0, "inspector and housekeeper filters intersect");
+            var cleanerCsv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(cleanerReport).Content);
+            Check(cleanerCsv.Contains("housekeeperId") && cleanerCsv.Contains(cleanerReport.SnapshotId), "frozen cleaner report CSV retains applied filter and snapshot");
             var inventory = results["items"];
             inventoryObservation = inventory.Sections;
             Check(inventory.Rows.Count == 1 && ((JsonElement)inventory.Rows[0]["onHand"]!).ValueKind == JsonValueKind.String

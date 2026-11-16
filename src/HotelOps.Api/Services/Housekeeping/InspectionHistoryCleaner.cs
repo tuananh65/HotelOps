@@ -4,7 +4,7 @@ namespace HotelOps.Api.Services.HotelStructure;
 
 public sealed partial class RoomTypeCreationService
 {
-    private sealed class HistoricalInspectionCleaner
+    internal sealed class HistoricalInspectionCleaner
     {
         public long InspectionId { get; set; }
         public long UserId { get; set; }
@@ -16,8 +16,11 @@ public sealed partial class RoomTypeCreationService
     // Historical completion proof, independent of the room's CURRENT cleaning cycle
     // and of the cleaner's later employment/role state. An assignment alone is not proof.
     // Caller verifies the immutable attribution capability and scopes the inspection query.
-    private IQueryable<HistoricalInspectionCleaner> HistoricalInspectionCleaners() =>
-        db.Database.SqlQueryRaw<HistoricalInspectionCleaner>("""
+    private IQueryable<HistoricalInspectionCleaner> HistoricalInspectionCleaners() => HistoricalInspectionCleaners(db);
+
+    // Shared historical proof query; consumers must intersect their own authorized scope.
+    internal static IQueryable<HistoricalInspectionCleaner> HistoricalInspectionCleaners(HotelOps.Api.Data.HotelOpsDbContext source) =>
+        source.Database.SqlQueryRaw<HistoricalInspectionCleaner>("""
             SELECT i.inspection_id AS InspectionId,a.cleaner_user_id AS UserId,u.full_name AS Name,
                 a.assignment_id AS AssignmentId,a.completed_at AS CompletedAt
             FROM dbo.fe04_cleaner_attributions a

@@ -60,6 +60,8 @@ export function ReportsPage() {
   const [kind, setKind] = useState<ReportType>("tasks");
   const [branch, setBranch] = useState("");
   const [department, setDepartment] = useState("");
+  const [housekeeper, setHousekeeper] = useState("");
+  const [inspector, setInspector] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -143,6 +145,8 @@ export function ReportsPage() {
           to,
           ...(branch ? { branchId: Number(branch) } : {}),
           ...(department ? { departmentId: Number(department) } : {}),
+          ...(kind === "inspections" && housekeeper ? { housekeeperId: Number(housekeeper) } : {}),
+          ...(kind === "inspections" && inspector ? { inspectorId: Number(inspector) } : {}),
         });
         if (!controller.signal.aborted) {
           setSnapshot(data);
@@ -198,6 +202,8 @@ export function ReportsPage() {
                   changed();
                   setKind(e.target.value as ReportType);
                   setDepartment("");
+                  setHousekeeper("");
+                  setInspector("");
                 }}
               >
                 {reportTypes.map((k) => (
@@ -226,6 +232,12 @@ export function ReportsPage() {
                 ))}
               </select>
             </label>
+            {kind === "inspections" && <>
+              <label>Housekeeper ID<input type="number" min="1" step="1" value={housekeeper}
+                onChange={e => { changed(); setHousekeeper(e.target.value); }} /></label>
+              <label>Inspector ID<input type="number" min="1" step="1" value={inspector}
+                onChange={e => { changed(); setInspector(e.target.value); }} /></label>
+            </>}
             {kind === "tasks" && (
               <label>
                 Department
