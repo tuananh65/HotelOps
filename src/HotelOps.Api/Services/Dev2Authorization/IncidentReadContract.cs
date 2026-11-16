@@ -11,6 +11,7 @@ using HotelOps.Api.Services.Incidents;
 using HotelOps.Api.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace HotelOps.Api.Services.Dev2Authorization;
 
@@ -21,7 +22,8 @@ internal static class IncidentReadContract
     internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V1";
     private const string Policy = "GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
-        + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; no mutation authority";
+        + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
+        + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; no mutation authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("INCIDENT_VIEW", new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
@@ -83,7 +85,15 @@ internal static class IncidentReadContract
                     .Where(r => r.GroupCode == "INCIDENT_CATEGORY" && r.IsActive)
                     .OrderBy(r => r.SortOrder).ThenBy(r => r.DisplayName).ThenBy(r => r.ReferenceId)
                     .Select(r => new IncidentCategoryOptionDto(r.ReferenceId, r.ValueCode, r.DisplayName)).ToArrayAsync(ct));
-            if (a.Identity.DecisionId == "A004A-022") return new OkObjectResult(await IncidentService.ListAsync(query, Input(a), ct, db));
+            if (a.Identity.DecisionId == "A004A-022")
+            {
+                var input = Input(a);
+                var page = await IncidentService.ListAsync(query, input, ct, db);
+                if (input.SimilarOpenOnly)
+                    page.SimilarReviewToken = IncidentReviewReceipt.Issue(a.Http.RequestServices.GetRequiredService<IDataProtectionProvider>(),
+                        a.Http.RequestServices.GetRequiredService<TimeProvider>(), a.Actor.UserId, a.Actor.SessionId, input);
+                return new OkObjectResult(page);
+            }
             var result = await IncidentService.DetailAsync(query, Id(a), ct, db);
             return result == null ? new NotFoundResult() : new OkObjectResult(result);
         }

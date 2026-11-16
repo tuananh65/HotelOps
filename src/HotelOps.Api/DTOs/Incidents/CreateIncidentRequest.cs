@@ -27,6 +27,8 @@ public sealed class CreateIncidentRequest
     public long? CategoryId { get; init; }
     public long? InternalRequestId { get; init; }
     public IncidentRequestLink? RequestLink { get; init; }
+    [MaxLength(4096)]
+    public string? SimilarReviewToken { get; init; }
 }
 
 public sealed record IncidentRequestLink(string Version, [property: JsonRequired] bool Mandatory);

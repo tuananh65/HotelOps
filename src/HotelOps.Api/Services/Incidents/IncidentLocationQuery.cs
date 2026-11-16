@@ -13,6 +13,10 @@ internal static class IncidentLocationQuery
             throw new ValidationException("Location identifiers must be positive when supplied.");
         if (input.SimilarOpenOnly)
         {
+            if (!string.IsNullOrWhiteSpace(input.Status) || !string.IsNullOrWhiteSpace(input.Keyword)
+                || input.PriorityId != null || input.SeverityId != null || input.CategoryId != null
+                || input.DetectedFrom != null || input.DetectedTo != null)
+                throw new ValidationException("Similar incident review cannot be narrowed by unrelated filters.");
             if (input.BranchId is not > 0 || input.RoomId == null && input.AreaId == null && input.AssetId == null)
                 throw new ValidationException("Select a branch and at least one room, area or asset before reviewing similar incidents.");
             return query.Where(i => i.BranchId == input.BranchId

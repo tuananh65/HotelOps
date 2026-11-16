@@ -79,6 +79,11 @@ export function createDev2Api(
     try {
       path = operationPath(operation, parameters);
       data = payload(operation.fields, values, actor);
+      if (operation.id === "A004A-021") {
+        if (typeof values.similarReviewToken !== "string" || !values.similarReviewToken || values.similarReviewToken.length > 4096)
+          throw Error("Review similar incidents before creating a new incident.");
+        data.similarReviewToken = values.similarReviewToken;
+      }
       if (["A004A-021", "A004A-043"].includes(operation.id) && (values.internalRequestId != null || values.requestLink != null)) {
         if (!isObject(values.requestLink) || typeof values.requestLink.version !== "string"
           || !/^[A-Za-z0-9+/]{11}=$/.test(values.requestLink.version) || typeof values.requestLink.mandatory !== "boolean")

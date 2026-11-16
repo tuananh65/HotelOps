@@ -38,7 +38,9 @@ public sealed class IncidentLocationQueryTests
     {
         foreach (var input in new IncidentQueryRequest[] {
             new() { SimilarOpenOnly = true }, new() { SimilarOpenOnly = true, BranchId = 3 },
-            new() { SimilarOpenOnly = true, RoomId = 8 }, new() { SimilarOpenOnly = true, BranchId = 3, RoomId = -1 } })
+            new() { SimilarOpenOnly = true, RoomId = 8 }, new() { SimilarOpenOnly = true, BranchId = 3, RoomId = -1 },
+            new() { SimilarOpenOnly = true, BranchId = 3, RoomId = 8, Keyword = "hide other matches" },
+            new() { SimilarOpenOnly = true, BranchId = 3, RoomId = 8, Status = "CLOSED" } })
             Assert.Throws<ValidationException>(() => IncidentLocationQuery.Apply(Rows(), input));
     }
 }

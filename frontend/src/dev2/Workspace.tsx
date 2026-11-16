@@ -15,7 +15,7 @@ import { modules, label, type Operation, type Values } from "./contracts";
 import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
-import { IncidentDuplicateReview, incidentLocationKey } from "./IncidentDuplicateReview";
+import { IncidentDuplicateReview, incidentLocationKey, type IncidentReview } from "./IncidentDuplicateReview";
 import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
 import { MaterialBranchField } from "./MaterialBranchField";
@@ -193,7 +193,7 @@ function Screen({
     operationDefaults(operation, context),
   );
   const [record, setRecord] = useState<Values>({});
-  const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<string | null>(null);
+  const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<IncidentReview | null>(null);
   const [data, setData] = useState<unknown>();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -258,8 +258,11 @@ function Screen({
         commandInput = { ...input, branchId: context.branchId, internalRequestId: context.internalRequestId,
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
-      if (target.id === "A004A-021" && (!reviewedIncidentLocation || reviewedIncidentLocation !== incidentLocationKey(commandInput)))
-        throw Error("Review similar incidents for the current location before creating a new incident.");
+      if (target.id === "A004A-021") {
+        if (!reviewedIncidentLocation || reviewedIncidentLocation.key !== incidentLocationKey(commandInput))
+          throw Error("Review similar incidents for the current location before creating a new incident.");
+        commandInput = { ...commandInput, similarReviewToken: reviewedIncidentLocation.token };
+      }
       payload(target.fields, commandInput, actor);
       operationPath(target, args);
     } catch (e) {

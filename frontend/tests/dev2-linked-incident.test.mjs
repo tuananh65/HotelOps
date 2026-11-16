@@ -7,7 +7,7 @@ const { operations } = await import("../src/dev2/catalog.generated.ts");
 const operation = operations.find(action => action.id === "A004A-021");
 const values = { branchId: 3, incidentTitle: "Leaking tap", description: "Leak detected", roomId: 8,
   discoveredAt: "2026-11-16T01:00:00Z", internalRequestId: 17,
-  requestLink: { version: "AAAAAAAAAAE=", mandatory: false } };
+  requestLink: { version: "AAAAAAAAAAE=", mandatory: false }, similarReviewToken: "TEST-REVIEW" };
 const response = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json" },
 });
@@ -27,12 +27,14 @@ test("linked incident preserves source version and explicit optional choice with
   assert.equal((await api(operation, {}, values, "42")).ok, true);
   assert.equal(posted.reportedBy, 42);
   assert.equal(posted.internalRequestId, 17);
+  assert.equal(posted.similarReviewToken, "TEST-REVIEW");
   assert.deepEqual(posted.requestLink, values.requestLink);
 });
 
 test("incomplete linked source never falls back to standalone incident creation", async () => {
   for (const invalid of [
     { ...values, internalRequestId: undefined },
+    { ...values, similarReviewToken: undefined },
     { ...values, internalRequestId: 0 },
     { ...values, requestLink: undefined },
     { ...values, requestLink: { version: "invalid", mandatory: false } },

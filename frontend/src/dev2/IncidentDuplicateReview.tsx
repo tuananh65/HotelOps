@@ -10,9 +10,10 @@ export function incidentLocationKey(values: Values): string | null {
   return parts.join(":");
 }
 type Item = { incidentId: number; incidentNo: string; incidentTitle: string; status: string };
-type Page = { items: Item[]; totalCount: number; totalPages: number; page: number };
+type Page = { items: Item[]; totalCount: number; totalPages: number; page: number; similarReviewToken: string };
+export type IncidentReview = { key: string; token: string };
 const request = createHttpClient();
-export function IncidentDuplicateReview({ values, onReviewed }: { values: Values; onReviewed: (key: string | null) => void }) {
+export function IncidentDuplicateReview({ values, onReviewed }: { values: Values; onReviewed: (review: IncidentReview | null) => void }) {
   const key = incidentLocationKey(values);
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
@@ -28,7 +29,8 @@ export function IncidentDuplicateReview({ values, onReviewed }: { values: Values
     for (const [name, value] of Object.entries({ roomId, areaId, assetId })) if (value) query.set(name, value);
     void request<Page>({ method: "GET", url: `/api/incidents?${query}`, expectedStatus: 200, signal: abort.signal,
       decode: raw => {
-        if (!isObject(raw) || raw.page !== page || raw.pageSize !== 20 || !Number.isSafeInteger(raw.totalCount)
+        if (!isObject(raw) || typeof raw.similarReviewToken !== "string" || !raw.similarReviewToken || raw.similarReviewToken.length > 4096
+          || raw.page !== page || raw.pageSize !== 20 || !Number.isSafeInteger(raw.totalCount)
           || Number(raw.totalCount) < 0 || raw.totalPages !== Math.ceil(Number(raw.totalCount) / 20)
           || !Array.isArray(raw.items) || raw.items.length !== Math.min(20, Math.max(0, Number(raw.totalCount) - (page - 1) * 20))) return undefined;
         const ids = new Set<number>();
@@ -60,7 +62,8 @@ export function IncidentDuplicateReview({ values, onReviewed }: { values: Values
         <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous similar incidents</button>
         <span> Page {page} </span>
         <button type="button" disabled={page >= current.data.totalPages} onClick={() => setPage(p => p + 1)}>Next similar incidents</button>
-        <label><input key={`${key}:${page}:${revision}`} type="checkbox" onChange={event => onReviewed(event.target.checked ? key : null)} />
+        <label><input key={`${key}:${page}:${revision}`} type="checkbox" onChange={event => onReviewed(event.target.checked && key
+          ? { key, token: current.data!.similarReviewToken } : null)} />
           I reviewed the visible matches and want to create a new incident.</label>
       </>}
     <button type="button" disabled={!key} onClick={() => setRevision(r => r + 1)}>Reload similar incidents</button>

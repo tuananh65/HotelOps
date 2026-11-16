@@ -6,6 +6,7 @@ using HotelOps.Api.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace HotelOps.Api.Services.Incidents;
 
@@ -233,6 +234,10 @@ public sealed class IncidentService : IIncidentService
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["CreateIncident"], request.ReportedBy, null, request);
         IncidentCreationInput.Validate(request);
+        var identity = Dev2ServiceAuthority.CurrentIdentity(_authorityHttp);
+        var services = _authorityHttp!.HttpContext!.RequestServices;
+        IncidentReviewReceipt.Validate(services.GetRequiredService<IDataProtectionProvider>(), services.GetRequiredService<TimeProvider>(),
+            identity.UserId, identity.SessionId, request);
         await ValidateCreateAsync(request, cancellationToken);
 
         var reportedAt = DateTime.UtcNow;
