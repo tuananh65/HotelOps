@@ -2,6 +2,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Dependencies;
 using HotelOps.Api.Services.OperationalTasks;
+using HotelOps.Api.Services.InternalRequests;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -84,18 +85,34 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
         var internalAssignments=await db.InternalRequestAssignments.AsNoTracking()
             .Where(a=>a.AssigneeId==target&&a.Status=="ACTIVE")
             .Select(a=>new {a.InternalRequestId,a.AssignedAt,a.EndedAt,a.InternalRequest.Status,a.InternalRequest.BranchId,
+                a.InternalRequest.ReceivingDepartmentId,
+                HandlerActive=a.Assignee.AccountStatus=="ACTIVE"&&a.Assignee.EmploymentStatus=="ACTIVE"&&a.Assignee.DeletedAt==null,
                 DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId
                     && a.InternalRequest.ReceivingDepartment.IsActive && a.InternalRequest.Branch.IsActive,
                 HandlerMembership=a.Assignee.DepartmentId==a.InternalRequest.ReceivingDepartmentId
                     && a.Assignee.AccountStatus=="ACTIVE"&&a.Assignee.EmploymentStatus=="ACTIVE"&&a.Assignee.DeletedAt==null,
                 Owners=a.InternalRequest.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
             .ToArrayAsync(ct);
+        bool? managerMappingInstalled = null;
         foreach(var request in internalAssignments)
         {
             var fact=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
             if(request.EndedAt!=null||request.AssignedAt>now||request.Owners!=1||!request.DepartmentValid)
             {unresolved.Add(fact+"_INCONSISTENT");continue;}
-            Record(RevokeRoleGrantImpact.InternalRequestHandler(request.Status,before,after,request.BranchId,now,request.HandlerMembership),fact);
+            var mappedManager = false;
+            if (request.HandlerActive && request.Status == "IN_PROGRESS")
+            {
+                managerMappingInstalled ??= await new InternalRequestProcessAuthority(db).InstalledAsync(ct);
+                if (managerMappingInstalled == true)
+                    mappedManager = await db.Database.SqlQuery<int>($"""
+                        SELECT COUNT(*) AS Value FROM dbo.department_management_access WITH(HOLDLOCK)
+                        WHERE user_id={target} AND branch_id={request.BranchId}
+                          AND department_id={request.ReceivingDepartmentId}
+                          AND granted_at<={now} AND revoked_at IS NULL
+                        """).SingleAsync(ct) == 1;
+            }
+            Record(RevokeRoleGrantImpact.InternalRequestHandler(request.Status,before,after,request.BranchId,now,
+                request.HandlerMembership,mappedManager),fact);
         }
         // Other designated FE11 roles and all writer coordination remain explicit gates;
         // an empty target assignment set is not complete role-dependency acceptance.

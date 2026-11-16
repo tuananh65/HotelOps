@@ -63,7 +63,7 @@ public static class RevokeRoleGrantImpact
 
     public static RevokeCapabilityImpact InternalRequestHandler(string? state,
         IReadOnlyList<RevokeGrant> before,IReadOnlyList<RevokeGrant> after,long? branch,DateTime nowUtc,
-        bool currentHandlerMembershipVerified = false)
+        bool currentHandlerMembershipVerified = false, bool currentManagerMappingVerified = false)
     {
         if(state!="IN_PROGRESS")return RevokeCapabilityImpact.Unknown;
         // Current handler mutation independently requires both permissions. Losing
@@ -97,9 +97,13 @@ public static class RevokeRoleGrantImpact
         bool Eligible(RevokeGrant grant) => grant.RoleCode is {} role
             && InternalRequestProgressAuthority.EligibleHandler(role, grant.Path, branch.Value, nowUtc);
         if (before.Any(Eligible) && !after.Any(Eligible)) return RevokeCapabilityImpact.Lost;
+        bool ProvenAuthority(RevokeGrant grant) => currentHandlerMembershipVerified && Eligible(grant)
+            || currentManagerMappingVerified && grant.RoleCode is {} role
+                && InternalRequestProcessAuthority.Eligible(role, grant.Path, branch.Value, nowUtc);
+        if (before.Any(ProvenAuthority) && !after.Any(ProvenAuthority)) return RevokeCapabilityImpact.Lost;
         // Handler membership is independent of managed-department authority. Only
         // the SQL responsibility reader can establish current active membership.
-        if (currentHandlerMembershipVerified && readPreserved && before.Any(Eligible) && after.Any(Eligible)
+        if (readPreserved && before.Any(ProvenAuthority) && after.Any(ProvenAuthority)
             && process == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved)
             return RevokeCapabilityImpact.Preserved;
         return RevokeCapabilityImpact.Unknown;

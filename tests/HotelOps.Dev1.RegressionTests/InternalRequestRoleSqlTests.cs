@@ -99,6 +99,38 @@ public sealed class InternalRequestRoleSqlTests
             await db.Users.Where(u=>u.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,(long?)null),ct);
             Assert.Contains(label + "_UNKNOWN", (await Read()).Unresolved);
             Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            // Explicit management authority does not require the handler's home department.
+            Assert.True(await new InternalRequestProcessAuthority(db).InstalledAsync(ct));
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({user.UserId},{branch.BranchId},{department.DepartmentId},{now})",ct);
+            Assert.True((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            Assert.Contains(label,(await Read()).Blockers); // Removing DEPT_MANAGER loses mapped authority.
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET granted_at={now.AddDays(1)} WHERE user_id={user.UserId} AND branch_id={branch.BranchId} AND department_id={department.DepartmentId}",ct);
+            Assert.Contains(label+"_UNKNOWN",(await Read()).Unresolved);
+            Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET granted_at={now} WHERE user_id={user.UserId} AND branch_id={branch.BranchId} AND department_id={department.DepartmentId}",ct);
+            var routedDepartment = new Department { BranchId=branch.BranchId,DepartmentCode=prefix+"R",DepartmentName="Synthetic routed department",IsActive=true };
+            db.Departments.Add(routedDepartment);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request.InternalRequestId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReceivingDepartmentId,routedDepartment.DepartmentId),ct);
+            Assert.Contains(label+"_UNKNOWN",(await Read()).Unresolved);
+            Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request.InternalRequestId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReceivingDepartmentId,department.DepartmentId),ct);
+            var mappedSurvivor = new RevokeRoleResponsibilities(db,TimeProvider.System);
+            var mappedBefore = await mappedSurvivor.ReadAsync(user.UserId,alternate.UserRoleId,false,ct);
+            Assert.DoesNotContain(label,mappedBefore.Blockers);
+            Assert.DoesNotContain(label+"_UNKNOWN",mappedBefore.Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
+            var mappedAfter = await mappedSurvivor.ReadAsync(user.UserId,alternate.UserRoleId,true,ct);
+            Assert.DoesNotContain(label,mappedAfter.Blockers);
+            Assert.DoesNotContain(label+"_UNKNOWN",mappedAfter.Unresolved);
+            Assert.DoesNotContain("POST_REVOKE_GRANTS_CHANGED",mappedAfter.Unresolved);
+            Assert.True((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
+            Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={user.UserId} AND branch_id={branch.BranchId} AND department_id={department.DepartmentId}",ct);
+            Assert.Contains(label+"_UNKNOWN",(await Read()).Unresolved);
+            Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
             await db.Users.Where(u=>u.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,department.DepartmentId),ct);
             var surviving = new RevokeRoleResponsibilities(db, TimeProvider.System);
             Assert.DoesNotContain(label + "_UNKNOWN", (await surviving.ReadAsync(user.UserId,selected.UserRoleId,false,ct)).Unresolved);

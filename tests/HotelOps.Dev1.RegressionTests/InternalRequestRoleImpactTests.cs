@@ -5,6 +5,23 @@ using Xunit;
 namespace HotelOps.Dev1.RegressionTests;
 public sealed class InternalRequestRoleImpactTests
 {
+    [Fact]
+    public void MappedManagerNeedsItsOwnBranchProcessPathNotAnotherHandlersOwnGrant()
+    {
+        var manager = Grant(1, "IR_PROCESS") with { RoleCode = "DEPT_MANAGER" };
+        manager = manager with { Path = manager.Path with { DataScope = "BRANCH" } };
+        var read = Grant(1, "IR_VIEW") with { RoleCode = "DEPT_MANAGER" };
+        var staff = Grant(2, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        Assert.Equal(RevokeCapabilityImpact.Preserved, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [manager, read, staff], [manager, read], 1, Now, false, true));
+        Assert.Equal(RevokeCapabilityImpact.Lost, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [manager, read, staff], [staff, read], 1, Now, false, true));
+        Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [manager, read], [manager, read], 1, Now, false, false));
+        var ownManager = manager with { Path = manager.Path with { DataScope = "OWN" } };
+        Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [ownManager, read], [ownManager, read], 1, Now, false, true));
+    }
     private static readonly DateTime Now=new(2026,11,16,0,0,0,DateTimeKind.Utc);
     private static RevokeGrant Grant(long assignment,string permission,long branch=1)=>new(assignment,
         new PermissionGrantPath(permission,"OWN",branch,true,true,Now.AddDays(-1),null,true,true));
