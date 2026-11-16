@@ -9,7 +9,8 @@ const positive = (v: unknown): v is number => typeof v === "number" && Number.is
 const instant = (v: unknown) => typeof v === "string" && /Z$/.test(v) && Number.isFinite(Date.parse(v));
 const option = (v: unknown): v is Option => isObject(v) && positive(v.priorityId) && typeof v.name === "string"
   && instant(v.responseDeadlineAt) && instant(v.resolutionDeadlineAt) && typeof v.targetVersion === "string" && /^[0-9A-F]{16}$/.test(v.targetVersion);
-const utc = (v: string) => v && Number.isFinite(Date.parse(v + "Z")) ? new Date(v + "Z").toISOString() : undefined;
+const utc = (v: string) => v && Number.isFinite(Date.parse(v + "+07:00")) ? new Date(v + "+07:00").toISOString() : undefined;
+const displayTime = (v: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(v));
 export function IncidentTriagePanel({ data }: { data: Values }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
@@ -63,10 +64,10 @@ export function IncidentTriagePanel({ data }: { data: Values }) {
     <fieldset disabled={busy || attempted || review}>
       <label>Priority<select aria-label="Priority" value={priority} onChange={e => { setPriority(e.target.value); setResponse(""); setResolution(""); setReason(""); }}>
         <option value="">Select priority</option>{choices.map(o => <option key={o.priorityId} value={o.priorityId}>{o.name}</option>)}</select></label>
-      {chosen && <p>Default response deadline: {chosen.responseDeadlineAt}; resolution deadline: {chosen.resolutionDeadlineAt} (UTC).</p>}
+      {chosen && <p>Default response deadline: {displayTime(chosen.responseDeadlineAt)}; resolution deadline: {displayTime(chosen.resolutionDeadlineAt)} (Asia/Ho_Chi_Minh, UTC+7).</p>}
       <label>Initial action plan<textarea value={plan} onChange={e => setPlan(e.target.value)} /></label>
-      <label>Override response deadline (UTC, optional)<input type="datetime-local" step="1" value={response} onChange={e => setResponse(e.target.value)} /></label>
-      <label>Override resolution deadline (UTC, optional)<input type="datetime-local" step="1" value={resolution} onChange={e => setResolution(e.target.value)} /></label>
+      <label>Override response deadline (UTC+7, optional)<input type="datetime-local" step="1" value={response} onChange={e => setResponse(e.target.value)} /></label>
+      <label>Override resolution deadline (UTC+7, optional)<input type="datetime-local" step="1" value={resolution} onChange={e => setResolution(e.target.value)} /></label>
       {changed && <label>Reason for changing deadlines (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>}
     </fieldset>
     {message && <p role="status">{message}</p>}

@@ -23,8 +23,8 @@ internal static class IncidentReadContract
 {
     private static readonly object AssignmentKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V5";
-    private const string Policy = "Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V6";
+    private const string Policy = "Pending Triage cancellation availability requires native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
@@ -138,6 +138,9 @@ internal static class IncidentReadContract
                 result.AssignmentWorkflow = await IncidentAssignmentWorkflow.ReadAsync(db,
                     await query.SingleAsync(i => i.IncidentId == result.IncidentId, ct), ct);
                 result.TriageETag = await IncidentTriageStore.TagAsync(db, result.IncidentId, ct);
+                result.CanCancelTriage = result.TriageETag != null && result.AssignmentWorkflow == "PENDING_TRIAGE"
+                    && await IncidentTriageAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
+                if(result.CanCancelTriage) a.Http.Items[TriageOptionsKey]=true;
                 result.CanAssign = result.AssignmentWorkflow is "PENDING_ASSIGNMENT" or "ASSIGNED"
                     && result.TriageETag != null && await MaintenanceAssignmentStore.InstalledAsync(db,ct)
                     && await MaintenanceExecutionVersion.InstalledAsync(db,ct)

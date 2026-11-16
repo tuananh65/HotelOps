@@ -30,13 +30,13 @@ for (const stale of [false, true]) test(`Triage ${stale ? 'override with stale c
     const review = page.getByRole('button',{name:'Review triage',exact:true});
     await review.waitFor(); assert.equal(await review.isDisabled(),true);
     await page.getByLabel('Priority',{exact:true}).selectOption('3'); await page.getByLabel('Initial action plan',{exact:true}).fill('Inspect equipment and isolate the failed supply.');
-    if(stale){ await page.getByLabel('Override response deadline (UTC, optional)',{exact:true}).fill('2026-11-16T10:00');assert.equal(await review.isDisabled(),true);
+    if(stale){ await page.getByLabel('Override response deadline (UTC+7, optional)',{exact:true}).fill('2026-11-16T10:00');assert.equal(await review.isDisabled(),true);
       await page.getByLabel('Reason for changing deadlines (at least 10 characters)',{exact:true}).fill('Approved access window'); }
     await review.click(); assert.equal(calls.length,0); await page.getByRole('button',{name:'Confirm triage',exact:true}).click();
     await page.getByText(stale?'Incident or SLA targets changed. Reload before trying again.':'Triage saved. The incident is pending assignment.',{exact:true}).waitFor();
     assert.equal(calls.length,1);assert.equal(calls[0].method,'PATCH');assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
     assert.equal(calls[0].body.expectedSlaTargetVersion,'0000000000000005');assert.equal(calls[0].body.actorUserId,42);assert.equal(calls[0].body.priorityId,3);
-    if(stale){assert.equal(calls[0].body.responseDeadlineAt,'2026-11-16T10:00:00.000Z');assert.equal(await review.isDisabled(),true);}
+    if(stale){assert.equal(calls[0].body.responseDeadlineAt,'2026-11-16T03:00:00.000Z');assert.equal(await review.isDisabled(),true);}
     else {assert.equal(calls[0].body.responseDeadlineAt,undefined);assert.equal(await page.getByRole('link',{name:'Reload incident to assign'}).getAttribute('href'),'/operations/incidents/7?action=A004A-023');}
   } finally { await page.close(); }
 });
