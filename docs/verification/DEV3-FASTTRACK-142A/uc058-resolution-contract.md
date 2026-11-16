@@ -71,3 +71,13 @@ Review segregation now uses one helper for notification eligibility and Verify/R
 Direct validation: backend builds PASS with zero warnings/errors; 18 focused execution/read/source regression tests PASS, including allowed Lead execution and revoked/foreign-branch/read-only/review-only grant rejection. SQL execution of the new historical-performer query and real Lead workflow remain NOT_RUN. No database mutation or frontend change. UC058 remains partial for production progress/material-entry and full SQL/HTTPS acceptance; no newly completed UC.
 
 Files: MaintenanceExecutionAccess.cs, MaintenanceResumeContract.cs, new MaintenanceReviewSeparation.cs, MaintenanceWorkService.Workflow.cs, MaintenanceSubmissionSource.cs, MaintenanceExecutionAccessTests.cs and this receipt.
+
+## Scoped material availability
+
+A004A-034 now has a compiled production read contract and is enabled in the canonical Maintenance workspace. Existing HTTPS/current SQL session and scoped Maintenance read checks are supplemented with independent INVENTORY_VIEW and MR_VIEW. Material Request visibility is applied to source candidates before source proof, capacity calculations, total count and paging; an OWN grant cannot expose another requester's issues. The final disclosure boundary rechecks current grants and denies narrowed scopes. Inventory catalog locking precedes user/source locks. The existing source-provenance/capacity logic and current IN_PROGRESS/ON_HOLD corrective-work checks remain in place.
+
+The legacy service signature is retained for compatibility; the production read handler calls a distinct scoped method and bypasses the legacy controller read. No generated entities, schema or grants were changed. This supplies the protected source picker data for the next material-entry step; production CreateLog/material usage mutation is still outstanding. UC055/058 remain partial.
+
+Files: MaintenanceReadContract.cs, MaintenanceWorkService.Materials.cs, new MaintenanceMaterialAccess.cs, SharedAuthHost.tsx, new MaintenanceMaterialAccessTests.cs and this receipt. SQL translation, OWN filtering against real records, concurrent usage/return capacity and HTTPS execution remain NOT_RUN. No database mutation.
+
+Validation: backend build PASS with zero warnings/errors; frontend typecheck/build PASS with existing warnings. The first focused run found the existing accepted-read list assertion still expected only list/detail; it was updated to include the new read action while retaining no-mutation assertions. Final focused result: six tests PASS. Solution-level test exits zero without discovery. MaintenanceReadAccessTests.cs was also updated. These offline checks do not verify live material availability.

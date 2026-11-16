@@ -42,7 +42,7 @@ public sealed class MaintenanceReadAccessTests
     [Fact] public void ReadAdmissionDoesNotAuthorizeMaintenanceMutations()
     {
         var reads = HotelOps.Api.Services.Dev2Authorization.MaintenanceReadContract.Contracts.ToArray();
-        Assert.Equal(new[] { "A004A-035", "A004A-036" }, reads.Select(c => c.DecisionId));
+        Assert.Equal(new[] { "A004A-034", "A004A-035", "A004A-036" }, reads.Select(c => c.DecisionId));
         foreach(var contract in reads)
         {
             Assert.True(contract.RequiresReadTransaction);

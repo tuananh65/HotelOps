@@ -17,9 +17,9 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // Scoped list/detail; material usage and mutations retain independent admission gates.
 internal static class MaintenanceReadContract
 {
-    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V2";
-    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; no mutation admission";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-035", "A004A-036" }.Select(id =>
+    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V3";
+    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; material availability requires independent INVENTORY_VIEW and MR_VIEW with request-scope filtering before counts/paging, catalog lock before user/source and final grant revalidation; no mutation admission";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-034", "A004A-035", "A004A-036" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(IsList(a) ? "maintenance_list" : "maintenance_work", IsList(a) ? await BranchAsync(a, ct) : Id(a))))],
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new Resolver(a), ReadAsync,
@@ -28,6 +28,8 @@ internal static class MaintenanceReadContract
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static MaintenanceQueryRequest Input(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("request") as MaintenanceQueryRequest
         ?? throw new Dev2AccessDenied(403);
+    private static bool IsAvailability(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-034";
+    private static readonly object AvailabilityScopeKey = new();
     private static bool IsList(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-035";
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
     private static async Task<long> BranchAsync(Dev2BoundAction a, CancellationToken ct)
@@ -62,13 +64,15 @@ internal static class MaintenanceReadContract
     {
         if (a.Identity.ControllerType != typeof(MaintenanceWorksController) || a.Identity.HttpMethod != "GET"
             || !(a.Identity.DecisionId == "A004A-035" && a.Identity.ActionName == "GetWorks"
-                || a.Identity.DecisionId == "A004A-036" && a.Identity.ActionName == "GetWork") || !a.Http.Request.IsHttps) return false;
+                || a.Identity.DecisionId == "A004A-036" && a.Identity.ActionName == "GetWork"
+                || IsAvailability(a) && a.Identity.ActionName == "MaterialAvailability") || !a.Http.Request.IsHttps) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         // The admission guard first calls us before installing its read transaction.
         // Session validation always requires a caller-owned locking transaction.
         await using var admission = db.Database.CurrentTransaction == null
             ? await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct) : null;
+        if (IsAvailability(a)) await a.Http.RequestServices.GetRequiredService<HotelOps.Api.Services.Inventory.IInventoryIssueCapacity>().AcquireCatalog(ct);
         await new UserEligibilityLock(db).LockAsync([a.Actor.UserId], ct);
         if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null
             || sid != a.Actor.SessionId || ticket.UserId != a.Actor.UserId || ticket.IsRestricted) return false;
@@ -77,6 +81,12 @@ internal static class MaintenanceReadContract
         var now = DateTime.UtcNow; var branch = await BranchAsync(a, ct);
         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(b => b.UserId == a.Actor.UserId && b.BranchId == branch
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
+        if (IsAvailability(a))
+        {
+            var materialScope = await MaintenanceMaterialAccess.ScopeAsync(db, a.Actor.UserId, branch, ct);
+            if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[AvailabilityScopeKey] is HotelOps.Api.Services.MaterialRequests.MaterialRequestReadAccess.Scope prior
+                && (prior.Branch && !materialScope.Branch || prior.Own && !materialScope.Own && !materialScope.Branch)) return false;
+        }
         var scope = await MaintenanceReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct);
         if (!scope.Lead && !scope.Staff) return false;
         if (!IsList(a) && !await scope.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == Id(a), ct))
@@ -103,6 +113,15 @@ internal static class MaintenanceReadContract
         a.Http.Items[ScopeKey] = scope;
         try
         {
+            if (IsAvailability(a))
+            {
+                a.Http.Items[AvailabilityScopeKey] = await MaintenanceMaterialAccess.ScopeAsync(db, a.Actor.UserId, scope.Branch, ct);
+                if (a.Http.RequestServices.GetRequiredService<IMaintenanceWorkService>() is not MaintenanceWorkService service) throw new Dev2AccessDenied(503);
+                var page = a.Arguments.GetValueOrDefault("page") is int p ? p : 1;
+                var size = a.Arguments.GetValueOrDefault("pageSize") is int s ? s : 20;
+                var available = await service.ScopedMaterialAvailabilityAsync(a.Actor.UserId, scope.Branch, Id(a), page, size, ct);
+                return available == null ? new NotFoundResult() : new OkObjectResult(available);
+            }
             if (IsList(a)) return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct));
             var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
             if (detail == null) return new NotFoundResult();

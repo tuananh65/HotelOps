@@ -105,7 +105,17 @@ public sealed partial class MaintenanceWorkService
             x.StockDocumentLine.MaterialFulfillmentLine.FulfillmentId, x.StockDocumentLine.MaterialFulfillmentLine.FulfillmentLineId,
             x.StockDocumentLine.MaterialFulfillmentLine.Fulfillment.WarehouseId, x.ItemId, x.BaseUomId, x.UomId, x.UsedQty, x.ConversionFactor, x.UsedBaseQty)).ToListAsync(ct);
 
-    public async Task<MaintenanceMaterialAvailability?> MaterialAvailabilityAsync(long id, int page, int pageSize, CancellationToken cancellationToken)
+    public Task<MaintenanceMaterialAvailability?> MaterialAvailabilityAsync(long id, int page, int pageSize, CancellationToken cancellationToken)
+        => MaterialAvailabilityCoreAsync(id, page, pageSize, null, cancellationToken);
+
+    internal async Task<MaintenanceMaterialAvailability?> ScopedMaterialAvailabilityAsync(long user, long branch, long id, int page, int pageSize, CancellationToken ct)
+    {
+        var scope = await MaintenanceMaterialAccess.ScopeAsync(_dbContext, user, branch, ct);
+        return await MaterialAvailabilityCoreAsync(id, page, pageSize,
+            scope.Apply(_dbContext.MaterialRequests.AsNoTracking()).Select(r => r.RequestId), ct);
+    }
+
+    private async Task<MaintenanceMaterialAvailability?> MaterialAvailabilityCoreAsync(long id, int page, int pageSize, IQueryable<long>? readableRequests, CancellationToken cancellationToken)
     {
         if (page < 1 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > int.MaxValue) throw new ValidationException("Invalid paging.");
         await using var tx = _dbContext.Database.CurrentTransaction is null ? await _dbContext.Database.BeginTransactionAsync(cancellationToken) : null;
@@ -118,7 +128,10 @@ public sealed partial class MaintenanceWorkService
         if (incident is null || work.IncidentId != incidentId) throw new ValidationException("Corrective linkage changed.");
         RequireSynchronizedPair(work, incident); RequireState(work, "IN_PROGRESS", "ON_HOLD");
         if (await _dbContext.PreventiveMaintenanceRuns.AnyAsync(x => x.MaintenanceWorkId == id, cancellationToken)) throw new ValidationException("Corrective Work required.");
-        var ids = await _dbContext.MaterialFulfillmentLines.AsNoTracking().Where(x => x.Fulfillment.Request.IncidentId == incidentId && x.StockDocumentLineId != null)
+        var candidates = _dbContext.MaterialFulfillmentLines.AsNoTracking()
+            .Where(x => x.Fulfillment.Request.IncidentId == incidentId && x.StockDocumentLineId != null);
+        if (readableRequests != null) candidates = candidates.Where(x => readableRequests.Contains(x.Fulfillment.RequestId));
+        var ids = await candidates
             .OrderBy(x => x.StockDocumentLine!.Document.PostedAt).ThenBy(x => x.StockDocumentLine!.DocumentId).ThenBy(x => x.StockDocumentLine!.LineNo).ThenBy(x => x.StockDocumentLineId)
             .Select(x => x.StockDocumentLineId!.Value).Distinct().ToListAsync(cancellationToken);
         var result = new List<MaintenanceMaterialAvailabilityLine>();
