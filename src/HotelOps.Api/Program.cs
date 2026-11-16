@@ -145,6 +145,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Rooms.RoomDirectoryService>();
 builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeCreationService>();
  builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.WorkCategoryAdministrationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.PrioritySlaAdministrationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.ReferenceAdministrationService>();
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEvidenceWrite>();
 builder.Services.AddScoped<IAssetService, AssetService>();
