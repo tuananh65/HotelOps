@@ -69,6 +69,10 @@ public class IncidentsController : ControllerBase
             var incident = await _incidentService.CreateIncidentAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetIncident), new { id = incident.IncidentId }, incident);
         }
+        catch (HotelOps.Api.Services.InternalRequests.InternalRequestReadException exception)
+        {
+            return Problem(statusCode: exception.Status, title: exception.Code);
+        }
         catch (ValidationException exception)
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
