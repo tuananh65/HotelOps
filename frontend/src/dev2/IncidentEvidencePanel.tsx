@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
+import { useAuth } from "../auth/AuthProvider";
 
 type Item = { id: number; name: string; note: string | null; authorId: number; uploadedAt: string };
 type Page = { incidentId: number; page: number; total: number; items: Item[]; version: string; canAdd: boolean;
   noteTotal: number; notes: { id: number; note: string | null; authorId: number; at: string }[] };
 const request = createHttpClient();
-export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, onBusyChange, readOnly = false }: { incidentId: number; readOnly?: boolean;
+type Props = { incidentId: number; readOnly?: boolean;
   selectedIds?: number[]; onSelect?: (item: { id: number; name: string }, selected: boolean) => void;
-  onBusyChange?: (busy: boolean) => void }) {
+  onBusyChange?: (busy: boolean) => void };
+export function IncidentEvidencePanel(props: Props) {
+  const { state } = useAuth();
+  if (state.status !== "AUTHENTICATED" || state.pending || !Number.isSafeInteger(props.incidentId) || props.incidentId <= 0) return null;
+  return <BoundIncidentEvidencePanel key={state.authorityGeneration + ":" + props.incidentId} {...props} />;
+}
+function BoundIncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, onBusyChange, readOnly = false }: Props) {
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
   const [loaded, setLoaded] = useState<{ key: string; data?: Page; error?: string }>();
@@ -55,6 +62,7 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
     }
     const abort = new AbortController(); writer.current = abort;
     sending.current = true; setBusy(true); setMessage("");
+    let inputRejected = false, closed = false;
     try {
       const uploads = await Promise.all(files.map(async file => {
         const bytes = new Uint8Array(await file.arrayBuffer());
@@ -63,11 +71,12 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
         return { name: file.name, mimeType: file.type, base64: btoa(binary) };
       }));
       const csrf = await request({ method: "GET", url: "/api/auth/csrf", expectedStatus: 200, signal: abort.signal,
-        decode: value => isObject(value) && typeof value.csrfToken === "string" && value.csrfToken ? value.csrfToken : undefined });
+        decode: value => isObject(value) && value.headerName === "X-CSRF-TOKEN" && typeof value.csrfToken === "string" && /^[\x21-\x7e]+$/.test(value.csrfToken) ? value.csrfToken : undefined });
       if (!csrf.ok || abort.signal.aborted) throw Error("Session check failed. Reload before saving.");
       const response = await fetch(`/api/incidents/${incidentId}/evidence`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.data, "If-Match": `"${current.data.version}"` },
         body: JSON.stringify({ note, files: uploads }) });
+      inputRejected = response.status === 400; closed = response.status === 409;
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload evidence before retrying."
         : response.status === 409 ? "MSG24: Incident is closed or cancelled. Evidence is read-only."
         : response.status === 400 ? "MSG23: Check the note and file format, size and content before retrying."
@@ -76,7 +85,14 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
       if (!isObject(result) || result.incidentId !== incidentId || !Number.isSafeInteger(result.eventId) || Number(result.eventId) <= 0
         || result.message !== "MSG08" || typeof result.version !== "string" || !/^[A-Za-z0-9+/]{43}=$/.test(result.version)) throw Error("Save response could not be confirmed. Reload evidence.");
       if (!abort.signal.aborted) { setNote(""); setFiles([]); setMessage("MSG08: Evidence saved."); setRevision(r => r + 1); }
-    } catch (error) { if (!abort.signal.aborted) { setLoaded(undefined); setMessage(error instanceof Error ? error.message : "Save not confirmed. Reload evidence."); } }
+    } catch (error) {
+      if (!abort.signal.aborted) {
+        const text = error instanceof Error ? error.message : "Save not confirmed. Reload evidence.";
+        if (closed) setRevision(r => r + 1);
+        else if (!inputRejected) setLoaded({ key, error: text });
+        setMessage(text);
+      }
+    }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
   }
   return <section aria-label="Incident evidence"><h3>Incident evidence</h3>
@@ -98,6 +114,7 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
       {!readOnly && current.data.canAdd && <fieldset disabled={busy}><legend>Add evidence</legend>
         <label>Note<textarea maxLength={4000} value={note} onChange={e => setNote(e.target.value)} /></label>
         <label>Files<input key={revision} type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
+        {files.length > 0 && <p>Selected files: {files.map(file => file.name).join(", ")}</p>}
         <button type="button" onClick={() => void save()}>{busy ? "Saving…" : "Save evidence"}</button>
       </fieldset>}
     </>}
