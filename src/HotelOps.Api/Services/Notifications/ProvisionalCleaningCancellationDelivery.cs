@@ -7,6 +7,7 @@ namespace HotelOps.Api.Services.Notifications;
 
 public sealed partial class ProvisionalCleaningDelivery
 {
+    private sealed class CancellationRecipientChangedException : Exception;
     private sealed class CancellationIntent
     {
         public long Id { get; set; }
@@ -46,7 +47,17 @@ public sealed partial class ProvisionalCleaningDelivery
                 DeliveryChannel="IN_APP",DeliveryStatus="DELIVERED",DeliveredAt=notice.CreatedAt });
             await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},attempt_count=attempt_count+1,failure_code=NULL WHERE intent_id={selected.Id}",ct);
+            // Locks preserve rows, but cannot prevent a grant from expiring with time.
+            if (!await CleaningCancellationRecipientAccess.AllowsAsync(db, selected.User, r,
+                clock.GetUtcNow().UtcDateTime, ct)) throw new CancellationRecipientChangedException();
             await tx.CommitAsync(ct); return "DELIVERED";
+        }
+        catch (CancellationRecipientChangedException)
+        {
+            // The delivery transaction has rolled back: no inbox record survives denial.
+            db.ChangeTracker.Clear();
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code='RECIPIENT_OR_SOURCE_DENIED',attempt_count=attempt_count+1 WHERE intent_id={selected.Id} AND status='PENDING'", ct);
+            return "RECIPIENT_OR_SOURCE_DENIED";
         }
         catch (Exception error) when (!ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException)
         {

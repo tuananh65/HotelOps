@@ -14,6 +14,9 @@ public sealed partial class NotificationCenterService
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var receipt=await CancellationReceiptAsync(id,user,now,ct);
         await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+        var currentReceipt=await CancellationReceiptAsync(id,user,clock.GetUtcNow().UtcDateTime,ct);
+        if(currentReceipt!=receipt)
+            throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         await tx.CommitAsync(ct);
         return new(receipt.Id,receipt.BranchId,receipt.AssignmentId!.Value,receipt.OccurredAtUtc,receipt.State);
     }

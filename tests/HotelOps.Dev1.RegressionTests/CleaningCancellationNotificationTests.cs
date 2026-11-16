@@ -36,4 +36,15 @@ public sealed class CleaningCancellationNotificationTests
         proof.Result=change=="json" ? "invalid" : JsonSerializer.Serialize(receipt,ProvisionalCleaningNotification.Json);
         Assert.Equal(expected,CleaningCancellationNotificationSource.Read(proof,change=="recipient" ? 9 : 5)!=null);
     }
+    [Fact]
+    public void ReceiptGrantIsDeniedAtExpiryEvenWhenAdmissionWasValid()
+    {
+        var now=new DateTime(2026,11,16,0,0,0,DateTimeKind.Utc);
+        var grant=new HotelOps.Api.Security.Authorization.PermissionGrantPath("CLEANING_VIEW","OWN",2,true,true,
+            now.AddDays(-1),now.AddSeconds(1),true,true);
+        Assert.True(CleaningCancellationRecipientAccess.AllowsView([grant],2,now));
+        Assert.False(CleaningCancellationRecipientAccess.AllowsView([grant],2,now.AddSeconds(1)));
+        Assert.False(CleaningCancellationRecipientAccess.AllowsView([grant],3,now));
+        Assert.False(CleaningCancellationRecipientAccess.AllowsView([grant with {RoleActive=false}],2,now));
+    }
 }

@@ -20,8 +20,11 @@ internal static class CleaningCancellationRecipientAccess
             || !await db.CleaningAssignments.AsNoTracking().AnyAsync(a=>a.AssignmentId==r.AssignmentId
                 && a.AssigneeUserId==user && a.CleaningTaskId==r.Id && a.CleaningTask.Room.BranchId==r.BranchId
                 && a.AssignmentStatus=="CANCELLED" && a.EndedAt==r.OccurredAtUtc,ct)) return false;
-        return (await data.ReadPathsAsync(user,"CLEANING_VIEW",now,ct)).Any(p=>p.PermissionCode=="CLEANING_VIEW"
-            && PermissionGrantRules.IsEligible(p,now) && (PermissionGrantRules.EffectiveScope(p)=="GLOBAL"
-                || p.BranchId==r.BranchId && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN"));
+        return AllowsView(await data.ReadPathsAsync(user,"CLEANING_VIEW",now,ct), r.BranchId, now);
     }
+
+    internal static bool AllowsView(IEnumerable<PermissionGrantPath> paths, long branch, DateTime now) =>
+        paths.Any(p=>p.PermissionCode=="CLEANING_VIEW"
+            && PermissionGrantRules.IsEligible(p,now) && (PermissionGrantRules.EffectiveScope(p)=="GLOBAL"
+                || p.BranchId==branch && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN"));
 }
