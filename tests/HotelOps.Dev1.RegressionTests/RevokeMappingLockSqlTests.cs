@@ -62,8 +62,9 @@ public sealed class RevokeMappingLockSqlTests
                 await db.SaveChangesAsync(ct);
                 await setup.CommitAsync(ct); committed=true; db.ChangeTracker.Clear();
             }
-            foreach (var exists in new[] { true, false })
+            foreach (var scenario in new[] { "mapping-revoke", "mapping-insert", "request-route", "assignment-end" })
             {
+                var exists = scenario != "mapping-insert";
                 if (exists)
                     await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({user.UserId},{branch.BranchId},{department.DepartmentId},{now})",ct);
                 await using var reader = Context();
@@ -72,10 +73,16 @@ public sealed class RevokeMappingLockSqlTests
                 await using var competitor = new SqlConnection(Connection); await competitor.OpenAsync(ct);
                 await using var competingTx = (SqlTransaction)await competitor.BeginTransactionAsync(ct);
                 await using var command = competitor.CreateCommand(); command.Transaction=competingTx;
-                command.CommandText = "SET LOCK_TIMEOUT 700; " + (exists
-                    ? "UPDATE dbo.department_management_access SET revoked_at=SYSUTCDATETIME() WHERE user_id=@user AND branch_id=@branch AND department_id=@department"
-                    : "INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES(@user,@branch,@department,SYSUTCDATETIME())");
+                command.CommandText = "SET LOCK_TIMEOUT 700; " + (scenario switch
+                {
+                    "mapping-revoke" => "UPDATE dbo.department_management_access SET revoked_at=SYSUTCDATETIME() WHERE user_id=@user AND branch_id=@branch AND department_id=@department",
+                    "mapping-insert" => "INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES(@user,@branch,@department,SYSUTCDATETIME())",
+                    "request-route" => "UPDATE dbo.internal_requests SET receiving_department_id=NULL WHERE internal_request_id=@request",
+                    "assignment-end" => "UPDATE dbo.internal_request_assignments SET status='REASSIGNED',ended_at=SYSUTCDATETIME() WHERE internal_request_id=@request AND assignee_id=@user AND status='ACTIVE'",
+                    _ => throw new InvalidOperationException("Unknown scenario")
+                });
                 command.Parameters.AddWithValue("@user",user.UserId); command.Parameters.AddWithValue("@branch",branch.BranchId); command.Parameters.AddWithValue("@department",department.DepartmentId);
+                command.Parameters.AddWithValue("@request",request.InternalRequestId);
                 var blocked = await Assert.ThrowsAsync<SqlException>(()=>command.ExecuteNonQueryAsync(ct));
                 Assert.Equal(1222,blocked.Number);
                 await tx.RollbackAsync(ct);
@@ -83,6 +90,8 @@ public sealed class RevokeMappingLockSqlTests
                 Assert.Equal(1,await command.ExecuteNonQueryAsync(ct));
                 await competingTx.RollbackAsync(ct);
                 Assert.Equal(exists ? 1 : 0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.department_management_access WHERE user_id={user.UserId} AND branch_id={branch.BranchId} AND department_id={department.DepartmentId} AND revoked_at IS NULL").SingleAsync(ct));
+                Assert.Equal(department.DepartmentId,await db.InternalRequests.Where(r=>r.InternalRequestId==request.InternalRequestId).Select(r=>r.ReceivingDepartmentId).SingleAsync(ct));
+                Assert.True(await db.InternalRequestAssignments.AnyAsync(a=>a.InternalRequestId==request.InternalRequestId&&a.AssigneeId==user.UserId&&a.Status=="ACTIVE"&&a.EndedAt==null,ct));
                 if (exists)
                     await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.department_management_access WHERE user_id={user.UserId} AND branch_id={branch.BranchId} AND department_id={department.DepartmentId}",ct);
             }

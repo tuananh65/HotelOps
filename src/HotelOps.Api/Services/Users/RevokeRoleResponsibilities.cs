@@ -82,16 +82,21 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
                 }
             }
         }
-        var internalAssignments=await db.InternalRequestAssignments.AsNoTracking()
-            .Where(a=>a.AssigneeId==target&&a.Status=="ACTIVE")
-            .Select(a=>new {a.InternalRequestId,a.AssignedAt,a.EndedAt,a.InternalRequest.Status,a.InternalRequest.BranchId,
-                a.InternalRequest.ReceivingDepartmentId,
+        // The candidate writer uses ReadCommitted. Retain both the assignment
+        // range and request row so Route/reassignment cannot invalidate the
+        // current responsibility between this read and the final reread/commit.
+        var internalAssignments=await (from a in db.InternalRequestAssignments
+            .FromSqlInterpolated($"SELECT * FROM dbo.internal_request_assignments WITH(HOLDLOCK) WHERE assignee_id={target} AND status='ACTIVE'").AsNoTracking()
+            join request in db.InternalRequests.FromSqlRaw("SELECT * FROM dbo.internal_requests WITH(HOLDLOCK)").AsNoTracking()
+                on a.InternalRequestId equals request.InternalRequestId
+            select new {a.InternalRequestId,a.AssignedAt,a.EndedAt,request.Status,request.BranchId,
+                request.ReceivingDepartmentId,
                 HandlerActive=a.Assignee.AccountStatus=="ACTIVE"&&a.Assignee.EmploymentStatus=="ACTIVE"&&a.Assignee.DeletedAt==null,
-                DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId
-                    && a.InternalRequest.ReceivingDepartment.IsActive && a.InternalRequest.Branch.IsActive,
-                HandlerMembership=a.Assignee.DepartmentId==a.InternalRequest.ReceivingDepartmentId
+                DepartmentValid=request.ReceivingDepartmentId!=null&&request.ReceivingDepartment!.BranchId==request.BranchId
+                    && request.ReceivingDepartment.IsActive && request.Branch.IsActive,
+                HandlerMembership=a.Assignee.DepartmentId==request.ReceivingDepartmentId
                     && a.Assignee.AccountStatus=="ACTIVE"&&a.Assignee.EmploymentStatus=="ACTIVE"&&a.Assignee.DeletedAt==null,
-                Owners=a.InternalRequest.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
+                Owners=request.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
             .ToArrayAsync(ct);
         bool? managerMappingInstalled = null;
         foreach(var request in internalAssignments)
