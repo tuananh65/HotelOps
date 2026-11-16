@@ -1,5 +1,6 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -24,6 +25,11 @@ internal static class EmployeeMembershipDependencies
             &&(a.Shift.ScheduledEndAt>now||a.Shift.ScheduledEndAt<=a.Shift.ScheduledStartAt)).Select(a=>a.ShiftAssignmentId));
         await Add("TASK_ASSIGNMENT",db.OperationalTaskAssignments.Where(a=>a.AssigneeId==user&&a.Task.BranchId==branch
             &&a.Task.DepartmentId==department&&(a.AssignmentStatus=="ACTIVE"||a.EndedAt==null)).Select(a=>a.AssignmentId));
+        // Future occurrences retain this executor. Resolve the series through its
+        // stop workflow before removing the membership needed by generation.
+        if(!await TaskSeriesStore.InstalledAsync(db,ct))result.Add(new("TASK_SERIES_STORAGE_REQUIRED",1));
+        else await Add("ACTIVE_TASK_SERIES",TaskSeriesStore.Query(db).Where(s=>s.DefaultAssigneeId==user
+            &&s.BranchId==branch&&s.DepartmentId==department&&s.IsActive).Select(s=>s.SeriesId));
         await Add("REQUEST_ASSIGNMENT",db.InternalRequestAssignments.Where(a=>a.AssigneeId==user&&a.InternalRequest.BranchId==branch
             &&(a.InternalRequest.ReceivingDepartmentId==department||a.InternalRequest.ReceivingDepartmentId==null)
             &&(a.Status=="ACTIVE"||a.EndedAt==null)).Select(a=>a.AssignmentId));
