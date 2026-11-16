@@ -239,7 +239,12 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                         "employeeId", "branchId", "closedEffortSeconds", "provisionalEffortSeconds", "openIntervals");
                 else missing.Add("Task effort unavailable: " + effort.MissingReason);
                 missing.Add("Employee task effort uses effective TASK intervals overlapping the selected UTC period regardless of task creation date; open effort is provisional, not completed effort");
-                missing.Add("Shift-time indicators remain unavailable; null workflow/overdue means canonical lifecycle is unavailable or inconsistent");
+                var workdayTime = await ReportWorkdayTime.ReadAsync(db, filters, now.UtcDateTime, ct);
+                if (workdayTime.Rows is {} workdayRows)
+                    AddMaterialized("workday_time_by_employee", workdayRows,
+                        "employeeId", "branchId", "closedWorkdaySeconds", "provisionalWorkdaySeconds", "openWorkdays");
+                else missing.Add("Workday time unavailable: " + workdayTime.MissingReason);
+                missing.Add("Workday time is actual StartedAt/EndedAt clipped to the UTC period, including unscheduled workdays; it is separate from task effort and planned shift duration");
                 break;
             }
             case "requests":

@@ -67,6 +67,13 @@ try {
       assert.equal(effort.rows[0].closedEffortSeconds,2400);
       assert.ok(effort.rows[0].provisionalEffortSeconds>=600);
       assert.equal(effort.rows[0].openIntervals,1);
+      const workdays=snapshot.sections.find(s=>s.key==="workday_time_by_employee");
+      assert.equal(workdays.rows.length,1);
+      assert.equal(workdays.rows[0].closedWorkdaySeconds,1200);
+      assert.ok(workdays.rows[0].provisionalWorkdaySeconds>=7200);
+      assert.equal(workdays.rows[0].openWorkdays,1);
+      await page.getByRole("heading",{name:"workday_time_by_employee",exact:true}).waitFor();
+      await page.getByRole("columnheader",{name:"closedWorkdaySeconds",exact:true}).waitFor();
       await page.getByRole("heading",{name:"task_effort_by_employee",exact:true}).waitFor();
       await page.getByRole("columnheader",{name:"closedEffortSeconds",exact:true}).waitFor();
     }

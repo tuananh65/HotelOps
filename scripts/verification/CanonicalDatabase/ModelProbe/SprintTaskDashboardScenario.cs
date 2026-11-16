@@ -95,6 +95,14 @@ internal static class SprintTaskDashboardScenario
             .Single(s=>s.GetProperty("key").GetString()=="task_effort_by_employee").GetProperty("rows");
         var effortReport=await EffortReport(now.AddDays(-1),now);
         var employeeEffort=EffortRows(effortReport).EnumerateArray().Single();
+        static JsonElement WorkdayRows(JsonElement report)=>report.GetProperty("sections").EnumerateArray()
+            .Single(s=>s.GetProperty("key").GetString()=="workday_time_by_employee").GetProperty("rows");
+        var workdayTime=WorkdayRows(effortReport).EnumerateArray().Single();
+        Check(workdayTime.GetProperty("employeeId").GetInt64()==actor && workdayTime.GetProperty("branchId").GetInt64()==branch
+            && workdayTime.GetProperty("closedWorkdaySeconds").GetInt64()==1200
+            && workdayTime.GetProperty("provisionalWorkdaySeconds").GetInt64()>=7200
+            && workdayTime.GetProperty("openWorkdays").GetInt64()==1,
+            "RPT06 actual workday seconds clip UTC boundary and remain distinct from2400 task effort seconds");
         Check(employeeEffort.GetProperty("employeeId").GetInt64()==actor && employeeEffort.GetProperty("branchId").GetInt64()==branch
             && employeeEffort.GetProperty("closedEffortSeconds").GetInt64()==2400
             && employeeEffort.GetProperty("provisionalEffortSeconds").GetInt64()>=600 && employeeEffort.GetProperty("openIntervals").GetInt64()==1,
@@ -112,6 +120,25 @@ internal static class SprintTaskDashboardScenario
             "RPT06 prior period includes crossing effort even when task created outside that period");
         Check(EffortRows(await EffortReport(now.AddDays(1),now.AddDays(1))).GetArrayLength()==0,
             "RPT06 future period does not invent provisional employee effort");
+        Check(WorkdayRows(await EffortReport(boundary.AddDays(-1),boundary.AddDays(-1)))[0].GetProperty("closedWorkdaySeconds").GetInt64()==1200
+            && WorkdayRows(await EffortReport(now.AddDays(1),now.AddDays(1))).GetArrayLength()==0,
+            "RPT06 workday prior-period clipping and no future provisional time");
+        var overlappingDay=new Workday { UserId=actor,BranchId=branch,DepartmentId=department.DepartmentId,
+            WorkDate=day.WorkDate,Status="ENDED",IsUnscheduled=true,UnscheduledReason="Synthetic report overlap",
+            StartedAt=now.AddMinutes(-90),EndedAt=now.AddMinutes(-80) };
+        db.Workdays.Add(overlappingDay);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        var overlappingReport=await EffortReport(now.AddDays(-1),now);
+        Check(!overlappingReport.GetProperty("sections").EnumerateArray().Any(s=>s.GetProperty("key").GetString()=="workday_time_by_employee")
+            && overlappingReport.GetProperty("missingSources").EnumerateArray().Any(s=>s.GetString()!.Contains("overlapping workdays"))
+            && EffortRows(overlappingReport)[0].GetProperty("closedEffortSeconds").GetInt64()==2400,
+            "RPT06 overlapping workdays withhold shift total without discarding independently valid task effort");
+        await db.Workdays.Where(d=>d.WorkdayId==overlappingDay.WorkdayId).ExecuteUpdateAsync(s=>s
+            .SetProperty(d=>d.StartedAt,now.AddMinutes(5)).SetProperty(d=>d.EndedAt,now.AddMinutes(6)),ct);
+        var futureRecordedDay=await EffortReport(now.AddDays(-1),now);
+        Check(!futureRecordedDay.GetProperty("sections").EnumerateArray().Any(s=>s.GetProperty("key").GetString()=="workday_time_by_employee")
+            && futureRecordedDay.GetProperty("missingSources").EnumerateArray().Any(s=>s.GetString()!.Contains("inconsistent workday time")),
+            "RPT06 rejects future recorded workday timestamps instead of adding unworked time");
+        await db.Workdays.Where(d=>d.WorkdayId==overlappingDay.WorkdayId).ExecuteDeleteAsync(ct);
         Check(Metric(complete, "averageTaskCompletionHours").ValueKind == JsonValueKind.Null
             && complete.GetProperty("missingSources").EnumerateArray().Any(s => s.GetString()!.StartsWith("KPI-05:")),
             "Closed task without proven processing-cycle receipts reports N/A, never guessed duration");
