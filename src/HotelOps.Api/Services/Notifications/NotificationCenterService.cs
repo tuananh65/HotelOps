@@ -272,6 +272,15 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 WHERE i.inbox_notification_id={id} AND i.user_id={user} AND i.status='DELIVERED'
                   AND i.delivery_channel='IN_APP' AND p.event_type='CLEANING_TASK_ASSIGNED'
                 """).ToArrayAsync(ct);
+            if(assignments.Length==0)
+            {
+                var target=await ProvisionalCleaningReassignmentDelivery.TargetAsync(db,cleaning,id,user,ct);
+                if(target==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
+                await RevalidateSessionAsync(user,ct);
+                if(await ProvisionalCleaningReassignmentDelivery.TargetAsync(db,cleaning,id,user,ct)!=target)
+                    throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
+                await tx.CommitAsync(ct);return new(target);
+            }
             if(assignments.Length!=1)throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
             var resolver=new HotelOps.Api.Services.Housekeeping.CleaningAssignmentNotificationSource(db,cleaning,clock);
             HotelOps.Api.Services.Housekeeping.CleaningAssignmentNotificationContent content;

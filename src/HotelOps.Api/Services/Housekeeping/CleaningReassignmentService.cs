@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
@@ -35,9 +36,12 @@ public sealed partial class RoomTypeCreationService
         var time = new SqlWorkTimeTransactionParticipant(db);
         var fingerprint = CleaningLifecycleRules.Fingerprint(ticket.UserId, branch, task, tag, request);
         var mutation = false;
+        var receiptFound = false;
         return await BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
-            if (candidateNotification == null || !await candidateNotification.AvailableAsync(token) || !await CleaningExecutionInstalled(token)) return new(RoomTypeBatchStatus.Unavailable);
+            var developmentSchema = await CleaningReassignmentSchema.InstalledAsync(db, token);
+            if (candidateNotification == null || !await candidateNotification.AvailableAsync(token)
+                || (!developmentSchema && !await CleaningExecutionInstalled(token))) return new(RoomTypeBatchStatus.Unavailable);
             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(x => x.CleaningTaskId == task && x.Room.BranchId == branch
                 && x.Room.IsActive && x.Room.Floor.IsActive && (x.Room.AreaId == null || x.Room.Area!.IsActive), token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
@@ -48,6 +52,7 @@ public sealed partial class RoomTypeCreationService
                 var stored = JsonSerializer.Deserialize<ReassignedCleaningDto>(previous[0].ResultJson, Json) ?? throw new InvalidOperationException("INVALID_DURABLE_REASSIGN_RESULT");
                 if (!CleaningLifecycleRules.ValidReassignmentResult(stored, branch, task, operation, request.AssigneeId))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
+                receiptFound = true;
                 return new(RoomTypeBatchStatus.Success, stored, stored.SourceETag);
             }
             if (recoveryOnly) return new(RoomTypeBatchStatus.Unavailable);
@@ -82,12 +87,22 @@ public sealed partial class RoomTypeCreationService
                 || result.SourceETag != WorkflowTag((await CleaningState(task, token)).Revision))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
             mutation = true;
+            receiptFound = true;
+            if (developmentSchema)
+            {
+                var now = clock.GetUtcNow().UtcDateTime;
+                var effective = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db).ReadAsync([row.RoomId], now, token);
+                if (!effective.TryGetValue(row.RoomId, out var roomState) || !CleaningCancellationRules.KnownReadiness(roomState.Readiness))
+                    throw new InvalidOperationException("REASSIGN_READINESS_SOURCE_REQUIRED");
+                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{roomState.Readiness},{roomState.Readiness == "BLOCKED"},{actor},{now})", token);
+            }
             return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
         }, ct, additionalUsers: users, permissionCode: "CLEANING_ASSIGN", requireRoomTypeSchema: false, preserveCommitErrors: true,
             afterUserLocks: token => time.LockUsersAsync(users, token), beforeCommit: async token =>
             {
                 if (mutation && !await DueHousekeeper(request.AssigneeId, branch, request.DueAt, token)) throw new ValidationException("New assignee eligibility changed.");
-                await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fs013_verify_reassignment @actor={ticket.UserId},@operation={operation},@mutation={mutation}", token);
+                if (receiptFound)
+                    await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fs013_verify_reassignment @actor={ticket.UserId},@operation={operation},@mutation={mutation}", token);
             });
     }
     public sealed class ReassignStoredCommand

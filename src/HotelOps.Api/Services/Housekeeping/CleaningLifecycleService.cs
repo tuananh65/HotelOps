@@ -43,7 +43,8 @@ public sealed partial class RoomTypeCreationService
             var startInstalled = installed || await HotelOps.Api.Data.CleaningStartSchema.InstalledAsync(db, token);
             var start = startInstalled && active?.AssigneeUserId == ticket.UserId && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 ? state.State == "ASSIGNED" ? "AVAILABLE" : state.State == "ON_HOLD" ? "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" : "STATE_CONFLICT" : "UNAVAILABLE";
-            var reassign = installed && candidateNotification != null && await candidateNotification.AvailableAsync(token)
+            var reassign = (installed || await HotelOps.Api.Data.CleaningReassignmentSchema.InstalledAsync(db, token))
+                && candidateNotification != null && await candidateNotification.AvailableAsync(token)
                 && (await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, token)).IsGranted ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE";
             var resume = startInstalled && state.State == "ON_HOLD" && active?.AssigneeUserId == ticket.UserId
                 && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted

@@ -48,6 +48,29 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
             }
             catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
             catch(Exception error){logger.LogWarning("Cleaning assignment delivery retained after {ErrorType}",error.GetType().Name);}
+            try
+            {
+                ProvisionalCleaningReassignmentDelivery.PendingOperation[] pending;
+                await using(var discovery=scopes.CreateAsyncScope())
+                    pending=await discovery.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>().PendingAsync(ct);
+                foreach(var operation in pending)
+                {
+                    try
+                    {
+                        // Each operation has exactly two distinct recipients; keep transaction contexts separate.
+                        for(var recipient=0;recipient<2;recipient++)
+                        {
+                            await using var scope=scopes.CreateAsyncScope();
+                            await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>()
+                                .DeliverOneAsync(operation.Actor,operation.Operation,ct);
+                        }
+                    }
+                    catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
+                    catch(Exception error){logger.LogWarning("Cleaning reassignment delivery retained after {ErrorType}",error.GetType().Name);}
+                }
+            }
+            catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
+            catch(Exception error){logger.LogWarning("Cleaning reassignment discovery retained after {ErrorType}",error.GetType().Name);}
         }
         if (options.Value.Enabled) await DrainIndependentlyAsync(false, ct);
         if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(true, ct);
