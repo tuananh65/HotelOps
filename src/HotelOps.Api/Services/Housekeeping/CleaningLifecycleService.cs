@@ -166,7 +166,8 @@ public sealed partial class RoomTypeCreationService
                 // RESUME preserves its existing provisional block summary; fresh START can
                 // reach here only after an authoritative D05 Clear, never an unlocked query.
                 var blocked = resume && await db.RoomBlocks.AsNoTracking()
-                    .AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, token);
+                    .AnyAsync(x => x.RoomId == row.RoomId && x.BlockedAt <= now
+                        && (x.ReleasedAt == null || x.ReleasedAt > now), token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},'CLEANING_IN_PROGRESS',{blocked},{actor},{now})", token);
                 var startedAt = row.ActualStartAt is { } first ? DateTime.SpecifyKind(first, DateTimeKind.Utc) : now;
                 var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, "CLEANING_IN_PROGRESS", blocked);

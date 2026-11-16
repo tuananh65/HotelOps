@@ -191,7 +191,8 @@ public sealed partial class RoomTypeCreationService
                 // Mandatory immutable capture is part of this caller-owned completion transaction.
                 // Missing schema, ambiguous history or failed verification aborts the entire write.
                 if (reason == null) await CaptureCleanerAttribution(task, owner.AssignmentId, actor, log.ProgressId, inner);
-                var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, inner);
+                var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId
+                    && x.BlockedAt <= now && (x.ReleasedAt == null || x.ReleasedAt > now), inner);
                 var readiness = reason == null ? "PENDING_INSPECTION" : "PENDING_CLEANING";
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{readiness},{blocked},{actor},{now})", inner);
                 var result = new CleaningClosureResult(task, branch, owner.AssignmentId, operation, Guid.NewGuid(), log.ProgressId,

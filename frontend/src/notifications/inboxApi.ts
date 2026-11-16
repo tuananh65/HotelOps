@@ -146,6 +146,9 @@ export async function resolveInboxSource(
   if (typeof data?.path !== "string")
     throw new Error("Invalid notification source");
   const ids =
+    /^\/cleaning\/tasks\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)&monitor=1$/.exec(
+      data.path,
+    ) ??
     /^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(
       data.path,
     ) ??

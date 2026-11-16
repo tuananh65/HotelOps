@@ -118,6 +118,16 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"CLEANING_TASK_COMPLETED" or "CLEANING_BLOCKER_REPORTED",SourceType:"CLEANING_TASK",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            var path=await CleaningClosureNotificationSource.ResolveAsync(db,id,user,source.NotificationType,
+                source.SourceId.Value,source.CreatedBy ?? 0,now,ct);
+            if(path==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await tx.CommitAsync(ct);
+            return new(path);
+        }
         if(source is {NotificationType:"IR_CREATED",SourceType:"INTERNAL_REQUEST_INTAKE",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

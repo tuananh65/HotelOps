@@ -28,9 +28,13 @@ public sealed partial class ProvisionalCleaningNotification
             """).SingleAsync(ct) == 1;
     }
 
-    public async Task<long[]> ClosureRecipientsAsync(long branch, CancellationToken ct)
+    public Task<long[]> ClosureRecipientsAsync(long branch, CancellationToken ct)
+        => ClosureRecipientsAsync(db, branch, DateTime.UtcNow, ct);
+
+    internal static async Task<long[]> ClosureRecipientsAsync(HotelOps.Api.Data.HotelOpsDbContext db,
+        long branch, DateTime now, CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
+        if (!await db.Branches.AsNoTracking().AnyAsync(b => b.BranchId == branch && b.IsActive, ct)) return [];
         var ids = await db.UserRoles.AsNoTracking().Where(r => r.BranchId == branch && r.IsActive && r.Role.IsActive
             && r.Role.RoleCode == "HK_SUPERVISOR" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)
             && r.User.AccountStatus == "ACTIVE" && r.User.EmploymentStatus == "ACTIVE" && r.User.DeletedAt == null
@@ -124,7 +128,7 @@ public sealed partial class ProvisionalCleaningDelivery
             var notice = new Notification { NotificationType = selected.EventName, Title = "Cleaning task update",
                 Message = selected.EventName == "CLEANING_BLOCKER_REPORTED" ? "A cleaning task is on hold." : "A cleaning task is pending inspection.",
                 Priority = "NORMAL", SourceType = "CLEANING_TASK", SourceId = selected.TaskId,
-                ActionUrl = $"/cleaning/tasks/{selected.TaskId}?branchId={selected.BranchId}", CreatedBy = selected.ActorId, CreatedAt = clock.GetUtcNow().UtcDateTime };
+                ActionUrl = $"/cleaning/tasks/{selected.TaskId}?branchId={selected.BranchId}&monitor=1", CreatedBy = selected.ActorId, CreatedAt = clock.GetUtcNow().UtcDateTime };
             db.Notifications.Add(notice); await db.SaveChangesAsync(ct);
             db.NotificationRecipients.Add(new() { NotificationId = notice.NotificationId, UserId = selected.UserId,
                 DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = notice.CreatedAt });
