@@ -55,9 +55,8 @@ public sealed class IncidentEvidenceWrite(HotelOpsDbContext db, ISqlSessionServi
                 assignment.Branch != null && assignment.Branch.IsActive,
                 db.UserBranchAccesses.Any(b => b.UserId == actor && b.BranchId == incident.BranchId && b.RevokedAt == null && b.GrantedAt <= now))))
             .ToArrayAsync(ct);
-        var assigned = await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.IncidentId == incident.IncidentId
-            && w.AssigneeId == actor && (w.Status == "PENDING" || w.Status == "IN_PROGRESS" || w.Status == "ON_HOLD")
-            && (w.Department == null || w.Department.BranchId == incident.BranchId), ct);
+        var assigned = await IncidentCurrentAssignment.AssignedTo(db.Incidents.AsNoTracking(),actor,true)
+            .AnyAsync(i=>i.IncidentId==incident.IncidentId,ct);
         return Allows(grants, now, incident.BranchId, incident.ReportedBy == actor, assigned);
     }
 

@@ -10,13 +10,17 @@ internal static class IncidentReadAccess
     internal sealed record Grant(string Role, PermissionGrantPath Path);
     internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false)
     {
-        internal IQueryable<Incident> Apply(IQueryable<Incident> query) => query.Where(i => i.BranchId == Branch
-            && i.Branch.IsActive && (Lead || Staff && (i.ReportedBy == User || i.MaintenanceWorks.Any(w => w.AssigneeId == User
-                && (w.Department == null || w.Department.BranchId == i.BranchId)
-                && (!CurrentAssignmentsOnly || w.Status == "PENDING" || w.Status == "IN_PROGRESS" || w.Status == "ON_HOLD"))))
-            && (i.Room == null || i.Room.BranchId == i.BranchId)
-            && (i.Area == null || i.Area.BranchId == i.BranchId)
-            && (i.Asset == null || i.Asset.BranchId == i.BranchId));
+        internal IQueryable<Incident> Apply(IQueryable<Incident> query)
+        {
+            var scoped=query.Where(i=>i.BranchId==Branch && i.Branch.IsActive
+                && (i.Room==null || i.Room.BranchId==Branch)
+                && (i.Area==null || i.Area.BranchId==Branch)
+                && (i.Asset==null || i.Asset.BranchId==Branch));
+            if(Lead) return scoped;
+            if(!Staff) return scoped.Where(i=>false);
+            var assigned=IncidentCurrentAssignment.AssignedTo(scoped,User,CurrentAssignmentsOnly).Select(i=>i.IncidentId);
+            return scoped.Where(i=>i.ReportedBy==User || assigned.Contains(i.IncidentId));
+        }
     }
     internal static Scope Resolve(long user, long branch, IEnumerable<Grant> grants, DateTime now)
     {

@@ -1,10 +1,20 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Incidents;
 
 internal static class IncidentCurrentAssignment
 {
+    // Historical assignees retain their work receipts, not authority over a reopened incident.
+    internal static IQueryable<Incident> AssignedTo(IQueryable<Incident> query,long user,bool activeOnly)
+        => query.Where(i=>i.MaintenanceWorks.Any(w=>w.AssigneeId==user && !w.PreventiveMaintenanceRuns.Any()
+            && (w.Department==null || w.Department.BranchId==i.BranchId)
+            && !i.IncidentEvents.Any(e=>e.EventType=="REOPENED" && e.OccurredAt>w.CreatedAt)
+            && i.MaintenanceWorks.Count(other=>!other.PreventiveMaintenanceRuns.Any()
+                && !i.IncidentEvents.Any(e=>e.EventType=="REOPENED" && e.OccurredAt>other.CreatedAt))==1
+            && (!activeOnly || w.Status=="PENDING" || w.Status=="IN_PROGRESS" || w.Status=="ON_HOLD")));
+
     internal sealed record Row(long IncidentId,long? AssigneeId,string? AssigneeName,long? DepartmentId,string? DepartmentName);
     internal static IQueryable<Row> Query(HotelOpsDbContext db)
     {

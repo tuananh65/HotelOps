@@ -25,8 +25,8 @@ internal static class IncidentReadContract
     private static readonly object AssignmentKey = new();
     private static readonly object RoomBlocksKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V11";
-    private const string Policy = "Related maintenance links require independent current MAINTENANCE_VIEW resource scope and final revalidation; detail endpoints independently authorize progress/history disclosure; Pending Verification projection requires unique current-cycle corrective work and proven committed submission/closed interval; reopened cycles require immutable closure/event/audit provenance and confirmed recurrence discovery for SLA options; prior cycles remain historical; Pending Triage cancellation availability requires escalation storage and native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V12";
+    private const string Policy = "Assigned incident visibility requires a unique corrective work in the current reopen cycle; historical assignments never grant current incident authority; Related maintenance links require independent current MAINTENANCE_VIEW resource scope and final revalidation; detail endpoints independently authorize progress/history disclosure; Pending Verification projection requires unique current-cycle corrective work and proven committed submission/closed interval; reopened cycles require immutable closure/event/audit provenance and confirmed recurrence discovery for SLA options; prior cycles remain historical; Pending Triage cancellation availability requires escalation storage and native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "Room block availability requires installed explicit scope, open source, native version, current Lead ROOM_BLOCK_MANAGE and independent ROOM_VIEW/INCIDENT_VIEW; current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
@@ -47,10 +47,9 @@ internal static class IncidentReadContract
         {
             if (!IsSource(a) || permissionCode != "INCIDENT_VIEW" || resource.ResourceType != "incident_source"
                 || resource.ResourceId != Id(a) || currentUserId != a.Actor.UserId) return null;
+            var assigned=IncidentCurrentAssignment.AssignedTo(Db(a).Incidents.AsNoTracking(),currentUserId,true).Select(i=>i.IncidentId);
             var row = await Db(a).Incidents.AsNoTracking().Where(i => i.IncidentId == Id(a) && i.Branch.IsActive)
-                .Select(i => new { i.BranchId, Own = i.ReportedBy == currentUserId || i.MaintenanceWorks.Any(w => w.AssigneeId == currentUserId
-                    && (w.Status == "PENDING" || w.Status == "IN_PROGRESS" || w.Status == "ON_HOLD")
-                    && (w.Department == null || w.Department.BranchId == i.BranchId)) }).SingleOrDefaultAsync(ct);
+                .Select(i => new { i.BranchId, Own = i.ReportedBy == currentUserId || assigned.Contains(i.IncidentId) }).SingleOrDefaultAsync(ct);
             return row == null ? null : new(row.BranchId, row.Own);
         }
     }
