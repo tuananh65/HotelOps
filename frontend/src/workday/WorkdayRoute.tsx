@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
+import { ScheduledWorkdayPanel } from "./ScheduledWorkdayPanel";
 import { WorkdayReadPanel } from "./WorkdayReadPanel";
 import { safeId } from "./contracts";
 
-function BranchSelection() {
+function BranchSelection({ scheduled }: { scheduled: boolean }) {
   const [draft, setDraft] = useState("");
   const [branch, setBranch] = useState<number | null>(null);
   const [invalid, setInvalid] = useState(false);
@@ -47,15 +48,16 @@ function BranchSelection() {
       {branch === null ? (
         <p>Nhập chi nhánh để đọc dữ liệu.</p>
       ) : (
-        <WorkdayReadPanel branchId={branch} />
+        scheduled ? <ScheduledWorkdayPanel branchId={branch} dispatchEnabled /> : <WorkdayReadPanel branchId={branch} />
       )}
+      <Link to={scheduled ? "/workday" : "/workday/scheduled"}>{scheduled ? "View workday" : "Start or end scheduled workday"}</Link>
       <Link to="/dashboard">Dashboard</Link>
     </main>
   );
 }
 
 /** Shared authenticated read route. Each API independently checks branch scope. */
-export function WorkdayRoute() {
+export function WorkdayRoute({ scheduled = false }: { scheduled?: boolean }) {
   const { state, actions } = useAuth();
   if (state.status === "INITIALIZING" || state.pending !== null)
     return <p role="status">Checking your session...</p>;
@@ -71,15 +73,15 @@ export function WorkdayRoute() {
   if (state.status !== "AUTHENTICATED" || !state.session)
     return <Navigate replace to="/login" />;
   // Reset the selection on session replacement, including same-user replacement.
-  return <SessionSelection session={state.session} />;
+  return <SessionSelection session={state.session} scheduled={scheduled} />;
 }
 
-function SessionSelection({ session }: { session: object }) {
+function SessionSelection({ session, scheduled }: { session: object; scheduled: boolean }) {
   const [binding, setBinding] = useState(session);
   const [generation, setGeneration] = useState(0);
   if (binding !== session) {
     setBinding(session);
     setGeneration((value) => value + 1);
   }
-  return <BranchSelection key={generation} />;
+  return <BranchSelection key={`${generation}:${scheduled}`} scheduled={scheduled} />;
 }

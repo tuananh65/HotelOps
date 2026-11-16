@@ -126,7 +126,15 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             var denied = await Authorize(permission, new("workday_self_branch", branchId), ct);
             if (denied is not null) return denied;
             var result = await action(actor);
-            if (result.Status is >= 200 and < 300) await tx.CommitAsync(ct);
+            if (result.Status is >= 200 and < 300)
+            {
+                // Locks preserve rows, not wall-clock validity during a long operation.
+                var finalSession = await sessions.ValidateSessionAsync(ticket, ct);
+                if (!finalSession.IsValid || finalSession.Session?.SessionId != actor.SessionId
+                    || finalSession.Session.UserId != actor.UserId || finalSession.Session.IsRestricted)
+                    return new(401, Code: "SESSION_INVALID");
+                await tx.CommitAsync(ct);
+            }
             return result;
         }
         catch (WorkTimeContractException e)

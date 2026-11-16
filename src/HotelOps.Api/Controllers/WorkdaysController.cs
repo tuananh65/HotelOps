@@ -6,21 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
-[NonController] // FS-001: imported source; route/security activation awaits DEV1/DEV3 review.
 [ApiController]
 [Route("api/branches/{branchId:long}/workdays")]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class WorkdaysController(WorkdayService service) : ControllerBase
 {
-    [HttpGet("current")]
-    public Task<IActionResult> Current(long branchId, CancellationToken ct)
-        => Execute(() => service.CurrentAsync(branchId, ct));
-
-    [HttpGet("own-shifts")]
-    public Task<IActionResult> OwnShifts(long branchId, CancellationToken ct)
-        => Execute(() => service.OwnShiftsAsync(branchId, ct));
-
     [HttpPost]
     public Task<IActionResult> Start(long branchId, StartWorkdayRequest request, CancellationToken ct)
         => Execute(() => service.StartAsync(branchId, request, ct));
@@ -51,7 +42,7 @@ public sealed class WorkdaysController(WorkdayService service) : ControllerBase
             _ => null
         };
         if (version is not null) Response.Headers.ETag = '"' + version + '"';
-        if (result.Status == 201) Response.Headers.Location = Url.Action(nameof(Current), new { branchId = RouteData.Values["branchId"] });
+        if (result.Status == 201) Response.Headers.Location = Url.Action(nameof(WorkdayReadsController.Current), "WorkdayReads", new { branchId = RouteData.Values["branchId"] });
         return result.Status == 204 ? NoContent() : StatusCode(result.Status, result.Value);
     }
 }

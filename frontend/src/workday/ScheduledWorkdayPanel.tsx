@@ -14,7 +14,7 @@ function key(x: object) {
   if (!keys.has(x)) keys.set(x, ++generation);
   return keys.get(x)!;
 }
-/** Standalone integration candidate. WorkdayRoute and production flags are unchanged. */
+/** Scheduled Start/End integration; server independently authorizes every mutation. */
 export function ScheduledWorkdayPanel({
   branchId,
   dispatchEnabled = false,

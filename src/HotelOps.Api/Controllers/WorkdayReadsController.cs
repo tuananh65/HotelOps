@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
-// Read-only activation: WorkdaysController remains NonController so its writes
-// cannot be exposed by this routing change. Authorization stays in the service.
+// Read routes are separate from scheduled workday writes. Authorization stays in the service.
 [ApiController]
 [Route("api/branches/{branchId:long}/workdays")]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]

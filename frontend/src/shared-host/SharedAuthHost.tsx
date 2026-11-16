@@ -94,6 +94,7 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace

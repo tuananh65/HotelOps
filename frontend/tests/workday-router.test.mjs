@@ -309,3 +309,13 @@ for (const denied of [null, "own-shifts", "current"]) {
  assert.equal(await p.getByRole("button",{name:/^(Start|End|Pause)/}).count(),0);
  }));
 }
+test("canonical scheduled route admits review only after explicit branch selection", () =>
+ pageTest({flag:"canonical",route:"/workday/scheduled"},async p=>{
+  await p.getByRole("textbox",{name:"Branch ID",exact:true}).waitFor();
+  assert.equal((await workCalls(p)).length,0);
+  await selectBranch(p,"2");
+  await p.getByText("Working day 202",{exact:true}).waitFor();
+  await p.getByRole("button",{name:"End workday",exact:true}).click();
+  await p.getByRole("region",{name:"Review scheduled workday"}).waitFor();
+  assert.equal(await p.evaluate(()=>window.calls.filter(c=>c.method==="POST"||c.url.endsWith("/csrf")).length),0);
+ }));
