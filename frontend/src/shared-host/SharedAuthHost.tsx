@@ -91,8 +91,8 @@ export function SharedAuthHost({
     <Routes>
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace
-        enabledModules={[...(incidentReadEnabled ? ["incidents"] : []), ...(materialReadEnabled ? ["material-requests"] : [])]}
-        enabledActions={["A004A-022", "A004A-023", "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042", "A004A-043", "A004A-044", "A004A-045", "A004A-046", "A004A-047", "A004A-048", "A004A-049", "A004A-050", "A004A-051"]} /></Protected>} />}
+        enabledModules={[...(incidentReadEnabled ? ["incidents"] : []), ...(materialReadEnabled ? ["material-requests", "replenishments"] : [])]}
+        enabledActions={["A004A-022", "A004A-023", "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042", "A004A-043", "A004A-044", "A004A-045", "A004A-046", "A004A-047", "A004A-048", "A004A-049", "A004A-050", "A004A-051", "A004A-052", "A004A-053", "A004A-055"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests/new" element={<Protected><InternalRequestIntakePage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}
@@ -298,7 +298,7 @@ export function SharedAuthHost({
             {internalRequestsEnabled && <InternalRequestAccessLink />}
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
             {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
-            {materialReadEnabled && <Link to="/operations/material-requests">Material requests</Link>}
+            {materialReadEnabled && <><Link to="/operations/material-requests">Material requests</Link><Link to="/operations/replenishments">Replenishments</Link></>}
             {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>

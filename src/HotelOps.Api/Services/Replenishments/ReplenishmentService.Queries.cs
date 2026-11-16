@@ -14,8 +14,12 @@ public sealed partial class ReplenishmentService
         return (p.Page - 1) * p.PageSize;
     }
     public async Task<ReplenishmentPaged<ReplenishmentSummary>> List(ReplenishmentPage p, CancellationToken ct)
+        => await ListAsync(db.MaterialReplenishments.AsNoTracking(), p, ct);
+
+    internal static async Task<ReplenishmentPaged<ReplenishmentSummary>> ListAsync(
+        IQueryable<HotelOps.Api.Entities.MaterialReplenishment> source, ReplenishmentPage p, CancellationToken ct)
     {
-        var offset = Offset(p); var q = db.MaterialReplenishments.AsNoTracking();
+        var offset = Offset(p); var q = source;
         if (p.BranchId is long b) q = q.Where(x => x.Warehouse.BranchId == b);
         if (p.WarehouseId is long w) q = q.Where(x => x.WarehouseId == w);
         if (p.ItemId is long item) q = q.Where(x => x.MaterialReplenishmentLines.Any(l => l.ItemId == item));
