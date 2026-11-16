@@ -94,6 +94,7 @@ export function InternalRequestMaterialLinksPanel({ id, onLinked }: { id: number
     {message && <p role="status">{message}</p>}
     {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked materials</button>}
     {!candidates && visible?.view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing material request</button>}
+    {visible?.view?.canLink && <Link to={`/operations/material-requests?action=A004A-043&branchId=${visible.view.branchId}&internalRequestId=${id}&sourceVersion=${encodeURIComponent(visible.view.version)}`}>Create linked material request</Link>}
     {visible?.error && <p role="status">{visible.error}</p>}
     {visible?.view && <>
       {visible.view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} materials on this page.</p>}

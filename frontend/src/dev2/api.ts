@@ -79,6 +79,13 @@ export function createDev2Api(
     try {
       path = operationPath(operation, parameters);
       data = payload(operation.fields, values, actor);
+      if (operation.id === "A004A-043" && (values.internalRequestId != null || values.requestLink != null)) {
+        if (!isObject(values.requestLink) || typeof values.requestLink.version !== "string"
+          || !/^[A-Za-z0-9+/]{11}=$/.test(values.requestLink.version) || typeof values.requestLink.mandatory !== "boolean")
+          throw Error("Loaded source version and explicit material requirement are required.");
+        data.internalRequestId = positiveId(values.internalRequestId);
+        data.requestLink = { version: values.requestLink.version, mandatory: values.requestLink.mandatory };
+      }
     } catch {
       return { ok: false, error: { kind: "invalid-response" } };
     }

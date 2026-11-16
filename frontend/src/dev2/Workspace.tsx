@@ -17,6 +17,7 @@ import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
 import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
+import { MaterialBranchField } from "./MaterialBranchField";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -91,6 +92,8 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     "fulfillmentId",
     "conversionId",
     "itemId",
+    "internalRequestId",
+    "sourceVersion",
   ])
     if (query.has(name)) context[name] = query.get(name)!;
   return (
@@ -182,7 +185,15 @@ function Screen({
   }, []);
   async function run(target: Operation, input = values, args = parameters) {
     if (submitting.current) return;
+    let commandInput = input;
     try {
+      if (target.id === "A004A-043" && context.internalRequestId != null) {
+        if (!["required", "optional"].includes(String(input.materialRequirement))
+          || typeof context.sourceVersion !== "string" || !/^[A-Za-z0-9+/]{11}=$/.test(context.sourceVersion))
+          throw Error("Reload the Internal Request and choose whether the material is required for completion.");
+        commandInput = { ...input, internalRequestId: context.internalRequestId,
+          requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
+      }
       payload(target.fields, input, actor);
       operationPath(target, args);
     } catch (e) {
@@ -200,7 +211,7 @@ function Screen({
       const response = await api.current(
         target,
         args,
-        input,
+        commandInput,
         actor,
         abort.signal,
       );
@@ -469,8 +480,19 @@ function Screen({
               setDenied(false);
             }}
           />
+          {operation.id === "A004A-043" && context.internalRequestId != null && <section aria-label="Source Internal Request">
+            <p>This material request will be linked to the source Internal Request when saved.</p>
+            <Link to={`/internal-requests?requestId=${encodeURIComponent(String(context.internalRequestId))}`}>Return to source and reload</Link>
+            <label>Completion requirement<select required value={String(values.materialRequirement ?? "")}
+              onChange={event => change({ ...values, materialRequirement: event.target.value })}>
+              <option value="">Select requirement</option><option value="required">Required for completion</option><option value="optional">Optional</option>
+            </select></label>
+          </section>}
+          {operation.id === "A004A-043" && <MaterialBranchField value={values.branchId} fixed={context.internalRequestId != null}
+            onChange={branchId => change({ ...values, branchId, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "",
+              receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
-            fields={operation.id === "A004A-043" ? operation.fields.filter(f => ["branchId", "purpose", "neededAt", "submit"].includes(f.name))
+            fields={operation.id === "A004A-043" ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && values.submit === true ? { ...f, optional: false } : f)
               : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}

@@ -242,3 +242,24 @@ Fixed build-detected C# local-name collision and TypeScript decoder narrowing er
 Final backend build PASS (0 warnings/errors), TypeScript and Vite build PASS with
 existing router/chunk warnings. No SQL writes or business/API/browser tests. No UC
 completion claim on source/build evidence alone.
+
+## Authorized branch selection and linked-create UI
+
+Added creation-branches under the current HTTPS cookie/SQL session. Branch choices
+intersect active branch access, an approved creator role's MR_CREATE and independent
+MR_VIEW. Create/catalog/approver admission now reuses that same branch calculation;
+the branch-list response rechecks the list before disclosure to catch expiring grants.
+The form uses branch names and clears dependent choices when the branch changes.
+
+An authorized Internal Request material panel now opens Create with its branch and
+loaded source version. The user must explicitly choose required/optional completion.
+The transport sends InternalRequestId + RequestLink together in the existing atomic
+Create command. The source branch is fixed in this flow; backend source scope/state,
+version and target creation authority remain mandatory. Repeated attempts do not
+silently refresh the source version or automatically retry after uncertain results.
+
+Fixed a build-detected Span/await expression by awaiting the final branch snapshot
+before comparison. Backend build PASS (0 warnings/errors); TypeScript/Vite PASS
+with existing router/chunk warnings. No SQL mutation or business/API/browser tests.
+Runtime still needs verified FE13 capabilities, approved grants/mappings and enabled
+notification delivery; source completion is not COMPLETE_VERIFIED acceptance.

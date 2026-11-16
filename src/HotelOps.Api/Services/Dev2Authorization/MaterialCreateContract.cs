@@ -31,8 +31,6 @@ internal static class MaterialCreateContract
         + "requester always principal; exact bound input; Serializable action transaction through disclosure; "
         + "approved mapped approver and independent source-link authorization; lifecycle schema required; scoped current mapped approver lookup; "
         + "branch catalog selection without stock/price disclosure; independent incident read scope rechecked before catalog disclosure";
-    private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
-        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
 
     internal static IEnumerable<Dev2ActionContract> Contracts =>
     [new("A004A-043", "DEV3_142A_MATERIAL_CREATE_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
@@ -128,20 +126,7 @@ internal static class MaterialCreateContract
         var session = await a.Http.RequestServices.GetRequiredService<ISqlSessionService>().ValidateSessionAsync(ticket, ct);
         if (!session.IsValid || session.Session?.SessionId != sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(b => b.UserId == a.Actor.UserId && b.BranchId == input.BranchId
-            && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
-        var paths = await (from assignment in db.UserRoles.AsNoTracking()
-            join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
-            where assignment.UserId == a.Actor.UserId && CreatorRoles.Contains(assignment.Role.RoleCode)
-                && grant.Permission.PermissionCode == "MR_CREATE"
-            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, assignment.BranchId,
-                assignment.IsActive, assignment.Role.IsActive, assignment.AssignedAt, assignment.ExpiresAt,
-                assignment.Branch != null && assignment.Branch.IsActive,
-                db.UserBranchAccesses.Any(b => b.UserId == a.Actor.UserId && b.BranchId == assignment.BranchId
-                    && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
-        if (!paths.Any(p => PermissionGrantRules.IsEligible(p, now)
-            && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL" || p.BranchId == input.BranchId
-                && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN"))) return false;
+        if (!(await MaterialCreationAccess.BranchesAsync(db, a.Actor.UserId, now, ct)).Any(b => b.BranchId == input.BranchId)) return false;
         if (await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0
               AND name='HotelOps.MaterialLifecycle.V1' AND CONVERT(nvarchar(20),value)='1')
