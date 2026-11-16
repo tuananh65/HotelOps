@@ -16,6 +16,7 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
     IOptions<CleaningClosureNotificationOptions> options, TimeProvider clock,
     ILogger<CleaningClosureNotificationWorker> logger) : BackgroundService
 {
+    private long reassignmentCursor;
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled && !options.Value.CancellationEnabled && !options.Value.AssignmentEnabled) return;
@@ -50,27 +51,26 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
             catch(Exception error){logger.LogWarning("Cleaning assignment delivery retained after {ErrorType}",error.GetType().Name);}
             try
             {
-                ProvisionalCleaningReassignmentDelivery.PendingOperation[] pending;
+                ProvisionalCleaningReassignmentDelivery.PendingIntent[] pending;
                 await using(var discovery=scopes.CreateAsyncScope())
-                    pending=await discovery.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>().PendingAsync(ct);
-                foreach(var operation in pending)
+                    pending=await discovery.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>().PendingAsync(ct,reassignmentCursor);
+                foreach(var intent in pending)
                 {
                     try
                     {
-                        // Each operation has exactly two distinct recipients; keep transaction contexts separate.
-                        for(var recipient=0;recipient<2;recipient++)
-                        {
-                            await using var scope=scopes.CreateAsyncScope();
-                            await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>()
-                                .DeliverOneAsync(operation.Actor,operation.Operation,ct);
-                        }
+                        // A failed recipient must not prevent delivery to the other recipient.
+                        await using var scope=scopes.CreateAsyncScope();
+                        await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningReassignmentDelivery>()
+                            .DeliverOneAsync(intent.Actor,intent.Operation,ct,intent.Id);
                     }
                     catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
                     catch(Exception error){logger.LogWarning("Cleaning reassignment delivery retained after {ErrorType}",error.GetType().Name);}
                 }
+                // Revisit retained failures after scanning the backlog, including after process restart.
+                reassignmentCursor=pending.Length==100?pending[^1].Id:0;
             }
             catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
-            catch(Exception error){logger.LogWarning("Cleaning reassignment discovery retained after {ErrorType}",error.GetType().Name);}
+            catch(Exception error){reassignmentCursor=0;logger.LogWarning("Cleaning reassignment discovery retained after {ErrorType}",error.GetType().Name);}
         }
         if (options.Value.Enabled) await DrainIndependentlyAsync(false, ct);
         if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(true, ct);

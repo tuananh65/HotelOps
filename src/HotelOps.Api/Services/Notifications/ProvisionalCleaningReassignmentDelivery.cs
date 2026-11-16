@@ -21,18 +21,19 @@ public sealed class ProvisionalCleaningReassignmentDelivery(HotelOpsDbContext db
         public long PreviousAssignmentId { get; set; }
         public string RecipientKind { get; set; } = "";
     }
-    public sealed class PendingOperation
+    public sealed class PendingIntent
     {
+        public long Id { get; set; }
         public long Actor { get; set; }
         public Guid Operation { get; set; }
     }
-    public async Task<PendingOperation[]> PendingAsync(CancellationToken ct)
+    public async Task<PendingIntent[]> PendingAsync(CancellationToken ct,long after=0)
     {
         if (!await CleaningReassignmentSchema.InstalledAsync(db, ct) || !await candidate.AvailableAsync(ct)) return [];
-        return await db.Database.SqlQuery<PendingOperation>($"""
-            SELECT TOP(100) actor_user_id AS Actor,operation_key AS Operation
-            FROM dbo.fs013_reassignment_intents WHERE status='PENDING' AND next_attempt_at<=SYSUTCDATETIME()
-            GROUP BY actor_user_id,operation_key ORDER BY MIN(intent_id)
+        return await db.Database.SqlQuery<PendingIntent>($"""
+            SELECT TOP(100) intent_id AS Id,actor_user_id AS Actor,operation_key AS Operation
+            FROM dbo.fs013_reassignment_intents WHERE status='PENDING' AND next_attempt_at<=SYSUTCDATETIME() AND intent_id>{after}
+            ORDER BY intent_id
             """).ToArrayAsync(ct);
     }
 
@@ -67,12 +68,12 @@ public sealed class ProvisionalCleaningReassignmentDelivery(HotelOpsDbContext db
         if (!await source.CanReadAssignedCleaningAsync(user, row.BranchId, row.TaskId, row.AssignmentId, ct)) return null;
         return $"/cleaning/tasks/{row.TaskId}?branchId={row.BranchId}&assignmentId={row.AssignmentId}";
     }
-    public async Task<string> DeliverOneAsync(long actor, Guid operation, CancellationToken ct)
+    public async Task<string> DeliverOneAsync(long actor, Guid operation, CancellationToken ct,long? intentId=null)
     {
         if ((!await CleaningReassignmentSchema.InstalledAsync(db, ct)
             && db.Database.GetDbConnection().Database != "HotelOps_Canonical_20261106_f130001_Fresh")
             || !await candidate.AvailableAsync(ct)) throw new InvalidOperationException("REASSIGNMENT_CAPABILITY_REQUIRED");
-        var selected = await db.Database.SqlQuery<Intent>($"SELECT TOP(1) i.intent_id AS Id,i.user_id AS UserId,o.task_id AS TaskId,o.branch_id AS BranchId,o.assignment_id AS AssignmentId,o.previous_assignment_id AS PreviousAssignmentId,i.recipient_kind AS RecipientKind FROM dbo.fs013_reassignment_intents i JOIN dbo.fs013_reassignment_operations o ON o.actor_user_id=i.actor_user_id AND o.operation_key=i.operation_key WHERE i.actor_user_id={actor} AND i.operation_key={operation} AND i.status='PENDING' AND i.next_attempt_at<=SYSUTCDATETIME() ORDER BY i.intent_id").SingleOrDefaultAsync(ct);
+        var selected = await db.Database.SqlQuery<Intent>($"SELECT TOP(1) i.intent_id AS Id,i.user_id AS UserId,o.task_id AS TaskId,o.branch_id AS BranchId,o.assignment_id AS AssignmentId,o.previous_assignment_id AS PreviousAssignmentId,i.recipient_kind AS RecipientKind FROM dbo.fs013_reassignment_intents i JOIN dbo.fs013_reassignment_operations o ON o.actor_user_id=i.actor_user_id AND o.operation_key=i.operation_key WHERE i.actor_user_id={actor} AND i.operation_key={operation} AND ({intentId} IS NULL OR i.intent_id={intentId}) AND i.status='PENDING' AND i.next_attempt_at<=SYSUTCDATETIME() ORDER BY i.intent_id").SingleOrDefaultAsync(ct);
         if (selected == null) return "EMPTY";
         var now = clock.GetUtcNow().UtcDateTime;
         try
