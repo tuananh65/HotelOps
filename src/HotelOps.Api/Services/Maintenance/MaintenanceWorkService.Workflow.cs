@@ -40,6 +40,7 @@ public sealed partial class MaintenanceWorkService
             incident.Status = "CLOSED";
             incident.ClosedAt = now;
             incident.ClosureNote = note;
+            await ReleaseVerifiedIncidentBlocksAsync(work, incident, note, now, token);
         }, cancellationToken);
     }
 

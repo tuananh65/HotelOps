@@ -78,7 +78,7 @@ public sealed partial class MaintenanceWorkService
         if (workTime is not null && work.AssigneeId != discovered.AssigneeId)
             throw new ValidationException("The maintenance assignee changed after time-lock discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest)
+        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
             await MaintenanceExecutionVersion.RequireAsync(_dbContext, id, _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString(), cancellationToken);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
         var resolutionMaterials = request is SubmitMaintenanceResultRequest
@@ -135,12 +135,12 @@ public sealed partial class MaintenanceWorkService
 
         if (_dbContext.ChangeTracker.HasChanges())
             await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
-        var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest
+        var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest
             ? await DetailAsync((await MaintenanceReadAccess.ReadAsync(_dbContext, TrustedActorId, incident.BranchId, cancellationToken))
                 .Apply(_dbContext.MaintenanceWorks.AsNoTracking()), id, cancellationToken)
                 ?? throw new Dev2AccessDenied(403)
             : await RequireDetailAsync(id, cancellationToken);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest)
+        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
             result.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(_dbContext, id, cancellationToken);
         if (request is SubmitMaintenanceResultRequest finalSubmission && resolutionEvidence is { Count: > 0 }
             && !resolutionEvidence.SequenceEqual(await ValidateResolutionEvidenceAsync(finalSubmission, incident, cancellationToken)))
