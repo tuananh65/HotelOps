@@ -3,6 +3,7 @@ import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { IncidentCancellationPanel } from "./IncidentCancellationPanel";
 import { IncidentReopenPanel } from "./IncidentReopenPanel";
 import { IncidentClassificationPanel } from "./IncidentClassificationPanel";
+import { PreventiveSchedulesPanel } from "./PreventiveSchedulesPanel";
 import { IncidentRoomBlocksPanel } from "./IncidentRoomBlocksPanel";
 import { MaintenanceAssignmentPanel } from "./MaintenanceAssignmentPanel";
 import { useEffect, useRef, useState } from "react";
@@ -517,6 +518,8 @@ function Screen({
         Availability
       </p>}
       <div className="dev2-toolbar">
+        {module === "maintenance" && !readOnly && Number.isSafeInteger(Number(branch)) && Number(branch) > 0 &&
+          <PreventiveSchedulesPanel key={String(branch)} branchId={Number(branch)} />}
         <Link to={`/operations/${module}`}>Browse</Link>
         {!readOnly && available.some(op => op.id === config.create) && <Link
           to={`/operations/${module}${recordId ? "/" + recordId : ""}?action=${config.create}`}
