@@ -78,15 +78,22 @@ public sealed partial class ReplenishmentService
         }
         if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());
     }
-    private async Task<List<MaterialRequestShortage>> MaterialCandidates(long? warehouse, long? item, CancellationToken ct)
+    private async Task<List<MaterialRequestShortage>> MaterialCandidates(long? warehouse, long? item, CancellationToken ct,
+        IQueryable<HotelOps.Api.Entities.MaterialRequest>? readableRequests = null)
     {
-        var lines = await db.MaterialRequestLines.AsNoTracking().Include(x => x.Request).ThenInclude(x => x.SourceWarehouse)
+        var source = db.MaterialRequestLines.AsNoTracking();
+        if (readableRequests != null) source = source.Where(l => readableRequests.Any(r => r.RequestId == l.RequestId));
+        var lines = await source.Include(x => x.Request).ThenInclude(x => x.SourceWarehouse)
             .Where(x => x.IsActive && x.ApprovedQty > x.FulfilledQty && (x.Request.Status == "APPROVED" || x.Request.Status == "PARTIALLY_ISSUED") && x.Request.SourceWarehouseId != null
                 && x.Request.SourceWarehouse!.IsActive && x.Request.SourceWarehouse.BranchId == x.Request.BranchId && x.Item.IsActive && x.Item.Category.IsActive && x.Uom.IsActive
                 && (warehouse == null || x.Request.SourceWarehouseId == warehouse) && (item == null || x.ItemId == item)
                 && db.MaterialRequestApprovalCycles.Any(c => c.RequestId == x.RequestId && c.Status == "APPROVED" && !db.MaterialRequestApprovalCycles.Any(later => later.RequestId == c.RequestId && later.RevisionNo > c.RevisionNo)))
             .OrderBy(x => x.RequestId).ThenBy(x => x.LineId).ToListAsync(ct);
         var result = new List<MaterialRequestShortage>();
+        if (readableRequests != null)
+            foreach (var request in lines.Select(l => (l.RequestId, l.Request.BranchId)).Distinct())
+                if (!await HotelOps.Api.Services.MaterialRequests.MaterialReadProvenance.ValidAsync(db, request.RequestId, request.BranchId, ct))
+                    throw Invalid("Material request provenance requires reconciliation.");
         foreach (var l in lines)
         {
             var remaining = l.ApprovedQty!.Value - l.FulfilledQty; var converted = await quantities.ConvertToBase(l.ItemId, l.UomId, remaining, ct);
@@ -98,9 +105,14 @@ public sealed partial class ReplenishmentService
         return result.GroupBy(x => (x.WarehouseId, x.ItemId)).SelectMany(g => g.Select(x => x with { AggregateApprovedDemandBaseQty = g.Sum(y => y.RemainingBaseQty), PhysicalShortageBaseQty = Math.Max(0, g.Sum(y => y.RemainingBaseQty) - x.CurrentOnHand) })).Where(x => x.PhysicalShortageBaseQty > 0).ToList();
     }
     public async Task<ReplenishmentPaged<MaterialRequestShortage>> MaterialShortages(ReplenishmentPage p, CancellationToken ct)
+        => await MaterialShortagesScoped(p, db.MaterialRequests.AsNoTracking(), ct);
+
+    internal async Task<ReplenishmentPaged<MaterialRequestShortage>> MaterialShortagesScoped(ReplenishmentPage p,
+        IQueryable<HotelOps.Api.Entities.MaterialRequest> readableRequests, CancellationToken ct)
     {
         var offset = Offset(p); await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct);
-        var rows = (await MaterialCandidates(p.WarehouseId, p.ItemId, ct)).Where(x => p.BranchId == null || x.BranchId == p.BranchId).ToArray();
+        var scoped = readableRequests.Where(r => p.BranchId == null || r.BranchId == p.BranchId);
+        var rows = (await MaterialCandidates(p.WarehouseId, p.ItemId, ct, scoped)).ToArray();
         if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());
     }
 }

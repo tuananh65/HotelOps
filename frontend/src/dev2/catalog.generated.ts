@@ -2026,7 +2026,7 @@ export const operations: Operation[] = [
     name: "Create",
     method: "POST",
     route: "/api/replenishments",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_CREATE"],
+    permissions: ["REPLENISHMENT_CREATE", "REPLENISHMENT_VIEW", "INVENTORY_VIEW"],
     authorityKind: "warehouse-input",
     expectedStatus: 201,
     dto: "ReplenishmentCreate",
@@ -2262,7 +2262,7 @@ export const operations: Operation[] = [
     name: "Low",
     method: "GET",
     route: "/api/replenishment-shortages/low-stock",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_VIEW", "INVENTORY_VIEW"],
+    permissions: ["REPLENISHMENT_VIEW", "REPLENISHMENT_CREATE", "INVENTORY_VIEW"],
     authorityKind: "warehouse-input",
     expectedStatus: 200,
     dto: "ReplenishmentPage",
@@ -2282,7 +2282,7 @@ export const operations: Operation[] = [
       {
         name: "branchId",
         type: "long?",
-        optional: true,
+        optional: false,
       },
       {
         name: "warehouseId",
@@ -2344,7 +2344,7 @@ export const operations: Operation[] = [
     name: "Material",
     method: "GET",
     route: "/api/replenishment-shortages/material-requests",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_VIEW", "INVENTORY_VIEW"],
+    permissions: ["REPLENISHMENT_VIEW", "REPLENISHMENT_CREATE", "INVENTORY_VIEW", "MR_VIEW"],
     authorityKind: "warehouse-input",
     expectedStatus: 200,
     dto: "ReplenishmentPage",
@@ -2364,7 +2364,7 @@ export const operations: Operation[] = [
       {
         name: "branchId",
         type: "long?",
-        optional: true,
+        optional: false,
       },
       {
         name: "warehouseId",

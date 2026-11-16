@@ -25,6 +25,7 @@ import { MaterialAvailabilityView } from "./MaterialAvailabilityView";
 import { MaterialHistoryView } from "./MaterialHistoryView";
 import { ReplenishmentCloseFields, replenishmentCanClose } from "./ReplenishmentCloseFields";
 import { ReplenishmentReceiptFields } from "./ReplenishmentReceiptFields";
+import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -204,6 +205,8 @@ function Screen({
     if (submitting.current) return;
     let commandInput = input;
     try {
+      if (target.id === "A004A-056" && !replenishmentCreateReady(input))
+        throw Error("Select authorized shortages and enter positive base quantities before creating a replenishment.");
       if (target.id === "A004A-058") {
         if (!replenishmentCanClose(record) || String(args.id) !== String(record.replenishmentId)
           || input.receiptSelectionVersion !== record.rowVersion || !Array.isArray(input.lines) || !input.lines.length)
@@ -540,7 +543,7 @@ function Screen({
             onChange={branchId => change({ ...values, branchId, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "",
               receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
-            fields={materialApprovalActions.includes(operation.id) || materialSubmit || ["A004A-049", "A004A-057", "A004A-058"].includes(operation.id) ? []
+            fields={materialApprovalActions.includes(operation.id) || materialSubmit || ["A004A-049", "A004A-056", "A004A-057", "A004A-058"].includes(operation.id) ? []
               : operation.id === "A004A-051" ? operation.fields.filter(f => ["mode", "documentDate"].includes(f.name))
               : materialWrite ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && needsApproval ? { ...f, optional: false } : f)
@@ -572,8 +575,10 @@ function Screen({
               <MaterialIssueFields record={record} values={values} onChange={change} /></>
           )}
           {operation.id === "A004A-057" && <ReplenishmentCloseFields record={record} values={values} onChange={change} />}
+          {operation.id === "A004A-056" && <ReplenishmentCreateFields values={values} onChange={change} />}
           {operation.id === "A004A-058" && <ReplenishmentReceiptFields record={record} values={values} onChange={change} />}
           <button type="submit" disabled={busy || denied || uncertain
+            || operation.id === "A004A-056" && !replenishmentCreateReady(values)
             || operation.id === "A004A-058" && (!replenishmentCanClose(record) || !Array.isArray(values.lines)
               || !values.lines.length || values.receiptSelectionVersion !== record.rowVersion)
             || operation.id === "A004A-057" && (!replenishmentCanClose(record) || values.confirmRemainderClosure !== true
