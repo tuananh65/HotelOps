@@ -1,3 +1,4 @@
+import { MaintenanceVerifyPanel } from "./MaintenanceVerifyPanel";
 import { MaintenanceReturnPanel } from "./MaintenanceReturnPanel";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
@@ -16,7 +17,7 @@ const time = (v: unknown) => {
   return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
 };
 
-export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean }) {
+export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false, canVerify = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean; canVerify?: boolean }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
     return <section aria-label="Maintenance work results">
@@ -34,6 +35,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
+    {canVerify && <MaintenanceVerifyPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {submitted && <section aria-label="Submitted maintenance snapshot">
       <h3>Submitted result</h3>

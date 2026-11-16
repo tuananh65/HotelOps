@@ -27,6 +27,6 @@ public sealed class MaintenanceReturnContractTests
         { Arguments = new Dictionary<string,object?> { ["id"]=1L,["request"]=new VerifyMaintenanceWorkRequest { ActorUserId=10 } } },
             new("MaintenanceWorks","ReturnWork",1,input)));
         Assert.False(await contract.ValidateFactsAndWorkflow(action,Dev2AuthorizationPhase.Admission,CancellationToken.None)); // HTTP denied before SQL.
-        Assert.DoesNotContain("A004A-031", Dev2ActionContracts.DecisionIds);
+        Assert.DoesNotContain(MaintenanceReturnContract.Contracts, c => c.DecisionId == "A004A-031");
     }
 }

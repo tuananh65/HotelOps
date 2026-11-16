@@ -102,3 +102,30 @@ Verify now requires a positive SubmissionAuditId. Before changing state it binds
 Direct evidence: backend solution build PASS, zero warnings/errors; frontend production build/typecheck PASS with existing Vite warnings. Eight focused reviewer/submission/Return contract tests PASS. Solution test command exits zero without discovery. Live SQL material/evidence reconciliation, filesystem races and browser closure remain unverified. No database mutation was performed.
 
 UC059 remains PARTIAL. Verify production admission and the dedicated confirmation form still need to bind the displayed snapshot and native ETag, including independent material/evidence access and lock ordering. This increment deliberately does not enable the legacy generic Verify form or claim a complete business workflow.
+
+## UC059 source completion: Verify admission and confirmation
+
+Status: IMPLEMENTED_PENDING_QA. New source-complete UCs in this batch: 1 (UC059). New COMPLETE_VERIFIED UCs: 0. This supersedes the earlier PARTIAL source notes above, not their runtime limitations.
+
+A004A-031 now has a dedicated compiled production contract. Admission requires HTTPS, the current unrestricted SQL session, exact actor/request/work binding, a positive current submission audit ID, native rowversion storage, active scoped Maintenance Lead review/read authority and performer separation. Inventory catalog locking precedes user/source locking. Existing material usage additionally requires independent MR_VIEW/INVENTORY_VIEW and complete provenance; legacy header-only usage or missing closure storage fails closed. Authority is rechecked at save and final disclosure without incorrectly requiring the pre-closure COMPLETED state after it has been persisted.
+
+The detail read exposes CanVerify only when the current submitted snapshot and required capabilities are available. The dedicated form binds that snapshot and ETag, confirms the verification note, obtains fresh CSRF, performs one POST, and validates the returned work identity, CLOSED state and changed native version. The unversioned generic Verify form is excluded. Existing Return remains independently admitted.
+
+SRS source reconciliation (02_use_case_specifications.md, UC059):
+
+| Acceptance path | Source implementation |
+| --- | --- |
+| Open Incident and review result, evidence, materials and deadlines | Existing Incident-to-maintenance list/detail navigation; MaintenanceReadContract and MaintenanceReadView expose current submitted snapshot, authorized attachment links, independently scoped usage and planned dates. Planned end is not presented as an invented SLA deadline. |
+| Accept and Close with current reviewer and version | MaintenanceVerifyContract, MaintenanceVerifyPanel, RequireReviewProofAsync and native If-Match; exact submitted quantities and evidence hashes revalidated. |
+| Close Incident/work and Open escalation | Existing MaintenanceWorkService.Workflow/Commands and IncidentEscalationClosure in the owning Serializable transaction; persisted transition event is required. |
+| Release Incident blocks and recompute room readiness | MaintenanceWorkService.RoomClosure locks room/block ranges, releases only effective blocks of this Incident and uses EffectiveRoomReadiness; other blocks remain. No automatic Ready when GBR-044 is unmet. |
+| Atomic history and notification intent | Owning transaction records work/Incident/blocks/room/escalation audits and release/closure intents; failed transaction cannot produce a committed delivery source. |
+| Reporter, technician and eligible HK Supervisors | MaintenanceClosureDelivery and IncidentRoomReleaseDelivery; current independent target permissions, per-event deduplication, retry, and authorization again on opening. HK source is Room Status, not Incident. |
+| Return for more work | Existing dedicated Return form/contract/service preserves blocks, records reason/audit/technician intent; executor must explicitly Resume before a new work interval. |
+| Linked damaged/under-repair Asset | IncidentAssetFollowupDelivery and authorized read-only follow-up; no automatic condition mutation or grant expansion. UC070 itself remains a separate workflow. |
+
+Direct validation this batch: dotnet build HotelOps.slnx --no-restore PASS (0 warnings/errors); frontend npm run build (tsc + Vite) PASS, with existing React Router ignored use-client and bundle-size warnings. Focused backend tests: 18 PASS. Mocked browser tests: 4 PASS (Verify and Return success/stale ETag, CSRF, exact snapshot payload and no automatic retry). dotnet test HotelOps.slnx --no-restore exits zero without test discovery; it is not counted as test coverage. git diff --check PASS.
+
+No database mutation, live closure, notification delivery or deployment was performed. Human QA must exercise authenticated UI -> HTTPS -> disposable SQL, real role/grant revocation, changed evidence/materials, concurrent room blocks, closure/return rollback and retry/deduplication. Runtime requires verified native maintenance version/material storage, guarded escalation installer and controlled notification worker activation. Missing prerequisites remain fail-closed. EF escalation DML materialization and complete closure transaction are not established by the mocked browser or parser/contract tests. This is source completion, not COMPLETE_VERIFIED or runtime acceptance.
+
+Files in this batch: MaintenanceVerifyContract.cs, MaintenanceVerifyAvailability.cs, MaintenanceVerifyPanel.tsx, MaintenanceVerifyContractTests.cs and maintenance-verify-browser.test.mjs (new); MaintenanceReadContract.cs, Dev2ActionContracts.cs, MaintenanceWorkDetailDto.cs, MaintenanceReadView.tsx, Workspace.tsx, SharedAuthHost.tsx, MaintenanceReturnContractTests.cs, UC_STATUS_MATRIX.md and this receipt (updated).
