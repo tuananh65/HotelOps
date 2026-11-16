@@ -124,6 +124,13 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:ShiftCancellationSource.Kind,SourceType:ShiftCancellationSource.Kind,SourceId:>0})
+        {
+            var receipt=await ShiftCancellationSource.TargetAsync(db,source.SourceId.Value,user,source.CreatedBy,source.CreatedAt,ct);
+            if(receipt==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Cancellation source unavailable.");
+            await RevalidateSessionAsync(user,ct);await tx.CommitAsync(ct);
+            return new($"/workday?branchId={receipt.BranchId}&shiftAssignmentId={receipt.AssignmentId}");
+        }
         if(source is {NotificationType:ShiftAssignmentNoticeAccess.Kind,SourceType:ShiftAssignmentNoticeAccess.Kind,SourceId:>0})
         {
             var shiftBranch=await ShiftAssignmentNoticeAccess.TargetAsync(db,source.SourceId.Value,user,source.CreatedBy,source.CreatedAt,ct);

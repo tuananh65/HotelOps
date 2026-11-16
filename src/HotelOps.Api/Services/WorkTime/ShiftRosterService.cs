@@ -7,7 +7,7 @@ using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.WorkTime;
 
-public sealed record RosterAssignment(long Id,long EmployeeId,string EmployeeName,string Status);
+public sealed record RosterAssignment(long Id,long EmployeeId,string EmployeeName,string Status,string Version);
 public sealed record RosterShift(long Id,long TemplateId,string TemplateName,DateOnly Date,DateTimeOffset StartUtc,DateTimeOffset EndUtc,string Status,int RequiredStaff,IReadOnlyList<RosterAssignment> Assignments);
 public sealed record RosterPage(long BranchId,long DepartmentId,DateOnly From,DateOnly To,string Timezone,IReadOnlyList<RosterShift> Shifts,long? NextCursor);
 public sealed class ShiftRosterService(HotelOpsDbContext db,ICurrentUserAccessor current,ISqlSessionService sessions,TimeProvider clock)
@@ -32,9 +32,13 @@ public sealed class ShiftRosterService(HotelOpsDbContext db,ICurrentUserAccessor
             .OrderBy(s=>s.ShiftId).Take(51).Select(s=>new{s.ShiftId,s.ShiftTemplateId,s.ShiftTemplate.ShiftName,s.ShiftDate,s.ScheduledStartAt,s.ScheduledEndAt,s.Status,s.RequiredStaffCount}).ToArrayAsync(ct);
         var page=rows.Take(50).ToArray();var ids=page.Select(s=>s.ShiftId).ToArray();
         var assignments=await db.ShiftAssignments.AsNoTracking().Where(a=>ids.Contains(a.ShiftId)).OrderBy(a=>a.ShiftAssignmentId).Take(10001)
-            .Select(a=>new{a.ShiftId,Assignment=new RosterAssignment(a.ShiftAssignmentId,a.UserId,a.User.FullName,a.AssignmentStatus)}).ToArrayAsync(ct);
+            .Select(a=>new{Row=a,Shift=a.Shift,a.User.FullName}).ToArrayAsync(ct);
         if(assignments.Length>10000)throw new InternalRequestReadException(503,"ROSTER_ASSIGNMENT_LIMIT");
-        var grouped=assignments.ToLookup(a=>a.ShiftId,a=>a.Assignment);
+        var assignmentKeys=assignments.Select(a=>a.Row.ShiftAssignmentId.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        var revisions=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="shift_assignments"&&assignmentKeys.Contains(a.EntityId))
+            .GroupBy(a=>a.EntityId).Select(g=>new{Id=g.Key,Revision=g.Max(a=>a.AuditId)}).ToDictionaryAsync(a=>a.Id,a=>a.Revision,ct);
+        var grouped=assignments.ToLookup(a=>a.Row.ShiftId,a=>new RosterAssignment(a.Row.ShiftAssignmentId,a.Row.UserId,a.FullName,a.Row.AssignmentStatus,
+            ShiftAssignmentRevision.Version(a.Row,a.Shift,revisions.GetValueOrDefault(a.Row.ShiftAssignmentId.ToString(System.Globalization.CultureInfo.InvariantCulture)))));
         await Gate(ticket,sid,branch,department,ct);await tx.CommitAsync(ct);
         return new(branch,department,from,to,timezone,page.Select(s=>new RosterShift(s.ShiftId,s.ShiftTemplateId,s.ShiftName,s.ShiftDate,
             new DateTimeOffset(DateTime.SpecifyKind(s.ScheduledStartAt,DateTimeKind.Utc)),new DateTimeOffset(DateTime.SpecifyKind(s.ScheduledEndAt,DateTimeKind.Utc)),s.Status,s.RequiredStaffCount,grouped[s.ShiftId].ToArray())).ToArray(),rows.Length>50?page[^1].ShiftId:null);

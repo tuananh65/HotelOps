@@ -11,10 +11,10 @@ namespace HotelOps.Api.Services.Notifications;
 internal static class ShiftAssignmentNoticeAccess
 {
     internal const string Kind="SHIFT_ASSIGNMENT";
-    internal static async Task<long?> BranchAsync(HotelOpsDbContext db,long assignment,long user,DateTime now,CancellationToken ct)
+    internal static async Task<long?> BranchAsync(HotelOpsDbContext db,long assignment,long user,DateTime now,CancellationToken ct,bool includeCancelled=false)
     {
         var branch=await db.ShiftAssignments.AsNoTracking().Where(a=>a.ShiftAssignmentId==assignment&&a.UserId==user
-            &&a.AssignmentStatus=="ASSIGNED"&&a.AssignedAt<=now&&a.Shift.Status=="PLANNED"
+            &&(a.AssignmentStatus=="ASSIGNED"||includeCancelled&&a.AssignmentStatus=="CANCELLED")&&a.AssignedAt<=now&&a.Shift.Status=="PLANNED"
             &&a.Shift.ScheduledStartAt<a.Shift.ScheduledEndAt&&a.Shift.Department.IsActive&&a.Shift.Department.BranchId==a.Shift.BranchId
             &&a.Shift.ShiftTemplate.IsActive&&a.Shift.ShiftTemplate.BranchId==a.Shift.BranchId)
             .Select(a=>(long?)a.Shift.BranchId).SingleOrDefaultAsync(ct);
@@ -66,7 +66,8 @@ internal sealed class ShiftAssignmentNotificationDelivery(HotelOpsDbContext db,T
     {
         var window=NotificationRetention.At(clock.GetUtcNow().UtcDateTime,retention.Value);
         return await db.NotificationRecipients.AsNoTracking().Where(r=>r.RecipientId>after&&r.DeliveryChannel=="IN_APP"&&r.DeliveryStatus=="PENDING"
-            &&r.Notification.NotificationType==ShiftAssignmentNoticeAccess.Kind&&r.Notification.SourceType==ShiftAssignmentNoticeAccess.Kind
+            &&((r.Notification.NotificationType==ShiftAssignmentNoticeAccess.Kind&&r.Notification.SourceType==ShiftAssignmentNoticeAccess.Kind)
+                ||(r.Notification.NotificationType==ShiftCancellationSource.Kind&&r.Notification.SourceType==ShiftCancellationSource.Kind))
             &&r.Notification.CreatedAt>=window.Cutoff&&r.Notification.CreatedAt<=window.Now)
             .OrderBy(r=>r.RecipientId).Take(100).Select(r=>r.RecipientId).ToArrayAsync(ct);
     }
@@ -81,12 +82,17 @@ internal sealed class ShiftAssignmentNotificationDelivery(HotelOpsDbContext db,T
         if(recipient==null||recipient.UserId!=user||recipient.DeliveryChannel!="IN_APP"||recipient.DeliveryStatus!="PENDING")return;
         var notice=await db.Notifications.AsNoTracking().SingleAsync(n=>n.NotificationId==recipient.NotificationId,ct);
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        if(notice.NotificationType!=ShiftAssignmentNoticeAccess.Kind||notice.SourceType!=ShiftAssignmentNoticeAccess.Kind||notice.SourceId is not >0
+        if(notice.SourceType!=notice.NotificationType||notice.NotificationType is not (ShiftAssignmentNoticeAccess.Kind or ShiftCancellationSource.Kind)||notice.SourceId is not >0
             ||!NotificationRetention.At(now,retention.Value).Contains(notice.CreatedAt)||(notice.ExpiresAt!=null&&notice.ExpiresAt<=now))return;
-        if(await ShiftAssignmentNoticeAccess.TargetAsync(db,notice.SourceId.Value,user.Value,notice.CreatedBy,notice.CreatedAt,ct)==null)return;
+        if(!await EligibleAsync(notice,user.Value,ct))return;
         recipient.DeliveryStatus="DELIVERED";recipient.DeliveredAt=now;recipient.FailureReason=null;
         await db.SaveChangesAsync(ct);
-        if(await ShiftAssignmentNoticeAccess.TargetAsync(db,notice.SourceId.Value,user.Value,notice.CreatedBy,notice.CreatedAt,ct)==null)return;
+        if(!await EligibleAsync(notice,user.Value,ct))return;
         await tx.CommitAsync(ct);
     }
+    private async Task<bool> EligibleAsync(Notification notice,long user,CancellationToken ct)
+        =>notice.NotificationType==ShiftCancellationSource.Kind
+            ?await ShiftCancellationSource.TargetAsync(db,notice.SourceId!.Value,user,notice.CreatedBy,notice.CreatedAt,ct)!=null
+            :await ShiftAssignmentNoticeAccess.TargetAsync(db,notice.SourceId!.Value,user,notice.CreatedBy,notice.CreatedAt,ct)!=null;
+
 }
