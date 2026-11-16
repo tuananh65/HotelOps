@@ -14,6 +14,7 @@ internal sealed class InternalRequestHandoverNotice
     public long BranchId { get; set; }
     public long DepartmentId { get; set; }
     public long EventId { get; set; }
+    public long HandoverId { get; set; }
     public long RequestId { get; set; }
     public long RecipientId { get; set; }
     public long ActorId { get; set; }
@@ -24,7 +25,7 @@ internal sealed class InternalRequestHandoverNotice
 public sealed class InternalRequestHandoverDelivery(HotelOpsDbContext db, TimeProvider clock, IOptions<NotificationCenterOptions> options)
 {
     internal static IQueryable<InternalRequestHandoverNotice> Query(HotelOpsDbContext db) => db.Database.SqlQuery<InternalRequestHandoverNotice>($"""
-        SELECT e.event_id AS EventId,e.internal_request_id AS RequestId,o.recipient_id AS RecipientId,
+        SELECT e.event_id AS EventId,h.handover_id AS HandoverId,e.internal_request_id AS RequestId,o.recipient_id AS RecipientId,
           e.actor_id AS ActorId,e.occurred_at AS At,o.notification_id AS NotificationId,
           h.branch_id AS BranchId,h.department_id AS DepartmentId,o.recipient_kind AS Kind
         FROM dbo.internal_request_handover_outbox o JOIN dbo.internal_request_events e ON e.event_id=o.event_id
@@ -41,6 +42,12 @@ public sealed class InternalRequestHandoverDelivery(HotelOpsDbContext db, TimePr
 
     internal static async Task<bool> CanReadAsync(HotelOpsDbContext db,InternalRequestHandoverNotice row,DateTime now,CancellationToken ct)
     {
+        if(row.Kind is "SENDER" or "RECEIVER")
+        {
+            var receipt=await InternalRequestHandoverStore.Rows(db).SingleOrDefaultAsync(h=>h.Id==row.HandoverId
+                &&h.RequestId==row.RequestId&&h.BranchId==row.BranchId,ct);
+            return receipt!=null&&await InternalRequestHandoverReadAccess.AllowsAsync(db,row.RecipientId,receipt,now,ct);
+        }
         var scope=await new InternalRequestReadAccess(db).ReadAsync(row.RecipientId,now,ct);
         if(!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==row.RequestId
             && r.BranchId==row.BranchId && r.ReceivingDepartmentId==row.DepartmentId,ct))return false;
@@ -89,7 +96,7 @@ public sealed class InternalRequestHandoverDelivery(HotelOpsDbContext db, TimePr
                 await tx.CommitAsync(ct); return "ALREADY_DELIVERED";
             }
             var notice = new Notification { NotificationType = "IR_HANDOVER", SourceType = "INTERNAL_REQUEST_HANDOVER", SourceId = eventId,
-                Title = "Request handover", Message = "An internal request handover was recorded. Open the request to review its current status.",
+                Title = "Request handover", Message = "An internal request handover was recorded. Open the notification to review it.",
                 Priority = "NORMAL", CreatedBy = row.ActorId, CreatedAt = row.At };
             db.Notifications.Add(notice); await db.SaveChangesAsync(ct);
             db.NotificationRecipients.Add(new() { NotificationId = notice.NotificationId, UserId = recipient, DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = now });

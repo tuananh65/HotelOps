@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 interface View { requestId:number; version:string; handoverId:number|null; state:string|null; receiverId:number|null; summary:string|null; note:string|null;
-  canSubmit:boolean; canDecide:boolean; receivers:{id:number;name:string}[]; }
+  canSubmit:boolean; canDecide:boolean; receivers:{id:number;name:string}[]; createdAt?:string|null; decisionAt?:string|null; rejectionReason?:string|null; }
 class Failure extends Error { constructor(readonly status:number){super("Handover unavailable");} }
 const version=(value:unknown):value is string=>typeof value==="string"&&/^[A-Za-z0-9+/]{11}=$/.test(value);
 async function json(path:string,signal:AbortSignal,init?:RequestInit):Promise<unknown>{
@@ -9,7 +9,7 @@ async function json(path:string,signal:AbortSignal,init?:RequestInit):Promise<un
   if(!response.ok)throw new Failure(response.status);
   if(!response.headers.get("content-type")?.includes("json"))throw new Error("Invalid response");return response.json();
 }
-export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(state:string)=>void}){
+export function InternalRequestHandoverPanel({id,handoverId,onSaved}:{id:number;handoverId?:number;onSaved?:(state:string)=>void}){
   const {state,actions}=useAuth();
   const owner=state.status==="AUTHENTICATED"&&!state.pending&&!state.session?.mustChangePassword?state.authorityGeneration:null;
   const [loaded,setLoaded]=useState<{owner:typeof owner;id:number;view:View}|null>(null);
@@ -18,17 +18,19 @@ export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(s
   useEffect(()=>{
     setLoaded(null);setReceiver("");setSummary("");setNote("");setReason("");setMessage("");setBusy(false);sending.current=false;
     const abort=new AbortController();controller.current=abort;
-    if(owner)void json(`/api/internal-requests/${id}/handover`,abort.signal).then(raw=>{
+    if(owner)void json(`/api/internal-requests/${id}/handover${handoverId?`/${handoverId}`:""}`,abort.signal).then(raw=>{
       const v=raw as View;
       if(!v||v.requestId!==id||!version(v.version)||typeof v.canSubmit!=="boolean"||typeof v.canDecide!=="boolean"
         ||!Array.isArray(v.receivers)||v.receivers.some(r=>!Number.isSafeInteger(r.id)||r.id<=0||typeof r.name!=="string")
         ||!(v.handoverId===null||Number.isSafeInteger(v.handoverId)&&v.handoverId>0)
-        ||!(v.state===null||v.state==="PENDING_ACKNOWLEDGMENT")||![v.summary,v.note].every(s=>s===null||typeof s==="string")
+        ||!(v.state===null||["PENDING_ACKNOWLEDGMENT","ACKNOWLEDGED","REJECTED"].includes(v.state))||![v.summary,v.note].every(s=>s===null||typeof s==="string")
+        ||handoverId!==undefined&&(v.handoverId!==handoverId||v.canSubmit)
+        ||![v.createdAt,v.decisionAt,v.rejectionReason].every(s=>s===undefined||s===null||typeof s==="string")
         ||v.canDecide&&(!v.handoverId||v.state!=="PENDING_ACKNOWLEDGMENT"))throw new Error("Invalid handover view");
       if(!abort.signal.aborted)setLoaded({owner,id,view:v});
     }).catch(e=>{if(!abort.signal.aborted){setMessage("Handover unavailable. Reload current access and responsibility.");if(e instanceof Failure&&e.status===401)actions.invalidateSession(owner!);}});
     return()=>abort.abort();
-  },[id,owner,revision,actions]);
+  },[id,handoverId,owner,revision,actions]);
   const view=owner&&loaded?.owner===owner&&loaded.id===id?loaded.view:null;
   async function send(action:"submit"|"acknowledge"|"reject"){
     const abort=controller.current;
@@ -51,9 +53,12 @@ export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(s
   if(!owner)return null;
   return <section aria-label="Request handover" aria-busy={busy}>
     {message&&<p role="status">{message}</p>}<button disabled={busy} onClick={()=>setRevision(v=>v+1)}>Reload handover</button>
-    {view?.state&&<><p>Handover: {view.state}. The sender remains responsible until acknowledgment.</p><p>{view.summary}</p><p>{view.note}</p></>}
+    {view?.state&&<><p>Handover: {view.state}. {view.state==="PENDING_ACKNOWLEDGMENT"?"The sender remains responsible until acknowledgment.":view.state==="ACKNOWLEDGED"?"Responsibility transferred when this handover was acknowledged.":"This handover was rejected; it did not transfer responsibility."}</p><p>{view.summary}</p><p>{view.note}</p></>}
+    {view?.createdAt&&<p>Submitted: <time>{view.createdAt}</time></p>}
+    {view?.decisionAt&&<p>Decision: <time>{view.decisionAt}</time></p>}
+    {view?.rejectionReason&&<p>Rejection reason: {view.rejectionReason}</p>}
     {view?.canSubmit&&<>
-      {view.receivers.length===0&&<p role="status">No eligible receiver currently has permission to open this request. The current handler remains responsible.</p>}
+      {view.receivers.length===0&&<p role="status">No eligible receiver currently has handover read access. The current handler remains responsible.</p>}
       <label>New handler<select aria-label="New handler" value={receiver} disabled={busy} onChange={e=>setReceiver(e.target.value)}><option value="">Select</option>{view.receivers.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
       <label>Status summary<textarea maxLength={4000} value={summary} disabled={busy} onChange={e=>setSummary(e.target.value)}/></label>
       <label>Handover notes<textarea maxLength={4000} value={note} disabled={busy} onChange={e=>setNote(e.target.value)}/></label>

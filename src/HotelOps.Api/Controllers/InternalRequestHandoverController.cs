@@ -34,6 +34,12 @@ public sealed class InternalRequestHandoverController(InternalRequestHandoverSer
     {
         var auth=Session();var result=await service.SubmitAsync(auth.Ticket,auth.Sid,id,Version(),input,ct);Response.Headers.ETag='"'+result.Version+'"';return result;
     }
+    [HttpGet("{handoverId:long}")]
+    public async Task<InternalRequestHandoverView> Receipt(long id,long handoverId,CancellationToken ct)
+    {
+        var auth=Session();var result=await service.ReadReceiptAsync(auth.Ticket,auth.Sid,id,handoverId,ct);
+        Response.Headers.ETag='"'+result.Version+'"';return result;
+    }
     [HttpPost("decision")]
     public async Task<InternalRequestHandoverResult> Decide(long id,[FromBody]InternalRequestHandoverDecision input,CancellationToken ct)
     {

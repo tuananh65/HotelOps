@@ -297,7 +297,12 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             if(handover==null||handover.ActorId!=source.CreatedBy||handover.At!=source.CreatedAt
                 ||!await InternalRequests.InternalRequestHandoverDelivery.CanReadAsync(db,handover,now,ct))
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
-            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={handover.RequestId}");
+            await RevalidateSessionAsync(user,ct);
+            if(!await InternalRequests.InternalRequestHandoverDelivery.CanReadAsync(db,handover,clock.GetUtcNow().UtcDateTime,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new(handover.Kind=="MANAGER"
+                ?$"/internal-requests?requestId={handover.RequestId}"
+                :$"/internal-requests/{handover.RequestId}/handovers/{handover.HandoverId}");
         }
         if(source is {NotificationType:"IR_WITHDRAWN",SourceType:"INTERNAL_REQUEST_WITHDRAWAL",SourceId:>0})
         {

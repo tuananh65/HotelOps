@@ -14,7 +14,12 @@ public sealed record InternalRequestHandoverInput(long ReceiverId,string Summary
 public sealed record InternalRequestHandoverDecision(long HandoverId,bool Acknowledge,string? Reason);
 public sealed record InternalRequestHandoverResult(long RequestId,long HandoverId,string State,string Version,string Message);
 public sealed record InternalRequestHandoverView(long RequestId,string Version,long? HandoverId,string? State,long? ReceiverId,
-    string? Summary,string? Note,bool CanSubmit,bool CanDecide,InternalRequestFilterValue[] Receivers);
+    string? Summary,string? Note,bool CanSubmit,bool CanDecide,InternalRequestFilterValue[] Receivers)
+{
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? DecisionAt { get; init; }
+    public string? RejectionReason { get; init; }
+}
 
 public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -43,10 +48,17 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
                 db.UserBranchAccesses.Any(a=>a.UserId==user&&a.BranchId==assignment.BranchId&&a.RevokedAt==null&&a.GrantedAt<=now))}).ToArrayAsync(ct);
         return grants.Any(g=>InternalRequestProgressAuthority.EligibleHandler(g.Role,g.Path,branch,now));
     }
-    private async Task<InternalRequest> ReadRequestAsync(long user,long id,CancellationToken ct)
+    private async Task<InternalRequest> ReadRequestAsync(long user,long id,CancellationToken ct,long? receiptId=null)
     {
         var now=await NowAsync(ct);var scope=await new InternalRequestReadAccess(db).ReadAsync(user,now,ct);
-        // Pending receiver read expansion is not approved yet. Existing IR_VIEW scope remains mandatory.
+        if(receiptId is {} selected)
+        {
+            var receipt=await InternalRequestHandoverStore.Rows(db).SingleOrDefaultAsync(h=>h.Id==selected&&h.RequestId==id,ct);
+            if(receipt==null||!await InternalRequestHandoverReadAccess.AllowsAsync(db,user,receipt,now,ct))
+                throw new InternalRequestReadException(404,"IR_HANDOVER_NOT_FOUND");
+            return await db.InternalRequests.FromSqlInterpolated($"SELECT * FROM dbo.internal_requests WITH(UPDLOCK,HOLDLOCK) WHERE internal_request_id={id}")
+                .AsNoTracking().SingleAsync(ct);
+        }
         var row=await scope.Apply(db.InternalRequests.FromSqlInterpolated($"SELECT * FROM dbo.internal_requests WITH(UPDLOCK,HOLDLOCK) WHERE internal_request_id={id}").AsNoTracking(),now)
             .SingleOrDefaultAsync(ct);
         return row??throw new InternalRequestReadException(404,"IR_NOT_FOUND");
@@ -55,12 +67,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
     {
         if(request.ReceivingDepartmentId is not {} department
             ||!await EligibleAsync(db,user,request.BranchId,department,now,ct))return false;
-        // Becoming a pending receiver does not itself grant IR_VIEW. Require the
-        // same current read scope used when opening and deciding the handover.
-        var scope=await new InternalRequestReadAccess(db).ReadAsync(user,now,ct);
-        return await scope.Apply(db.InternalRequests.AsNoTracking(),now)
-            .AnyAsync(r=>r.InternalRequestId==request.InternalRequestId&&r.BranchId==request.BranchId
-                &&r.ReceivingDepartmentId==department,ct);
+        return await InternalRequestHandoverReadAccess.HasScopeAsync(db,user,request.BranchId,now,ct);
     }
     private async Task<InternalRequestAssignment> HandlerAsync(InternalRequest row,CancellationToken ct)
     {
@@ -103,6 +110,27 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
         var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct);
         await tx.CommitAsync(ct);return new(id,Convert.ToBase64String(version),pending?.Id,pending?.State,pending?.ReceiverId,pending?.Summary,pending?.Note,submit,decide,receivers.ToArray());
     }
+    public async Task<InternalRequestHandoverView> ReadReceiptAsync(SessionReference ticket,long sid,long id,long receiptId,CancellationToken ct)
+    {
+        if(id<=0||receiptId<=0)throw new InternalRequestReadException(404,"IR_HANDOVER_NOT_FOUND");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await SessionAsync(ticket,sid,ct);await SchemaAsync(ct);
+        var row=await ReadRequestAsync(ticket.UserId,id,ct,receiptId);
+        var receipt=await InternalRequestHandoverStore.Rows(db).SingleAsync(h=>h.Id==receiptId&&h.RequestId==id,ct);
+        var now=await NowAsync(ct);
+        var active=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now).ToArrayAsync(ct);
+        var decide=receipt.State=="PENDING_ACKNOWLEDGMENT"&&receipt.ReceiverId==ticket.UserId&&row.Status=="IN_PROGRESS"
+            &&row.ReceivingDepartmentId==receipt.DepartmentId&&active.Length==1&&active[0].AssignmentId==receipt.SenderAssignmentId
+            &&await EligibleAsync(db,ticket.UserId,row.BranchId,receipt.DepartmentId,now,ct);
+        var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
+        await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct,receiptId);
+        if(decide)decide=await EligibleAsync(db,ticket.UserId,row.BranchId,receipt.DepartmentId,await NowAsync(ct),ct);
+        await tx.CommitAsync(ct);
+        return new(id,Convert.ToBase64String(version),receipt.Id,receipt.State,receipt.ReceiverId,receipt.Summary,receipt.Note,false,decide,[])
+        {CreatedAt=DateTime.SpecifyKind(receipt.CreatedAt,DateTimeKind.Utc),DecisionAt=receipt.DecisionAt is {} at?DateTime.SpecifyKind(at,DateTimeKind.Utc):null,
+            RejectionReason=receipt.RejectionReason};
+    }
+
     public async Task<InternalRequestHandoverResult> SubmitAsync(SessionReference ticket,long sid,long id,byte[] version,InternalRequestHandoverInput input,CancellationToken ct)
     {
         var summary=InternalRequestHandoverStore.Required(input.Summary);var note=InternalRequestHandoverStore.Optional(input.Note);
@@ -143,7 +171,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
         try{
             await new UserEligibilityLock(db).LockAsync(managers.Append(senderId).Append(ticket.UserId).Append(snapshot.ReceiverId),ct);
             await SessionAsync(ticket,sid,ct);
-            var row=await ReadRequestAsync(ticket.UserId,id,ct);await VersionAsync(id,version,ct);var sender=await HandlerAsync(row,ct);
+            var row=await ReadRequestAsync(ticket.UserId,id,ct,input.HandoverId);await VersionAsync(id,version,ct);var sender=await HandlerAsync(row,ct);
             var handover=await InternalRequestHandoverStore.Rows(db).SingleAsync(h=>h.Id==input.HandoverId,ct);
             if(handover.State!="PENDING_ACKNOWLEDGMENT"||handover.SenderAssignmentId!=sender.AssignmentId||sender.AssigneeId!=senderId
                 ||handover.ReceiverId!=snapshot.ReceiverId||handover.DepartmentId!=row.ReceivingDepartmentId||handover.BranchId!=row.BranchId)
@@ -175,7 +203,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
             }
             if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET updated_at={now} WHERE internal_request_id={id} AND row_version={version}",ct)!=1)
                 throw new InternalRequestReadException(412,"IR_VERSION_CHANGED");
-            await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct);
+            await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct,input.HandoverId);
             if(!await EligibleAsync(db,ticket.UserId,row.BranchId,handover.DepartmentId,await NowAsync(ct),ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
             var next=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await tx.CommitAsync(ct);return new(id,handover.Id,newState,Convert.ToBase64String(next),"MSG08");
         }finally{db.ChangeTracker.Clear();}
