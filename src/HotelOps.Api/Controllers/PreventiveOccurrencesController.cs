@@ -52,9 +52,9 @@ public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadServ
     }
     [HttpGet]
     public async Task<IReadOnlyList<PreventiveOccurrenceView>> List(long branch,CancellationToken ct,[FromQuery]long afterId=0,[FromQuery]bool mine=false,[FromQuery]string? status=null,
-        [FromQuery]DateTimeOffset? dueFrom=null,[FromQuery]DateTimeOffset? dueTo=null,[FromQuery]bool? overdue=null)
+        [FromQuery]DateTimeOffset? dueFrom=null,[FromQuery]DateTimeOffset? dueTo=null,[FromQuery]bool? overdue=null,[FromQuery]long? assigneeId=null,[FromQuery]string? keyword=null)
     {
-        var(ticket,sid)=Identity();return await service.ReadAsync(ticket,sid,branch,null,afterId,ct,mine,status,dueFrom,dueTo,overdue);
+        var(ticket,sid)=Identity();return await service.ReadAsync(ticket,sid,branch,null,afterId,ct,mine,status,dueFrom,dueTo,overdue,assigneeId,keyword);
     }
     [HttpGet("{id:long}/technicians")]
     public async Task<PreventiveTechnicianPage> Technicians(long branch,long id,CancellationToken ct,[FromQuery]long afterId=0)

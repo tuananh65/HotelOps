@@ -13,7 +13,14 @@ namespace HotelOps.Api.Services.PreventiveMaintenance;
 public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string Title,string Instruction,
     PreventiveCheckItem[] CheckItems,long? AssetId,long? RoomId,long? AreaId,long? AssigneeId,string Status,
     DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart,
-    bool CanComplete,PreventiveCheckResult[]? Results,bool IsOverdue=false);
+    bool CanComplete,PreventiveCheckResult[]? Results,bool IsOverdue=false)
+{
+    public string? AssigneeName { get; init; }
+    public string? RoomNumber { get; init; }
+    public string? AreaName { get; init; }
+    public string? AssetCode { get; init; }
+    public string? AssetName { get; init; }
+}
 
 public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -24,6 +31,11 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         public long? AssetId { get; set; }
         public long? RoomId { get; set; }
         public long? AreaId { get; set; }
+        public string? AssigneeName { get; set; }
+        public string? RoomNumber { get; set; }
+        public string? AreaName { get; set; }
+        public string? AssetCode { get; set; }
+        public string? AssetName { get; set; }
         public string Definition { get; set; } = "";
         public long? AssigneeId { get; set; }
         public string Status { get; set; } = "";
@@ -58,8 +70,11 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         await tx.CommitAsync(ct);return result;
     }
     public async Task<IReadOnlyList<PreventiveOccurrenceView>> ReadAsync(SessionReference ticket,long sid,long branch,
-        long? id,long afterId,CancellationToken ct,bool mine=false,string? status=null,DateTimeOffset? dueFrom=null,DateTimeOffset? dueTo=null,bool? overdue=null)
+        long? id,long afterId,CancellationToken ct,bool mine=false,string? status=null,DateTimeOffset? dueFrom=null,DateTimeOffset? dueTo=null,bool? overdue=null,long? assigneeId=null,string? keyword=null)
     {
+        keyword=keyword?.Trim();
+        if(assigneeId is <=0 || keyword?.Length>200)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_FILTER");
+        if(string.IsNullOrEmpty(keyword))keyword=null;
         if(dueFrom>dueTo)throw new InternalRequestReadException(400,"INVALID_DUE_RANGE");
         var fromUtc=dueFrom?.UtcDateTime;var toUtc=dueTo?.UtcDateTime;
         if(branch<=0||id is <=0||afterId<0)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
@@ -85,14 +100,22 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
             SELECT TOP(50) r.run_id AS RunId,r.schedule_id AS ScheduleId,d.definition_json AS Definition,
               d.assignee_id AS AssigneeId,d.workflow_status AS Status,r.planned_at AS DueAt,r.performed_at AS PerformedAt,
               r.result AS Result,r.note AS Note,CONVERT(varchar(16),d.row_version,2) AS Version,
-              s.asset_id AS AssetId,s.room_id AS RoomId,s.area_id AS AreaId
+              s.asset_id AS AssetId,s.room_id AS RoomId,s.area_id AS AreaId,
+              u.full_name AS AssigneeName,room.room_number AS RoomNumber,area.area_name AS AreaName,asset.asset_code AS AssetCode,asset.asset_name AS AssetName
             FROM dbo.preventive_occurrence_details d
             JOIN dbo.preventive_maintenance_runs r ON r.run_id=d.run_id
             JOIN dbo.preventive_maintenance_schedules s ON s.schedule_id=r.schedule_id
+            LEFT JOIN dbo.users u ON u.user_id=d.assignee_id
+            LEFT JOIN dbo.rooms room ON room.room_id=s.room_id AND room.branch_id={branch}
+            LEFT JOIN dbo.areas area ON area.area_id=s.area_id AND area.branch_id={branch}
+            LEFT JOIN dbo.assets asset ON asset.asset_id=s.asset_id AND asset.branch_id={branch}
             WHERE d.branch_id={branch} AND ({scope.Lead}=1 OR ({scope.Staff}=1 AND d.assignee_id={ticket.UserId}))
               AND ({afterId}=0 OR r.planned_at>{afterDue} OR (r.planned_at={afterDue} AND r.run_id>{afterId}))
               AND ({id} IS NULL OR r.run_id={id})
               AND ({mine}=0 OR d.assignee_id={ticket.UserId})
+              AND ({assigneeId} IS NULL OR d.assignee_id={assigneeId})
+              AND ({keyword} IS NULL OR CHARINDEX({keyword},JSON_VALUE(d.definition_json,'$.title'))>0
+                OR CONVERT(varchar(30),r.run_id)={keyword} OR CONVERT(varchar(30),r.schedule_id)={keyword})
               AND ({fromUtc} IS NULL OR r.planned_at>={fromUtc}) AND ({toUtc} IS NULL OR r.planned_at<={toUtc})
               AND ({overdue} IS NULL
                 OR ({overdue}=1 AND r.planned_at<{evaluatedAt} AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS'))
@@ -153,7 +176,8 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
                 row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
                 canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED",
                 completionInstalled&&canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="IN_PROGRESS",savedResults,
-                row.DueAt<evaluatedAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS"));
+                row.DueAt<evaluatedAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS")
+                {AssigneeName=row.AssigneeName,RoomNumber=row.RoomNumber,AreaName=row.AreaName,AssetCode=row.AssetCode,AssetName=row.AssetName});
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);
         if(result.Any(r=>!finalScope.Lead&&(!finalScope.Staff||r.AssigneeId!=ticket.UserId)))

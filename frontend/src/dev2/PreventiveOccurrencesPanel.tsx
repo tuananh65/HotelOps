@@ -5,7 +5,7 @@ import { isObject } from "../auth/http";
 import { Link } from "react-router-dom";
 
 type Occurrence = { runId: number; scheduleId: number; title: string; instruction: string; status: string;
-  dueAt: string; isOverdue: boolean; performedAt: string | null; result: string | null; note: string | null; assigneeId: number | null;
+  dueAt: string; isOverdue: boolean; assigneeName?: string | null; roomNumber?: string | null; areaName?: string | null; assetCode?: string | null; assetName?: string | null; performedAt: string | null; result: string | null; note: string | null; assigneeId: number | null;
   assetId: number | null; roomId: number | null; areaId: number | null; version: string; canAssign: boolean; canCancel: boolean; canStart: boolean; canComplete: boolean;
   results: { key: string; passed: boolean; note: string | null }[] | null;
   checkItems: { key: string; description: string; required: boolean }[] };
@@ -35,6 +35,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [assignees,setAssignees] = useState<Record<number,string>>({}), [reasons,setReasons] = useState<Record<number,string>>({});
   const [uncertain,setUncertain] = useState(false);
   const [hasMore,setHasMore] = useState(false);
+  const [filterAssignee,setFilterAssignee] = useState(""), [keyword,setKeyword] = useState("");
   const [dueFrom,setDueFrom] = useState(""), [dueTo,setDueTo] = useState(""), [overdue,setOverdue] = useState("");
   const clearResults = () => { setRows([]); setHistory({}); setEvidence({}); };
   const [mine,setMine] = useState(true), [status,setStatus] = useState("OPEN");
@@ -115,6 +116,11 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
       const filters = new URLSearchParams();
+      if(filterAssignee) {
+        if(!positive(Number(filterAssignee))) throw Error("Assignee must be a positive user ID.");
+        filters.set("assigneeId",filterAssignee);
+      }
+      if(keyword.trim()) filters.set("keyword",keyword.trim());
       if(dueFrom) filters.set("dueFrom",new Date(dueFrom + "+07:00").toISOString());
       if(dueTo) filters.set("dueTo",new Date(dueTo + "+07:00").toISOString());
       if(overdue) filters.set("overdue",overdue);
@@ -131,11 +137,13 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   if (!owner || owner !== mounted || !positive(branchId)) return null;
   return <section aria-label="Scheduled maintenance occurrences"><h2>Scheduled maintenance</h2>
     {runId == null && <fieldset disabled={busy}><legend>My work and branch occurrences</legend>
-      <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setRows([]);setHistory({});setEvidence({});}} />Assigned to me</label>
+      <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setFilterAssignee("");setRows([]);setHistory({});setEvidence({});}} />Assigned to me</label>
       <label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
         <option value="OPEN">Open work</option><option value="">All statuses</option><option value="PENDING_ASSIGNMENT">Pending assignment</option>
         <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
       </select></label>
+      <label>Search title, occurrence or schedule ID<input maxLength={200} value={keyword} onChange={e=>{setKeyword(e.target.value);clearResults();}} /></label>
+      <label>Assignee user ID<input type="number" min="1" step="1" disabled={mine} value={filterAssignee} onChange={e=>{setFilterAssignee(e.target.value);clearResults();}} /></label>
       <label>Due from (UTC+7)<input type="datetime-local" value={dueFrom} onChange={e=>{setDueFrom(e.target.value);clearResults();}} /></label>
       <label>Due to (UTC+7)<input type="datetime-local" value={dueTo} onChange={e=>{setDueTo(e.target.value);clearResults();}} /></label>
       <label>Overdue<select value={overdue} onChange={e=>{setOverdue(e.target.value);clearResults();}}><option value="">All</option><option value="true">Overdue</option><option value="false">Not overdue</option></select></label>
@@ -145,7 +153,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     {runId == null && hasMore && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
     {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
-      <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>
+      <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeName ?? r.assigneeId ?? "Pending assignment"}.</p>
       <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
       {history[r.runId] && <section aria-label={`History of occurrence ${r.runId}`}>
         <h3>Previous occurrences in your current scope</h3>
@@ -170,7 +178,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       {r.status==="COMPLETED"&&<><button disabled={busy} onClick={()=>void loadEvidence(r.runId)}>Load completion evidence</button>
         {evidence[r.runId]&&<ul>{evidence[r.runId].map(e=><li key={e.id}><a href={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/evidence/${e.id}`} download>{e.name}</a> ({Math.ceil(e.size/1024)} KiB)</li>)}</ul>}</>}
       {r.results && <ul>{r.results.map(c => <li key={c.key}>{r.checkItems.find(i => i.key === c.key)?.description}: {c.passed ? "Pass" : "Fail"}{c.note && ` — ${c.note}`}</li>)}</ul>}
-      <p>{r.roomId ? `Room #${r.roomId}` : r.areaId ? `Area #${r.areaId}` : `Asset #${r.assetId}`}</p>
+      <p>{r.roomId ? "Room " + (r.roomNumber ?? "#" + r.roomId) : r.areaId ? (r.areaName ?? "Area #" + r.areaId) : [r.assetCode, r.assetName].filter(Boolean).join(" ? ") || "Asset #" + r.assetId}</p>
       <ul>{r.checkItems.map(c => <li key={c.key}>{c.description}{c.required ? " (required)" : ""}</li>)}</ul>
       {r.performedAt && <p>Performed: {new Date(r.performedAt).toLocaleString()}</p>}{r.result && <p>{r.result}</p>}{r.note && <p>{r.note}</p>}
       {r.canAssign && <fieldset disabled={busy || uncertain}><PreventiveTechnicianSelect url={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/technicians`} value={assignees[r.runId] ?? ""} onChange={value => setAssignees({...assignees,[r.runId]:value})} /><button onClick={() => void change(r,false)}>Assign technician</button></fieldset>}
