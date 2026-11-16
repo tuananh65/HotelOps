@@ -17,7 +17,7 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
         if (!options.Value.Enabled) return;
         long cursor = 0, cancellationCursor = 0, decisionCursor = 0, remainderCursor = 0, fulfillmentCursor = 0;
         long[] storeCursors = [0, 0];
-        long replenishmentCursor = 0;
+        long replenishmentCursor = 0, replenishmentCreatedCursor = 0;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -91,6 +91,18 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
                     catch (Exception error) { logger.LogWarning("Material replenishment notice {CreditId} retained after {ErrorType}", id, error.GetType().Name); }
                 }
                 replenishmentCursor = replenishments.Length == 100 ? replenishments[^1] : 0;
+                long[] createdReplenishments;
+                await using (var scope = scopes.CreateAsyncScope())
+                    createdReplenishments = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>()
+                        .PendingReplenishmentCreatedAsync(replenishmentCreatedCursor, ct);
+                foreach (var id in createdReplenishments)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverReplenishmentCreatedAsync(id, ct); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Replenishment creation notice {ReplenishmentId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                replenishmentCreatedCursor = createdReplenishments.Length == 100 ? createdReplenishments[^1] : 0;
                 for (var mode = 0; mode < 2; mode++)
                 {
                     long[] events;

@@ -55,8 +55,16 @@ public sealed record ReplenishmentAuditDto(long AuditId, string EntityType, stri
     long? BranchId, DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record ReplenishmentHistory(ReplenishmentDto Replenishment, IReadOnlyList<ReplenishmentAuditDto> Audit);
 public sealed record LowStockShortage(long WarehouseId, long BranchId, long ItemId, long BaseUomId, decimal OnHand,
-    decimal MinimumQty, decimal DeficitToMinimum, long ThresholdId, long? ExistingActiveReplenishmentId, string? ExistingCoverageStatus);
+    decimal MinimumQty, decimal DeficitToMinimum, long ThresholdId, long? ExistingActiveReplenishmentId, string? ExistingCoverageStatus)
+{
+    public string ItemName { get; init; } = "";
+    public string UnitName { get; init; } = "";
+}
 public sealed record MaterialRequestShortage(long RequestId, string RequestNo, long RequestLineId, long BranchId, long WarehouseId,
     long ItemId, long RequestUomId, long BaseUomId, decimal ApprovedQty, decimal FulfilledQty, decimal RemainingRequestQty,
     decimal RemainingBaseQty, decimal CurrentOnHand, decimal AggregateApprovedDemandBaseQty, decimal PhysicalShortageBaseQty,
-    long? ExistingActiveReplenishmentId);
+    long? ExistingActiveReplenishmentId)
+{
+    public string ItemName { get; init; } = "";
+    public string UnitName { get; init; } = "";
+}

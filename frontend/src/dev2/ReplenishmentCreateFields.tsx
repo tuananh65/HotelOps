@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
 import type { Values } from "./contracts";
@@ -47,6 +48,7 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
       lineNo: lines.reduce((max, l) => Math.max(max, Number(l.lineNo)), 0) + 1, itemId: c.itemId,
       sourceType: low ? "LOW_STOCK" : "MATERIAL_REQUEST_SHORTAGE", sourceThresholdId: low ? id : null,
       sourceMaterialRequestLineId: low ? null : id, requestedBaseQty: quantity, note: null,
+      itemName: c.itemName, unitName: c.unitName,
     }] });
   }
   return <section aria-label="Create replenishment from shortages">
@@ -62,14 +64,17 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
     {!current?.data && <p role="status">{current ? "Shortages unavailable. Check your current grants and warehouse scope." : "Enter branch and warehouse to load authorized shortages."}</p>}
     {current?.data?.items.length === 0 && <p>No visible shortages.</p>}
     {current?.data?.items.map((c, index) => <div key={index}>
-      Item {String(c.itemId)}, base unit {String(c.baseUomId)}{c.requestNo != null && `, request ${String(c.requestNo)}`}:
+      {String(c.itemName || `Item ${c.itemId}`)}, base unit {String(c.unitName || c.baseUomId)}{c.requestNo != null && `, request ${String(c.requestNo)}`}:
       {" "}{String(source === "low-stock" ? c.deficitToMinimum : c.remainingBaseQty)}
       <button type="button" disabled={c.existingActiveReplenishmentId != null} onClick={() => select(c)}>
         {c.existingActiveReplenishmentId != null ? "Already covered" : "Select item"}</button>
+      {positive(c.existingActiveReplenishmentId) && <Link to={`/operations/replenishments/${encodeURIComponent(String(c.existingActiveReplenishmentId))}`}>
+        Open existing replenishment
+      </Link>}
     </div>)}
     <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
     <button type="button" disabled={!current?.data || page * 20 >= current.data.total} onClick={() => setPage(p => p + 1)}>Next</button>
-    {lines.map(l => <label key={String(l.itemId)}>Item {String(l.itemId)} requested base quantity
+    {lines.map(l => <label key={String(l.itemId)}>{String(l.itemName || `Item ${l.itemId}`)} requested quantity ({String(l.unitName || "base unit")})
       <input type="number" required min="0.001" step="0.001" value={String(l.requestedBaseQty)} onChange={e => onChange({ ...values,
         lines: lines.map(x => x.itemId === l.itemId ? { ...x, requestedBaseQty: e.target.value } : x) })} />
       <button type="button" onClick={() => onChange({ ...values, lines: lines.filter(x => x.itemId !== l.itemId) })}>Remove</button>

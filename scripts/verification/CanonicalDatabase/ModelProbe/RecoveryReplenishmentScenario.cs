@@ -50,6 +50,9 @@ internal static class RecoveryReplenishmentScenario
             var shortages = await Call(HttpMethod.Get, $"/api/replenishment-shortages/low-stock?branchId={branch.BranchId}&warehouseId={warehouse.WarehouseId}", 200);
             if (!shortages.GetProperty("items").EnumerateArray().Any(r => r.GetProperty("thresholdId").GetInt64() == threshold.ThresholdId))
                 throw new InvalidOperationException("Synthetic shortage missing.");
+            var shortage = shortages.GetProperty("items").EnumerateArray().Single(r => r.GetProperty("thresholdId").GetInt64() == threshold.ThresholdId);
+            if (shortage.GetProperty("itemName").GetString() != item.ItemName || shortage.GetProperty("unitName").GetString() != unit.UomName)
+                throw new InvalidOperationException("Shortage item/base-unit labels incorrect.");
             var input = new { actorUserId = actor, warehouseId = warehouse.WarehouseId, supplierName = "Synthetic supplier", expectedOn = (string?)null,
                 lines = new[] { new { lineNo = 1, itemId = item.ItemId, sourceType = "LOW_STOCK", sourceThresholdId = threshold.ThresholdId,
                     sourceMaterialRequestLineId = (long?)null, requestedBaseQty = 5m } } };
@@ -63,6 +66,7 @@ internal static class RecoveryReplenishmentScenario
                 throw new InvalidOperationException("Created state or independent MR_VIEW disclosure incorrect.");
             var list = await Call(HttpMethod.Get, $"/api/replenishments?branchId={branch.BranchId}", 200);
             if (list.GetProperty("total").GetInt32() != 1) throw new InvalidOperationException("Scoped list count incorrect.");
+            await RecoveryReplenishmentNotice.RunAsync(db, http, id, branch.BranchId, actor, checks, ct);
             await Call(HttpMethod.Post, $"/api/replenishments/{id}/close", 200, new { actorUserId = actor, expectedRowVersion = version, reason = "Synthetic delivery cancelled" });
             if (!await db.MaterialReplenishments.AnyAsync(r => r.ReplenishmentId == id && r.Status == "CLOSED" && r.ClosedBy == actor, ct)
                 || await db.MaterialReplenishmentLines.AnyAsync(l => l.ReplenishmentId == id && l.IsOpenCoverage, ct))
@@ -81,6 +85,10 @@ internal static class RecoveryReplenishmentScenario
             if (await db.Branches.AnyAsync(b => b.BranchId == branch.BranchId && b.BranchCode == prefix, clean))
             {
                 var roots = db.MaterialReplenishments.Where(r => r.WarehouseId == warehouse.WarehouseId && r.RequestedBy == actor);
+                var notices = db.Notifications.Where(n => n.SourceType == "REPLENISHMENT_CREATED"
+                    && roots.Any(r => r.ReplenishmentId == n.SourceId) && n.CreatedBy == actor);
+                await db.NotificationRecipients.Where(r => notices.Any(n => n.NotificationId == r.NotificationId)).ExecuteDeleteAsync(clean);
+                await notices.ExecuteDeleteAsync(clean);
                 await db.MaterialReplenishmentLines.Where(l => roots.Any(r => r.ReplenishmentId == l.ReplenishmentId)).ExecuteDeleteAsync(clean);
                 await roots.ExecuteDeleteAsync(clean);
                 await db.AuditLogs.Where(a => a.ActorUserId == actor && a.BranchId == branch.BranchId && a.EntityType == "material_replenishments").ExecuteDeleteAsync(clean);
