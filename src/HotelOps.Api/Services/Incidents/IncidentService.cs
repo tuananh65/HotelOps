@@ -232,7 +232,7 @@ public sealed class IncidentService : IIncidentService
     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["CreateIncident"], request.ReportedBy, null, request);
-        Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+        IncidentCreationInput.Validate(request);
         await ValidateCreateAsync(request, cancellationToken);
 
         var reportedAt = DateTime.UtcNow;
@@ -275,8 +275,8 @@ public sealed class IncidentService : IIncidentService
             IncidentNo = number,
             BranchId = request.BranchId,
             ReportedBy = TrustedActorId,
-            IncidentTitle = request.IncidentTitle,
-            Description = request.Description,
+            IncidentTitle = request.IncidentTitle.Trim(),
+            Description = request.Description.Trim(),
             DiscoveredAt = request.DiscoveredAt!.Value,
             RoomId = request.RoomId,
             AreaId = request.AreaId,
