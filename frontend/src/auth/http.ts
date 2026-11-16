@@ -15,6 +15,27 @@ export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function apiUrl(value: string): boolean {
+  const separator = value.indexOf("?");
+  const path = separator < 0 ? value : value.slice(0, separator);
+  // Query values never participate in route validation or origin resolution.
+  if (!/^\/api\/[a-zA-Z0-9/_-]+$/.test(path) || path.includes("//")) return false;
+  if (separator < 0) return true;
+  const query = value.slice(separator + 1);
+  if (!query || /[^\x21-\x7e]|#|%(?![0-9a-f]{2})/i.test(query)) return false;
+  try {
+    if (/[\x00-\x1f\x7f]/.test(decodeURIComponent(query))) return false;
+    const seen = new Set<string>();
+    for (const [name] of new URLSearchParams(query)) {
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name) || seen.has(name.toLowerCase())) return false;
+      seen.add(name.toLowerCase());
+    }
+    return seen.size > 0;
+  } catch {
+    return false;
+  }
+}
+
 function problem(value: unknown, status: number): ApiProblem | null {
   if (!isObject(value)) return null;
   if (value.status !== undefined && value.status !== status) return null;
@@ -50,10 +71,7 @@ export function createHttpClient(
     input: HttpRequest<T>,
   ): Promise<ApiResult<T>> {
     // Reject absolute/protocol-relative URLs, path escapes and encoded separators.
-    if (
-      !/^\/api\/[a-zA-Z0-9/_-]+$/.test(input.url) ||
-      input.url.includes("//")
-    ) {
+    if (!apiUrl(input.url)) {
       return { ok: false, error: { kind: "invalid-response" } };
     }
     const headers = new Headers({ Accept: "application/json" });

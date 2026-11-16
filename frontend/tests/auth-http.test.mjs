@@ -383,6 +383,45 @@ test("transport rejects absolute/path escape URLs and unsafe requests without to
   );
 });
 
+test("business query URLs reach the same-origin API with transport protections", async () => {
+  const urls = [
+    "/api/material-requests/creation-catalog?branchId=1",
+    "/api/material-requests/creation-approvers?branchId=1&sourceWarehouseId=2",
+    "/api/material-requests?branchId=1&requesterId=3&itemId=4&page=1&pageSize=6",
+    "/api/replenishment-shortages/material-requests?branchId=1&warehouseId=2&sourceRequestId=3&page=1&pageSize=20",
+    "/api/material-requests?keyword=kh%C4%83n+ph%C3%B2ng%2Fsoap%26water",
+  ];
+  const controller = new AbortController();
+  const seen = [];
+  const http = createHttpClient(async (url, init) => {
+    seen.push(url);
+    assert.equal(init.credentials, "include");
+    assert.equal(init.cache, "no-store");
+    assert.equal(init.redirect, "error");
+    assert.equal(init.signal, controller.signal);
+    assert.equal(init.headers.has("Authorization"), false);
+    return json({ items: [] });
+  });
+  for (const url of urls) assert.equal((await http({ method: "GET", url,
+    expectedStatus: 200, decode: x => x, signal: controller.signal })).ok, true);
+  assert.deepEqual(seen, urls);
+});
+
+test("queries cannot escape path validation or bypass mutation CSRF", async () => {
+  const http = createHttpClient(() => assert.fail("invalid URL or missing CSRF must not fetch"));
+  for (const url of [
+    "https://example.invalid/api/items?branchId=1", "//example.invalid/api/items?branchId=1",
+    "/api/../items?branchId=1", "/api/%2e%2e/items?branchId=1", "/api/%2fitems?branchId=1",
+    "/api/items//next?branchId=1", "/api/items\\next?branchId=1",
+    "/api/items?branchId=1#other", "/api/items?keyword=raw space", "/api/items?keyword=%0d%0aHeader",
+    "/api/items?keyword=%00", "/api/items?keyword=%7f", "/api/items?keyword=%zz",
+    "/api/items?keyword=%C3%28", "/api/items?branchId=1&branchId=2", "/api/items?branchId=1&BranchId=2",
+    "/api/items?branchId=1&%62ranchId=2", "/api/items?=1", "/api/items?&", "/api/items?",
+  ]) assert.equal((await http({ method: "GET", url, expectedStatus: 200, decode: x => x })).error.kind, "invalid-response", url);
+  assert.equal((await http({ method: "POST", url: "/api/items?branchId=1",
+    expectedStatus: 200, decode: x => x })).error.kind, "invalid-response");
+});
+
 test("no auth operation uses sensitive browser storage", async () => {
   const originals = [
     Object.getOwnPropertyDescriptor(globalThis, "localStorage"),
