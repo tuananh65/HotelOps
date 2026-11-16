@@ -1,4 +1,5 @@
 import { ShiftPlanApiError, type SavePlanAdapter } from "./shiftPlanApi";
+import { ShiftEmployeePicker } from "./ShiftEmployeePicker";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -63,6 +64,7 @@ function Bound({
   const [saveReview, setSaveReview] = useState(false),
     [sessionBlocked, setSessionBlocked] = useState(false);
   const saveAttempted = useRef(false);
+  const [canStartNew, setCanStartNew] = useState(false);
   const epoch = useRef(0),
     alive = useRef(true),
     busy = useRef(false),
@@ -166,9 +168,12 @@ function Bound({
         return;
       setPreview(null);
       setDrafts([]);
-      if (result.ok)
+      if (result.ok) {
+        setCanStartNew(true);
         setMessage(`${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
+      }
       else {
+        setCanStartNew(result.outcome !== "OUTCOME_UNKNOWN" && result.status !== 401);
         if (result.status === 401) setSessionBlocked(true);
         setMessage(
           result.outcome === "OUTCOME_UNKNOWN"
@@ -239,7 +244,7 @@ function Bound({
           <label key={name}>
             {name}
             <input
-              disabled={sessionBlocked || saveAttempted.current}
+              disabled={pending || sessionBlocked || saveAttempted.current}
               aria-label={name}
               value={fields[name]}
               onChange={(e) => {
@@ -249,7 +254,10 @@ function Bound({
             />
           </label>
         ))}
-        <button>Add draft</button>
+        <ShiftEmployeePicker branchId={fields.branchId} departmentId={fields.departmentId}
+          disabled={pending || sessionBlocked || saveAttempted.current}
+          onSelect={id => { invalidate(); setFields(v => ({ ...v, employeeId: id })); }} />
+        <button disabled={pending || sessionBlocked || saveAttempted.current}>Add draft</button>
       </form>
       <ol>
         {drafts.map((d, i) => (
@@ -282,6 +290,10 @@ function Bound({
       </button>
       {pending && <p role="status">Loading preview...</p>}
       {message && <p role="alert">{message}</p>}
+      {canStartNew && !pending && !sessionBlocked && <button onClick={() => {
+        saveAttempted.current = false; setCanStartNew(false); invalidate(); setDrafts([]);
+        setFields(v => ({ ...v, employeeId: "" }));
+      }}>Plan another assignment</button>}
       {sessionBlocked && <button onClick={recover}>Check session</button>}
       {saveAdapter &&
         preview &&

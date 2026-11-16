@@ -10,6 +10,8 @@ namespace HotelOps.Api.Services.WorkTime;
 public sealed record RosterAssignment(long Id,long EmployeeId,string EmployeeName,string Status,string Version);
 public sealed record RosterShift(long Id,long TemplateId,string TemplateName,DateOnly Date,DateTimeOffset StartUtc,DateTimeOffset EndUtc,string Status,int RequiredStaff,IReadOnlyList<RosterAssignment> Assignments);
 public sealed record RosterPage(long BranchId,long DepartmentId,DateOnly From,DateOnly To,string Timezone,IReadOnlyList<RosterShift> Shifts,long? NextCursor);
+public sealed record ShiftEmployeeOption(long Id,string Name);
+public sealed record ShiftEmployeePage(long BranchId,long DepartmentId,IReadOnlyList<ShiftEmployeeOption> Employees,long? NextCursor);
 public sealed class ShiftRosterService(HotelOpsDbContext db,ICurrentUserAccessor current,ISqlSessionService sessions,TimeProvider clock)
 {
     internal async Task Gate(SessionReference ticket,long sid,long branch,long department,CancellationToken ct)
@@ -19,6 +21,32 @@ public sealed class ShiftRosterService(HotelOpsDbContext db,ICurrentUserAccessor
         var session=await sessions.ValidateSessionAsync(ticket,ct);
         if(!session.IsValid||session.Session?.SessionId!=sid||session.Session.IsRestricted)throw new InternalRequestReadException(401,"SESSION_INVALID");
         if(!await new SqlShiftPreviewScopeData(db,clock).ActorScopeAsync(ticket.UserId,branch,department,ct))throw new InternalRequestReadException(403,"SHIFT_MANAGE_SCOPE_REQUIRED");
+    }
+    public async Task<ShiftEmployeePage> EmployeesAsync(SessionReference ticket,long sid,long branch,long department,long after,CancellationToken ct)
+    {
+        if(branch<=0||department<=0||after<0)throw new InternalRequestReadException(400,"INVALID_EMPLOYEE_FILTER");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await Gate(ticket,sid,branch,department,ct);
+        if(!await WorkdayMembershipStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"EMPLOYEE_MEMBERSHIP_STORAGE_REQUIRED");
+        var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        // Same explicit employment membership as save admission, not User.DepartmentId or management authority.
+        // EXISTS avoids exposing duplicate candidates if legacy membership data is inconsistent.
+        var rows=await db.Database.SqlQuery<ShiftEmployeeOption>($"""
+            SELECT TOP(51) u.user_id AS Id,u.full_name AS Name
+            FROM dbo.users u
+            WHERE u.user_id>{after} AND u.deleted_at IS NULL
+              AND u.account_status='ACTIVE' AND u.employment_status='ACTIVE'
+              AND EXISTS(SELECT 1 FROM dbo.user_branch_access b WHERE b.user_id=u.user_id
+                AND b.branch_id={branch} AND b.granted_at<={now} AND b.revoked_at IS NULL)
+              AND EXISTS(SELECT 1 FROM dbo.employee_department_memberships m
+                JOIN dbo.departments d ON d.department_id=m.department_id AND d.branch_id=m.branch_id
+                WHERE m.user_id=u.user_id AND m.branch_id={branch} AND m.department_id={department}
+                  AND m.granted_at<={now} AND m.revoked_at IS NULL AND d.is_active=1)
+            ORDER BY u.user_id
+            """).ToArrayAsync(ct);
+        await Gate(ticket,sid,branch,department,ct);await tx.CommitAsync(ct);
+        var page=rows.Take(50).ToArray();
+        return new(branch,department,page,rows.Length>50?page[^1].Id:null);
     }
     public async Task<RosterPage> ReadAsync(SessionReference ticket,long sid,long branch,long department,DateOnly from,long after,CancellationToken ct)
     {
