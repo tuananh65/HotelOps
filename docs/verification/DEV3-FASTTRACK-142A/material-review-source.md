@@ -1,0 +1,11 @@
+# UC091/094/095 source reconciliation and review completion
+
+2026-11-16. IMPLEMENTED_PENDING_QA, not COMPLETE_VERIFIED.
+
+Implemented MaterialReviewHistory in the canonical request and decision screen for the current pending approver. It displays read-only stock through the existing availability API and up to five newest other same-item requests by the requester in the same branch via the scoped paged MR_VIEW API. Item switching, explicit refresh, abort on navigation, authority-generation invalidation, failures and empty states are handled. All-history navigation remains available. Inventory permission failure is shown explicitly, not treated as zero stock. No new grants or endpoint admission.
+
+UC091 source inspected: MaterialCreateContract is in Dev2ActionContracts; catalog/approver selectors feed MaterialRequestService.Save, current user/branch/scope and mapped approver checks, approval snapshots, atomic audit and durable cycle intent. UC095 source inspected: MaterialApprovalContract covers Information/Approve/Reject/Close; service checks current independent approver, quantities, all-zero rejection, required reasons, status/version, atomic audit. MaterialApprovalNotificationWorker routes committed requester and Storekeeper events with recipient checks. These two UCs are source-status reconciliation, not newly implemented or runtime-tested in this batch.
+
+Checks executed: frontend production build (TypeScript plus Vite) PASS and explicit typecheck PASS before final stock preview addition; final build includes TypeScript for the stock preview. Existing React Router directive and bundle-size warnings remain. Backend unchanged; no new backend build claim. Automated regression, API, SQL and browser acceptance NOT_RUN under code-first directive. No database changes. Worker remains opt-in; installed capabilities and approved grants are runtime dependencies.
+
+Human QA: creation/draft/submission/reapproval; mapped L1/fallback and revoked/cross-branch denial; current approver context, requester/item filtering, stale responses and denied inventory; Need Information, reduced/all-zero approval, Reject and remainder closure; rollback, deduplication and recipient revocation. UC092 work-link selection remains PARTIAL and is the next source gap; this batch does not claim to add its missing linking workflow.
