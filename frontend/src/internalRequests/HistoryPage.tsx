@@ -277,12 +277,14 @@ export function InternalRequestHistoryPage() {
         <button onClick={() => setSelected(null)}>Back to requests</button>
       )}
       {!visible && <p role="status">Loading history…</p>}
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{visible.error}{" "}
+        <button onClick={() => setRevision(value => value + 1)}>Reload history</button>
+      </p>}
       {visible?.list && (
         <section aria-label="Request list">
           <p>{visible.list.totalCount} requests</p>
           {visible.list.totalCount === 0 ? (
-            <p>No requests match your current access and filters.</p>
+            <p role="status">MSG10: No requests match your current access and filters. Change or clear the filters to search again.</p>
           ) : (
             <table>
               <thead>
