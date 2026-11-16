@@ -437,3 +437,10 @@ Backend build PASS (0 warnings/errors), frontend typecheck/build PASS with exist
 router/chunk warnings; no DB writes or business/API/browser tests. Storekeeper
 recipient contract is pending user clarification: eligible branch Storekeepers
 versus Warehouse.ManagerUserId. No UC acceptance promotion from these checks.
+
+### Approved Storekeeper recipients — 2026-11-16
+
+User approved all eligible Storekeepers in the issuing warehouse branch, rather than Warehouse.ManagerUserId. Implemented approval and remainder-closure notifications from committed business receipts, with separate source namespaces from requester notices. Current active STOREKEEPER role, branch access, MR_FULFILL and independent MR_VIEW are checked at delivery and source opening. Requester/event approver excluded; recipient deduplication and source provenance enforced in a serializable transaction. Retained events are rescanned for retry and newly eligible recipients. No schema, grant or database mutation.
+
+Changed source: MaterialStorekeeperNotification.cs, MaterialApprovalNotificationWorker.cs, NotificationCenterService.cs.
+Direct validation: dotnet build HotelOps.slnx --no-restore PASS, zero errors/warnings; git diff --check PASS (Git reports LF/CRLF normalization warnings). Automated/business/API/SQL/browser tests NOT RUN per code-first instruction. Worker remains opt-in; delivery and query translation have not been verified against SQL. UC095 remains pending runtime/business acceptance; no new COMPLETE_VERIFIED claim.

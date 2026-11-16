@@ -16,6 +16,7 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
     {
         if (!options.Value.Enabled) return;
         long cursor = 0, cancellationCursor = 0, decisionCursor = 0, remainderCursor = 0, fulfillmentCursor = 0;
+        long[] storeCursors = [0, 0];
         while (!ct.IsCancellationRequested)
         {
             try
@@ -76,6 +77,20 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
                     catch (Exception error) { logger.LogWarning("Material pickup notice {FulfillmentId} retained after {ErrorType}", id, error.GetType().Name); }
                 }
                 fulfillmentCursor = fulfillments.Length == 100 ? fulfillments[^1] : 0;
+                for (var mode = 0; mode < 2; mode++)
+                {
+                    long[] events;
+                    await using (var scope = scopes.CreateAsyncScope())
+                        events = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().PendingStoreAsync(storeCursors[mode], mode == 1, ct);
+                    foreach (var id in events)
+                    {
+                        await using var scope = scopes.CreateAsyncScope();
+                        try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverStoreAsync(id, mode == 1, ct); }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                        catch (Exception error) { logger.LogWarning("Material storekeeper notice {EventId} retained after {ErrorType}", id, error.GetType().Name); }
+                    }
+                    storeCursors[mode] = events.Length == 100 ? events[^1] : 0;
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception error) { logger.LogWarning("Material approval notification scan retained after {ErrorType}", error.GetType().Name); }
