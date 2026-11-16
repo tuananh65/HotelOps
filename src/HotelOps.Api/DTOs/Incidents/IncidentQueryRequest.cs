@@ -11,6 +11,7 @@ public sealed class IncidentQueryRequest
     public long? RoomId { get; init; }
     public long? AreaId { get; init; }
     public long? AssetId { get; init; }
+    public bool SimilarOpenOnly { get; init; }
     public string? Keyword { get; init; }
     public DateTimeOffset? DetectedFrom { get; init; }
     public DateTimeOffset? DetectedTo { get; init; }

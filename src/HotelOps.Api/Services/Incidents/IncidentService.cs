@@ -383,15 +383,10 @@ public sealed class IncidentService : IIncidentService
             query = query.Where(incident => incident.PriorityId == priorityId);
         if (request.SeverityId is long severityId)
             query = query.Where(incident => incident.SeverityId == severityId);
-        if (request.RoomId is long roomId)
-            query = query.Where(incident => incident.RoomId == roomId);
+        query = IncidentLocationQuery.Apply(query, request);
         if (request.BranchId is <= 0 || request.RoomId is <= 0 || request.AreaId is <= 0
             || request.AssetId is <= 0 || request.PriorityId is <= 0 || request.SeverityId is <= 0)
             throw new ValidationException("Filter identifiers must be positive when supplied.");
-        if (request.AreaId is long areaId)
-            query = query.Where(incident => incident.AreaId == areaId);
-        if (request.AssetId is long assetId)
-            query = query.Where(incident => incident.AssetId == assetId);
         if (request.DetectedFrom is {} from && request.DetectedTo is {} to && from > to)
             throw new ValidationException("DetectedFrom must not be later than DetectedTo.");
         if (request.DetectedFrom is {} detectedFrom)

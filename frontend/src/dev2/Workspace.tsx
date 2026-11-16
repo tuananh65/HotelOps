@@ -15,6 +15,7 @@ import { modules, label, type Operation, type Values } from "./contracts";
 import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
+import { IncidentDuplicateReview, incidentLocationKey } from "./IncidentDuplicateReview";
 import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
 import { MaterialBranchField } from "./MaterialBranchField";
@@ -192,6 +193,7 @@ function Screen({
     operationDefaults(operation, context),
   );
   const [record, setRecord] = useState<Values>({});
+  const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<string | null>(null);
   const [data, setData] = useState<unknown>();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -256,6 +258,8 @@ function Screen({
         commandInput = { ...input, branchId: context.branchId, internalRequestId: context.internalRequestId,
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
+      if (target.id === "A004A-021" && (!reviewedIncidentLocation || reviewedIncidentLocation !== incidentLocationKey(commandInput)))
+        throw Error("Review similar incidents for the current location before creating a new incident.");
       payload(target.fields, commandInput, actor);
       operationPath(target, args);
     } catch (e) {
@@ -580,6 +584,7 @@ function Screen({
           />
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
+          {operation.id === "A004A-021" && <IncidentDuplicateReview values={values} onReviewed={setReviewedIncidentLocation} />}
           {materialWrite && <MaterialCatalogFields values={values} onChange={change}
             historicalLineMax={operation.id === "A004A-044" ? historicalLineMax : undefined} />}
           {materialRequesterActions.includes(operation.id) && !materialRequesterReady(record, actor, operation.id)
