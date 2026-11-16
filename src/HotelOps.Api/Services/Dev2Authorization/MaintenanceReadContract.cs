@@ -128,8 +128,10 @@ internal static class MaintenanceReadContract
             detail.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(db, Id(a), ct);
             detail.CanStart = detail.Status == "PENDING" && detail.ActualStartAt == null && detail.ExecutionETag != null
                 && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
-            detail.CanResume = detail.Status == "ON_HOLD" && detail.ExecutionETag != null
-                && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
+            detail.CanResume = detail.ExecutionETag != null
+                && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct)
+                && (detail.Status == "ON_HOLD" || detail.Status == "IN_PROGRESS"
+                    && await MaintenanceReturnedExecution.ReadAsync(db, Id(a), a.Actor.UserId, scope.Branch, ct) != null);
             detail.CanHold = detail.Status == "IN_PROGRESS" && detail.ExecutionETag != null
                 && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct)
                 && await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == a.Actor.UserId && i.BranchId == scope.Branch

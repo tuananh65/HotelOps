@@ -27,7 +27,9 @@ public sealed partial class MaintenanceWorkService
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["ResumeWork"], request.ActorUserId, id, request);
         return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
         {
-            RequireState(work, "ON_HOLD");
+            // IN_PROGRESS is accepted only with the current, unused Return proof checked
+            // by ExecuteCorrectiveCoreAsync under user/time/source locks and native ETag.
+            RequireState(work, "ON_HOLD", "IN_PROGRESS");
             RequireAssignee(work, TrustedActorId);
             work.Status = "IN_PROGRESS";
             var note = NormalizeNote(request.Note);

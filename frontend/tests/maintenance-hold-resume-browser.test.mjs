@@ -15,18 +15,18 @@ window.fetch=async(url,options={})=>{
  calls.push({url,...options,signal:undefined});
  return Response.json({maintenanceWorkId:7,assigneeId:42,status:hold?'ON_HOLD':'IN_PROGRESS',executionETag:'"0000000000000002"'});
 };
-createRoot(document.getElementById('root')).render(<AuthProvider store={createAuthStore(createAuthApi(window.fetch))}><MaintenanceResumePanel allowStart allowHold allowResume data={{maintenanceWorkId:7,status:start?'PENDING':hold?'IN_PROGRESS':'ON_HOLD',canStart:start,canHold:hold,canResume:action==='resume',executionETag:'"0000000000000001"'}}/></AuthProvider>);
+createRoot(document.getElementById('root')).render(<AuthProvider store={createAuthStore(createAuthApi(window.fetch))}><MaintenanceResumePanel allowStart allowHold allowResume data={{maintenanceWorkId:7,status:start?'PENDING':hold||action==='returned'?'IN_PROGRESS':'ON_HOLD',canStart:start,canHold:hold,canResume:action==='resume'||action==='returned',executionETag:'"0000000000000001"'}}/></AuthProvider>);
 ` }, bundle: true, write: false, format: 'iife', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"production"' } });
 let browser;
 before(async()=>{const executablePath=['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe'].find(existsSync);
  browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});});
 after(async()=>browser?.close());
-for(const action of ['hold','resume','start'])test(`${action} requires review and sends current CSRF and original version once`,async()=>{
+for(const action of ['hold','resume','start','returned'])test(`${action} requires review and sends current CSRF and original version once`,async()=>{
  const hold=action==='hold';const page=await browser.newPage();page.setDefaultTimeout(5000);
  try{
   await page.route('**/*',r=>r.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
   await page.goto('https://hotelops.test');await page.evaluate(v=>window.action=v,action);await page.addScriptTag({content:bundle.outputFiles[0].text});
-  const verb=action[0].toUpperCase()+action.slice(1),button=page.getByRole('button',{name:`${verb} maintenance`,exact:true});await button.waitFor();
+  const verb=action==='returned'?'Resume':action[0].toUpperCase()+action.slice(1),button=page.getByRole('button',{name:`${verb} maintenance`,exact:true});await button.waitFor();
   if(hold){assert.equal(await button.isDisabled(),true);await page.getByLabel('Hold reason and note').fill('Waiting for spare parts');}
   await button.click();assert.equal(await page.evaluate(()=>window.calls.length),0);
   await page.getByRole('button',{name:`Confirm ${verb.toLowerCase()}`,exact:true}).click();

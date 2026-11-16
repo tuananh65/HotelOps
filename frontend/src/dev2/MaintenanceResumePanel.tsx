@@ -17,7 +17,7 @@ export function MaintenanceResumePanel({ data, allowStart = false, allowHold = f
   const actor = Number(session?.user.id);
   const start = allowStart && data.canStart === true && data.status === "PENDING";
   const hold = allowHold && data.canHold === true && data.status === "IN_PROGRESS";
-  const resumeAllowed = allowResume && data.canResume === true && data.status === "ON_HOLD";
+  const resumeAllowed = allowResume && data.canResume === true && (data.status === "ON_HOLD" || data.status === "IN_PROGRESS");
   const action = start ? "start" : hold ? "hold" : "resume", verb = start ? "Start" : hold ? "Hold" : "Resume";
   if (!session || (!start && !hold && !resumeAllowed) || typeof id !== "number"
       || !Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(actor) || actor <= 0

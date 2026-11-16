@@ -84,6 +84,10 @@ public sealed partial class MaintenanceWorkService
         if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
             await MaintenanceExecutionVersion.RequireAsync(_dbContext, id, _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString(), cancellationToken);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
+        var returnedExecution = request is ResumeMaintenanceWorkRequest && work.Status == "IN_PROGRESS"
+            ? await MaintenanceReturnedExecution.ReadAsync(_dbContext, id, TrustedActorId, incident.BranchId, cancellationToken)
+                ?? throw new ValidationException("Current unused Return evidence is required to restart this work.")
+            : null;
         var resolutionMaterials = request is SubmitMaintenanceResultRequest
             ? await ValidateResolutionMaterialsAsync(work, incident, cancellationToken) : null;
         var resolutionEvidence = request is SubmitMaintenanceResultRequest submission
@@ -103,6 +107,16 @@ public sealed partial class MaintenanceWorkService
             if (request is StartMaintenanceWorkRequest) work.ActualStartAt = now;
         }
         var afterWork = WorkSnapshot(work);
+        if (returnedExecution != null)
+        {
+            // Opening a new interval while physical state stays IN_PROGRESS must still
+            // consume the owning version, so a concurrent/replayed Resume is stale.
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.maintenance_works SET status=status WHERE maintenance_work_id={id}", cancellationToken);
+            beforeWork["resumed_return_audit_id"] = null;
+            beforeWork["resumed_interval_opened_at"] = null;
+            afterWork["resumed_return_audit_id"] = returnedExecution.AuditId;
+            afterWork["resumed_interval_opened_at"] = now;
+        }
         if (request is ReturnMaintenanceWorkRequest returned)
         {
             beforeWork["notification_kind"] = null;

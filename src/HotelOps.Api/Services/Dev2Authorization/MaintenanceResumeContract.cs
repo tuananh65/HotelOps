@@ -16,8 +16,8 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 
 internal static class MaintenanceResumeContract
 {
-    private const string Policy = "UC054/055/058 Start/Hold/Resume/Progress/Submit: HTTPS current unrestricted SQL session, active assigned MAINTENANCE_STAFF or MAINTENANCE_LEAD, same-role MAINTENANCE_EXECUTE plus independent MAINTENANCE_VIEW, current branch and corrective source scope; exact request/root binding; trusted rowversion If-Match under source locks; Serializable transaction; Working workday and single interval; no material disclosure or other action admission";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030" }.Select(id => new Dev2ActionContract(id, "DEV3_142A_MAINTENANCE_EXECUTION_V6",
+    private const string Policy = "UC054/055/058 Start/Hold/Resume/Progress/Submit: HTTPS current unrestricted SQL session, active assigned MAINTENANCE_STAFF or MAINTENANCE_LEAD, same-role MAINTENANCE_EXECUTE plus independent MAINTENANCE_VIEW, current branch and corrective source scope; exact request/root binding; trusted rowversion If-Match under source locks; Serializable transaction; Working workday and single interval; returned IN_PROGRESS restart requires current unused Return proof; no material disclosure or other action admission";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030" }.Select(id => new Dev2ActionContract(id, "DEV3_142A_MAINTENANCE_EXECUTION_V7",
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
         (a, ct) => Task.FromResult<IReadOnlyList<Dev2PermissionRequirement>>([
             new("MAINTENANCE_EXECUTE", new(Dev2PermissionTargetKind.Resource, Resource: new("maintenance_work", Id(a)))),
