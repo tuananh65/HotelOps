@@ -160,6 +160,7 @@ export function createUserRoleAssignmentApi(
       roleCode,
       branchId,
       signal,
+      reactivateExisting = false,
     ): Promise<AssignUserRoleResult> {
       const invalid = (
         reason: UserRoleAssignmentError["reason"],
@@ -168,7 +169,7 @@ export function createUserRoleAssignmentApi(
         error: { kind: "invalid-request", reason },
       });
       // Validate primitives and freeze serialization before the first await.
-      if (!id(userId) || !id(branchId)) return invalid("INVALID_REQUEST");
+      if (!id(userId) || !id(branchId) || typeof reactivateExisting !== "boolean") return invalid("INVALID_REQUEST");
       if (!strongEtag(etag)) return invalid("INVALID_IF_MATCH");
       if (typeof roleCode !== "string") return invalid("INVALID_ROLE_CODE");
       const normalizedRole = trimRoleCode(roleCode);
@@ -178,7 +179,8 @@ export function createUserRoleAssignmentApi(
         /[\x00-\x1f\x7f-\x9f]/.test(normalizedRole)
       )
         return invalid("INVALID_ROLE_CODE");
-      const body = JSON.stringify({ roleCode: normalizedRole, branchId });
+      const body = JSON.stringify({ roleCode: normalizedRole, branchId,
+        ...(reactivateExisting ? { reactivateExisting: true } : {}) });
       if (new TextEncoder().encode(body).byteLength > 16384)
         return invalid("REQUEST_TOO_LARGE");
       let dispatched = false;

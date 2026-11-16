@@ -16,11 +16,12 @@ function ConfirmationForm({
   assign,
 }: {
   profile: UserProfileDto;
-  assign(roleCode: string, branchId: number): Promise<void>;
+  assign(roleCode: string, branchId: number, reactivateExisting: boolean): Promise<void>;
 }) {
   const [role, setRole] = useState("");
   const [branch, setBranch] = useState("");
-  const [review, setReview] = useState<{ role: string; branch: number } | null>(
+  const [reactivateExisting, setReactivateExisting] = useState(false);
+  const [review, setReview] = useState<{ role: string; branch: number; reactivateExisting: boolean } | null>(
     null,
   );
   const reviewed = useRef<typeof review>(null);
@@ -63,7 +64,7 @@ function ConfirmationForm({
       );
       return;
     }
-    const next = { role: roleCode, branch: branchId };
+    const next = { role: roleCode, branch: branchId, reactivateExisting };
     reviewed.current = next;
     setReview(next);
   }
@@ -73,7 +74,7 @@ function ConfirmationForm({
     // Consume synchronously before any promise or React render.
     reviewed.current = null;
     setReview(null);
-    void assign(next.role, next.branch);
+    void assign(next.role, next.branch, next.reactivateExisting);
   }
   return (
     <form
@@ -113,6 +114,12 @@ function ConfirmationForm({
           }}
         />
       </label>
+      <label>
+        <input type="checkbox" checked={reactivateExisting} onChange={e => {
+          setReactivateExisting(e.target.checked); invalidate();
+        }} />
+        Reactivate a previously revoked assignment for this role and branch
+      </label>
       <button type="button" onClick={preview} disabled={!!catalogState}>
         Review Assignment
       </button>
@@ -123,9 +130,12 @@ function ConfirmationForm({
           <p>Email: {profile.email}</p>
           <p>Role Code: {review.role}</p>
           <p>Branch ID: {review.branch}</p>
+          <p>Action: {review.reactivateExisting ? "Reactivate revoked assignment" : "Create new assignment"}</p>
           <p>
             The assignment is limited to this branch. Existing roles remain assigned.
-            A duplicate role/branch assignment is rejected, including historical records.
+            {review.reactivateExisting
+              ? " The previous grant is retained in audit history. A current or scheduled assignment cannot be reactivated."
+              : " An existing role/branch record is rejected; use reactivation only for a revoked assignment."}
           </p>
           <button type="button" onClick={confirm}>
             Confirm Assign Role

@@ -2,13 +2,13 @@ using System.Text.Json;
 
 namespace HotelOps.Api.DTOs.Users;
 
-public sealed record AssignUserRoleRequest(string RoleCode, long BranchId)
+public sealed record AssignUserRoleRequest(string RoleCode, long BranchId, bool ReactivateExisting = false)
 {
     public static bool TryParse(JsonElement body, out AssignUserRoleRequest? request)
     {
         request = null;
         if (body.ValueKind != JsonValueKind.Object) return false;
-        string? role = null; long? branch = null;
+        string? role = null; long? branch = null; var reactivate = false;
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var field in body.EnumerateObject())
         {
@@ -20,11 +20,13 @@ public sealed record AssignUserRoleRequest(string RoleCode, long BranchId)
                 case "branchId" when field.Value.ValueKind == JsonValueKind.Number
                     && field.Value.TryGetInt64(out var value) && value > 0:
                     branch = value; break;
+                case "reactivateExisting" when field.Value.ValueKind is JsonValueKind.True or JsonValueKind.False:
+                    reactivate = field.Value.GetBoolean(); break;
                 default: return false;
             }
         }
         if (role is not { Length: > 0 and <= 60 } || !branch.HasValue) return false;
-        request = new(role, branch.Value); return true;
+        request = new(role, branch.Value, reactivate); return true;
     }
 }
 

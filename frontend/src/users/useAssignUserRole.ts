@@ -175,7 +175,7 @@ export function useAssignUserRole(target: number | null) {
       publish({ phase: "idle" });
     setAttempt((n) => n + 1);
   }
-  async function assign(roleCode: string, branchId: number) {
+  async function assign(roleCode: string, branchId: number, reactivateExisting = false) {
     if (
       !mounted.current ||
       !owner ||
@@ -204,6 +204,7 @@ export function useAssignUserRole(target: number | null) {
         roleCode,
         branchId,
         abort.signal,
+        reactivateExisting,
       );
       if (
         !mounted.current ||
@@ -284,9 +285,9 @@ function failureMessage(status?: number, reason?: string): string {
     case "TARGET_NOT_ACTIVE":
       return "The server rejected the request because the target account is not active.";
     case "PRIMARY_SCOPE_CONFLICT":
-      return "The primary branch or department is incompatible with this assignment. This flow cannot repair it.";
+      return "The selected branch is inactive, the user lacks current branch access, or the Operations Manager branch limit would be exceeded.";
     case "EXISTING_ROLE_PATH_CONFLICT":
-      return "This role already has an assignment record in the selected branch. Existing history was preserved; other roles can be added separately.";
+      return "New assignment requires no existing role/branch record. Reactivation requires an existing inactive assignment. Refresh the user's access review before choosing the appropriate action.";
     case "LAST_DURABLE_ADMIN":
       return "The server rejected the assignment to preserve the last durable administrator.";
     case "CSRF_VALIDATION_FAILED":

@@ -66,5 +66,6 @@ export interface UserRoleAssignmentApi {
     roleCode: string,
     branchId: number,
     signal?: AbortSignal,
+    reactivateExisting?: boolean,
   ): Promise<AssignUserRoleResult>;
 }

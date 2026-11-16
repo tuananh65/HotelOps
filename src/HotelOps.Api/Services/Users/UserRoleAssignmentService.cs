@@ -47,6 +47,10 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
         // Retain the destination branch while final checks may advance time.
         _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={request.BranchId}")
             .AsNoTracking().ToListAsync(ct);
+        // Retain the assignment range: an explicit reactivation must not race a
+        // revoke, expiry edit or another grant for the same unique role/branch.
+        _ = await db.UserRoles.FromSqlInterpolated($"SELECT * FROM dbo.user_roles WITH (UPDLOCK,HOLDLOCK) WHERE user_id={targetId}")
+            .AsNoTracking().ToListAsync(ct);
 
         async Task<AssignRoleStatus?> Gate(byte[] version, long? insertedId)
         {
@@ -70,31 +74,61 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
                 && a.IsActive && a.Role.IsActive && a.Role.RoleCode == "OPERATIONS_MANAGER" && (a.ExpiresAt == null || a.ExpiresAt > now), ct);
             if (operationsManager && await db.UserBranchAccesses.Where(a => a.UserId == targetId && a.RevokedAt == null
                 && a.Branch.IsActive).Select(a => a.BranchId).Distinct().CountAsync(ct) != 1) return AssignRoleStatus.ScopeConflict;
-            // The schema retains one record per user/role/branch. Preserve old assignments;
-            // a prior assignment for another role or branch does not prohibit additional roles.
-            if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && r.RoleId == role.RoleId && r.BranchId == request.BranchId
-                && (!insertedId.HasValue || r.UserRoleId != insertedId.Value), ct))
-                return AssignRoleStatus.RoleConflict;
+            var existing = await db.UserRoles.AsNoTracking().SingleOrDefaultAsync(r => r.UserId == targetId
+                && r.RoleId == role.RoleId && r.BranchId == request.BranchId, ct);
+            if (insertedId.HasValue)
+            {
+                if (existing?.UserRoleId != insertedId || !existing.IsActive) return AssignRoleStatus.RoleConflict;
+            }
+            else if (request.ReactivateExisting)
+            {
+                // Renewal of an active or scheduled assignment is a different action.
+                // A missing record must not silently turn reactivation into a new grant.
+                if (existing is null || existing.IsActive) return AssignRoleStatus.RoleConflict;
+            }
+            else if (existing is not null) return AssignRoleStatus.RoleConflict;
             return null;
         }
         if (await Gate(expected, null) is { } denied) return new(denied);
         var selectedRoleId = await db.Roles.Where(r => r.RoleCode == request.RoleCode).Select(r => r.RoleId).SingleAsync(ct);
+        var previousAssignment = request.ReactivateExisting
+            ? await db.UserRoles.AsNoTracking().SingleAsync(r => r.UserId == targetId && r.RoleId == selectedRoleId
+                && r.BranchId == request.BranchId && !r.IsActive, ct)
+            : null;
         var assignedAt = clock.GetUtcNow().UtcDateTime;
         if (await db.Users.Where(u => u.UserId == targetId && u.RowVersion == expected && u.AccountStatus == "ACTIVE" && u.DeletedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.UpdatedAt, assignedAt), ct) != 1) return new(AssignRoleStatus.Stale);
         var assignment = new UserRole { UserId = targetId, RoleId = selectedRoleId, BranchId = request.BranchId,
             AssignedBy = actor.UserId, AssignedAt = assignedAt, IsActive = true, ExpiresAt = null };
-        db.Add(assignment);
-        try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException error) when (error.InnerException is SqlException { Number: 2601 or 2627 })
-        { return new(AssignRoleStatus.RoleConflict); }
-        finally { db.Entry(assignment).State = EntityState.Detached; }
+        if (previousAssignment is not null)
+        {
+            assignment.UserRoleId = previousAssignment.UserRoleId;
+            if (await db.UserRoles.Where(r => r.UserRoleId == previousAssignment.UserRoleId && !r.IsActive)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, true)
+                    .SetProperty(r => r.AssignedAt, assignedAt).SetProperty(r => r.AssignedBy, actor.UserId)
+                    .SetProperty(r => r.ExpiresAt, (DateTime?)null), ct) != 1)
+                return new(AssignRoleStatus.RoleConflict);
+        }
+        else
+        {
+            db.Add(assignment);
+            try { await db.SaveChangesAsync(ct); }
+            catch (DbUpdateException error) when (error.InnerException is SqlException { Number: 2601 or 2627 })
+            { return new(AssignRoleStatus.RoleConflict); }
+            finally { db.Entry(assignment).State = EntityState.Detached; }
+        }
         var dto = new UserRoleAssignmentDto(assignment.UserRoleId, targetId, request.RoleCode, request.BranchId,
             actor.UserId, assignedAt, true, null);
         var audit = new AuditLog { ActorUserId = actor.UserId, BranchId = request.BranchId, EntityType = "user_roles",
-            EntityId = assignment.UserRoleId.ToString(CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = assignedAt,
-            OldValues = JsonSerializer.Serialize(new { assignment = (object?)null }), NewValues = JsonSerializer.Serialize(dto),
-            ChangedFields = JsonSerializer.Serialize(new[] { "assignment" }) };
+            EntityId = assignment.UserRoleId.ToString(CultureInfo.InvariantCulture), Action = previousAssignment is null ? "CREATE" : "UPDATE", OccurredAt = assignedAt,
+            OldValues = previousAssignment is null ? JsonSerializer.Serialize(new { assignment = (object?)null })
+                : JsonSerializer.Serialize(new { id = previousAssignment.UserRoleId, userId = targetId, roleId = selectedRoleId,
+                    roleCode = request.RoleCode, branchId = previousAssignment.BranchId,
+                    assignedBy = previousAssignment.AssignedBy, assignedAtUtc = previousAssignment.AssignedAt,
+                    isActive = previousAssignment.IsActive, expiresAtUtc = previousAssignment.ExpiresAt }),
+            NewValues = JsonSerializer.Serialize(dto),
+            ChangedFields = JsonSerializer.Serialize(previousAssignment is null ? new[] { "assignment" }
+                : new[] { "isActive", "assignedBy", "assignedAtUtc", "expiresAtUtc" }) };
         db.Add(audit);
         try { await db.SaveChangesAsync(ct); }
         finally { db.Entry(audit).State = EntityState.Detached; }
