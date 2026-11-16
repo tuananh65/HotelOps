@@ -92,7 +92,7 @@ function ReadSection<T>({
   );
 }
 
-/** Source-only component; mount under the existing AuthProvider and router.
+/** Read component mounted under the existing AuthProvider and router.
  * branchId is a candidate, NOT authority. Each GET independently authorizes
  * its own operation on the server. No permission is inferred from another GET.
  * Both responses are bound to the confirmed session and requested branch.
@@ -133,7 +133,7 @@ export function WorkdayReadPanel({
   return (
     <section>
       <h1>Ca làm và workday của tôi</h1>
-      <p>Chi nhánh {branchId}. Backend Workday đang chờ kích hoạt.</p>
+      <p>Branch {branchId}</p>
       <nav>
         <Link to="/profile">Hồ sơ</Link>{" "}
         <Link to="/hotel">Cấu trúc khách sạn</Link>

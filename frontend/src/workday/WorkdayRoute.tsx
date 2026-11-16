@@ -54,7 +54,7 @@ function BranchSelection() {
   );
 }
 
-/** Mounted only behind the build flag in HotelRouteHost. No new auth store. */
+/** Shared authenticated read route. Each API independently checks branch scope. */
 export function WorkdayRoute() {
   const { state, actions } = useAuth();
   if (state.status === "INITIALIZING" || state.pending !== null)

@@ -1,3 +1,4 @@
+import { WorkdayRoute } from "../workday/WorkdayRoute";
 import { MyTimeLogPage } from "../workTime/MyTimeLogPage";
 import { InitialInspectionAssignmentPage } from "../features/inspectionExecution/InitialInspectionAssignmentPage";
 import { PendingInspectionsPage } from "../features/inspectionExecution/PendingInspectionsPage";
@@ -74,6 +75,7 @@ export function SharedAuthHost({
   internalRequestsEnabled = false,
   incidentReadEnabled = false,
   materialReadEnabled = false,
+  workdayReadEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -88,9 +90,11 @@ export function SharedAuthHost({
   internalRequestsEnabled?: boolean;
   incidentReadEnabled?: boolean;
   materialReadEnabled?: boolean;
+  workdayReadEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace
         enabledModules={[...(incidentReadEnabled ? ["incidents"] : []), ...(materialReadEnabled ? ["material-requests", "replenishments"] : [])]}
@@ -316,6 +320,7 @@ export function SharedAuthHost({
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
             {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
             {materialReadEnabled && <><Link to="/operations/material-requests">Material requests</Link><Link to="/operations/replenishments">Replenishments</Link></>}
+            {workdayReadEnabled && <Link to="/workday">Workday</Link>}
             {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>

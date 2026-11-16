@@ -5,9 +5,9 @@ import { build } from "esbuild";
 import { chromium } from "@playwright/test";
 import { day, shift, session, secret } from "./workday-fixtures.mjs";
 const bundles = new Map();
-for (const flag of [undefined, "true", "false", "TRUE"]) {
+for (const flag of [undefined, "true", "false", "TRUE", "canonical"]) {
   const result = await build({
-    entryPoints: ["src/hotel/main.tsx"],
+    entryPoints: [flag === "canonical" ? "src/main.tsx" : "src/hotel/main.tsx"],
     bundle: true,
     write: false,
     format: "iife",
@@ -296,3 +296,16 @@ test("branch change aborts late current and preserves FE01/FE02 navigation", () 
       );
     },
   ));
+
+for (const denied of [null, "own-shifts", "current"]) {
+ test(`canonical workday route preserves scoped independent reads: ${denied ?? "allowed"}`, () => pageTest({flag:"canonical", responses: denied ? {[`/api/branches/2/workdays/${denied}`]:{status:403,body:{detail:secret}}}:{}}, async p=>{
+ await p.getByRole("textbox",{name:"Branch ID",exact:true}).waitFor();
+ assert.equal((await workCalls(p)).length,0);
+ await selectBranch(p,"2");
+ if(denied) await p.getByRole("alert").waitFor();
+ if(denied!=="current") await p.getByText("Workday 202,",{exact:false}).waitFor();
+ if(denied!=="own-shifts") await p.getByText("Ca 102:",{exact:false}).waitFor();
+ assert.equal((await workCalls(p)).length,2);
+ assert.equal(await p.getByRole("button",{name:/^(Start|End|Pause)/}).count(),0);
+ }));
+}
