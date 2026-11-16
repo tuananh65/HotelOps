@@ -263,3 +263,26 @@ before comparison. Backend build PASS (0 warnings/errors); TypeScript/Vite PASS
 with existing router/chunk warnings. No SQL mutation or business/API/browser tests.
 Runtime still needs verified FE13 capabilities, approved grants/mappings and enabled
 notification delivery; source completion is not COMPLETE_VERIFIED acceptance.
+
+## Current approver actions through API and UI
+
+Admitted Request Information, Approve, Reject and Close Remainder with exact
+principal/input/request binding and a Serializable action transaction through final
+response authorization. Each phase requires the latest assigned independent
+DEPT_MANAGER, the approved current department mapping/L1-or-fallback grant, and
+independent MR_VIEW. Existing service state/version/quantity/reason/audit checks
+remain authoritative; no global MR_APPROVE_L2 change or grant was introduced.
+
+Canonical UI exposes these admitted actions. It loads the current request/version,
+limits approval quantities to active lines, and displays item/unit names from the
+material detail DTO. Lines and IDs are not manually added or reassigned in the
+approval form. Save is disabled unless the loaded cycle identifies this actor and
+the required current state. Server authorization still handles role/grant revocation.
+Required reasons retain the service's minimum; optional approval notes are not
+given an extra minimum.
+
+Backend build PASS (0 warnings/errors), frontend typecheck PASS; production build
+PASS with existing router/chunk warnings. No SQL writes or business/API/browser
+tests. Requester resubmission/edit/cancel admission, requester decision notices,
+inventory review/fulfillment and full runtime acceptance remain outstanding.
+No UC promoted solely from these source/build results.

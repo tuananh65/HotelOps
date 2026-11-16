@@ -14,7 +14,8 @@ public sealed record MaterialApproval(long ActorUserId, string ExpectedRowVersio
 public sealed record MaterialIssueLine(long RequestLineId, decimal Quantity);
 public sealed record MaterialIssue(long ActorUserId, string ExpectedRowVersion, string Mode, DateOnly DocumentDate, IReadOnlyList<MaterialIssueLine>? Lines = null);
 public sealed record MaterialLineDto(long RequestLineId, int LineNo, long ItemId, long UomId, decimal RequestedQty,
-    decimal? ApprovedQty, decimal FulfilledQty, decimal? HistoricalRemainingQty, decimal OpenFulfillableQty, bool IsActive, string? Note);
+    decimal? ApprovedQty, decimal FulfilledQty, decimal? HistoricalRemainingQty, decimal OpenFulfillableQty, bool IsActive, string? Note,
+    string? ItemName = null, string? UnitName = null);
 public sealed record MaterialCycleLineDto(long RequestLineId, int LineNo, long ItemId, long UomId, decimal RequestedQty, decimal? ApprovedQty, string? Note);
 public sealed record MaterialDecisionDto(long ApprovalId, long? ApprovalCycleId, long ApproverId, string Decision, string? Note, DateTime DecidedAt);
 public sealed record MaterialCycleDto(long ApprovalCycleId, int RevisionNo, long SubmittedBy, long AssignedApproverUserId,

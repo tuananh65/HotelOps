@@ -18,12 +18,19 @@ import { IncidentCategoryField } from "./IncidentCategoryField";
 import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
 import { MaterialBranchField } from "./MaterialBranchField";
+import { MaterialApprovalFields, materialApprovalActions, materialApprovalReady } from "./MaterialApprovalFields";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
 function key(session: object) {
   if (!identities.has(session)) identities.set(session, ++identity);
   return identities.get(session);
+}
+function operationDefaults(operation: Operation, source: Values = {}): Values {
+  if (operation.id === "A004A-047" && Array.isArray(source.lines))
+    return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true)
+      .map(l => ({ requestLineId: l.requestLineId, approvedQty: "" })) });
+  return defaults(operation.fields, source);
 }
 function readAction(operation: Operation, fallback: string): string {
   if (["A004A-003", "A004A-004", "A004A-005"].includes(operation.id))
@@ -159,7 +166,7 @@ function Screen({
     itemId: context.itemId ?? "",
   }));
   const [values, setValues] = useState<Values>(() =>
-    defaults(operation.fields, context),
+    operationDefaults(operation, context),
   );
   const [record, setRecord] = useState<Values>({});
   const [data, setData] = useState<unknown>();
@@ -269,7 +276,7 @@ function Screen({
           "Saved by the server. Related views will load current data when opened.",
         );
         // Read the current record after mutation so subsequent commands use its actual RowVersion.
-        setValues(defaults(operation.fields, root));
+        setValues(operationDefaults(operation, root));
         const detail = operations.find(
           (x) => x.id === readAction(operation, config.detail),
         );
@@ -306,7 +313,7 @@ function Screen({
           if (refreshed.ok && isObject(refreshed.data)) {
             setRecord(refreshed.data);
             setData(refreshed.data);
-            setValues(defaults(operation.fields, refreshed.data));
+            setValues(operationDefaults(operation, refreshed.data));
           } else if (
             !refreshed.ok &&
             refreshed.error.kind === "http" &&
@@ -360,7 +367,7 @@ function Screen({
           if (r.ok && isObject(r.data)) {
             setRecord(r.data);
             setData(r.data);
-            setValues(defaults(operation.fields, { ...context, ...r.data }));
+            setValues(operationDefaults(operation, { ...context, ...r.data }));
             setUncertain(false);
           } else if (
             !r.ok &&
@@ -458,7 +465,7 @@ function Screen({
       </div>
       <p className="dev2-permission">
         Required access:{" "}
-        {operation.permissions.join(" + ") || operation.permissionHint}. The
+        {materialApprovalActions.includes(operation.id) ? "Current assigned approver with mapped approval authority and MR_VIEW" : operation.permissions.join(" + ") || operation.permissionHint}. The
         server checks your branch, resource, ownership and workflow for every
         request.
       </p>
@@ -492,7 +499,7 @@ function Screen({
             onChange={branchId => change({ ...values, branchId, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "",
               receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
-            fields={operation.id === "A004A-043" ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
+            fields={materialApprovalActions.includes(operation.id) ? [] : operation.id === "A004A-043" ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && values.submit === true ? { ...f, optional: false } : f)
               : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}
@@ -504,6 +511,10 @@ function Screen({
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
           {operation.id === "A004A-043" && <MaterialCatalogFields values={values} onChange={change} />}
+          {materialApprovalActions.includes(operation.id) && <>
+            {!materialApprovalReady(record, actor, operation.id) && <p role="status">Load a request currently awaiting your decision before saving.</p>}
+            <MaterialApprovalFields record={record} values={values} action={operation.id} onChange={change} />
+          </>}
           {operation.id === "A004A-043" && <MaterialApproverField branch={values.branchId} warehouse={values.sourceWarehouseId}
             value={values.assignedApproverUserId} required={values.submit === true}
             onChange={assignedApproverUserId => change({ ...values, assignedApproverUserId })} />}
@@ -513,7 +524,9 @@ function Screen({
               lines. Requester/approver cannot fulfill their own request.
             </p>
           )}
-          <button type="submit" disabled={busy || denied || uncertain || operation.id === "A004A-043" && (!Array.isArray(values.lines) || values.lines.length === 0)}>
+          <button type="submit" disabled={busy || denied || uncertain
+            || materialApprovalActions.includes(operation.id) && !materialApprovalReady(record, actor, operation.id)
+            || operation.id === "A004A-043" && (!Array.isArray(values.lines) || values.lines.length === 0)}>
             {busy
               ? "Working…"
               : operation.method === "GET"

@@ -29,7 +29,8 @@ public sealed partial class MaterialRequestService
     }
     public async Task<MaterialRequestDto?> Get(long id, CancellationToken ct)
     {
-        var r = await db.MaterialRequests.AsNoTracking().Include(x => x.MaterialRequestLines).SingleOrDefaultAsync(x => x.RequestId == id, ct);
+        var r = await db.MaterialRequests.AsNoTracking().Include(x => x.MaterialRequestLines).ThenInclude(l => l.Item)
+            .Include(x => x.MaterialRequestLines).ThenInclude(l => l.Uom).SingleOrDefaultAsync(x => x.RequestId == id, ct);
         if (r is null) return null;
         var cycles = await db.MaterialRequestApprovalCycles.AsNoTracking().Include(x => x.MaterialRequestApprovalLineSnapshots).Where(x => x.RequestId == id).OrderBy(x => x.RevisionNo).ToListAsync(ct);
         var decisions = await db.MaterialRequestApprovals.AsNoTracking().Where(x => x.RequestId == id).OrderBy(x => x.DecidedAt).ThenBy(x => x.ApprovalId)
@@ -45,7 +46,7 @@ public sealed partial class MaterialRequestService
             r.BranchId, r.DepartmentId, r.RequesterId, r.SourceWarehouseId, r.Purpose, Utc(r.NeededAt), r.PriorityId, r.ReceivingRoomId, r.ReceivingAreaId, r.IncidentId,
             Utc(r.CreatedAt), Utc(r.SubmittedAt), Utc(r.CompletedAt), Utc(r.UpdatedAt), r.CancellationReason, Utc(r.RemainderClosedAt), r.RemainderClosedBy, r.RemainderCloseReason,
             r.MaterialRequestLines.OrderBy(x => x.LineNo).Select(x => new MaterialLineDto(x.LineId, x.LineNo, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.ApprovedQty - x.FulfilledQty,
-                x.IsActive && r.Status is "APPROVED" or "PARTIALLY_ISSUED" ? (x.ApprovedQty ?? 0) - x.FulfilledQty : 0, x.IsActive, x.Note)).ToArray(),
+                x.IsActive && r.Status is "APPROVED" or "PARTIALLY_ISSUED" ? (x.ApprovedQty ?? 0) - x.FulfilledQty : 0, x.IsActive, x.Note, x.Item.ItemName, x.Uom.UomName)).ToArray(),
             cycles.Select(x => new MaterialCycleDto(x.ApprovalCycleId, x.RevisionNo, x.SubmittedBy, x.AssignedApproverId, x.Status, Utc(x.SubmittedAt), Utc(x.ResolvedAt),
                 x.MaterialRequestApprovalLineSnapshots.OrderBy(l => l.LineNo).Select(l => new MaterialCycleLineDto(l.RequestLineId, l.LineNo, l.ItemId, l.UomId, l.RequestedQty, l.ApprovedQty, l.Note)).ToArray())).ToArray(),
             decisions.Select(x => x with { DecidedAt = Utc(x.DecidedAt) }).ToArray(), batches, returns);
