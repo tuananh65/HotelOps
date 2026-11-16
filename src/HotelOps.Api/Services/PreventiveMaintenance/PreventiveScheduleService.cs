@@ -136,6 +136,15 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
             AssetId=row.AssetId,RoomId=row.RoomId,AreaId=row.AreaId,DefaultAssigneeId=meta.Assignee,IsActive=row.IsActive,
             Version='"'+meta.Version+'"',CheckItems=checklist};
     }
+    public async Task<PreventiveTechnicianPage> TechniciansAsync(SessionReference ticket,long sid,long branch,long afterId,CancellationToken ct)
+    {
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
+        await AuthorizeAsync(ticket,sid,branch,ct);
+        var result=await PreventiveTechnicians.ReadAsync(db,branch,afterId,ct);
+        await AuthorizeAsync(ticket,sid,branch,ct);
+        await tx.CommitAsync(ct);return result;
+    }
     public async Task<IReadOnlyList<PreventiveTargetOption>> TargetsAsync(SessionReference ticket,long sid,long branch,string kind,long afterId,CancellationToken ct)
     {
         if(afterId<0 || kind is not ("ASSET" or "ROOM" or "AREA"))throw new ValidationException("Invalid target page.");
@@ -195,8 +204,8 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         await new UserEligibilityLock(db).LockAsync(input.DefaultAssigneeId is {} user ? [ticket.UserId,user] : [ticket.UserId],ct);
         await AuthorizeAsync(ticket,sid,branch,ct);
         await TargetAsync(branch,input.AssetId,input.RoomId,input.AreaId,ct);
-        if(input.DefaultAssigneeId is {} assignee && !await MaintenanceExecutionAccess.GrantsAsync(db,assignee,branch,ct))
-            throw new ValidationException("Default assignee requires current maintenance execution authority in this branch.");
+        if(input.DefaultAssigneeId is {} assignee && !await PreventiveTechnicians.EligibleAsync(db,assignee,branch,ct))
+            throw new ValidationException("Default assignee requires current maintenance read and execution authority in this branch.");
         var resource=$"HotelOps:PreventiveTarget:{branch}:{input.AssetId}:{input.RoomId}:{input.AreaId}";
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource={resource},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000;

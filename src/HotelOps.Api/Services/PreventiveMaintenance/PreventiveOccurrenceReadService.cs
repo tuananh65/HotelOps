@@ -47,6 +47,16 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         if(!access.Lead&&!access.Staff)throw new InternalRequestReadException(403,"MAINTENANCE_VIEW_REQUIRED");
         return access;
     }
+    public async Task<PreventiveTechnicianPage> TechniciansAsync(SessionReference ticket,long sid,long branch,long id,long afterId,CancellationToken ct)
+    {
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        var source=(await ReadAsync(ticket,sid,branch,id,0,ct)).Single();
+        if(!source.CanAssign)throw new InternalRequestReadException(403,"OCCURRENCE_ASSIGN_REQUIRED");
+        var result=await PreventiveTechnicians.ReadAsync(db,branch,afterId,ct);
+        if(!(await ReadAsync(ticket,sid,branch,id,0,ct)).Single().CanAssign)
+            throw new InternalRequestReadException(403,"OCCURRENCE_ASSIGN_REQUIRED");
+        await tx.CommitAsync(ct);return result;
+    }
     public async Task<IReadOnlyList<PreventiveOccurrenceView>> ReadAsync(SessionReference ticket,long sid,long branch,
         long? id,long afterId,CancellationToken ct)
     {

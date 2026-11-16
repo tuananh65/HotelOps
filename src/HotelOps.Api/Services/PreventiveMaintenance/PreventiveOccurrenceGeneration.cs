@@ -65,7 +65,7 @@ internal sealed class PreventiveOccurrenceGeneration(HotelOpsDbContext db,IOptio
             : await db.Areas.Where(a=>a.AreaId==row.AreaId && a.IsActive).Select(a=>(long?)a.BranchId).SingleOrDefaultAsync(ct);
         if(branch==null || !await db.Branches.AnyAsync(b=>b.BranchId==branch && b.IsActive,ct))throw new ValidationException("Schedule target unavailable.");
         // Never assign work to a revoked/inactive default technician. Retain this schedule for correction/retry.
-        if(definition.Assignee is {} assignee && !await MaintenanceExecutionAccess.GrantsAsync(db,assignee,branch.Value,ct))
+        if(definition.Assignee is {} assignee && !await PreventiveTechnicians.EligibleAsync(db,assignee,branch.Value,ct))
             throw new ValidationException("Default assignee no longer eligible.");
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var horizon=now.AddDays(options.Value.LeadDays);

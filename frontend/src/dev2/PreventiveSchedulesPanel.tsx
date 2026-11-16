@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { PreventiveTechnicianSelect } from "./PreventiveTechnicianSelect";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 
@@ -106,8 +107,8 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
         <label>Repeat every<input type="number" min="1" value={interval} onChange={e => setInterval(e.target.value)} /></label>
         <select aria-label="Interval unit" value={frequency} onChange={e => setFrequency(e.target.value)}><option>DAYS</option><option>WEEKS</option><option>MONTHS</option></select>
         {!selected && <label>First due (local time)<input type="datetime-local" value={due} onChange={e => setDue(e.target.value)} /></label>}
-        <label>Default assignee user ID (optional)<input type="number" min="1" value={assignee} onChange={e => setAssignee(e.target.value)} /></label>
-        <p>The selected employee must currently have maintenance execution authority in this branch.</p>
+        <PreventiveTechnicianSelect url={`${root}/technicians`} value={assignee} onChange={setAssignee} optional />
+        <p>The selected employee must currently have maintenance read and execution authority in this branch.</p>
         {checks.map((c,i) => <div key={c.key}><input aria-label={`Check ${i+1}`} maxLength={1000} value={c.description} onChange={e => setChecks(checks.map((x,j) => i===j ? {...x,description:e.target.value} : x))} />
           <label><input type="checkbox" checked={c.required} onChange={e => setChecks(checks.map((x,j) => i===j ? {...x,required:e.target.checked} : x))} />Required</label>
           <button onClick={() => setChecks(checks.filter((_,j) => j!==i))}>Remove check</button></div>)}

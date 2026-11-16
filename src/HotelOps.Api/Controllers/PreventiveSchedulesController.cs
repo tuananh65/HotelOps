@@ -28,6 +28,11 @@ public sealed class PreventiveSchedulesController(PreventiveScheduleService serv
             || tag[1..^1].Any(c=>!char.IsAsciiHexDigitUpper(c)))throw new InternalRequestReadException(428,"SCHEDULE_VERSION_REQUIRED");
         return tag;
     }
+    [HttpGet("technicians")]
+    public async Task<PreventiveTechnicianPage> Technicians(long branch,CancellationToken ct,[FromQuery]long afterId=0)
+    {
+        var(ticket,sid)=Identity();return await service.TechniciansAsync(ticket,sid,branch,afterId,ct);
+    }
     [HttpGet("targets")]
     public async Task<ActionResult<IReadOnlyList<PreventiveTargetOption>>> Targets(long branch,CancellationToken ct,
         [FromQuery] string kind="ROOM",[FromQuery] long afterId=0)

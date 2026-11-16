@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { PreventiveTechnicianSelect } from "./PreventiveTechnicianSelect";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import { Link } from "react-router-dom";
@@ -153,7 +154,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       <p>{r.roomId ? `Room #${r.roomId}` : r.areaId ? `Area #${r.areaId}` : `Asset #${r.assetId}`}</p>
       <ul>{r.checkItems.map(c => <li key={c.key}>{c.description}{c.required ? " (required)" : ""}</li>)}</ul>
       {r.performedAt && <p>Performed: {new Date(r.performedAt).toLocaleString()}</p>}{r.result && <p>{r.result}</p>}{r.note && <p>{r.note}</p>}
-      {r.canAssign && <fieldset disabled={busy || uncertain}><label>Technician user ID<input type="number" min="1" value={assignees[r.runId] ?? ""} onChange={e => setAssignees({...assignees,[r.runId]:e.target.value})} /></label><button onClick={() => void change(r,false)}>Assign technician</button></fieldset>}
+      {r.canAssign && <fieldset disabled={busy || uncertain}><PreventiveTechnicianSelect url={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/technicians`} value={assignees[r.runId] ?? ""} onChange={value => setAssignees({...assignees,[r.runId]:value})} /><button onClick={() => void change(r,false)}>Assign technician</button></fieldset>}
       {r.canCancel && <fieldset disabled={busy || uncertain}><label>Cancellation reason<textarea minLength={10} maxLength={4000} value={reasons[r.runId] ?? ""} onChange={e => setReasons({...reasons,[r.runId]:e.target.value})} /></label><button onClick={() => void change(r,true)}>Cancel occurrence</button></fieldset>}
     </details>)}
   </section>;

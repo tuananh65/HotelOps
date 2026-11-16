@@ -55,6 +55,11 @@ public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadServ
     {
         var(ticket,sid)=Identity();return await service.ReadAsync(ticket,sid,branch,null,afterId,ct);
     }
+    [HttpGet("{id:long}/technicians")]
+    public async Task<PreventiveTechnicianPage> Technicians(long branch,long id,CancellationToken ct,[FromQuery]long afterId=0)
+    {
+        var(ticket,sid)=Identity();return await service.TechniciansAsync(ticket,sid,branch,id,afterId,ct);
+    }
     [HttpGet("{id:long}")]
     public async Task<PreventiveOccurrenceView> Get(long branch,long id,CancellationToken ct)
     {
