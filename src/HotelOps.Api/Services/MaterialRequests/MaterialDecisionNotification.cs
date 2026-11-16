@@ -11,6 +11,17 @@ internal sealed partial class MaterialApprovalNotificationDelivery
 {
     internal const string DecisionKind = "MATERIAL_REQUEST_DECIDED";
     internal const string DecisionSource = "MATERIAL_APPROVAL_DECISION";
+    internal const string RemainderKind = "MATERIAL_REMAINDER_CLOSED";
+    internal const string RemainderSource = "MATERIAL_REMAINDER_CLOSURE";
+    private sealed record NoticeEvent
+    {
+        public long Id { get; init; }
+        public long RequestId { get; init; }
+        public long RequesterId { get; init; }
+        public long BranchId { get; init; }
+        public long ActorId { get; init; }
+        public DateTime At { get; init; }
+    }
 
     // The committed decision receipt is durable intent, including earlier cycles.
     private static IQueryable<MaterialRequestApproval> Decisions(HotelOpsDbContext db) => db.MaterialRequestApprovals.AsNoTracking()
@@ -19,55 +30,74 @@ internal sealed partial class MaterialApprovalNotificationDelivery
             && d.ApprovalCycle.ResolvedAt == d.DecidedAt
             && (d.Decision == "RETURNED" || d.Decision == "APPROVED" || d.Decision == "REJECTED"));
 
-    internal async Task<long[]> PendingDecisionsAsync(long after, CancellationToken ct)
+    private static IQueryable<NoticeEvent> Events(HotelOpsDbContext db, bool remainder) => remainder
+        ? db.MaterialRequests.AsNoTracking().Where(r => r.Status == "REMAINDER_CLOSED"
+            && r.RemainderClosedBy != null && r.RemainderClosedBy != r.RequesterId && r.RemainderClosedAt != null
+            && r.RemainderCloseReason != null && r.RemainderCloseReason.Trim().Length >= 10
+            && r.MaterialRequestLines.Any(l => l.IsActive && l.FulfilledQty > 0)
+            && r.MaterialRequestLines.Any(l => l.IsActive && l.ApprovedQty > l.FulfilledQty)
+            && db.MaterialRequestApprovalCycles.Any(c => c.RequestId == r.RequestId && c.Status == "APPROVED"
+                && c.AssignedApproverId == r.RemainderClosedBy
+                && !db.MaterialRequestApprovalCycles.Any(later => later.RequestId == r.RequestId && later.RevisionNo > c.RevisionNo)))
+            .Select(r => new NoticeEvent { Id = r.RequestId, RequestId = r.RequestId, RequesterId = r.RequesterId,
+                BranchId = r.BranchId, ActorId = r.RemainderClosedBy!.Value, At = r.RemainderClosedAt!.Value })
+        : Decisions(db).Select(d => new NoticeEvent { Id = d.ApprovalId, RequestId = d.RequestId, RequesterId = d.Request.RequesterId,
+            BranchId = d.Request.BranchId, ActorId = d.ApproverId, At = d.DecidedAt });
+
+    internal async Task<long[]> PendingDecisionsAsync(long after, CancellationToken ct, bool remainder = false)
     {
         if (!await InstalledAsync(ct)) return [];
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var cutoff = NotificationRetention.At(now, retention.Value).Cutoff;
-        return await Decisions(db).Where(d => d.ApprovalId > after && d.DecidedAt >= cutoff && d.DecidedAt <= now
-            && !db.NotificationRecipients.Any(r => r.Notification.SourceType == DecisionSource
-                && r.Notification.SourceId == d.ApprovalId && r.Notification.NotificationType == DecisionKind
-                && r.UserId == d.Request.RequesterId && r.DeliveryChannel == "IN_APP" && r.DeliveryStatus == "DELIVERED"))
-            .OrderBy(d => d.ApprovalId).Select(d => d.ApprovalId).Take(100).ToArrayAsync(ct);
+        var source = remainder ? RemainderSource : DecisionSource;
+        var kind = remainder ? RemainderKind : DecisionKind;
+        return await Events(db, remainder).Where(d => d.Id > after && d.At >= cutoff && d.At <= now
+            && !db.NotificationRecipients.Any(r => r.Notification.SourceType == source
+                && r.Notification.SourceId == d.Id && r.Notification.NotificationType == kind
+                && r.UserId == d.RequesterId && r.DeliveryChannel == "IN_APP" && r.DeliveryStatus == "DELIVERED"))
+            .OrderBy(d => d.Id).Select(d => d.Id).Take(100).ToArrayAsync(ct);
     }
 
-    internal static async Task<long?> DecisionTargetAsync(HotelOpsDbContext db, long decisionId, long user, CancellationToken ct)
+    internal static async Task<long?> DecisionTargetAsync(HotelOpsDbContext db, long decisionId, long user, CancellationToken ct, bool remainder = false)
     {
         var locked = await new UserEligibilityLock(db).LockAsync([user], ct);
         if (!locked.TryGetValue(user, out var account) || account is not { DeletedAt: null, AccountStatus: "ACTIVE", EmploymentStatus: "ACTIVE" }) return null;
-        var decision = await Decisions(db).Include(d => d.Request).SingleOrDefaultAsync(d => d.ApprovalId == decisionId, ct);
-        if (decision == null || decision.Request.RequesterId != user) return null;
+        var decision = await Events(db, remainder).SingleOrDefaultAsync(d => d.Id == decisionId, ct);
+        if (decision == null || decision.RequesterId != user) return null;
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        var scope = await MaterialRequestReadAccess.ReadAsync(db, user, decision.Request.BranchId, now, ct);
+        var scope = await MaterialRequestReadAccess.ReadAsync(db, user, decision.BranchId, now, ct);
         return await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == decision.RequestId, ct)
-            && await MaterialReadProvenance.ValidAsync(db, decision.RequestId, decision.Request.BranchId, ct) ? decision.RequestId : null;
+            && await MaterialReadProvenance.ValidAsync(db, decision.RequestId, decision.BranchId, ct) ? decision.RequestId : null;
     }
 
-    internal async Task<string> DeliverDecisionAsync(long decisionId, CancellationToken ct)
+    internal async Task<string> DeliverDecisionAsync(long decisionId, CancellationToken ct, bool remainder = false)
     {
         if (db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
             || System.Transactions.Transaction.Current != null || db.Database.CreateExecutionStrategy().RetriesOnFailure)
             throw new InvalidOperationException("Independent clean delivery context required.");
         if (!await InstalledAsync(ct)) return "SCHEMA_REQUIRED";
-        var hint = await Decisions(db).Where(d => d.ApprovalId == decisionId)
-            .Select(d => new { d.RequestId, d.Request.RequesterId, d.ApproverId, d.DecidedAt, d.Decision }).SingleOrDefaultAsync(ct);
+        var source = remainder ? RemainderSource : DecisionSource;
+        var kind = remainder ? RemainderKind : DecisionKind;
+        var hint = await Events(db, remainder).SingleOrDefaultAsync(d => d.Id == decisionId, ct);
         if (hint == null) return "SOURCE_UNAVAILABLE";
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        if (await DecisionTargetAsync(db, decisionId, hint.RequesterId, ct) != hint.RequestId) return "RECIPIENT_READ_DENIED";
-        var current = await Decisions(db).SingleAsync(d => d.ApprovalId == decisionId, ct);
-        if (current.ApproverId != hint.ApproverId || current.DecidedAt != hint.DecidedAt || current.Decision != hint.Decision) return "SOURCE_CHANGED";
+        if (await DecisionTargetAsync(db, decisionId, hint.RequesterId, ct, remainder) != hint.RequestId) return "RECIPIENT_READ_DENIED";
+        var current = await Events(db, remainder).SingleAsync(d => d.Id == decisionId, ct);
+        if (current != hint) return "SOURCE_CHANGED";
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        if (!NotificationRetention.At(now, retention.Value).Contains(current.DecidedAt)) return "EVENT_OUTSIDE_RETENTION";
-        var notices = await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE source_type={DecisionSource} AND source_id={decisionId}")
+        if (!NotificationRetention.At(now, retention.Value).Contains(current.At)) return "EVENT_OUTSIDE_RETENTION";
+        var notices = await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE source_type={source} AND source_id={decisionId}")
             .AsNoTracking().ToArrayAsync(ct);
-        if (notices.Length > 1 || notices.Any(n => n.NotificationType != DecisionKind || n.CreatedBy != current.ApproverId || n.CreatedAt != current.DecidedAt))
+        if (notices.Length > 1 || notices.Any(n => n.NotificationType != kind || n.CreatedBy != current.ActorId || n.CreatedAt != current.At))
             throw new InvalidOperationException("Material decision notification provenance conflict.");
         var notice = notices.SingleOrDefault();
         if (notice == null)
         {
-            notice = new Notification { NotificationType = DecisionKind, SourceType = DecisionSource, SourceId = decisionId,
-                Title = "Material request review updated", Message = "A review decision was recorded for your material request. Open it to see the decision and current status.",
-                Priority = "NORMAL", CreatedBy = current.ApproverId, CreatedAt = current.DecidedAt };
+            notice = new Notification { NotificationType = kind, SourceType = source, SourceId = decisionId,
+                Title = remainder ? "Material request remainder closed" : "Material request review updated",
+                Message = remainder ? "The unissued remainder of your material request was closed. Open the request to review its history."
+                    : "A review decision was recorded for your material request. Open it to see the decision and current status.",
+                Priority = "NORMAL", CreatedBy = current.ActorId, CreatedAt = current.At };
             db.Notifications.Add(notice);
             await db.SaveChangesAsync(ct);
         }
@@ -80,7 +110,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery
                 DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = now });
             await db.SaveChangesAsync(ct);
         }
-        if (await DecisionTargetAsync(db, decisionId, hint.RequesterId, ct) != hint.RequestId) return "RECIPIENT_READ_DENIED";
+        if (await DecisionTargetAsync(db, decisionId, hint.RequesterId, ct, remainder) != hint.RequestId) return "RECIPIENT_READ_DENIED";
         await tx.CommitAsync(ct);
         db.ChangeTracker.Clear();
         return "DELIVERED";

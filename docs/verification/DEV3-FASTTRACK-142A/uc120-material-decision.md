@@ -335,3 +335,21 @@ PASS with existing React Router/use-client and large-bundle warnings. Business,
 SQL, API and browser tests NOT RUN. No additional COMPLETE_VERIFIED UC claimed.
 Storekeeper notification, remainder-close requester notification, scoped stock
 review and fulfillment admission still require implementation/acceptance.
+
+## Remainder closure requester notice (2026-11-16)
+
+The material worker now scans committed REMAINDER_CLOSED requests with a recorded
+closer/time/reason, issued quantities plus remaining approved quantities and a latest
+approved cycle identifying that closer. These persisted terminal facts are the
+durable event; notification processing does not invent a timestamp or modify the
+request. It reuses requester decision delivery with a distinct source/type namespace
+so request IDs cannot collide with approval decision IDs.
+
+Current requester account eligibility, independent MR_VIEW, branch/resource scope
+and provenance are checked before delivery and before commit. Notification source
+opening also verifies the stored closure actor/time. Finite retention, retry cursors,
+receipt idempotency and the existing opt-in worker configuration are preserved.
+No schema, grant or database change was made. Backend build PASS (0 warnings/errors),
+diff check PASS. No frontend change; frontend checks were not repeated. SQL/API/
+browser/business tests NOT RUN. Storekeeper recipients, stock review and fulfillment
+admission remain open; no new COMPLETE_VERIFIED UC is asserted.
