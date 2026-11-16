@@ -174,6 +174,7 @@ internal static class SprintLinkedTaskCreationScenario
         Check(await db.InternalRequests.AnyAsync(r => r.InternalRequestId == request && r.Status == "IN_PROGRESS" && r.ClosedAt == null, ct), "linked creation never closes the request");
         var evidencePath = $"/api/internal-requests/{request}/progress";
         await SprintInternalRequestDeadlineScenario.RunAsync(db, request, Send, checks, ct);
+        await SprintTaskDashboardScenario.RunAsync(db, actor, branch, Send, checks, ct, username, password);
         var latestEvidence = await http.GetFromJsonAsync<JsonElement>(evidencePath, ct);
         var latestRows = latestEvidence.GetProperty("evidence").EnumerateArray().ToArray();
         Check(latestRows.Length == 100 && latestEvidence.GetProperty("evidenceCount").GetInt32() == 101, "public evidence first page is bounded with exact scoped total");

@@ -110,8 +110,9 @@ export function DashboardPage() {
                 department: {data.filters.departmentId ?? "All permitted"}.
               </p>
               <p>
-                Stock movement period (UTC): {data.filters.from} to{" "}
-                {data.filters.to}. Other figures show current status.
+                Period (UTC): {data.filters.from} to {data.filters.to}. Applies
+                to stock movements and tasks closed in period. Open and overdue
+                tasks show current status at the snapshot time.
               </p>
               {data.missingSources.length > 0 && (
                 <p role="status">
