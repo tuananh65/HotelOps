@@ -7,6 +7,22 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class MaintenanceExecutionAccessTests
 {
     [Fact]
+    public void Progress_contract_binds_request_identity_and_cannot_invoke_submit()
+    {
+        var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-029");
+        var request = new HotelOps.Api.DTOs.Maintenance.CreateMaintenanceWorkLogRequest { ActorUserId = 10, WorkNote = "Seal replaced" };
+        var action = new HotelOps.Api.Services.Dev2Authorization.Dev2BoundAction(
+            new("A004A-029", typeof(HotelOps.Api.Controllers.MaintenanceWorksController), "CreateLog", "POST", "api/maintenance-works/{id:long}/logs"),
+            new Microsoft.AspNetCore.Http.DefaultHttpContext(), new(10, 20, false), new Dictionary<string, object?> { ["id"] = 1L, ["request"] = request });
+        Assert.True(contract.RequiresActionTransaction);
+        Assert.True(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "CreateLog", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "SubmitResult", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "CreateLog", 2, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "CreateLog", 1,
+            new HotelOps.Api.DTOs.Maintenance.CreateMaintenanceWorkLogRequest { ActorUserId = 10, WorkNote = "Seal replaced" })));
+    }
+
+    [Fact]
     public void Submit_contract_cannot_invoke_start_or_use_another_request()
     {
         var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-030");

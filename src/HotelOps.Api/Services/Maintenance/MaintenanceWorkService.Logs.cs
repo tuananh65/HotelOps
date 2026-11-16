@@ -1,5 +1,6 @@
 using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Entities;
 
@@ -41,6 +42,7 @@ public sealed partial class MaintenanceWorkService
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["CreateLog"], request.ActorUserId, id, request);
         MaintenanceWorkLog? log = null;
+        IReadOnlyList<MaintenanceMaterialUsageDto> recordedUsages = [];
         var result = await ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
         {
             RequireState(work, "IN_PROGRESS", "ON_HOLD");
@@ -50,6 +52,10 @@ public sealed partial class MaintenanceWorkService
             log = AddWorkLog(work, TrustedActorId, note, request.SpentMinutes, now);
             await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, token);
             if (materials.Count > 0) await SaveUsages(log, materials, incident, TrustedActorId, now, token);
+            // Advance the owning native version for child writes without changing workflow state.
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.maintenance_works SET status=status WHERE maintenance_work_id={id}", token);
+            if (materials.Count > 0)
+                recordedUsages = (await UsageDetails(id, token)).Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray();
             // The technical log is a business record, not a substitute for its CREATE audit.
             var values = new Dictionary<string, object?>
                 {
@@ -68,6 +74,7 @@ public sealed partial class MaintenanceWorkService
             return null;
         return new MaintenanceWorkLogDto
         {
+            ExecutionETag = result.ExecutionETag,
             LogId = log!.LogId,
             MaintenanceWorkId = log.MaintenanceWorkId,
             WorkNote = log.WorkNote,
@@ -76,7 +83,7 @@ public sealed partial class MaintenanceWorkService
             Status = log.Status,
             LoggedBy = log.LoggedBy,
             LoggedAt = log.LoggedAt,
-            MaterialUsages = (await UsageDetails(id, cancellationToken)).Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray()
+            MaterialUsages = recordedUsages
         };
     }
 

@@ -81,3 +81,15 @@ The legacy service signature is retained for compatibility; the production read 
 Files: MaintenanceReadContract.cs, MaintenanceWorkService.Materials.cs, new MaintenanceMaterialAccess.cs, SharedAuthHost.tsx, new MaintenanceMaterialAccessTests.cs and this receipt. SQL translation, OWN filtering against real records, concurrent usage/return capacity and HTTPS execution remain NOT_RUN. No database mutation.
 
 Validation: backend build PASS with zero warnings/errors; frontend typecheck/build PASS with existing warnings. The first focused run found the existing accepted-read list assertion still expected only list/detail; it was updated to include the new read action while retaining no-mutation assertions. Final focused result: six tests PASS. Solution-level test exits zero without discovery. MaintenanceReadAccessTests.cs was also updated. These offline checks do not verify live material availability.
+
+## Versioned progress/material-write backend
+
+A004A-029 CreateLog now has exact action/root/request production admission under the existing current-session, assigned Staff/Lead execution and Maintenance read checks. Material-bearing requests additionally require current INVENTORY_VIEW and MR_VIEW for every source issue line's request, linked to the same Incident. These checks repeat through the persistence boundary. Nonzero client SpentMinutes is not admitted by this production contract: actual effort remains derived from work intervals. Note-only logs do not gain or require inventory access.
+
+All log writes require the owning Maintenance ETag under source locks. The existing material source/capacity validation and work-log/usage audits remain transactional. A no-op update of existing status advances the owning native rowversion for a child log write without changing lifecycle state; the response includes the resulting ETag. The material response snapshot is read inside the transaction and restricted to this new log, replacing the prior post-commit usage query. The inventory catalog is acquired before user/source locks by the contract.
+
+The dedicated canonical progress/material-entry form is still outstanding; A004A-029 has not been added to the host's enabled actions. SQL validation of source scope, concurrent consumption/returns, rollback and ETag retry remains NOT_RUN. No database/schema mutation performed. Backend build PASS with zero warnings/errors; solution-level test exits zero without discovery. No newly completed UC.
+
+Files: MaintenanceResumeContract.cs, MaintenanceMaterialAccess.cs, MaintenanceWorkService.Commands.cs, MaintenanceWorkService.Logs.cs, MaintenanceWorkLogDto.cs, MaintenanceExecutionAccessTests.cs and this receipt.
+
+Focused verification for this backend increment: 15 execution/read/material-access tests PASS. They cover admission bindings and existing scope predicates; the new usage-write SQL transaction, ETag advancement and capacity races are not proven by these offline results. Edited-line CRLF diff warnings were cleaned before delivery.
