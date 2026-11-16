@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Maintenance;
 
-public sealed record MaintenanceAssignmentInput(long AssigneeId, string? WorkVersion, string? Instruction, DateTime PlannedEndAt);
+public sealed record MaintenanceAssignmentInput(long AssigneeId, string? WorkVersion, string? Instruction, DateTime PlannedEndAt, long DepartmentId);
 public sealed record MaintenanceAssignmentSaved(long WorkId, long AuditId, string Workflow);
 
 public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
@@ -36,6 +36,7 @@ public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, I
 
     public async Task<MaintenanceAssignmentSaved> AssignAsync(SessionReference ticket,long sid,long id,string tag,MaintenanceAssignmentInput input,CancellationToken ct)
     {
+        if(input.DepartmentId<=0) throw new ValidationException("Choose an active department in the incident branch.");
         if(input.AssigneeId<=0) throw new ValidationException("Choose an eligible technician.");
         MaintenanceAssignmentEligibility.RequirePlannedEnd(null,input.PlannedEndAt);
         if(db.Database.CurrentTransaction!=null || db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Clean assignment context required.");
@@ -46,6 +47,8 @@ public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, I
         var incident=await db.Incidents.FromSqlInterpolated($"SELECT * FROM dbo.incidents WITH(UPDLOCK,HOLDLOCK) WHERE incident_id={id}")
             .AsNoTracking().SingleOrDefaultAsync(ct) ?? throw new InternalRequestReadException(404,"INCIDENT_NOT_FOUND");
         await AuthorizeAsync(ticket.UserId,incident,ct);
+        if(!await db.Departments.AsNoTracking().AnyAsync(d=>d.DepartmentId==input.DepartmentId && d.BranchId==incident.BranchId && d.IsActive,ct))
+            throw new ValidationException("Department must be active and belong to the incident branch.");
         var version=await IncidentTriageStore.TagAsync(db,id,ct) ?? throw new InternalRequestReadException(503,"INCIDENT_VERSION_UNAVAILABLE");
         if(version!=tag) throw new InternalRequestReadException(412,"INCIDENT_CHANGED");
         if(await IncidentAssignmentWorkflow.ReadAsync(db,incident,ct) is not ("ASSIGNED" or "PENDING_ASSIGNMENT"))
@@ -63,7 +66,7 @@ public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, I
         await MaintenanceAssignmentEligibility.RequireAsync(db,input.AssigneeId,incident.BranchId,work?.MaintenanceWorkId ?? 0,ct);
         var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
         var previous=work?.AssigneeId;
-        var old=work==null ? null : JsonSerializer.Serialize(new { assignee_id=previous,instruction=work.Instruction,planned_end_at=work.PlannedEndAt,status=work.Status });
+        var old=work==null ? null : JsonSerializer.Serialize(new { department_id=work.DepartmentId,assignee_id=previous,instruction=work.Instruction,planned_end_at=work.PlannedEndAt,status=work.Status });
         var created=work==null;
         if(work==null)
         {
@@ -75,11 +78,11 @@ public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, I
                 PriorityId=incident.PriorityId,Status="PENDING",CreatedBy=ticket.UserId,CreatedAt=now };
             db.MaintenanceWorks.Add(work);
         }
-        work.AssigneeId=input.AssigneeId;work.Instruction=input.Instruction?.Trim();work.PlannedEndAt=input.PlannedEndAt;
+        work.DepartmentId=input.DepartmentId;work.AssigneeId=input.AssigneeId;work.Instruction=input.Instruction?.Trim();work.PlannedEndAt=input.PlannedEndAt;
         await db.SaveChangesAsync(ct);
         var audit=new AuditLog { EntityType="maintenance_works",EntityId=work.MaintenanceWorkId.ToString(CultureInfo.InvariantCulture),BranchId=incident.BranchId,
             ActorUserId=ticket.UserId,Action=created?"CREATE":"UPDATE",OccurredAt=now,OldValues=old,
-            NewValues=JsonSerializer.Serialize(new { work_id=work.MaintenanceWorkId,incident_id=id,previous_assignee_id=previous,assignee_id=input.AssigneeId,
+            NewValues=JsonSerializer.Serialize(new { work_id=work.MaintenanceWorkId,incident_id=id,previous_assignee_id=previous,assignee_id=input.AssigneeId,department_id=work.DepartmentId,
                 instruction=work.Instruction,planned_end_at=work.PlannedEndAt,status="PENDING",notification_kind="MAINTENANCE_ASSIGNED" }) };
         db.AuditLogs.Add(audit);await db.SaveChangesAsync(ct);
         await MaintenanceAssignmentStore.WriteAsync(db,new() { AuditId=audit.AuditId,WorkId=work.MaintenanceWorkId,IncidentId=id,BranchId=incident.BranchId,

@@ -5,7 +5,7 @@ namespace HotelOps.Api.Services.Incidents;
 
 internal static class IncidentCurrentAssignment
 {
-    internal sealed record Row(long IncidentId,long? AssigneeId,string? AssigneeName);
+    internal sealed record Row(long IncidentId,long? AssigneeId,string? AssigneeName,long? DepartmentId,string? DepartmentName);
     internal static IQueryable<Row> Query(HotelOpsDbContext db)
     {
         var current=db.MaintenanceWorks.AsNoTracking().Where(w=>w.IncidentId!=null && !w.PreventiveMaintenanceRuns.Any()
@@ -17,6 +17,6 @@ internal static class IncidentCurrentAssignment
                 || (w.Status=="COMPLETED" && w.Incident!.Status=="RESOLVED")
                 || (w.Status=="CLOSED" && w.Incident!.Status=="CLOSED")
                 || (w.Status=="CANCELLED" && w.Incident!.Status=="CANCELLED")))
-            .Select(w=>new Row(w.IncidentId!.Value,w.AssigneeId,w.Assignee==null?null:w.Assignee.FullName));
+            .Select(w=>new Row(w.IncidentId!.Value,w.AssigneeId,w.Assignee==null?null:w.Assignee.FullName,w.DepartmentId,w.Department==null?null:w.Department.DepartmentName));
     }
 }

@@ -9,9 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Maintenance;
 
+public sealed record MaintenanceDepartmentOption(long DepartmentId,string Name);
 public sealed record MaintenanceTechnicianOption(long UserId,string Name,int? OpenIncidents,int? OpenOccurrences);
 public sealed record MaintenanceAssignmentContext(long IncidentId,string IncidentVersion,long? WorkId,string? WorkVersion,long? AssigneeId,
-    IReadOnlyList<MaintenanceTechnicianOption> Technicians);
+    IReadOnlyList<MaintenanceTechnicianOption> Technicians,long? DepartmentId,IReadOnlyList<MaintenanceDepartmentOption> Departments);
 
 public sealed partial class MaintenanceAssignmentService
 {
@@ -28,6 +29,8 @@ public sealed partial class MaintenanceAssignmentService
         var cycle=await IncidentReopenStore.ReadAsync(db,id,ct);
         var cycleStart=cycle?.ReopenedAt ?? DateTime.MinValue;
         var work=await db.MaintenanceWorks.AsNoTracking().SingleOrDefaultAsync(w=>w.IncidentId==id && w.CreatedAt>=cycleStart,ct);
+        var departments=await db.Departments.AsNoTracking().Where(d=>d.BranchId==incident.BranchId && d.IsActive)
+            .OrderBy(d=>d.DepartmentName).ThenBy(d=>d.DepartmentId).Select(d=>new MaintenanceDepartmentOption(d.DepartmentId,d.DepartmentName)).ToArrayAsync(ct);
         var candidates=await db.UserRoles.AsNoTracking().Where(r=>r.BranchId==incident.BranchId
             && (r.Role.RoleCode=="MAINTENANCE_STAFF" || r.Role.RoleCode=="MAINTENANCE_LEAD"))
             .Select(r=>new {r.UserId,r.User.FullName}).Distinct().OrderBy(r=>r.FullName).ThenBy(r=>r.UserId).ToArrayAsync(ct);
@@ -68,7 +71,7 @@ public sealed partial class MaintenanceAssignmentService
         var workTag=work==null?null:await MaintenanceExecutionVersion.TagAsync(db,work.MaintenanceWorkId,ct);
         await SessionAsync(ticket,sid,ct);await AuthorizeAsync(ticket.UserId,incident,ct);
         await tx.CommitAsync(ct);
-        return new(id,tag,work?.MaintenanceWorkId,workTag,work?.AssigneeId,options);
+        return new(id,tag,work?.MaintenanceWorkId,workTag,work?.AssigneeId,options,work?.DepartmentId,departments);
     }
 
     public async Task<MaintenanceAssignmentReceipt> ReceiptAsync(SessionReference ticket,long sid,long audit,CancellationToken ct)

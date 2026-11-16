@@ -408,6 +408,13 @@ public sealed class IncidentService : IIncidentService
             var categorized = IncidentCategoryStore.Rows(db!).Where(c => c.CategoryId == categoryId).Select(c => c.IncidentId);
             query = query.Where(i => categorized.Contains(i.IncidentId));
         }
+        if(request.DepartmentId is <=0)throw new ValidationException("DepartmentId must be positive.");
+        if(request.DepartmentId is {} department)
+        {
+            if(db==null)throw new ValidationException("Department filtering is unavailable.");
+            var departmental=IncidentCurrentAssignment.Query(db).Where(w=>w.DepartmentId==department).Select(w=>w.IncidentId);
+            query=query.Where(i=>departmental.Contains(i.IncidentId));
+        }
         if(request.AssigneeId is <=0)throw new ValidationException("AssigneeId must be positive.");
         if(request.AssigneeId is {} assignee)
         {
@@ -488,6 +495,8 @@ public sealed class IncidentService : IIncidentService
             foreach(var item in items)
             {
                 var assignment=assignments.GetValueOrDefault(item.IncidentId);
+                item.DepartmentId=assignment?.DepartmentId;
+                item.DepartmentName=assignment?.DepartmentName;
                 item.AssigneeId=assignment?.AssigneeId;
                 item.AssigneeName=assignment?.AssigneeName;
                 item.AssignmentUnavailableReason=assignment==null?"CURRENT_ASSIGNMENT_NOT_PROVEN":assignment.AssigneeId==null?"UNASSIGNED":null;

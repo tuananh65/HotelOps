@@ -790,6 +790,7 @@ export const operations: Operation[] = [
     dto: "IncidentQueryRequest",
     fields: [
       { name: "overdue", type: "bool?", optional: true },
+      { name: "departmentId", type: "long?", optional: true },
       { name: "assigneeId", type: "long?", optional: true },
       {
         name: "branchId",

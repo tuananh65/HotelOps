@@ -21,6 +21,8 @@ public sealed class IncidentListDto
     public string? CategoryCode { get; set; }
     public string? CategoryName { get; set; }
     public string? CategoryUnavailableReason { get; set; }
+    public long? DepartmentId { get; set; }
+    public string? DepartmentName { get; set; }
     public long? AssigneeId { get; set; }
     public string? AssigneeName { get; set; }
     public string? AssignmentUnavailableReason { get; set; }
