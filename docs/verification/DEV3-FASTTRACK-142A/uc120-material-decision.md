@@ -22,3 +22,15 @@ Read-only recovery metadata inspection found the legacy material schema lacks th
 new approval/remainder capability; this database cannot verify these paths yet.
 No shared database mutation. Whole UC120 remains PARTIAL: independently authorized
 linked-material display, legacy reconciliation and Human QA remain outstanding.
+
+The request history now refreshes after confirmed handover Submit/Acknowledge/Reject,
+linking a task/cleaning task/incident, or creating a linked task. Refresh invalidates
+the old timeline and unmounts its completion panel immediately, then reloads current
+authority, responsibility, linked work and completion eligibility. A confirmation is
+retained only for the same request/session after authorized history reload. Existing
+task assignment navigation, CSRF, ETag and independent target authorization remain.
+
+Frontend `npm.cmd run build` (TypeScript + Vite): PASS. Vite still warns about ignored
+React Router `use client` directives and a chunk above 500 kB. No test suites, browser,
+API or SQL business checks run for this refresh change, as requested. No backend or
+database changes. This integration repair does not promote UC120 to complete.

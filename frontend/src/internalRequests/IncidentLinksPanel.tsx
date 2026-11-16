@@ -12,7 +12,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Invalid response");
   return response.json();
 }
-export function InternalRequestIncidentLinksPanel({ id }: { id: number }) {
+export function InternalRequestIncidentLinksPanel({ id, onLinked }: { id: number; onLinked?: () => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [candidates, setCandidates] = useState(false); const [page, setPage] = useState(1); const [revision, setRevision] = useState(0);
@@ -49,7 +49,7 @@ export function InternalRequestIncidentLinksPanel({ id }: { id: number }) {
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": `"${view.version}"` },
         body: JSON.stringify({ incidentId, mandatory: mandatory === "required" }) }) as { requestId?: unknown; incidentId?: unknown; mandatory?: unknown; version?: unknown };
       if (raw.requestId !== id || raw.incidentId !== incidentId || raw.mandatory !== (mandatory === "required") || !validVersion(raw.version)) throw new Error("Link not confirmed");
-      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Incident linked. View linked incidents to see the saved record."); }
+      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Incident linked. View linked incidents to see the saved record."); onLinked?.(); }
     } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload linked incidents before saving." : "Link not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
   }

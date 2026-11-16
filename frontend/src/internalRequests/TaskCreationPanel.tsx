@@ -5,7 +5,7 @@ import { TaskCreatePanel } from "../operationalTasks/TaskCreatePanel";
 import { planningRequest, type TaskRequestContext } from "../operationalTasks/planning";
 import { TaskProgressError } from "../operationalTasks/progress";
 
-export function InternalRequestTaskCreationPanel({ id, branch, onCreated }: { id: number; branch: number; onCreated?: (task: number, assign: boolean) => void }) {
+export function InternalRequestTaskCreationPanel({ id, branch, onCreated, onLinked }: { id: number; branch: number; onCreated?: (task: number, assign: boolean) => void; onLinked?: () => void }) {
   const { state, actions } = useAuth(); const navigate = useNavigate();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [revision, setRevision] = useState(0);
@@ -34,6 +34,6 @@ export function InternalRequestTaskCreationPanel({ id, branch, onCreated }: { id
     {source && <TaskCreatePanel key={`${owner}:${id}:${revision}`} branch={branch} owner={owner} source={source}
       onSourceInvalid={() => { setLoaded(null); setMessage("Request authority or version changed. Reload request prefill before trying again."); }}
       onSeriesCreated={() => { throw new Error("Linked recurring creation is unavailable"); }}
-      onCreated={(task, assign) => { setLoaded(null); setCreated({ owner, task }); if (onCreated) onCreated(task, assign); else if (assign) navigate(`/operational-tasks?branchId=${branch}&taskId=${task}`); }} />}
+      onCreated={(task, assign) => { setLoaded(null); setCreated({ owner, task }); onLinked?.(); if (onCreated) onCreated(task, assign); else if (assign) navigate(`/operational-tasks?branchId=${branch}&taskId=${task}`); }} />}
   </section>;
 }

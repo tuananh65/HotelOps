@@ -13,7 +13,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Invalid response");
   return response.json();
 }
-export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
+export function InternalRequestTaskLinksPanel({ id, onLinked }: { id: number; onLinked?: () => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [candidates, setCandidates] = useState(false); const [page, setPage] = useState(1); const [revision, setRevision] = useState(0);
@@ -51,7 +51,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": `"${view.version}"` },
         body: JSON.stringify({ taskId, mandatory: mandatory === "required" }) }) as { requestId?: unknown; taskId?: unknown; mandatory?: unknown; version?: unknown };
       if (raw.requestId !== id || raw.taskId !== taskId || raw.mandatory !== (mandatory === "required") || !validVersion(raw.version)) throw new Error("Link not confirmed");
-      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Task linked. View linked tasks to see the saved record."); }
+      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Task linked. View linked tasks to see the saved record."); onLinked?.(); }
     } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload linked tasks before saving." : "Link not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
   }
@@ -63,7 +63,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
     {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked tasks</button>}
     {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing task</button>}
     {!candidates && view?.canLink && <button disabled={busy} onClick={() => setCreating(true)}>Create new operational task</button>}
-    {!candidates && view?.canLink && creating && <InternalRequestTaskCreationPanel key={`${owner}:${id}:${revision}`} id={id} branch={view.branchId} />}
+    {!candidates && view?.canLink && creating && <InternalRequestTaskCreationPanel key={`${owner}:${id}:${revision}`} id={id} branch={view.branchId} onLinked={onLinked} />}
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} tasks on this page.</p>}
       <ul>{view.items.map(t => <li key={t.taskId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}

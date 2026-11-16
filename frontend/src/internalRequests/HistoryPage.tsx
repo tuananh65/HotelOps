@@ -81,11 +81,17 @@ export function InternalRequestHistoryPage() {
   const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
   const [completionNotice, setCompletionNotice] = useState<number | null>(null);
   const [escalationNotice, setEscalationNotice] = useState<number | null>(null);
+  const [workNotice, setWorkNotice] = useState<{ id: number; message: string } | null>(null);
+  useEffect(() => setWorkNotice(null), [selected, owner]);
   useEffect(() => setEscalationNotice(null), [selected, owner]);
   useEffect(() => setCompletionNotice(null), [selected, owner]);
   const [eventPage, setEventPage] = useState(1);
   const [assignmentPage, setAssignmentPage] = useState(1);
   const [revision, setRevision] = useState(0);
+  function refreshWork(id: number, message: string) {
+    setWorkNotice({ id, message });
+    setRevision(v => v + 1);
+  }
   const query = new URLSearchParams({
     page: String(page),
     pageSize: "25",
@@ -339,6 +345,7 @@ export function InternalRequestHistoryPage() {
       {visible?.timeline && (
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
+          {workNotice?.id === visible.timeline.requestId && <p role="status">{workNotice.message}</p>}
           {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
@@ -346,10 +353,10 @@ export function InternalRequestHistoryPage() {
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
           {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Request escalated.</p>}
           <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestHandoverPanel id={visible.timeline.requestId} />
-          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
-          <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
-          <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
+          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={handoverState => refreshWork(visible.timeline!.requestId, `MSG08: Handover ${handoverState}.`)} />
+          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Task linked.")} />
+          <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Cleaning task linked.")} />
+          <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Incident linked.")} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>

@@ -9,7 +9,7 @@ async function json(path:string,signal:AbortSignal,init?:RequestInit):Promise<un
   if(!response.ok)throw new Failure(response.status);
   if(!response.headers.get("content-type")?.includes("json"))throw new Error("Invalid response");return response.json();
 }
-export function InternalRequestHandoverPanel({id}:{id:number}){
+export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(state:string)=>void}){
   const {state,actions}=useAuth();
   const owner=state.status==="AUTHENTICATED"&&!state.pending&&!state.session?.mustChangePassword?state.authorityGeneration:null;
   const [loaded,setLoaded]=useState<{owner:typeof owner;id:number;view:View}|null>(null);
@@ -44,7 +44,7 @@ export function InternalRequestHandoverPanel({id}:{id:number}){
       }) as {requestId:number;handoverId:number;state:string;version:string;message:string};
       if(result.requestId!==id||!Number.isSafeInteger(result.handoverId)||result.handoverId<=0||!version(result.version)||result.message!=="MSG08"
         ||result.state!==(action==="submit"?"PENDING_ACKNOWLEDGMENT":action==="acknowledge"?"ACKNOWLEDGED":"REJECTED"))throw new Error("Handover not confirmed");
-      if(!abort.signal.aborted){setLoaded(null);setSummary("");setNote("");setReason("");setMessage(`MSG08: Handover ${result.state}. Reload current responsibility.`);}
+      if(!abort.signal.aborted){setLoaded(null);setSummary("");setNote("");setReason("");setMessage(`MSG08: Handover ${result.state}. Reload current responsibility.`);onSaved?.(result.state);}
     }catch(e){if(!abort.signal.aborted){setLoaded(null);setMessage(e instanceof Failure&&e.status===412?"Request changed. Reload before deciding.":"Handover not confirmed. Reload; no automatic retry was sent.");if(e instanceof Failure&&e.status===401)actions.invalidateSession(owner);}}
     finally{if(!abort.signal.aborted){sending.current=false;setBusy(false);}}
   }
