@@ -7,7 +7,7 @@ namespace HotelOps.Api.Services.Maintenance;
 internal static class MaintenanceExecutionAccess
 {
     internal static bool Allows(string role, PermissionGrantPath grant, long branch, DateTime now)
-        => role == "MAINTENANCE_STAFF" && grant.PermissionCode == "MAINTENANCE_EXECUTE"
+        => role is "MAINTENANCE_STAFF" or "MAINTENANCE_LEAD" && grant.PermissionCode == "MAINTENANCE_EXECUTE"
             && grant.BranchId == branch && PermissionGrantRules.IsEligible(grant, now)
             && PermissionGrantRules.EffectiveScope(grant) is "OWN" or "BRANCH" or "GLOBAL";
 

@@ -80,19 +80,24 @@ public sealed class MaintenanceExecutionAccessTests
     [InlineData("OWN", true)]
     [InlineData("BRANCH", true)]
     [InlineData("GLOBAL", false)]
-    public void Current_staff_execution_path_is_required(string scope, bool allowed)
-        => Assert.Equal(allowed, MaintenanceExecutionAccess.Allows("MAINTENANCE_STAFF", Path(scope), 7, Now));
+    public void Current_executor_execution_path_is_required(string scope, bool allowed)
+    {
+        foreach (var role in new[] { "MAINTENANCE_STAFF", "MAINTENANCE_LEAD" })
+            Assert.Equal(allowed, MaintenanceExecutionAccess.Allows(role, Path(scope), 7, Now));
+    }
 
     [Fact]
     public void Other_role_read_permission_revocation_and_foreign_branch_do_not_authorize_pause()
     {
-        foreach (var role in new[] { "MAINTENANCE_LEAD", "DEPT_MANAGER", "ADMIN", "" })
+        foreach (var role in new[] { "OPERATIONS_MANAGER", "DEPT_MANAGER", "ADMIN", "" })
             Assert.False(MaintenanceExecutionAccess.Allows(role, Path(), 7, Now));
+        foreach (var role in new[] { "MAINTENANCE_STAFF", "MAINTENANCE_LEAD" })
         foreach (var path in new[] { Path() with { PermissionCode = "MAINTENANCE_VIEW" },
+            Path() with { PermissionCode = "MAINTENANCE_REVIEW" },
             Path() with { AssignmentActive = false }, Path() with { RoleActive = false },
             Path() with { BranchAccessActive = false }, Path() with { BranchActive = false },
             Path() with { ExpiresAt = Now }, Path() with { AssignedAt = Now.AddMinutes(1) },
             Path() with { BranchId = 8 }, Path("DEPARTMENT") })
-            Assert.False(MaintenanceExecutionAccess.Allows("MAINTENANCE_STAFF", path, 7, Now));
+            Assert.False(MaintenanceExecutionAccess.Allows(role, path, 7, Now));
     }
 }

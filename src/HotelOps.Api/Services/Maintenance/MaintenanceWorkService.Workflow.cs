@@ -29,18 +29,18 @@ public sealed partial class MaintenanceWorkService
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["VerifyWork"], request.ActorUserId, id, request);
         var note = RequiredNote(request.Note, "Note", 10);
-        return ExecuteCorrectiveAsync(id, request, note, (work, incident, now, token) =>
+        return ExecuteCorrectiveAsync(id, request, note, async (work, incident, now, token) =>
         {
             RequireState(work, "COMPLETED");
-            if (work.AssigneeId == TrustedActorId)
-                throw new ValidationException("The current assignee cannot verify their own work.");
+            if (await MaintenanceReviewSeparation.PerformedAsync(_dbContext, TrustedActorId, id, token))
+                throw new ValidationException("A current assignee, performer or prior submitter cannot verify this work.");
             work.Status = "CLOSED";
             work.ReviewedBy = TrustedActorId;
             work.ReviewedAt = now;
             incident.Status = "CLOSED";
             incident.ClosedAt = now;
             incident.ClosureNote = note;
-            return Task.CompletedTask;
+
         }, cancellationToken);
     }
 
@@ -49,11 +49,11 @@ public sealed partial class MaintenanceWorkService
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["ReturnWork"], request.ActorUserId, id, request);
         var reason = RequiredNote(request.Reason, "Reason", 10);
-        return ExecuteCorrectiveAsync(id, request, reason, (work, incident, now, token) =>
+        return ExecuteCorrectiveAsync(id, request, reason, async (work, incident, now, token) =>
         {
             RequireState(work, "COMPLETED");
-            if (work.AssigneeId == TrustedActorId)
-                throw new ValidationException("The current assignee cannot return their own work for rework.");
+            if (await MaintenanceReviewSeparation.PerformedAsync(_dbContext, TrustedActorId, id, token))
+                throw new ValidationException("A current assignee, performer or prior submitter cannot return this work for rework.");
             work.Status = "IN_PROGRESS";
             work.ResolvedAt = null;
             work.ResolutionNote = null;
@@ -62,7 +62,7 @@ public sealed partial class MaintenanceWorkService
             incident.Status = "IN_PROGRESS";
             incident.ResolvedAt = null;
             AddWorkLog(work, TrustedActorId, reason, 0, now);
-            return Task.CompletedTask;
+
         }, cancellationToken, restoreAssigneeResponsibility: true);
     }
 

@@ -61,3 +61,13 @@ Direct validation: backend build PASS, zero warnings/errors; frontend typecheck/
 UC058 remains PARTIAL_IMPLEMENTATION: Maintenance Lead executor coverage, production progress/material-entry workflow and actual SQL/HTTPS acceptance are still outstanding. No newly COMPLETE_VERIFIED UC. Next high-impact work: finish that actor/material path and verify Start -> Hold/Resume -> Submit -> reviewer notification on the verified disposable runtime.
 
 Files: MaintenanceResumeContract.cs, MaintenanceReadContract.cs, MaintenanceWorkDetailDto.cs; MaintenanceSubmissionPanel.tsx (new), IncidentEvidencePanel.tsx, MaintenanceReadView.tsx, Workspace.tsx, SharedAuthHost.tsx; MaintenanceExecutionAccessTests.cs, maintenance-submit-browser.test.mjs (new); this receipt.
+
+## Maintenance Lead executor and review separation
+
+UC054/055/058 name Maintenance Lead as an execution actor. The execution predicate now accepts either active MAINTENANCE_STAFF or MAINTENANCE_LEAD with its current MAINTENANCE_EXECUTE grant; independent scoped Maintenance read access, exact current assignee, branch access, source coherence, session, rowversion and workday/interval guards remain mandatory. No grants are created. Read capability and Workday Pause All reuse this predicate, so the same actor rule applies across Start/Hold/Resume/Submit and end-of-shift handling.
+
+Review segregation now uses one helper for notification eligibility and Verify/Return service transitions. Current assignees, recorded Maintenance interval performers and prior submitters evidenced by IN_PROGRESS -> COMPLETED audits are excluded, including after reassignment. Legacy submission audits do not need the new notification marker. This is bounded by retained source evidence and does not reconstruct missing legacy/archived history. Verify/Return production admission remains unchanged.
+
+Direct validation: backend builds PASS with zero warnings/errors; 18 focused execution/read/source regression tests PASS, including allowed Lead execution and revoked/foreign-branch/read-only/review-only grant rejection. SQL execution of the new historical-performer query and real Lead workflow remain NOT_RUN. No database mutation or frontend change. UC058 remains partial for production progress/material-entry and full SQL/HTTPS acceptance; no newly completed UC.
+
+Files: MaintenanceExecutionAccess.cs, MaintenanceResumeContract.cs, new MaintenanceReviewSeparation.cs, MaintenanceWorkService.Workflow.cs, MaintenanceSubmissionSource.cs, MaintenanceExecutionAccessTests.cs and this receipt.

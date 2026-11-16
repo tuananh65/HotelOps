@@ -58,8 +58,7 @@ internal static class MaintenanceSubmissionSource
 
     internal static async Task<bool> CanReviewAsync(HotelOpsDbContext db, long user, Source source, CancellationToken ct)
     {
-        if (user == source.ActorId || await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == user
-                && i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == source.WorkId, ct)) return false;
+        if (user == source.ActorId || await MaintenanceReviewSeparation.PerformedAsync(db, user, source.WorkId, ct)) return false;
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var paths = await (from role in db.UserRoles.AsNoTracking()
             join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
