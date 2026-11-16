@@ -103,7 +103,8 @@ public sealed partial class RoomTypeCreationService
             var mutation = false;
             return await BatchAsync(ticket, sid, branch, async (actor, inner) =>
             {
-                if (!await CleaningExecutionInstalled(inner) || !await LifecycleInstalled(inner)) return new(RoomTypeBatchStatus.SchemaRequired);
+                if ((!await CleaningExecutionInstalled(inner) && !await CleaningStartSchema.InstalledAsync(db, inner))
+                    || !await LifecycleInstalled(inner)) return new(RoomTypeBatchStatus.SchemaRequired);
                 var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(x => x.CleaningTaskId == task
                     && x.Room.BranchId == branch && x.Room.IsActive && x.Room.Floor.IsActive
                     && (x.Room.AreaId == null || x.Room.Area!.IsActive), inner);

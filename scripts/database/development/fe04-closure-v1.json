@@ -1,0 +1,9 @@
+[
+    {
+        "marker":  "HotelOps.CleaningClosure.V1",
+        "path":  "scripts/database/development/04-Fe04Closure.sql",
+        "sha256":  "B1EFE4DFD1D09FC3C6E5EF8B872A277B3392037C16207E45590D783E15B7B7E7",
+        "id":  "fe04-closure-v1",
+        "start":  "SET XACT_ABORT ON;"
+    }
+]

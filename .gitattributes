@@ -9,5 +9,9 @@ scripts/database/development/03-Fe04Resume.sql -text whitespace=cr-at-eol,-blank
 scripts/database/development/03-Fe04Resume.Verify.sql -text whitespace=cr-at-eol
 scripts/database/development/fe04-resume-v1.json -text whitespace=cr-at-eol
 scripts/database/development/fe04-resume-verification-v1.json -text whitespace=cr-at-eol
+scripts/database/development/04-Fe04Closure.sql -text whitespace=cr-at-eol
+scripts/database/development/04-Fe04Closure.Verify.sql -text whitespace=cr-at-eol
+scripts/database/development/fe04-closure-v1.json -text whitespace=cr-at-eol
+scripts/database/development/fe04-closure-verification-v1.json -text whitespace=cr-at-eol
 # Unified diff context lines retain their required leading space on blank lines.
 docs/fullstack-integration/DEV3_SOURCE_PUBLICATION/held/PR51_ROWVERSION_CUTOVER.patch -text whitespace=-blank-at-eol

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Text.Json;
 using HotelOps.Api.Data;
@@ -97,6 +98,7 @@ public sealed class FreshStartAdmissionSqlTests
         Assert.False(await db.RoomBlocks.AnyAsync(b => b.RoomId == task.RoomId));
         await VerifyCanonicalStart(db, task.Actor, true);
         await VerifyCanonicalStart(db, task.Actor, false);
+        await RejectUnprovenClosure(db, task.Actor);
         Assert.Equal(0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.room_cleaning_cycle_state WHERE room_id={task.RoomId}").SingleAsync());
     }
     private static async Task VerifyCanonicalStart(HotelOpsDbContext db, long actor, bool blocked)
@@ -165,10 +167,62 @@ public sealed class FreshStartAdmissionSqlTests
             var resolvedVersion=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
             Assert.False(blockedVersion.SequenceEqual(resolvedVersion));
             Assert.Equal(1,await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs014_cleaning_blocker_resolutions WHERE progress_id={progress.ProgressId} AND resolved_by={actor} AND resolved_at={now} AND resolution_note=N'Synthetic obstacle removed'").SingleAsync());
+            // Real durable outbox staging, with synthetic source/interval/audit in this same transaction.
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD' WHERE cleaning_task_id={taskId}");
+            var department=await db.Departments.AsNoTracking().Where(d=>d.BranchId==floor.BranchId && d.IsActive).Select(d=>d.DepartmentId).FirstAsync();
+            var day=new Workday { UserId=actor,BranchId=floor.BranchId,DepartmentId=department,
+                WorkDate=DateOnly.FromDateTime(now),IsUnscheduled=true,UnscheduledReason="Synthetic rollback fixture",Status="WORKING",StartedAt=now.AddMinutes(-1) };
+            db.Workdays.Add(day);await db.SaveChangesAsync();db.ChangeTracker.Clear();
+            var interval=new WorkInterval { WorkdayId=day.WorkdayId,UserId=actor,BranchId=floor.BranchId,
+                WorkItemKind="CLEANING",WorkItemId=taskId,OpenedBy=actor,OpenedAt=now,EffectiveStartedAt=now,
+                ClosedBy=actor,ClosedAt=now,EffectiveEndedAt=now };
+            db.WorkIntervals.Add(interval);await db.SaveChangesAsync();db.ChangeTracker.Clear();
+            var closureOperation=Guid.NewGuid();
+            var revision=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
+            var closure=new HotelOps.Api.DTOs.Housekeeping.CleaningClosureResult(taskId,floor.BranchId,assignment.AssignmentId,
+                closureOperation,Guid.NewGuid(),progress.ProgressId,interval.IntervalId,"ON_HOLD",now,"PENDING_CLEANING",blocked,'"'+Convert.ToHexString(revision)+'"');
+            db.AuditLogs.Add(new AuditLog { BranchId=floor.BranchId,ActorUserId=actor,EntityType="cleaning_tasks",
+                EntityId=taskId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
+                NewValues=JsonSerializer.Serialize(new { operationId=closureOperation,action="REPORT_CLEANING_BLOCKER",progressId=progress.ProgressId }) });
+            await db.SaveChangesAsync();db.ChangeTracker.Clear();
+            var config=new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string,string?> { ["CleaningClosure:Capability"]="VERIFIED_V1" }).Build();
+            var publisher=new HotelOps.Api.Services.Notifications.ProvisionalCleaningNotification(db,config,new ClosureEnvironment());
+            Assert.True(await publisher.ClosureAvailableAsync(default));
+            await publisher.StageClosureAsync(actor,new byte[32],roomId,[actor],closure,default);
+            await publisher.VerifyClosureAsync(actor,closureOperation,1,default);
+            Assert.Equal(1,await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.notification_delivery_intents WHERE publication_id={closure.PublicationId} AND status='PENDING' AND user_id={actor}").SingleAsync());
             await tx.RollbackAsync();
         }
         Assert.False(await db.Rooms.AnyAsync(r=>r.RoomId==roomId));
         Assert.False(await db.CleaningTasks.AnyAsync(t=>t.CleaningTaskId==taskId));
         Assert.False(await db.AuditLogs.AnyAsync(a=>a.RequestId==operation.ToString("D")));
+    }
+    private static async Task RejectUnprovenClosure(HotelOpsDbContext db, long actor)
+    {
+        var assignment=await db.CleaningAssignments.AsNoTracking().Select(a=>a.AssignmentId).FirstAsync();
+        var operation=Guid.NewGuid();var publication=Guid.NewGuid();var fingerprint=new byte[32];
+        await using(var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        {
+            var error=await Assert.ThrowsAsync<Microsoft.Data.SqlClient.SqlException>(()=>db.Database.ExecuteSqlInterpolatedAsync($"""
+                SET XACT_ABORT ON;
+                INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json)
+                VALUES({actor},{operation},1,{fingerprint},1,N'[]');
+                INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,occurrence_key)
+                SELECT {publication},{actor},{operation},'CLEANING_BLOCKER_REPORTED',1,a.assignment_id,t.row_version,N'[]',{publication.ToString("D")}
+                FROM dbo.cleaning_assignments a JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=a.cleaning_task_id WHERE a.assignment_id={assignment};
+                """));
+            Assert.Equal(51915,error.Number);
+        }
+        Assert.Equal(0,await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.notification_operation_reservations WHERE actor_user_id={actor} AND operation_key={operation}").SingleAsync());
+    }
+    private sealed class ClosureEnvironment : Microsoft.AspNetCore.Hosting.IWebHostEnvironment
+    {
+        public string EnvironmentName { get; set; }="Development";
+        public string ApplicationName { get; set; }="HotelOps.Api";
+        public string ContentRootPath { get; set; }=".";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; }=new Microsoft.Extensions.FileProviders.NullFileProvider();
+        public string WebRootPath { get; set; }=".";
+        public Microsoft.Extensions.FileProviders.IFileProvider WebRootFileProvider { get; set; }=new Microsoft.Extensions.FileProviders.NullFileProvider();
     }
 }

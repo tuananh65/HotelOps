@@ -14,6 +14,8 @@ public sealed partial class ProvisionalCleaningNotification
 {
     public async Task<bool> ClosureAvailableAsync(CancellationToken ct)
     {
+        if (env.IsDevelopment() && config["CleaningClosure:Capability"] == "VERIFIED_V1")
+            return await HotelOps.Api.Data.CleaningClosureSchema.InstalledAsync(db, ct);
         if (!env.IsDevelopment() || config["CleaningClosure:Candidate"] != "FS015_PROVISIONAL"
             || db.Database.GetDbConnection().Database is not ("HotelOps_Canonical_FS015_Cleaning_V1_Fresh" or "HotelOps_Canonical_FS016_Rework_V1_Fresh")) return false;
         return await db.Database.SqlQuery<int>($"""
@@ -54,6 +56,12 @@ public sealed partial class ProvisionalCleaningNotification
     {
         if (db.Database.CurrentTransaction == null || !await ClosureAvailableAsync(ct) || recipients.Length == 0)
             throw new InvalidOperationException("MANDATORY_CLOSURE_STAGING_UNAVAILABLE");
+        if (actor <= 0 || room <= 0 || fingerprint is not { Length: 32 }
+            || recipients.Any(id => id <= 0) || recipients.Distinct().Count() != recipients.Length
+            || result.State is not ("ON_HOLD" or "PENDING_INSPECTION")
+            || !HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.ValidClosureReceipt(result,
+                result.BranchId, result.Id, result.AssignmentId, result.OperationId, result.State == "PENDING_INSPECTION"))
+            throw new InvalidOperationException("INVALID_CLOSURE_STAGING_SOURCE");
         var eventName = result.State == "ON_HOLD" ? "CLEANING_BLOCKER_REPORTED" : "CLEANING_TASK_COMPLETED";
         var occurrence = result.State == "ON_HOLD" ? $"CLEANING:{result.Id}:BLOCKER:{result.ProgressId}" : $"CLEANING:{result.Id}:COMPLETE";
         var payload = JsonSerializer.Serialize(new { schemaVersion = 1, eventName, occurrenceKey = occurrence,

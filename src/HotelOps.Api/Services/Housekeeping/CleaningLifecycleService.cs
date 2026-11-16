@@ -48,7 +48,7 @@ public sealed partial class RoomTypeCreationService
             var resume = startInstalled && state.State == "ON_HOLD" && active?.AssigneeUserId == ticket.UserId
                 && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 && await ResumeTrialInstalled(token) ? "PROVISIONAL_V1" : "UNAVAILABLE";
-            var closure = installed && state.State == "IN_PROGRESS" && active?.AssigneeUserId == ticket.UserId
+            var closure = startInstalled && state.State == "IN_PROGRESS" && active?.AssigneeUserId == ticket.UserId
                 && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 && candidateNotification != null && await candidateNotification.ClosureAvailableAsync(token)
                 && (await candidateNotification.ClosureRecipientsAsync(branch, token)).Length > 0
