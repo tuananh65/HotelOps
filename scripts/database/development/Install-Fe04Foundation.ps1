@@ -40,6 +40,9 @@ if($Target -eq 'Development'){
 $database=if($Target -eq 'Recovery'){$receipt.recoveryDatabase}else{$receipt.source}
 $expectedGuid=if($Target -eq 'Recovery'){$receipt.recoveryGuid}else{$sourceGuid}
 $connection=[System.Data.SqlClient.SqlConnection]::new('Server=localhost\MSSQLSERVER01;Database=master;Integrated Security=true;Encrypt=true;TrustServerCertificate=true')
+# SQL Server persists ALTER TRIGGER with a CREATE header. Normalize that header only;
+# retain exact body, identifiers and case after normalizing line endings.
+function TriggerDefinition([string]$definition){return ($definition.Trim().Replace("`r`n","`n") -creplace '^ALTER TRIGGER ','CREATE TRIGGER ')}
 $transaction=$null
 function Query([string]$sql){$c=$connection.CreateCommand();$c.CommandText=$sql;$c.Transaction=$transaction;$c.CommandTimeout=60;try{return $c.ExecuteScalar()}finally{$c.Dispose()}}
 function Execute([string]$sql){$c=$connection.CreateCommand();$c.CommandText=$sql;$c.Transaction=$transaction;$c.CommandTimeout=60;try{[void]$c.ExecuteNonQuery()}finally{$c.Dispose()}}
@@ -63,7 +66,7 @@ try{
    if((Get-FileHash -LiteralPath $predecessor -Algorithm SHA256).Hash -cne $predecessorHash){throw 'Predecessor package drift'}
    $expected=([IO.File]::ReadAllText($predecessor) -split '(?im)^\s*GO\s*\r?$' | Where-Object {$_.Trim() -match '^(?:CREATE|ALTER) TRIGGER dbo\.TR_dev3_closure_publication_source'})
    $actual=[string](Query "SELECT OBJECT_DEFINITION(OBJECT_ID(N'dbo.TR_dev3_closure_publication_source'))")
-   if($expected.Count -ne 1 -or $actual.Trim().Replace("`r`n","`n") -cne $expected.Trim().Replace("`r`n","`n")){throw 'Predecessor source guard drift'}
+   if($expected.Count -ne 1 -or (TriggerDefinition $actual) -cne (TriggerDefinition $expected)){throw 'Predecessor source guard drift'}
   }
   Execute "IF COL_LENGTH('dbo.users','row_version') IS NULL BEGIN IF EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.users') AND system_type_id=189) THROW 51990,'Other user version exists',1; ALTER TABLE dbo.users ADD row_version rowversion NOT NULL; END; IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.users') AND name='row_version' AND system_type_id=189 AND is_nullable=0) THROW 51990,'User version incompatible',1;"
   foreach($package in $packages){
@@ -77,7 +80,7 @@ try{
   foreach($batch in [regex]::Split($package.body,'(?im)^\s*GO\s*\r?$')){
    if($batch.Trim() -match '^(?:CREATE|ALTER) TRIGGER dbo\.([A-Za-z0-9_]+)'){
     $name=$Matches[1];$actual=[string](Query "SELECT OBJECT_DEFINITION(OBJECT_ID(N'dbo.$name'))")
-    if($actual.Trim().Replace("`r`n","`n") -cne $batch.Trim().Replace("`r`n","`n")){throw "Trigger definition mismatch: $name"}
+    if((TriggerDefinition $actual) -cne (TriggerDefinition $batch)){$report.triggerMismatch=@{name=$name;actualLength=$actual.Trim().Length;expectedLength=$batch.Trim().Length;actualPrefix=$actual.Trim().Substring(0,[Math]::Min(60,$actual.Trim().Length));expectedPrefix=$batch.Trim().Substring(0,[Math]::Min(60,$batch.Trim().Length))};throw "Trigger definition mismatch: $name"}
    }
   }
  }

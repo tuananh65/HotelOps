@@ -1,0 +1,10 @@
+{
+    "database":  "HotelOps_DEV3_142A_Recovery_2b221f40",
+    "manifestHash":  "CE2748533DC13ADB4C7C9DE00F0602F096662D4C183838A0197D4953BFDE8BB1",
+    "backupSha256":  "51D135B6D7AAC0EE22A1FBBF4F2CFE9BBF29447A668F04BD1060C620A082D73F",
+    "status":  "APPLIED_VERIFIED",
+    "rollbackTrial":  false,
+    "startedUtc":  "2026-11-16T05:22:43.5187212Z",
+    "tables":  93,
+    "completedUtc":  "2026-11-16T05:22:43.6569756Z"
+}
