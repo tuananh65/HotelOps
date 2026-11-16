@@ -4,7 +4,7 @@ import { isObject } from "../auth/http";
 type Room = { roomId: number; number: string; readiness: string; inScope: boolean; blockedByIncident: boolean };
 type Context = { incidentId: number; version: string; page: number; hasMore: boolean; rooms: Room[] };
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
-export function IncidentRoomBlocksPanel({ incidentId }: { incidentId: number }) {
+export function IncidentRoomBlocksPanel({ incidentId, onCommitted }: { incidentId: number; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth(), owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const current = useRef(owner); current.current = owner;
   const active = useRef<AbortController | null>(null), sending = useRef(false);
@@ -16,7 +16,7 @@ export function IncidentRoomBlocksPanel({ incidentId }: { incidentId: number }) 
   const data = result?.owner === owner && result.data.incidentId === incidentId ? result.data : null;
   async function load(page: number) {
     if (!owner || sending.current) return;
-    sending.current = true; setBusy(true); const abort = new AbortController(); active.current = abort;
+    sending.current = true; setBusy(true); setResult(null); setSelected([]); setReview(false); const abort = new AbortController(); active.current = abort;
     try {
       const response = await fetch(`/api/incidents/${incidentId}/room-blocks?page=${page}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (!response.ok) throw Error("Room scope unavailable. Check current permission and incident state.");
@@ -42,7 +42,10 @@ export function IncidentRoomBlocksPanel({ incidentId }: { incidentId: number }) 
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload rooms before retrying." : "Room change not confirmed. Reload rooms and check scope, reason and existing blocks.");
       const saved: unknown = await response.json();
       if (!isObject(saved) || saved.incidentId !== incidentId || saved.action !== action || typeof saved.version !== "string" || !/^"[0-9A-F]{16}"$/.test(saved.version)) throw Error("Response could not be confirmed. Reload rooms.");
-      if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: action === "MAP" ? "Affected-room scope saved. Reload rooms to block them." : "Room blocks updated and readiness recalculated. Notifications queued for eligible supervisors. Reload rooms for current status." });
+      if (!abort.signal.aborted && current.current === owner) {
+        const notice = action === "MAP" ? "Affected-room scope saved. Reload rooms to block them." : "Room blocks updated and readiness recalculated. Notifications queued for eligible supervisors.";
+        setResult(null); setSelected([]); setMessage({ owner, text: notice }); onCommitted?.(notice);
+      }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: e instanceof Error ? e.message : "Change not confirmed. Reload rooms." }); }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); setReview(false); } }
   }

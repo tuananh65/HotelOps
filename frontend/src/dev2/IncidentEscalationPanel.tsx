@@ -7,7 +7,7 @@ type Context = { eTag: string | null; canCreate: boolean; severity: string | nul
   serverNow: string; timing: { classification: string; percentUsed: number | null; unavailableReason: string | null }; items: Item[] };
 const date = (value: string | null) => value ? new Date(value).toLocaleString("en-GB", { timeZone: "Asia/Ho_Chi_Minh" }) + " UTC+7" : "N/A";
 
-export function IncidentEscalationPanel({ id }: { id: number }) {
+export function IncidentEscalationPanel({ id, onCommitted }: { id: number; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const current = useRef(owner); current.current = owner;
@@ -49,8 +49,11 @@ export function IncidentEscalationPanel({ id }: { id: number }) {
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": data.eTag }, body: JSON.stringify({ reason: reason.trim(), requestedSupport: support.trim() }) });
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload before retrying." : "Escalation not confirmed. Reload to check eligibility, permissions and any existing open escalation.");
       const saved: unknown = await response.json();
-      if (!isObject(saved) || saved.incidentId !== id || saved.status !== "OPEN" || typeof saved.eventId !== "number") throw Error("Response not confirmed. Reload before retrying.");
-      if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: "Escalation saved. Operations Manager notification is queued for eligible recipients and requires acknowledgment. Reload to see current details." });
+      if (!isObject(saved) || saved.incidentId !== id || saved.status !== "OPEN" || typeof saved.eventId !== "number" || !Number.isSafeInteger(saved.eventId) || saved.eventId <= 0) throw Error("Response not confirmed. Reload before retrying.");
+      if (!abort.signal.aborted && current.current === owner) {
+        const notice = "Escalation saved. Operations Manager notification is queued for eligible recipients and requires acknowledgment.";
+        setSnapshot(null); setMessage({ owner, text: notice }); onCommitted?.(notice);
+      }
     } catch (error) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: error instanceof Error ? error.message : "Escalation not confirmed. Reload." }); }
     finally { sending.current = false; if (!abort.signal.aborted) { setBusy(false); setReview(false); } }
   }
