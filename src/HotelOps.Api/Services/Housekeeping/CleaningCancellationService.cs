@@ -106,7 +106,8 @@ public sealed partial class RoomTypeCreationService
                 if (row == null) return new(RoomTypeBatchStatus.NotFound);
                 if (candidateNotification == null || !await candidateNotification.CancellationAvailableAsync(inner))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "CANCELLATION_CONTRACT_REQUIRED");
-                if (!await LifecycleInstalled(inner) || !await CleaningExecutionInstalled(inner)) return new(RoomTypeBatchStatus.SchemaRequired);
+                if (!await LifecycleInstalled(inner) || (!await CleaningExecutionInstalled(inner)
+                    && !await HotelOps.Api.Data.CleaningStartSchema.InstalledAsync(db,inner))) return new(RoomTypeBatchStatus.SchemaRequired);
                 var stored = await candidateNotification.FindAsync(actor, operation, inner);
                 if (stored != null)
                 {

@@ -9,6 +9,8 @@ public sealed partial class ProvisionalCleaningNotification
 {
     public async Task<bool> CancellationAvailableAsync(CancellationToken ct)
     {
+        if(env.IsDevelopment() && config["CleaningCancellation:Capability"]=="VERIFIED_V1")
+            return await HotelOps.Api.Data.CleaningCancellationSchema.InstalledAsync(db,ct);
         if (!env.IsDevelopment() || config["CleaningCancellation:Candidate"] != "FS018_PROVISIONAL"
             || db.Database.GetDbConnection().Database != "HotelOps_Canonical_FS018_Cancellation_V1_Fresh") return false;
         return await db.Database.SqlQuery<int>($"""
@@ -69,7 +71,7 @@ public sealed partial class ProvisionalCleaningNotification
             AND (({r.AssignmentId} IS NULL AND {r.PublicationId} IS NULL AND NOT EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.actor_user_id={actor} AND p.operation_key={r.OperationId}))
               OR EXISTS(SELECT 1 FROM dbo.notification_publications p JOIN dbo.cleaning_assignments s ON s.assignment_id=p.assignment_id
                 WHERE p.publication_id={r.PublicationId} AND p.actor_user_id={actor} AND p.operation_key={r.OperationId}
-                AND p.event_type='CLEANING_TASK_CANCELLED' AND p.schema_version=1 AND p.rework_id IS NULL
+                AND p.event_type='CLEANING_TASK_CANCELLED' AND p.schema_version=1
                 AND s.assignment_id={r.AssignmentId} AND s.cleaning_task_id={r.Id} AND s.assignee_user_id={r.AssigneeId} AND s.assignment_status='CANCELLED' AND s.ended_at={r.OccurredAtUtc}
                 AND p.source_revision={Convert.FromHexString(r.SourceETag.Trim('"'))}
                 AND JSON_VALUE(p.payload_json,'$.sourceETag')={r.SourceETag}

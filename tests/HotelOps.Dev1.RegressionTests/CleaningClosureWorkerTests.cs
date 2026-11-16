@@ -13,6 +13,22 @@ namespace HotelOps.Dev1.RegressionTests;
 
 public sealed class CleaningClosureWorkerTests
 {
+    [Theory]
+    [InlineData("Production")]
+    [InlineData("Staging")]
+    public async Task Cancellation_opt_in_cannot_enable_non_development_runtime(string environment)
+    {
+        await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+            .UseSqlServer("Server=unused;Database=unused;Integrated Security=true").Options);
+        var publisher = new ProvisionalCleaningNotification(db,
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["CleaningCancellation:Capability"] = "VERIFIED_V1",
+                ["CleaningCancellation:Candidate"] = "FS018_PROVISIONAL"
+            }).Build(), new Environment { EnvironmentName = environment });
+        Assert.False(await publisher.CancellationAvailableAsync(default));
+    }
+
     [Fact]
     public async Task Default_disabled_worker_does_not_resolve_a_delivery_service()
     {

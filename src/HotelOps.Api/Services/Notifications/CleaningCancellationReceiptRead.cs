@@ -24,7 +24,7 @@ public sealed partial class NotificationCenterService
         var notice=await Inbox(user,now).AsNoTracking().Where(n=>n.NotificationId==id
             && n.Notification.NotificationType=="CLEANING_TASK_CANCELLED" && n.Notification.SourceType=="CLEANING_TASK")
             .Select(n=>new { n.Notification.SourceId,n.Notification.CreatedBy }).SingleOrDefaultAsync(ct);
-        if(notice==null || await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.notification_delivery_intents','U') IS NOT NULL AND COL_LENGTH('dbo.notification_publications','rework_id') IS NOT NULL THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct)!=1)
+        if(notice==null || await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.notification_delivery_intents','U') IS NOT NULL AND OBJECT_ID('dbo.notification_operation_reservations','U') IS NOT NULL AND COL_LENGTH('dbo.notification_publications','occurrence_key') IS NOT NULL THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct)!=1)
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var publications=await db.Database.SqlQuery<Guid>($"SELECT publication_id AS [Value] FROM dbo.notification_delivery_intents WHERE inbox_notification_id={id} AND user_id={user} AND delivery_channel='IN_APP' AND status='DELIVERED'").ToArrayAsync(ct);
         var proof=publications.Length==1 ? await CleaningCancellationNotificationSource.LoadAsync(db,publications[0],user,ct) : null;
