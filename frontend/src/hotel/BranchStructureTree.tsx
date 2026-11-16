@@ -155,6 +155,8 @@ export function BranchStructureTree() {
         <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}&action=create`}>Add Area</Link>
         <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}`}>Manage Floors</Link>
         <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}`}>Manage Areas</Link>
+        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}&action=create`}>Add Department</Link>
+        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}`}>Departments</Link>
       </nav>
       <p>
         Browse one server-authorized collection page at a time. Counts do not

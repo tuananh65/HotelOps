@@ -192,6 +192,8 @@ function httpError(status: number, body: unknown): HotelError {
     "STRUCTURE_CODE_EXISTS",
     "PARENT_FLOOR_UNAVAILABLE",
     "PARENT_CHANGE_CONFLICT",
+    "DUPLICATE",
+    "INVALIDREFERENCE",
     "ROOM_TYPE_SCHEMA_REQUIRED",
   ].find((v) => v === identifier) as HotelError["reason"];
   const activeRooms =

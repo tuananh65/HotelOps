@@ -220,7 +220,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
   const branchId = decimalId(branch),
     id = decimalId(record),
     pageNumber = decimalId(page);
-  const kind = mutationFor(screen, action);
+  const kind = canonicalStructure && screen === "departments" && action === "edit" ? null : mutationFor(screen, action);
   const readKind = readFor(screen, action);
   const key = JSON.stringify([
     route.pathname,
@@ -345,7 +345,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             Update branch information
           </Link>
         )}
-        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas" }
+        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments" }
           : readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
           "/hotel": "Branch structure",
           "/floors": "Floors",
@@ -396,7 +396,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
               <>
                 <option value="detail">Read record</option>
                 {!readOnly && <option value="create">Create</option>}
-                {!readOnly && <option value="edit">Update</option>}
+                {!readOnly && !(canonicalStructure && screen === "departments") && <option value="edit">Update</option>}
               </>
             )}
             {!readOnly && screen === "roomTypes" && (
@@ -659,7 +659,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             <>
               <Values value={snapshot.data} />
               {(() => {
-                const page = (snapshot.data as ReadTypes["structure"])[screen as "floors" | "areas"];
+                const page = (snapshot.data as ReadTypes["structure"])[screen as "floors" | "areas" | "departments"];
                 return page?.items.length ? <ul>{page.items.map(node => <li key={node.id}>
                   <Link to={`/structure/${screen}/${node.id}?branchId=${branchId}`}>Open {node.name} ({node.code})</Link>
                 </li>)}</ul> : <p>MSG10: No records match these filters.</p>;
@@ -684,6 +684,8 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         <p>This server record is read-only in this flow.</p>
       )}
       {formAllowed && (
+        <>
+        {canonicalStructure && screen === "departments" && <p>Department Head is an optional designation. Processing requests and approvals requires separate current permissions and department management mappings.</p>}
         <MutationForm
           key={`${key}:${snapshot?.revision ?? 0}`}
           kind={kind}
@@ -691,6 +693,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           snapshot={snapshot}
           save={flow.save}
         />
+        </>
       )}
       {flow.phase === "confirmed" && (
         <section role="status" aria-label="Confirmed hotel change">

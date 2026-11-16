@@ -313,6 +313,8 @@ export interface HotelError {
     | "STRUCTURE_CODE_EXISTS"
     | "PARENT_FLOOR_UNAVAILABLE"
     | "PARENT_CHANGE_CONFLICT"
+    | "DUPLICATE"
+    | "INVALIDREFERENCE"
     | "ROOM_TYPE_SCHEMA_REQUIRED";
 }
 export type ReadResult<T> =

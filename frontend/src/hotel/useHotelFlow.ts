@@ -19,6 +19,8 @@ export interface HotelSnapshot {
   etag: string | null;
 }
 export function hotelErrorMessage(error: HotelError) {
+  if (error.reason === "DUPLICATE") return "MSG35: This code or number already exists in the selected scope.";
+  if (error.reason === "INVALIDREFERENCE") return "MSG03: A selected reference is unavailable or no longer eligible. Check its current branch and active status.";
   if (error.reason === "STRUCTURE_CODE_EXISTS") return "MSG35: This floor or area code already exists in the branch. Choose another code.";
   if (error.reason === "PARENT_FLOOR_UNAVAILABLE") return "MSG03: Select an active parent floor in this branch.";
   if (error.reason === "PARENT_CHANGE_CONFLICT") return "MSG03: The parent change conflicts with rooms currently linked to this area.";
