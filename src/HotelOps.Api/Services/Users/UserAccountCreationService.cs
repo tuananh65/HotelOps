@@ -6,12 +6,13 @@ using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum AccountCreationStatus { Success, Forbidden, InvalidReference, Duplicate, LastAdministrator, SerializationUnavailable }
+public enum AccountCreationStatus { Success, Forbidden, InvalidReference, Duplicate, LastAdministrator, SerializationUnavailable, MembershipStorageRequired }
 public sealed record AccountCreationResult(AccountCreationStatus Status, CreatedEmployeeAccountDto? User = null,
     IssuedTemporaryCredential? Credential = null, IReadOnlyList<string>? DuplicateFields = null) : IDisposable
 {
@@ -44,6 +45,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
             return new(AccountCreationStatus.Forbidden);
         if (!Departments.TryGetValue(request.RoleCode, out var departmentCode)) return new(AccountCreationStatus.InvalidReference);
+        if (!await WorkdayMembershipStore.InstalledAsync(db, ct)) return new(AccountCreationStatus.MembershipStorageRequired);
 
         // Serialize master deactivation with validation/insert; no assumption from client scope.
         var branch = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={request.BranchId}")
@@ -67,7 +69,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             new SqlParameter("@email", request.Email), new SqlParameter("@phone", (object?)request.Phone ?? DBNull.Value)).SingleAsync(ct);
         if (lossy != 0) throw new ValidationException("A field cannot be stored losslessly within the database limits.");
 
-        var now = clock.GetUtcNow().UtcDateTime;
+        var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct), DateTimeKind.Utc);
         var user = new User { EmployeeCode = request.EmployeeCode, Username = request.Username, FullName = request.FullName,
             Email = request.Email, Phone = request.Phone, PrimaryBranchId = branch.BranchId, DepartmentId = department.DepartmentId,
             AccountStatus = "ACTIVE", EmploymentStatus = "ACTIVE", CreatedAt = now };
@@ -93,7 +95,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             EntityId = user.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = now,
             NewValues = JsonSerializer.Serialize(new { employeeCode = request.EmployeeCode, username = request.Username,
                 fullName = request.FullName, email = request.Email, phone = request.Phone, branchId = branch.BranchId,
-                departmentId = department.DepartmentId, roleCode = role.RoleCode, accountStatus = "ACTIVE" }) };
+                departmentId = department.DepartmentId, roleCode = role.RoleCode, accountStatus = "ACTIVE", employeeDepartmentMembershipCreated = true }) };
         db.AddRange(access, assignment, audit);
         try { await db.SaveChangesAsync(ct); }
         finally
@@ -101,6 +103,9 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             db.Entry(access).State = EntityState.Detached; db.Entry(assignment).State = EntityState.Detached;
             db.Entry(audit).State = EntityState.Detached;
         }
+        // The explicitly selected employee department is also the membership used by scheduling and workday admission.
+        // Do not infer employment membership later from the legacy primary-department field.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.employee_department_memberships(user_id,branch_id,department_id,granted_at,recorded_by,provenance) VALUES({user.UserId},{branch.BranchId},{department.DepartmentId},{now},{actor.UserId},N'Explicit department selected during UC004 employee creation')", ct);
         using var prepared = credentials.Prepare(user.UserId);
         using var pending = await participant.StageInitialAsync(prepared, actor.UserId, ct);
         // An inserted identifier can collide with an existing administrator across columns.

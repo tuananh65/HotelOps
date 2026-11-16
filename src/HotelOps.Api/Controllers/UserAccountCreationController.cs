@@ -28,6 +28,7 @@ public sealed class UserAccountCreationController(UserAccountCreationService acc
                 AccountCreationStatus.Forbidden => Forbid(),
                 AccountCreationStatus.LastAdministrator => Problem(statusCode: 409, title: "LAST_DURABLE_ADMIN"),
                 AccountCreationStatus.SerializationUnavailable => Problem(statusCode: 503, title: "GLOBAL_ADMIN_SERIALIZATION_UNAVAILABLE"),
+                AccountCreationStatus.MembershipStorageRequired => Problem(statusCode: 503, title: "EMPLOYEE_MEMBERSHIP_STORAGE_REQUIRED"),
                 AccountCreationStatus.InvalidReference => Problem(statusCode: 400, title: "Invalid active branch, department or initial role relationship"),
                 AccountCreationStatus.Duplicate => Problem(statusCode: 409, title: "Employee code, username or email already exists",
                     extensions: new Dictionary<string, object?> { ["duplicateFields"] = result.DuplicateFields }),
