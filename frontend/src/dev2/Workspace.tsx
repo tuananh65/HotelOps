@@ -16,6 +16,7 @@ import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
 import { MaterialApproverField } from "./MaterialApproverField";
+import { MaterialCatalogFields } from "./MaterialCatalogFields";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -469,16 +470,18 @@ function Screen({
             }}
           />
           <Fields
-            fields={operation.id === "A004A-043" ? operation.fields.filter(f => f.name !== "assignedApproverUserId")
+            fields={operation.id === "A004A-043" ? operation.fields.filter(f => ["branchId", "purpose", "neededAt", "submit"].includes(f.name))
+              .map(f => f.name === "neededAt" && values.submit === true ? { ...f, optional: false } : f)
               : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}
             actor={actor}
-            onChange={v => change(operation.id === "A004A-043" && (v.branchId !== values.branchId || v.sourceWarehouseId !== values.sourceWarehouseId)
-              ? { ...v, assignedApproverUserId: "" }
+            onChange={v => change(operation.id === "A004A-043" && v.branchId !== values.branchId
+              ? { ...v, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "", receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] }
               : ["A004A-021", "A004A-022"].includes(operation.id) && v.branchId !== values.branchId ? { ...v, categoryId: "" } : v)}
           />
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
+          {operation.id === "A004A-043" && <MaterialCatalogFields values={values} onChange={change} />}
           {operation.id === "A004A-043" && <MaterialApproverField branch={values.branchId} warehouse={values.sourceWarehouseId}
             value={values.assignedApproverUserId} required={values.submit === true}
             onChange={assignedApproverUserId => change({ ...values, assignedApproverUserId })} />}
@@ -488,7 +491,7 @@ function Screen({
               lines. Requester/approver cannot fulfill their own request.
             </p>
           )}
-          <button type="submit" disabled={busy || denied || uncertain}>
+          <button type="submit" disabled={busy || denied || uncertain || operation.id === "A004A-043" && (!Array.isArray(values.lines) || values.lines.length === 0)}>
             {busy
               ? "Working…"
               : operation.method === "GET"

@@ -21,6 +21,7 @@ public sealed class MaterialRequestsController(MaterialRequestService service) :
     [HttpGet] public Task<IActionResult> List([FromQuery] MaterialPage page, CancellationToken ct) => Execute(() => service.List(page, ct));
     // The admitted scoped read handler owns this lookup; never fall back to an unscoped user directory.
     [HttpGet("creation-approvers")] public IActionResult Approvers([FromQuery] long branchId, [FromQuery] long? sourceWarehouseId) => Forbid();
+    [HttpGet("creation-catalog")] public IActionResult CreationCatalog([FromQuery] long branchId) => Forbid();
     [HttpGet("{id:long}")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));
     [HttpGet("{id:long}/history")] public Task<IActionResult> History(long id, CancellationToken ct) => Execute(() => service.History(id, ct));
     [HttpGet("{id:long}/availability")] public Task<IActionResult> Availability(long id, CancellationToken ct) => Execute(() => service.Availability(id, ct));

@@ -25,10 +25,12 @@ internal static class MaterialCreateContract
 {
     private const string ResourceType = "material_request_creation";
     private static readonly object ApproverOptionsKey = new();
+    private static readonly object CatalogKey = new();
     private const string Policy = "UC091 create: HTTPS current unrestricted SQL session; eligible actor; "
         + "active branch access; approved actor role with MR_CREATE and independent MR_VIEW in current scope; "
         + "requester always principal; exact bound input; Serializable action transaction through disclosure; "
-        + "approved mapped approver and independent source-link authorization; lifecycle schema required; scoped current mapped approver lookup";
+        + "approved mapped approver and independent source-link authorization; lifecycle schema required; scoped current mapped approver lookup; "
+        + "branch catalog selection without stock/price disclosure; independent incident read scope rechecked before catalog disclosure";
     private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
         "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
 
@@ -47,12 +49,18 @@ internal static class MaterialCreateContract
             [new("MR_CREATE", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId))),
              new("MR_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId)))]),
         Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new CreationResolver(a),
-        ReadApproversAsync, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true)];
+        ReadApproversAsync, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true),
+     new("MATERIAL-CREATE-CATALOG", "DEV3_142A_MATERIAL_CREATE_CATALOG_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
+        (a, _) => Task.FromResult<IReadOnlyList<Dev2PermissionRequirement>>(
+            [new("MR_CREATE", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId))),
+             new("MR_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId)))]),
+        Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new CreationResolver(a),
+        ReadCatalogAsync, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true)];
 
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static MaterialRequestWrite Input(Dev2BoundAction a)
     {
-        if (a.Identity.DecisionId != "MATERIAL-CREATE-APPROVERS")
+        if (a.Identity.DecisionId is not ("MATERIAL-CREATE-APPROVERS" or "MATERIAL-CREATE-CATALOG"))
             return a.Arguments.GetValueOrDefault("input") as MaterialRequestWrite ?? throw new Dev2AccessDenied(403);
         if (a.Arguments.GetValueOrDefault("branchId") is not long branch || branch <= 0) throw new Dev2AccessDenied(400);
         var warehouse = a.Arguments.GetValueOrDefault("sourceWarehouseId") as long?;
@@ -70,6 +78,13 @@ internal static class MaterialCreateContract
             return new OkObjectResult(result);
         }
         catch (ValidationException e) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Approver routing unavailable", Detail = e.Message }); }
+    }
+
+    private static async Task<IActionResult> ReadCatalogAsync(Dev2BoundAction a, CancellationToken ct)
+    {
+        var catalog = await MaterialCreationCatalog.ReadAsync(Db(a), a.Actor.UserId, Input(a).BranchId, ct);
+        a.Http.Items[CatalogKey] = catalog;
+        return new OkObjectResult(catalog);
     }
 
     private sealed class CreationResolver(Dev2BoundAction a) : IPermissionResourceResolver
@@ -90,7 +105,8 @@ internal static class MaterialCreateContract
 
     private static async Task<bool> ValidateAsync(Dev2BoundAction a, Dev2AuthorizationPhase phase, CancellationToken ct)
     {
-        var lookup = a.Identity.DecisionId == "MATERIAL-CREATE-APPROVERS" && a.Identity.ActionName == "Approvers" && a.Identity.HttpMethod == "GET";
+        var lookup = a.Identity.HttpMethod == "GET" && (a.Identity.DecisionId == "MATERIAL-CREATE-APPROVERS" && a.Identity.ActionName == "Approvers"
+            || a.Identity.DecisionId == "MATERIAL-CREATE-CATALOG" && a.Identity.ActionName == "CreationCatalog");
         if (a.Identity.ControllerType != typeof(MaterialRequestsController) || !a.Http.Request.IsHttps
             || !(lookup || a.Identity.ActionName == "Create" && a.Identity.DecisionId == "A004A-043" && a.Identity.HttpMethod == "POST")) return false;
         var input = Input(a);
@@ -141,6 +157,12 @@ internal static class MaterialCreateContract
         }
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && lookup)
         {
+            if (a.Http.Items[CatalogKey] is MaterialCreationCatalog.Catalog catalog && catalog.Incidents.Length > 0)
+            {
+                var incidentScope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, input.BranchId, ct);
+                var incidentIds = catalog.Incidents.Select(i => i.Id).ToArray();
+                if (await incidentScope.Apply(db.Incidents.AsNoTracking()).CountAsync(i => incidentIds.Contains(i.IncidentId), ct) != incidentIds.Length) return false;
+            }
             if (a.Http.Items[ApproverOptionsKey] is MaterialApprovalAuthority.Options selected)
             {
                 MaterialApprovalAuthority.Options current;

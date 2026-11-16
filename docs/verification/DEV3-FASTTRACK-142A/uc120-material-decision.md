@@ -221,3 +221,24 @@ Backend build PASS (0 warnings/errors), frontend typecheck/build PASS with uncha
 React Router/chunk warnings. No SQL writes or business/API/browser tests. The form
 still needs business catalog selectors in place of the inherited numeric reference
 fields, linked-create UI integration and Human QA; no full UC completion claimed.
+
+## Business catalog selection in Create
+
+Added the authorized creation-catalog read using the same current session,
+MR_CREATE/MR_VIEW and branch boundary. It supplies active receiving departments,
+warehouses, rooms/areas, PRIORITY references and material item/unit choices. Units
+are the active base UOM or an active direct item-specific conversion to that base.
+No stock balances, prices or supplier data are exposed. Optional incidents are
+independently INCIDENT_VIEW-scoped and checked again before response disclosure.
+
+The Create form now selects these references by name; line numbers are assigned
+and renumbered automatically, room/area selections are mutually exclusive, changing
+item clears the unit, and changing branch clears all dependent selections/lines.
+Submit requires a needed-by time, warehouse and eligible approver; an empty line
+list disables Save. Backend validation remains authoritative. The branch field
+still needs an authorized branch selector; linked-create integration remains open.
+
+Fixed build-detected C# local-name collision and TypeScript decoder narrowing error.
+Final backend build PASS (0 warnings/errors), TypeScript and Vite build PASS with
+existing router/chunk warnings. No SQL writes or business/API/browser tests. No UC
+completion claim on source/build evidence alone.
