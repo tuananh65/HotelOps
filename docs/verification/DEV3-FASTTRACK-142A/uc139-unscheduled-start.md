@@ -29,3 +29,11 @@ The development SQL migration adds explicit membership and notification-intent s
 Deployment must install the guarded migration, provision approved real employee memberships and scoped WORKLOAD_VIEW grants, and enable the existing TaskNotifications worker. None of those grants/memberships or configuration changes was applied in this increment. A missing schema remains fail-closed; an unavailable Head retains a retryable intent.
 
 Actual SQL execution of the C# Start/Head read/delivery paths, authorized/revoked/cross-branch cases, races/rollback and UI -> HTTPS -> SQL are NOT_RUN. Migration execution proves only DDL/idempotency/cleanup. Human QA must verify those business cases before accepting this subflow. UC139 also requires Cleaning/Rework/Incident Pause All adapters, preserving each owning lifecycle rather than forcing Operational Task state onto them.
+
+## Notification summary session expiry correction (2026-11-16)
+
+The canonical Workday route already remounts its children when the authenticated session changes. Its UnscheduledWorkdaySummary previously treated a 401 response as a generic unavailable read without invalidating the current session. It now invalidates only the captured authority generation; aborted old reads cannot log out a replacement session. Existing server branch/Head/read authorization is unchanged. 403 remains an unavailable read rather than a logout.
+
+Frontend TypeScript/production build PASS with existing React Router directive and large-chunk warnings. Three focused canonical-router browser tests with mocked responses PASS: authorized summary, forbidden summary, and expired session redirect with summary removed. Initial test execution failed because the test helper URL allowlist covered only own-shifts/current; the explicit numeric unscheduled-summary route was added and the three tests rerun successfully. An initial npm invocation from repository root failed ENOENT; the actual build ran successfully from frontend. No backend source or database changed; no live HTTPS acceptance claimed. UC139 remains PARTIAL, no new completed UC.
+
+Files: frontend/src/workday/UnscheduledWorkdaySummary.tsx, frontend/tests/workday-router.test.mjs and this receipt.

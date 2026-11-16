@@ -137,7 +137,7 @@ async function pageTest(
       assert.equal(call.headers.authorization, undefined);
       assert.match(
         call.url,
-        /^\/api\/branches\/[1-9][0-9]*\/workdays\/(own-shifts|current)$/,
+        /^\/api\/branches\/[1-9][0-9]*\/workdays\/(own-shifts|current|[1-9][0-9]*\/unscheduled-summary)$/,
       );
     }
   } finally {
@@ -319,3 +319,14 @@ test("canonical scheduled route admits review only after explicit branch selecti
   await p.getByRole("region",{name:"Review scheduled workday"}).waitFor();
   assert.equal(await p.evaluate(()=>window.calls.filter(c=>c.method==="POST"||c.url.endsWith("/csrf")).length),0);
  }));
+
+for (const status of [200,403,401]) {
+ test('unscheduled notification summary handles '+status,()=>pageTest({flag:'canonical',route:'/workday?branchId=2&unscheduledId=202',responses:{
+  '/api/branches/2/workdays/202/unscheduled-summary':{status,body:status===200?{employeeId:77,reason:'Emergency coverage',workday:{workdayId:202,branchId:2,departmentId:3,isUnscheduled:true,shiftAssignmentId:null,status:'WORKING',startedAtUtc:'2026-11-16T08:00:00Z',endedAtUtc:null}}:{detail:secret}}
+ }},async p=>{
+  if(status===200) await p.getByText('Reason: Emergency coverage',{exact:true}).waitFor();
+  else if(status===401) {await p.waitForURL('**/login**');assert.equal(await p.getByRole('region',{name:'Unscheduled workday notification'}).count(),0);}
+  else await p.getByText('This workday is unavailable or you no longer have access.',{exact:true}).waitFor();
+  assert.equal((await workCalls(p)).length,1);
+ }));
+}
