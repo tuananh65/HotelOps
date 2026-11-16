@@ -30,6 +30,8 @@ internal static class TaskCycleDuration
                 || work.Any(i => i.StartedAt < work[0].StartedAt || i.ClosedAt == null
                     || i.ClosedAt < i.StartedAt || i.ClosedAt > cycle.SubmittedAt)
                 || work[^1].Id != cycle.IntervalId || work[^1].ClosedAt != cycle.SubmittedAt) return null;
+            for (var intervalIndex = 1; intervalIndex < work.Length; intervalIndex++)
+                if (work[intervalIndex].StartedAt < work[intervalIndex - 1].ClosedAt) return null;
             total += (cycle.SubmittedAt.Ticks - work[0].StartedAt.Ticks) / (decimal)TimeSpan.TicksPerSecond;
             if (index < boundaries.Length)
             {

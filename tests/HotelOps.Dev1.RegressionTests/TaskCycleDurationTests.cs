@@ -32,6 +32,27 @@ public sealed class TaskCycleDurationTests
     }
 
     [Theory]
+    [InlineData(9, false)]
+    [InlineData(10, true)]
+    [InlineData(20, true)]
+    public void Resubmission_intervals_must_not_overlap(int restartMinute, bool valid)
+    {
+        var seconds = TaskCycleDuration.Seconds(At(90), [new(2, 2, At(40), At(90))], [],
+            [new(1, At(0), At(10), true), new(2, At(restartMinute), At(40), false)]);
+        if (valid) Assert.Equal(2400m, seconds);
+        else Assert.Null(seconds);
+    }
+
+    [Fact]
+    public void Overlap_in_an_earlier_closed_cycle_invalidates_the_whole_task()
+    {
+        Assert.Null(TaskCycleDuration.Seconds(At(90),
+            [new(1, 2, At(20), At(30)), new(2, 3, At(70), At(90))],
+            [new(1, 2, At(40))],
+            [new(1, At(0), At(10), true), new(2, At(5), At(20), false), new(3, At(50), At(70), true)]));
+    }
+
+    [Theory]
     [InlineData("missing-start")]
     [InlineData("pending")]
     [InlineData("missing-cycle")]
