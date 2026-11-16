@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Trial,
- [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion','CompletionUi','Escalation','EscalationUi','HandoverDelivery','OwnTimeLog')][string]$Workflow='LinkedWork')
+ [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion','CompletionUi','Escalation','EscalationUi','HandoverDelivery','OwnTimeLog','ReportActors')][string]$Workflow='LinkedWork')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Set-Location -LiteralPath $workspace
@@ -16,7 +16,7 @@ try {
    [Guid]$receipt.databaseGuid -eq [Guid]::Empty){throw 'Verified disposable clone receipt required'}
  # Adapt only identity literals in previously reviewed scripts to the independently
  # verified new clone. The original disposable source schema remains unchanged.
- $capabilities=if($Workflow -in @('Escalation','EscalationUi')){@('InternalRequestCompletion','InternalRequestEscalation','InternalRequestEscalation','NotificationAcknowledgment')}elseif($Workflow -in @('Completion','CompletionUi')){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover','InternalRequestCompletion','InternalRequestCompletion')}elseif($Workflow -eq 'CompletionWork'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover')}elseif($Workflow -in @('Handover','HandoverDelivery')){@('InternalRequestHandover','InternalRequestHandover')}elseif($Workflow -eq 'Intake'){@('InternalRequestIntake','InternalRequestIntake')}elseif($Workflow -eq 'IncidentLink'){@('InternalRequestIncidentLinks','InternalRequestIncidentLinks')}elseif($Workflow -in @('IncidentRead','OwnTimeLog')){@()}elseif($Workflow -eq 'Withdrawal'){@('InternalRequestWithdrawal','InternalRequestWithdrawal')}else{@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')}
+ $capabilities=if($Workflow -in @('Escalation','EscalationUi')){@('InternalRequestCompletion','InternalRequestEscalation','InternalRequestEscalation','NotificationAcknowledgment')}elseif($Workflow -in @('Completion','CompletionUi')){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover','InternalRequestCompletion','InternalRequestCompletion')}elseif($Workflow -eq 'CompletionWork'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover')}elseif($Workflow -in @('Handover','HandoverDelivery')){@('InternalRequestHandover','InternalRequestHandover')}elseif($Workflow -eq 'Intake'){@('InternalRequestIntake','InternalRequestIntake')}elseif($Workflow -eq 'IncidentLink'){@('InternalRequestIncidentLinks','InternalRequestIncidentLinks')}elseif($Workflow -in @('IncidentRead','OwnTimeLog','ReportActors')){@()}elseif($Workflow -eq 'Withdrawal'){@('InternalRequestWithdrawal','InternalRequestWithdrawal')}else{@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')}
  foreach($cap in $capabilities) {
   $sourcePath=Join-Path $PSScriptRoot "CanonicalDatabase/${cap}Isolated.sql"
   $sql=[IO.File]::ReadAllText($sourcePath)
@@ -28,10 +28,22 @@ try {
   sqlcmd -S localhost -d $receipt.database -E -C -b -i $scriptPath -o "$prefix-$cap.txt"
   if($LASTEXITCODE -ne 0){throw "Clone capability installation failed: $cap"}
  }
+ if($Workflow -eq 'ReportActors') {
+  # Commit only in the verified disposable clone; whole-clone cleanup preserves immutable attribution.
+  $sql=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'CanonicalDatabase/ModelProbe/SprintCleanerAttribution.sql'))
+  foreach($literal in @('HotelOps_DEV3_142A_20261114_cc78c13f','1D5A9B53-7D19-435A-96AB-9FDFF447B6E0','cc78c13ffc124efcad67b3d804baa84c')) {
+   if(!$sql.Contains($literal)){throw 'Missing cleaner attribution identity guard'}
+  }
+  $sql=$sql.Replace('HotelOps_DEV3_142A_20261114_cc78c13f',$receipt.database).Replace('1D5A9B53-7D19-435A-96AB-9FDFF447B6E0',$receipt.databaseGuid).Replace('cc78c13ffc124efcad67b3d804baa84c',$receipt.run)
+  [IO.File]::WriteAllText("$prefix-cleaner.sql",("BEGIN TRANSACTION;`n"+$sql+"`nCOMMIT;"),[Text.UTF8Encoding]::new($false))
+  sqlcmd -S localhost -d $receipt.database -E -C -b -i "$prefix-cleaner.sql" -o "$prefix-cleaner.txt"
+  if($LASTEXITCODE -ne 0){throw 'Clone cleaner attribution installation failed'}
+ }
  $env:ConnectionStrings__HotelOpsDb="Server=localhost;Database=$($receipt.database);Integrated Security=true;Encrypt=true;TrustServerCertificate=true"
  $env:CanonicalFrontend__Root=Join-Path $workspace 'frontend/dist'
  $env:ASPNETCORE_ENVIRONMENT='Development';$env:ASPNETCORE_URLS='https://localhost:7142'
  $env:InspectionNotifications__Enabled='false';$env:TaskNotifications__Enabled='false';$env:InternalRequestNotifications__Enabled='false'
+ $env:DEV3_VERIFY_REPORT_ACTORS=if($Workflow -eq 'ReportActors'){'1'}else{'0'}
  $env:DEV3_VERIFY_OWN_TIME_LOG=if($Workflow -eq 'OwnTimeLog'){'1'}else{'0'}
  $env:DEV3_VERIFY_IR_WITHDRAWAL=if($Workflow -eq 'Withdrawal'){'1'}else{'0'}
  $env:DEV3_VERIFY_IR_INTAKE=if($Workflow -eq 'Intake'){'1'}else{'0'}

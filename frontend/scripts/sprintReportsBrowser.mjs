@@ -45,6 +45,47 @@ try {
     checks.push(
       "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
     );
+  } else if (fixture.mode === "inspection-actors") {
+    stage = "inspection actor filters";
+    await page.getByLabel("Report type", { exact: true }).selectOption("inspections");
+    await page.getByLabel("Branch", { exact: true }).selectOption(String(fixture.branch));
+    await page.getByLabel("Housekeeper ID", { exact: true }).fill(String(fixture.housekeeper));
+    await page.getByLabel("Inspector ID", { exact: true }).fill(String(fixture.inspector));
+    const pending = page.waitForResponse(r => r.url().endsWith("/api/reports/inspections/preview") && r.request().method() === "POST");
+    await page.getByRole("button", { name: "Preview", exact: true }).click();
+    const response = await pending;
+    assert.equal(response.status(), 200);
+    const snapshot = await response.json();
+    assert.equal(snapshot.totalCount, 1);
+    assert.equal(snapshot.appliedFilters.housekeeperId, String(fixture.housekeeper));
+    assert.equal(snapshot.appliedFilters.inspectorId, String(fixture.inspector));
+    await page.getByRole("region", { name: "Report preview", exact: true }).waitFor();
+    for (const format of ["CSV", "XLSX"]) {
+      stage = "actor filtered " + format;
+      const download = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Export " + format, exact: true }).click();
+      const file = await download;
+      assert.equal(file.suggestedFilename(), `inspections-${snapshot.snapshotId}.${format.toLowerCase()}`);
+      const parts = [];
+      for await (const chunk of await file.createReadStream()) parts.push(chunk);
+      const bytes = Buffer.concat(parts);
+      if (format === "CSV") {
+        const csv = bytes.toString("utf8");
+        assert.ok(csv.includes("housekeeperId") && csv.includes(String(fixture.housekeeper)));
+        assert.ok(csv.includes("inspectorId") && csv.includes(String(fixture.inspector)));
+        assert.ok(csv.includes(snapshot.snapshotId));
+      } else assert.equal(bytes.readUInt32LE(0), 0x04034b50);
+      await file.delete();
+    }
+    exports.push(snapshot.snapshotId);
+    await page.getByLabel("Housekeeper ID", { exact: true }).fill(String(fixture.inspector));
+    assert.equal(await page.getByRole("region", { name: "Report preview", exact: true }).count(), 0);
+    const empty = page.waitForResponse(r => r.url().endsWith("/api/reports/inspections/preview") && r.request().method() === "POST");
+    await page.getByRole("button", { name: "Preview", exact: true }).click();
+    const noCleaner = await empty;
+    assert.equal(noCleaner.status(), 200);
+    assert.equal((await noCleaner.json()).totalCount, 0);
+    checks.push("official cleaner and inspector intersection, CSV/XLSX downloads, snapshot invalidation and non-cleaner empty result");
   } else if (fixture.mode === "requests" || fixture.mode === "rooms") {
     const kind=fixture.mode;
     stage = kind + " report preview";

@@ -3,7 +3,7 @@ using System.Text.Json;
 
 internal static class SprintReportsBrowser
 {
-    internal static async Task<JsonElement> RunAsync(string username, string password, long branch, long department, string mode, CancellationToken ct)
+    internal static async Task<JsonElement> RunAsync(string username, string password, long branch, long department, string mode, CancellationToken ct, long? housekeeper = null, long? inspector = null)
     {
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
@@ -13,7 +13,7 @@ internal static class SprintReportsBrowser
         var errors = process.StandardError.ReadToEndAsync(ct);
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, department, mode }));
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, department, mode, housekeeper, inspector }));
             process.StandardInput.Close();
             await process.WaitForExitAsync(ct);
             var result = JsonSerializer.Deserialize<JsonElement>(await output);
