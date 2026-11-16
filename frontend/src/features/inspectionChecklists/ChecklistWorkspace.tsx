@@ -257,7 +257,7 @@ function ChecklistDetail({
     setAction(null);
     setReason("");
     setConfirmed(false);
-    setNotice("Đã lưu thay đổi trên server.");
+    setNotice("MSG08: Checklist đã được lưu thành công.");
   }
   async function transition(e: React.FormEvent) {
     e.preventDefault();
@@ -404,6 +404,7 @@ function ChecklistDetail({
                   : "Ngừng sử dụng bản công bố"}
               </h3>
               <fieldset disabled={busy || blocked}>
+                {action === "retire" && <p role="alert">MSG33: Bạn có chắc muốn ngừng sử dụng phiên bản checklist này? Không thể hoàn tác.</p>}
                 <label>
                   Lý do
                   <textarea

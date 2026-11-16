@@ -17,6 +17,9 @@ internal static class SprintChecklistScenario
         using(var denied=await http.GetAsync(root,ct))Check((int)denied.StatusCode==403,"existing manager role does not infer checklist authority");
         var assignment=new UserRole{UserId=actor,RoleId=role.RoleId,BranchId=branch,IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-1)};
         db.UserRoles.Add(assignment);
+        var historyPermission=await db.Permissions.SingleAsync(p=>p.PermissionCode=="INSPECTION_VIEW",ct);
+        if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==historyPermission.PermissionId,ct))
+            db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=historyPermission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow});
         if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==permission.PermissionId,ct))
             db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=permission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow});
         var legacy=new InspectionChecklist{ChecklistCode="D3BOOT"+Guid.NewGuid().ToString("N")[..8],ChecklistName="Synthetic bootstrap template",IsActive=true};
@@ -35,17 +38,79 @@ internal static class SprintChecklistScenario
         Check((await Send(HttpMethod.Post,root,input,csrf:false)).Status==400,"checklist creation requires CSRF");
         var created=await Send(HttpMethod.Post,root,input);Check(created.Status==201,"public checklist creates Draft");
         var id=created.Body.GetProperty("id").GetInt64();var path=root+"/"+id;
+        async Task Fault(HttpMethod method,string target,object body,string? tag)
+        {
+            var before=await Send(HttpMethod.Get,path);
+            var audits=await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists"&&a.EntityId==id.ToString(),ct);
+            try
+            {
+                await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_ChecklistAuditFault ON dbo.audit_logs AFTER INSERT AS BEGIN IF EXISTS(SELECT 1 FROM inserted WHERE entity_type='inspection_checklists') THROW 51890,'Synthetic checklist audit failure',1; END",ct);
+                Check((await Send(method,target,body,tag)).Status>=500,"audit failure rejects checklist mutation "+method+" "+target);
+            }
+            finally { await db.Database.ExecuteSqlRawAsync("DROP TRIGGER IF EXISTS dbo.TR_DEV3_ChecklistAuditFault",CancellationToken.None); }
+            var after=await Send(HttpMethod.Get,path);
+            Check(after.Status==200&&after.Tag==before.Tag&&after.Body.GetRawText()==before.Body.GetRawText()
+                &&await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists"&&a.EntityId==id.ToString(),ct)==audits,"audit failure rolls back versions criteria metadata and ETag");
+        }
         var transition=new{reason="Reviewed standard for inspection",confirmation=true};
         Check((await Send(HttpMethod.Post,path+"/publish",transition)).Status==428,"publication requires If-Match");
         var published=await Send(HttpMethod.Post,path+"/publish",transition,created.Tag);Check(published.Status==200,"public checklist publishes Draft");
         Check((await Send(HttpMethod.Post,path+"/retire",transition,created.Tag)).Status==412,"stale checklist transition rejected");
+        var version1=published.Body.GetProperty("versions")[0].GetProperty("id").GetInt64();
+        var floor=await db.Floors.AsNoTracking().Where(f=>f.BranchId==branch&&f.IsActive).Select(f=>f.FloorId).FirstAsync(ct);
+        var room=new Room{BranchId=branch,FloorId=floor,RoomTypeId=type,RoomNumber="D3CHK"+Guid.NewGuid().ToString("N")[..6],OperationalStatus="AVAILABLE",IsActive=true};
+        db.Rooms.Add(room);await db.SaveChangesAsync(ct);
+        var inspection=new RoomInspection{InspectionNo="D3CHK"+Guid.NewGuid().ToString("N"),RoomId=room.RoomId,VersionId=version1,InspectorUserId=actor,Status="PENDING",CreatedAt=DateTime.UtcNow};
+        db.RoomInspections.Add(inspection);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        published=await Send(HttpMethod.Get,path);
+        Check(published.Body.GetProperty("versions")[0].GetProperty("usedByInspection").GetBoolean(),"checklist read reports actual existing inspection use");
         var update=new{criteria=new[]{new{text="No dust or stains",group="Bedroom",mandatory=true}},reason="Improve inspection standard"};
-        var draft=await Send(HttpMethod.Put,path,update,published.Tag);Check(draft.Status==200,"published update creates next Draft");
+        Check((await Send(HttpMethod.Put,path,new{criteria=Array.Empty<object>(),reason="Invalid empty criteria"},published.Tag)).Status==400,"empty criteria cannot replace an inspection standard");
+        var foreign=await db.Branches.Where(b=>b.BranchId!=branch).Select(b=>b.BranchId).FirstAsync(ct);
+        Check((await Send(HttpMethod.Put,$"/api/branches/{foreign}/inspection-checklists/{id}",update,published.Tag)).Status==403,"foreign branch checklist update denied");
+        await Fault(HttpMethod.Put,path,update,published.Tag);
+        var edits=await Task.WhenAll(Send(HttpMethod.Put,path,update,published.Tag),Send(HttpMethod.Put,path,update,published.Tag));
+        Check(edits.Count(r=>r.Status==200)==1&&edits.Count(r=>r.Status==412)==1,"concurrent edits produce one new Draft and reject stale writer");
+        var draft=edits.Single(r=>r.Status==200);Check(draft.Status==200,"published update creates next Draft");
         Check(draft.Body.GetProperty("versions").GetArrayLength()==2&&draft.Body.GetProperty("versions")[0].GetProperty("criteria")[0].GetProperty("text").GetString()=="No dust","previous published content remains unchanged");
-        var next=await Send(HttpMethod.Post,path+"/publish",transition,draft.Tag);Check(next.Status==200,"next version published atomically");
+        var draftId=draft.Body.GetProperty("versions")[1].GetProperty("id").GetInt64();
+        draft=await Send(HttpMethod.Put,path,update,draft.Tag);
+        Check(draft.Status==200&&draft.Body.GetProperty("versions").GetArrayLength()==2&&draft.Body.GetProperty("versions")[1].GetProperty("id").GetInt64()==draftId,"editing existing Draft preserves its version identity");
+        await Fault(HttpMethod.Post,path+"/publish",transition,draft.Tag);
+        var publications=await Task.WhenAll(Send(HttpMethod.Post,path+"/publish",transition,draft.Tag),Send(HttpMethod.Post,path+"/publish",transition,draft.Tag));
+        Check(publications.Count(r=>r.Status==200)==1&&publications.Count(r=>r.Status==412)==1,"concurrent Publish commits one lifecycle transition");
+        var next=publications.Single(r=>r.Status==200);Check(next.Status==200,"next version published atomically");
         Check(next.Body.GetProperty("versions")[0].GetProperty("status").GetString()=="RETIRED"&&next.Body.GetProperty("versions")[1].GetProperty("status").GetString()=="PUBLISHED","replacement publication retires only prior lifecycle");
-        Check((await Send(HttpMethod.Post,path+"/retire",transition,next.Tag)).Status==200,"public retirement preserves version history");
-        Check(await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists"&&a.EntityId==id.ToString(),ct)==5,"create update publish and retire audit persisted");
+        Check(await db.RoomInspections.AsNoTracking().AnyAsync(i=>i.InspectionId==inspection.InspectionId&&i.VersionId==version1&&i.Status=="PENDING",ct)
+            &&await db.InspectionChecklistItems.AnyAsync(i=>i.VersionId==version1&&i.Criterion=="No dust",ct),"assigned inspection retains exact retired version and original criterion after publication");
+        var newerInspection=new RoomInspection{InspectionNo="D3NEW"+Guid.NewGuid().ToString("N"),RoomId=room.RoomId,VersionId=draftId,InspectorUserId=actor,Status="PENDING",CreatedAt=DateTime.UtcNow};
+        db.RoomInspections.Add(newerInspection);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        Check(await db.RoomInspections.AnyAsync(i=>i.InspectionId==newerInspection.InspectionId&&i.VersionId==draftId,ct),"new inspection can select the latest effective Published version");
+        var oldHistory=await Send(HttpMethod.Get,$"/api/inspection-history/{inspection.InspectionId}?branchId={branch}");
+        var newHistory=await Send(HttpMethod.Get,$"/api/inspection-history/{newerInspection.InspectionId}?branchId={branch}");
+        Check(oldHistory.Status==200&&newHistory.Status==200
+            &&oldHistory.Body.GetProperty("inspection").GetProperty("versionId").GetInt64()==version1
+            &&oldHistory.Body.GetProperty("criteria")[0].GetProperty("criterion").GetString()=="No dust"
+            &&newHistory.Body.GetProperty("inspection").GetProperty("versionId").GetInt64()==draftId
+            &&newHistory.Body.GetProperty("criteria")[0].GetProperty("criterion").GetString()=="No dust or stains",
+            "public HTTPS history returns the exact old and new assigned checklist criteria");
+        next=await Send(HttpMethod.Get,path);
+        await Fault(HttpMethod.Post,path+"/retire",transition,next.Tag);
+        Check((await Send(HttpMethod.Post,path+"/retire",new{reason=transition.reason,confirmation=false},next.Tag)).Status==400,"retirement requires explicit confirmation");
+        var retirements=await Task.WhenAll(Send(HttpMethod.Post,path+"/retire",transition,next.Tag),Send(HttpMethod.Post,path+"/retire",transition,next.Tag));
+        Check(retirements.Count(r=>r.Status==200)==1&&retirements.Count(r=>r.Status==412)==1,"concurrent Retire commits once and rejects stale writer");
+        var rejected=new RoomInspection{InspectionNo="D3RET"+Guid.NewGuid().ToString("N"),RoomId=room.RoomId,VersionId=draftId,InspectorUserId=actor,Status="PENDING",CreatedAt=DateTime.UtcNow};
+        db.RoomInspections.Add(rejected);
+        var refused=false;
+        try{await db.SaveChangesAsync(ct);}
+        catch(DbUpdateException error) when(error.InnerException is Microsoft.Data.SqlClient.SqlException sql)
+        {
+            refused=sql.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Any(e=>e.Number==51721&&e.Message.Contains("Published checklist",StringComparison.Ordinal));
+            if(!refused)throw new Exception("Unexpected retired-selection SQL errors: "+string.Join("; ",sql.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Select(e=>$"{e.Number}: {e.Message}")));
+        }
+        finally{db.ChangeTracker.Clear();}
+        Check(refused&&!await db.RoomInspections.AnyAsync(i=>i.InspectionNo==rejected.InspectionNo,ct),"retired checklist is rejected for new inspection by intact SQL selection guard");
+        Check(await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists"&&a.EntityId==id.ToString(),ct)==6,"six committed checklist operations have six audits despite faults and races");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add("frontend/scripts/sprintChecklistBrowser.mjs");
         using var browser=Process.Start(start)!;
         try{
