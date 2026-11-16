@@ -102,6 +102,16 @@ Writes bind the current session and original ETag, bootstrap CSRF, require expli
 
 Validation: backend build PASS (zero warnings/errors); frontend TypeScript/production build PASS (existing React Router use-client and bundle-size warnings). Three browser tests PASS using mocked HTTPS responses: paginated multi-line selection/quantity validation, note-only with material 403, and stale ETag without retry. Initial browser run exposed an ambiguous select accessible label; an explicit label fixed it and all three reran successfully. Fifteen focused backend execution/read/material-access regressions PASS. Solution-level dotnet test exited zero without test discovery; it is not counted as coverage.
 
-Live browser-to-HTTPS-to-SQL, concurrency/rollback and persistent rowversion capability deployment remain unverified. UC055/058 remain PARTIAL; newly completed UCs: zero. Changes are left uncommitted for review.
+Live browser-to-HTTPS-to-SQL, concurrency/rollback and persistent rowversion capability deployment remain unverified. UC055/058 remain PARTIAL; newly completed UCs: zero. The source increment was subsequently committed as 5f1ba76 under the authorized sprint delivery.
 
 Files: MaintenanceProgressPanel.tsx (new), MaintenanceReadView.tsx, Workspace.tsx, SharedAuthHost.tsx, MaintenanceWorkDetailDto.cs, MaintenanceReadContract.cs, maintenance-progress-browser.test.mjs (new), and this receipt.
+
+## Disposable schema preflight and material-usage installer
+
+Direct SQL preflight confirmed the authorized disposable database identity (Recovery_2b221f40, GUID 5270D07C-7C27-477B-A60E-86485ADD7FAD). It has neither maintenance_material_usages nor maintenance_works.row_version. Existing work-log columns and fulfillment stock-document linkage were present. Therefore this runtime cannot yet establish full material usage/execution acceptance.
+
+MaintenanceMaterialUsage.sql copies the already-approved 20261022 material-usage table, constraints and indexes without changing their semantics. Only environment/commit guards differ: exact disposable server/database/nonzero recovery GUID, explicit ApplyChanges=0 or 1, and rollback preview. Existing tables are rejected for metadata comparison rather than overwritten. Shared HotelOpsDB is excluded. The original patch is unchanged.
+
+Direct evidence: ApplyChanges=0 completed successfully on the verified disposable, followed by ROLLBACK_CONFIRMED for both table and parent unique constraint. A zero GUID was rejected with SQL error 51844 before mutation. No persistent database change, fixture data, production grant or shared database mutation occurred. Initial sandbox SQL authentication failed; the same encrypted command succeeded with authorized host access. This proves DDL compatibility and rollback only, not material business behavior or HTTPS.
+
+UC059 source review also confirmed Verify still lacks closure integration for effective room blocks and open escalation; production review admission must remain closed until those requirements and notification delivery are implemented. No new UC COMPLETE_VERIFIED in this increment.
