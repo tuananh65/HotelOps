@@ -366,6 +366,18 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/operational-tasks?branchId={stopped.BranchId}&taskId={stopped.TaskId}");
         }
+        if(source is {NotificationType:MaintenanceSubmissionSource.Kind,SourceType:MaintenanceSubmissionSource.SourceType,SourceId:>0})
+        {
+            var submission=await MaintenanceSubmissionSource.ReadAsync(db,source.SourceId.Value,ct);
+            if(submission==null||submission.ActorId!=source.CreatedBy||submission.At!=source.CreatedAt
+                ||!await MaintenanceSubmissionSource.CanReviewAsync(db,user,submission,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await MaintenanceSubmissionSource.CanReviewAsync(db,user,submission,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/operations/maintenance/{submission.WorkId}?action=A004A-036");
+        }
         if(source is {NotificationType:"WORKDAY_UNSCHEDULED",SourceType:"UNSCHEDULED_WORKDAY",SourceId:>0})
         {
             if(!await WorkTime.WorkdayMembershipStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

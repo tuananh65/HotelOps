@@ -106,10 +106,14 @@ public sealed partial class MaintenanceWorkService
             beforeWork["submitted_action_taken"] = null;
             beforeWork["submitted_materials"] = null;
             beforeWork["submitted_evidence"] = null;
+            beforeWork["notification_kind"] = null;
+            beforeWork["notification_version"] = null;
             afterWork["submitted_diagnosis"] = resultInput.Diagnosis.Trim();
             afterWork["submitted_action_taken"] = resultInput.ActionTaken.Trim();
             afterWork["submitted_materials"] = resolutionMaterials;
             afterWork["submitted_evidence"] = resolutionEvidence;
+            afterWork["notification_kind"] = "MAINTENANCE_SUBMITTED";
+            afterWork["notification_version"] = 1;
         }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, afterWork);
