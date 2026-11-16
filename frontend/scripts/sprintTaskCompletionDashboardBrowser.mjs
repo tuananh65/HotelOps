@@ -33,6 +33,6 @@ try {
   stage = "logout";
   await page.goto("https://localhost:7142/profile"); await page.getByRole("button", { name: "Logout", exact: true }).click();
   await page.waitForURL("https://localhost:7142/login");
-  process.stdout.write(JSON.stringify({ success: true, cycles: 3, taskDenominator: 1, verified: "KPI05 browser HTTPS SQL reconciliation" }));
+  process.stdout.write(JSON.stringify({ success: true, cyclesInPrimaryTask: fixture.expectedCycles ?? 3, taskDenominator: fixture.expectedTasks ?? 1, verified: "KPI05 browser HTTPS SQL reconciliation" }));
 } catch { process.stdout.write(JSON.stringify({ success: false, stage })); process.exitCode = 1; }
 finally { if (browser) await browser.close(); }

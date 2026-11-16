@@ -42,7 +42,7 @@ try {
   const reopen = page.getByRole("region", { name: "Task reopening" });
   await page
     .getByRole("region", { name: "Submitted completion", exact: true })
-    .getByText("Second processing cycle corrected", { exact: true })
+    .getByText(f.previousResultNote, { exact: true })
     .waitFor();
   await page
     .getByRole("region", {

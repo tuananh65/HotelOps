@@ -20,7 +20,7 @@ internal static class SprintTaskCompletionDashboardScenario
     }
 
     internal static async Task RunAsync(HotelOpsDbContext db, HttpClient http, long manager, long branch, long task,
-        int expectedCycles, List<object> checks, CancellationToken ct, string username, string password)
+        int expectedCycles, List<object> checks, CancellationToken ct, string username, string password, int expectedTasks = 1)
     {
         void Check(bool ok, string label) { if (!ok) throw new Exception(label); checks.Add(new { taskCompletionCheck = label, expectedCycles }); }
         var row = await db.OperationalTasks.AsNoTracking().SingleAsync(t => t.TaskId == task, ct);
@@ -37,9 +37,11 @@ internal static class SprintTaskCompletionDashboardScenario
         var expectedSeconds = await db.Database.SqlQuery<decimal>($"""
             SELECT SUM(CONVERT(decimal(28,7),DATEDIFF_BIG(nanosecond,first_work.started_at,s.submitted_at))/1000000000) AS Value
             FROM dbo.task_submission_events s JOIN dbo.task_verification_events v ON v.submission_id=s.progress_id AND v.decision='ACCEPT'
+            JOIN dbo.operational_tasks t ON t.task_id=s.task_id
             OUTER APPLY(SELECT MAX(r.interval_cutoff) AS cutoff FROM dbo.task_reopen_events r WHERE r.task_id=s.task_id AND r.reopened_at<=s.submitted_at) boundary
             CROSS APPLY(SELECT MIN(i.opened_at) AS started_at FROM dbo.work_intervals i WHERE i.work_item_kind='TASK' AND i.work_item_id=s.task_id AND i.interval_id>COALESCE(boundary.cutoff,0) AND i.interval_id<=s.interval_id) first_work
-            WHERE s.task_id={task}
+            WHERE t.branch_id={branch} AND t.department_id={row.DepartmentId} AND t.status='COMPLETED'
+              AND t.completed_at>={row.CompletedAt!.Value.Date} AND t.completed_at<{row.CompletedAt.Value.Date.AddDays(1)}
             """).SingleAsync(ct);
         var date = row.CompletedAt!.Value.ToString("yyyy-MM-dd");
         var path = $"/api/dashboards/operations?branchId={branch}&departmentId={row.DepartmentId}&from={date}&to={date}";
@@ -49,26 +51,26 @@ internal static class SprintTaskCompletionDashboardScenario
         decimal? Metric(string key) => body.GetProperty("metrics").EnumerateArray().Single(m => m.GetProperty("key").GetString() == key).GetProperty("value") is var value && value.ValueKind != JsonValueKind.Null ? value.GetDecimal() : null;
         checks.Add(new { taskCompletionMetrics = body.GetProperty("metrics"), missingSources = body.GetProperty("missingSources"), expectedCycles });
         Check(await db.OperationalTasks.CountAsync(t => t.BranchId == branch && t.DepartmentId == row.DepartmentId
-            && t.Status == "COMPLETED" && t.CompletedAt >= row.CompletedAt.Value.Date && t.CompletedAt < row.CompletedAt.Value.Date.AddDays(1), ct) == 1,
-            "one persisted Closed task, never number of processing cycles, is KPI denominator");
-        Check(Metric("averageTaskCompletionHours") is decimal actual && Math.Abs(actual - expectedSeconds / 3600m) < 0.000000001m,
+            && t.Status == "COMPLETED" && t.CompletedAt >= row.CompletedAt.Value.Date && t.CompletedAt < row.CompletedAt.Value.Date.AddDays(1), ct) == expectedTasks,
+            $"{expectedTasks} persisted Closed tasks, never number of processing cycles, is KPI denominator");
+        Check(Metric("averageTaskCompletionHours") is decimal actual && Math.Abs(actual - expectedSeconds / expectedTasks / 3600m) < 0.000000001m,
             "KPI05 matches persisted first-Start to accepted-Submit elapsed cycles, excluding verification and Closed gaps");
         var previous = row.CompletedAt.Value.Date.AddDays(-1).ToString("yyyy-MM-dd");
         using var outside = await http.GetAsync(path.Replace("from=" + date, "from=" + previous).Replace("to=" + date, "to=" + previous), ct);
         var empty = await outside.Content.ReadFromJsonAsync<JsonElement>(ct);
         Check((int)outside.StatusCode == 200 && empty.GetProperty("metrics").EnumerateArray().Single(m => m.GetProperty("key").GetString() == "averageTaskCompletionHours").GetProperty("value").ValueKind == JsonValueKind.Null,
             "period without Closed tasks yields N/A instead of zero or historical cycle count");
-        if (expectedCycles != 3) return;
+        if (expectedCycles < 3) return;
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("frontend/scripts/sprintTaskCompletionDashboardBrowser.mjs");
         using var browser = Process.Start(start)!;
         try
         {
             var output = browser.StandardOutput.ReadToEndAsync(ct); var error = browser.StandardError.ReadToEndAsync(ct);
-            await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, department = row.DepartmentId, date, expectedHours = expectedSeconds / 3600m }));
+            await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, department = row.DepartmentId, date, expectedCycles, expectedTasks, expectedHours = expectedSeconds / expectedTasks / 3600m }));
             browser.StandardInput.Close(); await browser.WaitForExitAsync(ct);
             var result = JsonSerializer.Deserialize<JsonElement>(await output); _ = await error;
-            Check(browser.ExitCode == 0 && result.GetProperty("success").GetBoolean(), "browser displays KPI05 from three real processing cycles through HTTPS and SQL");
+            Check(browser.ExitCode == 0 && result.GetProperty("success").GetBoolean(), $"browser displays KPI05 for {expectedTasks} Closed tasks including a task with {expectedCycles} processing cycles through HTTPS and SQL");
             checks.Add(new { taskCompletionBrowser = result });
         }
         finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }

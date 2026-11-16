@@ -134,7 +134,25 @@ internal static class SprintTaskPlanningScenario
             Check(await db.OperationalTasks.AnyAsync(t=>t.TaskId==created&&t.Status=="COMPLETED"&&t.CompletedAt!=null,ct),"public browser task Closed persists SQL completion");
             Check(await db.WorkIntervals.CountAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==created&&i.ClosedAt!=null,ct)==2&&!await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==created&&i.ClosedAt==null,ct),"browser Pause Resume Submit preserve two closed intervals excluding paused time");
             if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskReopen.V1'").SingleAsync(ct)==1)
+            {
                 await SprintTaskReopenScenario.RunAsync(db,executor,managerHttp,actor,manager,verifier,branch,foreign,created,checks,ct,username,password);
+                // Add a second task through the same public producer, after assertions
+                // whose fixture intentionally contains only one Closed task.
+                using var second = Process.Start(start)!;
+                try
+                {
+                    var secondOutput = second.StandardOutput.ReadToEndAsync(ct); var secondError = second.StandardError.ReadToEndAsync(ct);
+                    await second.StandardInput.WriteAsync(JsonSerializer.Serialize(new{manager=manager.Username,executor=username,verifier=verifier.Username,password,branch,department,category=category.CategoryId,priority=priorities[1].ReferenceId,highPriority=priorities[2].ReferenceId,assignee=actor}));
+                    second.StandardInput.Close(); await second.WaitForExitAsync(ct);
+                    using var result = JsonDocument.Parse(await secondOutput); _ = await secondError; checks.Add(result.RootElement.Clone());
+                    Check(second.ExitCode == 0 && result.RootElement.GetProperty("success").GetBoolean(), "second independent public task completes browser lifecycle for KPI denominator");
+                    var secondTask = result.RootElement.GetProperty("taskId").GetInt64();
+                    Check(secondTask != created && await db.OperationalTasks.AnyAsync(t=>t.TaskId==secondTask&&t.Status=="COMPLETED"&&t.CompletedAt!=null,ct), "two distinct public tasks persist Closed");
+                    Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.task_verification_events v JOIN dbo.task_submission_events s ON s.progress_id=v.submission_id WHERE s.task_id={secondTask} AND v.decision='ACCEPT'").SingleAsync(ct)==1, "second Closed task contributes one cycle alongside first task's four cycles including workload regression");
+                    await SprintTaskCompletionDashboardScenario.RunAsync(db,managerHttp,manager.UserId,branch,created,4,checks,ct,manager.Username,password,expectedTasks:2);
+                }
+                finally { if(!second.HasExited) second.Kill(entireProcessTree:true); }
+            }
         }finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}}
         if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskSeries.V1'").SingleAsync(ct) == 1)
             await SprintTaskSeriesScenario.RunAsync(db, executor, managerHttp, actor, manager, branch, foreign, Input(), checks, ct, username, password);

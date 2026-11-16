@@ -116,6 +116,15 @@ internal static class SprintTaskReopenScenario
         Check((await Send(executor, HttpMethod.Post, root + "/submit", new { items, resultNote = "Second processing cycle corrected", handoverNote = "Independent check required" }, progress.Tag)).Status == 200, "new cycle submits its own result snapshot");
         await SprintTaskCompletionDashboardScenario.VerifyExcludedAsync(db, managerHttp, branch, task, "Pending Verification", checks, ct);
         var verification = await Send(nextHttp, HttpMethod.Get, root + "/verification");
+        var returnedSubmission = verification.Body.GetProperty("submissionId").GetInt64();
+        Check((await Send(nextHttp, HttpMethod.Post, root + "/verification", new { submissionId = returnedSubmission, decision = "RETURN", note = "Correct the second cycle before acceptance" }, verification.Tag)).Status == 200, "second processing cycle Return retains its original Start boundary");
+        await SprintTaskCompletionDashboardScenario.VerifyExcludedAsync(db, managerHttp, branch, task, "Returned", checks, ct);
+        progress = await Send(executor, HttpMethod.Get, root + "/progress");
+        Check((await Send(executor, HttpMethod.Post, root + "/start", tag: progress.Tag)).Status == 200, "returned task starts another interval within the same processing cycle");
+        progress = await Send(executor, HttpMethod.Get, root + "/progress");
+        Check((await Send(executor, HttpMethod.Post, root + "/submit", new { items, resultNote = "Second cycle final corrected submission", handoverNote = "Verify corrected work" }, progress.Tag)).Status == 200, "returned cycle resubmits immutable corrected result");
+        verification = await Send(nextHttp, HttpMethod.Get, root + "/verification");
+        Check(verification.Body.GetProperty("submissionId").GetInt64() != returnedSubmission, "accepted cycle endpoint is a new submission, not the returned snapshot");
         Check((await Send(nextHttp, HttpMethod.Post, root + "/verification", new { submissionId = verification.Body.GetProperty("submissionId").GetInt64(), decision = "ACCEPT", note = "Correction independently checked" }, verification.Tag)).Status == 200, "same-assignee new cycle independently verified Closed");
         Check((await Send(managerHttp, HttpMethod.Get, root + "/submission?submission=" + oldSubmission)).Body.GetProperty("resultNote").GetString() == oldResult.Body.GetProperty("resultNote").GetString(), "old cycle result remains addressable after later submission");
         Check((await Send(managerHttp, HttpMethod.Get, root + "/submission?submission=" + long.MaxValue)).Status == 404, "unknown historical submission fails closed");
@@ -129,13 +138,13 @@ internal static class SprintTaskReopenScenario
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("frontend/scripts/sprintTaskReopenBrowser.mjs");
         using (var process = Process.Start(start)!) { try {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { manager = manager.Username, executor = next.Username, verifier = username, password, branch, task, assignee = next.UserId, oldSubmission })); process.StandardInput.Close();
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { manager = manager.Username, executor = next.Username, verifier = username, password, branch, task, assignee = next.UserId, oldSubmission, previousResultNote = "Second cycle final corrected submission" })); process.StandardInput.Close();
             var output = process.StandardOutput.ReadToEndAsync(ct); var error = process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct); using var json = JsonDocument.Parse(await output); _ = await error; checks.Add(json.RootElement.Clone());
             Check(json.RootElement.GetProperty("success").GetBoolean(), "browser Reopen new assignee through independent Closed and preserved prior results");
         } finally { if (!process.HasExited) process.Kill(entireProcessTree: true); } }
         var decisions = await db.Database.SqlQuery<string>($"SELECT performed_by_json AS Value FROM dbo.task_verification_events WHERE submission_id IN(SELECT progress_id FROM dbo.task_submission_events WHERE task_id={task}) ORDER BY submission_id").ToArrayAsync(ct);
-        Check(decisions.Length == 3 && JsonSerializer.Deserialize<long[]>(decisions[^1])!.SequenceEqual([next.UserId]), "new-cycle segregation includes only new-cycle performers");
+        Check(decisions.Length == 4 && JsonSerializer.Deserialize<long[]>(decisions[^1])!.SequenceEqual([next.UserId]), "three Accepts and one Return retain new-cycle performer segregation");
         var effort = await db.Database.SqlQuery<long>($"SELECT COALESCE(SUM(DATEDIFF_BIG(second,effective_started_at,effective_ended_at)),0) AS Value FROM dbo.work_intervals WHERE work_item_kind='TASK' AND work_item_id={task}").SingleAsync(ct);
         var latest = await Send(managerHttp, HttpMethod.Get, root + "/verification");
         Check(latest.Body.GetProperty("actualEffortSeconds").GetInt64() == effort && effort >= 0, "actual effort remains cumulative across cycles and excludes paused time");
