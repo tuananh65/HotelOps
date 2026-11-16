@@ -27,6 +27,8 @@ export default function CleaningProgressPanel({
   const [saving, setSaving] = useState(false);
   const [locked, setLocked] = useState(false);
   const [error, setError] = useState("");
+  const [percentError, setPercentError] = useState("");
+  const [fileError, setFileError] = useState("");
   const [success, setSuccess] = useState("");
   const [reload, setReload] = useState(0);
   const active = useRef<AbortController | null>(null);
@@ -43,6 +45,8 @@ export default function CleaningProgressPanel({
     );
     setNote("");
     setFiles([]);
+    setPercentError("");
+    setFileError("");
     if (fileInput.current) fileInput.current.value = "";
   }
   useEffect(() => {
@@ -71,6 +75,12 @@ export default function CleaningProgressPanel({
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!current || saving || locked) return;
+    if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
+      setPercentError("MSG03: Tiến độ phải là số nguyên từ 0 đến 100.");
+      return;
+    }
+    setPercentError("");
+    setFileError("");
     const controller = new AbortController();
     active.current = controller;
     setSaving(true);
@@ -78,8 +88,16 @@ export default function CleaningProgressPanel({
     setSuccess("");
     let saved = false;
     try {
-      if (files.length > 5) throw new Error("INVALID_EVIDENCE");
-      const photos = await Promise.all(files.map(uploadFile));
+      const photos = await (async () => {
+        try {
+          if (files.length > 5) throw new Error("INVALID_EVIDENCE");
+          return await Promise.all(files.map(uploadFile));
+        } catch (reason) {
+          if (!controller.signal.aborted)
+            setFileError("MSG23: Chọn tối đa 5 tệp JPG/PNG/PDF hợp lệ, tối đa 10 MiB mỗi tệp.");
+          throw reason;
+        }
+      })();
       controller.signal.throwIfAborted();
       const updated = await saveCleaningProgress(
         branch,
@@ -138,13 +156,15 @@ export default function CleaningProgressPanel({
         </button>
       )}
       {current && !loading && (
-        <form onSubmit={save}>
+        <form onSubmit={save} noValidate>
           <fieldset disabled={saving || locked}>
             <legend>Cập nhật tiến độ</legend>
             <label>
               Tiến độ (%)
               <input
                 aria-label="Tiến độ (%)"
+                aria-invalid={!!percentError}
+                aria-describedby={percentError ? "cleaning-percent-error" : undefined}
                 type="number"
                 required
                 min={0}
@@ -160,6 +180,7 @@ export default function CleaningProgressPanel({
                 }
               />
             </label>
+            {percentError && <p id="cleaning-percent-error" role="alert">{percentError}</p>}
             {items.length === 0 && <p>Chưa có hạng mục vệ sinh.</p>}
             {current.data.items.map((item, index) => (
               <div key={item.id}>
@@ -210,6 +231,8 @@ export default function CleaningProgressPanel({
               Tệp đính kèm (tối đa 5)
               <input
                 ref={fileInput}
+                aria-invalid={!!fileError}
+                aria-describedby={fileError ? "cleaning-file-error" : undefined}
                 type="file"
                 multiple
                 accept=".jpg,.jpeg,.png,.pdf"
@@ -218,6 +241,7 @@ export default function CleaningProgressPanel({
                 }
               />
             </label>
+            {fileError && <p id="cleaning-file-error" role="alert">{fileError}</p>}
             <p>JPG/PNG/PDF, tối đa 10 MiB mỗi tệp. Ghi chú dùng một dòng.</p>
             <button type="submit">
               {saving ? "Đang lưu…" : "Lưu tiến độ"}
@@ -227,6 +251,22 @@ export default function CleaningProgressPanel({
             {current.data.timeline.length} bản ghi tiến độ ·{" "}
             {current.data.evidence.length} tệp đã lưu.
           </p>
+          <h3>Tiến độ đã ghi nhận</h3>
+          <ol>
+            {current.data.timeline.map((entry) => (
+              <li key={entry.id}>
+                <time>{entry.at}</time> · {entry.percent}% · {entry.note || "—"}
+              </li>
+            ))}
+          </ol>
+          <h3>Tệp đã lưu</h3>
+          <ul>
+            {current.data.evidence.map((file) => (
+              <li key={file.id}>
+                <a href={file.downloadPath} download>{file.name}</a>
+              </li>
+            ))}
+          </ul>
         </form>
       )}
     </>
