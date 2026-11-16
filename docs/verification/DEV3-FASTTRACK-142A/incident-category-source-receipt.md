@@ -31,16 +31,26 @@ Direct execution evidence:
 - `dotnet build HotelOps.slnx --no-restore`: PASS, 0 warnings, 0 errors.
 - `npm.cmd run typecheck` in frontend: PASS.
 - `git diff --check`: PASS.
-- Tests / E2E / HTTP / SQL execution: NOT RUN, per the instruction to skip tests.
-- Database changes applied: NONE. SQL candidate has not been runtime verified.
+- Business tests / E2E / HTTP execution: NOT RUN, per the instruction to skip tests.
+- Database installation safety checks executed separately: rollback and independent
+  absence check passed; applied to `HotelOps_DEV3_142A_Recovery_2b221f40` only on
+  `meita\MSSQLSERVER01`, verified GUID `5270D07C-7C27-477B-A60E-86485ADD7FAD`.
+  `category_id` is nullable bigint; FK enabled/trusted with no cascade action.
+  All 12 existing incidents remain uncategorized. No category rows were seeded.
+- Source SQL SHA256: E24E3497A0DB6F27AE1E0049874583F21D7E3054BB10DE7C1795CE1D4C10468B.
+  Existing recovery backup SHA256 was independently rechecked:
+  51D135B6D7AAC0EE22A1FBBF4F2CFE9BBF29447A668F04BD1060C620A082D73F.
+- Initial sandbox SQL connection failed with Windows SSPI/SSL credential errors;
+  authorized execution outside sandbox succeeded without changing authentication.
+  Shared/production databases were not mutated.
 
 Remaining acceptance dependencies:
 - No unapproved categories were seeded; approved active category catalog entries are
   still needed for actual selection. Lookup errors do not fall back to free-text IDs.
 - Incident mutation admission remains governed by the existing Dev2 authority guard;
   this increment does not activate production or broaden its allowed environments.
-- Review and exercise the migration on the identity-verified disposable clone before
-  enabling this storage. Do not apply the candidate to shared/production databases.
+- Migration is installed on the verified disposable clone only. No application runtime
+  or worker was enabled; HTTP query/command acceptance remains unverified.
 - Priority SLA durations/configuration, processing-cycle deadline history and triage
   lifecycle are still required for UC052/RPT-03 SLA completion.
 - UC143 still needs approved current assignee/department sources, deadline sorting,
