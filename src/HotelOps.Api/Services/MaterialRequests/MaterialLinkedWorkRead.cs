@@ -21,15 +21,21 @@ internal static class MaterialLinkedWorkRead
         if (!await InternalRequestCompletionService.InstalledAsync(db, ct)) return material;
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var scope = await new InternalRequestReadAccess(db).ReadAsync(actor, now, ct);
-        var links = db.Database.SqlQuery<Link>($"SELECT internal_request_id AS RequestId,is_mandatory AS Mandatory FROM dbo.internal_request_material_links WHERE material_request_id={material.RequestId}");
-        var rows = await (from link in links
-            join request in scope.Apply(db.InternalRequests.AsNoTracking(), now)
-                on link.RequestId equals request.InternalRequestId
-            where request.BranchId == material.BranchId
-            orderby request.CreatedAt descending, request.InternalRequestId descending
-            select new MaterialLinkedRequestDto(request.InternalRequestId, request.RequestNo, request.Status, link.Mandatory))
-            .ToArrayAsync(ct);
+        var rows = await Query(db, material.RequestId, material.BranchId,
+            scope.Apply(db.InternalRequests.AsNoTracking(), now)).ToArrayAsync(ct);
         return material with { LinkedWorkAvailable = true, LinkedInternalRequests = rows };
+    }
+
+    internal static IQueryable<MaterialLinkedRequestDto> Query(HotelOpsDbContext db, long materialId,
+        long branchId, IQueryable<HotelOps.Api.Entities.InternalRequest> readableRequests)
+    {
+        var links = db.Database.SqlQuery<Link>($"SELECT internal_request_id AS RequestId,is_mandatory AS Mandatory FROM dbo.internal_request_material_links WHERE material_request_id={materialId}");
+        return from link in links
+            join request in readableRequests
+                on link.RequestId equals request.InternalRequestId
+            where request.BranchId == branchId
+            orderby request.CreatedAt descending, request.InternalRequestId descending
+            select new MaterialLinkedRequestDto(request.InternalRequestId, request.RequestNo, request.Status, link.Mandatory);
     }
 
     internal static async Task<bool> CanDiscloseAsync(HotelOpsDbContext db, long actor, long branch,

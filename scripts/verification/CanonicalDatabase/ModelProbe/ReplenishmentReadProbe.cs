@@ -36,23 +36,39 @@ internal static class ReplenishmentReadProbe
         var failed = false;
         // Exercise the production EF expression, including its canonical-event anti-join.
         // Take(0) compiles and executes SQL without reading business rows or creating fixtures.
-        var delivery = typeof(HotelOpsDbContext).Assembly.GetType("HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery", true)!;
-        var method = delivery.GetMethod("ReplenishmentReceiptEvents", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var checks = new (string Name, string Type, string Method, object[] Args)[]
+        {
+            ("production-replenishment-notification-query", "HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery", "ReplenishmentReceiptEvents", [db]),
+            ("production-material-linked-work-query", "HotelOps.Api.Services.MaterialRequests.MaterialLinkedWorkRead", "Query",
+                [db, -1L, -1L, db.InternalRequests.AsNoTracking().Where(r => r.RequesterId == -1L)]),
+            ("production-replenishment-waiting-query", "HotelOps.Api.Services.Replenishments.ReplenishmentService", "WaitingQuery",
+                [db, -1L, -1L, new long[] { -1L }, db.MaterialRequests.AsNoTracking().Where(r => r.RequesterId == -1L)])
+        };
+        foreach (var check in checks)
+        {
         try
         {
-            var query = (IQueryable)method.Invoke(null, [db])!;
+            var type = typeof(HotelOpsDbContext).Assembly.GetType(check.Type, true)!;
+            var method = type.GetMethod(check.Method, BindingFlags.NonPublic | BindingFlags.Static)!;
+            var query = (IQueryable)method.Invoke(null, check.Args)!;
             var expression = Expression.Call(typeof(Queryable), nameof(Queryable.Take), [query.ElementType], query.Expression, Expression.Constant(0));
-            var sql = query.Provider.CreateQuery(expression).ToQueryString();
-            await using var command = db.Database.GetDbConnection().CreateCommand();
-            command.CommandText = sql; command.CommandTimeout = 15;
-            await using var rows = await command.ExecuteReaderAsync(ct);
-            if (await rows.ReadAsync(ct)) throw new InvalidOperationException("Zero-row probe returned business data.");
-            results.Add(new { check = "production-replenishment-notification-query", status = "PASS", rows = 0 });
+            var zeroRows = query.Provider.CreateQuery(expression);
+            // Execute through EF so FromSql/SqlQuery parameters retain their actual
+            // bindings; ToQueryString is diagnostic text, not an executable command.
+            var toList = typeof(EntityFrameworkQueryableExtensions).GetMethods()
+                .Single(m => m.Name == "ToListAsync" && m.IsGenericMethodDefinition && m.GetParameters().Length == 2)
+                .MakeGenericMethod(query.ElementType);
+            var pending = (Task)toList.Invoke(null, [zeroRows, ct])!;
+            await pending;
+            var rows = (System.Collections.ICollection)pending.GetType().GetProperty("Result")!.GetValue(pending)!;
+            if (rows.Count != 0) throw new InvalidOperationException("Zero-row probe returned business data.");
+            results.Add(new { check = check.Name, status = "PASS", rows = 0 });
         }
         catch (Exception error)
         {
             failed = true;
-            results.Add(new { check = "production-replenishment-notification-query", status = "FAIL", error = error.GetBaseException().Message });
+            results.Add(new { check = check.Name, status = "FAIL", error = error.GetBaseException().Message });
+        }
         }
         await File.WriteAllTextAsync(output, JsonSerializer.Serialize(new { recordedUtc = DateTime.UtcNow, server, database,
             expectedDatabaseGuid = guid.ToString("D"), actualDatabaseGuid = actualGuid,
