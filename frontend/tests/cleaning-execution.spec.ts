@@ -397,6 +397,7 @@ test("Start uses current task ETag and fresh CSRF, then reloads source", async (
         state: "IN_PROGRESS",
         intervalId: 19,
         actualStartAtUtc: "2026-11-07T00:00:00Z",
+        readiness: "CLEANING_IN_PROGRESS", hasEffectiveBlock: false,
       },
     });
   });

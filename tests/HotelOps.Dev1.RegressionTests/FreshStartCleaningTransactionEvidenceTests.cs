@@ -33,16 +33,16 @@ public sealed class FreshStartCleaningTransactionEvidenceTests
 
     [Theory]
     [InlineData(RoomStartBlockEvidence.Unknown, "ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED")]
-    [InlineData(RoomStartBlockEvidence.Effective, "ROOM_STATUS_EFFECTIVE_BLOCK")]
     [InlineData((RoomStartBlockEvidence)99, "ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED")]
-    public void Unknown_effective_or_unrecognized_gate_does_not_authorize_start(
+    public void Unknown_or_unrecognized_gate_does_not_authorize_start(
         RoomStartBlockEvidence evidence, string error) =>
-        Reject(error, () => FreshStartCleaningTransactionEvidence.RequireClear(evidence));
+        Reject(error, () => FreshStartCleaningTransactionEvidence.RequireKnownBlock(evidence));
 
     [Fact]
     public void Clear_is_only_a_policy_value_not_an_owner_acceptance()
     {
-        FreshStartCleaningTransactionEvidence.RequireClear(RoomStartBlockEvidence.Clear);
+        FreshStartCleaningTransactionEvidence.RequireKnownBlock(RoomStartBlockEvidence.Clear);
+        FreshStartCleaningTransactionEvidence.RequireKnownBlock(RoomStartBlockEvidence.Effective);
         Reject("ROOM_STATUS_FINAL_AUTHORITY_REQUIRED", () =>
             FreshStartCleaningTransactionEvidence.RequireOwnerContracts(null, null, null));
     }

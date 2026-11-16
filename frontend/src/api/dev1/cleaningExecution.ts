@@ -207,7 +207,9 @@ export async function mutateCleaningExecution(
       d.intervalId <= 0 ||
       typeof d.actualStartAtUtc !== "string" ||
       !/Z$/.test(d.actualStartAtUtc) ||
-      !Number.isFinite(Date.parse(d.actualStartAtUtc)))
+      !Number.isFinite(Date.parse(d.actualStartAtUtc)) ||
+      typeof d.hasEffectiveBlock !== "boolean" ||
+      d.readiness !== (d.hasEffectiveBlock ? "BLOCKED" : "CLEANING_IN_PROGRESS"))
   )
     throw new ApiError(502, "INVALID_START_RESULT_RELOAD_SOURCE");
   if (

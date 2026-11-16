@@ -85,18 +85,15 @@ public sealed class FreshStartCleaningTransactionEvidence : IFreshStartCleaningT
         var at = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>(
             $"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
         var block = await d05!.VerifyAsync(db, connection, transaction!, branch, room, at, ct);
-        RequireClear(block);
+        RequireKnownBlock(block);
         return block;
     }
 
-    public static void RequireClear(RoomStartBlockEvidence evidence)
+    public static void RequireKnownBlock(RoomStartBlockEvidence evidence)
     {
-        if (evidence == RoomStartBlockEvidence.Effective)
-            throw new RoomStatusTransitionException("ROOM_STATUS_EFFECTIVE_BLOCK");
-        if (evidence != RoomStartBlockEvidence.Clear)
+        if (evidence is not (RoomStartBlockEvidence.Clear or RoomStartBlockEvidence.Effective))
             throw new RoomStatusTransitionException("ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED");
     }
-
     public void BindSource(FreshStartCleaningSourceReceipt receipt)
     {
         if (source != null) throw new RoomStatusTransitionException("ROOM_STATUS_START_ALREADY_RECORDED");
@@ -128,7 +125,7 @@ public sealed class FreshStartCleaningTransactionEvidence : IFreshStartCleaningT
             receipt.Branch, receipt.Room, receipt.Task, receipt.Assignment, ct);
         var block = await d05!.VerifyAsync(db, connection, transaction, receipt.Branch,
             receipt.Room, receipt.OccurredAtUtc, ct);
-        RequireClear(block);
+        RequireKnownBlock(block);
         return new(db, connection, transaction, receipt.Actor, receipt.Branch, receipt.Room,
             receipt.Task, receipt.Assignment, receipt.Cycle, "ASSIGNED", "IN_PROGRESS",
             receipt.BeforeRevision, receipt.AfterRevision, receipt.OperationId,

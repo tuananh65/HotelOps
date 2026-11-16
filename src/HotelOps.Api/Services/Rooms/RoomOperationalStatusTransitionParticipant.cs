@@ -25,16 +25,16 @@ public sealed record FreshStartCleaningTransitionContext(string Event, long Acto
 
 // Applied means flushed inside the caller transaction, NOT committed or replayed successfully.
 public sealed record RoomStatusTransitionResult(long RoomId, string FromStatus, string ToStatus,
-    Guid SourceOperationId, DateTime OccurredAt);
+    Guid SourceOperationId, DateTime OccurredAt, bool HasEffectiveBlock = false);
 
 public enum RoomStartBlockEvidence { Unknown, Effective, Clear }
 
 /// <summary>
-/// Server-only dependency port. No implementation or registration is supplied in FASTTRACK-107A.
-/// The future FE04 adapter must verify fresh ASSIGNED -> IN_PROGRESS in this physical transaction,
+/// Server-only dependency port implemented by the transaction-bound FE04 admission adapter.
+/// The FE04 adapter must verify fresh ASSIGNED -> IN_PROGRESS in this physical transaction,
 /// pre/post source revision, authenticated actor, current assignment/cycle, final permission and
-/// user-first/FE12 locks. FE06 must accept the temporal block predicate AND absence/range locking
-/// protocol before returning Clear. A client ETag, task ID or ReleasedAt alone cannot implement it.
+/// user-first/FE12 locks. Both effective blocks and their absence require the temporal/range locking
+/// protocol. A client ETag, task ID or ReleasedAt alone cannot implement it.
 /// The adapter must retain all accepted dependency locks until the caller commits or rolls back.
 /// </summary>
 public interface IFreshStartCleaningTransactionEvidence
@@ -58,7 +58,7 @@ public sealed class RoomStatusTransitionException(string code) : InvalidOperatio
 /// Canonical FE03 status/history/audit participant. FE04 alone owns START, readiness and commit.
 /// Missing accepted dependency adapter fails closed BEFORE any database query or write.
 /// Exceptions must escape to the caller's transaction rollback boundary; never retry an unknown
-/// commit outcome. There is no endpoint, default adapter, DI registration or production activation.
+/// commit outcome. This participant has no independent HTTP endpoint or transaction.
 /// </summary>
 public sealed class RoomOperationalStatusTransitionParticipant(
     HotelOpsDbContext db, IFreshStartCleaningTransactionEvidence? evidence = null)
@@ -131,12 +131,17 @@ public sealed class RoomOperationalStatusTransitionParticipant(
             throw Failure("ROOM_STATUS_START_ALREADY_RECORDED");
 
         var records = CreateRecords(context, source);
+        var blocked = source.RoomBlock == RoomStartBlockEvidence.Effective;
         // All statements use the caller's physical connection/transaction. XACT_ABORT makes a
         // server error (including row-count conflict or either insert failing) abort the transaction.
         // Cancellation/network failures still require caller rollback/disposal, never a retry.
         // Raw inserts deliberately avoid SaveChanges flushing unrelated FE04 tracked state.
+        // An effective block preserves the physical status: no fabricated status change/history.
+        // The source event is still audited; FE04 records lifecycle/readiness in this transaction.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             SET XACT_ABORT ON;
+            IF {blocked}=0
+            BEGIN
             UPDATE dbo.rooms SET operational_status='CLEANING'
             WHERE room_id={room.RoomId} AND branch_id={context.BranchId}
               AND is_active=1 AND operational_status='DIRTY'
@@ -152,13 +157,14 @@ public sealed class RoomOperationalStatusTransitionParticipant(
               {records.History.TriggerType},{records.History.TriggerId},{records.History.ChangedBy},
               {records.History.ChangedAt},{records.History.Reason});
             IF @@ROWCOUNT<>1 THROW 51803,'ROOM_STATUS_HISTORY_INSERT_FAILED',1;
+            END;
             INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,request_id,occurred_at)
             VALUES({records.Audit.BranchId},{records.Audit.ActorUserId},{records.Audit.EntityType},
               {records.Audit.EntityId},{records.Audit.Action},{records.Audit.OldValues},{records.Audit.NewValues},
               {records.Audit.ChangedFields},{records.Audit.RequestId},{records.Audit.OccurredAt});
             IF @@ROWCOUNT<>1 THROW 51803,'ROOM_STATUS_AUDIT_INSERT_FAILED',1;
             """, cancellationToken);
-        return new(room.RoomId, "DIRTY", "CLEANING", source.SourceOperationId, source.OccurredAt);
+        return new(room.RoomId, "DIRTY", blocked ? "DIRTY" : "CLEANING", source.SourceOperationId, source.OccurredAt, blocked);
     }
 
     // Public policy seams follow existing FE04 contract-test conventions. They do not authorize a
@@ -206,8 +212,7 @@ public sealed class RoomOperationalStatusTransitionParticipant(
             || source.BeforeRevision != context.ExpectedSourceRevision || !StrongTag(source.AfterRevision)
             || source.BeforeRevision == source.AfterRevision)
             throw Failure("ROOM_STATUS_SOURCE_STALE_OR_CONFLICTING");
-        if (source.RoomBlock == RoomStartBlockEvidence.Effective) throw Failure("ROOM_STATUS_EFFECTIVE_BLOCK");
-        if (source.RoomBlock != RoomStartBlockEvidence.Clear) throw Failure("ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED");
+        if (source.RoomBlock is not (RoomStartBlockEvidence.Clear or RoomStartBlockEvidence.Effective)) throw Failure("ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED");
     }
 
     public static (RoomStatusHistory History, AuditLog Audit) CreateRecords(
@@ -218,7 +223,7 @@ public sealed class RoomOperationalStatusTransitionParticipant(
         {
             RoomId = context.RoomId,
             FromStatus = "DIRTY",
-            ToStatus = "CLEANING",
+            ToStatus = source.RoomBlock == RoomStartBlockEvidence.Effective ? "DIRTY" : "CLEANING",
             TriggerType = "CLEANING_TASK",
             TriggerId = context.CleaningTaskId,
             ChangedBy = context.ActorUserId,
@@ -238,7 +243,9 @@ public sealed class RoomOperationalStatusTransitionParticipant(
             OldValues = JsonSerializer.Serialize(new { operationalStatus = "DIRTY" }, json),
             NewValues = JsonSerializer.Serialize(new
             {
-                operationalStatus = "CLEANING",
+                operationalStatus = source.RoomBlock == RoomStartBlockEvidence.Effective ? "DIRTY" : "CLEANING",
+                effectiveReadiness = source.RoomBlock == RoomStartBlockEvidence.Effective ? "BLOCKED" : "CLEANING_IN_PROGRESS",
+                hasEffectiveBlock = source.RoomBlock == RoomStartBlockEvidence.Effective,
                 action = context.Event,
                 context.CleaningTaskId,
                 context.AssignmentId,
@@ -249,7 +256,8 @@ public sealed class RoomOperationalStatusTransitionParticipant(
                 context.Reason,
                 source.OccurredAt
             }, json),
-            ChangedFields = JsonSerializer.Serialize(new[] { "operationalStatus" }, json)
+            ChangedFields = JsonSerializer.Serialize(source.RoomBlock == RoomStartBlockEvidence.Effective
+                ? new[] { "cleaningLifecycle", "effectiveReadiness" } : new[] { "operationalStatus", "effectiveReadiness" }, json)
         };
         return (history, audit);
     }

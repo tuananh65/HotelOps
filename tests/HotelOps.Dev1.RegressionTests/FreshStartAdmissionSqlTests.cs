@@ -91,6 +91,68 @@ public sealed class FreshStartAdmissionSqlTests
             await tx.RollbackAsync();
         }
         Assert.False(await db.RoomBlocks.AnyAsync(b => b.RoomId == task.RoomId));
+        await VerifyCanonicalStart(db, task.Actor, true);
+        await VerifyCanonicalStart(db, task.Actor, false);
         Assert.Equal(0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.room_cleaning_cycle_state WHERE room_id={task.RoomId}").SingleAsync());
+    }
+    private static async Task VerifyCanonicalStart(HotelOpsDbContext db, long actor, bool blocked)
+    {
+        var floor = await db.Floors.AsNoTracking().Where(f => f.IsActive && f.Branch.IsActive).FirstAsync();
+        var checklist = await db.Database.SqlQuery<long>($"SELECT TOP(1) checklist_id AS [Value] FROM dbo.inspection_checklists WHERE branch_id IS NULL").SingleAsync();
+        var cleaningType = await db.ReferenceValues.AsNoTracking().Where(r => r.GroupCode == "CLEANING_TYPE" && r.IsActive).Select(r => r.ReferenceId).FirstAsync();
+        var code = "DEV3-" + Guid.NewGuid().ToString("N")[..12];
+        long roomId, taskId;
+        Guid operation;
+        await using (var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actor], default);
+            var resource = "HotelOps:WorkTime:User:" + actor;
+            await db.Database.ExecuteSqlInterpolatedAsync($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource={resource},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=1000; IF @r<0 THROW 51990,'Test time lock failed',1;");
+            // All mutated business rows are synthetic. Existing actor/floor/legacy checklist are FK references only.
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_types(type_code,type_name,standard_capacity,is_active,branch_id,standard_cleaning_minutes,default_checklist_id) VALUES({code},{code},2,1,{floor.BranchId},30,{checklist})");
+            var type = await db.BranchRoomTypes.AsNoTracking().Where(t => t.TypeCode == code).Select(t => t.RoomTypeId).SingleAsync();
+            var room = new Room { BranchId=floor.BranchId, FloorId=floor.FloorId, RoomTypeId=type,
+                RoomNumber=code, OperationalStatus="DIRTY", IsActive=true };
+            db.Rooms.Add(room); await db.SaveChangesAsync(); roomId=room.RoomId; db.ChangeTracker.Clear();
+            var task = new CleaningTask { RoomId=roomId, TaskNo=code, CleaningTypeId=cleaningType,
+                Status="PENDING", CreatedBy=actor, CreatedAt=DateTime.UtcNow };
+            db.CleaningTasks.Add(task); await db.SaveChangesAsync(); taskId=task.CleaningTaskId; db.ChangeTracker.Clear();
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ASSIGNED' WHERE cleaning_task_id={taskId}; INSERT dbo.room_cleaning_cycle_state(room_id,cleaning_task_id) VALUES({roomId},{taskId});");
+            var assignment = new CleaningAssignment { CleaningTaskId=taskId, AssigneeUserId=actor,
+                AssignedBy=actor, AssignedAt=DateTime.UtcNow.AddMinutes(-1), AssignmentStatus="ACTIVE" };
+            db.CleaningAssignments.Add(assignment); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+            if (blocked)
+            {
+                db.RoomBlocks.Add(new RoomBlock { RoomId=roomId, BlockedBy=actor, BlockedAt=DateTime.UtcNow.AddMinutes(-1), Reason="DEV3 synthetic effective block" });
+                await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+            }
+            var ticket=SessionReference.FromProtectedTicket(actor,new string('A',43),false,DateTime.UtcNow);
+            var admission=new SqlFreshStartCleaningAdmission(db,ticket,1,_=>Task.FromResult(true));
+            Assert.True(await admission.AcquireAsync(floor.BranchId,taskId,default));
+            var evidence=new FreshStartCleaningTransactionEvidence(ticket,1,admission,admission,admission);
+            Assert.Equal(blocked ? RoomStartBlockEvidence.Effective : RoomStartBlockEvidence.Clear,
+                await evidence.RequireAdmissionAsync(db,actor,floor.BranchId,roomId,taskId,assignment.AssignmentId,default));
+            var before=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
+            var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(),DateTimeKind.Utc);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at={now} WHERE cleaning_task_id={taskId}");
+            var after=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
+            var writer=await db.Database.SqlQuery<long>($"SELECT CURRENT_TRANSACTION_ID() AS [Value]").SingleAsync();
+            operation=Guid.NewGuid();
+            var beforeTag='"'+Convert.ToHexString(before)+'"';
+            evidence.BindSource(new(actor,floor.BranchId,roomId,taskId,assignment.AssignmentId,taskId,beforeTag,
+                '"'+Convert.ToHexString(after)+'"',operation,writer,now,db.Database.GetDbConnection(),tx.GetDbTransaction()));
+            var result=await new RoomOperationalStatusTransitionParticipant(db,evidence).ApplyFreshStartCleaningAsync(
+                db.Database.GetDbConnection(),tx.GetDbTransaction(),new("START_CLEANING",actor,floor.BranchId,roomId,taskId,assignment.AssignmentId,beforeTag,"DEV3 rollback fixture"),default);
+            Assert.Equal(blocked,result.HasEffectiveBlock);
+            Assert.Equal(blocked ? "DIRTY" : "CLEANING",await db.Rooms.Where(r=>r.RoomId==roomId).Select(r=>r.OperationalStatus).SingleAsync());
+            Assert.Equal(blocked ? 0 : 1,await db.RoomStatusHistories.CountAsync(h=>h.RoomId==roomId));
+            var audit=await db.AuditLogs.AsNoTracking().SingleAsync(a=>a.RequestId==operation.ToString("D"));
+            using var data=JsonDocument.Parse(audit.NewValues!);
+            Assert.Equal(blocked ? "BLOCKED" : "CLEANING_IN_PROGRESS",data.RootElement.GetProperty("effectiveReadiness").GetString());
+            await tx.RollbackAsync();
+        }
+        Assert.False(await db.Rooms.AnyAsync(r=>r.RoomId==roomId));
+        Assert.False(await db.CleaningTasks.AnyAsync(t=>t.CleaningTaskId==taskId));
+        Assert.False(await db.AuditLogs.AnyAsync(a=>a.RequestId==operation.ToString("D")));
     }
 }

@@ -151,6 +151,7 @@ public sealed partial class RoomTypeCreationService
                 // which explicitly forbids tracked Room/history/AuditLog entities.
                 db.ChangeTracker.Clear();
                 Guid? sourceOperationId = null;
+                var startBlocked = false;
                 if (!resume)
                 {
                     var connection = db.Database.GetDbConnection();
@@ -171,17 +172,17 @@ public sealed partial class RoomTypeCreationService
                             new FreshStartCleaningTransitionContext("START_CLEANING", actor,
                                 branch, row.RoomId, task, owner.AssignmentId, tag, input.Note), token);
                     if (transition.RoomId != row.RoomId || transition.FromStatus != "DIRTY"
-                        || transition.ToStatus != "CLEANING" || transition.SourceOperationId != sourceOperationId)
+                        || transition.ToStatus != (transition.HasEffectiveBlock ? "DIRTY" : "CLEANING") || transition.SourceOperationId != sourceOperationId)
                         throw new RoomStatusTransitionException("ROOM_STATUS_TRANSITION_EVIDENCE_MISMATCH");
+                    startBlocked = transition.HasEffectiveBlock;
                 }
-                // RESUME preserves its existing provisional block summary; fresh START can
-                // reach here only after an authoritative D05 Clear, never an unlocked query.
-                var blocked = resume && await db.RoomBlocks.AsNoTracking()
+                // Fresh START uses the locked authoritative block result returned by FE03.
+                var blocked = startBlocked || resume && await db.RoomBlocks.AsNoTracking()
                     .AnyAsync(x => x.RoomId == row.RoomId && x.BlockedAt <= now
                         && (x.ReleasedAt == null || x.ReleasedAt > now), token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},'CLEANING_IN_PROGRESS',{blocked},{actor},{now})", token);
                 var startedAt = row.ActualStartAt is { } first ? DateTime.SpecifyKind(first, DateTimeKind.Utc) : now;
-                var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, "CLEANING_IN_PROGRESS", blocked);
+                var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, blocked ? "BLOCKED" : "CLEANING_IN_PROGRESS", blocked);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualStartAt }, new { action = resume ? "RESUME_CLEANING" : "START_CLEANING", input.Note,
                     sourceOperationId, contract = resume ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
                 return new(RoomTypeBatchStatus.Success, result, WorkflowTag((await CleaningState(task, token)).Revision));

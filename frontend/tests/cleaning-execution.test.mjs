@@ -117,6 +117,7 @@ test("Start sends no client actor/time and validates server interval result", as
         state: "IN_PROGRESS",
         intervalId: 8,
         actualStartAtUtc: "2026-11-07T00:00:00Z",
+        readiness: "CLEANING_IN_PROGRESS", hasEffectiveBlock: false,
       },
       { headers: { ETag: tag } },
     );
@@ -173,6 +174,7 @@ test("Resume sends explicit confirmation and note through existing CSRF transpor
         state: "IN_PROGRESS",
         intervalId: 9,
         actualStartAtUtc: "2026-11-07T00:00:00Z",
+        readiness: "CLEANING_IN_PROGRESS", hasEffectiveBlock: false,
       },
       { headers: { ETag: tag } },
     );
@@ -314,5 +316,20 @@ test("Complete accepts Pending Inspection receipt and rejects invented READY or 
     if (Object.keys(patch).length)
       await assert.rejects(call, (e) => e.status === 502);
     else assert.equal((await call).state, "PENDING_INSPECTION");
+  }
+});
+
+test("Start preserves Blocked readiness and rejects inconsistent server summaries", async () => {
+  const result = { id: 2, branchId: 1, assignmentId: 4, state: "IN_PROGRESS", intervalId: 8,
+    actualStartAtUtc: "2026-11-07T00:00:00Z", readiness: "BLOCKED", hasEffectiveBlock: true };
+  globalThis.fetch = async url => url.endsWith("/auth/csrf")
+    ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "fresh" })
+    : Response.json(result, { headers: { ETag: tag } });
+  assert.equal((await mutateCleaningExecution("1", "2", "start", tag, { resolveBlocker: false })).readiness, "BLOCKED");
+  for (const patch of [{ readiness: "CLEANING_IN_PROGRESS" }, { readiness: "READY" }, { hasEffectiveBlock: false }, { hasEffectiveBlock: undefined }]) {
+    globalThis.fetch = async url => url.endsWith("/auth/csrf")
+      ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "fresh" })
+      : Response.json({ ...result, ...patch }, { headers: { ETag: tag } });
+    await assert.rejects(mutateCleaningExecution("1", "2", "start", tag, { resolveBlocker: false }), e => e.status === 502);
   }
 });

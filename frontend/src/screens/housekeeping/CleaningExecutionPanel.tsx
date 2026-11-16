@@ -104,12 +104,14 @@ export default function CleaningExecutionPanel({
     setError("");
     setNotice("");
     try {
-      await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
+      const result = await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
         resolveBlocker: resume,
         ...(resume ? { note: resolutionNote.trim() } : {}),
       });
       if (alive.current) {
-        setNotice("Đã bắt đầu dọn phòng; thời gian được ghi nhận bởi máy chủ.");
+        setNotice(result.hasEffectiveBlock
+          ? "Đã bắt đầu dọn phòng và ghi nhận thời gian. Phòng vẫn bị chặn sử dụng."
+          : "Đã bắt đầu dọn phòng; thời gian được ghi nhận bởi máy chủ.");
         setRefresh((n) => n + 1);
       }
     } catch (e) {

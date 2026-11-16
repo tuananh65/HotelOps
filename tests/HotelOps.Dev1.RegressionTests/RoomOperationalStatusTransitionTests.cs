@@ -137,15 +137,30 @@ public sealed class RoomOperationalStatusTransitionTests
 
     [Theory]
     [InlineData(RoomStartBlockEvidence.Unknown, "ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED")]
-    [InlineData(RoomStartBlockEvidence.Effective, "ROOM_STATUS_EFFECTIVE_BLOCK")]
     [InlineData((RoomStartBlockEvidence)99, "ROOM_STATUS_BLOCK_AUTHORITY_REQUIRED")]
-    public void Blocked_unknown_and_unrecognized_block_evidence_fail_closed(RoomStartBlockEvidence block, string code)
+    public void Unknown_and_unrecognized_block_evidence_fail_closed(RoomStartBlockEvidence block, string code)
     {
         using var db = Database();
         using var connection = new SqlConnection();
         using var transaction = new FakeTransaction(connection);
         Reject(code, () => RoomOperationalStatusTransitionParticipant.RequireEvidence(db, connection, transaction,
             Context, Source(db, connection, transaction) with { RoomBlock = block }));
+    }
+
+    [Fact]
+    public void Verified_effective_block_preserves_physical_status_and_audits_blocked_readiness()
+    {
+        using var db = Database();
+        using var connection = new SqlConnection();
+        using var transaction = new FakeTransaction(connection);
+        var source = Source(db, connection, transaction) with { RoomBlock = RoomStartBlockEvidence.Effective };
+        var records = RoomOperationalStatusTransitionParticipant.CreateRecords(Context, source);
+        Assert.Equal("DIRTY", records.History.ToStatus);
+        using var values = JsonDocument.Parse(records.Audit.NewValues!);
+        Assert.Equal("DIRTY", values.RootElement.GetProperty("operationalStatus").GetString());
+        Assert.Equal("BLOCKED", values.RootElement.GetProperty("effectiveReadiness").GetString());
+        Assert.True(values.RootElement.GetProperty("hasEffectiveBlock").GetBoolean());
+        Assert.DoesNotContain("operationalStatus", JsonSerializer.Deserialize<string[]>(records.Audit.ChangedFields!)!);
     }
 
     [Fact]
@@ -260,7 +275,7 @@ public sealed class RoomOperationalStatusTransitionTests
         Assert.Equal(source.BeforeRevision, newValues.RootElement.GetProperty("beforeRevision").GetString());
         Assert.Equal(source.AfterRevision, newValues.RootElement.GetProperty("afterRevision").GetString());
         Assert.Equal(Context.Reason, newValues.RootElement.GetProperty("reason").GetString());
-        Assert.Equal(new[] { "operationalStatus" }, JsonSerializer.Deserialize<string[]>(audit.ChangedFields!));
+        Assert.Equal(new[] { "operationalStatus", "effectiveReadiness" }, JsonSerializer.Deserialize<string[]>(audit.ChangedFields!));
         Assert.Empty(db.ChangeTracker.Entries());
         Assert.Equal(0, transaction.Commits);
     }
