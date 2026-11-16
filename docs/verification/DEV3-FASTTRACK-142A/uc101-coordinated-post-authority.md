@@ -19,3 +19,13 @@ Canonical UI now enables A004A-059 with a receipt selector, explicit accepted/re
 Direct verification: backend full build PASS, 0 warnings/errors; frontend typecheck/build PASS, existing React Router directive and bundle-size warnings (940.03 kB JS). Solution test command exited zero but executed no tests. API/SQL/browser behavior NOT RUN; no database mutation. These are source/build results, not COMPLETE_VERIFIED evidence. Outstanding: waiting-requester notification and targeted end-to-end acceptance.
 
 Files: ReplenishmentsController.cs; Dev2ActionAdmissionRegistry.cs; ReplenishmentReadContract.cs; ReplenishmentService.DraftReceipts.cs; ReplenishmentPostFields.tsx; Workspace.tsx; catalog.generated.ts; SharedAuthHost.tsx; this receipt.
+
+## Linked Material Request notification increment
+
+Committed replenishment receipt credits now feed the existing opt-in MaterialApprovalNotifications worker. The earliest credit ID per stock receipt/material request is the stable event identity, preventing multiple item lines from creating duplicate notices for that request. Event evidence requires matching warehouse/item, positive credited quantity, exact conversion, one matching ledger movement, Posted receipt actor/time and no posted reversal. Source mapping uses the official material-request line link, not inferred item ownership.
+
+Existing Serializable delivery, retention window, unique recipient receipt, retry scan and active requester/MR_VIEW/provenance checks are reused. Opening the notification rechecks the source actor/time and current requester read authority, then opens the Material Request. Wording reports a historical linked receipt; it does not promise current stock, reserve quantities or claim issue/pickup readiness. Rolled-back credits cannot be discovered.
+
+Scope limitation: this closes the notification path for explicitly linked material replenishment credits only. Standalone/low-stock receipts still lack durable evidence of all requesters waiting at posting time; broader UC080 notification acceptance remains open. Worker enablement unchanged (opt-in); no worker or SQL mutation was run. Build PASS with zero warnings/errors. Solution test command exited zero with no tests executed. API/SQL/browser verification remains NOT_RUN, no new COMPLETE_VERIFIED UC.
+
+Changed files in this increment: MaterialReplenishmentNotification.cs, MaterialDecisionNotification.cs, MaterialApprovalNotificationWorker.cs, NotificationCenterService.cs, UC_STATUS_MATRIX.md and this receipt.

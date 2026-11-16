@@ -9,7 +9,7 @@ namespace HotelOps.Api.Services.MaterialRequests;
 
 internal sealed partial class MaterialApprovalNotificationDelivery
 {
-    internal enum NoticeType { Decision, Remainder, Fulfillment }
+    internal enum NoticeType { Decision, Remainder, Fulfillment, ReplenishmentReceipt }
     internal const string DecisionKind = "MATERIAL_REQUEST_DECIDED";
     internal const string DecisionSource = "MATERIAL_APPROVAL_DECISION";
     internal const string RemainderKind = "MATERIAL_REMAINDER_CLOSED";
@@ -21,6 +21,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery
         NoticeType.Decision => (DecisionSource, DecisionKind),
         NoticeType.Remainder => (RemainderSource, RemainderKind),
         NoticeType.Fulfillment => (FulfillmentSource, FulfillmentKind),
+        NoticeType.ReplenishmentReceipt => (ReplenishmentReceiptSource, ReplenishmentReceiptKind),
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
     private sealed record NoticeEvent
@@ -40,7 +41,9 @@ internal sealed partial class MaterialApprovalNotificationDelivery
             && d.ApprovalCycle.ResolvedAt == d.DecidedAt
             && (d.Decision == "RETURNED" || d.Decision == "APPROVED" || d.Decision == "REJECTED"));
 
-    private static IQueryable<NoticeEvent> Events(HotelOpsDbContext db, NoticeType type) => type == NoticeType.Fulfillment
+    private static IQueryable<NoticeEvent> Events(HotelOpsDbContext db, NoticeType type) => type == NoticeType.ReplenishmentReceipt
+        ? ReplenishmentReceiptEvents(db)
+        : type == NoticeType.Fulfillment
         ? db.MaterialFulfillments.AsNoTracking().Where(f => f.Status == "ISSUED" && f.FulfilledAt != null
             && f.StockDocument != null && f.StockDocument.Status == "POSTED" && f.StockDocument.DocumentType == "ISSUE"
             && f.StockDocument.ReferenceType == "MATERIAL_FULFILLMENT" && f.StockDocument.ReferenceId == f.FulfillmentId
@@ -66,6 +69,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery
     internal async Task<long[]> PendingDecisionsAsync(long after, CancellationToken ct, NoticeType type = NoticeType.Decision)
     {
         if (!await InstalledAsync(ct)) return [];
+        if (type == NoticeType.ReplenishmentReceipt && !await ReplenishmentReceiptsInstalledAsync(db, ct)) return [];
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var cutoff = NotificationRetention.At(now, retention.Value).Cutoff;
         var (source, kind) = Identity(type);
@@ -119,9 +123,11 @@ internal sealed partial class MaterialApprovalNotificationDelivery
         if (notice == null)
         {
             notice = new Notification { NotificationType = kind, SourceType = source, SourceId = decisionId,
-                Title = type == NoticeType.Fulfillment ? "Materials ready for pickup"
+                Title = type == NoticeType.ReplenishmentReceipt ? "Replenishment receipt recorded"
+                    : type == NoticeType.Fulfillment ? "Materials ready for pickup"
                     : type == NoticeType.Remainder ? "Material request remainder closed" : "Material request review updated",
-                Message = type == NoticeType.Fulfillment ? "A material issue was posted for your request. Open the request to review this batch and the remaining quantities."
+                Message = type == NoticeType.ReplenishmentReceipt ? "A posted warehouse receipt was linked to replenishment for your material request. Open your request to review its current fulfillment status. This notice does not reserve or issue stock."
+                    : type == NoticeType.Fulfillment ? "A material issue was posted for your request. Open the request to review this batch and the remaining quantities."
                     : type == NoticeType.Remainder ? "The unissued remainder of your material request was closed. Open the request to review its history."
                     : "A review decision was recorded for your material request. Open it to see the decision and current status.",
                 Priority = "NORMAL", CreatedBy = current.ActorId, CreatedAt = current.At };
