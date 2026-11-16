@@ -110,9 +110,8 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
             if (row.EmploymentStatus == "ACTIVE") blockers.Add("LINE_MANAGER_DESIGNATION");
             else unresolved.Add("LINE_MANAGER_EMPLOYMENT_MAPPING");
         }
-        // Only actual open attendance is positive activity evidence. A scheduled
-        // end (even in the past) is not a completed duty or an acknowledgment.
-        // No new attendance/assignment status vocabulary is invented here.
+        // Future/current assignments remain responsibilities even before check-in.
+        // A past scheduled end alone is not evidence that attendance or handover ended.
         var shifts = await (from assignment in db.ShiftAssignments.AsNoTracking()
             where assignment.UserId == targetId
             join shift in db.WorkShifts.AsNoTracking() on assignment.ShiftId equals shift.ShiftId into parents
@@ -121,17 +120,22 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
             from attendance in attendances.DefaultIfEmpty()
             select new { assignment.AssignmentStatus, assignment.AssignedAt,
                 ParentExists = shift != null,
+                ShiftStatus = shift == null ? null : shift.Status,
                 Start = shift == null ? (DateTime?)null : shift.ScheduledStartAt,
                 End = shift == null ? (DateTime?)null : shift.ScheduledEndAt,
                 CheckIn = attendance == null ? (DateTime?)null : attendance.ActualCheckInAt,
                 CheckOut = attendance == null ? (DateTime?)null : attendance.ActualCheckOutAt }).ToArrayAsync(ct);
-        var now = DateTime.UtcNow;
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         foreach (var row in shifts)
         {
-            if (!row.ParentExists || row.End < row.Start || row.CheckOut != null && row.CheckIn == null
+            if (!row.ParentExists || row.End <= row.Start || row.AssignedAt > now || row.CheckOut != null && row.CheckIn == null
                 || row.CheckOut < row.CheckIn || row.CheckIn < row.AssignedAt
                 || row.CheckIn > now || row.CheckOut > now)
             { unresolved.Add("SHIFT_ATTENDANCE_DATA_INCONSISTENCY"); continue; }
+            if (row.AssignmentStatus == "ASSIGNED" && row.ShiftStatus == "PLANNED" && row.End > now)
+                blockers.Add("SHIFT_SCHEDULED_ASSIGNMENT");
+            if (row.AssignmentStatus == "CANCELLED" && row.CheckIn != null)
+                unresolved.Add("SHIFT_CANCELLED_ATTENDANCE_CONFLICT");
             if (row.CheckIn != null && row.CheckOut == null)
             {
                 if (row.AssignmentStatus == "ASSIGNED") blockers.Add("SHIFT_OPEN_ATTENDANCE");

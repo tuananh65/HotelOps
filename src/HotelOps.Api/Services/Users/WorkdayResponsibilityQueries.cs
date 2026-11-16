@@ -26,11 +26,66 @@ public sealed class WorkdayResponsibilityQueries(HotelOpsDbContext db)
             UserId = w.UserId,
             BranchId = w.BranchId,
             DepartmentId = w.DepartmentId,
+            ShiftAssignmentId = w.ShiftAssignmentId,
+            IsUnscheduled = w.IsUnscheduled,
+            UnscheduledReason = w.UnscheduledReason,
             Status = w.Status,
             StartedAt = w.StartedAt,
             EndedAt = w.EndedAt
         }).ToArrayAsync(ct);
-        return Assess(targetId, rows);
+        var assessment = Assess(targetId, rows);
+        var blockers = new SortedSet<string>(assessment.Blockers, StringComparer.Ordinal);
+        var unresolved = new SortedSet<string>(assessment.Unresolved, StringComparer.Ordinal);
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        if (rows.Any(w => w.StartedAt > now || w.EndedAt > now))
+            unresolved.Add("WORKDAY_DATA_INCONSISTENCY");
+        var assignmentIds = rows.Where(w => w.ShiftAssignmentId != null).Select(w => w.ShiftAssignmentId!.Value).Distinct().ToArray();
+        var assignments = await db.ShiftAssignments.AsNoTracking().Where(a => assignmentIds.Contains(a.ShiftAssignmentId))
+            .Select(a => new { a.ShiftAssignmentId, a.UserId, a.Shift.BranchId, a.Shift.DepartmentId, a.AssignmentStatus })
+            .ToDictionaryAsync(a => a.ShiftAssignmentId, ct);
+        foreach (var day in rows)
+        {
+            if (day.IsUnscheduled != (day.ShiftAssignmentId == null)
+                || day.IsUnscheduled && (string.IsNullOrWhiteSpace(day.UnscheduledReason)
+                    || day.UnscheduledReason.Length > 1000 || day.UnscheduledReason.Contains('\0')))
+                unresolved.Add("WORKDAY_ASSIGNMENT_DATA_INCONSISTENCY");
+            if (day.ShiftAssignmentId is { } assignment && (!assignments.TryGetValue(assignment, out var assigned)
+                || assigned.UserId != targetId || assigned.BranchId != day.BranchId || assigned.DepartmentId != day.DepartmentId
+                || assigned.AssignmentStatus == "CANCELLED"))
+                unresolved.Add("WORKDAY_ASSIGNMENT_DATA_INCONSISTENCY");
+        }
+        // Include both ownership directions: an orphaned interval or an interval attributed to
+        // someone else inside this user's day must not disappear from the responsibility review.
+        var intervals = await (from interval in db.WorkIntervals.AsNoTracking()
+            join day in db.Workdays.AsNoTracking() on interval.WorkdayId equals day.WorkdayId into days
+            from day in days.DefaultIfEmpty()
+            where interval.UserId == targetId || day != null && day.UserId == targetId
+            select new { interval.UserId, interval.BranchId, interval.OpenedAt, interval.ClosedAt,
+                interval.ClosedBy, interval.EffectiveStartedAt, interval.EffectiveEndedAt,
+                DayUser = day == null ? (long?)null : day.UserId,
+                DayBranch = day == null ? (long?)null : day.BranchId,
+                DayStatus = day == null ? null : day.Status,
+                DayStart = day == null ? (DateTime?)null : day.StartedAt,
+                DayEnd = day == null ? (DateTime?)null : day.EndedAt }).ToArrayAsync(ct);
+        foreach (var interval in intervals)
+        {
+            if (interval.ClosedAt == null) blockers.Add("OPEN_WORK_INTERVAL_END_REQUIRED");
+            if (interval.DayUser != targetId || interval.UserId != targetId || interval.BranchId != interval.DayBranch
+                || interval.OpenedAt < interval.DayStart || interval.OpenedAt > now
+                || interval.ClosedAt < interval.OpenedAt || interval.ClosedAt > now
+                || interval.EffectiveStartedAt < interval.DayStart || interval.EffectiveStartedAt > now
+                || interval.EffectiveEndedAt < interval.EffectiveStartedAt || interval.EffectiveEndedAt > now
+                || (interval.ClosedAt == null) != (interval.ClosedBy == null)
+                || (interval.ClosedAt == null) != (interval.EffectiveEndedAt == null)
+                || interval.DayStatus is not ("WORKING" or "ENDED")
+                || interval.DayStatus == "ENDED" && (interval.DayEnd == null || interval.ClosedAt == null
+                    || interval.ClosedAt > interval.DayEnd || interval.EffectiveEndedAt > interval.DayEnd)
+                || interval.DayStatus == "WORKING" && interval.DayEnd != null)
+                unresolved.Add("WORK_INTERVAL_DATA_INCONSISTENCY");
+        }
+        if (intervals.Count(i => i.ClosedAt == null) > 1)
+            unresolved.Add("WORK_INTERVAL_DATA_INCONSISTENCY");
+        return new(blockers.ToArray(), unresolved.ToArray());
     }
 
     public static UserResponsibilityAssessment Assess(long targetId, IReadOnlyList<Workday> rows)
