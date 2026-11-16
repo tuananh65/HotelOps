@@ -1,3 +1,4 @@
+import { ShiftAssignmentSummary } from "./ShiftAssignmentSummary";
 import { useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -8,13 +9,14 @@ import { UnscheduledWorkdaySummary } from "./UnscheduledWorkdaySummary";
 
 function BranchSelection({ scheduled }: { scheduled: boolean }) {
   const [query] = useSearchParams();
-  const noticeBranch = Number(query.get("branchId")), noticeId = Number(query.get("unscheduledId"));
+  const noticeBranch = Number(query.get("branchId")), noticeId = Number(query.get("unscheduledId")), shiftAssignmentId = Number(query.get("shiftAssignmentId"));
   const [draft, setDraft] = useState("");
   const [branch, setBranch] = useState<number | null>(null);
   const [invalid, setInvalid] = useState(false);
   return (
     <main>
       <h1>Workday</h1>
+      {!scheduled && safeId(noticeBranch) && safeId(shiftAssignmentId) && <ShiftAssignmentSummary key={`${noticeBranch}:${shiftAssignmentId}`} branchId={noticeBranch} assignmentId={shiftAssignmentId}/>}
       {!scheduled && safeId(noticeBranch) && safeId(noticeId) &&
         <UnscheduledWorkdaySummary key={`${noticeBranch}:${noticeId}`} branchId={noticeBranch} workdayId={noticeId}/>}
       <form

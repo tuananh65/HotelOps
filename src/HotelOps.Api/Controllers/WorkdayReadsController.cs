@@ -20,6 +20,10 @@ public sealed class WorkdayReadsController(WorkdayService service) : ControllerB
     public Task<IActionResult> UnscheduledSummary(long branchId, long workdayId, CancellationToken ct)
         => Execute(() => service.UnscheduledSummaryAsync(branchId, workdayId, ct));
 
+    [HttpGet("own-shifts/{assignmentId:long}")]
+    public Task<IActionResult> OwnShiftAssignment(long branchId,long assignmentId,CancellationToken ct)
+        => Execute(()=>service.OwnShiftAssignmentAsync(branchId,assignmentId,ct));
+
     [HttpGet("own-shifts")]
     public Task<IActionResult> OwnShifts(long branchId, CancellationToken ct)
         => Execute(() => service.OwnShiftsAsync(branchId, ct));

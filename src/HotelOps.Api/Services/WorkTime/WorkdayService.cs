@@ -127,6 +127,25 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             return new(200, Response(day));
         }, ct);
 
+    public Task<WorkdayResult> OwnShiftAssignmentAsync(long branchId,long assignmentId,CancellationToken ct)
+        => Execute(branchId,"SHIFT_VIEW",async actor=>
+        {
+            if(assignmentId<=0)return new(400,Code:"INVALID_ASSIGNMENT");
+            var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            if(await HotelOps.Api.Services.Notifications.ShiftAssignmentNoticeAccess.BranchAsync(db,assignmentId,actor.UserId,now,ct)!=branchId)
+                return new(404,Code:"SHIFT_ASSIGNMENT_UNAVAILABLE");
+            var row=await db.ShiftAssignments.AsNoTracking().Where(a=>a.ShiftAssignmentId==assignmentId&&a.UserId==actor.UserId&&a.Shift.BranchId==branchId)
+                .Select(a=>new {a.ShiftAssignmentId,a.ShiftId,a.Shift.BranchId,a.Shift.DepartmentId,a.Shift.Department.DepartmentName,
+                    Name=a.Shift.ShiftTemplate.ShiftName,a.AssignmentStatus,a.Shift.ShiftDate,a.Shift.ScheduledStartAt,a.Shift.ScheduledEndAt}).SingleAsync(ct);
+            return new(200,new {row.ShiftAssignmentId,row.ShiftId,row.BranchId,row.DepartmentId,row.DepartmentName,row.Name,row.AssignmentStatus,row.ShiftDate,
+                StartUtc=Utc(row.ScheduledStartAt),EndUtc=Utc(row.ScheduledEndAt)});
+        },ct,async actor=>
+        {
+            var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            return await HotelOps.Api.Services.Notifications.ShiftAssignmentNoticeAccess.BranchAsync(db,assignmentId,actor.UserId,now,ct)==branchId
+                ?null:new WorkdayResult(404,Code:"SHIFT_ASSIGNMENT_UNAVAILABLE");
+        });
+
     public Task<WorkdayResult> OwnShiftsAsync(long branchId, CancellationToken ct)
         => Execute(branchId, "SHIFT_VIEW", async actor =>
         {
