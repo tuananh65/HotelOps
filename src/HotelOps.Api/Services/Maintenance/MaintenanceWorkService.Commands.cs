@@ -45,7 +45,7 @@ public sealed partial class MaintenanceWorkService
         if (request is VerifyMaintenanceWorkRequest or CancelMaintenanceWorkRequest
             && !await HotelOps.Api.Services.Incidents.IncidentEscalationClosure.InstalledAsync(_dbContext, cancellationToken))
             throw new Dev2AccessDenied(503);
-        if (request is SubmitMaintenanceResultRequest)
+        if (request is SubmitMaintenanceResultRequest or VerifyMaintenanceWorkRequest)
             await LockResolutionMaterialsAsync(id, cancellationToken);
         HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant? workTime = null;
         if (OpensWorkInterval(request) || ClosesWorkInterval(request))
@@ -92,6 +92,8 @@ public sealed partial class MaintenanceWorkService
             ? await ValidateResolutionMaterialsAsync(work, incident, cancellationToken) : null;
         var resolutionEvidence = request is SubmitMaintenanceResultRequest submission
             ? await ValidateResolutionEvidenceAsync(submission, incident, cancellationToken) : null;
+        var reviewedSubmission = request is VerifyMaintenanceWorkRequest reviewRequest
+            ? await RequireReviewProofAsync(work, incident, reviewRequest.SubmissionAuditId, cancellationToken) : null;
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
@@ -115,6 +117,7 @@ public sealed partial class MaintenanceWorkService
             afterWork["notification_version"] = 1;
             afterWork["closure_reporter_id"] = incident.ReportedBy;
             afterWork["verification_note"] = verified.Note.Trim();
+            afterWork["verified_submission_audit_id"] = reviewedSubmission!.Review.SubmissionAuditId;
             if (incident.AssetId is long assetId)
             {
                 var asset = await _dbContext.Assets.AsNoTracking().SingleOrDefaultAsync(a => a.AssetId == assetId
@@ -209,6 +212,8 @@ public sealed partial class MaintenanceWorkService
         if (request is SubmitMaintenanceResultRequest finalSubmission && resolutionEvidence is { Count: > 0 }
             && !resolutionEvidence.SequenceEqual(await ValidateResolutionEvidenceAsync(finalSubmission, incident, cancellationToken)))
             throw new ValidationException("Result evidence changed during submission. Reload before retrying.");
+        if (reviewedSubmission != null)
+            await RequireReviewEvidenceAsync(reviewedSubmission.Review, reviewedSubmission.Evidence, incident, cancellationToken);
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }

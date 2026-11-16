@@ -17,8 +17,8 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // Scoped list/detail; material usage and mutations retain independent admission gates.
 internal static class MaintenanceReadContract
 {
-    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V3";
-    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; material availability requires independent INVENTORY_VIEW and MR_VIEW with request-scope filtering before counts/paging, catalog lock before user/source and final grant revalidation; no mutation admission";
+    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V4";
+    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; material availability requires independent INVENTORY_VIEW and MR_VIEW with request-scope filtering before counts/paging, catalog lock before user/source and final grant revalidation; submitted snapshot requires MAINTENANCE_REVIEW, performer separation, unique current submission and closed interval, independent Incident read for evidence IDs, final snapshot disclosure revalidation; no mutation admission";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-034", "A004A-035", "A004A-036" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(IsList(a) ? "maintenance_list" : "maintenance_work", IsList(a) ? await BranchAsync(a, ct) : Id(a))))],
@@ -46,6 +46,7 @@ internal static class MaintenanceReadContract
     private static readonly object UsageKey = new();
     private static readonly object ResumeKey = new();
     private static readonly object ReturnKey = new();
+    private static readonly object ReviewKey = new();
     private sealed class Resolver(Dev2BoundAction a) : HotelOps.Api.Security.Authorization.IPermissionResourceResolver
     {
         public async Task<HotelOps.Api.Security.Authorization.VerifiedPermissionResource?> ResolveAsync(string permission,
@@ -96,6 +97,13 @@ internal static class MaintenanceReadContract
             && !await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(ReturnKey)
             && !await MaintenanceReviewAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ReviewKey] is MaintenanceReviewDto shownReview)
+        {
+            var fresh = await MaintenanceReviewSnapshot.ReadAsync(db, a.Actor.UserId, branch, Id(a), ct);
+            if (fresh == null || fresh.SubmissionAuditId != shownReview.SubmissionAuditId
+                || fresh.Diagnosis != shownReview.Diagnosis || fresh.ActionTaken != shownReview.ActionTaken
+                || !fresh.ResultAttachmentIds.SequenceEqual(shownReview.ResultAttachmentIds)) return false;
+        }
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ScopeKey] is MaintenanceReadAccess.Scope disclosed
             && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && !IsList(a)
@@ -132,6 +140,11 @@ internal static class MaintenanceReadContract
             detail.CanReturn = detail.Status == "COMPLETED" && detail.ExecutionETag != null
                 && await MaintenanceReviewAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             if (detail.CanReturn) a.Http.Items[ReturnKey] = true;
+            if (detail.CanReturn)
+            {
+                detail.SubmittedReview = await MaintenanceReviewSnapshot.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
+                if (detail.SubmittedReview != null) a.Http.Items[ReviewKey] = detail.SubmittedReview;
+            }
             detail.CanStart = detail.Status == "PENDING" && detail.ActualStartAt == null && detail.ExecutionETag != null
                 && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             detail.CanResume = detail.ExecutionETag != null

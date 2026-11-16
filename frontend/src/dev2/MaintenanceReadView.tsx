@@ -31,9 +31,20 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
     </section>;
   }
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
+  const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
     {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {submitted && <section aria-label="Submitted maintenance snapshot">
+      <h3>Submitted result</h3>
+      <p>Submission #{show(submitted.submissionAuditId)} at {time(submitted.submittedAtUtc)}.</p>
+      <dl><dt>Diagnosis / root cause</dt><dd>{show(submitted.diagnosis)}</dd>
+        <dt>Action taken</dt><dd>{show(submitted.actionTaken)}</dd></dl>
+      <p>Review material usage below. Evidence downloads enforce current Incident access.</p>
+      {Array.isArray(submitted.resultAttachmentIds) && typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0 &&
+        <ul>{submitted.resultAttachmentIds.filter((id): id is number => typeof id === "number" && Number.isSafeInteger(id) && id > 0).map(id =>
+          <li key={id}><a href={`/api/incidents/${data.incidentId}/evidence/${id}`}>Result evidence {id}</a></li>)}</ul>}
+    </section>}
     {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} />}
     {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}
