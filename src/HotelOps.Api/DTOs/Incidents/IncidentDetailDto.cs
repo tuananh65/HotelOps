@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class IncidentDetailDto
 {
+    public IReadOnlyList<IncidentMaintenanceLinkDto> MaintenanceWorks { get; set; } = [];
     public string? SubmissionWorkflow { get; set; }
     public string? AssignmentWorkflow { get; set; }
     public bool CanAssign { get; set; }

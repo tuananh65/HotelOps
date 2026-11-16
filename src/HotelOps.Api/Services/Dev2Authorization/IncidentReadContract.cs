@@ -21,11 +21,12 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // borrow Internal Request permissions as authority over a linked incident.
 internal static class IncidentReadContract
 {
+    private static readonly object MaintenanceLinksKey = new();
     private static readonly object AssignmentKey = new();
     private static readonly object RoomBlocksKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V10";
-    private const string Policy = "Pending Verification projection requires unique current-cycle corrective work and proven committed submission/closed interval; reopened cycles require immutable closure/event/audit provenance and confirmed recurrence discovery for SLA options; prior cycles remain historical; Pending Triage cancellation availability requires escalation storage and native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V11";
+    private const string Policy = "Related maintenance links require independent current MAINTENANCE_VIEW resource scope and final revalidation; detail endpoints independently authorize progress/history disclosure; Pending Verification projection requires unique current-cycle corrective work and proven committed submission/closed interval; reopened cycles require immutable closure/event/audit provenance and confirmed recurrence discovery for SLA options; prior cycles remain historical; Pending Triage cancellation availability requires escalation storage and native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "Room block availability requires installed explicit scope, open source, native version, current Lead ROOM_BLOCK_MANAGE and independent ROOM_VIEW/INCIDENT_VIEW; current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
@@ -97,6 +98,13 @@ internal static class IncidentReadContract
         if (a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD"
             && !await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == Id(a), ct))
             throw new Dev2AccessDenied(404);
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[MaintenanceLinksKey] is long[] linkedIds)
+        {
+            var maintenanceScope = await MaintenanceReadAccess.ReadAsync(db,a.Actor.UserId,branch,ct);
+            var stillVisible = await maintenanceScope.Apply(db.MaintenanceWorks.AsNoTracking())
+                .Where(w=>w.IncidentId==Id(a) && linkedIds.Contains(w.MaintenanceWorkId)).CountAsync(ct);
+            if(stillVisible!=linkedIds.Length) return false;
+        }
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(TriageOptionsKey)
             && !await IncidentTriageAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(AssignmentKey)
@@ -137,6 +145,11 @@ internal static class IncidentReadContract
             var result = await IncidentService.DetailAsync(query, Id(a), ct, db);
             if (result != null)
             {
+                var maintenanceScope = await MaintenanceReadAccess.ReadAsync(db,a.Actor.UserId,result.BranchId,ct);
+                result.MaintenanceWorks = await maintenanceScope.Apply(db.MaintenanceWorks.AsNoTracking())
+                    .Where(w=>w.IncidentId==result.IncidentId).OrderBy(w=>w.CreatedAt).ThenBy(w=>w.MaintenanceWorkId)
+                    .Select(w=>new IncidentMaintenanceLinkDto(w.MaintenanceWorkId,w.WorkNo,w.Status,w.CreatedAt)).ToArrayAsync(ct);
+                a.Http.Items[MaintenanceLinksKey]=result.MaintenanceWorks.Select(w=>w.WorkId).ToArray();
                 result.SubmissionWorkflow = await MaintenanceSubmissionWorkflow.ForIncidentAsync(db,result.IncidentId,ct);
                 result.Sla = await IncidentSlaRead.ReadAsync(db, result.IncidentId, ct);
                 result.AssignmentWorkflow = await IncidentAssignmentWorkflow.ReadAsync(db,

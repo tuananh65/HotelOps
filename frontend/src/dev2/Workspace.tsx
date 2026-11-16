@@ -40,6 +40,7 @@ import { ReplenishmentListView } from "./ReplenishmentListView";
 import { ReplenishmentDetailView } from "./ReplenishmentDetailView";
 import { MaterialListView } from "./MaterialListView";
 import { MaterialReviewHistory } from "./MaterialReviewHistory";
+import { IncidentMaintenanceLinks } from "./IncidentMaintenanceLinks";
 import { IncidentListView } from "./IncidentListView";
 import { MaintenanceReadView } from "./MaintenanceReadView";
 import { MaterialTaskLinks } from "./MaterialTaskLinks";
@@ -693,6 +694,8 @@ function Screen({
         ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)
         ? <ReplenishmentDetailView record={data} /> : operation.id === "A004A-037" && isObject(data)
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
+      {operation.id === "A004A-023" && isObject(data) && !denied && !sessionLost && available.some(op => op.id === "A004A-023")
+        && (!enabledActions || enabledActions.includes("A004A-036")) && <IncidentMaintenanceLinks data={data} />}
       {operation.id === "A004A-023" && !readOnly && (!enabledActions || enabledActions.includes("A004A-020")) && data !== undefined && !denied && !sessionLost && isObject(data)
         && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data)
