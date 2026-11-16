@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createWorkdayApi } from "./workdayApi";
 import { createScheduledWorkdayApi } from "./scheduledWorkdayApi";
@@ -350,11 +351,12 @@ function Bound({
             <p>Working day {day.workdayId}</p>
             {day.openInterval && (
               <p role="alert">
-                {day.openInterval.workItemKind === "TASK"
+                {["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind)
                   ? "Work is running. Pause All will pause or hold it with End of Shift, close its interval and end this workday together."
-                  : "End blocked: close this interval through its owning workflow. Pause All is not yet available for this work type."}
+                  : "End blocked: complete the preventive occurrence through Scheduled maintenance before ending this workday."}
               </p>
             )}
+            {day.openInterval?.workItemKind === "OCCURRENCE" && <p><Link to={`/operations/maintenance?branchId=${branchId}&runId=${day.openInterval.workItemId}`}>Open running preventive occurrence</Link></p>}
             {day.isUnscheduled && (
               <p>Unscheduled workday. End uses the current workday version.</p>
             )}
