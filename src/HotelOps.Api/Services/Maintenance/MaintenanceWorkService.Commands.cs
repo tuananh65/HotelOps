@@ -107,6 +107,15 @@ public sealed partial class MaintenanceWorkService
             if (request is StartMaintenanceWorkRequest) work.ActualStartAt = now;
         }
         var afterWork = WorkSnapshot(work);
+        if (request is VerifyMaintenanceWorkRequest verified)
+        {
+            foreach (var key in new[] { "notification_kind", "notification_version", "closure_reporter_id", "verification_note" })
+                beforeWork[key] = null;
+            afterWork["notification_kind"] = "MAINTENANCE_VERIFIED";
+            afterWork["notification_version"] = 1;
+            afterWork["closure_reporter_id"] = incident.ReportedBy;
+            afterWork["verification_note"] = verified.Note.Trim();
+        }
         if (returnedExecution != null)
         {
             // Opening a new interval while physical state stays IN_PROGRESS must still

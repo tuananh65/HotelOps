@@ -51,3 +51,15 @@ Ran IncidentEscalationRollbackProbe.sql against the revalidated Recovery_2b221f4
 Actual SQL result: PASS for duplicate Open rejection (unique index), foreign-Incident closure event rejection (composite FK), successful closure preserving opening event/time in OUTPUT, repeated closure affecting zero rows, and rollback cleanup of all fixture rows plus table/source unique key/capability marker. This provides direct database constraint and DML evidence. It does not execute IncidentEscalationClosure through EF, authenticate an HTTP request, validate full Maintenance transaction rollback, or exercise concurrent sessions. Those acceptance checks remain outstanding; UC059 is still PARTIAL.
 
 Only the focused SQL probe and this receipt changed in this increment. No C#/frontend changes; builds were not rerun. The probe's PASS is direct execution evidence, not a historical handoff claim.
+
+## Verified closure notifications ? reporter and technician
+
+Verify now writes a versioned MAINTENANCE_VERIFIED intent in the work audit within the owning closure transaction. It binds the original technician, Incident reporter, reviewer, exact COMPLETED-to-CLOSED transition, review timestamp and note. The delivery source additionally proves current CLOSED Work/Incident and the matching RESOLVED-to-CLOSED Incident event; reopened or reassigned sources do not remain actionable.
+
+Reporter and technician candidates are deduplicated and independently authorized. A technician with current Maintenance read scope opens the scoped Maintenance detail. A reporter with current Incident source-read scope opens Incident detail. Neither role relation supplies missing grants or cross-branch access. When one person fulfills both relations, one recipient is written; a valid Maintenance target takes precedence. Notification text is generic and does not disclose the verification note.
+
+Delivery follows the existing retention, per-event lock, retry and current authorization revalidation design, using its own worker cursor. Opening revalidates session and the exact authorized target. No actual notifications were delivered in this run; worker defaults were not enabled and no database changes were made.
+
+Build PASS with zero warnings/errors. Twenty focused closure/return/read tests PASS, including six new closure parser cases. Solution test exits zero without discovery. SQL worker idempotency/races, rollback and HTTP opening remain NOT_RUN. Housekeeping Supervisor delivery awaits confirmation of a Room Status source with ROOM_VIEW instead of broadening INCIDENT_VIEW; asset-condition follow-up is still missing. Production review admission remains closed and UC059 is still PARTIAL.
+
+Files: MaintenanceClosureSource.cs, MaintenanceClosureDelivery.cs, MaintenanceClosureSourceTests.cs (new); Program.cs, MaintenanceWorkService.Commands.cs, NotificationCenterService.cs, TaskNotificationWorker.cs and this receipt updated.

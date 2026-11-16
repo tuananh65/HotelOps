@@ -43,6 +43,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskPlanNotificat
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.UnscheduledWorkdayDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceSubmissionDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceReturnDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceClosureDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskSeriesNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskReopenNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationNotificationDelivery>();
