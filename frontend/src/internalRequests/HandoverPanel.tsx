@@ -3,11 +3,16 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 interface View { requestId:number; version:string; handoverId:number|null; state:string|null; receiverId:number|null; summary:string|null; note:string|null;
   canSubmit:boolean; canDecide:boolean; receivers:{id:number;name:string}[]; createdAt?:string|null; decisionAt?:string|null; rejectionReason?:string|null; }
-class Failure extends Error { constructor(readonly status:number){super("Handover unavailable");} }
+class Failure extends Error { constructor(readonly status:number,readonly code?:string){super("Handover unavailable");} }
+const validText=(value:string,required=false)=>value.trim().length<=4000&&(!required||value.trim().length>0)&&!/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(value);
 const version=(value:unknown):value is string=>typeof value==="string"&&/^[A-Za-z0-9+/]{11}=$/.test(value);
 async function json(path:string,signal:AbortSignal,init?:RequestInit):Promise<unknown>{
   const response=await fetch(path,{...init,signal,credentials:"same-origin",cache:"no-store",redirect:"error"});
-  if(!response.ok)throw new Failure(response.status);
+  if(!response.ok){
+    const problem:unknown=await response.json().catch(()=>null);
+    const code=typeof problem==="object"&&problem!==null&&"code" in problem&&typeof problem.code==="string"?problem.code:undefined;
+    throw new Failure(response.status,code);
+  }
   if(!response.headers.get("content-type")?.includes("json"))throw new Error("Invalid response");return response.json();
 }
 export function InternalRequestHandoverPanel({id,handoverId,onSaved}:{id:number;handoverId?:number;onSaved?:(state:string,receiptId:number)=>void}){
@@ -38,11 +43,11 @@ export function InternalRequestHandoverPanel({id,handoverId,onSaved}:{id:number;
   async function send(action:"submit"|"acknowledge"|"reject"){
     const abort=controller.current;
     if(!owner||!view||sending.current||!abort||abort.signal.aborted||action==="submit"&&!view.canSubmit||action!=="submit"&&!view.canDecide)return;
-    if(action==="submit"&&(!view.receivers.some(r=>r.id===Number(receiver))||!summary.trim())||action==="reject"&&!reason.trim()){setMessage("Select a currently eligible receiver and enter the summary, or enter the rejection reason.");return;}
+    if(action==="submit"&&(!view.receivers.some(r=>r.id===Number(receiver))||!validText(summary,true)||!validText(note))||action!=="submit"&&!validText(reason,action==="reject")){setMessage("Select an eligible receiver and enter valid summary/notes, or a rejection reason. Maximum 4000 characters per field; unsupported control characters are not allowed.");return;}
     sending.current=true;setBusy(true);setMessage("");setCommitted(null);
     try{
-      const csrf=await json("/api/auth/csrf",abort.signal) as {csrfToken?:unknown};
-      if(typeof csrf?.csrfToken!=="string"||!csrf.csrfToken||abort.signal.aborted)throw new Error("Security check failed");
+      const csrf=await json("/api/auth/csrf",abort.signal) as {csrfToken?:unknown;headerName?:unknown};
+      if(csrf?.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||! /^[\x21-\x7e]+$/.test(csrf.csrfToken)||abort.signal.aborted)throw new Error("Security check failed");
       const result=await json(`/api/internal-requests/${id}/handover${action==="submit"?"":"/decision"}`,abort.signal,{
         method:"POST",headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":`"${view.version}"`},
         body:JSON.stringify(action==="submit"?{receiverId:Number(receiver),summary:summary.trim(),note:note.trim()||null}:{handoverId:view.handoverId,acknowledge:action==="acknowledge",reason:reason.trim()||null})
@@ -51,7 +56,7 @@ export function InternalRequestHandoverPanel({id,handoverId,onSaved}:{id:number;
         ||action!=="submit"&&result.handoverId!==view.handoverId
         ||result.state!==(action==="submit"?"PENDING_ACKNOWLEDGMENT":action==="acknowledge"?"ACKNOWLEDGED":"REJECTED"))throw new Error("Handover not confirmed");
       if(!abort.signal.aborted){setLoaded(null);setSummary("");setNote("");setReason("");setCommitted({owner,id,receiptId:result.handoverId,state:result.state});onSaved?.(result.state,result.handoverId);if(handoverId!==undefined)setRevision(v=>v+1);}
-    }catch(e){if(!abort.signal.aborted){setLoaded(null);setMessage(e instanceof Failure&&e.status===412?"Request changed. Reload before deciding.":"Handover not confirmed. Reload; no automatic retry was sent.");if(e instanceof Failure&&e.status===401)actions.invalidateSession(owner);}}
+    }catch(e){if(!abort.signal.aborted){if(e instanceof Failure&&e.status===400&&e.code==="INVALID_HANDOVER_INPUT"){setMessage("Handover input was rejected. Correct the summary, notes or rejection reason and try again.");return;}setLoaded(null);setMessage(e instanceof Failure&&e.status===412?"Request changed. Reload before deciding.":"Handover not confirmed. Reload; no automatic retry was sent.");if(e instanceof Failure&&e.status===401)actions.invalidateSession(owner);}}
     finally{if(!abort.signal.aborted){sending.current=false;setBusy(false);}}
   }
   if(!owner)return null;
@@ -72,7 +77,7 @@ export function InternalRequestHandoverPanel({id,handoverId,onSaved}:{id:number;
     {view?.canDecide&&<>
       <label>Handover rejection reason<textarea maxLength={4000} value={reason} disabled={busy} onChange={e=>setReason(e.target.value)}/></label>
       <button disabled={busy} onClick={()=>void send("acknowledge")}>Acknowledge handover</button>
-      <button disabled={busy} onClick={()=>void send("reject")}>Reject handover</button>
+      <button disabled={busy||!validText(reason,true)} onClick={()=>void send("reject")}>Reject handover</button>
     </>}
   </section>;
 }
