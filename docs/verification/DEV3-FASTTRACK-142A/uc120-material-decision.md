@@ -118,3 +118,24 @@ Backend build PASS 0 warnings/errors; TypeScript/Vite build PASS with the existi
 directive/chunk warnings. Business tests/API/browser NOT RUN per instruction. No
 whole-UC completion claim; current runtime still needs other FE13 capabilities and
 approved grants, and legacy proof gaps continue to fail closed.
+
+## Approved material approver routing — source implementation
+
+The approved GBR-111 decision now guards approval-cycle creation and current
+assigned-approver decisions, including a final check before transaction commit.
+An approver must be an eligible, independent DEPT_MANAGER with a current exact
+user/branch/department mapping and MR_APPROVE_L1 for the requester's department.
+When the requester manages that department, routing requires the issuing warehouse's
+department and MR_APPROVE_FALLBACK instead. MR_APPROVE_L2, IR_PROCESS and MR_VIEW
+do not replace these grants. Missing capability, mapping or grant rejects the write.
+No role IDs, automatic grants or inferred ManagerUserId authority were introduced.
+
+Linked material creation now has a source-side transaction participant: validate
+IR_VIEW/current processing authority, lock the source, compare its version, then
+persist the new material link, source revision and audit within the material writer's
+transaction. It does not enable target admission. Submitting an unchanged draft
+also creates its approval cycle rather than returning early on content equality.
+
+Production material mutation admission and the create/approver-selection UI remain
+outstanding; these changes alone do not complete UC091/094/095/118/120. No database
+mutation or business/API/browser tests were run for this source batch.

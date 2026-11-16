@@ -1,9 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace HotelOps.Api.DTOs.MaterialRequests;
 
 public sealed record MaterialLineWrite(long? RequestLineId, int LineNo, long ItemId, long UomId, decimal RequestedQty, string? Note);
 public sealed record MaterialRequestWrite(long ActorUserId, long BranchId, long DepartmentId, long? SourceWarehouseId,
     string Purpose, DateTime? NeededAt, long? PriorityId, long? ReceivingRoomId, long? ReceivingAreaId, long? IncidentId,
-    IReadOnlyList<MaterialLineWrite> Lines, bool Submit = false, long? AssignedApproverUserId = null, string? ExpectedRowVersion = null);
+    IReadOnlyList<MaterialLineWrite> Lines, bool Submit = false, long? AssignedApproverUserId = null, string? ExpectedRowVersion = null,
+    long? InternalRequestId = null, MaterialRequestSourceLink? RequestLink = null);
+public sealed record MaterialRequestSourceLink(string Version, [property: JsonRequired] bool Mandatory);
 public sealed record MaterialCommand(long ActorUserId, string ExpectedRowVersion, string? Reason = null, long? AssignedApproverUserId = null);
 public sealed record MaterialApprovalLine(long RequestLineId, decimal ApprovedQty);
 public sealed record MaterialApproval(long ActorUserId, string ExpectedRowVersion, IReadOnlyList<MaterialApprovalLine> Lines, string? Reason = null);

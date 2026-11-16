@@ -51,6 +51,7 @@ public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInvent
     {
         if (id is null || id == r.RequesterId || id == actor) throw Invalid("An independent assigned approver is required.");
         await Participant(id.Value, r.BranchId, ct);
+        await MaterialApprovalAuthority.ValidateAsync(db, r, id.Value, ct);
     }
     private static void RecheckDiscovery(MaterialRequest current, MaterialRequest discovered)
     {

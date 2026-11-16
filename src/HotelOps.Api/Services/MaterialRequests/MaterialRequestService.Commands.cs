@@ -13,6 +13,7 @@ public sealed partial class MaterialRequestService
     public async Task<MaterialRequestDto?> Save(long? id, MaterialRequestWrite input, CancellationToken ct)
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaterialRequests", [id is null ? "Create" : "Edit"], input.ActorUserId, id, input);
+        MaterialRequestCreation.Validate(id, input);
         var discovered = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = TrustedActorId, Status = "DRAFT" }
             : await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(x => x.RequestId == id.Value, ct);
         if (discovered is null) return null;
@@ -30,6 +31,7 @@ public sealed partial class MaterialRequestService
             UserEligibilityLock.RequireEligible(TrustedActorId, lockedUsers);
             UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);
             if (needsCycle && approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);
+            var sourceLink = await MaterialRequestCreation.PrepareAsync(db, TrustedActorId, input, ct);
             await Gate("HotelOps:Inventory:Catalog", ct);
             var r = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = TrustedActorId, Status = "DRAFT", CreatedAt = DateTime.UtcNow } : await Locked(id.Value, input.ExpectedRowVersion, ct);
             if (r is null) return null;
@@ -51,7 +53,10 @@ public sealed partial class MaterialRequestService
             Apply(r, input);
             await ValidateContent(r, false, oldIncident != r.IncidentId || id is null, ct);
             var changed = before is null || JsonSerializer.Serialize(before) != JsonSerializer.Serialize(Snapshot(r));
-            if (!changed) { await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct); }
+            // Submitting an unchanged draft still creates its approval cycle.
+            // Content equality must not suppress the requested lifecycle transition.
+            if (!changed && !(input.Submit && previousState is ("DRAFT" or "NEEDS_INFORMATION")))
+            { await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct); }
             if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); }
             if (needsCycle) await Cycle(r, TrustedActorId, approver, lockedUsers, ct);
             if (id != null) r.UpdatedAt = DateTime.UtcNow;
@@ -60,7 +65,14 @@ public sealed partial class MaterialRequestService
             Audit(r, TrustedActorId, id is null ? "CREATE" : "UPDATE", id is null ? "REQUEST_CREATED" : previousState == "APPROVED" ? "REQUEST_REAPPROVAL_REQUIRED" : "REQUEST_EDITED", before,
                 new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId, Submitted = r.Status == "PENDING_APPROVAL" });
             if (oldIncident != r.IncidentId && id != null) Audit(r, TrustedActorId, "UPDATE", "WORK_LINK_CHANGED", before);
-            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
+            if (sourceLink is not null)
+            {
+                await Dev2ServiceAuthority.RevalidateAsync(db, _authorityHttp, Dev2AuthorizationPhase.BeforePersistence, ct);
+                await MaterialRequestCreation.WriteAsync(db, sourceLink, r.RequestId, ct);
+            }
+            if (needsCycle) await MaterialApprovalAuthority.ValidateAsync(db, r, approver!.Value, ct);
+            await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
@@ -97,7 +109,7 @@ public sealed partial class MaterialRequestService
             // Returning for information creates requester responsibility again.
             var needsRequester = command is "submit" or "cancel" or "request-information";
             var approver = command == "submit" ? input.AssignedApproverUserId : null;
-            long[] ids = needsRequester ? [TrustedActorId, discovered.RequesterId] : [TrustedActorId];
+            long[] ids = [TrustedActorId, discovered.RequesterId];
             if (approver is long candidate) ids = [.. ids, candidate];
             var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);
             UserEligibilityLock.RequireEligible(TrustedActorId, lockedUsers);
@@ -107,6 +119,7 @@ public sealed partial class MaterialRequestService
             RecheckDiscovery(r, discovered);
             await Participant(TrustedActorId, r.BranchId, ct); var before = Snapshot(r);
             var action = "UPDATE"; var evt = "";
+            long? responsibleApprover = command == "submit" ? approver : null;
             if (command == "submit")
             {
                 State(r, "DRAFT", "NEEDS_INFORMATION"); if (r.RequesterId != TrustedActorId) throw Invalid("Only requester may submit.");
@@ -125,6 +138,8 @@ public sealed partial class MaterialRequestService
             {
                 var cycle = await Latest(id, ct);
                 if (cycle.AssignedApproverId != TrustedActorId || TrustedActorId == r.RequesterId || TrustedActorId == cycle.SubmittedBy) throw Invalid("Current independent assigned approver is required.");
+                responsibleApprover = cycle.AssignedApproverId;
+                await MaterialApprovalAuthority.ValidateAsync(db, r, responsibleApprover.Value, ct);
                 if (command == "close-remainder")
                 {
                     State(r, "PARTIALLY_ISSUED"); if (cycle.Status != "APPROVED" || !r.MaterialRequestLines.Any(x => x.IsActive && x.FulfilledQty > 0) || !r.MaterialRequestLines.Any(x => x.IsActive && x.ApprovedQty > x.FulfilledQty)) throw Invalid("Issued quantity and open approved remainder are required.");
@@ -153,7 +168,9 @@ public sealed partial class MaterialRequestService
             await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
             Audit(r, TrustedActorId, action, evt, before, new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId });
-            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(id, ct);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
+            if (responsibleApprover is {} decisionActor) await MaterialApprovalAuthority.ValidateAsync(db, r, decisionActor, ct);
+            await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(id, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
