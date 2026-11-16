@@ -62,7 +62,7 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
     }
 
     private IQueryable<CleaningLinkState> States() => db.Database.SqlQuery<CleaningLinkState>($"SELECT cleaning_task_id AS TaskId,workflow_status AS State FROM dbo.cleaning_tasks");
-    private async Task<IQueryable<CleaningTask>> VisibleTasksAsync(long user, long branch, CancellationToken ct)
+    internal static async Task<IQueryable<CleaningTask>> VisibleTasksAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var data = new EfPermissionDataSource(db);
@@ -85,7 +85,7 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
         var request = await RequestAsync(ticket, sid, id, ct);
         var canLink = request.Status is "ACCEPTED" or "IN_PROGRESS" && await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct);
         if (candidates && !canLink) throw new InternalRequestReadException(403, "IR_PROCESS_REQUIRED");
-        var tasks = await VisibleTasksAsync(ticket.UserId, request.BranchId, ct);
+        var tasks = await VisibleTasksAsync(db, ticket.UserId, request.BranchId, ct);
         var links = Links(id);
         var states = States();
         var linked = links.Select(l => l.TaskId);
@@ -101,7 +101,7 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
         var stateMap = await states.Where(s => ids.Contains(s.TaskId)).ToDictionaryAsync(s => s.TaskId, s => s.State, ct);
         var metadata = await links.Where(l => ids.Contains(l.TaskId)).ToDictionaryAsync(l => l.TaskId, l => l.Mandatory, ct);
         await RequestAsync(ticket, sid, id, ct);
-        var finalTasks = await VisibleTasksAsync(ticket.UserId, request.BranchId, ct);
+        var finalTasks = await VisibleTasksAsync(db, ticket.UserId, request.BranchId, ct);
         if (await finalTasks.CountAsync(t => ids.Contains(t.CleaningTaskId), ct) != ids.Length)
             throw new InternalRequestReadException(403, "IR_TARGET_SCOPE_CHANGED");
         if (candidates)
@@ -133,7 +133,7 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
             if (!(await InternalRequestDecisionStore.RevisionAsync(db, id, ct)).SequenceEqual(version))
                 throw new InternalRequestReadException(412, "IR_VERSION_CHANGED");
             if (request.Status is not ("ACCEPTED" or "IN_PROGRESS")) throw new InternalRequestReadException(409, "IR_LINK_STATE_INVALID");
-            var tasks = await VisibleTasksAsync(ticket.UserId, request.BranchId, ct);
+            var tasks = await VisibleTasksAsync(db, ticket.UserId, request.BranchId, ct);
             if (!await tasks.AnyAsync(t => t.CleaningTaskId == input.TaskId, ct)) throw new InternalRequestReadException(404, "IR_TARGET_NOT_FOUND");
             var state = await States().Where(s => s.TaskId == input.TaskId).Select(s => s.State).SingleOrDefaultAsync(ct);
             if (!Open(state)) throw new InternalRequestReadException(409, "IR_TARGET_NOT_OPEN");
@@ -148,7 +148,7 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_cleaning_links(internal_request_id,cleaning_task_id,is_mandatory,audit_id) VALUES({id},{input.TaskId},{input.Mandatory},{audit.AuditId})", ct);
             await RequestAsync(ticket, sid, id, ct);
             if (!await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct)) throw new InternalRequestReadException(403, "IR_AUTHORITY_CHANGED");
-            tasks = await VisibleTasksAsync(ticket.UserId, request.BranchId, ct);
+            tasks = await VisibleTasksAsync(db, ticket.UserId, request.BranchId, ct);
             if (!await tasks.AnyAsync(t => t.CleaningTaskId == input.TaskId, ct)) throw new InternalRequestReadException(403, "IR_TARGET_SCOPE_CHANGED");
             var result = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
             await tx.CommitAsync(ct); return Convert.ToBase64String(result);

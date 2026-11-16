@@ -628,7 +628,7 @@ function Screen({
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {module === "material-requests" && operation.id === "A004A-038" && record.requestId != null
-        && <MaterialTaskLinks record={record} />}
+        && <><MaterialTaskLinks record={record} /><MaterialTaskLinks record={record} kind="cleaning" /></>}
       {module === "material-requests" && materialApprovalReady(record, actor, "A004A-047")
         && <MaterialReviewHistory record={record} />}
       {module === "material-requests" && record.rawStatus === "PARTIALLY_ISSUED" && record.branchId != null
