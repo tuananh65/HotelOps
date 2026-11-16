@@ -9,6 +9,8 @@ public partial class HotelOpsDbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        // UC009 grant changes advance the owning role's native version through a SQL trigger.
+        modelBuilder.Entity<RolePermission>().ToTable("role_permissions", table => table.UseSqlOutputClause(false));
         ConfigureChecklists(modelBuilder);
         ConfigureWorkTime(modelBuilder);
         ConfigureNotificationCandidate(modelBuilder);
