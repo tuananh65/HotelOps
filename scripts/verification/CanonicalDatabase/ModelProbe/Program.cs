@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 2 && args[0] == "--recovery-auth-probe")
+    return await RecoveryAuthProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--replenishment-read-probe")
     return await ReplenishmentReadProbe.RunAsync(args[1]);
 

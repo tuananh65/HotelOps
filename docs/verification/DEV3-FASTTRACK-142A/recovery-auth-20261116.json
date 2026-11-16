@@ -1,0 +1,77 @@
+{
+  "database": "HotelOps_DEV3_142A_Recovery_2b221f40",
+  "fixtureUserId": 27,
+  "checks": [
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/auth/csrf",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "path": "/api/auth/session",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/material-requests?branchId=1",
+      "method": "GET",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "path": "/api/replenishments?branchId=1",
+      "method": "GET",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "path": "/api/auth/logout",
+      "method": "POST",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/auth/session",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/auth/logout",
+      "method": "POST",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "path": "/api/auth/session",
+      "method": "GET",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "loginAudit": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "success": true,
+  "scope": "Synthetic HTTPS login/session/CSRF/logout and no-grant denial; no positive business workflow acceptance"
+}
