@@ -57,6 +57,12 @@ public sealed class InternalRequestRoleSqlTests
             var label=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
             Assert.False(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
             Assert.Contains(label,(await Read()).Blockers);
+            await db.Departments.Where(d => d.DepartmentId == department.DepartmentId).ExecuteUpdateAsync(s => s.SetProperty(d => d.IsActive, false), ct);
+            Assert.Contains(label + "_INCONSISTENT", (await Read()).Unresolved);
+            await db.Departments.Where(d => d.DepartmentId == department.DepartmentId).ExecuteUpdateAsync(s => s.SetProperty(d => d.IsActive, true), ct);
+            await db.Branches.Where(b => b.BranchId == branch.BranchId).ExecuteUpdateAsync(s => s.SetProperty(b => b.IsActive, false), ct);
+            Assert.Contains(label + "_INCONSISTENT", (await Read()).Unresolved);
+            await db.Branches.Where(b => b.BranchId == branch.BranchId).ExecuteUpdateAsync(s => s.SetProperty(b => b.IsActive, true), ct);
             // Operations Manager retains permissions but is not an allowed current-handler actor.
             var alternate=new UserRole{UserId=user.UserId,RoleId=role.RoleId,BranchId=branch.BranchId,AssignedAt=now.AddMinutes(-1),IsActive=true};
             // Duplicate active user-role keys may be forbidden: use a separate existing role.

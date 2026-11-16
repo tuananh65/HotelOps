@@ -67,4 +67,30 @@ public sealed class InternalRequestRoleImpactTests
             Assert.Equal(RevokeCapabilityImpact.Lost, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
                 [handler, alternative, read], [alternative, read], 1, Now));
     }
+
+    [Theory]
+    [InlineData("OWNER", RevokeCapabilityImpact.Lost)]
+    [InlineData("OPERATIONS_MANAGER", RevokeCapabilityImpact.Lost)]
+    [InlineData("DEPT_MANAGER", RevokeCapabilityImpact.Lost)]
+    [InlineData("SYS_ADMIN", RevokeCapabilityImpact.Unknown)]
+    public void GlobalReadReplacementUsesUc123ActorRestriction(string role, RevokeCapabilityImpact expected)
+    {
+        var process = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = "HK_STAFF" };
+        var global = new RevokeGrant(3, new PermissionGrantPath("IR_VIEW", "ALL", null, true, true,
+            Now.AddDays(-1), null, false, false), role);
+        Assert.Equal(expected, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [process, read, global], [process, global], 1, Now));
+    }
+
+    [Fact]
+    public void UnknownReadActorDoesNotCertifyGlobalReplacementOrPositiveLoss()
+    {
+        var process = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = "HK_STAFF" };
+        var unknown = new RevokeGrant(3, new PermissionGrantPath("IR_VIEW", "ALL", null, true, true,
+            Now.AddDays(-1), null, false, false));
+        Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [process, read, unknown], [process, unknown], 1, Now));
+    }
 }

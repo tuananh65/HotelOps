@@ -85,7 +85,8 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
         var internalAssignments=await db.InternalRequestAssignments.AsNoTracking()
             .Where(a=>a.AssigneeId==target&&a.Status=="ACTIVE")
             .Select(a=>new {a.InternalRequestId,a.AssignedAt,a.EndedAt,a.InternalRequest.Status,a.InternalRequest.BranchId,
-                DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId,
+                DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId
+                    && a.InternalRequest.ReceivingDepartment.IsActive && a.InternalRequest.Branch.IsActive,
                 Owners=a.InternalRequest.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
             .ToArrayAsync(ct);
         foreach(var request in internalAssignments)

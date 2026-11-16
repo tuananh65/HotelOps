@@ -64,6 +64,19 @@ public static class RevokeRoleGrantImpact
             return RevokeCapabilityImpact.Lost;
         if (branch is null or <= 0 || nowUtc.Kind != DateTimeKind.Utc)
             return RevokeCapabilityImpact.Unknown;
+        // Match UC123 actor-aware read scope. A global IR_VIEW grant on an
+        // ineligible role does not replace the current handler's scoped read access.
+        if (!before.Concat(after).Any(g => g.Path.PermissionCode == "IR_VIEW" && g.RoleCode is null))
+        {
+            bool CanRead(IReadOnlyList<RevokeGrant> grants)
+            {
+                var scope = InternalRequestReadAccess.Resolve(1, grants.Where(g => g.RoleCode != null)
+                    .Select(g => new InternalRequestReadAccess.Grant(g.RoleCode!, g.Path)), nowUtc);
+                // Ownership is established by the caller's unique current-handler query.
+                return scope.Global || scope.Branches.Contains(branch.Value) || scope.RelatedBranches.Contains(branch.Value);
+            }
+            if (CanRead(before) && !CanRead(after)) return RevokeCapabilityImpact.Lost;
+        }
         // A permission on an ineligible actor role cannot replace a handler's role.
         // Missing role provenance cannot establish loss; keep legacy callers fail-closed.
         if (before.Concat(after).Any(g => g.Path.PermissionCode == "IR_PROCESS" && g.RoleCode is null))
