@@ -9,7 +9,7 @@ internal static class ReworkWorkdayBoundaryProbe
     internal static async Task<int> RunAsync()
     {
         const string server = @"meita\MSSQLSERVER01", database = "HotelOps_DEV3_142A_Recovery_2b221f40";
-        const string guid = "5270D07C-7C27-477B-A60E-86485ADD7FAD";
+        var guid = Environment.GetEnvironmentVariable("HOTELOPS_DISPOSABLE_EXPECTED_GUID") ?? throw new InvalidOperationException("Verified disposable GUID required.");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var ct = budget.Token;
         var connection = new SqlConnectionStringBuilder { DataSource = server, InitialCatalog = database,
@@ -24,6 +24,8 @@ internal static class ReworkWorkdayBoundaryProbe
             """).SingleAsync(ct) != 1) throw new InvalidOperationException("Disposable identity mismatch.");
         var method = typeof(HotelOpsDbContext).Assembly.GetType("HotelOps.Api.Services.WorkTime.ReworkWorkdayBoundary")!
             .GetMethod("IsStoppedAsync", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var assigned = typeof(HotelOpsDbContext).Assembly.GetType("HotelOps.Api.Services.WorkTime.AssignedWorkdayBoundary")!;
+        Task<bool> AssignedStopped(string name, long actor) => (Task<bool>)assigned.GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [db, actor, ct])!;
         Task<bool> Stopped(long actor) => (Task<bool>)method.Invoke(null, [db, actor, ct])!;
         var prefix = "D3BOUND" + Guid.NewGuid().ToString("N")[..12];
         await using (var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
@@ -52,7 +54,15 @@ internal static class ReworkWorkdayBoundaryProbe
                   VALUES({prefix},@room,@task,@version,@actor,'IN_PROGRESS','INSPECTING',SYSUTCDATETIME()); SET @inspection=SCOPE_IDENTITY();
                 INSERT dbo.cleaning_reworks(cleaning_task_id,inspection_id,assignee_user_id,reason,status,workflow_status,requested_at)
                   VALUES(@task,@inspection,@actor,N'Synthetic boundary','IN_PROGRESS','IN_PROGRESS',SYSUTCDATETIME()); SET @rework=SCOPE_IDENTITY();
-                SELECT @actor AS Actor,@rework AS Rework;
+                INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status)
+                  VALUES(@task,@actor,@actor,SYSUTCDATETIME(),'ACTIVE');
+                DECLARE @department bigint,@operational bigint;
+                INSERT dbo.departments(branch_id,department_code,department_name) VALUES(@branch,{prefix},N'Synthetic'); SET @department=SCOPE_IDENTITY();
+                INSERT dbo.operational_tasks(task_code,branch_id,department_id,title,status,progress_percent,created_by,created_at)
+                  VALUES({prefix},@branch,@department,N'Synthetic boundary','IN_PROGRESS',0,@actor,SYSUTCDATETIME()); SET @operational=SCOPE_IDENTITY();
+                INSERT dbo.operational_task_assignments(task_id,assignee_id,assigned_by,assigned_at,assignment_status)
+                  VALUES(@operational,@actor,@actor,SYSUTCDATETIME(),'ACTIVE');
+                SELECT @actor AS Actor,@rework AS Rework,@task AS Cleaning,@operational AS Task;
                 """).ToArrayAsync(ct);
             var f = ids.Single();
             if (await Stopped(f.Actor)) throw new InvalidOperationException("Running rework without interval accepted.");
@@ -63,13 +73,36 @@ internal static class ReworkWorkdayBoundaryProbe
                     throw new InvalidOperationException("Rework boundary disagrees with canonical workflow.");
             }
             if (!await Stopped(long.MaxValue)) throw new InvalidOperationException("Foreign source blocked unrelated actor.");
+            // Execute the production EF methods, including the missing-version LEFT JOIN.
+            if (await AssignedStopped("TasksStoppedAsync", f.Actor)) throw new InvalidOperationException("Missing task authority was treated as stopped.");
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({f.Task},'IN_PROGRESS')", ct);
+            foreach (var state in new[] { "IN_PROGRESS", "PAUSED" })
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status={state} WHERE task_id={f.Task}", ct);
+                if (await AssignedStopped("TasksStoppedAsync", f.Actor) != (state != "IN_PROGRESS")) throw new InvalidOperationException("Task stop predicate mismatch.");
+            }
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_tasks SET completed_at=SYSUTCDATETIME() WHERE task_id={f.Task}", ct);
+            if (await AssignedStopped("TasksStoppedAsync", f.Actor)) throw new InvalidOperationException("Inconsistent task completion accepted.");
+            foreach (var state in new string?[] { "IN_PROGRESS", "ON_HOLD", "PENDING_INSPECTION", "REWORK_REQUIRED", null })
+            {
+                foreach (var ended in new[] { false, true })
+                {
+                    DateTime? end = ended ? DateTime.UtcNow : null;
+                    await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status={state},actual_end_at={end} WHERE cleaning_task_id={f.Cleaning}", ct);
+                    var expected = state == "ON_HOLD" && !ended || (state is "PENDING_INSPECTION" or "REWORK_REQUIRED") && ended;
+                    if (await AssignedStopped("CleaningStoppedAsync", f.Actor) != expected) throw new InvalidOperationException("Cleaning stop predicate mismatch.");
+                }
+            }
+            if (!await AssignedStopped("TasksStoppedAsync", long.MaxValue) || !await AssignedStopped("CleaningStoppedAsync", long.MaxValue))
+                throw new InvalidOperationException("Foreign assignment blocked unrelated employee.");
             await tx.RollbackAsync(ct);
         }
         if (await db.Users.AsNoTracking().AnyAsync(u => u.Username == prefix, ct)
             || await db.Branches.AsNoTracking().AnyAsync(b => b.BranchCode == prefix, ct))
             throw new InvalidOperationException("Synthetic fixture survived rollback.");
-        Console.WriteLine("PASS: production EF boundary query; running/held/reinspection/null/foreign actor; fixture rollback. Not HTTP authorization or full Pause All acceptance.");
+        Console.WriteLine("NOT_RUN: Task PENDING_VERIFICATION requires the TaskSubmission installer; current disposable CHECK allows only IN_PROGRESS/PAUSED.");
+        Console.WriteLine("PASS: production EF boundary query; Rework and assigned Task/Cleaning running/held/submitted/null/inconsistent/foreign actor; fixture rollback. Not HTTP authorization or full Pause All acceptance.");
         return 0;
     }
-    private sealed class Fixture { public long Actor { get; set; } public long Rework { get; set; } }
+    private sealed class Fixture { public long Actor { get; set; } public long Rework { get; set; } public long Cleaning { get; set; } public long Task { get; set; } }
 }
