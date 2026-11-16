@@ -9,6 +9,8 @@ type Occurrence = { runId: number; scheduleId: number; title: string; instructio
   results: { key: string; passed: boolean; note: string | null }[] | null;
   checkItems: { key: string; description: string; required: boolean }[] };
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
+type LinkedIncident = { incidentId: number; number: string; title: string; status: string; checkKey: string; linkedAt: string };
+type History = { previousOccurrences: Occurrence[]; incidents: LinkedIncident[] };
 function valid(v: unknown): v is Occurrence {
   return isObject(v) && positive(v.runId) && positive(v.scheduleId) && typeof v.title === "string" && typeof v.instruction === "string"
     && typeof v.status === "string" && typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt))
@@ -32,6 +34,21 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   const [uncertain,setUncertain] = useState(false);
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
+  const [history,setHistory] = useState<Record<number,History>>({});
+  async function loadHistory(id: number) {
+    if (!owner || owner !== mounted || sending.current) return;
+    const abort = new AbortController(); controller.current = abort; sending.current=true; setBusy(true); setMessage("");
+    try {
+      const response=await fetch(`/api/branches/${branchId}/preventive-occurrences/${id}/history`,{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
+      if(!response.ok)throw Error(`History unavailable (${response.status}).`);
+      const raw: unknown=await response.json();
+      if(!isObject(raw)||!Array.isArray(raw.previousOccurrences)||!raw.previousOccurrences.every(valid)||!Array.isArray(raw.incidents)
+        ||!raw.incidents.every(i=>isObject(i)&&positive(i.incidentId)&&[i.number,i.title,i.status,i.checkKey].every(x=>typeof x==="string")&&typeof i.linkedAt==="string"&&Number.isFinite(Date.parse(i.linkedAt))))
+        throw Error("History response could not be confirmed.");
+      if(!abort.signal.aborted&&current.current===owner)setHistory(old=>({...old,[id]:raw as History}));
+    }catch(e){if(!abort.signal.aborted&&current.current===owner){setHistory({});setMessage(String(e));}}
+    finally{sending.current=false;if(!abort.signal.aborted&&current.current===owner)setBusy(false);}
+  }
   function incidentUrl(row: Occurrence, key: string) {
     const query = new URLSearchParams({action:"A004A-021",branchId:String(branchId),occurrenceId:String(row.runId),occurrenceVersion:row.version,occurrenceCheckKey:key});
     if(row.roomId)query.set("roomId",String(row.roomId));
@@ -68,7 +85,7 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   async function load(more = false) {
     if (!owner || owner !== mounted || sending.current) return;
     const abort = new AbortController(); controller.current = abort;
-    sending.current = true; setBusy(true); setMessage("");
+    sending.current = true; setBusy(true); setMessage(""); setHistory({});
     try {
       const response = await fetch(`/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
@@ -86,6 +103,18 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
     {message && <p role="status">{message}</p>}
     {rows.map(r => <details key={r.runId}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
       <p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>
+      <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
+      {history[r.runId] && <section aria-label={`History of occurrence ${r.runId}`}>
+        <h3>Previous occurrences in your current scope</h3>
+        {!history[r.runId].previousOccurrences.length && <p>No previous occurrences available in your scope.</p>}
+        {history[r.runId].previousOccurrences.map(p => <details key={p.runId}><summary>{p.title} — {new Date(p.dueAt).toLocaleString()} — {p.status}</summary>
+          <p>{p.instruction}</p>{p.note && <p>{p.note}</p>}
+          {p.results && <ul>{p.results.map(c => <li key={c.key}>{p.checkItems.find(i=>i.key===c.key)?.description}: {c.passed ? "Pass" : "Fail"}{c.note && ` — ${c.note}`}</li>)}</ul>}
+        </details>)}
+        <h3>Linked incidents with current Incident access</h3>
+        {!history[r.runId].incidents.length && <p>No linked incidents available in your scope.</p>}
+        <ul>{history[r.runId].incidents.map(i => <li key={i.incidentId}><Link to={`/operations/incidents/${i.incidentId}?branchId=${branchId}`}>{i.number}: {i.title}</Link> — {i.status} — check {r.checkItems.find(c=>c.key===i.checkKey)?.description ?? i.checkKey}</li>)}</ul>
+      </section>}
       {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>Start occurrence</button>}
       {r.canComplete && <fieldset disabled={busy || uncertain}><legend>Record check results</legend>
         {r.checkItems.map(c => <div key={c.key}><label>{c.description}{c.required ? " (required)" : ""}<select value={outcomes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setOutcomes({...outcomes,[`${r.runId}:${c.key}`]:e.target.value})}><option value="">Select result</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select></label>

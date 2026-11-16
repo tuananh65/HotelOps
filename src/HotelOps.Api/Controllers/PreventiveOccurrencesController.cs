@@ -59,4 +59,9 @@ public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadServ
     {
         var(ticket,sid)=Identity();return (await service.ReadAsync(ticket,sid,branch,id,0,ct)).Single();
     }
+    [HttpGet("{id:long}/history")]
+    public async Task<PreventiveOccurrenceHistory> History(long branch,long id,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await service.HistoryAsync(ticket,sid,branch,id,ct);
+    }
 }

@@ -15,7 +15,7 @@ public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string 
     DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart,
     bool CanComplete,PreventiveCheckResult[]? Results);
 
-public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
+public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
     private sealed class Row
     {
