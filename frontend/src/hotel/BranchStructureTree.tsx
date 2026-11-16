@@ -151,6 +151,10 @@ export function BranchStructureTree() {
       <h1>Hotel structure — Branch structure</h1>
       <nav aria-label="Hotel structure navigation">
         <Link to="/profile">Profile</Link>
+        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}&action=create`}>Add Floor</Link>
+        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}&action=create`}>Add Area</Link>
+        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}`}>Manage Floors</Link>
+        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}`}>Manage Areas</Link>
       </nav>
       <p>
         Browse one server-authorized collection page at a time. Counts do not

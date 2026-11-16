@@ -310,6 +310,9 @@ export interface HotelError {
   reason?:
     | "PASSWORD_CHANGE_REQUIRED"
     | "ACTIVE_ROOMS_EXIST"
+    | "STRUCTURE_CODE_EXISTS"
+    | "PARENT_FLOOR_UNAVAILABLE"
+    | "PARENT_CHANGE_CONFLICT"
     | "ROOM_TYPE_SCHEMA_REQUIRED";
 }
 export type ReadResult<T> =

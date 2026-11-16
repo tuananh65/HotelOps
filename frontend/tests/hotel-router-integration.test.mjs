@@ -783,6 +783,26 @@ for (const result of [
     );
   });
 
+for (const [kind, , url] of mutationCases.filter(([kind]) => ["createFloor", "createArea", "updateFloor", "updateArea"].includes(kind))) {
+  test(`UC014/015 canonical ${kind} preserves confirmation, CSRF and version`, async () => {
+    const area = kind.includes("Area"), update = kind.startsWith("update");
+    await withHotel(`/structure/${area ? "areas" : "floors"}?branchId=1${update ? "" : "&action=create"}`, { canonical: true }, async p => {
+      if (update) { await select(p, "edit", area ? 12 : 11); await load(p); }
+      await fill(p, kind); await review(p);
+      assert.equal((await writes(p)).length, 0);
+      await confirm(p);
+      await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+      const sent = await writes(p);
+      assert.equal(sent.length, 1);
+      assert.equal(sent[0].url, url);
+      assert.equal(sent[0].headers["x-csrf-token"], secret);
+      if (update) assert.equal(sent[0].headers["if-match"], tag);
+      assert.ok((await p.locator("body").innerText()).includes("MSG08"));
+      assert.equal(await p.getByRole("link", { name: "Review deactivation dependencies" }).count(), 0);
+    });
+  });
+}
+
 test("UC023 canonical read-only directory preserves effective readiness and scoped navigation", async () => {
   await withHotel("/room-directory?branchId=1", { canonical: true }, async (p) => {
     await load(p);

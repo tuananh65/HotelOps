@@ -13,6 +13,7 @@ import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
 import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { RoomDirectoryRoute } from "../hotel/RoomDirectoryRoute";
+import { StructureManagementRoute } from "../hotel/StructureManagementRoute";
 import { AuditPage } from "../audit/AuditPage";
 import { DashboardPage } from "../insights/DashboardPage";
 import { ReportsPage, ReportAccessLink } from "../insights/ReportsPage";
@@ -164,6 +165,10 @@ export function SharedAuthHost({
           <Route path="/hotel" element={<BranchStructureTree />} />
           <Route path="/room-directory" element={<RoomDirectoryRoute />} />
           <Route path="/room-directory/:id" element={<RoomDirectoryRoute />} />
+          <Route path="/structure/floors" element={<StructureManagementRoute kind="floors" />} />
+          <Route path="/structure/floors/:id" element={<StructureManagementRoute kind="floors" />} />
+          <Route path="/structure/areas" element={<StructureManagementRoute kind="areas" />} />
+          <Route path="/structure/areas/:id" element={<StructureManagementRoute kind="areas" />} />
         </>
       )}
       <Route

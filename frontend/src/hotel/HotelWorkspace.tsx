@@ -186,8 +186,8 @@ function MutationForm({
     </form>
   );
 }
-export function HotelWorkspace({ screen = "structure", readOnly = false, directoryBasePath = "/rooms" }: {
-  screen?: Screen; readOnly?: boolean; directoryBasePath?: string;
+export function HotelWorkspace({ screen = "structure", readOnly = false, directoryBasePath = "/rooms", canonicalStructure = false }: {
+  screen?: Screen; readOnly?: boolean; directoryBasePath?: string; canonicalStructure?: boolean;
 }) {
   const { state, actions } = useAuth();
   const route = useLocation(),
@@ -198,7 +198,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
   );
   const [record, setRecord] = useState(params.id ?? "");
   const [action, setAction] = useState<Action>(
-    params.id
+    canonicalStructure && search.get("action") === "create" ? "create" : params.id
       ? screen === "rooms" && search.get("view") === "history"
         ? "history"
         : "detail"
@@ -345,7 +345,8 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             Update branch information
           </Link>
         )}
-        {Object.entries(readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
+        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas" }
+          : readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
           "/hotel": "Branch structure",
           "/floors": "Floors",
           "/areas": "Areas",
@@ -358,11 +359,11 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           </Link>
         ))}
       </nav>
-      {!readOnly && <p>
+      {!readOnly && !canonicalStructure && <p>
         Data and decisions come from the server. No demo identity or permission
         graph is used.
       </p>}
-      {!readOnly && <p>
+      {!readOnly && !canonicalStructure && <p>
         Branch listing, branch deactivation, floor/area deactivation, room
         deactivation and department deactivation are outside this integration
         slice.
@@ -654,12 +655,22 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           <h2>Server record snapshot</h2>
           {screen === "rooms" && action === "browse" ? (
             <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} basePath={directoryBasePath} />
+          ) : canonicalStructure && action === "browse" ? (
+            <>
+              <Values value={snapshot.data} />
+              {(() => {
+                const page = (snapshot.data as ReadTypes["structure"])[screen as "floors" | "areas"];
+                return page?.items.length ? <ul>{page.items.map(node => <li key={node.id}>
+                  <Link to={`/structure/${screen}/${node.id}?branchId=${branchId}`}>Open {node.name} ({node.code})</Link>
+                </li>)}</ul> : <p>MSG10: No records match these filters.</p>;
+              })()}
+            </>
           ) : (
             <Values value={snapshot.data} />
           )}
         </section>
       )}
-      {snapshot &&
+      {!canonicalStructure && snapshot &&
         context?.id &&
         (screen === "floors" || screen === "areas") &&
         action === "detail" && (
@@ -684,6 +695,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
       {flow.phase === "confirmed" && (
         <section role="status" aria-label="Confirmed hotel change">
           <h2>Change confirmed by the server</h2>
+          {canonicalStructure && <p>MSG08: Changes saved.</p>}
           <Values value={flow.receipt} />
           <p>
             No request has been replayed. Select a different operation to

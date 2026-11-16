@@ -189,6 +189,9 @@ function httpError(status: number, body: unknown): HotelError {
   const reason = [
     "PASSWORD_CHANGE_REQUIRED",
     "ACTIVE_ROOMS_EXIST",
+    "STRUCTURE_CODE_EXISTS",
+    "PARENT_FLOOR_UNAVAILABLE",
+    "PARENT_CHANGE_CONFLICT",
     "ROOM_TYPE_SCHEMA_REQUIRED",
   ].find((v) => v === identifier) as HotelError["reason"];
   const activeRooms =

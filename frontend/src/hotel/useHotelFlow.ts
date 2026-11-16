@@ -19,6 +19,9 @@ export interface HotelSnapshot {
   etag: string | null;
 }
 export function hotelErrorMessage(error: HotelError) {
+  if (error.reason === "STRUCTURE_CODE_EXISTS") return "MSG35: This floor or area code already exists in the branch. Choose another code.";
+  if (error.reason === "PARENT_FLOOR_UNAVAILABLE") return "MSG03: Select an active parent floor in this branch.";
+  if (error.reason === "PARENT_CHANGE_CONFLICT") return "MSG03: The parent change conflicts with rooms currently linked to this area.";
   if (error.reason === "PASSWORD_CHANGE_REQUIRED")
     return "Your session must be checked before continuing.";
   if (error.reason === "ACTIVE_ROOMS_EXIST")
