@@ -15,7 +15,13 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/Fonts/NotoSans-Regular.ttf" />
+    <Content Include="Resources/Fonts/OFL.txt" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

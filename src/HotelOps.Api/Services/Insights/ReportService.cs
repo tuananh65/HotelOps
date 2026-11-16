@@ -49,7 +49,7 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         var now = clock.GetUtcNow();
         var filters = await access.FiltersAsync(query, now, ct);
         var report = await new ReportSnapshotQueries(db).MaterializeAsync(key, query, filters, now, ct);
-        report = report with { ExportFormats = ["csv", "xlsx"] };
+        report = report with { ExportFormats = ["csv", "xlsx", "pdf"] };
         await SessionAsync(ticket, sid, ct);
         var finalScope = await access.FiltersAsync(query, clock.GetUtcNow(), ct);
         if (!filters.BranchIds.SequenceEqual(finalScope.BranchIds))
@@ -61,7 +61,7 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
 
     public async Task<ExportFile> ExportAsync(SessionReference ticket, long sid, string snapshotId, ExportRequest request, CancellationToken ct)
     {
-        if (request.Format is not ("csv" or "xlsx")) throw new InsightException(400, "EXPORT_FORMAT_UNSUPPORTED", "Select CSV or XLSX.");
+        if (request.Format is not ("csv" or "xlsx" or "pdf")) throw new InsightException(400, "EXPORT_FORMAT_UNSUPPORTED", "Select CSV, XLSX or PDF.");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct);
         await SessionAsync(ticket, sid, ct);
@@ -76,7 +76,7 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         if (report.Filters.DepartmentId is {} department && !await db.Departments.AsNoTracking()
             .AnyAsync(d => d.DepartmentId == department && report.Filters.BranchIds.Contains(d.BranchId), ct))
             throw new InsightException(403, "DEPARTMENT_SCOPE", "Snapshot department scope changed.");
-        var file = request.Format == "xlsx" ? ReportXlsxRenderer.Render(report) : ReportCsvRenderer.Render(report);
+        var file = request.Format switch { "pdf" => ReportPdfRenderer.Render(report, ct), "xlsx" => ReportXlsxRenderer.Render(report), _ => ReportCsvRenderer.Render(report) };
         var audit = new AuditLog { ActorUserId = ticket.UserId, EntityType = "REPORT_EXPORT", EntityId = report.SnapshotId,
             Action = "CREATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
             BranchId = report.Filters.BranchIds.Length == 1 ? report.Filters.BranchIds[0] : null,

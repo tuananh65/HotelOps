@@ -73,6 +73,24 @@ test("report return URL requires revalidation and rejects query injection", () =
   assert.equal(approvedReturnDestination("/reports", false), null);
   assert.equal(approvedReturnDestination("/reports?branchId=1", true), null);
 });
+test("PDF requires snapshot capability, fresh CSRF and application/pdf response", async () => {
+  const report = { ...snapshot(), exportFormats: ["csv", "xlsx", "pdf"] };
+  assert.equal(decodeSnapshot(report, "tasks", query).exportFormats.includes("pdf"), true);
+  const calls = [];
+  let contentType = "application/pdf";
+  const api = createReportApi(new AbortController().signal, async (path, init) => {
+    calls.push({ path, init });
+    if (path === "/api/auth/csrf") return Response.json({ csrfToken: "token" });
+    return new Response("%PDF-1.7", { headers: { "Content-Type": contentType } });
+  });
+  const file = await api.export(report, "pdf");
+  assert.equal(file.name, `tasks-${report.snapshotId}.pdf`);
+  assert.deepEqual(JSON.parse(calls[1].init.body), { format: "pdf" });
+  assert.equal(calls[1].init.headers["X-CSRF-TOKEN"], "token");
+  await assert.rejects(api.export(snapshot(), "pdf"), /Invalid export identity/);
+  contentType = "text/html";
+  await assert.rejects(api.export(report, "pdf"), /Invalid PDF response/);
+});
 test("snapshot preserves scalar strings without interpreting formulas", () =>
   assert.equal(
     decodeSnapshot(snapshot(), "tasks", query).sections[0].rows[0].title,

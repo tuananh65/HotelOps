@@ -132,7 +132,7 @@ export function decodeSnapshot(
     Number(v.totalCount) > 50000 ||
     !strings(v.missingSources) ||
     !strings(v.exportFormats) ||
-    v.exportFormats.some((f) => f !== "csv" && f !== "xlsx") ||
+    v.exportFormats.some((f) => f !== "csv" && f !== "xlsx" && f !== "pdf") ||
     !Array.isArray(v.sections) ||
     !v.sections.every(
       (s) =>
@@ -229,11 +229,11 @@ export function createReportApi(
         query,
       );
     },
-    async export(snapshot: ReportSnapshot, format: "csv" | "xlsx" = "csv") {
+    async export(snapshot: ReportSnapshot, format: "csv" | "xlsx" | "pdf" = "csv") {
       if (
         !/^[a-f0-9]{32}$/.test(snapshot.snapshotId) ||
         !reportTypes.includes(snapshot.key) ||
-        !["csv", "xlsx"].includes(format) ||
+        !["csv", "xlsx", "pdf"].includes(format) ||
         !snapshot.exportFormats.includes(format)
       )
         throw new Error("Invalid export identity");
@@ -249,7 +249,7 @@ export function createReportApi(
           .toLowerCase() !==
         (format === "csv"
           ? "text/csv"
-          : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+          : format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       )
         throw new Error(`Invalid ${format.toUpperCase()} response`);
       const blob = await response.blob();

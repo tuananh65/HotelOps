@@ -37,9 +37,12 @@ internal static class SprintReportCyclesScenario
         foreach (var item in browser.GetProperty("exports").EnumerateArray())
         {
             var snapshot = item.GetString();
-            if (await db.AuditLogs.CountAsync(a => a.ActorUserId == actor && a.EntityType == "REPORT_EXPORT" && a.EntityId == snapshot, ct) != 2)
-                throw new Exception("Cycle report CSV/XLSX export audit missing");
-            checks.Add(new { reportCyclesCheck = "CSV/XLSX snapshot export audits persisted" });
+            if (await db.AuditLogs.CountAsync(a => a.ActorUserId == actor && a.EntityType == "REPORT_EXPORT" && a.EntityId == snapshot, ct) != 3)
+                throw new Exception("Cycle report CSV/XLSX/PDF export audit missing");
+            if (!await db.AuditLogs.AnyAsync(a => a.ActorUserId == actor && a.EntityType == "REPORT_EXPORT" && a.EntityId == snapshot
+                && a.NewValues != null && a.NewValues.Contains("\"format\":\"pdf\""), ct))
+                throw new Exception("PDF export format audit missing");
+            checks.Add(new { reportCyclesCheck = "CSV/XLSX/PDF snapshot export audits persisted" });
         }
     }
 }

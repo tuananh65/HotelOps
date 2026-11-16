@@ -172,7 +172,7 @@ try {
     assert.equal(summary.measuredClosedRequests,2);
     await page.getByRole("columnheader",{name:"completionSeconds",exact:true}).waitFor();
     await page.getByRole("cell",{name:"750",exact:true}).waitFor();
-    for(const format of ["CSV","XLSX"]){
+    for(const format of ["CSV","XLSX","PDF"]){
       stage="request cycles "+format;
       const download=page.waitForEvent("download");
       await page.getByRole("button",{name:"Export "+format,exact:true}).click();
@@ -183,11 +183,15 @@ try {
         const csv=bytes.toString("utf8");
         assert.ok(csv.includes('"completionSeconds"') && csv.includes('"900"') && csv.includes('"750"'));
         assert.ok(csv.includes('"responseEvidence"') && csv.includes("CYCLE_ORIGIN_UNAVAILABLE"));
+      }else if(format==="PDF"){
+        assert.equal(bytes.subarray(0,5).toString("ascii"),"%PDF-");
+        assert.ok(bytes.length>1000);
+        assert.equal(file.suggestedFilename(),`requests-${snapshot.snapshotId}.pdf`);
       }else assert.equal(bytes.readUInt32LE(0),0x04034b50);
       await file.delete();
     }
     exports.push(snapshot.snapshotId);
-    checks.push("RPT07 receiving department/type filter, response provenance, cycle totals, per-request average and frozen CSV/XLSX verified");
+    checks.push("RPT07 receiving department/type filter, response provenance, cycle totals, per-request average and frozen CSV/XLSX/PDF verified");
   } else if (fixture.mode === "requests" || fixture.mode === "rooms") {
     const kind=fixture.mode;
     stage = kind + " report preview";

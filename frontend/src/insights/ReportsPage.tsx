@@ -122,7 +122,7 @@ export function ReportsPage() {
     setMessage("");
     setPage(0);
   }
-  async function run(exporting: boolean, format: "csv" | "xlsx" = "csv") {
+  async function run(exporting: boolean, format: "csv" | "xlsx" | "pdf" = "csv") {
     if (!owner || !options || operation.current) return;
     const controller = new AbortController();
     operation.current = controller;
@@ -388,6 +388,12 @@ export function ReportsPage() {
                 onClick={() => void run(true, "xlsx")}
               >
                 Export XLSX
+              </button>
+              <button
+                disabled={busy || !snapshot.exportFormats.includes("pdf")}
+                onClick={() => void run(true, "pdf")}
+              >
+                Export PDF
               </button>
             </section>
           )}
