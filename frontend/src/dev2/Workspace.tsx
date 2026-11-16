@@ -14,6 +14,7 @@ import { createDev2Api, operationPath, payload } from "./api";
 import { modules, label, type Operation, type Values } from "./contracts";
 import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
+import { IncidentCategoryField } from "./IncidentCategoryField";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -463,11 +464,13 @@ function Screen({
             }}
           />
           <Fields
-            fields={operation.fields}
+            fields={["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}
             actor={actor}
-            onChange={change}
+            onChange={v => change(["A004A-021", "A004A-022"].includes(operation.id) && v.branchId !== values.branchId ? { ...v, categoryId: "" } : v)}
           />
+          {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
+            value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
           {operation.id === "A004A-051" && (
             <p>
               Mode: Partial with explicit quantities, or FullRemaining without

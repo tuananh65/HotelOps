@@ -17,6 +17,10 @@ public sealed class IncidentListDto
     public string? SeverityName { get; init; }
     public long? PriorityId { get; init; }
     public string? PriorityName { get; init; }
+    public long? CategoryId { get; set; }
+    public string? CategoryCode { get; set; }
+    public string? CategoryName { get; set; }
+    public string? CategoryUnavailableReason { get; set; }
     public string Status { get; init; } = string.Empty;
     public long ReportedBy { get; init; }
     public string ReportedByName { get; init; } = string.Empty;

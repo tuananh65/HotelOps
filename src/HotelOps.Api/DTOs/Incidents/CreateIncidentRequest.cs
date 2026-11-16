@@ -23,6 +23,8 @@ public sealed class CreateIncidentRequest
     public long? AssetId { get; init; }
     public long? SeverityId { get; init; }
     public long? PriorityId { get; init; }
+    [Range(1, long.MaxValue)]
+    public long? CategoryId { get; init; }
     public long? InternalRequestId { get; init; }
     public IncidentRequestLink? RequestLink { get; init; }
 }

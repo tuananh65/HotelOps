@@ -21,8 +21,8 @@ internal static class IncidentReadContract
     internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V1";
     private const string Policy = "GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
-        + "serializable scoped reads and current authorization before disclosure; no mutation authority";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023" }.Select(id =>
+        + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; no mutation authority";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("INCIDENT_VIEW", new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, null, ReadAsync,
@@ -34,6 +34,8 @@ internal static class IncidentReadContract
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(403);
     private static async Task<long> BranchAsync(Dev2BoundAction a, CancellationToken ct)
     {
+        if (a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ")
+            return a.Arguments.GetValueOrDefault("branchId") is long branch && branch > 0 ? branch : throw new Dev2AccessDenied(403);
         if (a.Identity.DecisionId == "A004A-022") return Input(a).BranchId is > 0 ? Input(a).BranchId!.Value : throw new Dev2AccessDenied(403);
         var id = Id(a);
         return await Db(a).Incidents.AsNoTracking().Where(i => i.IncidentId == id).Select(i => (long?)i.BranchId).SingleOrDefaultAsync(ct)
@@ -45,7 +47,8 @@ internal static class IncidentReadContract
         if (a.Identity.ControllerType != typeof(IncidentsController) || a.Identity.HttpMethod != "GET"
             || a.Identity.DecisionId == "A004A-022" && a.Identity.ActionName != "GetIncidents"
             || a.Identity.DecisionId == "A004A-023" && a.Identity.ActionName != "GetIncident"
-            || a.Identity.DecisionId is not ("A004A-022" or "A004A-023") || !a.Http.Request.IsHttps) return false;
+            || a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ" && a.Identity.ActionName != "GetIncidentCategories"
+            || a.Identity.DecisionId is not ("A004A-022" or "A004A-023" or "INCIDENT-CATEGORIES-READ") || !a.Http.Request.IsHttps) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         // The admission guard first calls us before installing its read transaction.
@@ -75,8 +78,13 @@ internal static class IncidentReadContract
         var query = scope.Apply(db.Incidents.AsNoTracking());
         try
         {
-            if (a.Identity.DecisionId == "A004A-022") return new OkObjectResult(await IncidentService.ListAsync(query, Input(a), ct));
-            var result = await IncidentService.DetailAsync(query, Id(a), ct);
+            if (a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ")
+                return new OkObjectResult(await db.ReferenceValues.AsNoTracking()
+                    .Where(r => r.GroupCode == "INCIDENT_CATEGORY" && r.IsActive)
+                    .OrderBy(r => r.SortOrder).ThenBy(r => r.DisplayName).ThenBy(r => r.ReferenceId)
+                    .Select(r => new IncidentCategoryOptionDto(r.ReferenceId, r.ValueCode, r.DisplayName)).ToArrayAsync(ct));
+            if (a.Identity.DecisionId == "A004A-022") return new OkObjectResult(await IncidentService.ListAsync(query, Input(a), ct, db));
+            var result = await IncidentService.DetailAsync(query, Id(a), ct, db);
             return result == null ? new NotFoundResult() : new OkObjectResult(result);
         }
         catch (ValidationException) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid incident filters" }); }

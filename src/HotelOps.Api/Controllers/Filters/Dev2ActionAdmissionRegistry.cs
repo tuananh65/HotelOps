@@ -42,6 +42,7 @@ public static class Dev2ActionAdmissionRegistry
         new("A004A-020", typeof(IncidentsController), "TriageIncident", "PATCH", "api/incidents/{id:long}/triage"),
         new("A004A-021", typeof(IncidentsController), "CreateIncident", "POST", "api/incidents"),
         new("A004A-022", typeof(IncidentsController), "GetIncidents", "GET", "api/incidents"),
+        new("INCIDENT-CATEGORIES-READ", typeof(IncidentsController), "GetIncidentCategories", "GET", "api/incidents/categories/{branchId:long}"),
         new("A004A-023", typeof(IncidentsController), "GetIncident", "GET", "api/incidents/{id:long}"),
         new("A004A-024", typeof(MaintenanceWorksController), "CreateWork", "POST", "api/incidents/{incidentId:long}/maintenance-works"),
         new("A004A-025", typeof(MaintenanceWorksController), "AssignWork", "PATCH", "api/maintenance-works/{id:long}/assignment"),

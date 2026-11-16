@@ -241,6 +241,7 @@ public sealed class IncidentService : IIncidentService
 
         // Serialize allocation across application instances until this transaction ends.
         var requestLink = await IncidentRequestCreation.PrepareAsync(_dbContext, TrustedActorId, request, cancellationToken);
+        await IncidentCategoryStore.ValidateAsync(_dbContext, request.CategoryId, cancellationToken);
         // Asset -> Incident number allocation. Retirement and handover writers also
         // lock Asset first; never allocate an Incident number while waiting for Asset.
         if (request.AssetId is long assetId)
@@ -300,6 +301,7 @@ public sealed class IncidentService : IIncidentService
         });
         _dbContext.Incidents.Add(incident);
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        await IncidentCategoryStore.WriteAsync(_dbContext, incident.IncidentId, request.CategoryId, cancellationToken);
 
         _dbContext.AuditLogs.Add(new AuditLog
         {
@@ -315,7 +317,8 @@ public sealed class IncidentService : IIncidentService
             {
                 incident_no = incident.IncidentNo,
                 status = incident.Status,
-                room_id = incident.RoomId
+                room_id = incident.RoomId,
+                category_id = request.CategoryId
             })
         });
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
@@ -351,9 +354,9 @@ public sealed class IncidentService : IIncidentService
     }
 
     public async Task<IncidentPagedResponse> GetIncidentsAsync(IncidentQueryRequest request, CancellationToken cancellationToken)
-        => await ListAsync(_dbContext.Incidents.AsNoTracking(), request, cancellationToken);
+        => await ListAsync(_dbContext.Incidents.AsNoTracking(), request, cancellationToken, _dbContext);
 
-    internal static async Task<IncidentPagedResponse> ListAsync(IQueryable<Incident> query, IncidentQueryRequest request, CancellationToken cancellationToken)
+    internal static async Task<IncidentPagedResponse> ListAsync(IQueryable<Incident> query, IncidentQueryRequest request, CancellationToken cancellationToken, HotelOpsDbContext? db = null)
     {
         if (request.Page <= 0)
             throw new ValidationException("Page must be greater than zero.");
@@ -383,6 +386,14 @@ public sealed class IncidentService : IIncidentService
         if (request.RoomId is long roomId)
             query = query.Where(incident => incident.RoomId == roomId);
 
+        if (request.CategoryId is <= 0) throw new ValidationException("CategoryId must be positive.");
+        var categoryAvailable = db is not null && await IncidentCategoryStore.InstalledAsync(db, cancellationToken);
+        if (request.CategoryId is long categoryId)
+        {
+            if (!categoryAvailable) throw new Dev2AccessDenied(503);
+            var categorized = IncidentCategoryStore.Rows(db!).Where(c => c.CategoryId == categoryId).Select(c => c.IncidentId);
+            query = query.Where(i => categorized.Contains(i.IncidentId));
+        }
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(incident => incident.ReportedAt)
@@ -416,6 +427,23 @@ public sealed class IncidentService : IIncidentService
             })
             .ToListAsync(cancellationToken);
 
+        if (categoryAvailable && items.Count > 0)
+        {
+            var ids = items.Select(i => i.IncidentId).ToArray();
+            var categories = await IncidentCategoryStore.Rows(db!).Where(c => ids.Contains(c.IncidentId))
+                .ToDictionaryAsync(c => c.IncidentId, cancellationToken);
+            foreach (var item in items)
+            {
+                var category = categories.GetValueOrDefault(item.IncidentId);
+                item.CategoryId = category?.CategoryId;
+                item.CategoryCode = category?.CategoryCode;
+                item.CategoryName = category?.CategoryName;
+                item.CategoryUnavailableReason = category?.CategoryId is null ? "INCIDENT_CATEGORY_NOT_RECORDED" : null;
+            }
+        }
+        else if (!categoryAvailable)
+            foreach (var item in items) item.CategoryUnavailableReason = "INCIDENT_CATEGORY_STORAGE_UNAVAILABLE";
+
         return new IncidentPagedResponse
         {
             Items = items,
@@ -427,11 +455,11 @@ public sealed class IncidentService : IIncidentService
     }
 
     public async Task<IncidentDetailDto?> GetIncidentAsync(long id, CancellationToken cancellationToken)
-        => await DetailAsync(_dbContext.Incidents.AsNoTracking(), id, cancellationToken);
+        => await DetailAsync(_dbContext.Incidents.AsNoTracking(), id, cancellationToken, _dbContext);
 
-    internal static async Task<IncidentDetailDto?> DetailAsync(IQueryable<Incident> query, long id, CancellationToken cancellationToken)
+    internal static async Task<IncidentDetailDto?> DetailAsync(IQueryable<Incident> query, long id, CancellationToken cancellationToken, HotelOpsDbContext? db = null)
     {
-        return await query
+        var detail = await query
             .AsNoTracking()
             .Where(incident => incident.IncidentId == id)
             .Select(incident => new IncidentDetailDto
@@ -478,5 +506,8 @@ public sealed class IncidentService : IIncidentService
                     .ToList()
             })
             .SingleOrDefaultAsync(cancellationToken);
+        if (detail is not null && db is not null)
+            await IncidentCategoryStore.EnrichAsync(db, detail, cancellationToken);
+        return detail;
     }
 }

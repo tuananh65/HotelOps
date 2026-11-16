@@ -765,6 +765,11 @@ export const operations: Operation[] = [
         optional: true,
       },
       {
+        name: "categoryId",
+        type: "long?",
+        optional: true,
+      },
+      {
         name: "priorityId",
         type: "long?",
         optional: true,
@@ -792,6 +797,11 @@ export const operations: Operation[] = [
       {
         name: "status",
         type: "string?",
+        optional: true,
+      },
+      {
+        name: "categoryId",
+        type: "long?",
         optional: true,
       },
       {

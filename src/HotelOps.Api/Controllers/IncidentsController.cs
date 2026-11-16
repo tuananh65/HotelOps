@@ -96,6 +96,11 @@ public class IncidentsController : ControllerBase
         }
     }
 
+    // Source-owned read handler supplies the result only after scoped admission.
+    [HttpGet("categories/{branchId:long}")]
+    public IActionResult GetIncidentCategories(long branchId)
+        => Problem(statusCode: 503, title: "INCIDENT_CATEGORY_READ_ADMISSION_REQUIRED");
+
     [HttpGet("{id:long}")]
     public async Task<ActionResult<IncidentDetailDto>> GetIncident(long id, CancellationToken cancellationToken)
     {

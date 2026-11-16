@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Insights;
 using HotelOps.Api.Services.OperationalTasks;
+using HotelOps.Api.Services.Incidents;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 
@@ -141,17 +142,33 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
             }
             case "incidents":
             {
-                if (department is not null || query.CategoryId is not null)
-                    throw new InsightException(503, "INCIDENT_FILTER_CONTRACT_UNAVAILABLE", "Incident department/category source contract unavailable.");
+                if (department is not null)
+                    throw new InsightException(503, "INCIDENT_FILTER_CONTRACT_UNAVAILABLE", "Incident department source contract unavailable.");
+                var categoriesAvailable = await IncidentCategoryStore.InstalledAsync(db, ct);
+                if (query.CategoryId is not null && !categoriesAvailable)
+                    throw new InsightException(503, "INCIDENT_CATEGORY_STORAGE_UNAVAILABLE", "Incident category storage unavailable.");
                 var incidents = db.Incidents.AsNoTracking().Where(i => branches.Contains(i.BranchId)
                     && (i.RoomId == null || i.Room!.BranchId == i.BranchId)
                     && (i.AreaId == null || i.Area!.BranchId == i.BranchId)
                     && (i.AssetId == null || i.Asset!.BranchId == i.BranchId)
                     && i.ReportedAt >= start && i.ReportedAt < end && (query.SeverityId == null || i.SeverityId == query.SeverityId));
+                if (query.CategoryId is not null)
+                {
+                    var categorized = IncidentCategoryStore.Rows(db).Where(c => c.CategoryId == query.CategoryId).Select(c => c.IncidentId);
+                    incidents = incidents.Where(i => categorized.Contains(i.IncidentId));
+                }
                 await Add("incidents", incidents.OrderBy(i => i.IncidentId).Select(i => new { Id = i.IncidentId,
                     i.IncidentNo, i.BranchId, i.RoomId, i.AssetId, i.SeverityId, i.Status, i.DiscoveredAt, i.ReportedAt, i.ResolvedAt, i.ClosedAt }),
                     "id", "incidentNo", "branchId", "roomId", "assetId", "severityId", "status", "discoveredAt", "reportedAt", "resolvedAt", "closedAt");
                 var incidentIds = incidents.Select(i => i.IncidentId);
+                if (categoriesAvailable)
+                {
+                    await Add("incident_categories", IncidentCategoryStore.Rows(db)
+                        .Where(c => incidentIds.Contains(c.IncidentId)).OrderBy(c => c.IncidentId),
+                        "incidentId", "categoryId", "categoryCode", "categoryName");
+                    missing.Add("Incident category is N/A where no valid official category was recorded; historical values are not inferred.");
+                }
+                else missing.Add("Incident category unavailable: approved additive storage is not installed.");
                 var works = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking())
                     .Where(s => s.BranchId != null && branches.Contains(s.BranchId.Value) && s.Work.IncidentId != null
                         && (s.Work.DepartmentId == null || s.Work.Department!.BranchId == s.BranchId)
@@ -164,7 +181,8 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Where(u => workIds.Contains(u.MaintenanceWorkId)).OrderBy(u => u.UsageId)
                     .Select(u => new { Id = u.UsageId, u.MaintenanceWorkId, u.ItemId, u.BaseUomId, u.UsedBaseQty }),
                     "id", "maintenanceWorkId", "itemId", "baseUomId", "usedBaseQty");
-                missing.Add("Current-cycle accepted/SLA/reopened semantics and PM occurrence lifecycle are not approved; elapsed values not invented");
+                missing.Add("Incident SLA unavailable: approved priority SLA durations and persisted processing-cycle deadlines are required; maintenance planned times are not SLA evidence.");
+                missing.Add("PM occurrence lifecycle and complete incident processing-cycle evidence remain unavailable.");
                 break;
             }
             case "assets":
