@@ -4,8 +4,8 @@ export interface ScheduledWorkdayResponse {
   branchId: number;
   departmentId: number;
   workDate: string;
-  shiftAssignmentId: number;
-  isUnscheduled: false;
+  shiftAssignmentId: number | null;
+  isUnscheduled: boolean;
   status: "WORKING" | "ENDED";
   startedAtUtc: string;
   endedAtUtc: string | null;
@@ -52,7 +52,7 @@ export function decodeScheduledResponse(
   v: unknown,
   branch: number,
   expected: {
-    assignmentId: number;
+    assignmentId: number | null;
     workdayId?: number;
     status: "WORKING" | "ENDED";
   },
@@ -63,9 +63,10 @@ export function decodeScheduledResponse(
   const day = decodeWorkday({ ...x, openInterval: null }, branch);
   if (
     !day ||
-    x.isUnscheduled !== false ||
+    (expected.status === "WORKING" && expected.assignmentId === null) ||
+    x.isUnscheduled !== (expected.assignmentId === null) ||
     x.shiftAssignmentId !== expected.assignmentId ||
-    !safeId(x.shiftAssignmentId) ||
+    (x.shiftAssignmentId !== null && !safeId(x.shiftAssignmentId)) ||
     x.status !== expected.status ||
     (expected.workdayId !== undefined && x.workdayId !== expected.workdayId) ||
     !strongWorkdayTag(etag) ||
@@ -84,8 +85,8 @@ export function decodeScheduledResponse(
     branchId: branch,
     departmentId: day.departmentId,
     workDate: day.workDate,
-    shiftAssignmentId: x.shiftAssignmentId,
-    isUnscheduled: false,
+    shiftAssignmentId: day.shiftAssignmentId,
+    isUnscheduled: day.isUnscheduled,
     status: expected.status,
     startedAtUtc: day.startedAtUtc,
     endedAtUtc: x.endedAtUtc as string | null,

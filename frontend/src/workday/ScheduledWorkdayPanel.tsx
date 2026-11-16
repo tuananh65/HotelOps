@@ -180,8 +180,7 @@ function Bound({
   const endAllowed =
     !!day &&
     day.branchId === branchId &&
-    !day.isUnscheduled &&
-    safeId(day.shiftAssignmentId) &&
+    (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
     day.openInterval === null &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
@@ -231,7 +230,7 @@ function Bound({
         : await write.end(
             branchId,
             snapshot.day!.workdayId,
-            snapshot.day!.shiftAssignmentId!,
+            snapshot.day!.shiftAssignmentId,
             `"${snapshot.day!.rowVersion}"`,
             () => mounted.current && current() && !invalid.current,
             controller.current.signal,
@@ -295,7 +294,7 @@ function Bound({
             </p>
           )}
           <p>
-            Assignment {receipt.shiftAssignmentId}; Branch {receipt.branchId}.
+            {receipt.isUnscheduled ? "Unscheduled workday" : `Assignment ${receipt.shiftAssignmentId}`}; Branch {receipt.branchId}.
             This is not task effort or payroll time.
           </p>
         </section>
@@ -348,7 +347,7 @@ function Bound({
               </p>
             )}
             {day.isUnscheduled && (
-              <p>Unscheduled workday is outside this slice.</p>
+              <p>Unscheduled workday. End uses the current workday version.</p>
             )}
           </>
         )}

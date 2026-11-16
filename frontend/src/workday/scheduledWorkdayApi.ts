@@ -25,7 +25,7 @@ export function createScheduledWorkdayApi(
   }
   async function dispatch(
     branch: number,
-    assignmentId: number,
+    assignmentId: number | null,
     workdayId: number | undefined,
     etag: string | undefined,
     current: () => boolean,
@@ -35,7 +35,7 @@ export function createScheduledWorkdayApi(
       return { outcome: "NOT_DISPATCHED", error: { reason: "DISABLED" } };
     if (
       !safeId(branch) ||
-      !safeId(assignmentId) ||
+      (assignmentId === null ? workdayId === undefined : !safeId(assignmentId)) ||
       (workdayId !== undefined &&
         (!safeId(workdayId) || !strongWorkdayTag(etag))) ||
       signal?.aborted ||
@@ -167,7 +167,7 @@ export function createScheduledWorkdayApi(
     end: (
       branch: number,
       workdayId: number,
-      assignmentId: number,
+      assignmentId: number | null,
       etag: string,
       current: () => boolean,
       signal?: AbortSignal,

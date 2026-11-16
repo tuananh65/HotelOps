@@ -479,3 +479,19 @@ for (const operation of ["start", "end"])
         assert.equal(calls[0].method, "GET");
       },
     );
+
+for (const [label, patch, expected] of [
+ ["matching unscheduled", {isUnscheduled:true,shiftAssignmentId:null}, "CONFIRMED"],
+ ["borrowed scheduled response", {isUnscheduled:false,shiftAssignmentId:10}, "OUTCOME_UNKNOWN"],
+ ["inconsistent flag", {isUnscheduled:false,shiftAssignmentId:null}, "OUTCOME_UNKNOWN"],
+]) test("unscheduled End: " + label, async()=>{
+ const calls=[]; const api=createScheduledWorkdayApi(async(u,o)=>{calls.push([u,o]);return u.endsWith('/csrf')?csrf():response({...body(true),...patch});},true);
+ const result=await api.end(1,20,null,tag,()=>true);
+ assert.equal(result.outcome,expected);assert.equal(calls.length,2);
+ assert.deepEqual(JSON.parse(calls[1][1].body),{pauseAll:false});
+ assert.equal(new Headers(calls[1][1].headers).get('If-Match'),tag);
+});
+test("null assignment never enables unscheduled Start",async()=>{
+ let calls=0;const api=createScheduledWorkdayApi(async()=>{calls++;throw Error();},true);
+ assert.equal((await api.start(1,null,()=>true)).outcome,'NOT_DISPATCHED');assert.equal(calls,0);
+});
