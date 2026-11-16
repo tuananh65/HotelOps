@@ -2,12 +2,12 @@
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 
-type Priority = { id: number; code: string; label: string; responseMinutes: number | null; resolutionMinutes: number | null; configured: boolean; version: string };
+type Priority = { id: number; code: string; label: string; responseMinutes: number | null; resolutionMinutes: number | null; configured: boolean; order: number; version: string };
 const positive=(v: unknown): v is number=>typeof v==="number"&&Number.isSafeInteger(v)&&v>0;
 function valid(v: unknown): v is Priority {
   return isObject(v)&&positive(v.id)&&typeof v.code==="string"&&["LOW","NORMAL","HIGH","CRITICAL"].includes(v.code)
     &&typeof v.label==="string"&&(v.responseMinutes===null||positive(v.responseMinutes))&&(v.resolutionMinutes===null||positive(v.resolutionMinutes))
-    &&typeof v.configured==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
+    &&typeof v.order==="number"&&Number.isSafeInteger(v.order)&&typeof v.configured==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
 }
 export function PrioritySlaPage() {
   const {state}=useAuth(),owner=state.status==="AUTHENTICATED"&&!state.pending?state.authorityGeneration:null;
@@ -49,8 +49,8 @@ export function PrioritySlaPage() {
   if(!owner)return null;
   return <section><h2>Priority labels and SLA targets</h2><p>Changes apply to later triage. Existing incident deadlines and historical processing cycles stay unchanged.</p>
     <button disabled={busy} onClick={()=>void load()}>Load priorities</button>{message&&<p role="status">{message}</p>}
-    {loaded&&<table><thead><tr><th>Code</th><th>Label</th><th>Response minutes</th><th>Resolution minutes</th><th>Configuration</th><th>Action</th></tr></thead>
-      <tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.label}</td><td>{r.responseMinutes??"Not configured"}</td><td>{r.resolutionMinutes??"Not configured"}</td><td>{r.configured?"Active":"Unavailable"}</td>
+    {loaded&&<table><thead><tr><th>Code</th><th>Label</th><th>Order</th><th>Response minutes</th><th>Resolution minutes</th><th>Configuration</th><th>Action</th></tr></thead>
+      <tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.label}</td><td>{r.order}</td><td>{r.responseMinutes??"Not configured"}</td><td>{r.resolutionMinutes??"Not configured"}</td><td>{r.configured?"Active":"Unavailable"}</td>
         <td><button disabled={busy||uncertain} onClick={()=>{setSelected(r);setLabel(r.label);setResponse(r.responseMinutes?.toString()??"");setResolution(r.resolutionMinutes?.toString()??"");}}>Edit</button></td></tr>)}</tbody></table>}
     {selected&&<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy||uncertain}><legend>{selected.code}</legend>
       <label>Label<input required maxLength={150} value={label} onChange={e=>setLabel(e.target.value)} /></label>

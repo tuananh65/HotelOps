@@ -11,8 +11,8 @@ using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.InternalRequests;
 
-public sealed record RequestTypeInput(string Code,string Label,string? Description,bool? MaterialNeed,bool IsActive,bool Confirmation);
-public sealed record RequestTypeView(long Id,string Code,string Label,string? Description,bool? MaterialNeed,bool IsActive,bool MeaningLocked,string Version);
+public sealed record RequestTypeInput(string Code,string Label,string? Description,bool? MaterialNeed,bool IsActive,bool Confirmation,int Order=0);
+public sealed record RequestTypeView(long Id,string Code,string Label,string? Description,bool? MaterialNeed,bool IsActive,bool MeaningLocked,string Version,int Order);
 public sealed class RequestTypeAdministrationService(HotelOpsDbContext db,WorkCategoryAdministrationService authority)
 {
     private async Task Begin(SessionReference ticket,long sid,CancellationToken ct)
@@ -23,12 +23,13 @@ public sealed class RequestTypeAdministrationService(HotelOpsDbContext db,WorkCa
     private async Task<RequestTypeView> View(InternalRequestType row,CancellationToken ct)
     {
         var policy=await InternalRequestIntakePolicy.Types(db).SingleOrDefaultAsync(p=>p.TypeId==row.RequestTypeId,ct);
+        var order=await db.Database.SqlQuery<int>($"SELECT sort_order AS Value FROM dbo.internal_request_types WHERE request_type_id={row.RequestTypeId}").SingleAsync(ct);
         var used=await db.InternalRequests.AsNoTracking().AnyAsync(r=>r.RequestTypeId==row.RequestTypeId,ct);
         var key=row.RequestTypeId.ToString(CultureInfo.InvariantCulture);
         var audit=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="internal_request_types"&&a.EntityId==key).Select(a=>(long?)a.AuditId).MaxAsync(ct)??0;
         var version='"'+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{row.RequestTypeId,row.TypeCode,row.TypeName,row.Description,row.IsActive,
-            row.DefaultDepartmentId,row.DefaultPriorityId,row.SlaMinutes,policy,audit}))))+'"';
-        return new(row.RequestTypeId,row.TypeCode,row.TypeName,row.Description,policy?.MaterialNeed,row.IsActive,used,version);
+            row.DefaultDepartmentId,row.DefaultPriorityId,row.SlaMinutes,policy,audit,order}))))+'"';
+        return new(row.RequestTypeId,row.TypeCode,row.TypeName,row.Description,policy?.MaterialNeed,row.IsActive,used,version,order);
     }
     public async Task<IReadOnlyList<RequestTypeView>> ListAsync(SessionReference ticket,long sid,long after,CancellationToken ct)
     {
@@ -69,9 +70,10 @@ public sealed class RequestTypeAdministrationService(HotelOpsDbContext db,WorkCa
             else await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_type_policy(request_type_id,is_material_need) VALUES({row.RequestTypeId},{material})",ct);
         }
         else if(before?.MaterialNeed!=null)throw new InternalRequestReadException(409,"CLASSIFICATION_REMOVAL_NOT_ALLOWED");
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_request_types SET sort_order={input.Order} WHERE request_type_id={row.RequestTypeId}",ct);
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         db.AuditLogs.Add(new AuditLog{ActorUserId=ticket.UserId,EntityType="internal_request_types",EntityId=row.RequestTypeId.ToString(CultureInfo.InvariantCulture),Action=id==null?"CREATE":"UPDATE",OccurredAt=now,
-            OldValues=before==null?null:JsonSerializer.Serialize(before),NewValues=JsonSerializer.Serialize(new{row.TypeCode,row.TypeName,row.Description,row.IsActive,input.MaterialNeed,row.DefaultDepartmentId,row.DefaultPriorityId,row.SlaMinutes})});
+            OldValues=before==null?null:JsonSerializer.Serialize(before),NewValues=JsonSerializer.Serialize(new{row.TypeCode,row.TypeName,row.Description,row.IsActive,input.MaterialNeed,input.Order,row.DefaultDepartmentId,row.DefaultPriorityId,row.SlaMinutes})});
         await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();await authority.Gate(ticket,sid,null,ct);var result=await View(row,ct);await tx.CommitAsync(ct);return result;
     }
 }

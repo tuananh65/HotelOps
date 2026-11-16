@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Incidents;
 
 public sealed record PrioritySlaInput(string Label,int ResponseMinutes,int ResolutionMinutes);
-public sealed record PrioritySlaView(long Id,string Code,string Label,int? ResponseMinutes,int? ResolutionMinutes,bool Configured,string Version);
+public sealed record PrioritySlaView(long Id,string Code,string Label,int? ResponseMinutes,int? ResolutionMinutes,bool Configured,string Version,int Order);
 public sealed class PrioritySlaAdministrationService(HotelOpsDbContext db,WorkCategoryAdministrationService authority)
 {
     private static readonly string[] Codes=["LOW","NORMAL","HIGH","CRITICAL"];
@@ -34,7 +34,7 @@ public sealed class PrioritySlaAdministrationService(HotelOpsDbContext db,WorkCa
         var version='"'+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{
             row.ReferenceId,row.GroupCode,row.ValueCode,row.DisplayName,row.IsActive,target}))))+'"';
         return new(row.ReferenceId,row.ValueCode,row.DisplayName,target?.ResponseMinutes,target?.ResolutionMinutes,
-            row.IsActive&&target is {IsActive:true},version);
+            row.IsActive&&target is {IsActive:true},version,row.SortOrder??0);
     }
     private async Task Begin(SessionReference ticket,long sid,CancellationToken ct)
     {

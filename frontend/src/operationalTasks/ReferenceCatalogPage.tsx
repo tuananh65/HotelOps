@@ -2,10 +2,10 @@
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 
-type CatalogValue = { id:number; code:string; label:string; description:string|null; order?:number; materialNeed?:boolean|null; isActive:boolean; meaningLocked:boolean; version:string };
+type CatalogValue = { id:number; code:string; label:string; description:string|null; order:number; materialNeed?:boolean|null; isActive:boolean; meaningLocked:boolean; version:string };
 const positive=(v: unknown): v is number=>typeof v==="number"&&Number.isSafeInteger(v)&&v>0;
 function valid(v: unknown): v is CatalogValue {
- return isObject(v)&&positive(v.id)&&typeof v.code==="string"&&typeof v.label==="string"&&(v.description===null||typeof v.description==="string")&&(v.order===undefined||(typeof v.order==="number"&&Number.isInteger(v.order)))&&(v.materialNeed===undefined||v.materialNeed===null||typeof v.materialNeed==="boolean")&&typeof v.isActive==="boolean"&&typeof v.meaningLocked==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
+ return isObject(v)&&positive(v.id)&&typeof v.code==="string"&&typeof v.label==="string"&&(v.description===null||typeof v.description==="string")&&(typeof v.order==="number"&&Number.isSafeInteger(v.order))&&(v.materialNeed===undefined||v.materialNeed===null||typeof v.materialNeed==="boolean")&&typeof v.isActive==="boolean"&&typeof v.meaningLocked==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
 }
 export function ReferenceCatalogPage() {
   const {state}=useAuth(),owner=state.status==="AUTHENTICATED"&&!state.pending?state.authorityGeneration:null;
@@ -55,8 +55,8 @@ export function ReferenceCatalogPage() {
     </select></label>
     <button disabled={busy} onClick={()=>void load()}>Load catalog</button>{message&&<p role="status">{message}</p>}
     {loaded&&<><button disabled={busy||uncertain||group==="TASK_PAUSE_REASON"} onClick={()=>edit(null)}>Create value</button>
-      <table><thead><tr><th>Code</th><th>Label</th><th>{group==="REQUEST_TYPE"?"Intake classification":"Order"}</th><th>Status</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}>
-        <td>{r.code}</td><td>{r.label}</td><td>{group==="REQUEST_TYPE"?(r.materialNeed==null?"Unclassified":r.materialNeed?"Material need":"Internal request"):r.order}</td><td>{r.isActive?"Active":"Inactive"}</td><td><button disabled={busy||uncertain} onClick={()=>edit(r)}>Edit</button></td>
+      <table><thead><tr><th>Code</th><th>Label</th><th>Order</th>{group==="REQUEST_TYPE"&&<th>Intake classification</th>}<th>Status</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}>
+        <td>{r.code}</td><td>{r.label}</td><td>{r.order}</td>{group==="REQUEST_TYPE"&&<td>{r.materialNeed==null?"Unclassified":r.materialNeed?"Material need":"Internal request"}</td>}<td>{r.isActive?"Active":"Inactive"}</td><td><button disabled={busy||uncertain} onClick={()=>edit(r)}>Edit</button></td>
       </tr>)}</tbody></table>
       {after>0&&<button disabled={busy} onClick={()=>void load()}>First page</button>}
       {rows.length===100&&<button disabled={busy} onClick={()=>void load(rows[rows.length-1].id)}>Next page</button>}
@@ -66,7 +66,7 @@ export function ReferenceCatalogPage() {
       <label>Code<input required maxLength={group==="REQUEST_TYPE"?40:60} readOnly={selected?.meaningLocked} value={code} onChange={e=>setCode(e.target.value)} /></label>
       <label>Label<input required maxLength={150} readOnly={selected?.meaningLocked} value={label} onChange={e=>setLabel(e.target.value)} /></label>
       <label>Description<textarea maxLength={4000} readOnly={selected?.meaningLocked} value={description} onChange={e=>setDescription(e.target.value)} /></label>
-      {group!=="REQUEST_TYPE"&&<label>Display order<input required type="number" min="-2147483648" max="2147483647" step="1" value={order} onChange={e=>setOrder(e.target.value)} /></label>}
+      <label>Display order<input required type="number" min="-2147483648" max="2147483647" step="1" value={order} onChange={e=>setOrder(e.target.value)} /></label>
       {group==="REQUEST_TYPE"&&<label>Intake classification<select required={active} disabled={selected?.meaningLocked} value={material} onChange={e=>setMaterial(e.target.value)}><option value="">Unclassified</option><option value="false">Internal request</option><option value="true">Material need ? redirect to Material Request</option></select></label>}
       <label><input type="checkbox" checked={active} disabled={!selected||group==="TASK_PAUSE_REASON"&&selected.code==="END_OF_SHIFT"} onChange={e=>{setActive(e.target.checked);setConfirmation(false);}} />Active</label>
       {!active&&<label><input required type="checkbox" checked={confirmation} onChange={e=>setConfirmation(e.target.checked)} />Confirm deactivation; historical references are retained.</label>}

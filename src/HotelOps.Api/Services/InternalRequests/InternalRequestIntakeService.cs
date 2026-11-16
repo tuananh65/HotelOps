@@ -57,7 +57,7 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             if(await access.AllowsAsync(ticket.UserId,item.Id,ct))branches.Add(item);
         if(branches.Count==0||branch!=null&&!branches.Any(b=>b.Id==branch))throw new InternalRequestReadException(403,"IR_CREATE_REQUIRED");
         var types=await (from type in db.InternalRequestTypes.AsNoTracking() join policy in InternalRequestIntakePolicy.Types(db) on type.RequestTypeId equals policy.TypeId
-            where type.IsActive orderby type.TypeName,type.RequestTypeId select new InternalRequestIntakeTypeOption(type.RequestTypeId,type.TypeName,policy.MaterialNeed)).ToArrayAsync(ct);
+            where type.IsActive orderby policy.SortOrder,type.TypeName,type.RequestTypeId select new InternalRequestIntakeTypeOption(type.RequestTypeId,type.TypeName,policy.MaterialNeed)).ToArrayAsync(ct);
         var result=new InternalRequestIntakeOptions(branches.ToArray(),types,
             await db.Departments.AsNoTracking().Where(d=>branch!=null&&d.BranchId==branch&&d.IsActive).OrderBy(d=>d.DepartmentName).Select(d=>new InternalRequestFilterValue(d.DepartmentId,d.DepartmentName)).ToArrayAsync(ct),
             await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="PRIORITY"&&r.IsActive).OrderBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId).Select(r=>new InternalRequestFilterValue(r.ReferenceId,r.DisplayName)).ToArrayAsync(ct),
