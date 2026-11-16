@@ -14,6 +14,7 @@ export interface CreateOptions {
     sortOrder: number;
   }[];
   existingTaskId?: number | null;
+  standardCleaningMinutes?: number | null;
 }
 export interface CreateInput {
   roomId: number;
@@ -41,6 +42,7 @@ function checkOptions(v: unknown, b: number, r: number): CreateOptions {
     d.branchId !== b ||
     typeof d.roomNumber !== "string" ||
     !Number.isInteger(d.cleaningItemCount) ||
+    (d.standardCleaningMinutes != null && (!Number.isSafeInteger(d.standardCleaningMinutes) || d.standardCleaningMinutes <= 0 || d.standardCleaningMinutes > 2147483647)) ||
     ![d.cleaningTypes, d.priorities].every(
       (a) =>
         Array.isArray(a) &&

@@ -85,3 +85,29 @@ test("options verifies exact room and branch and references", async () => {
     });
   await assert.rejects(cleaningOptions("7", "3"), /INVALID_CREATE_OPTIONS/);
 });
+
+const planningOptions={roomId:3,roomNumber:'101',branchId:7,cleaningTypes:[],priorities:[],cleaningItemCount:0};
+for(const minutes of [null,undefined,30,45]) test('room-type planning default '+minutes+' is read without inventing a deadline',async()=>{
+ globalThis.fetch=async()=>Response.json({...planningOptions,standardCleaningMinutes:minutes});
+ const result=await cleaningOptions('7','3');
+ assert.equal(result.standardCleaningMinutes,minutes);
+ assert.equal(result.dueAt,undefined);
+});
+for(const minutes of [0,-1,1.5,'30',2147483648]) test('invalid standard cleaning minutes '+minutes+' rejects options',async()=>{
+ globalThis.fetch=async()=>Response.json({...planningOptions,standardCleaningMinutes:minutes});
+ await assert.rejects(cleaningOptions('7','3'),/INVALID_CREATE_OPTIONS/);
+});
+test('room-type changes are reread and estimate never overrides the submitted deadline',async()=>{
+ let minutes=30;
+ globalThis.fetch=async()=>Response.json({...planningOptions,standardCleaningMinutes:minutes});
+ assert.equal((await cleaningOptions('7','3')).standardCleaningMinutes,30);
+ minutes=45;assert.equal((await cleaningOptions('7','3')).standardCleaningMinutes,45);
+ let body;
+ globalThis.fetch=async(url,o)=>{
+  if(url.endsWith('/auth/csrf'))return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'fresh'});
+  body=JSON.parse(o.body);
+  return Response.json({id:6,branchId:7,roomId:3,taskNumber:'CL-6',state:'PENDING_ASSIGNMENT',standardCleaningMinutes:45},{status:201});
+ };
+ await createCleaning('7',{...input,standardCleaningMinutes:999});
+ assert.equal(body.dueAt,input.dueAt);assert.equal(body.standardCleaningMinutes,undefined);
+});

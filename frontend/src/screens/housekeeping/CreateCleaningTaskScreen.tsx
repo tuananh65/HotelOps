@@ -125,6 +125,10 @@ export default function CreateCleaningTaskScreen() {
       )}
       {data && (
         <section className="panel form-panel">
+          <p aria-label="Standard cleaning time">
+            Standard cleaning time: {data.standardCleaningMinutes == null ? "Unavailable" : `${data.standardCleaningMinutes} minutes`}.
+            {" "}Planning reference; enter the required deadline below.
+          </p>
           <h2>
             {data.roomNumber} · Chi nhánh {branch}
           </h2>

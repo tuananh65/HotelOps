@@ -20,13 +20,17 @@ public sealed partial class RoomTypeCreationService
             var r = await rooms.AsNoTracking().SingleOrDefaultAsync(x => x.RoomId == room && x.BranchId == branch, token);
             if (r == null) return new(RoomTypeBatchStatus.NotFound);
             if (!r.IsActive || !await db.Floors.AnyAsync(x => x.FloorId == r.FloorId && x.BranchId == branch && x.IsActive, token) || (r.AreaId != null && !await db.Areas.AnyAsync(x => x.AreaId == r.AreaId && x.BranchId == branch && x.IsActive, token))) return new(RoomTypeBatchStatus.Inactive);
+            var type = await db.BranchRoomTypes.AsNoTracking().SingleOrDefaultAsync(x => x.RoomTypeId == r.RoomTypeId
+                && x.IsActive && (x.BranchId == branch || x.BranchId == null), token);
+            if (type == null) return new(RoomTypeBatchStatus.Inactive);
             var refs = await db.ReferenceValues.AsNoTracking().Where(x => x.IsActive && (x.GroupCode == "CLEANING_TYPE" || x.GroupCode == "PRIORITY"))
                 .Select(x => new { x.ReferenceId, x.ValueCode, x.DisplayName, x.GroupCode }).ToArrayAsync(token);
             var items = await db.Database.SqlQuery<CleaningItemPreview>($"SELECT TOP(101) item_id AS Id,label AS Label,is_required AS IsRequired,sort_order AS SortOrder FROM dbo.cleaning_item_definitions WHERE room_type_id={r.RoomTypeId} ORDER BY sort_order,item_id").ToArrayAsync(token);
             var existing = await db.Database.SqlQuery<long>($"SELECT TOP(1) cleaning_task_id AS [Value] FROM dbo.cleaning_tasks WHERE room_id={room} AND (workflow_status IS NULL OR workflow_status NOT IN('COMPLETED','CANCELLED')) ORDER BY cleaning_task_id").SingleOrDefaultAsync(token);
             return new(RoomTypeBatchStatus.Success, new CleaningCreateOptions(room, r.RoomNumber, branch,
                 refs.Where(x => x.GroupCode == "CLEANING_TYPE").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(),
-                refs.Where(x => x.GroupCode == "PRIORITY").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(), items.Length, items, existing > 0 ? existing : null));
+                refs.Where(x => x.GroupCode == "PRIORITY").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(), items.Length, items, existing > 0 ? existing : null,
+                type.StandardCleaningMinutes is > 0 ? type.StandardCleaningMinutes : null));
         }, ct, permissionCode: "CLEANING_ASSIGN");
     }
 
@@ -58,6 +62,10 @@ public sealed partial class RoomTypeCreationService
             if (itemCount is < 1 or > 100) return new(RoomTypeBatchStatus.InvalidReference);
             var conflicts = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_tasks WITH(UPDLOCK,HOLDLOCK) WHERE room_id={room.RoomId} AND (workflow_status IS NULL OR workflow_status NOT IN('COMPLETED','CANCELLED'))").SingleAsync(token);
             if (conflicts != 0) return new(RoomTypeBatchStatus.Duplicate);
+            // Read current defaults under the catalog/Serializable transaction. Never
+            // accept a browser estimate or reinterpret standard effort as a deadline.
+            var standardMinutes = await db.BranchRoomTypes.AsNoTracking().Where(x => x.RoomTypeId == room.RoomTypeId
+                && x.IsActive && (x.BranchId == branch || x.BranchId == null)).Select(x => x.StandardCleaningMinutes).SingleAsync(token);
             // No implicit legacy adoption: any historical tasks without an explicit current pointer require reconciliation.
             var history = await db.CleaningTasks.AnyAsync(x => x.RoomId == room.RoomId, token);
             var pointers = await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={room.RoomId}").ToArrayAsync(token);
@@ -83,8 +91,9 @@ public sealed partial class RoomTypeCreationService
             var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == room.RoomId
                 && x.BlockedAt <= now && (x.ReleasedAt == null || x.ReleasedAt > now), token);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({room.RoomId},{task.CleaningTaskId},'PENDING_CLEANING',{blocked},{actor},{now})", token);
-            var dto = new CreatedCleaningTask(task.CleaningTaskId, branch, room.RoomId, task.TaskNo, "PENDING_ASSIGNMENT", "PENDING_CLEANING", blocked);
-            await BatchAuditAsync(actor, branch, "cleaning_tasks", task.CleaningTaskId, null, dto, ["create", "currentCycle", "readinessEvent"], token);
+            var dto = new CreatedCleaningTask(task.CleaningTaskId, branch, room.RoomId, task.TaskNo, "PENDING_ASSIGNMENT", "PENDING_CLEANING", blocked,
+                StandardCleaningMinutes: standardMinutes is > 0 ? standardMinutes : null);
+            await BatchAuditAsync(actor, branch, "cleaning_tasks", task.CleaningTaskId, null, dto, ["create", "currentCycle", "readinessEvent", "standardCleaningMinutes"], token);
             if (input.InternalRequestId is {} linkedRequest)
                 await WriteCleaningSourceLink(actor, branch, linkedRequest, task.CleaningTaskId, input.RequestLink!, token);
             return new(RoomTypeBatchStatus.Success, dto, WorkflowTag((await CleaningState(task.CleaningTaskId, token)).Revision));
