@@ -214,7 +214,10 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && (t.RoomId == null || t.Room!.BranchId == t.BranchId)
                     && (t.AreaId == null || t.Area!.BranchId == t.BranchId)
                     && (department == null || t.DepartmentId == department) && t.CreatedAt >= start && t.CreatedAt < end);
-                if (query.EmployeeId is not null) throw new InsightException(503, "TASK_EMPLOYEE_CONTRACT_UNAVAILABLE", "Employee-to-task/interval attribution contract unavailable.");
+                if (query.EmployeeId is {} employee)
+                    tasks = tasks.Where(t => t.OperationalTaskAssignments.Count(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null) == 1
+                        && t.OperationalTaskAssignments.Any(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null
+                            && a.AssignedAt <= now.UtcDateTime && a.AssigneeId == employee));
                 var workflowInstalled = await ProgressSchema.InstalledAsync(db, ct);
                 var workflow = workflowInstalled ? TaskWorkflowRead.Query(db, now.UtcDateTime)
                     : db.OperationalTasks.Where(t => false).Select(t => new TaskWorkflowRow { TaskId = t.TaskId, State = "" });
@@ -233,18 +236,19 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Select(g => new { g.Key.WorkflowState, g.Key.Overdue, TaskCount = g.LongCount() }),
                     "workflowState", "overdue", "taskCount");
                 missing.Add("Task status summary uses the same created-in-period task population as detail rows; null lifecycle/overdue is an unknown bucket, not a non-overdue task");
-                var effort = await TaskEffortRead.ReadAsync(db, filters, now.UtcDateTime, ct);
+                var effort = await TaskEffortRead.ReadAsync(db, filters, now.UtcDateTime, ct, query.EmployeeId);
                 if (effort.Rows is {} effortRows)
                     AddMaterialized("task_effort_by_employee", effortRows,
                         "employeeId", "branchId", "closedEffortSeconds", "provisionalEffortSeconds", "openIntervals");
                 else missing.Add("Task effort unavailable: " + effort.MissingReason);
                 missing.Add("Employee task effort uses effective TASK intervals overlapping the selected UTC period regardless of task creation date; open effort is provisional, not completed effort");
-                var workdayTime = await ReportWorkdayTime.ReadAsync(db, filters, now.UtcDateTime, ct);
+                var workdayTime = await ReportWorkdayTime.ReadAsync(db, filters, now.UtcDateTime, ct, query.EmployeeId);
                 if (workdayTime.Rows is {} workdayRows)
                     AddMaterialized("workday_time_by_employee", workdayRows,
                         "employeeId", "branchId", "closedWorkdaySeconds", "provisionalWorkdaySeconds", "openWorkdays");
                 else missing.Add("Workday time unavailable: " + workdayTime.MissingReason);
                 missing.Add("Workday time is actual StartedAt/EndedAt clipped to the UTC period, including unscheduled workdays; it is separate from task effort and planned shift duration");
+                missing.Add("Employee filter: task detail/status uses the current assignee; task effort uses the interval performer; workday time uses the workday employee. Reassignment does not transfer historical time");
                 break;
             }
             case "requests":
@@ -256,13 +260,60 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && (r.AreaId == null || r.Area!.BranchId == r.BranchId)
                     && (department == null || r.ReceivingDepartmentId == department) && r.CreatedAt >= start && r.CreatedAt < end
                     && (query.Type == null || r.RequestType.TypeCode == query.Type));
-                if (department is not null) throw new InsightException(503, "REQUEST_DEPARTMENT_CONTRACT_UNAVAILABLE", "Receiving versus requester department reporting contract unavailable.");
                 await Add("internal_requests", requests.OrderBy(r => r.InternalRequestId).Select(r => new { Id = r.InternalRequestId,
                     r.RequestNo, r.BranchId, r.RequestTypeId, r.RequesterDepartmentId, r.ReceivingDepartmentId, r.Status,
                     r.CreatedAt, r.SubmittedAt, r.DueAt, r.CompletedAt, r.ClosedAt,
                     Overdue = r.DueAt != null && r.DueAt < now.UtcDateTime && r.Status != "CLOSED" && r.Status != "REJECTED" && r.Status != "CANCELLED" }),
                     "id", "requestNo", "branchId", "requestTypeId", "requesterDepartmentId", "receivingDepartmentId", "status", "createdAt", "submittedAt", "dueAt", "completedAt", "closedAt", "overdue");
-                missing.Add("response/current-cycle completion and reopened indicators unavailable; overdue uses the snapshot time under GBR-156");
+                var responseEvents = await (from e in db.InternalRequestEvents.AsNoTracking()
+                    join r in requests on e.InternalRequestId equals r.InternalRequestId
+                    where e.EventType == "ACCEPT" || e.EventType == "REJECT" || e.EventType == "REOPEN"
+                        || e.EventType == "ASSIGN" || e.EventType == "REASSIGN" || e.EventType == "COMPLETE"
+                        || e.OldStatus == "CLOSED" && e.NewStatus != "CLOSED"
+                    orderby e.EventId
+                    select new { e.InternalRequestId, e.EventId, e.EventType, e.OldStatus, e.NewStatus, e.OccurredAt,
+                        AssignmentVerified = db.InternalRequestAssignments.Count(a => a.InternalRequestId == e.InternalRequestId
+                            && a.AssignedAt == e.OccurredAt && a.AssignedBy == e.ActorId
+                            && (a.Status == "ACTIVE" && a.EndedAt == null
+                                || (a.Status == "REASSIGNED" || a.Status == "COMPLETED") && a.EndedAt != null)
+                            && (a.EndedAt == null || a.EndedAt >= a.AssignedAt)) == 1 })
+                    .Take(50001).ToArrayAsync(ct);
+                if (responseEvents.Length > 50000)
+                    throw new InsightException(422, "REPORT_ROW_LIMIT", "Request decision evidence exceeds 50,000 events. Narrow the filters; no data was truncated.");
+                var byRequest = responseEvents.ToLookup(e => e.InternalRequestId);
+                var requestSection = sections[^1];
+                var processingTotals = new List<(long Type, long? Department, bool Closed, decimal? Seconds)>();
+                foreach (var row in requestSection.Rows)
+                {
+                    var id = ((JsonElement)row["id"]!).GetInt64();
+                    var submitted = (JsonElement)row["submittedAt"]!;
+                    var history = byRequest[id].Select(e => new ReportRequestResponse.Event(e.EventId, e.EventType, e.OldStatus, e.NewStatus, e.OccurredAt, e.AssignmentVerified)).ToArray();
+                    var response = ReportRequestResponse.Read(((JsonElement)row["createdAt"]!).GetDateTime(),
+                        submitted.ValueKind == JsonValueKind.Null ? null : submitted.GetDateTime(), now.UtcDateTime,
+                        history);
+                    foreach (var property in JsonSerializer.SerializeToElement(response, jsonOptions).EnumerateObject())
+                        row[property.Name] = property.Value.Clone();
+                    DateTime? Timestamp(string name) => ((JsonElement)row[name]!).ValueKind == JsonValueKind.Null ? null : ((JsonElement)row[name]!).GetDateTime();
+                    var processing = ReportRequestProcessing.Read(((JsonElement)row["status"]!).GetString()!,
+                        Timestamp("createdAt")!.Value, Timestamp("completedAt"), Timestamp("closedAt"), now.UtcDateTime, history);
+                    foreach (var property in JsonSerializer.SerializeToElement(processing, jsonOptions).EnumerateObject())
+                        row[property.Name] = property.Value.Clone();
+                    var receiving = (JsonElement)row["receivingDepartmentId"]!;
+                    processingTotals.Add((((JsonElement)row["requestTypeId"]!).GetInt64(),
+                        receiving.ValueKind == JsonValueKind.Null ? null : receiving.GetInt64(),
+                        ((JsonElement)row["status"]!).GetString() == "CLOSED", processing.CompletionSeconds));
+                }
+                sections[^1] = requestSection with { Columns = [.. requestSection.Columns, "responseEventId", "responseAt", "responseSeconds", "responseEvidence", "completionSeconds", "completedCycles", "reopenCount", "completionEvidence"] };
+                AddMaterialized("request_type_department_summary", processingTotals.GroupBy(r => new { r.Type, r.Department })
+                    .OrderBy(g => g.Key.Type).ThenBy(g => g.Key.Department).Select(g => new {
+                        RequestTypeId = g.Key.Type, ReceivingDepartmentId = g.Key.Department, RequestCount = g.Count(),
+                        ClosedRequestCount = g.Count(r => r.Closed), MeasuredClosedRequests = g.Count(r => r.Closed && r.Seconds != null),
+                        MissingClosedRequests = g.Count(r => r.Closed && r.Seconds == null),
+                        AverageCompletionSeconds = !g.Any(r => r.Closed) || g.Any(r => r.Closed && r.Seconds == null)
+                            ? null : g.Where(r => r.Closed).Average(r => r.Seconds)
+                    }).ToArray(), "requestTypeId", "receivingDepartmentId", "requestCount", "closedRequestCount", "measuredClosedRequests", "missingClosedRequests", "averageCompletionSeconds");
+                missing.Add("Response time uses SubmittedAt to the recorded UC116 decision; missing, inconsistent or reopened-cycle evidence returns null with a reason, never zero");
+                missing.Add("Completion time sums proven assignment/reopen-to-complete cycles per request, excluding Closed-to-Reopen gaps; open or inconsistent cycles return N/A. Department uses current receiving department; overdue uses the snapshot time under GBR-156");
                 break;
             }
         }

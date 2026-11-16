@@ -20,6 +20,8 @@ export interface ReportQuery {
   departmentId?: number;
   housekeeperId?: number;
   inspectorId?: number;
+  employeeId?: number;
+  type?: string;
   from: string;
   to: string;
 }
@@ -162,7 +164,7 @@ export function decodeSnapshot(
         )))
   )
     throw new Error("Invalid report rows");
-  for (const field of ["housekeeperId", "inspectorId"] as const) {
+  for (const field of ["housekeeperId", "inspectorId", "employeeId", "type"] as const) {
     if (query[field] !== undefined && result.appliedFilters?.[field] !== String(query[field]))
       throw new Error("Unconfirmed report filter");
   }
@@ -215,6 +217,8 @@ export function createReportApi(
         query.from > query.to ||
         (query.branchId !== undefined && !id(query.branchId)) ||
         (query.departmentId !== undefined && !id(query.departmentId)) ||
+        (query.employeeId !== undefined && (!id(query.employeeId) || key !== "tasks")) ||
+        (query.type !== undefined && (key !== "requests" || !query.type.trim() || query.type.length > 40 || /[\u0000-\u001f\u007f]/.test(query.type))) ||
         (query.housekeeperId !== undefined && (!id(query.housekeeperId) || key !== "inspections")) ||
         (query.inspectorId !== undefined && (!id(query.inspectorId) || key !== "inspections"))
       )

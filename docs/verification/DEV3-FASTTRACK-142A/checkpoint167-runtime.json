@@ -1,0 +1,156 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_0baf3142",
+  "fixtureUserId": 1201299,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "reportActorsCheck": "public combined cleaner/inspector filters select the officially attributed inspection"
+    },
+    {
+      "reportActorsCheck": "inspector and assigning actor are not inferred as cleaner"
+    },
+    {
+      "reportActorsCheck": "inspector filter intersects cleaner filter"
+    },
+    {
+      "reportActorsCheck": "inactive cleaner retains immutable historical attribution"
+    },
+    {
+      "reportActorsCheck": "cached report does not acquire rework created after its snapshot"
+    },
+    {
+      "reportActorsBrowser": {
+        "success": true,
+        "mode": "inspection-actors",
+        "checks": [
+          "official cleaner and inspector intersection, CSV/XLSX downloads, snapshot invalidation and non-cleaner empty result",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": [
+          "cfc26e7e23c8409d959f940784f42b67"
+        ]
+      }
+    },
+    {
+      "reportTaskSummaryBrowser": {
+        "success": true,
+        "mode": "task-summary",
+        "checks": [
+          "RPT06 scoped task status summary reconciles with details and renders/downloads via CSV/XLSX",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": [
+          "269cb8965b0643a18fa9766574acc5d2"
+        ]
+      }
+    },
+    {
+      "reportActorsCheck": "task summary browser CSV/XLSX each persist export audit"
+    },
+    {
+      "reportActorsCheck": "browser CSV and XLSX each persist an export audit for the actor-filtered snapshot"
+    },
+    {
+      "reportCyclesBrowser": {
+        "success": true,
+        "mode": "request-cycles",
+        "checks": [
+          "RPT07 receiving department/type filter, response provenance, cycle totals, per-request average and frozen CSV/XLSX verified",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": [
+          "ebb236cf70a341ff837ecddf729a51f4"
+        ]
+      }
+    },
+    {
+      "reportCyclesCheck": "CSV/XLSX snapshot export audits persisted"
+    },
+    {
+      "reportActorsCheck": "revoked Operations Manager cannot export cached actor-filtered report despite DEPT_MANAGER"
+    },
+    {
+      "reportActorsCheck": "unknown attribution fails closed in public preview instead of silently omitting history"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

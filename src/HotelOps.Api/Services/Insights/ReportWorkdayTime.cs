@@ -14,12 +14,13 @@ internal sealed record ReportWorkdayTimeResult(EmployeeWorkdayTime[]? Rows, stri
 internal static class ReportWorkdayTime
 {
     internal static async Task<ReportWorkdayTimeResult> ReadAsync(HotelOpsDbContext db,
-        InsightFilters filters, DateTime now, CancellationToken ct)
+        InsightFilters filters, DateTime now, CancellationToken ct, long? employeeId = null)
     {
         if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.workdays','U') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(ct) != 1)
             return new(null, "workday storage unavailable");
         var period = new WorkTimePeriod(filters.From, filters.To, InsightAccess.Start(filters), InsightAccess.End(filters));
         var days = await db.Workdays.AsNoTracking().Where(d => filters.BranchIds.Contains(d.BranchId)
+            && (employeeId == null || d.UserId == employeeId)
             && (filters.DepartmentId == null || d.DepartmentId == filters.DepartmentId)
             && d.StartedAt < period.End && (d.EndedAt == null && now > period.Start || d.EndedAt > period.Start))
             .OrderBy(d => d.WorkdayId).Take(50001).ToArrayAsync(ct);

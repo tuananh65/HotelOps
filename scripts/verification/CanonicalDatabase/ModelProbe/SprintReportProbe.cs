@@ -129,7 +129,7 @@ internal static class SprintReportProbe
                 "frozen task summary CSV retains canonical state after source inconsistency");
             Check(((JsonElement)inconsistentTask.Rows[0]["workflowState"]!).ValueKind == JsonValueKind.Null
                 && ((JsonElement)inconsistentTask.Rows[0]["overdue"]!).ValueKind == JsonValueKind.Null, "inconsistent physical/workflow state yields unknown rather than false overdue");
-            Check(results["requests"].TotalCount == 1, "requests exclude mismatched department linkage");
+            Check(results["requests"].Rows.Count == 1 && results["requests"].TotalCount == 2, "requests and summary exclude mismatched department linkage");
             await tx.CreateSavepointAsync("MissingWorkflowCapability", ct);
             try
             {
@@ -140,6 +140,40 @@ internal static class SprintReportProbe
             }
             finally { await tx.RollbackToSavepointAsync("MissingWorkflowCapability", CancellationToken.None); }
             var requestRows = db.InternalRequests.Where(r => r.RequestNo == prefix + "A");
+            await SprintReportLifecycleProbe.RunAsync(db, queries, query, filters, now, actor, branch, ownDept.DepartmentId,
+                first.TaskId, await requestRows.Select(r => r.InternalRequestId).SingleAsync(ct), Check, ct);
+            Check(((JsonElement)results["requests"].Rows[0]["responseSeconds"]!).ValueKind == JsonValueKind.Null
+                && ((JsonElement)results["requests"].Rows[0]["responseEvidence"]!).GetString() == "NO_RECORDED_DECISION",
+                "RPT07 missing decision is N/A rather than zero");
+            await tx.CreateSavepointAsync("ResponseEvidence", ct);
+            try
+            {
+                var requestId = await requestRows.Select(r => r.InternalRequestId).SingleAsync(ct);
+                await requestRows.ExecuteUpdateAsync(u => u.SetProperty(r => r.SubmittedAt, start.AddSeconds(30)), ct);
+                var responseEvent = new InternalRequestEvent { InternalRequestId = requestId, ActorId = actor,
+                    EventType = "ACCEPT", OldStatus = "PENDING_ACCEPTANCE", NewStatus = "ACCEPTED", OccurredAt = start.AddSeconds(90) };
+                db.InternalRequestEvents.Add(responseEvent); await db.SaveChangesAsync(ct);
+                var responseReport = await queries.MaterializeAsync("requests", query, filters, now.AddHours(1), ct);
+                Check(((JsonElement)responseReport.Rows[0]["responseSeconds"]!).GetString() == "60"
+                    && ((JsonElement)responseReport.Rows[0]["responseEventId"]!).GetInt64() == responseEvent.EventId,
+                    "RPT07 SQL decision response uses SubmittedAt and preserves event provenance");
+                Check(responseReport.Columns.Contains("responseSeconds") && responseReport.Columns.Contains("responseEvidence"),
+                    "RPT07 response metadata included in UI and export columns");
+                var futureResponse = await queries.MaterializeAsync("requests", query, filters, now, ct);
+                Check(((JsonElement)futureResponse.Rows[0]["responseSeconds"]!).ValueKind == JsonValueKind.Null,
+                    "RPT07 refuses decision after snapshot time");
+                db.InternalRequestEvents.Add(new InternalRequestEvent { InternalRequestId = requestId, ActorId = actor,
+                    EventType = "REOPEN", OldStatus = "CLOSED", NewStatus = "IN_PROGRESS", OccurredAt = start.AddMinutes(2) });
+                await db.SaveChangesAsync(ct);
+                var reopenedResponse = await queries.MaterializeAsync("requests", query, filters, now.AddHours(1), ct);
+                Check(((JsonElement)reopenedResponse.Rows[0]["responseEvidence"]!).GetString() == "CYCLE_ORIGIN_UNAVAILABLE"
+                    && ((JsonElement)reopenedResponse.Rows[0]["responseSeconds"]!).ValueKind == JsonValueKind.Null,
+                    "RPT07 reopened cycle does not reuse mutable submission origin");
+                var responseCsv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(responseReport).Content);
+                Check(responseCsv.Contains("responseSeconds") && responseCsv.Contains("RECORDED_DECISION")
+                    && !responseCsv.Contains("CYCLE_ORIGIN_UNAVAILABLE"), "RPT07 CSV retains frozen response evidence after source changes");
+            }
+            finally { await tx.RollbackToSavepointAsync("ResponseEvidence", CancellationToken.None); db.ChangeTracker.Clear(); }
             Check(!((JsonElement)results["requests"].Rows[0]["overdue"]!).GetBoolean(), "no deadline is not overdue");
             ReportResult? frozenOverdue = null;
             foreach (var sample in new[] { ("IN_PROGRESS", -1, true), ("IN_PROGRESS", 0, false), ("IN_PROGRESS", 1, false),

@@ -81,7 +81,7 @@ async function fixture(run) {
       return json(
         {
           branches: [{ id: 1, code: "B", name: "Branch" }],
-          departments: [],
+          departments: [{ id: 7, branchId: 1, name: "Synthetic receiving department" }],
           calendar: "UTC",
           defaultPeriodDays: 30,
           exportRowLimit: 50000,
@@ -96,7 +96,7 @@ async function fixture(run) {
         snapshot: "2026-11-15T00:00:00Z",
         filters: {
           branchIds: [1],
-          departmentId: null,
+          departmentId: q.departmentId ?? null,
           from: q.from,
           to: q.to,
           calendar: "UTC",
@@ -152,6 +152,22 @@ test("inspection actor filters are explicit and editing removes the frozen previ
   const task = state.calls.findLast(c => c.path.endsWith("/preview"));
   assert.equal(task.body.housekeeperId, undefined); assert.equal(task.body.inspectorId, undefined);
 }));
+test("employee and receiving department filters send scoped queries and invalidate snapshots", async () => fixture(async (page, state) => {
+  await page.getByLabel("Employee ID", { exact: true }).fill("42");
+  await preview(page);
+  assert.equal(state.calls.findLast(c => c.path.endsWith("/preview")).body.employeeId, 42);
+  await page.getByLabel("Employee ID", { exact: true }).fill("43");
+  assert.equal(await page.getByText("PRIVATE REPORT ROW", { exact: true }).count(), 0);
+  await page.getByLabel("Report type", { exact: true }).selectOption("requests");
+  assert.equal(await page.getByLabel("Employee ID", { exact: true }).count(), 0);
+  await page.getByLabel("Department", { exact: true }).selectOption("7");
+  await preview(page);
+  const sent = state.calls.findLast(c => c.path.endsWith("/preview"));
+  assert.equal(sent.path, "/api/reports/requests/preview");
+  assert.equal(sent.body.departmentId, 7);
+  assert.equal(sent.body.employeeId, undefined);
+}));
+
 test("revoked export clears cached report and offers no download", async () =>
   fixture(async (page, state) => {
     await preview(page);

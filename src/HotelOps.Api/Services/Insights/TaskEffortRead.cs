@@ -11,7 +11,7 @@ internal sealed record TaskEffortReadResult(TaskEmployeeEffort[]? Rows, string? 
 // Shared validated interval calculation only. Callers retain authorization and snapshot ownership.
 internal static class TaskEffortRead
 {
-    internal static async Task<TaskEffortReadResult> ReadAsync(HotelOpsDbContext db, InsightFilters filters, DateTime now, CancellationToken ct)
+    internal static async Task<TaskEffortReadResult> ReadAsync(HotelOpsDbContext db, InsightFilters filters, DateTime now, CancellationToken ct, long? employeeId = null)
     {
         var installed = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.work_intervals','U') IS NOT NULL AND OBJECT_ID('dbo.workdays','U') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(ct);
         if (installed != 1) { return new(null, "work interval storage unavailable"); }
@@ -19,6 +19,7 @@ internal static class TaskEffortRead
         var tasks = db.OperationalTasks.AsNoTracking().Where(t => filters.BranchIds.Contains(t.BranchId)
             && (filters.DepartmentId == null || t.DepartmentId == filters.DepartmentId));
         var intervals = await db.WorkIntervals.AsNoTracking().Where(i => i.WorkItemKind == "TASK"
+            && (employeeId == null || i.UserId == employeeId)
             && filters.BranchIds.Contains(i.BranchId)
             && (filters.DepartmentId == null || tasks.Any(t => t.TaskId == i.WorkItemId)
                 || db.Workdays.Any(d => d.WorkdayId == i.WorkdayId && d.DepartmentId == filters.DepartmentId))

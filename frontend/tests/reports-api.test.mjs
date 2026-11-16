@@ -44,6 +44,12 @@ test("inspection snapshots must confirm each requested actor filter", () => {
   assert.throws(() => decodeSnapshot({ ...data, appliedFilters: null }, "inspections", filters), /Unconfirmed report filter/);
   assert.throws(() => decodeSnapshot({ ...data, appliedFilters: { housekeeperId: "43", inspectorId: "43" } }, "inspections", filters), /Unconfirmed report filter/);
 });
+test("employee filter requires matching snapshot attribution", () => {
+  const data = { ...snapshot(), appliedFilters: { employeeId: "42" } };
+  assert.equal(decodeSnapshot(data, "tasks", { ...query, employeeId: 42 }).key, "tasks");
+  assert.throws(() => decodeSnapshot(data, "tasks", { ...query, employeeId: 43 }), /Unconfirmed report filter/);
+  assert.throws(() => decodeSnapshot(snapshot(), "tasks", { ...query, employeeId: 42 }), /Unconfirmed report filter/);
+});
 test("XLSX requires advertised capability and preserves format and MIME", async () => {
   const report = snapshot();
   report.exportFormats = ["csv", "xlsx"];

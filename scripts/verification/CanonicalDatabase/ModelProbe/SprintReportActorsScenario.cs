@@ -99,6 +99,7 @@ internal static class SprintReportActorsScenario
                 "browser CSV and XLSX each persist an export audit for the actor-filtered snapshot");
         }
         var snapshot = initial.GetProperty("snapshotId").GetString();
+        await SprintReportCyclesScenario.RunAsync(db, actor, branch, department, username, password, checks, ct);
         await db.UserRoles.Where(r => r.UserId == actor && r.RoleId == role).ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, false), ct);
         using (var denied = await Post($"/api/reports/snapshots/{snapshot}/export", new { format = "csv" }))
             Check((int)denied.StatusCode == 403, "revoked Operations Manager cannot export cached actor-filtered report despite DEPT_MANAGER");

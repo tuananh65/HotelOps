@@ -147,6 +147,47 @@ try {
     assert.equal(noCleaner.status(), 200);
     assert.equal((await noCleaner.json()).totalCount, 0);
     checks.push("official cleaner and inspector intersection, CSV/XLSX downloads, snapshot invalidation and non-cleaner empty result");
+  } else if (fixture.mode === "request-cycles") {
+    stage = "request cycle report";
+    await page.getByLabel("Report type", {exact:true}).selectOption("requests");
+    await page.getByLabel("Branch", {exact:true}).selectOption(String(fixture.branch));
+    await page.getByLabel("Department", {exact:true}).selectOption(String(fixture.department));
+    await page.getByLabel("Request type code", {exact:true}).fill(fixture.requestType);
+    const pending = page.waitForResponse(r=>r.url().endsWith("/api/reports/requests/preview") && r.request().method()==="POST");
+    await page.getByRole("button", {name:"Preview",exact:true}).click();
+    const response=await pending; assert.equal(response.status(),200);
+    const snapshot=await response.json();
+    assert.equal(snapshot.rows.length,2);
+    assert.equal(snapshot.appliedFilters.type,fixture.requestType);
+    assert.equal(snapshot.filters.departmentId,fixture.department);
+    assert.deepEqual(snapshot.rows.map(r=>r.completionSeconds),["600","900"]);
+    assert.deepEqual(snapshot.rows.map(r=>r.completedCycles),[1,2]);
+    assert.deepEqual(snapshot.rows.map(r=>r.reopenCount),[0,1]);
+    assert.equal(snapshot.rows[0].responseSeconds,"30");
+    assert.equal(snapshot.rows[1].responseSeconds,null);
+    assert.equal(snapshot.rows[1].responseEvidence,"CYCLE_ORIGIN_UNAVAILABLE");
+    const summary=snapshot.sections.find(s=>s.key==="request_type_department_summary").rows[0];
+    assert.equal(summary.averageCompletionSeconds,"750");
+    assert.equal(summary.closedRequestCount,2);
+    assert.equal(summary.measuredClosedRequests,2);
+    await page.getByRole("columnheader",{name:"completionSeconds",exact:true}).waitFor();
+    await page.getByRole("cell",{name:"750",exact:true}).waitFor();
+    for(const format of ["CSV","XLSX"]){
+      stage="request cycles "+format;
+      const download=page.waitForEvent("download");
+      await page.getByRole("button",{name:"Export "+format,exact:true}).click();
+      const file=await download; const parts=[];
+      for await(const chunk of await file.createReadStream())parts.push(chunk);
+      const bytes=Buffer.concat(parts);
+      if(format==="CSV"){
+        const csv=bytes.toString("utf8");
+        assert.ok(csv.includes('"completionSeconds"') && csv.includes('"900"') && csv.includes('"750"'));
+        assert.ok(csv.includes('"responseEvidence"') && csv.includes("CYCLE_ORIGIN_UNAVAILABLE"));
+      }else assert.equal(bytes.readUInt32LE(0),0x04034b50);
+      await file.delete();
+    }
+    exports.push(snapshot.snapshotId);
+    checks.push("RPT07 receiving department/type filter, response provenance, cycle totals, per-request average and frozen CSV/XLSX verified");
   } else if (fixture.mode === "requests" || fixture.mode === "rooms") {
     const kind=fixture.mode;
     stage = kind + " report preview";
@@ -156,7 +197,7 @@ try {
     await page.getByRole("button",{name:"Preview",exact:true}).click();
     const response=await ready;assert.equal(response.status(),200);const snapshot=await response.json();
     if(kind==="requests"){
-      assert.equal(snapshot.totalCount,1);assert.equal(snapshot.rows[0].overdue,true);
+      assert.equal(snapshot.totalCount,2);assert.equal(snapshot.rows[0].overdue,true);
       await page.getByRole("columnheader",{name:"overdue",exact:true}).waitFor();
       await page.getByRole("cell",{name:"true",exact:true}).waitFor();
     }else{

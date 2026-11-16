@@ -62,6 +62,8 @@ export function ReportsPage() {
   const [department, setDepartment] = useState("");
   const [housekeeper, setHousekeeper] = useState("");
   const [inspector, setInspector] = useState("");
+  const [employee, setEmployee] = useState("");
+  const [requestType, setRequestType] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -89,6 +91,8 @@ export function ReportsPage() {
         setTo(end.toISOString().slice(0, 10));
         setBranch("");
         setDepartment("");
+        setEmployee("");
+        setRequestType("");
         setAdmission({ owner, options });
       })
       .catch((e: unknown) => {
@@ -145,6 +149,8 @@ export function ReportsPage() {
           to,
           ...(branch ? { branchId: Number(branch) } : {}),
           ...(department ? { departmentId: Number(department) } : {}),
+          ...(kind === "tasks" && employee ? { employeeId: Number(employee) } : {}),
+          ...(kind === "requests" && requestType.trim() ? { type: requestType.trim() } : {}),
           ...(kind === "inspections" && housekeeper ? { housekeeperId: Number(housekeeper) } : {}),
           ...(kind === "inspections" && inspector ? { inspectorId: Number(inspector) } : {}),
         });
@@ -203,6 +209,8 @@ export function ReportsPage() {
                   setKind(e.target.value as ReportType);
                   setDepartment("");
                   setHousekeeper("");
+                  setEmployee("");
+                  setRequestType("");
                   setInspector("");
                 }}
               >
@@ -238,9 +246,14 @@ export function ReportsPage() {
               <label>Inspector ID<input type="number" min="1" step="1" value={inspector}
                 onChange={e => { changed(); setInspector(e.target.value); }} /></label>
             </>}
-            {kind === "tasks" && (
+            {kind === "tasks" && <label>Employee ID<input type="number" min="1" step="1" value={employee}
+              onChange={e => { changed(); setEmployee(e.target.value); }} /></label>}
+            {kind === "tasks" && <p>Task rows use the current assignee. Effort and workday time remain with the employee who performed the work.</p>}
+            {kind === "requests" && <label>Request type code<input maxLength={40} value={requestType}
+              onChange={e => { changed(); setRequestType(e.target.value); }} /></label>}
+            {(kind === "tasks" || kind === "requests") && (
               <label>
-                Department
+                {kind === "requests" ? "Receiving department" : "Department"}
                 <select
                   aria-label="Department"
                   value={department}

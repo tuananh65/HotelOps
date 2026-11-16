@@ -1,0 +1,162 @@
+{
+  "success": true,
+  "checks": [
+    "query component refuses materialization outside SERIALIZABLE transaction",
+    "rooms executes SQL with consistent snapshot/filter/count metadata",
+    "rooms remains partial and does not advertise authorized exports",
+    "inspections executes SQL with consistent snapshot/filter/count metadata",
+    "inspections remains partial and does not advertise authorized exports",
+    "incidents executes SQL with consistent snapshot/filter/count metadata",
+    "incidents remains partial and does not advertise authorized exports",
+    "assets executes SQL with consistent snapshot/filter/count metadata",
+    "assets remains partial and does not advertise authorized exports",
+    "items executes SQL with consistent snapshot/filter/count metadata",
+    "items remains partial and does not advertise authorized exports",
+    "tasks executes SQL with consistent snapshot/filter/count metadata",
+    "tasks remains partial and does not advertise authorized exports",
+    "requests executes SQL with consistent snapshot/filter/count metadata",
+    "requests remains partial and does not advertise authorized exports",
+    "tasks include UTC start/last instant; exclude next day, foreign branch and inconsistent department",
+    "unclassified task lifecycle is not invented by report",
+    "task status summary preserves unknown lifecycle and counts only scoped UTC-period detail population",
+    "canonical task state and overdue reported: IN_PROGRESS",
+    "task status and overdue buckets reconcile with detail: IN_PROGRESS",
+    "canonical task state and overdue reported: PAUSED",
+    "task status and overdue buckets reconcile with detail: PAUSED",
+    "inconsistent task lifecycle returns to unknown summary rather than an invented overdue bucket",
+    "frozen task summary CSV retains canonical state after source inconsistency",
+    "inconsistent physical/workflow state yields unknown rather than false overdue",
+    "requests and summary exclude mismatched department linkage",
+    "missing workflow capability preserves scoped rows with unknown lifecycle and overdue",
+    "RPT07 SQL processing cycles exclude closed gap and retain time before reassign",
+    "RPT07 completion average counts each closed request once, not each cycle",
+    "RPT07 approved receiving department filter admits current department",
+    "RPT07 route removes request from previous receiving department without inferring requester department",
+    "RPT07 routed request appears only in current receiving department",
+    "RPT07 frozen snapshot retains prior department after route",
+    "RPT06 employee task list uses current assignment",
+    "RPT06 reassignment moves current task population to new assignee",
+    "RPT06 historical effort and workday remain with actual employee after reassignment",
+    "RPT06 new assignee does not inherit former employee time",
+    "RPT07 missing decision is N/A rather than zero",
+    "RPT07 SQL decision response uses SubmittedAt and preserves event provenance",
+    "RPT07 response metadata included in UI and export columns",
+    "RPT07 refuses decision after snapshot time",
+    "RPT07 reopened cycle does not reuse mutable submission origin",
+    "RPT07 CSV retains frozen response evidence after source changes",
+    "no deadline is not overdue",
+    "GBR156 snapshot overdue boundary IN_PROGRESS/-1",
+    "GBR156 snapshot overdue boundary IN_PROGRESS/0",
+    "GBR156 snapshot overdue boundary IN_PROGRESS/1",
+    "GBR156 snapshot overdue boundary CLOSED/-1",
+    "GBR156 snapshot overdue boundary REJECTED/-1",
+    "GBR156 snapshot overdue boundary CANCELLED/-1",
+    "overdue snapshot unchanged after deadline and terminal-state source updates",
+    "CSV includes the frozen overdue indicator",
+    "room report contains scoped room and cleaning rows",
+    "inspection report contains its scoped dated row",
+    "housekeeper filter refuses absent official attribution capability",
+    "housekeeper filter refuses incomplete period coverage instead of silently omitting rows",
+    "report filters by immutable official cleaner and records applied filter",
+    "inspector and assignment issuer are not inferred as cleaner",
+    "historical cleaner attribution survives later account inactivity",
+    "inspector and housekeeper filters intersect",
+    "frozen cleaner report CSV retains applied filter and snapshot",
+    "related rework follows selected inspection and original cleaner, not current rework assignee or rework date",
+    "rework preserves stored status and absent completion without inventing lifecycle or duration",
+    "filtered-out inspection cannot leak its rework through the related section",
+    "old frozen report does not acquire later rework while new snapshot exports it",
+    "inspection outcome summary counts selected failed inspection once despite related rework",
+    "unfinished inspection remains a null-result bucket rather than an invented failure",
+    "defects aggregate by exact criterion and retain unspecified severity without dropping the row",
+    "aggregate sections intersect the same housekeeper-filtered inspection population",
+    "inventory all-time balance preserves exact decimal and excludes inconsistent warehouse department",
+    "inventory period movements exclude prior-day quantity",
+    "low stock uses scoped warehouse and exact aggregate",
+    "SQL timestamp serialized explicitly in UTC",
+    "cached snapshot remains unchanged after SQL source changes",
+    "CSV uses frozen scoped server rows",
+    "supported department filter scopes details and task summary against SQL",
+    "rooms empty authorized branch set never broadens scope",
+    "inspections empty authorized branch set never broadens scope",
+    "incidents empty authorized branch set never broadens scope",
+    "assets empty authorized branch set never broadens scope",
+    "items empty authorized branch set never broadens scope",
+    "tasks empty authorized branch set never broadens scope",
+    "requests empty authorized branch set never broadens scope",
+    "mismatched resolved branch filters refused",
+    "exactly 50000 detail plus summary SQL rows accepted",
+    "50001 SQL rows refused without truncated snapshot"
+  ],
+  "failure": null,
+  "rollback": true,
+  "inventoryObservation": [
+    {
+      "Key": "stock_balances",
+      "Columns": [
+        "warehouseId",
+        "itemId",
+        "baseUomId",
+        "onHand"
+      ],
+      "Rows": [
+        {
+          "warehouseId": 51,
+          "itemId": 27,
+          "baseUomId": 27,
+          "onHand": "13.120"
+        }
+      ]
+    },
+    {
+      "Key": "stock_movements",
+      "Columns": [
+        "id",
+        "warehouseId",
+        "itemId",
+        "baseUomId",
+        "documentLineId",
+        "signedBaseQty",
+        "occurredAt"
+      ],
+      "Rows": [
+        {
+          "id": 103,
+          "warehouseId": 51,
+          "itemId": 27,
+          "baseUomId": 27,
+          "documentLineId": 103,
+          "signedBaseQty": "10.125",
+          "occurredAt": "2026-11-16T00:00:00Z"
+        },
+        {
+          "id": 104,
+          "warehouseId": 51,
+          "itemId": 27,
+          "baseUomId": 27,
+          "documentLineId": 104,
+          "signedBaseQty": "-2.005",
+          "occurredAt": "2026-11-16T01:00:00Z"
+        }
+      ]
+    },
+    {
+      "Key": "low_stock",
+      "Columns": [
+        "warehouseId",
+        "itemId",
+        "minimumQty",
+        "available"
+      ],
+      "Rows": [
+        {
+          "warehouseId": 51,
+          "itemId": 27,
+          "minimumQty": "14.000",
+          "available": "13.120"
+        }
+      ]
+    }
+  ],
+  "scope": "SQL query/CSV component only; caller supplies scope; no HTTP, role admission or export audit acceptance"
+}
