@@ -24,7 +24,6 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
             "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
             "KPI-03: first-inspection cleaning-cycle contract unavailable",
             "KPI-05: completion-duration processing-cycle attribution remains unavailable",
-            "KPI-06: approved closed WorkInterval source unavailable",
             "KPI-08/09/10: accepted timestamp, current-cycle SLA deadlines and reopened source contract unavailable",
             "UC133: preventive occurrence lifecycle is not approved; no inferred due/overdue counts"
         };
@@ -62,6 +61,7 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
             .Select(g => new DistributionRow("operational_tasks.status/priority_id", g.Key.Status, g.LongCount(),
                 g.Key.PriorityId == null ? null : g.Key.PriorityId.ToString())).ToArrayAsync(ct));
         await TaskDashboardQueries.AppendAsync(db, filters, now.UtcDateTime, metrics, groups, missing, ct);
+        await TaskEffortDashboard.AppendAsync(db, filters, now.UtcDateTime, metrics, missing, ct);
 
         // Incident has no authoritative department field. Do not derive it from
         // reporter identity or duplicate it across related maintenance works.
@@ -117,7 +117,7 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
         missing.Add("KPI-13: cross-branch transfer-loss visibility policy unresolved; losses withheld");
         foreach (var (key, label) in new[] {
             ("firstInspectionPassRate", "First-time inspection pass rate"),
-            ("averageTaskCompletionHours", "Average task completion time"), ("taskEffortHours", "Task effort"),
+            ("averageTaskCompletionHours", "Average task completion time"),
             ("responseHours", "Average response time"), ("resolutionHours", "Average resolution time"),
             ("slaCompliance", "SLA compliance"), ("reopenedIncidents", "Reopened incidents"), ("transferLosses", "Transfer losses") })
             metrics.Add(new(key, label, null, "unavailable", "See missingSources"));

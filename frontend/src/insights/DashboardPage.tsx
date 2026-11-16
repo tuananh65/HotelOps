@@ -111,7 +111,7 @@ export function DashboardPage() {
               </p>
               <p>
                 Period (UTC): {data.filters.from} to {data.filters.to}. Applies
-                to stock movements and tasks closed in period. Open and overdue
+                to stock movements, task effort and tasks closed in period. Open and overdue
                 tasks show current status at the snapshot time.
               </p>
               {data.missingSources.length > 0 && (

@@ -57,12 +57,47 @@ internal static class SprintTaskDashboardScenario
         }
         await Seed("PAUSED", now.AddHours(-1));
         await Seed("PENDING_VERIFICATION", now.AddHours(-1));
-        await Seed("IN_PROGRESS", now.AddDays(1));
+        var effortTask = await Seed("IN_PROGRESS", now.AddDays(1));
         await Seed("IN_PROGRESS", null);
         await Seed("CANCELLED", now.AddHours(-1));
         await Seed("CLOSED", now.AddHours(-1), now.AddMinutes(-1));
         await Seed("CLOSED", now.AddDays(-5), now.AddDays(-4));
+        var day = new Workday { UserId = actor, BranchId = branch, DepartmentId = department.DepartmentId,
+            WorkDate = DateOnly.FromDateTime(now.AddHours(7)), Status = "WORKING", IsUnscheduled = true,
+            UnscheduledReason = "Synthetic dashboard effort", StartedAt = now.AddHours(-2) };
+        db.Workdays.Add(day); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        WorkInterval Interval(int startMinutes, int? endMinutes) => new() { WorkdayId = day.WorkdayId,
+            UserId = actor, BranchId = branch, WorkItemKind = "TASK", WorkItemId = effortTask.TaskId,
+            OpenedBy = actor, OpenedAt = now.AddMinutes(startMinutes), EffectiveStartedAt = now.AddMinutes(startMinutes),
+            ClosedBy = endMinutes == null ? null : actor, ClosedAt = endMinutes == null ? null : now.AddMinutes(endMinutes.Value),
+            EffectiveEndedAt = endMinutes == null ? null : now.AddMinutes(endMinutes.Value) };
+        db.WorkIntervals.AddRange(Interval(-60, -50), Interval(-40, -20), Interval(-10, null), Interval(-35, -35));
+        await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        var boundary = now.AddDays(-1).Date;
+        var historicalDay = new Workday { UserId = actor, BranchId = branch, DepartmentId = department.DepartmentId,
+            WorkDate = DateOnly.FromDateTime(boundary.AddHours(7)), Status = "ENDED", IsUnscheduled = true,
+            UnscheduledReason = "Synthetic UTC boundary", StartedAt = boundary.AddMinutes(-20), EndedAt = boundary.AddMinutes(20) };
+        db.Workdays.Add(historicalDay); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        var crossing = Interval(-60, -50);
+        crossing.WorkdayId = historicalDay.WorkdayId;
+        crossing.OpenedAt = crossing.EffectiveStartedAt = boundary.AddMinutes(-10);
+        crossing.ClosedAt = crossing.EffectiveEndedAt = boundary.AddMinutes(10);
+        db.WorkIntervals.Add(crossing); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var complete = await Read();
+        Check(Metric(complete, "taskEffortHours").GetDecimal() == 2m / 3m
+            && Metric(complete, "taskProvisionalHours").GetDecimal() >= 1m / 6m
+            && Metric(complete, "taskOpenIntervals").GetInt32() == 1,
+            "effort clips crossing interval at UTC boundary, excludes pause/workday duration and separates open effort");
+        var earlier = await send(HttpMethod.Get,
+            $"/api/dashboards/operations?branchId={branch}&departmentId={department.DepartmentId}&from={boundary.AddDays(-1):yyyy-MM-dd}&to={boundary.AddDays(-1):yyyy-MM-dd}", null, null, true);
+        Check(earlier.Status == 200 && Metric(earlier.Body, "taskEffortHours").GetDecimal() == 1m / 6m
+            && Metric(earlier.Body, "taskOpenIntervals").GetInt32() == 0,
+            "opposite UTC period receives only the other ten minutes of crossing interval");
+        var future = await send(HttpMethod.Get,
+            $"/api/dashboards/operations?branchId={branch}&departmentId={department.DepartmentId}&from={now.AddDays(1):yyyy-MM-dd}&to={now.AddDays(1):yyyy-MM-dd}", null, null, true);
+        Check(future.Status == 200 && Metric(future.Body, "taskEffortHours").GetDecimal() == 0
+            && Metric(future.Body, "taskProvisionalHours").GetDecimal() == 0 && Metric(future.Body, "taskOpenIntervals").GetInt32() == 0,
+            "future period cannot project provisional work beyond server snapshot");
         Check(Metric(complete, "openTasks").GetInt32() == 4 && Metric(complete, "overdueTasks").GetInt32() == 2,
             "Paused and Pending Verification remain open/overdue; Closed and Cancelled excluded; null/future deadlines not overdue");
         Check(Metric(complete, "closedTasksInPeriod").GetInt32() == 1,
@@ -92,7 +127,13 @@ internal static class SprintTaskDashboardScenario
             finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }
         }
         var legacy = await Seed(null, now.AddHours(-1));
+        var overlap = Interval(-30, -25);
+        db.WorkIntervals.Add(overlap); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var incomplete = await Read();
+        Check(Metric(incomplete, "taskEffortHours").ValueKind == JsonValueKind.Null
+            && Metric(incomplete, "taskProvisionalHours").ValueKind == JsonValueKind.Null,
+            "overlapping intervals withhold effort instead of double counting");
+        await db.WorkIntervals.Where(i => i.IntervalId == overlap.IntervalId).ExecuteDeleteAsync(ct);
         Check(Metric(incomplete, "openTasks").ValueKind == JsonValueKind.Null
             && Metric(incomplete, "overdueTasks").ValueKind == JsonValueKind.Null
             && Metric(incomplete, "closedTasksInPeriod").ValueKind == JsonValueKind.Null
