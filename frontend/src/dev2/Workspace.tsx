@@ -129,6 +129,7 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     "roomId",
     "areaId",
     "occurrenceId",
+    "runId",
     "occurrenceVersion",
     "occurrenceCheckKey",
     "handoverId",
@@ -533,7 +534,7 @@ function Screen({
       </p>}
       <div className="dev2-toolbar">
         {module === "maintenance" && Number.isSafeInteger(Number(branch)) && Number(branch) > 0 &&
-          <PreventiveOccurrencesPanel key={"occurrences:" + String(branch)} branchId={Number(branch)} />}
+          <PreventiveOccurrencesPanel key={"occurrences:" + String(branch) + ":" + String(context.runId)} branchId={Number(branch)} runId={context.runId == null ? undefined : Number(context.runId)} />}
         {module === "maintenance" && !readOnly && Number.isSafeInteger(Number(branch)) && Number(branch) > 0 &&
           <PreventiveSchedulesPanel key={String(branch)} branchId={Number(branch)} />}
         <Link to={`/operations/${module}`}>Browse</Link>

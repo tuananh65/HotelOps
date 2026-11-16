@@ -68,6 +68,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCancellationS
 builder.Services.AddOptions<IncidentReopenOptions>().BindConfiguration("IncidentReopen").Validate(o => o.WindowDays > 0).ValidateOnStart();
 builder.Services.AddScoped<IncidentReopenService>();
 builder.Services.AddScoped<IncidentReopenedNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveAssignmentNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCriticalNotificationDelivery>();

@@ -14,7 +14,7 @@ internal sealed class IncidentNotificationWorker(IServiceScopeFactory scopes, IO
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled) return;
-        long cursor = 0, cancellationCursor = 0, escalationCursor = 0, reopenCursor = 0, criticalCursor = 0;
+        long cursor = 0, cancellationCursor = 0, escalationCursor = 0, reopenCursor = 0, criticalCursor = 0, preventiveCursor = 0;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -33,6 +33,22 @@ internal sealed class IncidentNotificationWorker(IServiceScopeFactory scopes, IO
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception error) { logger.LogWarning("Incident notification scan deferred after {ErrorType}", error.GetType().Name); }
+            try
+            {
+                long[] pending;
+                await using (var scope = scopes.CreateAsyncScope())
+                    pending = await scope.ServiceProvider.GetRequiredService<PreventiveMaintenance.PreventiveAssignmentNotificationDelivery>().PendingAsync(preventiveCursor, ct);
+                foreach (var id in pending)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<PreventiveMaintenance.PreventiveAssignmentNotificationDelivery>().DeliverAsync(id, ct); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Preventive assignment notice {EventId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                preventiveCursor = pending.Length == 100 ? pending[^1] : 0;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
+            catch (Exception error) { logger.LogWarning("Preventive assignment scan deferred after {ErrorType}", error.GetType().Name); }
             try
             {
                 long[] pending;

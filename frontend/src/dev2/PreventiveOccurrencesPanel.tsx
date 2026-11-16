@@ -23,7 +23,7 @@ function valid(v: unknown): v is Occurrence {
     && Array.isArray(v.checkItems) && v.checkItems.every(c => isObject(c) && typeof c.key === "string"
       && typeof c.description === "string" && typeof c.required === "boolean");
 }
-export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
+export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: number; runId?: number }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const mounted = useRef(owner).current, current = useRef(owner); current.current = owner;
@@ -109,10 +109,11 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
     const abort = new AbortController(); controller.current = abort;
     sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
-      const response = await fetch(`/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}`,
+      const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (!response.ok) throw Error(`Occurrences unavailable (${response.status}). Check current access and configuration.`);
-      const raw: unknown = await response.json();
+      const payload: unknown = await response.json();
+      const raw = runId != null ? [payload] : payload;
       if (!Array.isArray(raw) || !raw.every(valid)) throw Error("Occurrence details could not be confirmed.");
       if (!abort.signal.aborted && current.current === owner) { setRows(more ? [...rows,...raw] : raw); if (!raw.length) setMessage("No further occurrences in your current scope."); }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) { setRows([]); setMessage(String(e)); } }
@@ -120,10 +121,10 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   }
   if (!owner || owner !== mounted || !positive(branchId)) return null;
   return <section aria-label="Scheduled maintenance occurrences"><h2>Scheduled maintenance</h2>
-    <button disabled={busy} onClick={() => void load()}>Load occurrences</button>
-    {!!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
+    <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
+    {runId == null && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
-    {rows.map(r => <details key={r.runId}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
+    {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
       <p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>
       <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
       {history[r.runId] && <section aria-label={`History of occurrence ${r.runId}`}>
