@@ -101,8 +101,10 @@ export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Value
     {message && <p role="status">{message}</p>}
     <fieldset disabled={busy || attempted || review}>
       {data.progressPercentAvailable === true && <label>Progress (%)<input type="number" min="0" max="100" step="1" value={percent} onChange={e => setPercent(e.target.value)} /></label>}
+      {data.progressPercentAvailable !== true && <p>Percentage tracking is unavailable. You can still record notes.</p>}
       <p>Reaching 100% does not submit or close the work.</p>
       <label>Progress note<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
+      <p>Include your diagnosis and actions taken in the progress note.</p>
       {allowMaterials ? <>
         <button disabled={loading} onClick={() => void load(1)}>Load issued materials</button>
         {materialMessage && <p role="status">{materialMessage}</p>}

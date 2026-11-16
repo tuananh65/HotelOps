@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 if (args.Length == 1 && args[0] == "--rework-workday-boundary")
     return await ReworkWorkdayBoundaryProbe.RunAsync();
+if (args.Length == 1 && args[0] == "--maintenance-progress")
+    return await MaintenanceProgressProbe.RunAsync();
 
 if (args.Length == 1 && args[0] == "--recovery-diagnostic-host")
 {
