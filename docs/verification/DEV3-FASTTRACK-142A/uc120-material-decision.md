@@ -34,3 +34,43 @@ Frontend `npm.cmd run build` (TypeScript + Vite): PASS. Vite still warns about i
 React Router `use client` directives and a chunk above 500 kB. No test suites, browser,
 API or SQL business checks run for this refresh change, as requested. No backend or
 database changes. This integration repair does not promote UC120 to complete.
+
+## Approved MR_VIEW and linked-material read
+
+DEV3 subsequently approved independent `MR_VIEW`. The new read-only
+`GET /api/internal-requests/{id}/linked-materials?page=1` and canonical history panel
+now list linked material codes, purpose, stored status, mandatory flag and completion
+evidence outcome. They require current HTTPS/session/IR_VIEW for the source and an
+independent live MR_VIEW grant for every returned material. Existing grant rules
+apply: branch-bound ALL stays branch-bound; global ALL still intersects the source
+request branch; OWN is limited to the persisted material RequesterId. No actor role
+bypass, IR_VIEW-to-MR_VIEW inference, approval/fulfillment grant inference or role seed.
+Same-branch department/warehouse provenance is required. Counts and page rows are
+rechecked before disclosure within the Serializable transaction. Hidden targets and
+their counts are not returned. An empty filtered list cannot authorize closure.
+
+Missing material lifecycle schema returns unconfirmed evidence for visible mandatory
+rows; historical statuses are not converted to approved terminal states. No generic
+demo mutation/detail route is enabled. Material link creation and legacy provenance
+reconciliation remain separate from this read endpoint.
+
+Direct validation: backend build PASS (zero warnings/errors); frontend TypeScript +
+Vite build PASS (existing React Router directive and >500 kB chunk warnings remain).
+Business tests, HTTP and browser acceptance NOT RUN per instruction. No UC promoted.
+
+`scripts/database/development/MaterialRequestViewRecovery.sql` was run in default
+rollback mode, independently confirmed zero MR_VIEW rows, then installed twice
+idempotently on `meita\MSSQLSERVER01`, `HotelOps_DEV3_142A_Recovery_2b221f40`, GUID
+`5270D07C-7C27-477B-A60E-86485ADD7FAD`. Final catalog has one MR_VIEW entry with
+INVENTORY/material_request/VIEW; role_permissions remains 140 rows and MR_VIEW grants
+remain zero. Script SHA256:
+`619DFC828C2559AAE9964EDA9B7245BB9A5CFF7D4DCF8C3442432FDF6332CD30`.
+This is catalog installation/rollback evidence, not business acceptance. No shared DB
+write, production seed, generated entity change or automatic role grant.
+
+Read-only recovery inspection also confirms legacy material status CHECK values
+(SUBMITTED/RETURNED/PARTIALLY_FULFILLED/COMPLETED) differ from current source and
+approval cycle/snapshot storage is absent. Thirteen requests, twelve approvals and
+fourteen lines were preserved. Do not relabel them or invent cycle/issue receipts.
+An additive lifecycle migration and explicit legacy reconciliation are still needed
+before this recovery database can exercise the approved terminal completion paths.
