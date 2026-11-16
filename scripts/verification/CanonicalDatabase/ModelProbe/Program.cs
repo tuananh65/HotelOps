@@ -10,6 +10,19 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 1 && args[0] == "--recovery-diagnostic-host")
+{
+    // Diagnostic host only: emit method names, never exception messages, values or credentials.
+    AppDomain.CurrentDomain.FirstChanceException += (_, e) => {
+        if (e.Exception is InvalidOperationException)
+            Console.WriteLine("INVALID_OPERATION_FRAMES " + string.Join(" > ", new System.Diagnostics.StackTrace(e.Exception, false)
+                .GetFrames().Take(12).Select(f => f.GetMethod()?.DeclaringType?.FullName + "." + f.GetMethod()?.Name)));
+    };
+    var entry = typeof(HotelOpsDbContext).Assembly.EntryPoint!;
+    var task = (Task)entry.Invoke(null, [Array.Empty<string>()])!;
+    await task;
+    return 0;
+}
 if (args.Length == 2 && args[0] == "--recovery-auth-probe")
     return await RecoveryAuthProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--recovery-replenishment")

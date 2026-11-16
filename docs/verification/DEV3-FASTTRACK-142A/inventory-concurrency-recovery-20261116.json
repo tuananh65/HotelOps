@@ -1,0 +1,9 @@
+{
+    "rowversionColumns":  7,
+    "trialApplied":  false,
+    "businessRowsInserted":  0,
+    "applied":  true,
+    "sourceSha256":  "30F324D1A0977815EEF60A22C3336C68A7E607FBC6B6AEB85468C3A555E52CC6",
+    "database":  "HotelOps_DEV3_142A_Recovery_2b221f40",
+    "idempotentReapply":  true
+}

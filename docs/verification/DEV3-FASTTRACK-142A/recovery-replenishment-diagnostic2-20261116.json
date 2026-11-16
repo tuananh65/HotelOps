@@ -1,0 +1,9 @@
+{
+  "database": "HotelOps_DEV3_142A_Recovery_2b221f40",
+  "fixtureUserId": 31,
+  "checks": [],
+  "failure": "No connection could be made because the target machine actively refused it.",
+  "cleanup": true,
+  "success": false,
+  "scope": "Synthetic HTTPS Create/read/Close replenishment with isolated grants and fixture cleanup; not complete UC acceptance"
+}
