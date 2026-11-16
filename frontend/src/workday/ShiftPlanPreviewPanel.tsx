@@ -14,9 +14,11 @@ import {
 export function ShiftPlanPreviewPanel({
   adapter,
   saveAdapter,
+  onSaved,
 }: {
   adapter?: PreviewAdapter;
   saveAdapter?: SavePlanAdapter;
+  onSaved?: () => void;
 }) {
   const { state, actions } = useAuth();
   if (
@@ -31,6 +33,7 @@ export function ShiftPlanPreviewPanel({
       key={`${identityKey(state.session)}:${adapter ? identityKey(adapter) : 0}:${saveAdapter ? identityKey(saveAdapter) : 0}`}
       adapter={adapter}
       saveAdapter={saveAdapter}
+      onSaved={onSaved}
       recover={() => void actions.revalidate()}
     />
   );
@@ -45,10 +48,12 @@ function Bound({
   adapter,
   saveAdapter,
   recover,
+  onSaved,
 }: {
   adapter?: PreviewAdapter;
   saveAdapter?: SavePlanAdapter;
   recover: () => void;
+  onSaved?: () => void;
 }) {
   const [drafts, setDrafts] = useState<readonly ShiftDraft[]>([]),
     [fields, setFields] = useState({
@@ -171,6 +176,7 @@ function Bound({
       if (result.ok) {
         setCanStartNew(true);
         setMessage(`${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
+        onSaved?.();
       }
       else {
         setCanStartNew(result.outcome !== "OUTCOME_UNKNOWN" && result.status !== 401);

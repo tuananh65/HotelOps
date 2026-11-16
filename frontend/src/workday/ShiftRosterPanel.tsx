@@ -9,13 +9,21 @@ function assignment(v:unknown):v is Assignment {return isObject(v)&&safeId(v.id)
 function shift(v:unknown):v is Shift {return isObject(v)&&safeId(v.id)&&safeId(v.templateId)&&typeof v.templateName==="string"&&typeof v.date==="string"
   &&typeof v.startUtc==="string"&&Number.isFinite(Date.parse(v.startUtc))&&typeof v.endUtc==="string"&&Number.isFinite(Date.parse(v.endUtc))&&typeof v.status==="string"
   &&typeof v.requiredStaff==="number"&&Number.isSafeInteger(v.requiredStaff)&&Array.isArray(v.assignments)&&v.assignments.every(assignment);}
-export function ShiftRosterPanel() {
+export function ShiftRosterPanel({revision=0}:{revision?:number}) {
   const {state,actions}=useAuth(),owner=state.authorityGeneration;
   const [branch,setBranch]=useState(""),[department,setDepartment]=useState(""),[from,setFrom]=useState("");
   const [result,setResult]=useState<Page|null>(null),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   const [selected,setSelected]=useState<Assignment|null>(null),[reason,setReason]=useState(""),[confirmed,setConfirmed]=useState(false);
+  const [notice,setNotice]=useState<{owner:typeof owner;branch:number;department:number;text:string}|null>(null);
+  const observedRevision=useRef(revision);
   const request=useRef<AbortController|null>(null),sending=useRef(false),current=useRef(owner);current.current=owner;
   useEffect(()=>{setResult(null);setSelected(null);setError("");return()=>request.current?.abort();},[owner]);
+  useEffect(()=>{
+    if(observedRevision.current===revision||busy||sending.current)return;
+    observedRevision.current=revision;
+    // Refresh only an already admitted roster; never infer a new branch or department.
+    if(result)void load();
+  },[revision,busy,result]);
   function clear(){request.current?.abort();setResult(null);setError("");}
   async function load(after=0) {
     if(sending.current)return;
@@ -36,7 +44,7 @@ export function ShiftRosterPanel() {
   }
   async function cancel() {
     if(sending.current||!selected||!result||!confirmed)return;
-    const target=selected,snapshot=result,abort=new AbortController();request.current=abort;sending.current=true;setBusy(true);setError("");let submitted=false;
+    const target=selected,snapshot=result,abort=new AbortController();request.current=abort;sending.current=true;setBusy(true);setError("");setNotice(null);let submitted=false,committed=false;
     try {
       const first=await fetch("/api/auth/csrf",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
       if(!first.ok)throw Error("Session validation failed.");
@@ -47,16 +55,17 @@ export function ShiftRosterPanel() {
         method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":target.version},body:JSON.stringify({reason,confirmation:confirmed})});
       if(response.status!==204){const problem:unknown=await response.json();throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Cancellation was not confirmed.");}
-      if(!abort.signal.aborted&&current.current===owner)setError("Assignment cancelled; notification queued. Reload roster to view the current schedule.");
+      if(!abort.signal.aborted&&current.current===owner){committed=true;setNotice({owner,branch:snapshot.branchId,department:snapshot.departmentId,text:"Assignment cancelled; notification queued."});}
     } catch(e){if(!abort.signal.aborted&&current.current===owner)setError(String(e)+" Reload before retrying.");}
     finally {sending.current=false;if(current.current===owner){setBusy(false);if(submitted){setResult(null);setSelected(null);}}}
+    if(committed&&!abort.signal.aborted&&current.current===owner)await load();
   }
   function local(value:string,zone:string) {try{return new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short",timeZone:zone}).format(new Date(value));}catch{return value+" (UTC)";}}
   return <section><h2>Weekly roster</h2><form onSubmit={e=>{e.preventDefault();void load();}}><fieldset disabled={busy}>
     <label>Branch ID<input required inputMode="numeric" value={branch} onChange={e=>{clear();setBranch(e.target.value);}} /></label>
     <label>Department ID<input required inputMode="numeric" value={department} onChange={e=>{clear();setDepartment(e.target.value);}} /></label>
     <label>Week starting<input required type="date" value={from} onChange={e=>{clear();setFrom(e.target.value);}} /></label><button>Load roster</button>
-  </fieldset></form>{busy&&<p>Loading roster...</p>}{error&&<p role="alert">{error}</p>}
+  </fieldset></form>{busy&&<p>Loading roster...</p>}{notice?.owner===owner&&notice.branch===Number(branch)&&notice.department===Number(department)&&<p role="status">{notice.text}</p>}{error&&<p role="alert">{error}</p>}
   {result&&<><p>{result.from} through {result.to}; {result.timezone}. Includes cancelled assignments.</p>
     {result.shifts.length===0?<p>No shifts in this page.</p>:<table><thead><tr><th>Shift</th><th>Date / time</th><th>Status</th><th>Required staff</th><th>Assignments</th></tr></thead><tbody>
       {result.shifts.map(s=><tr key={s.id}><td>{s.templateName} (shift {s.id}, template {s.templateId})</td><td>{s.date}<br/>{local(s.startUtc,result.timezone)} ? {local(s.endUtc,result.timezone)}</td>
