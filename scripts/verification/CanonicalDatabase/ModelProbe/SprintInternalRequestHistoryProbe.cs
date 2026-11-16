@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Text.Json;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
@@ -95,6 +95,10 @@ internal static class SprintInternalRequestHistoryProbe
                 var timed=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId),new(),origin.AddMinutes(boundary.Item1),ct);
                 Check(timed.Items.Single().TimingStatus==boundary.Item2&&timed.Items.Single().Overdue==(boundary.Item2=="OVERDUE"),$"persisted window at {boundary.Item1} percent = {boundary.Item2}");
                 Check(timed.Items.Single().CreatedAt==origin&&timed.Items.Single().CreatedAt.Kind==DateTimeKind.Utc,"official creation timestamp retained in UTC");
+                var snapshot=origin.AddMinutes(boundary.Item1);
+                var riskIds=InternalRequestAtRiskQuery.Apply(db,db.InternalRequests,snapshot,true).Select(r=>r.InternalRequestId);
+                var filtered=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId&&riskIds.Contains(r.InternalRequestId)),new(),snapshot,ct);
+                Check(filtered.TotalCount==(boundary.Item2=="AT_RISK"?1:0),$"SQL risk filter before pagination at {boundary.Item1} percent");
             }
             await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
                 .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.DueAt,origin.AddMinutes(200)).SetProperty(r=>r.UpdatedAt,now),ct);
@@ -106,6 +110,21 @@ internal static class SprintInternalRequestHistoryProbe
                 .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.DueAt,origin),ct);
             var invalid=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId),new(),now,ct);
             Check(invalid.Items.Single().TimingStatus=="INVALID_WINDOW"&&!invalid.Items.Single().Overdue,"nonpositive allowed window fails closed");
+            Check(!await InternalRequestAtRiskQuery.Apply(db,db.InternalRequests,now,true).Select(r=>r.InternalRequestId).AnyAsync(id=>id==equal.InternalRequestId,ct),"invalid allowed window excluded by risk SQL");
+            foreach(var ticks in new[]{3,4,5,6})
+            {
+                await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
+                    .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.CreatedAt,now.AddTicks(9)).SetProperty(r=>r.DueAt,now.AddTicks(14)),ct);
+                var snapshot=now.AddTicks(9+ticks);
+                Check(await InternalRequestAtRiskQuery.Apply(db,db.InternalRequests,snapshot,true).Select(r=>r.InternalRequestId).AnyAsync(id=>id==equal.InternalRequestId,ct)==(ticks is 4 or 5),$"risk SQL preserves 100ns boundary crossing at tick {ticks}");
+            }
+            await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
+                .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.CreatedAt,DateTime.MinValue).SetProperty(r=>r.DueAt,DateTime.MaxValue),ct);
+            Check(await InternalRequestAtRiskQuery.Apply(db,db.InternalRequests,DateTime.MaxValue,true).Select(r=>r.InternalRequestId).AnyAsync(id=>id==equal.InternalRequestId,ct),"risk SQL does not overflow full datetime2 range");
+            await db.InternalRequests.Where(r=>r.InternalRequestId==hidden.InternalRequestId)
+                .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.CreatedAt,now.AddHours(-10)).SetProperty(r=>r.DueAt,now.AddHours(2)),ct);
+            var scopedRisk=InternalRequestAtRiskQuery.Apply(db,db.InternalRequests,now,true).Select(r=>r.InternalRequestId);
+            Check(await scopedRisk.AnyAsync(id=>id==hidden.InternalRequestId,ct)&&!await scoped.Where(r=>scopedRisk.Contains(r.InternalRequestId)).AnyAsync(r=>r.InternalRequestId==hidden.InternalRequestId,ct),"risk filter intersects caller authorization and cannot expose foreign request");
             bool duplicateRejected=false;
             try{
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_assignments(internal_request_id,assignee_id,assigned_by,assigned_at,status) VALUES({a.InternalRequestId},{actor},{actor},{now},'ACTIVE')",ct);

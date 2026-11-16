@@ -28,6 +28,9 @@ internal static class SprintInternalRequestEscalationUiScenario
         db.UserRoles.Add(assignment);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         var loaded=await http.GetFromJsonAsync<JsonElement>(path,ct);var version=loaded.GetProperty("version").GetString();
         Check(loaded.GetProperty("canEscalate").GetBoolean()&&loaded.GetProperty("timingStatus").GetString()=="AT_RISK","HTTPS capability uses approved time window and current OM role");
+        var riskList=await http.GetFromJsonAsync<JsonElement>("/api/internal-requests?atRisk=true&direction=SENT",ct);
+        Check(riskList.GetProperty("items").EnumerateArray().Any(r=>r.GetProperty("id").GetInt64()==request)
+            &&riskList.GetProperty("items").EnumerateArray().All(r=>r.GetProperty("timingStatus").GetString()=="AT_RISK"&&r.GetProperty("branchId").GetInt64()==source.BranchId),"HTTPS At Risk filter intersects Sent direction and current branch scope");
         async Task<int> Post(bool csrf,string? tag,long? target=null)
         {
             using var message=new HttpRequestMessage(HttpMethod.Post,target==null?path:$"/api/internal-requests/{target}/escalation"){Content=JsonContent.Create(new{reason="Synthetic HTTPS intervention",priorityId=priority.ReferenceId,deadline=desired})};

@@ -24,10 +24,10 @@ public sealed class InternalRequestHistoryController(InternalRequestReadService 
 
     [HttpGet]
     public Task<InternalRequestHistoryPage> List([FromQuery] long? branchId,
-        [FromQuery] InternalRequestHistoryFilter filter, CancellationToken ct)
+        [FromQuery] InternalRequestHistoryFilter filter, CancellationToken ct, [FromQuery] bool? atRisk = null)
     {
         var session = Session();
-        return service.ListAsync(session.Ticket, session.Sid, branchId, filter, ct);
+        return service.ListAsync(session.Ticket, session.Sid, branchId, filter, ct, atRisk);
     }
 
     [HttpGet("options")]

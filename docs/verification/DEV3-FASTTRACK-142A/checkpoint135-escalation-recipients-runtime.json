@@ -1,0 +1,216 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_4c8d5b5f",
+  "fixtureUserId": 1071268,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "escalationCheck": "Department Head with IR_OVERDUE_HANDLE cannot escalate"
+    },
+    {
+      "escalationCheck": "stale version denied"
+    },
+    {
+      "escalationCheck": "revoked Operations Manager role denied"
+    },
+    {
+      "escalationCheck": "terminal CLOSED denied"
+    },
+    {
+      "escalationCheck": "terminal REJECTED denied"
+    },
+    {
+      "escalationCheck": "terminal CANCELLED denied"
+    },
+    {
+      "escalationCheck": "under eighty percent denied"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "outbox fault rolls back event and audit"
+    },
+    {
+      "escalationCheck": "outbox fault rolls back request and version"
+    },
+    {
+      "escalationCheck": "outbox fault leaves no escalation"
+    },
+    {
+      "escalationCheck": "concurrent requests create exactly one escalation and reject stale loser"
+    },
+    {
+      "escalationCheck": "one Open escalation persists"
+    },
+    {
+      "escalationCheck": "escalation reason and audit provenance persisted"
+    },
+    {
+      "escalationCheck": "requester handler manager deduplicated into one durable intent"
+    },
+    {
+      "escalationCheck": "deadline updated without resetting creation or authoritative lifecycle"
+    },
+    {
+      "escalationCheck": "second Open escalation denied with current version"
+    },
+    {
+      "escalationCheck": "inactive priority cannot be used for intervention"
+    },
+    {
+      "escalationCheck": "overdue request priority intervention preserves deadline and lifecycle"
+    },
+    {
+      "escalationCheck": "committed escalation is pending delivery"
+    },
+    {
+      "escalationCheck": "branch access revoked after intent prevents delivery"
+    },
+    {
+      "escalationCheck": "delivery fault rolls back notification and acknowledgment requirement"
+    },
+    {
+      "escalationCheck": "concurrent delivery produces one notification"
+    },
+    {
+      "escalationCheck": "notification resolves authorized canonical request"
+    },
+    {
+      "escalationCheck": "delivered escalation requires explicit acknowledgment"
+    },
+    {
+      "escalationCheck": "acknowledgment persists read and audit once without mutating request"
+    },
+    {
+      "escalationCheck": "opening source after branch revocation is denied"
+    },
+    {
+      "escalationRecipientCheck": "intent includes requester current handler mapped manager; excludes foreign manager"
+    },
+    {
+      "escalationRecipientCheck": "manager authority is explicit mapping, not home department"
+    },
+    {
+      "escalationRecipientCheck": "manager-only recipient loses delivery when mapping revoked"
+    },
+    {
+      "escalationRecipientCheck": "manager-only recipient requires current IR_VIEW"
+    },
+    {
+      "escalationRecipientCheck": "manager-only recipient requires current IR_PROCESS"
+    },
+    {
+      "escalationRecipientCheck": "eligible manager-only recipient receives alert"
+    },
+    {
+      "escalationRecipientCheck": "former handler-only recipient cannot receive after responsibility ends"
+    },
+    {
+      "escalationRecipientCheck": "current handler-only recipient receives alert"
+    },
+    {
+      "escalationRecipientCheck": "manager-only source authorized with current mapping"
+    },
+    {
+      "escalationRecipientCheck": "handler-only source authorized with current assignment"
+    },
+    {
+      "escalationRecipientCheck": "manager source denied after receiving department changes"
+    },
+    {
+      "escalationRecipientCheck": "former handler source denied after current assignment ends"
+    },
+    {
+      "escalationRecipientCheck": "source revocation retains delivered recipient history"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

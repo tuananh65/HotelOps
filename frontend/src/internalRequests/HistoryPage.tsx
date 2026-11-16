@@ -65,6 +65,7 @@ export function InternalRequestHistoryPage() {
       : null;
   const [search, setSearch] = useState("");
   const [overdue, setOverdue] = useState(false);
+  const [atRisk, setAtRisk] = useState(false);
   const [filters, setFilters] = useState({
     status: "",
     direction: "",
@@ -90,6 +91,7 @@ export function InternalRequestHistoryPage() {
     pageSize: "25",
     ...(search ? { search } : {}),
     ...(overdue ? { overdue: "true" } : {}),
+    ...(atRisk ? { atRisk: "true" } : {}),
     ...Object.fromEntries(
       Object.entries(filters).filter(([, value]) => value !== ""),
     ),
@@ -226,6 +228,7 @@ export function InternalRequestHistoryPage() {
                   });
                   setSearch("");
                   setOverdue(false);
+                  setAtRisk(false);
                   setPage(1);
                 }}
               >
@@ -250,10 +253,17 @@ export function InternalRequestHistoryPage() {
               checked={overdue}
               onChange={(e) => {
                 setOverdue(e.target.checked);
+                if(e.target.checked) setAtRisk(false);
                 setPage(1);
               }}
             />
             Overdue only
+          </label>
+          <label>
+            <input type="checkbox" checked={atRisk} onChange={e => {
+              setAtRisk(e.target.checked); if(e.target.checked) setOverdue(false); setPage(1);
+            }} />
+            At risk only
           </label>
         </>
       ) : (

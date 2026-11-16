@@ -125,6 +125,7 @@ internal static class SprintInternalRequestEscalationScenario
         Check(sourceDenied,"opening source after branch revocation is denied");
         await db.UserBranchAccesses.Where(a=>a.UserId==actor&&a.BranchId==source.BranchId).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.RevokedAt,(DateTime?)null),ct);
         // Only this fixture's independent service credential; parent separately verifies browser logout.
+        await SprintEscalationRecipientScenario.RunAsync(db,actor,request,ticket,session.SessionId,checks,ct);
         await db.UserSessions.Where(s=>s.SessionId==session.SessionId&&s.UserId==actor&&s.SessionKeyHash==session.SessionKeyHash).ExecuteDeleteAsync(ct);
     }
 }

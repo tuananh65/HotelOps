@@ -59,12 +59,17 @@ public sealed class InternalRequestReadService(HotelOpsDbContext db, InternalReq
     }
 
     public Task<InternalRequestHistoryPage> ListAsync(SessionReference ticket, long sid, long? branch,
-        InternalRequestHistoryFilter filter, CancellationToken ct) => ReadAsync(ticket, sid, branch,
+        InternalRequestHistoryFilter filter, CancellationToken ct, bool? atRisk = null) => ReadAsync(ticket, sid, branch,
             async (query, now) =>
             {
                 var direction = new InternalRequestDirection(db);
                 var scope = await direction.ResolveAsync(ticket.UserId, filter.Direction, now, ct);
-                var result = await InternalRequestHistoryQueries.ListAsync(scope.Apply(query, filter.Direction, now), filter, now, ct);
+                var directed=scope.Apply(query,filter.Direction,now);
+                if(atRisk is {} selected)
+                {
+                    directed=InternalRequestAtRiskQuery.Apply(db,directed,now,selected);
+                }
+                var result = await InternalRequestHistoryQueries.ListAsync(directed, filter, now, ct);
                 var final = await direction.ResolveAsync(ticket.UserId, filter.Direction, clock.GetUtcNow().UtcDateTime, ct);
                 if (!scope.ManagedDepartments.SequenceEqual(final.ManagedDepartments))
                     throw new InternalRequestReadException(403, "IR_DIRECTION_SCOPE_CHANGED");

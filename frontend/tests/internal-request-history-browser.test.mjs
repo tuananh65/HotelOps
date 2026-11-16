@@ -174,6 +174,16 @@ test("status filter has an accessible name and sends the selected value", async 
   await request;
   await page.getByRole("cell", { name: "PRIVATE REQUEST <script>", exact: true }).waitFor();
 }));
+
+test("At Risk filter sends server predicate and excludes Overdue selection", async () => fixture(async(page)=>{
+  const first=page.waitForRequest(r=>new URL(r.url()).pathname==="/api/internal-requests"&&new URL(r.url()).searchParams.get("atRisk")==="true");
+  await page.getByLabel("At risk only",{exact:true}).check();const request=await first;
+  assert.equal(request.method(),"GET");assert.equal(new URL(request.url()).searchParams.has("overdue"),false);
+  await page.getByRole("cell",{name:"PRIVATE REQUEST <script>",exact:true}).waitFor();
+  const second=page.waitForRequest(r=>new URL(r.url()).pathname==="/api/internal-requests"&&new URL(r.url()).searchParams.get("overdue")==="true");
+  await page.getByLabel("Overdue only",{exact:true}).check();assert.equal(new URL((await second).url()).searchParams.has("atRisk"),false);
+  assert.equal(await page.getByLabel("At risk only",{exact:true}).isChecked(),false);
+}));
 test("direction filter sends Sent and Received as scoped reads and clears history on denial", async () => fixture(async (page, state) => {
   for (const direction of ["SENT", "RECEIVED"]) {
     const sent = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests"
