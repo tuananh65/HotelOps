@@ -13,34 +13,37 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.Dev2Authorization;
 
-internal static class ReplenishmentWriteContract
+internal static partial class ReplenishmentWriteContract
 {
     private const string Policy = "UC100/101 create/close/link: HTTPS unrestricted SQL session; active STOREKEEPER and current branch access; "
         + "independent REPLENISHMENT_CREATE/CLOSE/RECEIVE plus REPLENISHMENT_VIEW, INVENTORY_VIEW for shortage creation and receipt linking; "
-        + "link only existing POSTED RECEIPT lines of the same warehouse/item; no stock posting authority; "
+        + "link only existing POSTED RECEIPT lines of the same warehouse/item; coordinated Post additionally requires STOCK_RECEIPT_POST, exact receipt lineage and Draft-to-Posted phase checks; "
         + "independent MR_VIEW and same-warehouse material provenance; exact principal/input/root binding; "
         + "Serializable action through persistence/disclosure, existing coverage/concurrency/reconciliation/audit preserved";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-056", "A004A-057", "A004A-058" }.Select(id => new Dev2ActionContract(
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-056", "A004A-057", "A004A-058", "A004A-059" }.Select(id => new Dev2ActionContract(
         id, "DEV3_142A_REPLENISHMENT_WRITE_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
         async (a, ct) => {
             var branch = (await Warehouse(a, ct)).BranchId;
             var requirements = new List<Dev2PermissionRequirement> {
-                new(IsCreate(a) ? "REPLENISHMENT_CREATE" : IsLink(a) ? "REPLENISHMENT_RECEIVE" : "REPLENISHMENT_CLOSE", new(Dev2PermissionTargetKind.Branch, branch)),
+                new(IsCreate(a) ? "REPLENISHMENT_CREATE" : IsLink(a) || IsPost(a) ? "REPLENISHMENT_RECEIVE" : "REPLENISHMENT_CLOSE", new(Dev2PermissionTargetKind.Branch, branch)),
                 new("REPLENISHMENT_VIEW", new(Dev2PermissionTargetKind.Branch, branch)) };
-            if (IsCreate(a) || IsLink(a)) requirements.Add(new("INVENTORY_VIEW", new(Dev2PermissionTargetKind.Branch, branch)));
+            if (IsCreate(a) || IsLink(a) || IsPost(a)) requirements.Add(new("INVENTORY_VIEW", new(Dev2PermissionTargetKind.Branch, branch)));
+            if (IsPost(a)) requirements.Add(new("STOCK_RECEIPT_POST", new(Dev2PermissionTargetKind.Branch, branch)));
             return requirements;
         }, Dev2PermissionCombination.All, Validate,
-        (a, call) => call.Controller == "Replenishments" && call.Action == (IsCreate(a) ? "Create" : IsLink(a) ? "Link" : "Close")
+        (a, call) => call.Controller == "Replenishments" && call.Action == (IsCreate(a) ? "Create" : IsLink(a) ? "Link" : IsPost(a) ? "Post" : "Close")
             && call.RootId == (IsCreate(a) ? null : Id(a)) && ReferenceEquals(call.Input, Input(a)),
         null, null, Validate, RequiresActionTransaction: true));
 
     private static bool IsCreate(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-056";
     private static bool IsLink(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-058";
+    private static bool IsPost(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-059";
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
     private static object Input(Dev2BoundAction a) => IsCreate(a)
         ? a.Arguments.GetValueOrDefault("input") as ReplenishmentCreate ?? throw new Dev2AccessDenied(400)
         : IsLink(a) ? a.Arguments.GetValueOrDefault("input") as ReplenishmentLink ?? throw new Dev2AccessDenied(400)
+        : IsPost(a) ? a.Arguments.GetValueOrDefault("input") as ReplenishmentPost ?? throw new Dev2AccessDenied(400)
         : a.Arguments.GetValueOrDefault("input") as ReplenishmentClose ?? throw new Dev2AccessDenied(400);
     private sealed record WarehouseFact(long Id, long BranchId);
     private static async Task<WarehouseFact> Warehouse(Dev2BoundAction a, CancellationToken ct)
@@ -56,9 +59,10 @@ internal static class ReplenishmentWriteContract
     {
         if (!a.Http.Request.IsHttps || a.Identity.ControllerType != typeof(ReplenishmentsController) || a.Identity.HttpMethod != "POST"
             || !(IsCreate(a) && a.Identity.ActionName == "Create" || IsLink(a) && a.Identity.ActionName == "Link"
+                || IsPost(a) && a.Identity.ActionName == "Post"
                 || a.Identity.DecisionId == "A004A-057" && a.Identity.ActionName == "Close")) return false;
         var claimed = Input(a) switch { ReplenishmentCreate create => create.ActorUserId,
-            ReplenishmentLink link => link.ActorUserId, ReplenishmentClose close => close.ActorUserId, _ => 0 };
+            ReplenishmentLink link => link.ActorUserId, ReplenishmentPost post => post.ActorUserId, ReplenishmentClose close => close.ActorUserId, _ => 0 };
         if (claimed != a.Actor.UserId) return false;
         var db = Db(a);
         if (phase != Dev2AuthorizationPhase.Admission && db.Database.CurrentTransaction == null) return false;
@@ -112,6 +116,6 @@ internal static class ReplenishmentWriteContract
                         && s.Document.DestinationWarehouseId == warehouse.Id
                         && s.Document.PostedAt != null && s.Document.PostedBy != null), ct)) return false;
         }
-        return true;
+        return !IsPost(a) || await ValidatePost(a, phase, warehouse, ct);
     }
 }
