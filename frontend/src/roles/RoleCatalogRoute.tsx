@@ -16,8 +16,10 @@ function key(x: object) {
 }
 export function RoleCatalogRoute({
   mode,
+  creationEnabled = false,
 }: {
   mode: "list" | "detail" | "matrix" | "catalog";
+  creationEnabled?: boolean;
 }) {
   const { state, actions } = useAuth();
   const { roleId = "" } = useParams();
@@ -50,7 +52,7 @@ export function RoleCatalogRoute({
   return (
     <Catalog
       key={key(binding)}
-      {...{ mode, roleId: Number(roleId), current }}
+      {...{ mode, roleId: Number(roleId), current, creationEnabled }}
       revalidate={() => void actions.revalidate()}
     />
   );
@@ -83,11 +85,13 @@ function ErrorView({
 }
 function Catalog({
   mode,
+  creationEnabled,
   roleId,
   current,
   revalidate,
 }: {
   mode: "list" | "detail" | "matrix" | "catalog";
+  creationEnabled: boolean;
   roleId: number;
   current: () => boolean;
   revalidate: () => void;
@@ -158,10 +162,10 @@ function Catalog({
         <Link to="/profile">Profile</Link>
         <Link to="/roles">Roles</Link>
         <Link to="/permissions">Permission catalog</Link>
+        {creationEnabled && r?.ok && <Link to="/roles/new">Create custom role</Link>}
       </nav>
       <p>
-        Read only. No role or permission mutation is available. Server
-        authorization is required.
+        Role and permission access requires current server authorization.
       </p>
       {mode === "list" && (
         <form

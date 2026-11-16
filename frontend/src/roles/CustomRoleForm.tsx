@@ -15,7 +15,7 @@ function key(x: object) {
   if (!keys.has(x)) keys.set(x, ++n);
   return keys.get(x)!;
 }
-/** Standalone candidate only. Production routing is unchanged. */
+/** Creation is enabled by the canonical host; metadata updates remain unavailable. */
 export function CustomRoleForm({
   roleId,
   dispatchEnabled = false,

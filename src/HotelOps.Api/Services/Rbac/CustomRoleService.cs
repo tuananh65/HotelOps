@@ -11,7 +11,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Rbac;
 public sealed record CustomRoleResult(int Status,string? Code=null,CustomRoleCreatedDto? Value=null);
-/** Inactive HTTP candidate. No assignments/grants and no metadata PATCH until durable version policy. */
+/** Creates unassigned custom roles. Metadata PATCH requires a durable version contract. */
 public sealed class CustomRoleService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,TimeProvider clock,IHttpContextAccessor http)
 {
  public static Role NewRole(CustomRoleCreateRequest request,DateTime now)=>new(){RoleCode=request.RoleCode,RoleName=request.RoleName,Description=request.Description,IsSystemRole=false,IsActive=true,CreatedAt=now};
