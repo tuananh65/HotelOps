@@ -22,7 +22,7 @@ public sealed class DevelopmentRecoveryFactAttribute : FactAttribute
 }
 
 [Collection("HotelOps isolated SQL")]
-public sealed class FreshStartAdmissionSqlTests
+public sealed partial class FreshStartAdmissionSqlTests
 {
     [DevelopmentRecoveryFact]
     public async Task RequiresTransactionLocksAndAuthorityAndUsesTemporalBlockRangeWithRollback()
@@ -99,6 +99,8 @@ public sealed class FreshStartAdmissionSqlTests
         await VerifyCanonicalStart(db, task.Actor, true);
         await VerifyCanonicalStart(db, task.Actor, false);
         await RejectUnprovenClosure(db, task.Actor);
+        await VerifyCancellationRestoration(db, task.Actor, false);
+        await VerifyCancellationRestoration(db, task.Actor, true);
         Assert.Equal(0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.room_cleaning_cycle_state WHERE room_id={task.RoomId}").SingleAsync());
     }
     private static async Task VerifyCanonicalStart(HotelOpsDbContext db, long actor, bool blocked)

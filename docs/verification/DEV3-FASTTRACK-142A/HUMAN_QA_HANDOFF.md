@@ -1,6 +1,6 @@
 # FASTTRACK-142A — Human QA handoff / source gap inventory
 
-Updated C182, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
+Updated C183, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
 
 Source covered **29/144** = **27 historical COMPLETE_VERIFIED + 2 IMPLEMENTED_PENDING_QA awaiting acceptance (UC032, UC038)**. No new COMPLETE_VERIFIED. The implementation enum IMPLEMENTED_PENDING_QA means source implemented; for the 27 already verified rows, the separate COMPLETE_VERIFIED field takes precedence and does not reopen QA. Pending-QA totals exclude those 27. Other rows are conservative source gaps, not implementation claims based on builds. NOT_TESTED means no current complete-UC assessment; historical slice checks remain linked and are not erased.
 
@@ -27,6 +27,8 @@ C180: source now restores latest non-cancelled cycle/effective readiness under a
 C181: Cancel success now refreshes detail/timeline through the monitor API, discards the old snapshot and preserves uncertain retry identity. Focused browser 3 PASS, transport 12 PASS, typecheck/build PASS; mocked APIs only, no SQL acceptance. See CHECKPOINT-181.md.
 
 C182: cancellation and readiness successor migrations now verified on recovery clone (rollback/independent checks/apply/replay); shared DB unchanged. Fixed SQL Server CREATE-versus-ALTER header comparison without accepting body drift. Existing Start/Complete/capture/outbox synthetic rollback SQL fixture 1 PASS. Full Cancel/delivery/HTTPS acceptance still pending. See CHECKPOINT-182.md.
+
+C183: recovery SQL confirms cancellation READY/BLOCKED source evidence, exact receipt/recipient proof, durable intent and rollback (expanded fixture 1 PASS via verified TCP). Initial named-instance metadata timeout remains recorded. Command authorization, delivery and HTTPS not certified. See CHECKPOINT-183.md.
 
 Priority A next: FE04 full Resume/Complete, cleaner capture, delivery and cancellation; FE13 material/legacy target adapters where authority contract exists; notification producer gaps. FE13 reopen/receipt/reroute and JOB06 finite archive retention still need their exact missing contracts. Approved RPT03 category/SLA decision is recorded below, not treated as installed storage.
 
