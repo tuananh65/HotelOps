@@ -34,7 +34,12 @@ public sealed record MaterialRequestDto(long RequestId, string RequestNo, string
     DateTime CreatedAt, DateTime? SubmittedAt, DateTime? CompletedAt, DateTime? UpdatedAt, string? CancellationReason,
     DateTime? RemainderClosedAt, long? RemainderClosedBy, string? RemainderCloseReason,
     IReadOnlyList<MaterialLineDto> Lines, IReadOnlyList<MaterialCycleDto> Cycles, IReadOnlyList<MaterialDecisionDto> Decisions,
-    IReadOnlyList<MaterialFulfillmentDto> Fulfillments, IReadOnlyList<MaterialReturnDto> Returns);
+    IReadOnlyList<MaterialFulfillmentDto> Fulfillments, IReadOnlyList<MaterialReturnDto> Returns)
+{
+    public bool LinkedWorkAvailable { get; init; }
+    public IReadOnlyList<MaterialLinkedRequestDto> LinkedInternalRequests { get; init; } = [];
+}
+public sealed record MaterialLinkedRequestDto(long RequestId, string RequestNo, string Status, bool Mandatory);
 public sealed record MaterialAuditDto(long AuditId, string EntityType, string EntityId, string Action, long? ActorUserId,
     DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record MaterialHistoryDto(MaterialRequestDto Request, IReadOnlyList<MaterialAuditDto> Audit);

@@ -18,9 +18,10 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class MaterialReadContract
 {
     private static readonly object DisclosedScopeKey = new();
+    private static readonly object DisclosedLinkedWorkKey = new();
     private const string Policy = "Material list/detail/availability/fulfillment receipts: HTTPS current unrestricted SQL session; independent MR_VIEW; "
         + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch, UC096 actor and current workflow/reviewer authority; "
-        + "serializable through final disclosure; no reservation, mutation or raw audit authority";
+        + "serializable through final disclosure; linked internal requests additionally require current IR_VIEW and same branch, rechecked before disclosure; no reservation, mutation or raw audit authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042" }.Select(id =>
         new Dev2ActionContract(id, "DEV3_142A_MATERIAL_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             RequirementsAsync,
@@ -88,6 +89,9 @@ internal static class MaterialReadContract
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var scope = await MaterialRequestReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), now, ct);
         if (!scope.Branch && !scope.Own) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure
+            && a.Http.Items[DisclosedLinkedWorkKey] is long[] linked
+            && !await MaterialLinkedWorkRead.CanDiscloseAsync(db, a.Actor.UserId, scope.BranchId, linked, now, ct)) return false;
         // A branch grant can expire while an OWN grant remains valid. Do not
         // publish a page selected under the broader, now-expired scope.
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure
@@ -132,6 +136,11 @@ internal static class MaterialReadContract
                 return availability == null ? new NotFoundResult() : new OkObjectResult(availability);
             }
             var result = await a.Http.RequestServices.GetRequiredService<MaterialRequestService>().Get(Id(a), ct);
+            if (result != null)
+            {
+                result = await MaterialLinkedWorkRead.ReadAsync(db, result, a.Actor.UserId, ct);
+                a.Http.Items[DisclosedLinkedWorkKey] = result.LinkedInternalRequests.Select(r => r.RequestId).ToArray();
+            }
             return result == null ? new NotFoundResult() : new OkObjectResult(result);
         }
         catch (ValidationException) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid material filters" }); }

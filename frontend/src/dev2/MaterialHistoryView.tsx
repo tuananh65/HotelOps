@@ -63,5 +63,12 @@ export function MaterialHistoryView({ record }: { record: Values }) {
       {String(receipt.documentNo)} — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
     </li>)}</ul> : <p>No linked return documents recorded.</p>}
     {record.incidentId != null && <p>Linked incident: {String(record.incidentId)}. Access to the incident is checked separately.</p>}
+    <h3>Linked internal requests</h3>
+    {record.linkedWorkAvailable !== true ? <p>Linked internal request information is unavailable.</p>
+      : rows(record.linkedInternalRequests).length === 0 ? <p>No linked internal requests in your current viewing scope.</p>
+      : <ul>{rows(record.linkedInternalRequests).map(request => <li key={String(request.requestId)}>
+        <Link to={`/internal-requests?requestId=${encodeURIComponent(String(request.requestId))}`}>{String(request.requestNo)}</Link>
+        {" "}{String(request.status)}; {request.mandatory === true ? "mandatory material dependency" : "optional material dependency"}.
+      </li>)}</ul>}
   </section>;
 }
