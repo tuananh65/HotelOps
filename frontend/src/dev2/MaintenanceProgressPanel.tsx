@@ -22,7 +22,7 @@ function validSelection(s: Selection) {
     && factor !== undefined && quantity * factor <= s.line.remainingBaseQty + 1e-9;
 }
 
-export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Values; allowMaterials: boolean }) {
+export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: { data: Values; allowMaterials: boolean; onCommitted?: (message: string) => void }) {
   const { state } = useAuth(), session = state.session;
   const [bound] = useState(session), current = useRef(session); current.current = session;
   const [percent, setPercent] = useState("");
@@ -90,7 +90,11 @@ export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Value
           && u.stockDocumentLineId === s.line.stockDocumentLineId && u.uomId === s.uomId
           && u.usedQty === Number(s.quantity) && u.maintenanceWorkId === id && u.maintenanceWorkLogId === result.logId).length === 1))
         throw Error("Progress response could not be confirmed. Reload to check current records.");
-      if (!abort.signal.aborted && current.current === session) setMessage("Progress recorded. Reload the work detail before another action.");
+      if (!abort.signal.aborted && current.current === session) {
+        const notice = "Progress recorded. Reaching 100% does not submit or close the work.";
+        setMessage(notice);
+        onCommitted?.(notice);
+      }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Progress not confirmed. Reload.");
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }

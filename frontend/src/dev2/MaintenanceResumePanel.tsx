@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function MaintenanceResumePanel({ data, allowStart = false, allowHold = false, allowResume = true }: { data: Values; allowStart?: boolean; allowHold?: boolean; allowResume?: boolean }) {
+export function MaintenanceResumePanel({ data, allowStart = false, allowHold = false, allowResume = true, onCommitted }: { data: Values; allowStart?: boolean; allowHold?: boolean; allowResume?: boolean; onCommitted?: (message: string) => void }) {
   const { state } = useAuth();
   const session = state.session;
   const current = useRef(session); current.current = session;
@@ -44,7 +44,11 @@ export function MaintenanceResumePanel({ data, allowStart = false, allowHold = f
           || result.assigneeId !== actor || typeof result.executionETag !== "string"
           || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag)
         throw Error(`${verb} response could not be confirmed. Reload before any further action.`);
-      if (current.current === session && !abort.signal.aborted) setMessage(`Work ${start ? "started" : hold ? "put on hold" : "resumed"}. Reload the work detail to view the current state.`);
+      if (current.current === session && !abort.signal.aborted) {
+        const notice = `Work ${start ? "started" : hold ? "put on hold" : "resumed"}. ${hold ? "The work interval is closed; SLA time continues." : "A new work interval is open."}`;
+        setMessage(notice);
+        onCommitted?.(notice);
+      }
     } catch (error) {
       if (current.current === session && !abort.signal.aborted) setMessage(error instanceof Error ? error.message : `${verb} not confirmed. Reload before retrying.`);
     } finally {

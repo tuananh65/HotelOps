@@ -59,12 +59,12 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
         <ul>{submitted.resultAttachmentIds.filter((id): id is number => typeof id === "number" && Number.isSafeInteger(id) && id > 0).map(id =>
           <li key={id}><a href={`/api/incidents/${data.incidentId}/evidence/${id}`}>Result evidence {id}</a></li>)}</ul>}
     </section>}
-    {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} />}
+    {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} onCommitted={onCommitted} />}
     {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
     {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
       && !(canSubmit && data.canSubmit === true) &&
       <IncidentEvidencePanel key={data.incidentId} incidentId={data.incidentId} readOnly />}
-    {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}
+    {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} onCommitted={onCommitted} />}
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
     <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
       <dt>Source</dt><dd>{show(data.source)}</dd><dt>Location / asset</dt><dd>{target(data)}</dd>
