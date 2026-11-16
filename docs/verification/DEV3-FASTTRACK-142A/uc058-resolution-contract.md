@@ -93,3 +93,15 @@ The dedicated canonical progress/material-entry form is still outstanding; A004A
 Files: MaintenanceResumeContract.cs, MaintenanceMaterialAccess.cs, MaintenanceWorkService.Commands.cs, MaintenanceWorkService.Logs.cs, MaintenanceWorkLogDto.cs, MaintenanceExecutionAccessTests.cs and this receipt.
 
 Focused verification for this backend increment: 15 execution/read/material-access tests PASS. They cover admission bindings and existing scope predicates; the new usage-write SQL transaction, ETag advancement and capacity races are not proven by these offline results. Edited-line CRLF diff warnings were cleaned before delivery.
+
+## Dedicated progress/material entry UI
+
+A004A-029 is now enabled in the canonical host and excluded from the unversioned generic action form. Maintenance detail exposes CanLog only for the current authorized executor in IN_PROGRESS/ON_HOLD with native ETag capability; final disclosure revalidates execution access. The dedicated panel records a required technical note and optional multiple material usages selected from the independently protected paginated availability endpoint. Selection survives paging; only source-proven units are offered, with positive quantity/three-decimal/capacity feedback. Note-only recording remains available when material reads are forbidden. Actual effort is never entered by the client.
+
+Writes bind the current session and original ETag, bootstrap CSRF, require explicit confirmation, verify returned log identity/version/material records, and do not automatically retry. Existing server source, authorization and transactional capacity checks remain authoritative. No database mutation or schema changes in this increment.
+
+Validation: backend build PASS (zero warnings/errors); frontend TypeScript/production build PASS (existing React Router use-client and bundle-size warnings). Three browser tests PASS using mocked HTTPS responses: paginated multi-line selection/quantity validation, note-only with material 403, and stale ETag without retry. Initial browser run exposed an ambiguous select accessible label; an explicit label fixed it and all three reran successfully. Fifteen focused backend execution/read/material-access regressions PASS. Solution-level dotnet test exited zero without test discovery; it is not counted as coverage.
+
+Live browser-to-HTTPS-to-SQL, concurrency/rollback and persistent rowversion capability deployment remain unverified. UC055/058 remain PARTIAL; newly completed UCs: zero. Changes are left uncommitted for review.
+
+Files: MaintenanceProgressPanel.tsx (new), MaintenanceReadView.tsx, Workspace.tsx, SharedAuthHost.tsx, MaintenanceWorkDetailDto.cs, MaintenanceReadContract.cs, maintenance-progress-browser.test.mjs (new), and this receipt.

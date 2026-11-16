@@ -135,7 +135,9 @@ internal static class MaintenanceReadContract
                 && await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == a.Actor.UserId && i.BranchId == scope.Branch
                     && i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == Id(a) && i.ClosedAt == null, ct);
             detail.CanSubmit = detail.CanHold;
-            if (detail.CanStart || detail.CanResume || detail.CanHold) a.Http.Items[ResumeKey] = true;
+            detail.CanLog = detail.Status is "IN_PROGRESS" or "ON_HOLD" && detail.ExecutionETag != null
+                && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
+            if (detail.CanStart || detail.CanResume || detail.CanHold || detail.CanLog) a.Http.Items[ResumeKey] = true;
             var usage = await MaintenanceUsageRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             a.Http.Items[UsageKey] = usage;
             detail.MaterialUsageAvailable = usage.Available;
