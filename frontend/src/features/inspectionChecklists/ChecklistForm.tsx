@@ -38,6 +38,10 @@ export function ChecklistForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  function invalidText(value: string) {
+    return !value.trim() || value.trim().length > 250 || /[\x00-\x1f\x7f-\x9f]/.test(value.trim());
+  }
   function change(index: number, patch: Partial<CriterionInput>) {
     setCriteria((items) =>
       items.map((c, i) => (i === index ? { ...c, ...patch } : c)),
@@ -46,6 +50,11 @@ export function ChecklistForm({
   async function save(event: React.FormEvent) {
     event.preventDefault();
     setError("");
+    setValidationAttempted(true);
+    if (!criteria.length || criteria.some((c) => invalidText(c.text))) {
+      setError("MSG03: Checklist cần có tiêu chí hợp lệ. Kiểm tra các trường được đánh dấu.");
+      return;
+    }
     try {
       const payload = initial
         ? { criteria: criteriaInput(criteria), reason: reasonInput(reason) }
@@ -78,6 +87,7 @@ export function ChecklistForm({
     <form
       className="fe05-checklist-form"
       onSubmit={save}
+      noValidate
       aria-label={initial ? "Chỉnh sửa tiêu chí" : "Tạo checklist"}
     >
       <h2>{initial ? "Lưu tiêu chí vào Draft" : "Tạo checklist mới"}</h2>
@@ -131,10 +141,17 @@ export function ChecklistForm({
               <input
                 required
                 maxLength={250}
+                aria-invalid={validationAttempted && invalidText(c.text)}
+                aria-describedby={validationAttempted && invalidText(c.text) ? `checklist-criterion-${i}-error` : undefined}
                 value={c.text}
                 onChange={(e) => change(i, { text: e.target.value })}
               />
             </label>
+            {validationAttempted && invalidText(c.text) && (
+              <p id={`checklist-criterion-${i}-error`} role="alert">
+                MSG03: Nội dung tiêu chí {i + 1} là bắt buộc, tối đa 250 ký tự và không chứa ký tự điều khiển.
+              </p>
+            )}
             <label>
               Nhóm
               <input

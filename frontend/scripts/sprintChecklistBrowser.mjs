@@ -11,7 +11,14 @@ try {
  await page.getByRole('button',{name:'Tạo checklist',exact:true}).click();checks.push(stage);
  stage='create Draft';const form=page.getByRole('form',{name:'Tạo checklist',exact:true});
  await form.getByLabel('Mã checklist',{exact:true}).fill('BROWSER-'+Date.now());await form.getByLabel('Tên checklist',{exact:true}).fill('Browser inspection standard');
- await form.getByLabel('Mã loại phòng áp dụng (phân cách bằng dấu phẩy)',{exact:true}).fill(String(f.type));await form.getByLabel('Nội dung',{exact:true}).fill('Clean surfaces');await form.getByLabel('Bắt buộc',{exact:true}).check();
+ await form.getByLabel('Mã loại phòng áp dụng (phân cách bằng dấu phẩy)',{exact:true}).fill(String(f.type));
+ stage='invalid criterion feedback';let creates=0;page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname===`/api/branches/${f.branch}/inspection-checklists`)creates++;});
+ await form.getByLabel('Nội dung',{exact:true}).fill('   ');await form.getByRole('button',{name:'Lưu Draft',exact:true}).click();
+ await form.getByText('MSG03: Nội dung tiêu chí 1 là bắt buộc, tối đa 250 ký tự và không chứa ký tự điều khiển.',{exact:true}).waitFor();
+ assert.equal(await form.getByLabel('Nội dung',{exact:true}).getAttribute('aria-invalid'),'true');assert.equal(creates,0);checks.push(stage);
+ stage='create Draft';await form.getByLabel('Nội dung',{exact:true}).fill('Clean surfaces');await form.getByLabel('Bắt buộc',{exact:true}).check();
+ await form.getByLabel('Nhóm',{exact:true}).fill('Bedroom');await form.getByLabel('Điều kiện đạt',{exact:true}).fill('No visible dust');
+ assert.equal(await form.getByLabel('Nội dung',{exact:true}).getAttribute('aria-invalid'),'false');
  await form.getByRole('button',{name:'Lưu Draft',exact:true}).click();
  const detail=page.getByRole('region',{name:'Chi tiết checklist',exact:true});await detail.getByRole('heading',{name:'Phiên bản 1 — DRAFT',exact:true}).waitFor();checks.push(stage);
  async function transition(action){await detail.getByRole('button',{name:action,exact:true}).click();const confirm=detail.getByRole('form',{name:'Xác nhận phiên bản'});if(action==='Ngừng sử dụng bản công bố')await confirm.getByText(/^MSG33:/).waitFor();await confirm.getByLabel('Lý do',{exact:true}).fill('Reviewed browser inspection standard');assert.equal(await confirm.getByRole('button',{name:'Xác nhận',exact:true}).isEnabled(),false);await confirm.getByLabel('Tôi xác nhận thao tác',{exact:true}).check();await confirm.getByRole('button',{name:'Xác nhận',exact:true}).click();}

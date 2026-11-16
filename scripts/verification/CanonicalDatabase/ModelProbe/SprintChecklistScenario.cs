@@ -36,7 +36,30 @@ internal static class SprintChecklistScenario
         }
         var input=new{code="D3API"+Guid.NewGuid().ToString("N")[..8],name="Synthetic checklist",roomTypeIds=new[]{type},criteria=new[]{new{text="No dust",group="Bedroom",mandatory=true,passCondition="Clean surfaces",description="Review surfaces"}}};
         Check((await Send(HttpMethod.Post,root,input,csrf:false)).Status==400,"checklist creation requires CSRF");
+        Check((await Send(HttpMethod.Post,root,new{input.code,input.name,input.roomTypeIds,criteria=Array.Empty<object>()})).Status==400,"create rejects missing criteria");
+        Check((await Send(HttpMethod.Post,root,new{input.code,input.name,input.roomTypeIds,criteria=new[]{new{text="   ",mandatory=true}}})).Status==400,"create rejects whitespace criterion");
+        var foreignType=await db.BranchRoomTypes.AsNoTracking().Where(t=>t.BranchId!=branch).Select(t=>t.RoomTypeId).FirstAsync(ct);
+        Check((await Send(HttpMethod.Post,root,new{input.code,input.name,roomTypeIds=new[]{foreignType},input.criteria})).Status==400,"create rejects room type outside current branch");
+        var checklistCount=await db.InspectionChecklists.CountAsync(ct);
+        var versionCount=await db.InspectionChecklistVersions.CountAsync(ct);
+        var itemCount=await db.InspectionChecklistItems.CountAsync(ct);
+        var applicabilityCount=await db.ChecklistRoomTypes.CountAsync(ct);
+        var auditCount=await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists",ct);
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_ChecklistCreateFault ON dbo.audit_logs AFTER INSERT AS BEGIN IF EXISTS(SELECT 1 FROM inserted WHERE entity_type='inspection_checklists') THROW 51891,'Synthetic checklist creation audit failure',1; END",ct);
+            Check((await Send(HttpMethod.Post,root,input)).Status>=500,"creation audit failure rejects aggregate");
+        }
+        finally{await db.Database.ExecuteSqlRawAsync("DROP TRIGGER IF EXISTS dbo.TR_DEV3_ChecklistCreateFault",CancellationToken.None);}
+        Check(await db.InspectionChecklists.CountAsync(ct)==checklistCount&&await db.InspectionChecklistVersions.CountAsync(ct)==versionCount
+            &&await db.InspectionChecklistItems.CountAsync(ct)==itemCount&&await db.ChecklistRoomTypes.CountAsync(ct)==applicabilityCount
+            &&await db.AuditLogs.CountAsync(a=>a.EntityType=="inspection_checklists",ct)==auditCount,"create audit rollback leaves no checklist version criteria applicability or audit orphan");
         var created=await Send(HttpMethod.Post,root,input);Check(created.Status==201,"public checklist creates Draft");
+        Check(created.Body.GetProperty("versions").GetArrayLength()==1&&created.Body.GetProperty("versions")[0].GetProperty("number").GetInt32()==1
+            &&created.Body.GetProperty("versions")[0].GetProperty("status").GetString()=="DRAFT"
+            &&created.Body.GetProperty("versions")[0].GetProperty("criteria")[0].GetProperty("passCondition").GetString()=="Clean surfaces",
+            "create persists version1 Draft with pass condition and original criteria");
+        Check((await Send(HttpMethod.Post,root,input)).Status==409,"duplicate checklist code rejected without second aggregate");
         var id=created.Body.GetProperty("id").GetInt64();var path=root+"/"+id;
         async Task Fault(HttpMethod method,string target,object body,string? tag)
         {
