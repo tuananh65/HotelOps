@@ -987,3 +987,29 @@ test("UC025 canonical update preserves confirmation, CSRF and ETag", async () =>
     assert.deepEqual(JSON.parse(sent[0].body), requests.updateDepartment);
   });
 });
+
+for (const [kind,id,url] of mutationCases.filter(([kind])=>['createRoom','updateRoom'].includes(kind))) {
+ test('UC020/021 canonical '+kind+' retains CSRF, confirmation and version',async()=>{
+  const update=kind==='updateRoom';
+  await withHotel('/structure/rooms?branchId=1'+(update?'':'&action=create'),{canonical:true},async p=>{
+   if(update){await select(p,'edit',id);await load(p);}
+   await fill(p,kind);await review(p);assert.equal((await writes(p)).length,0);
+   await confirm(p);await p.getByRole('heading',{name:'Change confirmed by the server',exact:true}).waitFor();
+   const sent=await writes(p);assert.equal(sent.length,1);assert.equal(sent[0].url,url);
+   assert.equal(sent[0].headers['x-csrf-token'],secret);
+   if(update)assert.equal(sent[0].headers['if-match'],tag);
+   assert.deepEqual(JSON.parse(sent[0].body),requests[kind]);
+   assert.ok((await p.locator('body').innerText()).includes('MSG08'));
+  });
+ });
+}
+test('UC020/021 canonical directory preserves scoped room detail links',async()=>{
+ await withHotel('/structure/rooms?branchId=1',{canonical:true},async p=>{
+  await load(p);
+  const link=p.getByRole('link',{name:'Read room 101 in branch 1',exact:true});
+  assert.equal(await link.getAttribute('href'),'/structure/rooms/15?branchId=1');
+  await link.click();await load(p);
+  assert.ok((await calls(p)).some(c=>c.url==='/api/rooms/15?branchId=1'));
+  assert.equal((await writes(p)).length,0);
+ });
+});

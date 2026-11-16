@@ -346,7 +346,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             Update branch information
           </Link>
         )}
-        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments", "/structure/room-types": "Room Types" }
+        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments", "/structure/room-types": "Room Types", "/structure/rooms": "Rooms" }
           : readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
           "/hotel": "Branch structure",
           "/floors": "Floors",
