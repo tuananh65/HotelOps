@@ -6,6 +6,7 @@ internal sealed class CleaningClosureNotificationOptions
 {
     public bool Enabled { get; set; }
     public bool CancellationEnabled { get; set; }
+    public bool AssignmentEnabled { get; set; }
     public int PollSeconds { get; set; } = 30;
 }
 
@@ -17,7 +18,7 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        if (!options.Value.Enabled && !options.Value.CancellationEnabled) return;
+        if (!options.Value.Enabled && !options.Value.CancellationEnabled && !options.Value.AssignmentEnabled) return;
         while (!ct.IsCancellationRequested)
         {
             try { await DrainAsync(ct); }
@@ -33,6 +34,21 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
 
     internal async Task DrainAsync(CancellationToken ct)
     {
+        if(options.Value.AssignmentEnabled)
+        {
+            try
+            {
+                for(var attempt=0;attempt<100;attempt++)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    await using var scope=scopes.CreateAsyncScope();
+                    var result=await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>().DeliverAssignmentOnlyAsync(ct);
+                    if(result is "EMPTY" or "DISABLED")break;
+                }
+            }
+            catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
+            catch(Exception error){logger.LogWarning("Cleaning assignment delivery retained after {ErrorType}",error.GetType().Name);}
+        }
         if (options.Value.Enabled) await DrainIndependentlyAsync(false, ct);
         if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(true, ct);
     }

@@ -19,13 +19,21 @@ public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, Pr
             if (rework != "EMPTY") return rework;
         }
         if (await candidate.ClosureAvailableAsync(ct)) return await DeliverClosureOneAsync(ct, selectedPublication);
+        return await DeliverAssignmentAsync(ct,stopAfterDurableClaim,selectedPublication);
+    }
+
+    internal async Task<string> DeliverAssignmentOnlyAsync(CancellationToken ct)
+        =>await candidate.AvailableAsync(ct)?await DeliverAssignmentAsync(ct):"DISABLED";
+
+    private async Task<string> DeliverAssignmentAsync(CancellationToken ct,bool stopAfterDurableClaim=false,Guid? selectedPublication=null)
+    {
         if (!await candidate.AvailableAsync(ct)) throw new InvalidOperationException("CANDIDATE_DISABLED");
         var now = clock.GetUtcNow().UtcDateTime; long id; long recipient; Guid claim = Guid.NewGuid();
         await using (var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct))
         {
             var query = selectedPublication is { } selected
-                ? db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) * FROM dbo.notification_delivery_intents WITH(UPDLOCK,READPAST,ROWLOCK) WHERE publication_id={selected} AND status='PENDING' AND next_attempt_at<={now} AND (claimed_until IS NULL OR claimed_until<{now}) ORDER BY intent_id")
-                : db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) * FROM dbo.notification_delivery_intents WITH(UPDLOCK,READPAST,ROWLOCK) WHERE status='PENDING' AND next_attempt_at<={now} AND (claimed_until IS NULL OR claimed_until<{now}) ORDER BY intent_id");
+                ? db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) i.* FROM dbo.notification_delivery_intents i WITH(UPDLOCK,READPAST,ROWLOCK) WHERE i.publication_id={selected} AND i.status='PENDING' AND i.next_attempt_at<={now} AND (i.claimed_until IS NULL OR i.claimed_until<{now}) AND EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.publication_id=i.publication_id AND p.event_type='CLEANING_TASK_ASSIGNED') ORDER BY i.intent_id")
+                : db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) i.* FROM dbo.notification_delivery_intents i WITH(UPDLOCK,READPAST,ROWLOCK) WHERE i.status='PENDING' AND i.next_attempt_at<={now} AND (i.claimed_until IS NULL OR i.claimed_until<{now}) AND EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.publication_id=i.publication_id AND p.event_type='CLEANING_TASK_ASSIGNED') ORDER BY i.intent_id");
             var intent = await query.SingleOrDefaultAsync(ct);
             if (intent == null) return "EMPTY";
             id = intent.IntentId; recipient = intent.UserId; intent.ClaimId = claim; intent.ClaimedUntil = now.AddSeconds(30); intent.AttemptCount++;
@@ -52,11 +60,15 @@ public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, Pr
             if (terminal != null) { intent.Status = "TERMINAL"; intent.FailureCode = terminal; }
             else
             {
+                var proof=new HotelOps.Api.Services.Housekeeping.CleaningAssignmentNotificationSource(db,source,clock);
+                var content=await proof.ResolveAsync(facts.AssignmentId,false,ct);
+                if(content.Facts!=facts||content.Facts.AssigneeUserId!=recipient)throw new InvalidOperationException("ASSIGNMENT_RECEIPT_CONFLICT");
                 // Entire inbox+recipient+intent linkage is one transaction, no external network delivery.
                 var notification = new Notification { NotificationType = "CLEANING_TASK_ASSIGNED", Title = "Cleaning task assigned", Message = "A cleaning task has been assigned to you.", Priority = "NORMAL", SourceType = "CLEANING_TASK", SourceId = facts.TaskId, ActionUrl = $"/cleaning/tasks/{facts.TaskId}?branchId={facts.BranchId}&assignmentId={facts.AssignmentId}", CreatedBy = facts.ActorId, CreatedAt = now };
                 db.Notifications.Add(notification); await db.SaveChangesAsync(ct);
                 db.NotificationRecipients.Add(new NotificationRecipient { NotificationId = notification.NotificationId, UserId = recipient, DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = now });
                 await db.SaveChangesAsync(ct);
+                await proof.ResolveAsync(facts.AssignmentId,false,ct);
                 intent.Status = "DELIVERED"; intent.InboxNotificationId = notification.NotificationId; intent.FailureCode = null;
             }
             intent.ClaimId = null; intent.ClaimedUntil = null; await db.SaveChangesAsync(ct); db.ChangeTracker.Clear(); await tx.CommitAsync(ct);

@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 namespace HotelOps.Api.Services.Notifications;
 public sealed class NotificationCenterOptions { public int RetentionDays {get;set;}=365; }
-public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurrentUserAccessor caller,TimeProvider clock,IOptions<NotificationCenterOptions> options)
+public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurrentUserAccessor caller,TimeProvider clock,IOptions<NotificationCenterOptions> options,
+    HotelOps.Api.Services.HotelStructure.RoomTypeCreationService? cleaning=null)
 {
     private async Task<long> UserAsync(DateTime now,CancellationToken ct)
     {
@@ -259,6 +260,30 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             if(replenishmentId==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
             await tx.CommitAsync(ct);return new($"/operations/replenishments/{replenishmentId}");
+        }
+        if(source is {NotificationType:"CLEANING_TASK_ASSIGNED",SourceType:"CLEANING_TASK",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(cleaning==null||!await CleaningAssignmentSchema.InstalledAsync(db,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
+            var assignments=await db.Database.SqlQuery<long>($"""
+                SELECT p.assignment_id AS Value FROM dbo.notification_delivery_intents i
+                JOIN dbo.notification_publications p ON p.publication_id=i.publication_id
+                WHERE i.inbox_notification_id={id} AND i.user_id={user} AND i.status='DELIVERED'
+                  AND i.delivery_channel='IN_APP' AND p.event_type='CLEANING_TASK_ASSIGNED'
+                """).ToArrayAsync(ct);
+            if(assignments.Length!=1)throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
+            var resolver=new HotelOps.Api.Services.Housekeeping.CleaningAssignmentNotificationSource(db,cleaning,clock);
+            HotelOps.Api.Services.Housekeeping.CleaningAssignmentNotificationContent content;
+            try{content=await resolver.ResolveAsync(assignments[0],false,ct);}
+            catch(InvalidOperationException){throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");}
+            if(content.Facts.AssigneeUserId!=user||content.Facts.ActorId!=source.CreatedBy||content.Facts.TaskId!=source.SourceId
+                ||content.Facts.AssignedAtUtc>source.CreatedAt)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            try{await resolver.ResolveAsync(assignments[0],false,ct);}
+            catch(InvalidOperationException){throw new InsightException(404,"SOURCE_UNAVAILABLE","Assignment source unavailable.");}
+            await tx.CommitAsync(ct);return new(content.ActionPath);
         }
         if(source is {NotificationType:"CLEANING_TASK_CANCELLED",SourceType:"CLEANING_TASK",SourceId:>0})
         {

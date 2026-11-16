@@ -17,6 +17,8 @@ public sealed partial class ProvisionalCleaningNotification(HotelOpsDbContext db
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public async Task<bool> AvailableAsync(CancellationToken ct)
     {
+        // Authorized development installation reuses the same immutable ledger and commit guard.
+        if(env.IsDevelopment()&&await CleaningAssignmentSchema.InstalledAsync(db,ct))return true;
         var scope = config["CleaningAssignment:Candidate"] switch
         {
             "FS009_PROVISIONAL" => (Target: "HotelOps_Canonical_20261106_230000_f090001_Fresh", Phase: "FS009"),
