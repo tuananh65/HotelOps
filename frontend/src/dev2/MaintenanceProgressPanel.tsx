@@ -53,6 +53,11 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
         throw Error("Material availability could not be confirmed.");
       if (!abort.signal.aborted && current.current === session) {
         setLines(result.items); setPage(next); setTotal(result.total);
+        const refreshed = result.items as Line[];
+        setSelected(items => items.map(item => {
+          const line = refreshed.find(row => row.stockDocumentLineId === item.line.stockDocumentLineId);
+          return line ? { ...item, line } : item;
+        }));
       }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) {
@@ -65,6 +70,7 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
     if (!valid || loading || sending.current || attempted || current.current !== session) return;
     sending.current = true; setBusy(true); setAttempted(true); setMessage("");
     const abort = new AbortController(); writer.current = abort;
+    let dispatched = false;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
@@ -72,14 +78,23 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
         || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session)
         throw Error("Session changed. Reload before retrying.");
+      dispatched = true;
       const response = await fetch(`/api/maintenance-works/${id}/logs`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
         body: JSON.stringify({ actorUserId: actor, ...(data.progressPercentAvailable === true ? { progressPercent: Number(percent) } : {}), workNote: note.trim(), spentMinutes: 0,
           materialUsages: selected.map(s => ({ stockDocumentLineId: s.line.stockDocumentLineId, uomId: s.uomId, usedQty: Number(s.quantity) })) })
       });
-      if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before recording progress again."
-        : "Progress was not confirmed. Reload and check current access, source documents and remaining quantities.");
+      if (!response.ok) {
+        if ([400, 409, 422].includes(response.status)) {
+          // The server rejected the command. Permit corrections, but never retry
+          // an ambiguous transport/server failure or reuse a stale ETag.
+          if (!abort.signal.aborted && current.current === session) setAttempted(false);
+          throw Error("Progress was rejected. Check notes, units and quantities. Load issued materials again to refresh availability, correct the entries and review before saving.");
+        }
+        throw Error(response.status === 412 ? "Work changed. Reload before recording progress again."
+          : "Progress was not confirmed. Reload and check current access, source documents and remaining quantities.");
+      }
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.loggedBy !== actor || !positiveId(result.logId)
         || (data.progressPercentAvailable === true && result.progressPercent !== Number(percent))
@@ -96,7 +111,10 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
         onCommitted?.(notice);
       }
     } catch (error) {
-      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Progress not confirmed. Reload.");
+      if (!abort.signal.aborted && current.current === session) {
+        if (!dispatched) setAttempted(false);
+        setMessage(error instanceof Error ? error.message : "Progress not confirmed. Reload.");
+      }
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
   return <section aria-label="Maintenance progress">
