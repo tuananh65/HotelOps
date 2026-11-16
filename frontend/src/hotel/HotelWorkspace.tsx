@@ -1,3 +1,4 @@
+import { RoomTypeDirectoryResults } from "./RoomTypeDirectoryResults";
 import { RoomDirectoryResults } from "./RoomDirectoryResults";
 import { useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
@@ -661,12 +662,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           {screen === "rooms" && action === "browse" ? (
             <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} basePath={directoryBasePath} />
           ) : canonicalStructure && screen === "roomTypes" && action === "browse" ? (
-            <>
-              <Values value={snapshot.data} />
-              <ul>{(snapshot.data as ReadTypes["roomTypes"]).items.filter(t => t.details.branchId !== null).map(t => <li key={t.details.id}>
-                <Link to={`/structure/room-types/${t.details.id}?branchId=${t.details.branchId}`}>Open {t.details.name} ({t.details.code})</Link>
-              </li>)}</ul>
-            </>
+            <RoomTypeDirectoryResults data={snapshot.data as ReadTypes["roomTypes"]} />
           ) : canonicalStructure && action === "browse" ? (
             <>
               <Values value={snapshot.data} />

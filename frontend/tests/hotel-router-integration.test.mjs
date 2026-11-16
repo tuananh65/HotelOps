@@ -1013,3 +1013,23 @@ test('UC020/021 canonical directory preserves scoped room detail links',async()=
   assert.equal((await writes(p)).length,0);
  });
 });
+test('UC142 canonical table exposes SRS columns and scoped detail navigation',async()=>{
+ await withHotel('/structure/room-types?branchId=1',{canonical:true},async p=>{
+  await load(p);
+  const table=p.getByRole('table',{name:'Room types returned by the server'});await table.waitFor();
+  for(const name of ['Code','Name','Branch','Active rooms','Status']) assert.equal(await table.getByRole('columnheader',{name,exact:true}).count(),1);
+  assert.equal(await table.getByRole('link').first().getAttribute('href'),`/structure/room-types/${typeItem.details.id}?branchId=1`);
+  await table.getByRole('link').first().click();await p.waitForURL(`**/structure/room-types/${typeItem.details.id}?branchId=1`);
+  assert.equal((await writes(p)).length,0);
+ });
+});
+test('UC142 canonical empty list retains server-applied filters',async()=>{
+ await withHotel('/structure/room-types?branchId=1',{canonical:true,responses:{'GET /api/room-types':[{body:{...roomTypes,items:[],total:0,search:'NoMatch',isActive:false}}]}},async p=>{
+  await p.getByLabel('Search',{exact:true}).fill('NoMatch');
+  await p.getByLabel('Active filter',{exact:true}).selectOption('false');
+  await load(p);await p.getByText(/MSG10: No room types/).waitFor();
+  const filters=await p.getByLabel('Applied room type filters').innerText();
+  assert.match(filters,/NoMatch/);assert.match(filters,/Inactive/);assert.match(filters,/Branch: 1/);
+  assert.equal((await writes(p)).length,0);
+ });
+});
