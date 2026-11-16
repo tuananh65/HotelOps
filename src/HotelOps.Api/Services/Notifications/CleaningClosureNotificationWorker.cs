@@ -33,8 +33,20 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
 
     internal async Task DrainAsync(CancellationToken ct)
     {
-        if (options.Value.Enabled) await DrainKindAsync(false, ct);
-        if (options.Value.CancellationEnabled) await DrainKindAsync(true, ct);
+        if (options.Value.Enabled) await DrainIndependentlyAsync(false, ct);
+        if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(true, ct);
+    }
+
+    private async Task DrainIndependentlyAsync(bool cancellation, CancellationToken ct)
+    {
+        try { await DrainKindAsync(cancellation, ct); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception error)
+        {
+            // Retain durable intents for retry without starving the other workflow.
+            logger.LogWarning("Cleaning {Workflow} delivery retained after {ErrorType}",
+                cancellation ? "cancellation" : "closure", error.GetType().Name);
+        }
     }
 
     private async Task DrainKindAsync(bool cancellation, CancellationToken ct)

@@ -101,6 +101,8 @@ public sealed partial class ProvisionalCleaningNotification
 
 public sealed partial class ProvisionalCleaningDelivery
 {
+    private sealed class ClosureSourceChangedException : Exception;
+
     internal async Task<string> DeliverClosureOnlyAsync(CancellationToken ct)
         => await candidate.ClosureAvailableAsync(ct) ? await DeliverClosureOneAsync(ct, null) : "DISABLED";
 
@@ -120,7 +122,7 @@ public sealed partial class ProvisionalCleaningDelivery
             TRY_CONVERT(bigint,JSON_VALUE(p.payload_json,'$.branchId')) AS BranchId,
             TRY_CONVERT(bigint,JSON_VALUE(p.payload_json,'$.taskId')) AS TaskId
             FROM dbo.notification_delivery_intents i JOIN dbo.notification_publications p ON p.publication_id=i.publication_id
-            WHERE i.status='PENDING' AND i.next_attempt_at<=SYSUTCDATETIME()
+            WHERE i.status='PENDING' AND i.delivery_channel='IN_APP' AND i.next_attempt_at<=SYSUTCDATETIME()
             AND p.event_type IN('CLEANING_BLOCKER_REPORTED','CLEANING_TASK_COMPLETED')
             AND ({publication} IS NULL OR p.publication_id={publication}) ORDER BY i.intent_id
             """).SingleOrDefaultAsync(ct);
@@ -145,7 +147,19 @@ public sealed partial class ProvisionalCleaningDelivery
                 DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = notice.CreatedAt });
             await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},attempt_count=attempt_count+1,failure_code=NULL WHERE intent_id={selected.Id}", ct);
+            // Validate the same committed-source proof used when opening the inbox.
+            // This also catches time-based permission expiry while SQL locks are held.
+            if (await CleaningClosureNotificationSource.ResolveAsync(db, notice.NotificationId, selected.UserId,
+                selected.EventName, selected.TaskId, selected.ActorId, clock.GetUtcNow().UtcDateTime, ct) == null)
+                throw new ClosureSourceChangedException();
             await tx.CommitAsync(ct); return "DELIVERED";
+        }
+        catch (ClosureSourceChangedException)
+        {
+            // The delivery transaction was disposed and rolled back before this catch.
+            db.ChangeTracker.Clear();
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code='RECIPIENT_OR_SOURCE_DENIED',attempt_count=attempt_count+1 WHERE intent_id={selected.Id} AND status='PENDING'", ct);
+            return "RECIPIENT_OR_SOURCE_DENIED";
         }
         catch (Exception e) when (!ct.IsCancellationRequested && e is System.Data.Common.DbException or DbUpdateException)
         {
