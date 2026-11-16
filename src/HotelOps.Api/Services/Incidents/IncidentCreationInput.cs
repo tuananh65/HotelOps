@@ -17,5 +17,7 @@ internal static class IncidentCreationInput
         if (input.RoomId is <= 0 || input.AreaId is <= 0 || input.AssetId is <= 0)
             throw new ValidationException("Room, area and asset identifiers must be positive when supplied.");
         IncidentRequestCreation.Validate(input);
+        if (input.Files is { Count: > 0 })
+            IncidentEvidenceWrite.Validate(new(null, input.Files));
     }
 }

@@ -240,7 +240,7 @@ public sealed class IncidentService : IIncidentService
             identity.UserId, identity.SessionId, request);
         await ValidateCreateAsync(request, cancellationToken);
 
-        var reportedAt = DateTime.UtcNow;
+        var reportedAt = await _dbContext.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(cancellationToken);
         var prefix = "INC-" + reportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
         await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
 
@@ -307,6 +307,15 @@ public sealed class IncidentService : IIncidentService
         _dbContext.Incidents.Add(incident);
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         await IncidentCategoryStore.WriteAsync(_dbContext, incident.IncidentId, request.CategoryId, cancellationToken);
+        if (request.Files is { Count: > 0 })
+        {
+            var root = services.GetRequiredService<IConfiguration>()["Evidence:PrivateRoot"]
+                ?? Path.Combine(services.GetRequiredService<IWebHostEnvironment>().ContentRootPath, "App_Data", "evidence");
+            var files = Dev2ServiceAuthority.OwnEvidence(_authorityHttp);
+            await IncidentEvidenceWrite.StageFilesAsync(_dbContext, incident.IncidentId, TrustedActorId, reportedAt,
+                request.Files, root, files, cancellationToken);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        }
 
         _dbContext.AuditLogs.Add(new AuditLog
         {
@@ -323,7 +332,9 @@ public sealed class IncidentService : IIncidentService
                 incident_no = incident.IncidentNo,
                 status = incident.Status,
                 room_id = incident.RoomId,
-                category_id = request.CategoryId
+                category_id = request.CategoryId,
+                attachment_ids = _dbContext.Attachments.Local.Where(a => a.EntityType == "INCIDENT" && a.EntityId == incident.IncidentId)
+                    .Select(a => a.AttachmentId).ToArray()
             })
         });
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);

@@ -83,6 +83,12 @@ export function createDev2Api(
         if (typeof values.similarReviewToken !== "string" || !values.similarReviewToken || values.similarReviewToken.length > 4096)
           throw Error("Review similar incidents before creating a new incident.");
         data.similarReviewToken = values.similarReviewToken;
+        if (values.files != null) {
+          if (!Array.isArray(values.files) || values.files.length > 5 || values.files.some(f => !isObject(f)
+            || typeof f.name !== "string" || typeof f.mimeType !== "string" || typeof f.base64 !== "string"))
+            throw Error("Invalid incident evidence.");
+          data.files = values.files;
+        }
       }
       if (["A004A-021", "A004A-043"].includes(operation.id) && (values.internalRequestId != null || values.requestLink != null)) {
         if (!isObject(values.requestLink) || typeof values.requestLink.version !== "string"

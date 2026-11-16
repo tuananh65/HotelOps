@@ -7,7 +7,8 @@ const { operations } = await import("../src/dev2/catalog.generated.ts");
 const operation = operations.find(action => action.id === "A004A-021");
 const values = { branchId: 3, incidentTitle: "Leaking tap", description: "Leak detected", roomId: 8,
   discoveredAt: "2026-11-16T01:00:00Z", internalRequestId: 17,
-  requestLink: { version: "AAAAAAAAAAE=", mandatory: false }, similarReviewToken: "TEST-REVIEW" };
+  requestLink: { version: "AAAAAAAAAAE=", mandatory: false }, similarReviewToken: "TEST-REVIEW",
+  files: [{ name: "report.pdf", mimeType: "application/pdf", base64: "JVBERi0=" }] };
 const response = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json" },
 });
@@ -28,6 +29,7 @@ test("linked incident preserves source version and explicit optional choice with
   assert.equal(posted.reportedBy, 42);
   assert.equal(posted.internalRequestId, 17);
   assert.equal(posted.similarReviewToken, "TEST-REVIEW");
+  assert.deepEqual(posted.files, values.files);
   assert.deepEqual(posted.requestLink, values.requestLink);
 });
 

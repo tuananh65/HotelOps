@@ -29,6 +29,7 @@ public sealed class CreateIncidentRequest
     public IncidentRequestLink? RequestLink { get; init; }
     [MaxLength(4096)]
     public string? SimilarReviewToken { get; init; }
+    public IReadOnlyList<HotelOps.Api.DTOs.Housekeeping.EvidenceUpload>? Files { get; init; }
 }
 
 public sealed record IncidentRequestLink(string Version, [property: JsonRequired] bool Mandatory);

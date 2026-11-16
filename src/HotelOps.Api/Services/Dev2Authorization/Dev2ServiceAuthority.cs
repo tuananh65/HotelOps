@@ -101,6 +101,9 @@ public static class Dev2ServiceAuthority
         await RevalidateAsync(db, accessor, Dev2AuthorizationPhase.BeforePersistence, token);
         var actual = transaction is ActionTransactionLease lease ? lease.Owner : transaction;
         if (!ReferenceEquals(db.Database.CurrentTransaction, actual)) throw new Dev2AccessDenied(403);
+        if (transaction is not ActionTransactionLease)
+            foreach (var files in RequireGrant(accessor, CurrentIdentity(accessor)).EvidenceFiles)
+                await files.BeforeCommitAsync(token);
     }, ct);
 
     internal static async Task CommitVerifiedAsync(IDbContextTransaction transaction,
@@ -120,7 +123,23 @@ public static class Dev2ServiceAuthority
     }
 
     internal static void Install(HttpContext context, Dev2ActionGrant grant) => context.Items[RequestGrantKey] = grant;
-    internal static void Remove(HttpContext context) => context.Items.Remove(RequestGrantKey);
+    internal static HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime OwnEvidence(IHttpContextAccessor? accessor)
+    {
+        var grant = RequireGrant(accessor, CurrentIdentity(accessor));
+        var files = new HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime();
+        grant.EvidenceFiles.Add(files);
+        return files;
+    }
+
+    internal static void Remove(HttpContext context)
+    {
+        try
+        {
+            if (context.Items[RequestGrantKey] is Dev2ActionGrant grant)
+                foreach (var files in grant.EvidenceFiles) files.Dispose();
+        }
+        finally { context.Items.Remove(RequestGrantKey); }
+    }
     private static Dev2ActionGrant RequireGrant(IHttpContextAccessor? accessor, CurrentUserInfo actor)
     {
         if (accessor?.HttpContext?.Items[RequestGrantKey] is not Dev2ActionGrant grant
@@ -136,6 +155,7 @@ internal sealed class Dev2ActionGrant(Dev2BoundAction action, Dev2ActionContract
     internal Dev2BoundAction Action { get; } = action;
     internal Dev2ActionContract Contract { get; } = contract;
     internal IDbContextTransaction? ActionTransaction { get; set; }
+    internal List<HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime> EvidenceFiles { get; } = [];
     private readonly byte[] inputHash = Hash(action);
     internal async Task RevalidateAsync(Dev2AuthorizationPhase phase, CancellationToken ct)
     {

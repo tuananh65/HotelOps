@@ -100,17 +100,7 @@ public sealed class IncidentEvidenceWrite(HotelOpsDbContext db, ISqlSessionServi
         await Authorize();
         if (await VersionAsync(db, incident, ct) != version) throw new InternalRequestReadException(412, "INCIDENT_CHANGED");
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        foreach (var upload in input.Files ?? [])
-        {
-            var (bytes, extension) = InternalRequestEvidence.Validate(upload);
-            var directory = Path.GetFullPath(root); Directory.CreateDirectory(directory);
-            if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new ValidationException("Private storage unavailable.");
-            var key = Guid.NewGuid().ToString("N") + extension; var path = Path.Combine(directory, key);
-            await using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
-            { files.Files.Add(path); await stream.WriteAsync(bytes, ct); await stream.FlushAsync(ct); }
-            db.Attachments.Add(new Attachment { EntityType = "INCIDENT", EntityId = id, FileName = key, OriginalFileName = upload.Name,
-                MimeType = upload.MimeType, FileSizeBytes = bytes.Length, StorageKey = key, UploadedBy = ticket.UserId, UploadedAt = now });
-        }
+        await StageFilesAsync(db, id, ticket.UserId, now, input.Files, root, files, ct);
         var entry = new IncidentEvent { IncidentId = id, EventType = "EVIDENCE_ADDED", FromStatus = incident.Status, ToStatus = incident.Status,
             ActorId = ticket.UserId, OccurredAt = now, Note = input.Note };
         db.IncidentEvents.Add(entry);
@@ -123,5 +113,20 @@ public sealed class IncidentEvidenceWrite(HotelOpsDbContext db, ISqlSessionServi
         var result = new IncidentEvidenceSaved(id, entry.EventId, await VersionAsync(db, incident, ct), "MSG08");
         await files.BeforeCommitAsync(ct); await tx.CommitAsync(ct);
         return result;
+    }
+    internal static async Task StageFilesAsync(HotelOpsDbContext db, long id, long actor, DateTime now,
+        IReadOnlyList<EvidenceUpload>? uploads, string root, EvidenceFileLifetime files, CancellationToken ct)
+    {
+        foreach (var upload in uploads ?? [])
+        {
+            var (bytes, extension) = InternalRequestEvidence.Validate(upload);
+            var directory = Path.GetFullPath(root); Directory.CreateDirectory(directory);
+            if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new ValidationException("Private storage unavailable.");
+            var key = Guid.NewGuid().ToString("N") + extension; var path = Path.Combine(directory, key);
+            await using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+            { files.Files.Add(path); await stream.WriteAsync(bytes, ct); await stream.FlushAsync(ct); }
+            db.Attachments.Add(new Attachment { EntityType = "INCIDENT", EntityId = id, FileName = key, OriginalFileName = upload.Name,
+                MimeType = upload.MimeType, FileSizeBytes = bytes.Length, StorageKey = key, UploadedBy = actor, UploadedAt = now });
+        }
     }
 }

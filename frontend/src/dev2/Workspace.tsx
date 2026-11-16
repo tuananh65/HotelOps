@@ -195,6 +195,7 @@ function Screen({
   );
   const [record, setRecord] = useState<Values>({});
   const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<IncidentReview | null>(null);
+  const [incidentFiles, setIncidentFiles] = useState<File[]>([]);
   const [data, setData] = useState<unknown>();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -278,6 +279,19 @@ function Screen({
     const abort = new AbortController();
     controller.current = abort;
     try {
+      if (target.id === "A004A-021") {
+        if (incidentFiles.length > 5 || incidentFiles.some(f => f.size < 1 || f.size > 10 * 1024 * 1024
+          || !["image/jpeg", "image/png", "application/pdf"].includes(f.type)))
+          throw Error("MSG23: Select up to five JPG, PNG or PDF files, at most 10 MiB each.");
+        const files = await Promise.all(incidentFiles.map(async file => {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = "";
+          for (let offset = 0; offset < bytes.length; offset += 8192) binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+          return { name: file.name, mimeType: file.type, base64: btoa(binary) };
+        }));
+        if (!mounted.current || abort.signal.aborted) return;
+        commandInput = { ...commandInput, files };
+      }
       const response = await api.current(
         target,
         args,
@@ -335,6 +349,7 @@ function Screen({
       const root = isObject(response.data) ? response.data : {};
       setRecord(root);
       if (target.method !== "GET") {
+        if (target.id === "A004A-021") setIncidentFiles([]);
         setMessage(
           "Saved by the server. Related views will load current data when opened.",
         );
@@ -589,6 +604,9 @@ function Screen({
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
           {operation.id === "A004A-021" && <IncidentDuplicateReview values={values} onReviewed={setReviewedIncidentLocation} />}
+          {operation.id === "A004A-021" && <label>Evidence (optional, up to five JPG, PNG or PDF files, 10 MiB each)
+            <input key={String(record.incidentId ?? "new")} type="file" multiple accept=".jpg,.jpeg,.png,.pdf" disabled={busy}
+              onChange={e => setIncidentFiles(Array.from(e.target.files ?? []))} /></label>}
           {materialWrite && <MaterialCatalogFields values={values} onChange={change}
             historicalLineMax={operation.id === "A004A-044" ? historicalLineMax : undefined} />}
           {materialRequesterActions.includes(operation.id) && !materialRequesterReady(record, actor, operation.id)

@@ -61,6 +61,7 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
+    [RequestSizeLimit(72 * 1024 * 1024)]
     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
         CreateIncidentRequest request, CancellationToken cancellationToken)
     {
