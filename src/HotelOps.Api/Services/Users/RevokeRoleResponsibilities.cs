@@ -44,8 +44,7 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
         var before = afterMutation ? initial : paths;
         var after = afterMutation ? paths : RevokeRoleGrantImpact.Without(paths, assignment);
         if (afterMutation && (!await db.UserRoles.AnyAsync(a => a.UserId == target && a.UserRoleId == assignment && !a.IsActive, ct)
-            || !RevokeRoleGrantImpact.Effective(RevokeRoleGrantImpact.Without(initial, assignment), now)
-                .SequenceEqual(RevokeRoleGrantImpact.Effective(after, now))))
+            || !RevokeRoleGrantImpact.SameEffectivePaths(RevokeRoleGrantImpact.Without(initial, assignment), after, now)))
             unresolved.Add("POST_REVOKE_GRANTS_CHANGED");
         Before = RevokeRoleGrantImpact.Effective(before, now);
         After = RevokeRoleGrantImpact.Effective(after, now);

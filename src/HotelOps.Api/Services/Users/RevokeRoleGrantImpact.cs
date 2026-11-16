@@ -51,6 +51,16 @@ public static class RevokeRoleGrantImpact
         .Select(g => $"{g.Path.PermissionCode}/{PermissionGrantRules.EffectiveScope(g.Path) ?? "UNKNOWN"}/{g.Path.BranchId}")
         .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
+    // Audit summaries intentionally collapse equivalent permissions. Final rereads
+    // must also preserve their assignment/actor provenance and validity window.
+    internal static bool SameEffectivePaths(IReadOnlyList<RevokeGrant> expected,
+        IReadOnlyList<RevokeGrant> actual, DateTime nowUtc)
+    {
+        if (nowUtc.Kind != DateTimeKind.Utc) return false;
+        return expected.Where(g => PermissionGrantRules.IsEligible(g.Path, nowUtc)).ToHashSet()
+            .SetEquals(actual.Where(g => PermissionGrantRules.IsEligible(g.Path, nowUtc)));
+    }
+
     public static RevokeCapabilityImpact InternalRequestHandler(string? state,
         IReadOnlyList<RevokeGrant> before,IReadOnlyList<RevokeGrant> after,long? branch,DateTime nowUtc,
         bool currentHandlerMembershipVerified = false)

@@ -108,6 +108,16 @@ public sealed class InternalRequestRoleSqlTests
             Assert.DoesNotContain(label + "_UNKNOWN",survivingAfter.Unresolved);
             Assert.True((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
             await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
+            // Permission/scope summaries stay identical when a surviving grant's
+            // validity window changes; the final reread must still flag drift.
+            var changedWindow = new RevokeRoleResponsibilities(db, TimeProvider.System);
+            await changedWindow.ReadAsync(user.UserId,selected.UserRoleId,false,ct);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ExpiresAt,now.AddDays(1)),ct);
+            Assert.Contains("POST_REVOKE_GRANTS_CHANGED",(await changedWindow.ReadAsync(user.UserId,selected.UserRoleId,true,ct)).Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ExpiresAt,(DateTime?)null),ct);
+            Assert.DoesNotContain("POST_REVOKE_GRANTS_CHANGED",(await changedWindow.ReadAsync(user.UserId,selected.UserRoleId,true,ct)).Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
             await db.UserRoles.Where(r => r.UserRoleId == alternate.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, alternate.RoleId), ct);
             await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,now),ct);
             Assert.Contains(label,(await Read()).Blockers);
