@@ -22,7 +22,7 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
         ArgumentNullException.ThrowIfNull(request);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(request.BranchId);
+        if (request.BranchId is { } requestedBranch) ArgumentOutOfRangeException.ThrowIfNegativeOrZero(requestedBranch);
         ArgumentNullException.ThrowIfNull(expectedVersion);
         if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
@@ -45,8 +45,9 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
         await authorityLocks.LockAuthorityAsync(actor.UserId, targetId, ct);
         // Snapshot already retains all grant/permission ranges (including ROLE_MANAGE).
         // Retain the destination branch while final checks may advance time.
-        _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={request.BranchId}")
-            .AsNoTracking().ToListAsync(ct);
+        if (request.BranchId is { } branch)
+            _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={branch}")
+                .AsNoTracking().ToListAsync(ct);
         // Retain the assignment range: an explicit reactivation must not race a
         // revoke, expiry edit or another grant for the same unique role/branch.
         _ = await db.UserRoles.FromSqlInterpolated($"SELECT * FROM dbo.user_roles WITH (UPDLOCK,HOLDLOCK) WHERE user_id={targetId}")
@@ -63,11 +64,17 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
             if (target.AccountStatus != "ACTIVE" || target.EmploymentStatus != "ACTIVE") return AssignRoleStatus.Inactive;
             if (!target.RowVersion.AsSpan().SequenceEqual(version)) return AssignRoleStatus.Stale;
             var now = clock.GetUtcNow().UtcDateTime;
-            if (!await db.Branches.AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, ct)
+            if (request.BranchId.HasValue && (!await db.Branches.AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, ct)
                 || !await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == request.BranchId
-                    && a.RevokedAt == null && a.GrantedAt <= now, ct)) return AssignRoleStatus.ScopeConflict;
+                    && a.RevokedAt == null && a.GrantedAt <= now, ct))) return AssignRoleStatus.ScopeConflict;
             var role = await db.Roles.AsNoTracking().SingleOrDefaultAsync(r => r.RoleCode == request.RoleCode, ct);
             if (role is null || !role.IsActive || role.RoleCode != request.RoleCode) return AssignRoleStatus.Forbidden;
+            // Existing PermissionGrantRules makes ALL global only for an unbound
+            // assignment. Do not turn BRANCH/OWN grants into global grants, or
+            // issue an unbound Operations Manager role with no valid branch scope.
+            if (request.BranchId is null && (role.RoleCode == "OPERATIONS_MANAGER"
+                || !await db.RolePermissions.AnyAsync(g => g.RoleId == role.RoleId && g.DataScope == "ALL", ct)))
+                return AssignRoleStatus.ScopeConflict;
             // UC009 owns current grants. Adding a role never bypasses resource/department
             // authority or segregation of duties enforced by each business operation.
             var operationsManager = role.RoleCode == "OPERATIONS_MANAGER" || await db.UserRoles.AnyAsync(a => a.UserId == targetId
@@ -133,7 +140,7 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
         try { await db.SaveChangesAsync(ct); }
         finally { db.Entry(audit).State = EntityState.Detached; }
         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
-        // The new role is branch-bound and cannot remove an old eligible principal. Keep
+        // Adding/reactivating a role cannot remove an old eligible principal. Keep
         // the existing nonzero-baseline poststate check without blocking zero-admin workforce setup.
         if (before.DurableEligibleUserIds.Count > 0)
         {

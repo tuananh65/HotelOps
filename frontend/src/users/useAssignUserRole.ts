@@ -194,7 +194,7 @@ export function useAssignUserRole(target: number | null) {
       publish({ phase: "idle" });
     setAttempt((n) => n + 1);
   }
-  async function assign(roleCode: string, branchId: number, reactivateExisting = false) {
+  async function assign(roleCode: string, branchId: number | null, reactivateExisting = false) {
     if (
       !mounted.current ||
       !owner ||
@@ -207,8 +207,7 @@ export function useAssignUserRole(target: number | null) {
       paused.current ||
       ["unknown", "stale", "confirmed"].includes(phase.current) ||
       normalizeAssignmentRole(roleCode) !== roleCode ||
-      !Number.isSafeInteger(branchId) ||
-      branchId <= 0
+      (branchId !== null && (!Number.isSafeInteger(branchId) || branchId <= 0))
     )
       return;
     busy.current = true;
@@ -304,7 +303,7 @@ function failureMessage(status?: number, reason?: string): string {
     case "TARGET_NOT_ACTIVE":
       return "The server rejected the request because the target account is not active.";
     case "PRIMARY_SCOPE_CONFLICT":
-      return "The selected branch is inactive, the user lacks current branch access, or the Operations Manager branch limit would be exceeded.";
+      return "The selected scope is incompatible: check current branch access and Operations Manager restrictions. Global assignment requires an existing ALL grant on the role.";
     case "EXISTING_ROLE_PATH_CONFLICT":
       return "New assignment requires no existing role/branch record. Reactivation requires an existing inactive assignment. Refresh the user's access review before choosing the appropriate action.";
     case "LAST_DURABLE_ADMIN":

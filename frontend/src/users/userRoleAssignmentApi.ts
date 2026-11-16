@@ -169,7 +169,7 @@ export function createUserRoleAssignmentApi(
         error: { kind: "invalid-request", reason },
       });
       // Validate primitives and freeze serialization before the first await.
-      if (!id(userId) || !id(branchId) || typeof reactivateExisting !== "boolean") return invalid("INVALID_REQUEST");
+      if (!id(userId) || (branchId !== null && !id(branchId)) || typeof reactivateExisting !== "boolean") return invalid("INVALID_REQUEST");
       if (!strongEtag(etag)) return invalid("INVALID_IF_MATCH");
       if (typeof roleCode !== "string") return invalid("INVALID_ROLE_CODE");
       const normalizedRole = trimRoleCode(roleCode);
@@ -249,7 +249,7 @@ export function createUserRoleAssignmentApi(
           !id(value.id) ||
           !id(value.userId) ||
           value.userId !== userId ||
-          !id(value.branchId) ||
+          (value.branchId !== null && !id(value.branchId)) ||
           value.branchId !== branchId ||
           value.roleCode !== normalizedRole ||
           !id(value.assignedBy) ||

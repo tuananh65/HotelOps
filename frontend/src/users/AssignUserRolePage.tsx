@@ -19,12 +19,13 @@ function ConfirmationForm({
 }: {
   profile: UserProfileDto;
   access: UserAccessReviewDto | null;
-  assign(roleCode: string, branchId: number, reactivateExisting: boolean): Promise<void>;
+  assign(roleCode: string, branchId: number | null, reactivateExisting: boolean): Promise<void>;
 }) {
   const [role, setRole] = useState("");
   const [branch, setBranch] = useState("");
+  const [globalScope, setGlobalScope] = useState(false);
   const [reactivateExisting, setReactivateExisting] = useState(false);
-  const [review, setReview] = useState<{ role: string; branch: number; reactivateExisting: boolean } | null>(
+  const [review, setReview] = useState<{ role: string; branch: number | null; reactivateExisting: boolean } | null>(
     null,
   );
   const reviewed = useRef<typeof review>(null);
@@ -60,10 +61,10 @@ function ConfirmationForm({
   function preview() {
     invalidate();
     const roleCode = normalizeAssignmentRole(role),
-      branchId = assignmentBranchId(branch);
-    if (!roleCode || branchId === null || !roles.some(r => r.roleCode === roleCode && r.isActive)) {
+      branchId = globalScope ? null : assignmentBranchId(branch);
+    if (!roleCode || (!globalScope && branchId === null) || !roles.some(r => r.roleCode === roleCode && r.isActive)) {
       setError(
-        "Select an active role and enter a positive Branch ID for the user's current branch access.",
+        "Select an active role and either global scope or a positive Branch ID for the user's current branch access.",
       );
       return;
     }
@@ -101,9 +102,10 @@ function ConfirmationForm({
                   ? "Expired" : "Active"}</td>
               <td>{row.roleActive ? "Active" : "Inactive"}</td>
               <td>{row.assignedAtUtc}</td><td>{row.expiresAtUtc ?? "None"}</td>
-              <td>{!row.assignmentActive && row.roleActive && row.branchId !== null &&
+              <td>{!row.assignmentActive && row.roleActive &&
                 <button type="button" disabled={!!catalogState} onClick={() => {
-                  setRole(row.code); setBranch(String(row.branchId)); setReactivateExisting(true); invalidate();
+                  setRole(row.code); setBranch(row.branchId === null ? "" : String(row.branchId));
+                  setGlobalScope(row.branchId === null); setReactivateExisting(true); invalidate();
                 }}>Select for reactivation</button>}</td>
             </tr>)}</tbody>
           </table>}
@@ -126,6 +128,15 @@ function ConfirmationForm({
       </label>
       {catalogState && <p role="status">{catalogState}</p>}
       <label>
+        Assignment scope
+        <select value={globalScope ? "global" : "branch"} onChange={e => {
+          setGlobalScope(e.target.value === "global"); invalidate();
+        }}>
+          <option value="branch">One branch</option>
+          <option value="global">Global (existing ALL grants only)</option>
+        </select>
+      </label>
+      <label>
         Branch ID
         <input
           name="branchId"
@@ -133,6 +144,7 @@ function ConfirmationForm({
           inputMode="numeric"
           autoComplete="off"
           required
+          disabled={globalScope}
           value={branch}
           onChange={(e) => {
             setBranch(e.target.value);
@@ -144,7 +156,7 @@ function ConfirmationForm({
         <input type="checkbox" checked={reactivateExisting} onChange={e => {
           setReactivateExisting(e.target.checked); invalidate();
         }} />
-        Reactivate a previously revoked assignment for this role and branch
+        Reactivate a previously revoked assignment for this role and scope
       </label>
       <button type="button" onClick={preview} disabled={!!catalogState}>
         Review Assignment
@@ -155,13 +167,16 @@ function ConfirmationForm({
           <p>Full name: {profile.fullName}</p>
           <p>Email: {profile.email}</p>
           <p>Role Code: {review.role}</p>
-          <p>Branch ID: {review.branch}</p>
+          <p>Scope: {review.branch === null ? "Global" : `Branch ${review.branch}`}</p>
           <p>Action: {review.reactivateExisting ? "Reactivate revoked assignment" : "Create new assignment"}</p>
           <p>
-            The assignment is limited to this branch. Existing roles remain assigned.
+            {review.branch === null
+              ? "Global assignment allows this role's existing ALL grants to apply across branches. BRANCH and OWN grants do not become global."
+              : "The assignment is limited to this branch."}
+            {" "}Existing roles remain assigned.
             {review.reactivateExisting
               ? " The previous grant is retained in audit history. A current or scheduled assignment cannot be reactivated."
-              : " An existing role/branch record is rejected; use reactivation only for a revoked assignment."}
+              : " An existing role/scope record is rejected; use reactivation only for a revoked assignment."}
           </p>
           <button type="button" onClick={confirm}>
             Confirm Assign Role
@@ -220,7 +235,7 @@ export function AssignUserRolePage({
           <p>id: {assignment.id}</p>
           <p>userId: {assignment.userId}</p>
           <p>roleCode: {assignment.roleCode}</p>
-          <p>branchId: {assignment.branchId}</p>
+          <p>scope: {assignment.branchId === null ? "Global" : `Branch ${assignment.branchId}`}</p>
           <p>assignedBy: {assignment.assignedBy}</p>
           <p>assignedAtUtc: {assignment.assignedAtUtc}</p>
           <p>isActive: {String(assignment.isActive)}</p>

@@ -1,7 +1,7 @@
 export interface UserRoleAssignmentDto {
   readonly id: number;
   readonly userId: number;
-  readonly branchId: number;
+  readonly branchId: number | null;
   readonly roleCode: string;
   readonly assignedBy: number;
   readonly assignedAtUtc: string;
@@ -64,7 +64,7 @@ export interface UserRoleAssignmentApi {
     userId: number,
     etag: string,
     roleCode: string,
-    branchId: number,
+    branchId: number | null,
     signal?: AbortSignal,
     reactivateExisting?: boolean,
   ): Promise<AssignUserRoleResult>;
