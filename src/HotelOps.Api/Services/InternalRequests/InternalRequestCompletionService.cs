@@ -13,7 +13,8 @@ namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestCompletionResult(long RequestId,long EventId,string Status,string Version,string Message);
 public sealed record InternalRequestCompletionInput(string Result);
-public sealed record InternalRequestCompletionView(long RequestId,string Status,string Version,bool CanComplete,string? Blocker);
+public sealed record InternalRequestCompletionView(long RequestId,string Status,string Version,bool CanComplete,string? Blocker,
+    InternalRequestCompletionBlocker[]? VisibleBlockers = null, bool HasUndisclosedBlockers = false);
 
 // UC120 business transaction. The public HTTP/UI and delivery adapters are separate.
 public sealed class InternalRequestCompletionService(HotelOpsDbContext db,InternalRequestProcessAuthority authority,
@@ -39,25 +40,26 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
 
     private sealed class MaterialLink { public long Id { get; set; } public bool Mandatory { get; set; } }
 
-    private async Task<int> MaterialBlockersAsync(long id,long branch,CancellationToken ct)
+    private async Task<List<InternalRequestCompletionBlocker>> MaterialBlockersAsync(long id,long branch,CancellationToken ct)
     {
         var links = await db.Database.SqlQuery<MaterialLink>($"""
             SELECT material_request_id AS Id,is_mandatory AS Mandatory
             FROM dbo.internal_request_material_links WHERE internal_request_id={id}
             """).OrderBy(l => l.Id).ToArrayAsync(ct);
-        var blockers = 0;
+        var blockers = new List<InternalRequestCompletionBlocker>();
         foreach (var link in links)
         {
             // Optional work still needs valid branch provenance. Target metadata is never
             // disclosed through this internal closure prerequisite.
             if (!await db.MaterialRequests.AsNoTracking().AnyAsync(m => m.RequestId == link.Id
                 && m.BranchId == branch && m.Department.BranchId == branch, ct))
-            { blockers++; continue; }
+            { blockers.Add(new("MATERIAL", link.Id, "LINK_BRANCH_MISMATCH")); continue; }
             if (!link.Mandatory) continue;
             var evidence = await MaterialCompletionEvidence.ReadAsync(db, link.Id, branch, ct);
             // Explicit DEV3 decision: both proven FULLY_ISSUED and REMAINDER_CLOSED
             // satisfy mandatory-material completion. No other state is inferred closed.
-            if (!evidence.FullyIssuedProven && !evidence.RemainderClosureProven) blockers++;
+            if (!evidence.FullyIssuedProven && !evidence.RemainderClosureProven)
+                blockers.Add(new("MATERIAL", link.Id, "MATERIAL_COMPLETION_UNPROVEN"));
         }
         return blockers;
     }
@@ -73,20 +75,28 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
         var request=await scope.Apply(db.InternalRequests.AsNoTracking(),now).SingleOrDefaultAsync(r=>r.InternalRequestId==id,ct)
             ??throw new InternalRequestReadException(404,"IR_NOT_FOUND");
         string? blocker=null;
+        var blockers = new List<InternalRequestCompletionBlocker>();
         if(allowed&&request.Status=="IN_PROGRESS")
         {
             var active=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE").ToArrayAsync(ct);
             if(active.Length!=1||active[0].EndedAt!=null||active[0].AssignedAt>now)blocker="IR_ASSIGNMENT_INCONSISTENT";
-            else if((await InternalRequestCompletionWork.ReadKnownBlockersAsync(db,id,ct)).Count!=0)blocker="MSG34";
-            else if(await MaterialBlockersAsync(id,request.BranchId,ct)!=0)blocker="IR_MATERIAL_COMPLETION_UNRESOLVED";
+            else
+            {
+                blockers.AddRange(await InternalRequestCompletionWork.ReadKnownBlockersAsync(db,id,ct));
+                blockers.AddRange(await MaterialBlockersAsync(id,request.BranchId,ct));
+                if (blockers.Count != 0) blocker = "MSG34";
+            }
         }
+        var visible = await InternalRequestCompletionVisibility.ReadAsync(db,ticket.UserId,request.BranchId,blockers,ct);
         var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await SessionAsync(ticket,sid,ct);
         var finalNow=DateTime.UtcNow;var finalScope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,finalNow,ct);
         if(!await finalScope.Apply(db.InternalRequests.AsNoTracking(),finalNow).AnyAsync(r=>r.InternalRequestId==id,ct)
             ||allowed!=await authority.AllowsCurrentRequestAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
+        var finalVisible = await InternalRequestCompletionVisibility.ReadAsync(db,ticket.UserId,request.BranchId,blockers,ct);
+        if (!visible.SequenceEqual(finalVisible)) throw new InternalRequestReadException(403,"IR_TARGET_SCOPE_CHANGED");
         await tx.CommitAsync(ct);
-        // No linked target IDs/titles/statuses are disclosed here. Existing target panels independently authorize them.
-        return new(id,request.Status,Convert.ToBase64String(version),allowed&&request.Status=="IN_PROGRESS"&&blocker==null,blocker);
+        return new(id,request.Status,Convert.ToBase64String(version),allowed&&request.Status=="IN_PROGRESS"&&blocker==null,
+            blocker,visible,visible.Length < blockers.Count);
     }
 
     public async Task<InternalRequestCompletionResult> CompleteAsync(SessionReference ticket,long sid,long id,byte[] version,string result,CancellationToken ct)
@@ -115,7 +125,7 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
                 throw new InternalRequestReadException(409,"IR_COMPLETION_BLOCKED");
             // Reconcile approved terminal material states against their stored evidence.
             // Optional links still require valid branch provenance.
-            if(await MaterialBlockersAsync(id,request.BranchId,ct)!=0)throw new InternalRequestReadException(409,"IR_MATERIAL_COMPLETION_UNRESOLVED");
+            if((await MaterialBlockersAsync(id,request.BranchId,ct)).Count!=0)throw new InternalRequestReadException(409,"IR_MATERIAL_COMPLETION_UNRESOLVED");
             var entry=new InternalRequestEvent{InternalRequestId=id,EventType="COMPLETE",OldStatus="IN_PROGRESS",NewStatus="CLOSED",EventNote=result,ActorId=ticket.UserId,OccurredAt=now};
             var audit=new AuditLog{ActorUserId=ticket.UserId,BranchId=request.BranchId,EntityType="internal_requests",EntityId=id.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
                 OldValues=JsonSerializer.Serialize(new{status=request.Status}),NewValues=JsonSerializer.Serialize(new{status="CLOSED",result}),ChangedFields="[\"status\",\"result\",\"closed_at\"]"};

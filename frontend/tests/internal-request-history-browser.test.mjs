@@ -39,7 +39,8 @@ async function fixture(run) {
         assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
         assert.deepEqual(request.postDataJSON(),{result:"Finished work"});return json({},412);
       }
-      return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",canComplete:state.completionAllowed??false,blocker:state.completionBlocker??null});
+      return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",canComplete:state.completionAllowed??false,blocker:state.completionBlocker??null,
+        visibleBlockers:state.visibleCompletionBlockers,hasUndisclosedBlockers:state.hiddenCompletionBlockers});
     }
     if (path === "/api/internal-requests/1/handover" || path === "/api/internal-requests/1/handover/decision") {
       if(request.method()==="POST") {
@@ -426,6 +427,24 @@ test("handover receiver requires rejection reason and removes receipt after read
   assert.equal(await panel.getByRole("button",{name:"Acknowledge handover",exact:true}).count(),0);
 }));
 
+test("completion lists authorized blockers and keeps undisclosed work blocking",async()=>fixture(async(page,state)=>{
+  state.completionBlocker="MSG34";
+  state.visibleCompletionBlockers=[{kind:"MATERIAL",id:7,code:"MATERIAL_COMPLETION_UNPROVEN"}];
+  state.hiddenCompletionBlockers=true;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Complete request",exact:true});
+  await panel.getByText("MATERIAL #7: Material completion evidence is not confirmed.",{exact:true}).waitFor();
+  await panel.getByText(/Hidden records still prevent completion/).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
+}));
+test("completion refuses contradictory permission and blocker response",async()=>fixture(async(page,state)=>{
+  state.completionAllowed=true;
+  state.visibleCompletionBlockers=[{kind:"TASK",id:7,code:"MANDATORY_WORK_NOT_CLOSED"}];
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Complete request",exact:true});
+  await panel.getByText(/Completion availability could not be loaded/).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
+}));
 test("completion requires result and never replays a stale double click",async()=>fixture(async(page,state)=>{
   state.completionAllowed=true;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
