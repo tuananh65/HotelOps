@@ -353,7 +353,8 @@ export function InternalRequestHistoryPage() {
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
-          <InternalRequestProgressPanel id={visible.timeline.requestId} />
+          <InternalRequestProgressPanel id={visible.timeline.requestId}
+            onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Progress saved. Request remains In Progress.")} />
           {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Request escalated.</p>}
           <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={handoverState => refreshWork(visible.timeline!.requestId, `MSG08: Handover ${handoverState}.`)} />

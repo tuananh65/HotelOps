@@ -12,7 +12,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Invalid response");
   return response.json();
 }
-export function InternalRequestProgressPanel({ id }: { id: number }) {
+export function InternalRequestProgressPanel({ id, onSaved }: { id: number; onSaved?: () => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [loaded, setLoaded] = useState<{ owner: typeof owner; id: number; view: View } | null>(null);
@@ -83,7 +83,11 @@ export function InternalRequestProgressPanel({ id }: { id: number }) {
         body: JSON.stringify({ percent: value, note: note.trim() || null, result: result.trim() || null,
           deadline: view.canChangeDeadline && deadline ? new Date(deadline + "Z").toISOString() : null, deadlineReason: reason.trim() || null, files: uploads }) }) as { requestId?: unknown; status?: unknown; version?: unknown };
       if (raw.requestId !== id || raw.status !== "IN_PROGRESS" || !version(raw.version)) throw new Error("Progress not confirmed");
-      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Progress saved. Request remains In Progress. Reload progress to view the saved result."); }
+      if (!abort.signal.aborted) {
+        setLoaded(null);
+        setMessage("MSG08: Progress saved. Request remains In Progress. Reload progress to view the saved result.");
+        onSaved?.();
+      }
     } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload progress before saving."
       : e instanceof Failure && e.status === 403 ? "MSG02: Current authority does not allow this update. Reload progress to check your assignment and deadline permissions."
       : "Progress not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }

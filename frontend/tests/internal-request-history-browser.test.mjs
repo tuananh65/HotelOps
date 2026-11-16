@@ -97,12 +97,13 @@ async function fixture(run) {
         state.progressPosts=(state.progressPosts??0)+1;
         assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
         if(state.expectProgressFile){const body=request.postDataJSON();assert.equal(body.files.length,1);assert.equal(body.files[0].name,"proof.png");assert.equal(body.files[0].mimeType,"image/png");assert.equal(Buffer.from(body.files[0].base64,"base64").length,8);}
+        if((state.progressPostStatus??200)===200) state.savedProgress=request.postDataJSON();
         return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAE="},state.progressPostStatus??200);
       }
       const older = new URL(request.url()).searchParams.get("evidenceBefore");
       if (older) { state.olderCursor = older; state.olderReads = (state.olderReads ?? 0) + 1; }
       const evidence = state.evidence ? { evidenceCount: 2, evidence: [{ id: older ? 1 : 2, name: older ? "older.png" : "latest.png", mimeType: "image/png", size: 8, downloadPath: `/api/internal-requests/1/progress/evidence/${older ? 1 : 2}` }] } : {};
-      return json({requestId:1,status:"IN_PROGRESS",version:older && state.changedEvidence ? "AAAAAAAAAAE=" : "AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false,...evidence},older ? (state.olderStatus??200) : (state.progressStatus??200));
+      return json({requestId:1,status:"IN_PROGRESS",version:state.savedProgress || older && state.changedEvidence ? "AAAAAAAAAAE=" : "AAAAAAAAAAA=",percent:state.savedProgress?.percent??25,note:state.savedProgress?.note??"PRIVATE PROGRESS",result:state.savedProgress?.result??"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false,...evidence},older ? (state.olderStatus??200) : (state.progressStatus??200));
     }
     if (path === "/api/internal-requests/1/linked-incidents") {
       if(request.method()==="POST") {
@@ -334,8 +335,15 @@ for(const status of [200,403,412])test(`progress ${status} uses CSRF/ETag, preve
   await panel.getByLabel("Progress attachments",{exact:true}).setInputFiles({name:"proof.png",mimeType:"image/png",buffer:Buffer.from([137,80,78,71,13,10,26,10])});
   assert.equal(await panel.getByLabel("New deadline (UTC)",{exact:true}).count(),0);
   await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
-  await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":status===403?"MSG02: Current authority":"Request changed"}).waitFor();
-  assert.equal(state.progressPosts,1);assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
+  if(status===200){
+    await page.getByRole("status").filter({hasText:"MSG08: Progress saved"}).waitFor();
+    await panel.getByText("Saved progress: 100%",{exact:true}).waitFor();
+    assert.equal(await panel.getByLabel("Result note",{exact:true}).inputValue(),"Updated result");
+  }else{
+    await panel.getByRole("status").filter({hasText:status===403?"MSG02: Current authority":"Request changed"}).waitFor();
+    assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
+  }
+  assert.equal(state.progressPosts,1);
 }));
 
 test("linked task read grants no mutation and revoked read clears target metadata",async()=>fixture(async(page,state)=>{
