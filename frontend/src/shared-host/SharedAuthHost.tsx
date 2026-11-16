@@ -171,6 +171,8 @@ export function SharedAuthHost({
           <Route path="/structure/areas/:id" element={<StructureManagementRoute kind="areas" />} />
           <Route path="/structure/departments" element={<StructureManagementRoute kind="departments" />} />
           <Route path="/structure/departments/:id" element={<StructureManagementRoute kind="departments" />} />
+          <Route path="/structure/room-types" element={<StructureManagementRoute kind="roomTypes" />} />
+          <Route path="/structure/room-types/:id" element={<StructureManagementRoute kind="roomTypes" />} />
         </>
       )}
       <Route

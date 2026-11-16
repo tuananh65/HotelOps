@@ -115,6 +115,7 @@ export const roomTypeItemDto = record({
   details: roomTypeDto,
   activeRooms: count,
   canUpdate: boolean,
+  activeRoomReferences: (value: unknown) => value == null ? null : list(record({ id: safeId, roomNumber: text }))(value),
 });
 export const roomTypesDto = record({
   items: list(roomTypeItemDto),

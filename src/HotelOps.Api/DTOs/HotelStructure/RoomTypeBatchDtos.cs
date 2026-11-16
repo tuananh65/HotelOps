@@ -13,7 +13,8 @@ public sealed record UpdateRoomTypeRequest(
 
 public sealed record RoomTypeDetailsDto(long Id, long? BranchId, string Code, string Name, string? Description,
     int? StandardCleaningMinutes, long? DefaultChecklistId, int? StandardCapacity, bool IsActive);
-public sealed record RoomTypeListItem(RoomTypeDetailsDto Details, int ActiveRooms, bool CanUpdate);
+public sealed record RoomTypeListItem(RoomTypeDetailsDto Details, int ActiveRooms, bool CanUpdate,
+    IReadOnlyList<ActiveRoomReferenceDto>? ActiveRoomReferences = null);
 public sealed record RoomTypePage(IReadOnlyList<RoomTypeListItem> Items, int Total, int Page, int PageSize,
     long? BranchId, bool? IsActive, string? Search, string Sort, bool Descending);
 

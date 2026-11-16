@@ -40,7 +40,7 @@ export const roomType = {
   standardCapacity: 2,
   isActive: true,
 };
-export const typeItem = { details: roomType, activeRooms: 0, canUpdate: true };
+export const typeItem = { details: roomType, activeRooms: 0, canUpdate: true, activeRoomReferences: null };
 export const room = {
   id: 15,
   branchId: 1,

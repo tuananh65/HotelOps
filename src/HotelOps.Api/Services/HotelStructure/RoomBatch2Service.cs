@@ -32,6 +32,8 @@ public sealed partial class RoomTypeCreationService
             var before = RoomTypeDto(row);
             if (!before.IsActive) return new(RoomTypeBatchStatus.Inactive);
             if (expected != await RoomTypeTagAsync(before, token)) return new(RoomTypeBatchStatus.Stale);
+            if (await db.Rooms.AsNoTracking().AnyAsync(x => x.RoomTypeId == id && x.IsActive && x.BranchId != branch, token))
+                return new(RoomTypeBatchStatus.InvalidReference);
             var rooms = await db.Rooms.AsNoTracking().Where(x => x.RoomTypeId == id && x.IsActive)
                 .OrderBy(x => x.RoomId).Select(x => new ActiveRoomReferenceDto(x.RoomId, x.RoomNumber)).ToArrayAsync(token);
             if (rooms.Length != 0) return new(RoomTypeBatchStatus.DependenciesExist, rooms);

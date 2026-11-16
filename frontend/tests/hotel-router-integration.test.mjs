@@ -803,6 +803,35 @@ for (const [kind, , url] of mutationCases.filter(([kind]) => ["createFloor", "cr
   });
 }
 
+for (const [kind, id, url] of mutationCases.filter(([kind]) => ["createType", "updateType", "deactivateType"].includes(kind))) {
+  test(`UC017-019 canonical ${kind} retains CSRF and concurrency`, async () => {
+    await withHotel("/structure/room-types?branchId=1", { canonical: true }, async p => {
+      await select(p, kind === "createType" ? "create" : kind === "updateType" ? "edit" : "deactivate", kind === "createType" ? null : id);
+      if (kind !== "createType") await load(p);
+      await fill(p, kind); await review(p); await confirm(p);
+      await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+      const sent = await writes(p);
+      assert.equal(sent.length, 1); assert.equal(sent[0].url, url);
+      assert.equal(sent[0].headers["x-csrf-token"], secret);
+      if (kind !== "createType") assert.equal(sent[0].headers["if-match"], tag);
+      assert.ok((await p.locator("body").innerText()).includes("MSG08"));
+    });
+  });
+}
+
+test("UC019 canonical preflight lists active rooms and prevents confirmation", async () => {
+  await withHotel("/structure/room-types/14?branchId=1", { canonical: true,
+    responses: { "GET /api/room-types/14": [{ body: { ...typeItem, activeRooms: 1,
+      activeRoomReferences: [{ id: 15, roomNumber: "101" }] }, headers: { ETag: tag } }] } }, async p => {
+    await select(p, "deactivate", 14); await load(p);
+    const dependencies = p.getByRole("region", { name: "Room type dependencies" });
+    await dependencies.waitFor();
+    assert.ok((await dependencies.innerText()).includes("101"));
+    assert.equal(await p.getByRole("button", { name: "Review change", exact: true }).count(), 0);
+    assert.equal((await writes(p)).length, 0);
+  });
+});
+
 test("UC024 canonical creation keeps department designation separate from update authority", async () => {
   await withHotel("/structure/departments?branchId=1&action=create", { canonical: true }, async p => {
     await fill(p, "createDepartment"); await review(p);

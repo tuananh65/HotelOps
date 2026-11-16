@@ -161,7 +161,7 @@ function MutationForm({
       )}
       {kind === "deactivateType" && (
         <p>
-          Deactivation requires explicit confirmation. The server checks
+          MSG33: Deactivation requires explicit confirmation. The server checks
           active-room dependencies.
         </p>
       )}
@@ -324,6 +324,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         snapshotValue.details.isActive === false));
   const formAllowed =
     !readOnly &&
+    !(action === "deactivate" && snapshot && readKind === "roomType" && (snapshot.data as ReadTypes["roomType"]).activeRooms > 0) &&
     context &&
     kind &&
     !flow.unknown &&
@@ -345,7 +346,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             Update branch information
           </Link>
         )}
-        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments" }
+        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments", "/structure/room-types": "Room Types" }
           : readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
           "/hotel": "Branch structure",
           "/floors": "Floors",
@@ -650,11 +651,22 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
       {flow.phase === "reading" && <p role="status">Loading server data...</p>}
       {pending && <p role="status">Change pending...</p>}
       {flow.unknown && <p role="alert">{unknownHotelOutcome}</p>}
+      {action === "deactivate" && snapshot && readKind === "roomType" && (snapshot.data as ReadTypes["roomType"]).activeRooms > 0 && <section aria-label="Room type dependencies">
+        <p>MSG34: Active rooms use this room type. Change those rooms' type before deactivation.</p>
+        <ul>{(snapshot.data as ReadTypes["roomType"]).activeRoomReferences?.map(r => <li key={r.id}>{r.roomNumber} (#{r.id})</li>)}</ul>
+      </section>}
       {snapshot && (
         <section aria-label="Server hotel data">
           <h2>Server record snapshot</h2>
           {screen === "rooms" && action === "browse" ? (
             <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} basePath={directoryBasePath} />
+          ) : canonicalStructure && screen === "roomTypes" && action === "browse" ? (
+            <>
+              <Values value={snapshot.data} />
+              <ul>{(snapshot.data as ReadTypes["roomTypes"]).items.filter(t => t.details.branchId !== null).map(t => <li key={t.details.id}>
+                <Link to={`/structure/room-types/${t.details.id}?branchId=${t.details.branchId}`}>Open {t.details.name} ({t.details.code})</Link>
+              </li>)}</ul>
+            </>
           ) : canonicalStructure && action === "browse" ? (
             <>
               <Values value={snapshot.data} />

@@ -128,8 +128,16 @@ public sealed partial class RoomTypeCreationService
             var row = await db.BranchRoomTypes.AsNoTracking().SingleOrDefaultAsync(x => x.RoomTypeId == id && x.BranchId == branchId, token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
             var before = RoomTypeDto(row); var tag = await RoomTypeTagAsync(before, token);
-            if (input == null) return new(RoomTypeBatchStatus.Success, new RoomTypeListItem(before,
-                await db.Rooms.CountAsync(x => x.RoomTypeId == id && (branchId == null || x.BranchId == branchId) && x.IsActive, token), branchId != null && before.IsActive), tag);
+            if (input == null)
+            {
+                // A scoped type must not disclose references from inconsistent foreign branches.
+                if (branchId != null && await db.Rooms.AsNoTracking().AnyAsync(x => x.RoomTypeId == id && x.IsActive && x.BranchId != branchId, token))
+                    return new(RoomTypeBatchStatus.InvalidReference);
+                var active = await db.Rooms.AsNoTracking().Where(x => x.RoomTypeId == id && x.IsActive)
+                    .OrderBy(x => x.RoomNumber).ThenBy(x => x.RoomId)
+                    .Select(x => new ActiveRoomReferenceDto(x.RoomId, x.RoomNumber)).ToArrayAsync(token);
+                return new(RoomTypeBatchStatus.Success, new RoomTypeListItem(before, active.Length, branchId != null && before.IsActive, active), tag);
+            }
             if (!before.IsActive) return new(RoomTypeBatchStatus.Inactive);
             if (!string.Equals(expected, tag, StringComparison.Ordinal)) return new(RoomTypeBatchStatus.Stale);
             var now = clock.GetUtcNow().UtcDateTime;
