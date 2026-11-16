@@ -111,7 +111,17 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                 await Add("inspection_defects", db.InspectionDefects.AsNoTracking().Where(d => ids.Contains(d.InspectionId))
                     .OrderBy(d => d.DefectId).Select(d => new { Id = d.DefectId, d.InspectionId, d.ChecklistItemId, d.SeverityId, d.Status }),
                     "id", "inspectionId", "checklistItemId", "severityId", "status");
+                // Related records belong to the selected inspections, including later rework.
+                // Never join a rework from a different cleaning task into this inspection's report.
+                await Add("cleaning_reworks", db.CleaningReworks.AsNoTracking()
+                    .Where(w => ids.Contains(w.InspectionId) && w.Inspection.CleaningTaskId == w.CleaningTaskId
+                        && w.CleaningTask.RoomId == w.Inspection.RoomId)
+                    .OrderBy(w => w.RequestedAt).ThenBy(w => w.ReworkId)
+                    .Select(w => new { Id = w.ReworkId, w.InspectionId, w.CleaningTaskId, w.AssigneeUserId,
+                        StoredStatus = w.Status, w.RequestedAt, w.CompletedAt }),
+                    "id", "inspectionId", "cleaningTaskId", "assigneeUserId", "storedStatus", "requestedAt", "completedAt");
                 missing.Add("first inspection/cycle and rework aggregation unavailable");
+                missing.Add("Related rework rows follow the selected inspection period; storedStatus is not the rework workflow state");
                 if (query.HousekeeperId is null)
                     missing.Add("historical housekeeper coverage has not been verified for this unfiltered report");
                 break;

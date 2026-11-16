@@ -157,6 +157,27 @@ internal static class SprintReportProbe
             Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Rows.Count == 0, "inspector and housekeeper filters intersect");
             var cleanerCsv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(cleanerReport).Content);
             Check(cleanerCsv.Contains("housekeeperId") && cleanerCsv.Contains(cleanerReport.SnapshotId), "frozen cleaner report CSV retains applied filter and snapshot");
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE dbo.room_inspections SET workflow_status='FAILED',status='COMPLETED',result='FAIL' WHERE inspection_id={inspection};
+                UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED',status='IN_PROGRESS' WHERE cleaning_task_id={cleaningTask};
+                INSERT dbo.cleaning_reworks(cleaning_task_id,inspection_id,reason,requested_at,status,workflow_status,assignee_user_id)
+                  VALUES({cleaningTask},{inspection},'Synthetic report rework',{start.AddDays(2)},'PENDING','PENDING_ACCEPTANCE',{actor});
+                """, ct);
+            cleanerQuery.InspectorId = null;
+            var reworkReport = await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct);
+            var reworkRows = reworkReport.Sections.Single(s => s.Key == "cleaning_reworks").Rows;
+            Check(reworkRows.Count == 1 && ((JsonElement)reworkRows[0]["inspectionId"]!).GetInt64() == inspection
+                && ((JsonElement)reworkRows[0]["assigneeUserId"]!).GetInt64() == actor,
+                "related rework follows selected inspection and original cleaner, not current rework assignee or rework date");
+            Check(((JsonElement)reworkRows[0]["storedStatus"]!).GetString() == "PENDING"
+                && ((JsonElement)reworkRows[0]["completedAt"]!).ValueKind == JsonValueKind.Null,
+                "rework preserves stored status and absent completion without inventing lifecycle or duration");
+            cleanerQuery.HousekeeperId = actor;
+            Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Sections.Single(s => s.Key == "cleaning_reworks").Rows.Count == 0,
+                "filtered-out inspection cannot leak its rework through the related section");
+            Check(!Encoding.UTF8.GetString(ReportCsvRenderer.Render(cleanerReport).Content).Contains("PENDING")
+                && Encoding.UTF8.GetString(ReportCsvRenderer.Render(reworkReport).Content).Contains("PENDING"),
+                "old frozen report does not acquire later rework while new snapshot exports it");
             var inventory = results["items"];
             inventoryObservation = inventory.Sections;
             Check(inventory.Rows.Count == 1 && ((JsonElement)inventory.Rows[0]["onHand"]!).ValueKind == JsonValueKind.String

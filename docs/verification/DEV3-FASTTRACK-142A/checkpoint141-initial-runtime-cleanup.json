@@ -1,0 +1,10 @@
+{
+    "database":  "HotelOps_DEV3_142A_CriteriaTrial_38835c4c",
+    "run":  "38835c4ce9c74fafb46150243bf85e35",
+    "source":  "HotelOps_DEV3_142A_20261114_cc78c13f",
+    "backup":  "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-38835c4ce9c74fafb46150243bf85e35\\owned-source.bak",
+    "status":  "CLONE_READY",
+    "databaseGuid":  "39030a42-3b0f-414e-a853-b5a6cc1b69b9",
+    "dataFile":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_38835c4c.mdf",
+    "logFile":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_38835c4c.ldf"
+}

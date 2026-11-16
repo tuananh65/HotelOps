@@ -69,6 +69,16 @@ internal static class SprintReportActorsScenario
         Check((await Preview(cleaner, cleaner)).GetProperty("totalCount").GetInt32() == 0, "inspector filter intersects cleaner filter");
         await db.Users.Where(u => u.UserId == cleaner).ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "INACTIVE"), ct);
         Check((await Preview(cleaner, actor)).GetProperty("totalCount").GetInt32() == 1, "inactive cleaner retains immutable historical attribution");
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE dbo.room_inspections SET workflow_status='FAILED',status='COMPLETED',result='FAIL' WHERE inspection_id={inspection.InspectionId};
+            UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED' WHERE cleaning_task_id={inspection.CleaningTaskId};
+            INSERT dbo.cleaning_reworks(cleaning_task_id,inspection_id,reason,requested_at,status,workflow_status,assignee_user_id)
+              VALUES({inspection.CleaningTaskId},{inspection.InspectionId},'Synthetic report rework',SYSUTCDATETIME(),'PENDING','PENDING_ACCEPTANCE',{actor});
+            """, ct);
+        var frozenId = initial.GetProperty("snapshotId").GetString();
+        using (var frozen = await Post($"/api/reports/snapshots/{frozenId}/export", new { format = "csv" }))
+            Check((int)frozen.StatusCode == 200 && !(await frozen.Content.ReadAsStringAsync(ct)).Contains("PENDING"),
+                "cached report does not acquire rework created after its snapshot");
         var browser = await SprintReportsBrowser.RunAsync(username, password, branch, department, "inspection-actors", ct, cleaner, actor);
         checks.Add(new { reportActorsBrowser = browser });
         foreach (var exported in browser.GetProperty("exports").EnumerateArray())
