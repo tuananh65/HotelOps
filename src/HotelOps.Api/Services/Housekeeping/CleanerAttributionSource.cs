@@ -26,6 +26,13 @@ public sealed partial class RoomTypeCreationService
     private async Task<bool> CleanerAttributionInstalled(CancellationToken ct)
         => await CleanerAttributionInstalled(db, ct);
 
+    internal static async Task<bool> CleanerCaptureWriterAvailableAsync(HotelOps.Api.Data.HotelOpsDbContext db, CancellationToken ct)
+        => await CleanerAttributionInstalled(db, ct) && await db.Database.SqlQuery<int>($"""
+            SELECT CASE WHEN HAS_PERMS_BY_NAME('dbo.fe04_capture_cleaner_attribution','OBJECT','EXECUTE')=1
+              AND HAS_PERMS_BY_NAME('dbo.fe04_cleaner_attributions','OBJECT','SELECT')=1
+              THEN 1 ELSE 0 END AS [Value]
+            """).SingleAsync(ct) == 1;
+
     internal static async Task<bool> CleanerAttributionInstalled(HotelOps.Api.Data.HotelOpsDbContext db, CancellationToken ct)
         => await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN OBJECT_ID('dbo.fe04_cleaner_attributions','U') IS NOT NULL

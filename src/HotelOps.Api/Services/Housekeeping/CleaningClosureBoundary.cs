@@ -161,6 +161,10 @@ public sealed partial class RoomTypeCreationService
                 if (blockers.Contains(2)) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_STATE_UNRECONCILED");
                 if (blockers.Contains(3)) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_SOURCE_CONFIRMATION_REQUIRED");
                 if (blockers.Contains(1)) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ACTIVE_BLOCKER");
+                // Verify the actual SQL writer before closing the interval or creating evidence.
+                // This does not grant database permission or replace actor authorization.
+                if (reason == null && !await CleanerCaptureWriterAvailableAsync(db, inner))
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "CLEANER_CAPTURE_WRITER_REQUIRED");
                 var revision = await ProgressRevision(true, task, inner);
                 if (revision == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 if (reason == null && (!CleaningLifecycleRules.StrongTag(progressTag) || progressTag != WorkflowTag(revision.Revision)))

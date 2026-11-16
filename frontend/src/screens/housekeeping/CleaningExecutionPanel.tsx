@@ -171,7 +171,7 @@ export default function CleaningExecutionPanel({
     setError("");
     setNotice("");
     try {
-      await mutateCleaningExecution(
+      const result = await mutateCleaningExecution(
         c.branch,
         c.task,
         c.action,
@@ -182,9 +182,10 @@ export default function CleaningExecutionPanel({
       if (alive.current) {
         setClosurePending(null);
         setNotice(
-          c.action === "blockers"
+          (c.action === "blockers"
             ? "Đã ghi nhận trở ngại và tạm dừng dọn phòng."
-            : "Đã hoàn tất dọn phòng, chờ kiểm tra.",
+            : "Đã hoàn tất dọn phòng, chờ kiểm tra.") +
+            (result.hasEffectiveBlock ? " Phòng vẫn bị chặn sử dụng." : ""),
         );
         setRefresh((n) => n + 1);
       }

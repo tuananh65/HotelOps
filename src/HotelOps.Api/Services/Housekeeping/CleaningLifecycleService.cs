@@ -54,12 +54,13 @@ public sealed partial class RoomTypeCreationService
                 && (await candidateNotification.ClosureRecipientsAsync(branch, token)).Length > 0
                 && await ResumeTrialInstalled(token) && await HotelOps.Api.Data.ProgressSchema.InstalledAsync(db, token);
             var progress = closure ? await ProgressDto(true, task, branch, state.State!, token) : null;
+            var complete = closure && await CleanerCaptureWriterAvailableAsync(db, token);
             var progressVersion = closure ? await ProgressRevision(true, task, token) : null;
             var reasons = closure ? await db.ReferenceValues.AsNoTracking().Where(x => x.GroupCode == "BLOCKER" && x.IsActive)
                 .OrderBy(x => x.SortOrder).ThenBy(x => x.ReferenceId).Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArrayAsync(token) : null;
             return new(RoomTypeBatchStatus.Success, new CleaningExecutionDto(task, branch, row.TaskNo, state.State, active?.AssignmentId,
                 active?.AssigneeUserId, row.ActualStartAt is { } time ? DateTime.SpecifyKind(time, DateTimeKind.Utc) : null,
-                WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", closure ? "PROVISIONAL_V1" : "UNAVAILABLE",
+                WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", complete ? "PROVISIONAL_V1" : "UNAVAILABLE",
                 resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision)), WorkflowTag(state.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_VIEW", token));
     }

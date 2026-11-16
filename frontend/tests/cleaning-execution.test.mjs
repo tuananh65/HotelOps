@@ -333,3 +333,12 @@ test("Start preserves Blocked readiness and rejects inconsistent server summarie
     await assert.rejects(mutateCleaningExecution("1", "2", "start", tag, { resolveBlocker: false }), e => e.status === 502);
   }
 });
+test("Missing completion writer keeps blocker reporting available without permitting Complete", async () => {
+  const metadata = { ...closurePlan, completeCapability: "UNAVAILABLE" };
+  globalThis.fetch = async () => Response.json(metadata, { headers: { ETag: tag } });
+  const read = await readCleaningExecution("1", "2");
+  assert.equal(read.reportBlockerCapability, "PROVISIONAL_V1");
+  assert.equal(read.completeCapability, "UNAVAILABLE");
+  assert.equal(closureCommand(read, "blockers", "Guest remains", "7").reasonId, 7);
+  assert.throws(() => closureCommand(read, "complete", "All done"));
+});

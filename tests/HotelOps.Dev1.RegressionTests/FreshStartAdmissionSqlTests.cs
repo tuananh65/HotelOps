@@ -168,7 +168,18 @@ public sealed class FreshStartAdmissionSqlTests
             Assert.False(blockedVersion.SequenceEqual(resolvedVersion));
             Assert.Equal(1,await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs014_cleaning_blocker_resolutions WHERE progress_id={progress.ProgressId} AND resolved_by={actor} AND resolved_at={now} AND resolution_note=N'Synthetic obstacle removed'").SingleAsync());
             // Real durable outbox staging, with synthetic source/interval/audit in this same transaction.
-            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD' WHERE cleaning_task_id={taskId}");
+            var closureState = blocked ? "ON_HOLD" : "PENDING_INSPECTION";
+            if (!blocked)
+            {
+                progress = new CleaningProgressLog { CleaningTaskId=taskId, Status="COMPLETED", ProgressPercent=100,
+                    Note="Synthetic completed cleaning", LoggedBy=actor, LoggedAt=now };
+                db.CleaningProgressLogs.Add(progress); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+                await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='PENDING_INSPECTION',actual_end_at={now} WHERE cleaning_task_id={taskId}");
+                Assert.True(await HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.CleanerCaptureWriterAvailableAsync(db, default));
+                await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fe04_capture_cleaner_attribution @task={taskId},@assignment={assignment.AssignmentId},@cleaner={actor},@progress={progress.ProgressId}");
+                Assert.Equal(1, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fe04_cleaner_attributions WHERE cleaning_task_id={taskId} AND cleaner_user_id={actor} AND completion_progress_id={progress.ProgressId} AND completed_at={now} AND writer_transaction_id=CURRENT_TRANSACTION_ID()").SingleAsync());
+            }
+            else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD' WHERE cleaning_task_id={taskId}");
             var department=await db.Departments.AsNoTracking().Where(d=>d.BranchId==floor.BranchId && d.IsActive).Select(d=>d.DepartmentId).FirstAsync();
             var day=new Workday { UserId=actor,BranchId=floor.BranchId,DepartmentId=department,
                 WorkDate=DateOnly.FromDateTime(now),IsUnscheduled=true,UnscheduledReason="Synthetic rollback fixture",Status="WORKING",StartedAt=now.AddMinutes(-1) };
@@ -180,10 +191,10 @@ public sealed class FreshStartAdmissionSqlTests
             var closureOperation=Guid.NewGuid();
             var revision=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
             var closure=new HotelOps.Api.DTOs.Housekeeping.CleaningClosureResult(taskId,floor.BranchId,assignment.AssignmentId,
-                closureOperation,Guid.NewGuid(),progress.ProgressId,interval.IntervalId,"ON_HOLD",now,"PENDING_CLEANING",blocked,'"'+Convert.ToHexString(revision)+'"');
+                closureOperation,Guid.NewGuid(),progress.ProgressId,interval.IntervalId,closureState,now,blocked ? "PENDING_CLEANING" : "PENDING_INSPECTION",blocked,'"'+Convert.ToHexString(revision)+'"');
             db.AuditLogs.Add(new AuditLog { BranchId=floor.BranchId,ActorUserId=actor,EntityType="cleaning_tasks",
                 EntityId=taskId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
-                NewValues=JsonSerializer.Serialize(new { operationId=closureOperation,action="REPORT_CLEANING_BLOCKER",progressId=progress.ProgressId }) });
+                NewValues=JsonSerializer.Serialize(new { operationId=closureOperation,action=blocked ? "REPORT_CLEANING_BLOCKER" : "COMPLETE_CLEANING",progressId=progress.ProgressId }) });
             await db.SaveChangesAsync();db.ChangeTracker.Clear();
             var config=new Microsoft.Extensions.Configuration.ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string,string?> { ["CleaningClosure:Capability"]="VERIFIED_V1" }).Build();
@@ -196,6 +207,7 @@ public sealed class FreshStartAdmissionSqlTests
         }
         Assert.False(await db.Rooms.AnyAsync(r=>r.RoomId==roomId));
         Assert.False(await db.CleaningTasks.AnyAsync(t=>t.CleaningTaskId==taskId));
+        Assert.Equal(0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fe04_cleaner_attributions WHERE cleaning_task_id={taskId}").SingleAsync());
         Assert.False(await db.AuditLogs.AnyAsync(a=>a.RequestId==operation.ToString("D")));
     }
     private static async Task RejectUnprovenClosure(HotelOpsDbContext db, long actor)
