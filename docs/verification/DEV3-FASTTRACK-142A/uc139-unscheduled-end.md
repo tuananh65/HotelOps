@@ -1,5 +1,7 @@
 # UC139 End of an existing unscheduled workday
 
+Historical increment. The later Project Leader decision approved both previously pending contracts; see [Task Pause All increment](uc139-task-pause-all.md) for current source and remaining implementation. The scheduled-only Start statement below remains true; the pauseAll=false-only statement has since been superseded for Operational Task intervals.
+
 Status remains PARTIAL_IMPLEMENTATION. No new UC completion; counters unchanged.
 
 The existing backend End workflow accepts an owned Working workday with current row version and no open interval, regardless of whether it was scheduled. The frontend previously blocked unscheduled records and rejected their valid End response. The form now permits End for an existing unscheduled workday only when its assignment is null, its branch matches and no interval is open. Scheduled records still require a valid assignment. Response confirmation binds the returned scheduled/unscheduled flag and assignment to the reviewed input, in addition to workday ID, branch, status, timestamps and ETag.

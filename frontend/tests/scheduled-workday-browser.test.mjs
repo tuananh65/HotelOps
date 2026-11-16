@@ -8,7 +8,7 @@ const result = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false,claimed=false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};if(s.unscheduled){d.isUnscheduled=true;d.shiftAssignmentId=null;}const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return (s.anonymous||s.revoked)?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf'){if(s.csrfFailure==='network')throw Error('SECRET');if(s.csrfFailure==='cancelled')throw new DOMException('SECRET','AbortError');if(s.csrfFailure==='malformed')return reply({headerName:'Wrong',csrfToken:'SECRET'});if(s.csrfStatus){const r=reply({title:'SECRET',detail:'SECRET',traceId:'SECRET',csrfToken:'SECRET'},s.csrfStatus);if(s.csrfUnreadable)r.text=async()=>{throw Error('SECRET')};return r;}return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});}const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftInvalid?reply({},401):s.shiftDenied?reply({},403):reply(s.claimOnce&&claimed?[]:[{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentInvalid?reply({},401):s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;if(!end)claimed=true;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,recover:()=>{s.currentInvalid=false;s.shiftInvalid=false;s.revoked=false;s.csrfStatus=undefined;s.csrfFailure=undefined;},revoke:()=>{s.revoked=true;},finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
+    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false,claimed=false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};if(s.unscheduled){d.isUnscheduled=true;d.shiftAssignmentId=null;}const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return (s.anonymous||s.revoked)?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf'){if(s.csrfFailure==='network')throw Error('SECRET');if(s.csrfFailure==='cancelled')throw new DOMException('SECRET','AbortError');if(s.csrfFailure==='malformed')return reply({headerName:'Wrong',csrfToken:'SECRET'});if(s.csrfStatus){const r=reply({title:'SECRET',detail:'SECRET',traceId:'SECRET',csrfToken:'SECRET'},s.csrfStatus);if(s.csrfUnreadable)r.text=async()=>{throw Error('SECRET')};return r;}return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});}const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftInvalid?reply({},401):s.shiftDenied?reply({},403):reply(s.claimOnce&&claimed?[]:[{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentInvalid?reply({},401):s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:s.kind??'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;if(!end)claimed=true;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,recover:()=>{s.currentInvalid=false;s.shiftInvalid=false;s.revoked=false;s.csrfStatus=undefined;s.csrfFailure=undefined;},revoke:()=>{s.revoked=true;},finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -124,8 +124,8 @@ test("confirmed start then end refresh authoritative current", () =>
     await p.getByText("No current working day.").waitFor();
     assert.equal((await posts(p)).length, 2);
   }));
-test("open interval blocks End", () =>
-  run({ enabled: true, working: true, open: true }, async (p) => {
+test("unsupported open interval blocks End", () =>
+  run({ enabled: true, working: true, open: true, kind: "CLEANING" }, async (p) => {
     await p.getByText(/End blocked:/).waitFor();
     assert.equal(
       await p
@@ -758,8 +758,17 @@ test("unscheduled current workday can End without a new shift assignment",()=>ru
  assert.equal((await posts(p)).length,1);
  await p.getByText(/Unscheduled workday; Branch/).waitFor();
 }));
-test("unscheduled open interval still blocks End",()=>run({enabled:true,working:true,unscheduled:true,open:true},async p=>{
+test("unscheduled open interval still blocks End",()=>run({enabled:true,working:true,unscheduled:true,open:true,kind:"CLEANING"},async p=>{
  await p.getByText(/End blocked:/).waitFor();
  assert.equal(await p.getByRole('button',{name:'End workday',exact:true}).isDisabled(),true);
  assert.equal((await posts(p)).length,0);
+}));
+
+test("task Pause All reviews before End",()=>run({enabled:true,working:true,open:true},async p=>{
+ await p.getByRole('button',{name:'Pause All and end workday',exact:true}).click();
+ await p.getByText(/The running task will be paused with End of Shift/).waitFor();
+ assert.equal((await posts(p)).length,0);
+ await p.getByRole('button',{name:'Confirm workday end',exact:true}).click();
+ await p.getByText('No current working day.').waitFor();
+ assert.equal((await posts(p)).length,1);
 }));

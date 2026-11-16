@@ -34,34 +34,7 @@ public sealed partial class RoomTypeCreationService
         {
             return await BatchAsync(ticket, sid, branch, async (actor, token) =>
             {
-                if (!await ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
-                var installed = await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN OBJECT_ID('dbo.task_pause_events','U') IS NOT NULL AND COL_LENGTH('dbo.task_pause_events','note')=2000 AND COL_LENGTH('dbo.task_pause_events','reason_code')=60 AND COL_LENGTH('dbo.task_pause_events','reason_label')=300 AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID('dbo.task_pause_events') AND is_disabled=0 AND is_not_trusted=0)=3 THEN 1 ELSE 0 END AS Value").SingleAsync(token);
-                if (installed != 1) return new(RoomTypeBatchStatus.SchemaRequired);
-                var task = await db.OperationalTasks.FromSqlInterpolated($"SELECT * FROM dbo.operational_tasks WITH(UPDLOCK,HOLDLOCK) WHERE task_id={id}").AsNoTracking().SingleOrDefaultAsync(token);
-                if (task == null || task.BranchId != branch) return new(RoomTypeBatchStatus.NotFound);
-                if (!await ProgressOwned(false, id, branch, actor, token)) return new(RoomTypeBatchStatus.Forbidden);
-                var version = await ProgressRevision(false, id, token);
-                if (version == null) return new(RoomTypeBatchStatus.SchemaRequired);
-                if (WorkflowTag(version.Revision) != expected) return new(RoomTypeBatchStatus.Stale);
-                if (task.Status != "IN_PROGRESS" || task.ActualStartAt == null || version.State != "IN_PROGRESS") return new(RoomTypeBatchStatus.Inactive);
-                var reason = await db.ReferenceValues.AsNoTracking().SingleOrDefaultAsync(r => r.ReferenceId == input.ReasonId, token);
-                if (reason == null || reason.GroupCode != "TASK_PAUSE_REASON" || !reason.IsActive || !TaskPauseCodes.Contains(reason.ValueCode)) return new(RoomTypeBatchStatus.InvalidReference);
-                if (reason.ValueCode == "OTHER" && note == null) throw new ValidationException("OTHER requires a nonblank note.");
-                var interval = await db.WorkIntervals.AsNoTracking().SingleOrDefaultAsync(i => i.UserId == actor && i.ClosedAt == null, token);
-                if (interval == null || interval.BranchId != branch || interval.WorkItemKind != "TASK" || interval.WorkItemId != id) return new(RoomTypeBatchStatus.Inactive);
-                var closed = await time.CloseIntervalAsync(new(actor, actor, branch, "TASK", id), interval.IntervalId, interval.RowVersion, token);
-                var updated = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status='PAUSED' WHERE task_id={id} AND workflow_status='IN_PROGRESS' AND row_version={version.Revision}", token);
-                if (updated != 1) return new(RoomTypeBatchStatus.Stale);
-                await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_tasks SET updated_at={closed.ClosedAtUtc} WHERE task_id={id}", token);
-                var progress = new OperationalTaskProgress { TaskId=id, ProgressPercent=task.ProgressPercent, OldStatus=task.Status, NewStatus=task.Status,
-                    Description=$"Task paused: {reason.DisplayName}." + (note == null ? "" : $" {note}"), ReportedBy=actor, ReportedAt=closed.ClosedAtUtc!.Value };
-                db.OperationalTaskProgresses.Add(progress);
-                await db.SaveChangesAsync(token);
-                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_pause_events(progress_id,reason_id,reason_code,reason_label,note,interval_id) VALUES({progress.ProgressId},{reason.ReferenceId},{reason.ValueCode},{reason.DisplayName},{note},{interval.IntervalId})", token);
-                await BatchAuditAsync(actor, branch, "operational_tasks", id, new { workflowState="IN_PROGRESS" },
-                    new { workflowState="PAUSED", operation="PAUSE", reason.ReferenceId, reason.ValueCode, reason.DisplayName, note, interval.IntervalId, closed.ClosedAtUtc },
-                    ["workflowState", "pauseReason", "workInterval"], token);
-                return new(RoomTypeBatchStatus.Success, await ProgressDto(false,id,branch,"PAUSED",token), WorkflowTag((await ProgressRevision(false,id,token))!.Revision));
+                return await PauseTaskInTransactionAsync(actor, branch, id, expected, input.ReasonId, note, false, time, token);
             }, ct, requireRoomTypeSchema:false, featurePermission:token=>ProgressAccess(false,id,branch,ticket.UserId,token),
                 afterUserLocks:token=>time.LockUsersAsync([ticket.UserId],token));
         }
@@ -73,5 +46,53 @@ public sealed partial class RoomTypeCreationService
                 "TIME_WORKDAY_REQUIRED" or "TIME_STATE_CONFLICT" => RoomTypeBatchStatus.Inactive,
                 _ => RoomTypeBatchStatus.Unavailable });
         }
+    }
+
+    // Internal transaction participant: never starts/commits a transaction or trusts a client reason.
+    internal async Task<RoomTypeBatchResult> PauseTaskForWorkdayEndAsync(long actor, long branch, long id,
+        SqlWorkTimeTransactionParticipant time, CancellationToken ct)
+    {
+        if (db.Database.CurrentTransaction is null)
+            throw new WorkTimeContractException("TIME_TRANSACTION_REQUIRED");
+        if (!(await ProgressAccess(false, id, branch, actor, ct)).IsGranted)
+            return new(RoomTypeBatchStatus.Forbidden);
+        return await PauseTaskInTransactionAsync(actor, branch, id, null, 0, null, true, time, ct);
+    }
+
+    private async Task<RoomTypeBatchResult> PauseTaskInTransactionAsync(long actor, long branch, long id,
+        string? expected, long reasonId, string? note, bool systemEndOfShift,
+        SqlWorkTimeTransactionParticipant time, CancellationToken token)
+    {
+        if (!await ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+        var installed = await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN OBJECT_ID('dbo.task_pause_events','U') IS NOT NULL AND COL_LENGTH('dbo.task_pause_events','note')=2000 AND COL_LENGTH('dbo.task_pause_events','reason_code')=60 AND COL_LENGTH('dbo.task_pause_events','reason_label')=300 AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID('dbo.task_pause_events') AND is_disabled=0 AND is_not_trusted=0)=3 THEN 1 ELSE 0 END AS Value").SingleAsync(token);
+        if (installed != 1) return new(RoomTypeBatchStatus.SchemaRequired);
+        var task = await db.OperationalTasks.FromSqlInterpolated($"SELECT * FROM dbo.operational_tasks WITH(UPDLOCK,HOLDLOCK) WHERE task_id={id}").AsNoTracking().SingleOrDefaultAsync(token);
+        if (task == null || task.BranchId != branch) return new(RoomTypeBatchStatus.NotFound);
+        if (!await ProgressOwned(false, id, branch, actor, token)) return new(RoomTypeBatchStatus.Forbidden);
+        var version = await ProgressRevision(false, id, token);
+        if (version == null) return new(RoomTypeBatchStatus.SchemaRequired);
+        if (expected != null && WorkflowTag(version.Revision) != expected) return new(RoomTypeBatchStatus.Stale);
+        if (task.Status != "IN_PROGRESS" || task.ActualStartAt == null || version.State != "IN_PROGRESS") return new(RoomTypeBatchStatus.Inactive);
+        var reason = await db.ReferenceValues.AsNoTracking().SingleOrDefaultAsync(r => systemEndOfShift ? r.GroupCode == "TASK_PAUSE_REASON" && r.ValueCode == "END_OF_SHIFT" : r.ReferenceId == reasonId, token);
+        if (reason == null || reason.GroupCode != "TASK_PAUSE_REASON" || !reason.IsActive || (systemEndOfShift ? reason.ValueCode != "END_OF_SHIFT" : !TaskPauseCodes.Contains(reason.ValueCode))) return new(RoomTypeBatchStatus.InvalidReference);
+        if (reason.ValueCode == "OTHER" && note == null) throw new ValidationException("OTHER requires a nonblank note.");
+        var interval = await db.WorkIntervals.AsNoTracking().SingleOrDefaultAsync(i => i.UserId == actor && i.ClosedAt == null, token);
+        if (interval == null || interval.BranchId != branch || interval.WorkItemKind != "TASK" || interval.WorkItemId != id) return new(RoomTypeBatchStatus.Inactive);
+        var closed = await time.CloseIntervalAsync(new(actor, actor, branch, "TASK", id), interval.IntervalId, interval.RowVersion, token);
+        var updated = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status='PAUSED' WHERE task_id={id} AND workflow_status='IN_PROGRESS' AND row_version={version.Revision}", token);
+        if (updated != 1) return new(RoomTypeBatchStatus.Stale);
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_tasks SET updated_at={closed.ClosedAtUtc} WHERE task_id={id}", token);
+        var progress = new OperationalTaskProgress { TaskId=id, ProgressPercent=task.ProgressPercent, OldStatus=task.Status, NewStatus=task.Status,
+            Description=$"Task paused: {reason.DisplayName}." + (note == null ? "" : $" {note}"), ReportedBy=actor, ReportedAt=closed.ClosedAtUtc!.Value };
+        db.OperationalTaskProgresses.Add(progress);
+        await db.SaveChangesAsync(token);
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_pause_events(progress_id,reason_id,reason_code,reason_label,note,interval_id) VALUES({progress.ProgressId},{reason.ReferenceId},{reason.ValueCode},{reason.DisplayName},{note},{interval.IntervalId})", token);
+        await BatchAuditAsync(actor, branch, "operational_tasks", id, new { workflowState="IN_PROGRESS" },
+            new { workflowState="PAUSED", operation=systemEndOfShift ? "WORKDAY_PAUSE_ALL" : "PAUSE", reason.ReferenceId, reason.ValueCode, reason.DisplayName, note, interval.IntervalId, closed.ClosedAtUtc },
+            ["workflowState", "pauseReason", "workInterval"], token);
+        if (!(await ProgressAccess(false, id, branch, actor, token)).IsGranted)
+            return new(RoomTypeBatchStatus.Forbidden);
+        if (systemEndOfShift) return new(RoomTypeBatchStatus.Success);
+        return new(RoomTypeBatchStatus.Success, await ProgressDto(false,id,branch,"PAUSED",token), WorkflowTag((await ProgressRevision(false,id,token))!.Revision));
     }
 }

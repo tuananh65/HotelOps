@@ -5,6 +5,7 @@ using HotelOps.Api.Entities;
 using HotelOps.Api.Security;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.HotelStructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,8 @@ public sealed record WorkdayResult(int Status, object? Value = null, string? Cod
 /// <summary>B1.1 scheduled own-workday boundary; caller identity is never model-bound.</summary>
 public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IHttpContextAccessor http, ISqlSessionService sessions, IPermissionService permissions,
-    SqlWorkTimeTransactionParticipant participant, OwnWorkdaySnapshotReader reader)
+    SqlWorkTimeTransactionParticipant participant, OwnWorkdaySnapshotReader reader,
+    RoomTypeCreationService? workflows = null)
 {
     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
 
@@ -68,7 +70,30 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             if (!await db.Workdays.AsNoTracking().AnyAsync(d => d.WorkdayId == workdayId
                     && d.UserId == actor.UserId && d.BranchId == branchId, ct))
                 return new(403, Code: "TIME_SCOPE_DENIED");
-            if (pauseAll) return new(503, Code: "PAUSE_ALL_UNAVAILABLE");
+            if (pauseAll)
+            {
+                var dayBefore = await db.Workdays.AsNoTracking().SingleAsync(d => d.WorkdayId == workdayId, ct);
+                if (dayBefore.Status != "WORKING") return new(409, Code: "TIME_STATE_CONFLICT");
+                if (!dayBefore.RowVersion.AsSpan().SequenceEqual(expectedVersion)) return new(412, Code: "TIME_STALE");
+                var open = await db.WorkIntervals.AsNoTracking().Where(i => i.UserId == actor.UserId && i.ClosedAt == null)
+                    .Take(2).ToArrayAsync(ct);
+                if (open.Length > 1) return new(409, Code: "TIME_STATE_CONFLICT");
+                foreach (var interval in open)
+                {
+                    if (interval.WorkdayId != workdayId || interval.BranchId != branchId)
+                        return new(409, Code: "TIME_STATE_CONFLICT");
+                    // Unsupported owning workflows remain running and this entire transaction rolls back.
+                    if (interval.WorkItemKind != "TASK" || workflows is null)
+                        return new(503, Code: "PAUSE_ALL_SOURCE_UNAVAILABLE");
+                    var paused = await workflows.PauseTaskForWorkdayEndAsync(actor.UserId, branchId,
+                        interval.WorkItemId, participant, ct);
+                    if (paused.Status != RoomTypeBatchStatus.Success)
+                        return new(paused.Status == RoomTypeBatchStatus.Forbidden ? 403
+                            : paused.Status == RoomTypeBatchStatus.Stale ? 412
+                            : paused.Status == RoomTypeBatchStatus.Inactive ? 409 : 503,
+                            Code: "PAUSE_ALL_" + paused.Status.ToString().ToUpperInvariant());
+                }
+            }
             var day = await participant.EndWorkdayAsync(actor.UserId, branchId, workdayId, expectedVersion, ct);
             return new(200, Response(day));
         }, ct);

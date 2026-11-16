@@ -495,3 +495,24 @@ test("null assignment never enables unscheduled Start",async()=>{
  let calls=0;const api=createScheduledWorkdayApi(async()=>{calls++;throw Error();},true);
  assert.equal((await api.start(1,null,()=>true)).outcome,'NOT_DISPATCHED');assert.equal(calls,0);
 });
+
+test("Pause All uses the authenticated End boundary with the reviewed workday version", async () => {
+ const calls=[];
+ const api=createScheduledWorkdayApi(async(u,o)=>{calls.push([u,o]);return u.endsWith('/csrf')?csrf():response(body(true));},true);
+ const result=await api.end(1,20,10,tag,()=>true,undefined,true);
+ assert.equal(result.outcome,'CONFIRMED');
+ assert.equal(calls.length,2);
+ assert.equal(calls[1][0],'/api/branches/1/workdays/20/end');
+ assert.deepEqual(JSON.parse(calls[1][1].body),{pauseAll:true});
+ assert.equal(new Headers(calls[1][1].headers).get('If-Match'),tag);
+ assert.equal(new Headers(calls[1][1].headers).get('X-CSRF-TOKEN'),'synthetic-token');
+});
+
+test("Pause All authorization rejection is not retried", async () => {
+ let calls=0;
+ const api=createScheduledWorkdayApi(async(u)=>{calls++;return u.endsWith('/csrf')?csrf():response({},403);},true);
+ const result=await api.end(1,20,10,tag,()=>true,undefined,true);
+ assert.equal(result.outcome,'REJECTED');
+ assert.equal(result.error.status,403);
+ assert.equal(calls,2);
+});

@@ -181,7 +181,7 @@ function Bound({
     !!day &&
     day.branchId === branchId &&
     (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
-    day.openInterval === null &&
+    (day.openInterval === null || day.openInterval.workItemKind === "TASK") &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
     if (
@@ -234,6 +234,7 @@ function Bound({
             `"${snapshot.day!.rowVersion}"`,
             () => mounted.current && current() && !invalid.current,
             controller.current.signal,
+            snapshot.day!.openInterval !== null,
           );
     if (!mounted.current || !current() || invalid.current) return;
     if (result.outcome !== "CONFIRMED" && result.error.status === 401) {
@@ -342,8 +343,9 @@ function Bound({
             <p>Working day {day.workdayId}</p>
             {day.openInterval && (
               <p role="alert">
-                End blocked: an interval is open. Close it through its owning
-                workflow. Pause All is not supported.
+                {day.openInterval.workItemKind === "TASK"
+                  ? "A task is running. Pause All will pause it with End of Shift, close its interval and end this workday together."
+                  : "End blocked: close this interval through its owning workflow. Pause All is not yet available for this work type."}
               </p>
             )}
             {day.isUnscheduled && (
@@ -362,7 +364,7 @@ function Bound({
         disabled={!dispatchEnabled || !endAllowed || pending || locked}
         onClick={() => prepare("end")}
       >
-        End workday
+        {day?.openInterval?.workItemKind === "TASK" ? "Pause All and end workday" : "End workday"}
       </button>
       {review && (
         <section aria-label="Review scheduled workday">
@@ -389,8 +391,10 @@ function Bound({
             </p>
           )}
           <p>
-            Actual time is determined by the server. This does not reassign work
-            or close task intervals.
+            Actual time is determined by the server.
+            {review.operation === "end" && review.day?.openInterval
+              ? " The running task will be paused with End of Shift and its interval closed. If pausing fails, the workday stays Working."
+              : " This does not reassign work or close task intervals."}
           </p>
           <button
             disabled={pending || locked || !dispatchEnabled}

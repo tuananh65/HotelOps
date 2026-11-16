@@ -30,6 +30,7 @@ export function createScheduledWorkdayApi(
     etag: string | undefined,
     current: () => boolean,
     signal?: AbortSignal,
+    pauseAll = false,
   ): Promise<ScheduledResult> {
     if (!dispatchEnabled)
       return { outcome: "NOT_DISPATCHED", error: { reason: "DISABLED" } };
@@ -105,7 +106,7 @@ export function createScheduledWorkdayApi(
           body: JSON.stringify(
             workdayId === undefined
               ? { shiftAssignmentId: assignmentId }
-              : { pauseAll: false },
+              : { pauseAll },
           ),
         },
       );
@@ -171,6 +172,7 @@ export function createScheduledWorkdayApi(
       etag: string,
       current: () => boolean,
       signal?: AbortSignal,
-    ) => mutate(branch, assignmentId, workdayId, etag, current, signal),
+      pauseAll = false,
+    ) => mutate(branch, assignmentId, workdayId, etag, current, signal, pauseAll),
   };
 }

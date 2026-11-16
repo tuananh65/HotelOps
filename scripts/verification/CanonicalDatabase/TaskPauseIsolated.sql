@@ -13,7 +13,8 @@ DECLARE @reasons TABLE(code varchar(60) PRIMARY KEY,label nvarchar(150),sort_ord
 INSERT @reasons VALUES('WAITING_MATERIAL',N'Waiting for material',1),('WAITING_EQUIPMENT',N'Waiting for equipment',2),
  ('WAITING_APPROVAL',N'Waiting for approval',3),('ACCESS_BLOCKED',N'Access blocked',4),('SAFETY_ISSUE',N'Safety issue',5),('OTHER',N'Other',6);
 IF EXISTS(SELECT 1 FROM dbo.reference_values r WITH(UPDLOCK,HOLDLOCK) LEFT JOIN @reasons s ON s.code=r.value_code
- WHERE r.group_code='TASK_PAUSE_REASON' AND (s.code IS NULL OR r.display_name<>s.label))
+ WHERE r.group_code='TASK_PAUSE_REASON' AND
+ ((s.code IS NULL AND NOT(r.value_code='END_OF_SHIFT' AND r.display_name=N'End of Shift')) OR r.display_name<>s.label))
  THROW 51831,'Existing pause catalog conflicts; review without overwriting historical meaning.',1;
 INSERT dbo.reference_values(group_code,value_code,display_name,sort_order,is_active)
  SELECT 'TASK_PAUSE_REASON',s.code,s.label,s.sort_order,1 FROM @reasons s
