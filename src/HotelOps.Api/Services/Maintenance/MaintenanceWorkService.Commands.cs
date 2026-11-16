@@ -42,6 +42,8 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
         await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
+        if (request is SubmitMaintenanceResultRequest)
+            await LockResolutionMaterialsAsync(id, cancellationToken);
         HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant? workTime = null;
         if (OpensWorkInterval(request) || ClosesWorkInterval(request))
         {
@@ -79,6 +81,8 @@ public sealed partial class MaintenanceWorkService
         if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest)
             await MaintenanceExecutionVersion.RequireAsync(_dbContext, id, _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString(), cancellationToken);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
+        var resolutionMaterials = request is SubmitMaintenanceResultRequest
+            ? await ValidateResolutionMaterialsAsync(work, incident, cancellationToken) : null;
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
@@ -98,8 +102,10 @@ public sealed partial class MaintenanceWorkService
         {
             beforeWork["submitted_diagnosis"] = null;
             beforeWork["submitted_action_taken"] = null;
+            beforeWork["submitted_materials"] = null;
             afterWork["submitted_diagnosis"] = resultInput.Diagnosis.Trim();
             afterWork["submitted_action_taken"] = resultInput.ActionTaken.Trim();
+            afterWork["submitted_materials"] = resolutionMaterials;
         }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, afterWork);
