@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkDetailDto
 {
+    public bool MaterialUsageAvailable { get; init; }
     public long MaintenanceWorkId { get; init; }
     public string WorkNo { get; init; } = string.Empty;
     public long? IncidentId { get; init; }

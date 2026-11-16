@@ -37,4 +37,14 @@ public sealed class MaintenanceReadAccessTests
         work.Incident=Row(2).Incident;Assert.Empty(scope.Apply(rows));work.Incident=null;
         work.PreventiveMaintenanceRuns.Add(new(){Schedule=run.Schedule});Assert.Empty(scope.Apply(rows));
     }
+    [Fact] public void ReadAdmissionDoesNotAuthorizeMaintenanceMutations()
+    {
+        var reads = HotelOps.Api.Services.Dev2Authorization.MaintenanceReadContract.Contracts.ToArray();
+        Assert.Equal(new[] { "A004A-035", "A004A-036" }, reads.Select(c => c.DecisionId));
+        foreach(var contract in reads)
+        {
+            Assert.True(contract.RequiresReadTransaction);
+            Assert.False(contract.MatchesServiceInvocation(null!, null!));
+        }
+    }
 }

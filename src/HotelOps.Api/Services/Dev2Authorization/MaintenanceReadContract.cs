@@ -14,22 +14,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Dev2Authorization;
 
-// Scoped list only; detail and mutations retain independent admission gates.
+// Scoped list/detail; material usage and mutations retain independent admission gates.
 internal static class MaintenanceReadContract
 {
-    internal const string Reference = "DEV3_142A_MAINTENANCE_LIST_READ_V1";
-    private const string Policy = "Explicit branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; no mutation or detail admission";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-035" }.Select(id =>
+    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V2";
+    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail excludes material references without independent material authority; no mutation admission";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-035", "A004A-036" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
-            async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new("maintenance_list", await BranchAsync(a, ct))))],
+            async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(IsList(a) ? "maintenance_list" : "maintenance_work", IsList(a) ? await BranchAsync(a, ct) : Id(a))))],
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new Resolver(a), ReadAsync,
             (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true));
 
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static MaintenanceQueryRequest Input(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("request") as MaintenanceQueryRequest
         ?? throw new Dev2AccessDenied(403);
-    private static Task<long> BranchAsync(Dev2BoundAction a, CancellationToken ct) =>
-        Task.FromResult(Input(a).BranchId is > 0 and var branch ? branch : throw new Dev2AccessDenied(400));
+    private static bool IsList(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-035";
+    private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
+    private static async Task<long> BranchAsync(Dev2BoundAction a, CancellationToken ct)
+    {
+        if (IsList(a)) return Input(a).BranchId is > 0 and var branch ? branch : throw new Dev2AccessDenied(400);
+        return await Db(a).MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == Id(a))
+            .Select(w => w.Incident != null ? (long?)w.Incident.BranchId : w.PreventiveMaintenanceRuns
+                .Select(r => r.Schedule.Asset != null ? (long?)r.Schedule.Asset.BranchId
+                    : r.Schedule.Room != null ? (long?)r.Schedule.Room.BranchId
+                    : r.Schedule.Area != null ? (long?)r.Schedule.Area.BranchId : null).FirstOrDefault())
+            .SingleOrDefaultAsync(ct) ?? throw new Dev2AccessDenied(404);
+    }
     private static readonly object ScopeKey = new();
     private sealed class Resolver(Dev2BoundAction a) : HotelOps.Api.Security.Authorization.IPermissionResourceResolver
     {
@@ -37,15 +47,20 @@ internal static class MaintenanceReadContract
             HotelOps.Api.Security.Authorization.PermissionResource resource, long user, CancellationToken ct)
         {
             var branch = await BranchAsync(a, ct);
-            return permission == "MAINTENANCE_VIEW" && user == a.Actor.UserId && resource.ResourceType == "maintenance_list"
-                && resource.ResourceId == branch ? new(branch, true) : null;
+            if (permission != "MAINTENANCE_VIEW" || user != a.Actor.UserId) return null;
+            if (IsList(a)) return resource.ResourceType == "maintenance_list" && resource.ResourceId == branch ? new(branch, true) : null;
+            if (resource.ResourceType != "maintenance_work" || resource.ResourceId != Id(a)) return null;
+            var assigned = await Db(a).MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == Id(a))
+                .Select(w => w.AssigneeId).SingleOrDefaultAsync(ct);
+            return new(branch, assigned == user);
         }
     }
 
     private static async Task<bool> ValidateAsync(Dev2BoundAction a, Dev2AuthorizationPhase phase, CancellationToken ct)
     {
         if (a.Identity.ControllerType != typeof(MaintenanceWorksController) || a.Identity.HttpMethod != "GET"
-            || a.Identity.DecisionId != "A004A-035" || a.Identity.ActionName != "GetWorks" || !a.Http.Request.IsHttps) return false;
+            || !(a.Identity.DecisionId == "A004A-035" && a.Identity.ActionName == "GetWorks"
+                || a.Identity.DecisionId == "A004A-036" && a.Identity.ActionName == "GetWork") || !a.Http.Request.IsHttps) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         // The admission guard first calls us before installing its read transaction.
@@ -62,8 +77,10 @@ internal static class MaintenanceReadContract
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
         var scope = await MaintenanceReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct);
         if (!scope.Lead && !scope.Staff) return false;
+        if (!IsList(a) && !await scope.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == Id(a), ct))
+            throw new Dev2AccessDenied(404);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ScopeKey] is MaintenanceReadAccess.Scope disclosed
-            && (disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
+            && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
         return true;
     }
 
@@ -74,7 +91,12 @@ internal static class MaintenanceReadContract
         var scope = await MaintenanceReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), ct);
         var query = scope.Apply(db.MaintenanceWorks.AsNoTracking());
         a.Http.Items[ScopeKey] = scope;
-        try { return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct)); }
+        try
+        {
+            if (IsList(a)) return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct));
+            var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
+            return detail == null ? new NotFoundResult() : new OkObjectResult(detail);
+        }
         catch (ValidationException) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid maintenance filters" }); }
     }
 }

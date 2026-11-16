@@ -80,11 +80,24 @@ public sealed partial class MaintenanceWorkService
 
     public async Task<MaintenanceWorkDetailDto?> GetWorkAsync(long id, CancellationToken cancellationToken)
     {
-        var result = await _dbContext.MaintenanceWorks.AsNoTracking()
+        var result = await DetailAsync(_dbContext.MaintenanceWorks.AsNoTracking(), id, cancellationToken, true);
+        if (result != null)
+        {
+            var usages = await UsageDetails(id, cancellationToken);
+            foreach (var log in result.MaintenanceWorkLogs) log.MaterialUsages = usages.Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray();
+        }
+        return result;
+    }
+
+    internal static async Task<MaintenanceWorkDetailDto?> DetailAsync(IQueryable<MaintenanceWork> query, long id,
+        CancellationToken cancellationToken, bool includeMaterialReferences = false)
+    {
+        return await query
             .Where(work => work.MaintenanceWorkId == id)
             .Select(work => new MaintenanceWorkDetailDto
             {
                 MaintenanceWorkId = work.MaintenanceWorkId,
+                MaterialUsageAvailable = includeMaterialReferences,
                 WorkNo = work.WorkNo,
                 IncidentId = work.IncidentId,
                 AssigneeId = work.AssigneeId,
@@ -110,19 +123,13 @@ public sealed partial class MaintenanceWorkService
                         MaintenanceWorkId = log.MaintenanceWorkId,
                         WorkNote = log.WorkNote,
                         SpentMinutes = log.SpentMinutes,
-                        MaterialIssueId = log.MaterialIssueId,
+                        MaterialIssueId = includeMaterialReferences ? log.MaterialIssueId : null,
                         Status = log.Status,
                         LoggedBy = log.LoggedBy,
                         LoggedAt = log.LoggedAt,
                     }).ToList()
             })
             .SingleOrDefaultAsync(cancellationToken);
-        if (result != null)
-        {
-            var usages = await UsageDetails(id, cancellationToken);
-            foreach (var log in result.MaintenanceWorkLogs) log.MaterialUsages = usages.Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray();
-        }
-        return result;
     }
 
     private static bool IsWorkStatus(string status) =>

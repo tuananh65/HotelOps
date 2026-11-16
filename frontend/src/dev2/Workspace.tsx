@@ -29,6 +29,7 @@ import { ReplenishmentListView } from "./ReplenishmentListView";
 import { ReplenishmentDetailView } from "./ReplenishmentDetailView";
 import { MaterialListView } from "./MaterialListView";
 import { MaterialReviewHistory } from "./MaterialReviewHistory";
+import { MaintenanceReadView } from "./MaintenanceReadView";
 import { MaterialTaskLinks } from "./MaterialTaskLinks";
 import { ReplenishmentWaitingRequests } from "./ReplenishmentWaitingRequests";
 import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
@@ -620,7 +621,9 @@ function Screen({
           {message}
         </p>
       )}
-      {data !== undefined && (operation.id === "A004A-040" && isObject(data)
+      {data !== undefined && (["A004A-035", "A004A-036"].includes(operation.id) && isObject(data)
+        ? <MaintenanceReadView data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} />
+        : operation.id === "A004A-040" && isObject(data)
         ? <MaterialAvailabilityView data={data} /> : operation.id === "A004A-052" && isObject(data)
         ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)
         ? <ReplenishmentDetailView record={data} /> : operation.id === "A004A-037" && isObject(data)
