@@ -112,7 +112,7 @@ export function decodeWorkday(
       !safeId(i.intervalId) ||
       !safeId(i.workItemId) ||
       typeof i.workItemKind !== "string" ||
-      !["CLEANING", "REWORK", "TASK"].includes(i.workItemKind) ||
+      !["CLEANING", "REWORK", "TASK", "MAINTENANCE"].includes(i.workItemKind) ||
       !stamp(i.openedAtUtc) ||
       !version(i.rowVersion)
     )

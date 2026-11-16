@@ -25,7 +25,7 @@ public sealed partial class MaintenanceWorkService
             new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));
     }
 
-    private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
+    private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveCoreAsync(long id,
         MaintenanceActorRequest request, string? incidentNote,
         Func<MaintenanceWork, Incident, DateTime, CancellationToken, Task> operation,
         CancellationToken cancellationToken, Func<CancellationToken, Task>? prepareOwners = null,
@@ -42,6 +42,13 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
         await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
+        HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant? workTime = null;
+        if (OpensWorkInterval(request) || ClosesWorkInterval(request))
+        {
+            workTime = new(_dbContext);
+            await workTime.LockUsersAsync(discovered.AssigneeId is {} owner
+                ? [TrustedActorId, owner] : [TrustedActorId], cancellationToken);
+        }
         if (restoreAssigneeResponsibility)
         {
             if (discovered.AssigneeId is not long assigneeId)
@@ -66,14 +73,24 @@ public sealed partial class MaintenanceWorkService
         if (restoreAssigneeResponsibility &&
             (work.AssigneeId != discovered.AssigneeId || work.Status != discovered.Status))
             throw new ValidationException("The maintenance assignee or state changed after discovery. Reload before retrying.");
+        if (workTime is not null && work.AssigneeId != discovered.AssigneeId)
+            throw new ValidationException("The maintenance assignee changed after time-lock discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
         var previousStatus = incident.Status;
-        var now = DateTime.UtcNow;
+        var now = DateTime.SpecifyKind(await _dbContext.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value")
+            .SingleAsync(cancellationToken), DateTimeKind.Utc);
+        if (workTime is not null && ClosesWorkInterval(request))
+            now = await CloseWorkIntervalAsync(workTime, work, incident, cancellationToken) ?? now;
         await operation(work, incident, now, cancellationToken);
+        if (workTime is not null && OpensWorkInterval(request))
+        {
+            now = await OpenWorkIntervalAsync(workTime, work, incident, cancellationToken);
+            if (request is StartMaintenanceWorkRequest) work.ActualStartAt = now;
+        }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, WorkSnapshot(work));
         if (incident.Status != previousStatus)

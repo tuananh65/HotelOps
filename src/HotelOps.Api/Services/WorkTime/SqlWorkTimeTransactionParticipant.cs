@@ -217,8 +217,8 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
         ArgumentNullException.ThrowIfNull(op);
         RequireLocks(op.ActorUserId, op.OwnerUserId);
         if (op.BranchId <= 0 || op.WorkItemId <= 0) throw Failure("TIME_STATE_CONFLICT");
-        // DEV2 must confirm PM current occurrence identity/assignee before a PM adapter is enabled.
-        if (op.WorkItemKind is not ("CLEANING" or "REWORK" or "TASK")) throw Failure("TIME_SOURCE_UNRESOLVED");
+        // MAINTENANCE identifies corrective maintenance_works, never a preventive occurrence.
+        if (op.WorkItemKind is not ("CLEANING" or "REWORK" or "TASK" or "MAINTENANCE")) throw Failure("TIME_SOURCE_UNRESOLVED");
     }
     private async Task EligibleAsync(long userId, long branchId, DateTime now, CancellationToken ct)
     {
@@ -248,6 +248,15 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
                 && x.Status == "IN_PROGRESS" && x.CompletedAt == null && x.AssigneeUserId == op.OwnerUserId
                 && x.CleaningTask.Room.BranchId == op.BranchId && x.CleaningTask.Room.IsActive
                 && x.Inspection.RoomId == x.CleaningTask.RoomId && x.Inspection.CleaningTaskId == x.CleaningTaskId, ct);
+        else if (op.WorkItemKind == "MAINTENANCE")
+            valid = await db.MaintenanceWorks.AsNoTracking().AnyAsync(x => x.MaintenanceWorkId == op.WorkItemId
+                && x.Status == "IN_PROGRESS" && x.AssigneeId == op.OwnerUserId && x.Incident != null
+                && x.Incident.Status == "IN_PROGRESS" && x.Incident.BranchId == op.BranchId && x.Incident.Branch.IsActive
+                && (x.Department == null || x.Department.BranchId == op.BranchId)
+                && (x.Incident.Room == null || x.Incident.Room.BranchId == op.BranchId)
+                && (x.Incident.Area == null || x.Incident.Area.BranchId == op.BranchId)
+                && (x.Incident.Asset == null || x.Incident.Asset.BranchId == op.BranchId)
+                && !x.PreventiveMaintenanceRuns.Any(), ct);
         else
             valid = await db.OperationalTasks.AsNoTracking().AnyAsync(x => x.TaskId == op.WorkItemId && x.BranchId == op.BranchId
                 && x.Status == "IN_PROGRESS" && x.Department.BranchId == op.BranchId && x.Department.IsActive
