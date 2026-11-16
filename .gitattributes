@@ -20,3 +20,7 @@ scripts/database/development/05-Fe04Cancellation.sql -text whitespace=cr-at-eol
 scripts/database/development/05-Fe04Cancellation.Verify.sql -text whitespace=cr-at-eol
 scripts/database/development/fe04-cancellation-v1.json -text whitespace=cr-at-eol
 scripts/database/development/fe04-cancellation-verification-v1.json -text whitespace=cr-at-eol
+scripts/database/development/06-Fe04CancellationReadiness.sql -text whitespace=cr-at-eol
+scripts/database/development/06-Fe04CancellationReadiness.Verify.sql -text whitespace=cr-at-eol
+scripts/database/development/fe04-cancellation-readiness-v1.json -text whitespace=cr-at-eol
+scripts/database/development/fe04-cancellation-readiness-verification-v1.json -text whitespace=cr-at-eol

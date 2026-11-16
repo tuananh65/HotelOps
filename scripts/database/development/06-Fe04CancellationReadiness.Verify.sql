@@ -1,0 +1,2 @@
+IF NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('dbo.room_readiness_events') AND name='CK_dev3_readiness_start' AND is_disabled=0 AND is_not_trusted=0) THROW 51990,'Readiness restoration constraint missing',1;
+IF NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_dev3_closure_publication_source') AND is_disabled=0) THROW 51990,'Publication guard missing',1;

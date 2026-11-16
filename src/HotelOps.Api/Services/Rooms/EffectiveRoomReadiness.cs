@@ -23,6 +23,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         public string? Cleaning { get; set; }
         public string? Inspection { get; set; }
         public bool EverPassed { get; set; }
+        public bool CompletedCycleVerified { get; set; }
         public bool ReworkOutstanding { get; set; }
         public bool ReworkSubmitted { get; set; }
         public bool SourceAvailable { get; set; }
@@ -43,7 +44,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         if (source.Cleaning is "PENDING_ASSIGNMENT" or "ASSIGNED" or "ON_HOLD" || !source.EverPassed)
             return "PENDING_CLEANING";
         if (source.Cleaning == "PENDING_INSPECTION" || source.ReworkSubmitted) return "PENDING_INSPECTION";
-        if (source.Cleaning == "COMPLETED" && source.Inspection == "PASSED") return "READY";
+        if (source.Cleaning == "COMPLETED" && source.Inspection == "PASSED" && source.CompletedCycleVerified) return "READY";
         return "UNKNOWN";
     }
 
@@ -74,6 +75,8 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_blocks b WITH(HOLDLOCK) WHERE b.room_id=r.room_id
                 AND b.blocked_at<={now} AND (b.released_at IS NULL OR b.released_at>{now})) THEN 1 ELSE 0 END) AS Blocked,
             c.workflow_status AS Cleaning,i.workflow_status AS Inspection,
+            CONVERT(bit,CASE WHEN c.workflow_status='COMPLETED' AND c.status='COMPLETED'
+                AND i.workflow_status='PASSED' AND i.status='COMPLETED' AND i.result='PASS' THEN 1 ELSE 0 END) AS CompletedCycleVerified,
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_inspections p WITH(HOLDLOCK)
                 JOIN dbo.cleaning_tasks pc WITH(HOLDLOCK) ON pc.cleaning_task_id=p.cleaning_task_id AND pc.room_id=p.room_id
                 WHERE p.room_id=r.room_id AND p.workflow_status='PASSED' AND p.status='COMPLETED' AND p.result='PASS'
@@ -84,10 +87,10 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
                 WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status='PENDING_REINSPECTION') THEN 1 ELSE 0 END) AS ReworkSubmitted,
             CONVERT(bit,CASE WHEN c.cleaning_task_id IS NULL OR c.workflow_status IS NOT NULL THEN 1 ELSE 0 END) AS SourceAvailable
             FROM dbo.rooms r WITH(HOLDLOCK)
-            OUTER APPLY(SELECT TOP(1) t.cleaning_task_id,t.workflow_status FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
+            OUTER APPLY(SELECT TOP(1) t.cleaning_task_id,t.workflow_status,t.status FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
                 WHERE t.room_id=r.room_id AND t.status<>'CANCELLED' AND (t.workflow_status IS NULL OR t.workflow_status<>'CANCELLED')
                 ORDER BY t.created_at DESC,t.cleaning_task_id DESC) c
-            OUTER APPLY(SELECT TOP(1) p.workflow_status FROM dbo.room_inspections p WITH(HOLDLOCK)
+            OUTER APPLY(SELECT TOP(1) p.workflow_status,p.status,p.result FROM dbo.room_inspections p WITH(HOLDLOCK)
                 WHERE p.room_id=r.room_id AND p.cleaning_task_id=c.cleaning_task_id AND p.status<>'CANCELLED'
                 ORDER BY p.created_at DESC,p.inspection_id DESC) i
             WHERE r.room_id IN(SELECT CONVERT(bigint,value) FROM OPENJSON({ids}))

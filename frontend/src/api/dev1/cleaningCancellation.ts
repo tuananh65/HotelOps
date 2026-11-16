@@ -94,7 +94,7 @@ export async function cancelCleaning(
     d.branchId !== options.branchId ||
     d.operationId?.toLowerCase() !== key.toLowerCase() ||
     d.state !== "CANCELLED" ||
-    d.readiness !== "PENDING_CLEANING" ||
+    !["INACTIVE", "BLOCKED", "REWORK_REQUIRED", "CLEANING_IN_PROGRESS", "PENDING_CLEANING", "PENDING_INSPECTION", "READY"].includes(d.readiness) ||
     d.contract !== "PROVISIONAL_NOT_ACCEPTED" ||
     !tag(d.sourceETag) ||
     r.etag !== d.sourceETag ||

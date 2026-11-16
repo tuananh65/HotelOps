@@ -23,11 +23,15 @@ public static class CleaningCancellationRules
         => SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { version = 1, action = "CANCEL_CLEANING",
             actor, branch, task, tag, confirmed = true, reason = reason.Trim() }));
 
+    public static bool KnownReadiness(string readiness)
+        => readiness is "INACTIVE" or "BLOCKED" or "REWORK_REQUIRED" or "CLEANING_IN_PROGRESS"
+            or "PENDING_CLEANING" or "PENDING_INSPECTION" or "READY";
+
     public static bool ValidReceipt(CleaningCancellationResult r, long branch, long task, Guid operation)
         => r.Id == task && r.BranchId == branch && r.RoomId > 0 && r.OperationId == operation
             && r.ReadinessEventId > 0 && r.OccurredAtUtc.Kind == DateTimeKind.Utc
             && CleaningLifecycleRules.StrongTag(r.SourceETag) && r.State == "CANCELLED"
-            && r.Readiness == "PENDING_CLEANING" && r.Contract == "PROVISIONAL_NOT_ACCEPTED"
+            && KnownReadiness(r.Readiness) && r.Contract == "PROVISIONAL_NOT_ACCEPTED"
             && (r.AssignmentId == null && r.AssigneeId == null && r.PublicationId == null
                 || r.AssignmentId > 0 && r.AssigneeId > 0 && r.PublicationId != null && r.PublicationId != Guid.Empty);
 }

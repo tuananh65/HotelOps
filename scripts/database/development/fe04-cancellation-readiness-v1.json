@@ -1,0 +1,9 @@
+[
+  {
+    "marker": "HotelOps.CleaningCancellationReadiness.V1",
+    "path": "scripts/database/development/06-Fe04CancellationReadiness.sql",
+    "sha256": "7E54344D7D50C1322BD8265860C1299F675F3055FE33D5720A4834F299E5E6D9",
+    "id": "fe04-cancellation-readiness-v1",
+    "start": "SET XACT_ABORT ON;"
+  }
+]

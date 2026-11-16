@@ -1,6 +1,6 @@
 # FASTTRACK-142A — Human QA handoff / source gap inventory
 
-Updated C179, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
+Updated C180, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
 
 Source covered **29/144** = **27 historical COMPLETE_VERIFIED + 2 IMPLEMENTED_PENDING_QA awaiting acceptance (UC032, UC038)**. No new COMPLETE_VERIFIED. The implementation enum IMPLEMENTED_PENDING_QA means source implemented; for the 27 already verified rows, the separate COMPLETE_VERIFIED field takes precedence and does not reopen QA. Pending-QA totals exclude those 27. Other rows are conservative source gaps, not implementation claims based on builds. NOT_TESTED means no current complete-UC assessment; historical slice checks remain linked and are not erased.
 
@@ -21,6 +21,8 @@ C177: approved never-passed Pending Cleaning priority retained. Completion recei
 C178: cancellation intent delivery and dedicated own-receipt UI/API implemented under approved current CLEANING_VIEW/branch scope. Full task reads unchanged. Backend 35 PASS/1 SQL SKIP; frontend/Auth-Router 54 PASS; build/typecheck PASS. No DB writes or runtime worker activation. Canonical cancellation schema capability remains to integrate; no UC promotion. See CHECKPOINT-178.md.
 
 C179: canonical cancellation schema/capability source prepared; installation blocked by SQL timeout. Independent recovery reads confirm predecessor guard retained and no new migration marker. No UC promotion or runtime activation. See CHECKPOINT-179.md.
+
+C180: source now restores latest non-cancelled cycle/effective readiness under a separately verified schema capability; UNKNOWN rolls back, blocks override Passed, and READY requires consistent current completion evidence. Backend 50 PASS/1 SQL SKIP; frontend 7 PASS plus build/typecheck. Migration not applied; no UC promotion. See CHECKPOINT-180.md.
 
 Priority A next: FE04 full Resume/Complete, cleaner capture, delivery and cancellation; FE13 material/legacy target adapters where authority contract exists; notification producer gaps. FE13 reopen/receipt/reroute and JOB06 finite archive retention still need their exact missing contracts. Approved RPT03 category/SLA decision is recorded below, not treated as installed storage.
 

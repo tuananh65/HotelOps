@@ -6,7 +6,16 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class EffectiveRoomReadinessTests
 {
     private static EffectiveRoomReadiness.Facts Passed() => new() { RoomId=1, IsActive=true, SourceAvailable=true,
-        Cleaning="COMPLETED", Inspection="PASSED", EverPassed=true };
+        Cleaning="COMPLETED", Inspection="PASSED", EverPassed=true, CompletedCycleVerified=true };
+
+    [Fact]
+    public void Historical_pass_cannot_authorize_a_current_cycle_without_completion_evidence()
+    {
+        var source = Passed(); source.CompletedCycleVerified = false;
+        Assert.Equal("UNKNOWN", EffectiveRoomReadiness.Calculate(source));
+        source.Blocked = true;
+        Assert.Equal("BLOCKED", EffectiveRoomReadiness.Calculate(source));
+    }
 
     [Fact]
     public void InactiveAndEffectiveBlockOverridePassedInspection()

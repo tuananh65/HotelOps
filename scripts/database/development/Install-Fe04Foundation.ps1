@@ -1,7 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$RecoveryReceipt,
  [Parameter(Mandatory=$true)][ValidateSet('Recovery','Development')][string]$Target,
  [switch]$RollbackTrial,
- [ValidateSet('fe04-foundation','fe04-execution','fe04-resume','fe04-closure','fe04-cancellation')][string]$SchemaBatch='fe04-foundation')
+ [ValidateSet('fe04-foundation','fe04-execution','fe04-resume','fe04-closure','fe04-cancellation','fe04-cancellation-readiness')][string]$SchemaBatch='fe04-foundation')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $receipt=Get-Content -LiteralPath $RecoveryReceipt -Raw | ConvertFrom-Json
@@ -15,7 +15,7 @@ $directory=Split-Path -Parent (Resolve-Path -LiteralPath $RecoveryReceipt).Path
 $schemaPath=Join-Path $directory 'baseline-schema.json'
 if((Get-FileHash -LiteralPath $schemaPath -Algorithm SHA256).Hash -cne $receipt.schemaSha256){throw 'Baseline schema mismatch'}
 $manifestPath=Join-Path $PSScriptRoot "$SchemaBatch-v1.json"
-$migrationId=if($SchemaBatch -eq 'fe04-foundation'){'FE04_FOUNDATION_V1'}elseif($SchemaBatch -eq 'fe04-execution'){'FE04_EXECUTION_V1'}elseif($SchemaBatch -eq 'fe04-resume'){'FE04_RESUME_V1'}elseif($SchemaBatch -eq 'fe04-closure'){'FE04_CLOSURE_V1'}else{'FE04_CANCELLATION_V1'}
+$migrationId=if($SchemaBatch -eq 'fe04-foundation'){'FE04_FOUNDATION_V1'}elseif($SchemaBatch -eq 'fe04-execution'){'FE04_EXECUTION_V1'}elseif($SchemaBatch -eq 'fe04-resume'){'FE04_RESUME_V1'}elseif($SchemaBatch -eq 'fe04-closure'){'FE04_CLOSURE_V1'}elseif($SchemaBatch -eq 'fe04-cancellation'){'FE04_CANCELLATION_V1'}else{'FE04_CANCELLATION_READINESS_V1'}
 $manifestHash=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
 $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $packages=@()
@@ -56,10 +56,12 @@ try{
  $existing=[string](Query "SELECT source_hash FROM dbo.dev3_schema_migrations WHERE migration_id='$migrationId'")
  if($existing -and $existing -cne $manifestHash){throw 'Migration checksum drift'}
  if(!$existing){
-  if($SchemaBatch -eq 'fe04-cancellation'){
-   $predecessor=Join-Path $PSScriptRoot '04-Fe04Closure.sql'
-   if((Get-FileHash -LiteralPath $predecessor -Algorithm SHA256).Hash -cne 'B1EFE4DFD1D09FC3C6E5EF8B872A277B3392037C16207E45590D783E15B7B7E7'){throw 'Predecessor package drift'}
-   $expected=([IO.File]::ReadAllText($predecessor) -split '(?im)^\s*GO\s*\r?$' | Where-Object {$_.Trim().StartsWith('CREATE TRIGGER dbo.TR_dev3_closure_publication_source')})
+  if($SchemaBatch -in @('fe04-cancellation','fe04-cancellation-readiness')){
+   $restoration=$SchemaBatch -eq 'fe04-cancellation-readiness'
+   $predecessor=Join-Path $PSScriptRoot $(if($restoration){'05-Fe04Cancellation.sql'}else{'04-Fe04Closure.sql'})
+   $predecessorHash=if($restoration){'7D61CD67E15BA9710CB30612470E5AA674EB9EECEDF4568B1346168DF1B2F8EF'}else{'B1EFE4DFD1D09FC3C6E5EF8B872A277B3392037C16207E45590D783E15B7B7E7'}
+   if((Get-FileHash -LiteralPath $predecessor -Algorithm SHA256).Hash -cne $predecessorHash){throw 'Predecessor package drift'}
+   $expected=([IO.File]::ReadAllText($predecessor) -split '(?im)^\s*GO\s*\r?$' | Where-Object {$_.Trim() -match '^(?:CREATE|ALTER) TRIGGER dbo\.TR_dev3_closure_publication_source'})
    $actual=[string](Query "SELECT OBJECT_DEFINITION(OBJECT_ID(N'dbo.TR_dev3_closure_publication_source'))")
    if($expected.Count -ne 1 -or $actual.Trim().Replace("`r`n","`n") -cne $expected.Trim().Replace("`r`n","`n")){throw 'Predecessor source guard drift'}
   }

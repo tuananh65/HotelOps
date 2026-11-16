@@ -53,7 +53,12 @@ public sealed class CleaningCancellationTests
         var r = new CleaningCancellationResult(3,2,1,null,null,operation,null,1,DateTime.UtcNow,"\"0000000000000001\"");
         Assert.True(CleaningCancellationRules.ValidReceipt(r,2,3,operation));
         Assert.False(CleaningCancellationRules.ValidReceipt(r with { AssignmentId=1 },2,3,operation));
-        Assert.False(CleaningCancellationRules.ValidReceipt(r with { Readiness="READY" },2,3,operation));
+        foreach (var readiness in new[] { "READY", "BLOCKED", "PENDING_INSPECTION", "REWORK_REQUIRED" })
+        {
+            Assert.True(CleaningCancellationRules.ValidReceipt(r with { Readiness=readiness },2,3,operation));
+            Assert.False(CleaningCancellationRules.ValidReceipt(r with { Readiness=readiness },2,4,operation));
+        }
+        Assert.False(CleaningCancellationRules.ValidReceipt(r with { Readiness="UNKNOWN" },2,3,operation));
         Assert.False(CleaningCancellationRules.ValidReceipt(r with { ReadinessEventId=0 },2,3,operation));
         Assert.False(CleaningCancellationRules.ValidReceipt(r,3,3,operation));
         Assert.False(CleaningCancellationRules.ValidReceipt(r,2,3,Guid.NewGuid()));

@@ -92,7 +92,7 @@ test("UC037 binds branch/task, ETag, operation key and validates receipt", async
               sourceETag: next,
               operationId: key,
               state: "CANCELLED",
-              readiness: "READY",
+              readiness: "UNKNOWN",
               readinessEventId: 9,
               contract: "PROVISIONAL_NOT_ACCEPTED",
             }),
@@ -127,3 +127,17 @@ test("UC037 rejects metadata ETag mismatch and propagates server denial", async 
     globalThis.fetch = original;
   }
 });
+
+for (const readiness of ["READY", "BLOCKED", "PENDING_INSPECTION", "REWORK_REQUIRED"]) {
+  test("UC037 accepts persisted restored readiness: " + readiness, async () => {
+    const original = globalThis.fetch;
+    try {
+      globalThis.fetch = async url => url === "/api/auth/csrf"
+        ? new Response(JSON.stringify({ headerName: "X-CSRF-TOKEN", csrfToken: "synthetic" }))
+        : new Response(JSON.stringify({ ...options, sourceETag: next, operationId: key,
+            state: "CANCELLED", readiness, readinessEventId: 9, contract: "PROVISIONAL_NOT_ACCEPTED" }),
+            { headers: { ETag: next } });
+      assert.equal((await cancelCleaning(options, true, "No longer needed", key)).readiness, readiness);
+    } finally { globalThis.fetch = original; }
+  });
+}

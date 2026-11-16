@@ -43,8 +43,7 @@ public sealed partial class RoomTypeCreationService
             && t.Room.IsActive && t.Room.Floor.IsActive && t.Room.Floor.BranchId == branch
             && (t.Room.AreaId == null || t.Room.Area!.IsActive && t.Room.Area.BranchId == branch), ct);
 
-    // Fail closed for previous cycles until their terminal Inspection/readiness authority is accepted.
-    // This V1 safely supports a first cycle (including earlier cancelled cycles), never infers READY.
+    // Older schema remains first-cycle-only; the versioned restoration capability uses GBR-044.
     private async Task<string?> CancellationBlocker(CleaningTask row, string? state, CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
@@ -56,19 +55,23 @@ public sealed partial class RoomTypeCreationService
         if (pointer != row.CleaningTaskId) return "CURRENT_CYCLE_REQUIRED";
         if (await db.WorkIntervals.AsNoTracking().AnyAsync(w => w.WorkItemKind == "CLEANING" && w.WorkItemId == row.CleaningTaskId, ct)
             || await db.CleaningProgressLogs.AsNoTracking().AnyAsync(p => p.CleaningTaskId == row.CleaningTaskId, ct)) return "TASK_HAS_EXECUTION_HISTORY";
-        if (await db.RoomInspections.AsNoTracking().AnyAsync(i => i.RoomId == row.RoomId, ct)
+        var restoration = candidateNotification != null && await candidateNotification.CancellationReadinessAvailableAsync(ct);
+        if (await db.RoomInspections.AsNoTracking().AnyAsync(i => i.RoomId == row.RoomId && (!restoration || i.CleaningTaskId == row.CleaningTaskId), ct)
             || await db.CleaningReworks.AsNoTracking().AnyAsync(r => r.CleaningTaskId == row.CleaningTaskId, ct)) return "INSPECTION_REWORK_SOURCE_REQUIRED";
-        if (await db.RoomBlocks.AsNoTracking().AnyAsync(b => b.RoomId == row.RoomId && (b.ReleasedAt == null || b.ReleasedAt > now), ct)) return "ROOM_BLOCK_SOURCE_CONFLICT";
-        if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_tasks WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId} AND cleaning_task_id<>{row.CleaningTaskId} AND (workflow_status IS NULL OR workflow_status<>'CANCELLED' OR status<>'CANCELLED')").SingleAsync(ct) != 0)
-            return "PREVIOUS_CYCLE_READINESS_CONTRACT_REQUIRED";
-        if (await db.CleaningTasks.AsNoTracking().AnyAsync(t => t.RoomId == row.RoomId && t.CleaningTaskId != row.CleaningTaskId
-            && (t.ActualStartAt != null || t.ActualEndAt != null || t.CleaningProgressLogs.Any() || t.CleaningReworks.Any()
-                || db.WorkIntervals.Any(w => w.WorkItemKind == "CLEANING" && w.WorkItemId == t.CleaningTaskId)), ct))
-            return "CANCELLED_CYCLE_SOURCE_CONFLICT";
-        // DIRTY is a persisted foundation status. Other operational states require an accepted lifecycle contract.
-        if (!await db.Rooms.AsNoTracking().AnyAsync(r => r.RoomId == row.RoomId && r.OperationalStatus == "DIRTY", ct)) return "ROOM_STATUS_SOURCE_CONFLICT";
-        var readiness = await db.Database.SqlQuery<string>($"SELECT TOP(1) CASE WHEN occurred_at>{now} OR has_effective_block=1 THEN 'CONFLICT' ELSE readiness END AS [Value] FROM dbo.room_readiness_events WHERE room_id={row.RoomId} AND cleaning_task_id={row.CleaningTaskId} ORDER BY occurred_at DESC,event_id DESC").SingleOrDefaultAsync(ct);
-        if (readiness != "PENDING_CLEANING") return "READINESS_SOURCE_REQUIRED";
+        if (!restoration)
+        {
+            if (await db.RoomBlocks.AsNoTracking().AnyAsync(b => b.RoomId == row.RoomId && (b.ReleasedAt == null || b.ReleasedAt > now), ct)) return "ROOM_BLOCK_SOURCE_CONFLICT";
+            if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_tasks WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId} AND cleaning_task_id<>{row.CleaningTaskId} AND (workflow_status IS NULL OR workflow_status<>'CANCELLED' OR status<>'CANCELLED')").SingleAsync(ct) != 0)
+                return "PREVIOUS_CYCLE_READINESS_CONTRACT_REQUIRED";
+            if (await db.CleaningTasks.AsNoTracking().AnyAsync(t => t.RoomId == row.RoomId && t.CleaningTaskId != row.CleaningTaskId
+                && (t.ActualStartAt != null || t.ActualEndAt != null || t.CleaningProgressLogs.Any() || t.CleaningReworks.Any()
+                    || db.WorkIntervals.Any(w => w.WorkItemKind == "CLEANING" && w.WorkItemId == t.CleaningTaskId)), ct))
+                return "CANCELLED_CYCLE_SOURCE_CONFLICT";
+            // DIRTY is a persisted foundation status. Other operational states require an accepted lifecycle contract.
+            if (!await db.Rooms.AsNoTracking().AnyAsync(r => r.RoomId == row.RoomId && r.OperationalStatus == "DIRTY", ct)) return "ROOM_STATUS_SOURCE_CONFLICT";
+            var readiness = await db.Database.SqlQuery<string>($"SELECT TOP(1) CASE WHEN occurred_at>{now} OR has_effective_block=1 THEN 'CONFLICT' ELSE readiness END AS [Value] FROM dbo.room_readiness_events WHERE room_id={row.RoomId} AND cleaning_task_id={row.CleaningTaskId} ORDER BY occurred_at DESC,event_id DESC").SingleOrDefaultAsync(ct);
+            if (readiness != "PENDING_CLEANING") return "READINESS_SOURCE_REQUIRED";
+        }
         if (assignments.Length == 1 && !(await CleaningExecutionAccess(assignments[0].AssigneeUserId,
             (await db.Rooms.Where(r => r.RoomId == row.RoomId).Select(r => r.BranchId).SingleAsync(ct)), row.CleaningTaskId, "CLEANING_VIEW", ct)).IsGranted)
             return "ASSIGNEE_SOURCE_READ_REQUIRED";
@@ -82,7 +85,11 @@ public sealed partial class RoomTypeCreationService
         var operation = CleaningLifecycleRules.Operation(key);
         var fingerprint = CleaningCancellationRules.Fingerprint(ticket.UserId, branch, task, tag, reason);
         try { return await Core(false, ct); }
-        catch (WorkTimeContractException error) { return LifecycleTimeFailure(error); }
+        catch (WorkTimeContractException error)
+        {
+            return error.Code == "PREVIOUS_CYCLE_READINESS_SOURCE_REQUIRED"
+                ? LifecycleFailure(RoomTypeBatchStatus.Unavailable, error.Code) : LifecycleTimeFailure(error);
+        }
         catch (Exception error) when (error is System.Data.Common.DbException or DbUpdateException or OperationCanceledException)
         {
             using var budget = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -132,9 +139,29 @@ public sealed partial class RoomTypeCreationService
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET status='CANCELLED',workflow_status='CANCELLED',updated_at={now} WHERE cleaning_task_id={task}", inner);
                 if (owner != null)
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_assignments SET assignment_status='CANCELLED',ended_at={now} WHERE assignment_id={owner.AssignmentId}", inner);
-                var eventId = (await db.Database.SqlQuery<long>($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) OUTPUT INSERTED.event_id AS [Value] VALUES({row.RoomId},{task},'PENDING_CLEANING',0,{actor},{now})").ToArrayAsync(inner)).Single();
+                var readiness = "PENDING_CLEANING";
+                if (await candidateNotification.CancellationReadinessAvailableAsync(inner))
+                {
+                    // The cancelled task remains history; point active workflow consumers at the latest real cycle.
+                    // With no prior cycle, retain the existing tombstone until the next creation replaces it.
+                    await db.Database.ExecuteSqlInterpolatedAsync($"""
+                        UPDATE s SET cleaning_task_id=p.cleaning_task_id
+                        FROM dbo.room_cleaning_cycle_state s
+                        CROSS APPLY(SELECT TOP(1) t.cleaning_task_id FROM dbo.cleaning_tasks t WITH(UPDLOCK,HOLDLOCK)
+                          WHERE t.room_id=s.room_id AND t.status<>'CANCELLED'
+                            AND (t.workflow_status IS NULL OR t.workflow_status<>'CANCELLED')
+                          ORDER BY t.created_at DESC,t.cleaning_task_id DESC) p
+                        WHERE s.room_id={row.RoomId} AND s.cleaning_task_id={task}
+                        """, inner);
+                    var effective = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+                        .ReadAsync([row.RoomId], now, inner);
+                    readiness = effective.TryGetValue(row.RoomId, out var roomState) ? roomState.Readiness : "UNKNOWN";
+                    if (!CleaningCancellationRules.KnownReadiness(readiness))
+                        throw new WorkTimeContractException("PREVIOUS_CYCLE_READINESS_SOURCE_REQUIRED");
+                }
+                var eventId = (await db.Database.SqlQuery<long>($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) OUTPUT INSERTED.event_id AS [Value] VALUES({row.RoomId},{task},{readiness},{readiness == "BLOCKED"},{actor},{now})").ToArrayAsync(inner)).Single();
                 written = new(task, branch, row.RoomId, owner?.AssignmentId, owner?.AssigneeUserId, operation,
-                    owner == null ? null : Guid.NewGuid(), eventId, now, WorkflowTag((await CleaningState(task, inner)).Revision));
+                    owner == null ? null : Guid.NewGuid(), eventId, now, WorkflowTag((await CleaningState(task, inner)).Revision), Readiness: readiness);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.Status, assignmentId = owner?.AssignmentId },
                     new { operationId = operation, action = "CANCEL_CLEANING", reason, confirmed = true, entity = written },
                     ["workflowStatus", "assignment", "readiness", "notification"], inner);

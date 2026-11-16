@@ -7,6 +7,10 @@ namespace HotelOps.Api.Services.Notifications;
 // Extends the existing publisher and physical operation/publication/intent ledger.
 public sealed partial class ProvisionalCleaningNotification
 {
+    public async Task<bool> CancellationReadinessAvailableAsync(CancellationToken ct)
+        => env.IsDevelopment() && config["CleaningCancellation:Capability"] == "VERIFIED_V1"
+            && await HotelOps.Api.Data.CleaningCancellationReadinessSchema.InstalledAsync(db, ct);
+
     public async Task<bool> CancellationAvailableAsync(CancellationToken ct)
     {
         if(env.IsDevelopment() && config["CleaningCancellation:Capability"]=="VERIFIED_V1")
@@ -66,7 +70,7 @@ public sealed partial class ProvisionalCleaningNotification
             WHERE o.actor_user_id={actor} AND o.operation_key={r.OperationId} AND o.completed=1 AND o.fingerprint_version=1
             AND EXISTS(SELECT 1 FROM dbo.cleaning_tasks t WHERE t.cleaning_task_id={r.Id} AND t.room_id={r.RoomId} AND t.workflow_status='CANCELLED' AND t.status='CANCELLED')
             AND EXISTS(SELECT 1 FROM dbo.rooms room WHERE room.room_id={r.RoomId} AND room.branch_id={r.BranchId})
-            AND EXISTS(SELECT 1 FROM dbo.room_readiness_events e WHERE e.event_id={r.ReadinessEventId} AND e.room_id={r.RoomId} AND e.cleaning_task_id={r.Id} AND e.readiness='PENDING_CLEANING' AND e.has_effective_block=0 AND e.actor_user_id={actor} AND e.occurred_at={r.OccurredAtUtc})
+            AND EXISTS(SELECT 1 FROM dbo.room_readiness_events e WHERE e.event_id={r.ReadinessEventId} AND e.room_id={r.RoomId} AND e.cleaning_task_id={r.Id} AND e.readiness={r.Readiness} AND e.has_effective_block={r.Readiness == "BLOCKED"} AND e.actor_user_id={actor} AND e.occurred_at={r.OccurredAtUtc})
             AND EXISTS(SELECT 1 FROM dbo.audit_logs a WHERE a.actor_user_id={actor} AND a.entity_type='cleaning_tasks' AND a.entity_id=CONVERT(varchar(30),{r.Id}) AND a.branch_id={r.BranchId} AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.action')='CANCEL_CLEANING' AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.operationId'))={r.OperationId})
             AND (({r.AssignmentId} IS NULL AND {r.PublicationId} IS NULL AND NOT EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.actor_user_id={actor} AND p.operation_key={r.OperationId}))
               OR EXISTS(SELECT 1 FROM dbo.notification_publications p JOIN dbo.cleaning_assignments s ON s.assignment_id=p.assignment_id
