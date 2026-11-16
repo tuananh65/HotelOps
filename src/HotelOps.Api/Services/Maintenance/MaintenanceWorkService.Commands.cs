@@ -115,6 +115,17 @@ public sealed partial class MaintenanceWorkService
             afterWork["notification_version"] = 1;
             afterWork["closure_reporter_id"] = incident.ReportedBy;
             afterWork["verification_note"] = verified.Note.Trim();
+            if (incident.AssetId is long assetId)
+            {
+                var asset = await _dbContext.Assets.AsNoTracking().SingleOrDefaultAsync(a => a.AssetId == assetId
+                    && a.BranchId == incident.BranchId, cancellationToken);
+                if (asset == null) throw new ValidationException("Incident asset branch is inconsistent.");
+                if (asset.ConditionStatus is "DAMAGED" or "UNDER_REPAIR")
+                {
+                    afterWork["closure_asset_id"] = asset.AssetId;
+                    afterWork["closure_asset_condition"] = asset.ConditionStatus;
+                }
+            }
         }
         if (returnedExecution != null)
         {

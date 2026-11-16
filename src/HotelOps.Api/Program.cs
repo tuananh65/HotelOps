@@ -45,6 +45,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceSubmis
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceReturnDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceClosureDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.IncidentRoomReleaseDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.IncidentAssetFollowupDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskSeriesNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskReopenNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationNotificationDelivery>();

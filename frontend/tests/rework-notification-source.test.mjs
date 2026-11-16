@@ -23,6 +23,16 @@ test("incident closure resolves room and existing participant targets without ar
     await assert.rejects(resolveInboxSource(7, signal), /Invalid notification source/);
   }
 });
+
+test("asset condition follow-up can only open its own notification receipt", async () => {
+  const signal = new AbortController().signal;
+  globalThis.fetch = async () => Response.json({ path: "/notifications/7/asset-condition" });
+  assert.equal(await resolveInboxSource(7, signal), "/notifications/7/asset-condition");
+  for (const path of ["/notifications/8/asset-condition", "/notifications/7/asset-condition?assetId=12", "//evil/notifications/7/asset-condition"]) {
+    globalThis.fetch = async () => Response.json({ path });
+    await assert.rejects(resolveInboxSource(7, signal));
+  }
+});
 test("source resolver uses current session and only accepts canonical rework/history paths", async () => {
   const abort = new AbortController();
   globalThis.fetch = async (url, options) => {

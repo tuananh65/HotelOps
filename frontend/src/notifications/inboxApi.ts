@@ -145,7 +145,7 @@ export async function resolveInboxSource(
   ).json();
   if (typeof data?.path !== "string")
     throw new Error("Invalid notification source");
-  const cancellation = /^\/notifications\/([1-9][0-9]*)\/cleaning-cancellation$/.exec(data.path);
+    const cancellation = /^\/notifications\/([1-9][0-9]*)\/(?:cleaning-cancellation|asset-condition)$/.exec(data.path);
   if (cancellation) {
     if (Number(cancellation[1]) !== id) throw new Error("Invalid notification source");
     return data.path;
