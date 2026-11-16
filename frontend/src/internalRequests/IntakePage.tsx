@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 type Option = { id: number; name: string };
-type Options = { branches: Option[]; types: (Option & { materialNeed: boolean })[]; departments: Option[]; priorities: Option[]; rooms: Option[]; areas: Option[] };
+type Options = { branches: Option[]; types: (Option & { materialNeed: boolean })[]; departments: Option[]; requesterDepartments: Option[]; priorities: Option[]; rooms: Option[]; areas: Option[] };
 class Failure extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
 async function json(path: string, signal: AbortSignal, init?: RequestInit): Promise<unknown> {
   const response = await fetch(path, { ...init, signal, credentials: "same-origin", cache: "no-store", redirect: "error" });
@@ -13,7 +13,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
 }
 function options(raw: unknown): Options {
   const value = raw as Options;
-  if (!value || ![value.branches, value.types, value.departments, value.priorities, value.rooms, value.areas].every(list =>
+  if (!value || ![value.branches, value.types, value.departments, value.requesterDepartments, value.priorities, value.rooms, value.areas].every(list =>
     Array.isArray(list) && list.every(v => Number.isSafeInteger(v.id) && v.id > 0 && typeof v.name === "string"))
     || value.types.some(v => typeof v.materialNeed !== "boolean")) throw new Error("Invalid intake options");
   return value;
@@ -37,6 +37,7 @@ export function InternalRequestIntakePage() {
   const [branch, setBranch] = useState(""); const [revision, setRevision] = useState(0);
   const [loaded, setLoaded] = useState<{ owner: typeof owner; branch: string; value: Options } | null>(null);
   const [type, setType] = useState(""); const [department, setDepartment] = useState(""); const [priority, setPriority] = useState("");
+  const [requesterDepartment, setRequesterDepartment] = useState("");
   const [subject, setSubject] = useState(""); const [description, setDescription] = useState(""); const [deadline, setDeadline] = useState("");
   const [location, setLocation] = useState(""); const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState(""); const [created, setCreated] = useState<number | null>(null); const [busy, setBusy] = useState(false);
@@ -44,10 +45,13 @@ export function InternalRequestIntakePage() {
   // Preserve the submission key after uncertain outcomes; the server's unique request number prevents duplicate creation.
   const submission = useRef(crypto.randomUUID());
   useEffect(() => {
-    setLoaded(null); setType(""); setDepartment(""); setPriority(""); setLocation(""); setFiles([]); setMessage(""); setBusy(false); sending.current = false;
+    setLoaded(null); setType(""); setDepartment(""); setRequesterDepartment(""); setPriority(""); setLocation(""); setFiles([]); setMessage(""); setBusy(false); sending.current = false;
     const abort = new AbortController(); controller.current = abort;
     if (owner) void json(`/api/internal-requests/intake${branch ? `?branchId=${branch}` : ""}`, abort.signal).then(options).then(value => {
-      if (!abort.signal.aborted) setLoaded({ owner, branch, value });
+      if (!abort.signal.aborted) {
+        setLoaded({ owner, branch, value });
+        setRequesterDepartment(value.requesterDepartments.length === 1 ? String(value.requesterDepartments[0].id) : "");
+      }
     }).catch(e => { if (!abort.signal.aborted) { setMessage("Creation unavailable. Reload to check current access."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } });
     return () => abort.abort();
   }, [owner, branch, revision, actions]);
@@ -70,14 +74,16 @@ export function InternalRequestIntakePage() {
       const result = await json("/api/internal-requests/intake", abort.signal, { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken },
         body: JSON.stringify({ submissionId: submission.current, branchId: Number(branch), typeId: Number(type), departmentId: Number(department), subject: subject.trim(), description: description.trim(),
           priorityId: Number(priority), desiredDeadline: new Date(`${deadline}:00+07:00`).toISOString(), roomId: location.startsWith("room:") ? Number(location.slice(5)) : null,
-          areaId: location.startsWith("area:") ? Number(location.slice(5)) : null, files: uploads }) }) as { requestId: number; status: string; message: string };
+          areaId: location.startsWith("area:") ? Number(location.slice(5)) : null, requesterDepartmentId: requesterDepartment ? Number(requesterDepartment) : null, files: uploads }) }) as { requestId: number; status: string; message: string };
       if (!result || !Number.isSafeInteger(result.requestId) || result.requestId <= 0 || result.status !== "PENDING_ACCEPTANCE" || result.message !== "MSG09") throw new Error("Creation not confirmed");
       if (!abort.signal.aborted) { setCreated(result.requestId); setSubject(""); setDescription(""); setFiles([]); setLoaded(null); setMessage("MSG09: Request created. Pending Acceptance."); }
     } catch (e) {
       if (!abort.signal.aborted) {
         setLoaded(null); setFiles([]);
         setMessage(e instanceof Failure && e.code === "MATERIAL_REQUEST_REQUIRED" ? "MSG03: Create a material request instead (UC091)."
-          : e instanceof Failure && e.status === 409 ? "Submission already used. Check your sent requests before creating another."
+          : e instanceof Failure && e.code === "IR_SUBMISSION_ALREADY_USED" ? "Submission already used. Check your sent requests before creating another."
+          : e instanceof Failure && e.code === "IR_REQUESTER_MEMBERSHIP_CHANGED" ? "Your department membership changed. Reload to select a currently available department."
+          : e instanceof Failure && e.status === 409 ? "Request conditions changed. Reload current options before submitting again."
           : e instanceof Failure && e.status === 400 ? "MSG03: Check required fields, future deadline, current branch references and attachment format. Reload to correct the request."
           : "Creation not confirmed. Check your sent requests, then reload current access. No automatic retry was sent.");
         if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner);
@@ -93,6 +99,7 @@ export function InternalRequestIntakePage() {
       {view && <form aria-label="Create internal request" onSubmit={e => { e.preventDefault(); void submit(); }}>
         {select("Branch", branch, view.branches, setBranch)}
         {branch && <>
+          {view.requesterDepartments.length > 0 && <label>Your department<select aria-label="Your department" value={requesterDepartment} disabled={busy} onChange={e => setRequesterDepartment(e.target.value)}>{view.requesterDepartments.length > 1 && <option value="">Not specified</option>}{view.requesterDepartments.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>}
           {select("Request type", type, view.types, setType)}{select("Receiving department", department, view.departments, setDepartment)}
           {select("Priority", priority, view.priorities, setPriority)}
           <label>Title<input required maxLength={200} value={subject} disabled={busy} onChange={e => setSubject(e.target.value)} /></label>

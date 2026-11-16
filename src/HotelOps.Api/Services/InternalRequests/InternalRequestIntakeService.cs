@@ -8,15 +8,17 @@ using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestIntakeInput(Guid SubmissionId,long BranchId,long TypeId,long DepartmentId,string Subject,string Description,
-    long PriorityId,DateTimeOffset DesiredDeadline,long? RoomId=null,long? AreaId=null,IReadOnlyList<EvidenceUpload>? Files=null);
+    long PriorityId,DateTimeOffset DesiredDeadline,long? RoomId=null,long? AreaId=null,IReadOnlyList<EvidenceUpload>? Files=null,long? RequesterDepartmentId=null);
 public sealed record InternalRequestIntakeTypeOption(long Id,string Name,bool MaterialNeed);
 public sealed record InternalRequestIntakeOptions(InternalRequestFilterValue[] Branches,InternalRequestIntakeTypeOption[] Types,
-    InternalRequestFilterValue[] Departments,InternalRequestFilterValue[] Priorities,InternalRequestFilterValue[] Rooms,InternalRequestFilterValue[] Areas);
+    InternalRequestFilterValue[] Departments,InternalRequestFilterValue[] Priorities,InternalRequestFilterValue[] Rooms,InternalRequestFilterValue[] Areas,
+    InternalRequestFilterValue[]? RequesterDepartments=null);
 public sealed record InternalRequestIntakeResult(long RequestId,string Number,string Status,string Version,long EventId,string Message);
 
 public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
@@ -28,7 +30,7 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             ||string.IsNullOrWhiteSpace(subject)||subject.Length>200||subject.Any(char.IsControl)
             ||string.IsNullOrWhiteSpace(description)||description.Length>4000||description.Any(c=>char.IsControl(c)&&c!='\r'&&c!='\n'&&c!='\t')
             ||input.DesiredDeadline.UtcDateTime<=now||input.RoomId is <=0||input.AreaId is <=0||input.RoomId!=null&&input.AreaId!=null
-            ||input.Files?.Count>5||input.Files?.Any(f=>f==null)==true)
+            ||input.Files?.Count>5||input.Files?.Any(f=>f==null)==true||input.RequesterDepartmentId is <=0)
             throw new ValidationException("Complete required fields, select one location and a future desired deadline.");
         foreach(var file in input.Files??[])InternalRequestEvidence.Validate(file);
         return input with{Subject=subject,Description=description};
@@ -44,7 +46,8 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
     private async Task SchemaAsync(CancellationToken ct)
     {
         if(!await InstalledAsync(db,ct)||!await InternalRequestDecisionStore.InstalledAsync(db,ct)
-            ||!await new InternalRequestProcessAuthority(db).InstalledAsync(ct)||!await InternalRequestEvidence.InstalledAsync(db,ct))
+            ||!await new InternalRequestProcessAuthority(db).InstalledAsync(ct)||!await InternalRequestEvidence.InstalledAsync(db,ct)
+            ||!await WorkdayMembershipStore.InstalledAsync(db,ct))
             throw new InternalRequestReadException(503,"IR_INTAKE_SCHEMA_REQUIRED");
     }
     public async Task<InternalRequestIntakeOptions> OptionsAsync(SessionReference ticket,long sid,long? branch,CancellationToken ct)
@@ -58,11 +61,16 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
         if(branches.Count==0||branch!=null&&!branches.Any(b=>b.Id==branch))throw new InternalRequestReadException(403,"IR_CREATE_REQUIRED");
         var types=await (from type in db.InternalRequestTypes.AsNoTracking() join policy in InternalRequestIntakePolicy.Types(db) on type.RequestTypeId equals policy.TypeId
             where type.IsActive orderby policy.SortOrder,type.TypeName,type.RequestTypeId select new InternalRequestIntakeTypeOption(type.RequestTypeId,type.TypeName,policy.MaterialNeed)).ToArrayAsync(ct);
+        var requesterDepartments=branch is {} selectedBranch
+            ? await WorkdayMembershipStore.ReadAsync(db,ticket.UserId,selectedBranch,
+                await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),ct)
+            : [];
         var result=new InternalRequestIntakeOptions(branches.ToArray(),types,
             await db.Departments.AsNoTracking().Where(d=>branch!=null&&d.BranchId==branch&&d.IsActive).OrderBy(d=>d.DepartmentName).Select(d=>new InternalRequestFilterValue(d.DepartmentId,d.DepartmentName)).ToArrayAsync(ct),
             await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="PRIORITY"&&r.IsActive).OrderBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId).Select(r=>new InternalRequestFilterValue(r.ReferenceId,r.DisplayName)).ToArrayAsync(ct),
             await db.Rooms.AsNoTracking().Where(r=>branch!=null&&r.BranchId==branch&&r.IsActive).OrderBy(r=>r.RoomNumber).Select(r=>new InternalRequestFilterValue(r.RoomId,r.RoomNumber)).ToArrayAsync(ct),
-            await db.Areas.AsNoTracking().Where(a=>branch!=null&&a.BranchId==branch&&a.IsActive).OrderBy(a=>a.AreaName).Select(a=>new InternalRequestFilterValue(a.AreaId,a.AreaName)).ToArrayAsync(ct));
+            await db.Areas.AsNoTracking().Where(a=>branch!=null&&a.BranchId==branch&&a.IsActive).OrderBy(a=>a.AreaName).Select(a=>new InternalRequestFilterValue(a.AreaId,a.AreaName)).ToArrayAsync(ct),
+            requesterDepartments.Select(d=>new InternalRequestFilterValue(d.DepartmentId,d.Name)).ToArray());
         await SessionAsync(ticket,sid,ct);
         foreach(var b in branches)if(!await access.AllowsAsync(ticket.UserId,b.Id,ct))throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
         await tx.CommitAsync(ct);return result;
@@ -100,7 +108,11 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             if(recipients.Count!=1)throw new InternalRequestReadException(409,"IR_CURRENT_HEAD_AUTHORITY_REQUIRED");
             var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
             Validate(input,now);
-            var home=await db.Users.AsNoTracking().Where(u=>u.UserId==ticket.UserId&&u.Department!=null&&u.Department.BranchId==input.BranchId).Select(u=>u.DepartmentId).SingleOrDefaultAsync(ct);
+            var memberships=await WorkdayMembershipStore.ReadAsync(db,ticket.UserId,input.BranchId,now,ct);
+            if(input.RequesterDepartmentId is {} selectedDepartment&&!memberships.Any(d=>d.DepartmentId==selectedDepartment))
+                throw new InternalRequestReadException(409,"IR_REQUESTER_MEMBERSHIP_CHANGED");
+            // Attribution is optional in the existing schema. Never guess among several memberships.
+            var home=input.RequesterDepartmentId??(memberships.Length==1?(long?)memberships[0].DepartmentId:null);
             var request=new InternalRequest{RequestNo=number,BranchId=input.BranchId,RequestTypeId=input.TypeId,RequesterId=ticket.UserId,RequesterDepartmentId=home,
                 ReceivingDepartmentId=input.DepartmentId,Subject=input.Subject,Description=input.Description,PriorityId=input.PriorityId,
                 RequiredAt=input.DesiredDeadline.UtcDateTime,RoomId=input.RoomId,AreaId=input.AreaId,Status="PENDING_ACCEPTANCE",CreatedAt=now,SubmittedAt=now};
@@ -109,7 +121,7 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             db.InternalRequestEvents.Add(entry);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             foreach(var file in input.Files??[])await InternalRequestEvidence.StoreAsync(db,entry.EventId,ticket.UserId,now,file,root,files.Files,ct,"INTERNAL_REQUEST_INTAKE");
             db.AuditLogs.Add(new(){ActorUserId=ticket.UserId,BranchId=input.BranchId,EntityType="internal_requests",EntityId=request.InternalRequestId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="CREATE",OccurredAt=now,
-                NewValues=JsonSerializer.Serialize(new{operation="CREATE",request.RequestNo,request.Status,request.RequestTypeId,request.ReceivingDepartmentId,request.RequiredAt,request.PriorityId}),ChangedFields="[\"request\"]"});
+                NewValues=JsonSerializer.Serialize(new{operation="CREATE",request.RequestNo,request.Status,request.RequestTypeId,request.RequesterDepartmentId,request.ReceivingDepartmentId,request.RequiredAt,request.PriorityId}),ChangedFields="[\"request\"]"});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             foreach(var recipient in recipients)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_intake_outbox(event_id,recipient_id,branch_id,department_id,created_at) VALUES({entry.EventId},{recipient},{input.BranchId},{input.DepartmentId},{now})",ct);
             await SessionAsync(ticket,sid,ct);if(!await access.AllowsAsync(ticket.UserId,input.BranchId,ct))throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
