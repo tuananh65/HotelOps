@@ -70,6 +70,8 @@ builder.Services.AddScoped<IncidentReopenService>();
 builder.Services.AddScoped<IncidentReopenedNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCriticalNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentClassificationService>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Incidents.IncidentNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();

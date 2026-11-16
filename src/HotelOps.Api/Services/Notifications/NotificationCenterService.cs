@@ -124,6 +124,13 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:Incidents.IncidentCriticalNotificationDelivery.Kind,SourceType:Incidents.IncidentCriticalNotificationDelivery.Kind,SourceId:>0})
+        {
+            var incidentId = await Incidents.IncidentCriticalNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
+            if (incidentId == null) throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
+            await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}?action=A004A-023");
+        }
         if(source is {NotificationType:Incidents.IncidentEscalatedNotificationDelivery.Kind,SourceType:Incidents.IncidentEscalatedNotificationDelivery.Kind,SourceId:>0})
         {
             var incidentId = await Incidents.IncidentEscalatedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
