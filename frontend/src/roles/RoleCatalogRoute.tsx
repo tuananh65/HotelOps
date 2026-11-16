@@ -249,6 +249,7 @@ function Catalog({
               </p>
               <Link to={`/roles/${roleId}/permissions`}>Permission matrix</Link>
               {creationEnabled && !d.role.isSystemRole && <Link to={`/roles/${roleId}/edit`}>Edit role metadata</Link>}
+              {creationEnabled && !d.role.isSystemRole && d.role.isActive && <Link to={`/roles/${roleId}/deactivate`}>Deactivate role</Link>}
               <ul>
                 {d.grants.map((x) => (
                   <li key={x.rolePermissionId}>

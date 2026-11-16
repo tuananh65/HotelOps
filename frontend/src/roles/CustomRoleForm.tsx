@@ -16,18 +16,20 @@ function key(x: object) {
   if (!keys.has(x)) keys.set(x, ++n);
   return keys.get(x)!;
 }
-export function CustomRoleEditRoute() {
+export function CustomRoleEditRoute({ deactivate = false }: { deactivate?: boolean }) {
   const { roleId = "" } = useParams();
   if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId))) return <p role="alert">Invalid role ID.</p>;
-  return <CustomRoleForm roleId={Number(roleId)} dispatchEnabled />;
+  return <CustomRoleForm roleId={Number(roleId)} dispatchEnabled deactivate={deactivate} />;
 }
 /** Both operations retain current-session binding and never replay a mutation. */
 export function CustomRoleForm({
   roleId,
   dispatchEnabled = false,
+  deactivate = false,
 }: {
   roleId?: number;
   dispatchEnabled?: boolean;
+  deactivate?: boolean;
 }) {
   const { state, actions } = useAuth();
   const identity = useMemo(
@@ -37,7 +39,7 @@ export function CustomRoleForm({
   const [invalid, setInvalid] = useState<object | null>(null);
   const binding = useMemo(
     () => ({}),
-    [state.session, state.status, state.pending, roleId, dispatchEnabled],
+    [state.session, state.status, state.pending, roleId, dispatchEnabled, deactivate],
   );
   const latest = useRef(binding);
   latest.current = binding;
@@ -62,8 +64,9 @@ export function CustomRoleForm({
   return (
     <Bound
       key={key(binding)}
-      {...{ roleId, dispatchEnabled, current }}
+      {...{ roleId, dispatchEnabled, current, deactivate }}
       invalidate={() => setInvalid(identity)}
+      revalidate={() => void actions.revalidate()}
     />
   );
 }
@@ -72,11 +75,15 @@ function Bound({
   dispatchEnabled,
   current,
   invalidate,
+  deactivate,
+  revalidate,
 }: {
   roleId?: number;
   dispatchEnabled: boolean;
   current: () => boolean;
   invalidate: () => void;
+  deactivate: boolean;
+  revalidate: () => void;
 }) {
   const [api] = useState(() =>
       createCustomRoleApi(globalThis.fetch.bind(globalThis), dispatchEnabled),
@@ -136,7 +143,8 @@ function Bound({
       !dispatchEnabled ||
       attempted.current ||
       !mounted.current ||
-      !current() || (roleId !== undefined && (!version || !record || record.isSystemRole))
+      !current() || (deactivate && (!record?.isActive || roleId === undefined))
+      || (roleId !== undefined && (!version || !record || record.isSystemRole))
     )
       return;
     attempted.current = true;
@@ -144,7 +152,7 @@ function Bound({
     controller.current = new AbortController();
     const result = roleId !== undefined ? await api.update(roleId,
       { roleName: review.roleName, description: review.description }, version!,
-      () => mounted.current && current(), controller.current.signal) : await api.create(
+      () => mounted.current && current(), controller.current.signal, deactivate) : await api.create(
       review,
       () => mounted.current && current(),
       controller.current.signal,
@@ -159,6 +167,11 @@ function Bound({
         return;
       }
       setMessage(customRoleMessage(result));
+      return;
+    }
+    if (deactivate) {
+      setRecord(result.data);
+      setMessage("Role deactivated. Other role assignments and history are preserved. Affected users must sign in again.");
       return;
     }
     setMessage(
@@ -184,11 +197,13 @@ function Bound({
   return (
     <main>
       <h1>
-        {roleId === undefined
+        {deactivate ? "Deactivate custom role" : roleId === undefined
           ? "Create custom role"
           : "Edit custom role metadata"}
       </h1>
       <Link to="/roles">Back to roles</Link>
+      {deactivate && <p>Confirm deactivation. Users will lose access from this role and their current sessions will end. Their other roles remain assigned.</p>}
+      {deactivate && locked && <button onClick={revalidate}>Revalidate session</button>}
       <p>
         No automatic grants or assignments. Names do not establish authority.
       </p>
@@ -203,13 +218,13 @@ function Bound({
             onSubmit={(e) => {
               e.preventDefault();
               if (
-                roleId === undefined
+                deactivate ? !!record?.isActive && !record.isSystemRole : roleId === undefined
                   ? validCustomRole(input)
                   : validMetadata(input.roleName, input.description)
               ) {
                 setReview({ ...input });
                 setMessage(
-                  roleId === undefined
+                  deactivate ? "Confirm that this role should become inactive." : roleId === undefined
                     ? "Review metadata before confirming."
                     : "Review the metadata changes before confirming.",
                 );
@@ -233,7 +248,7 @@ function Bound({
               Role name
               <input
                 value={input.roleName}
-                disabled={pending || locked || record?.isSystemRole}
+                disabled={deactivate || pending || locked || record?.isSystemRole}
                 onChange={(e) => {
                   setInput({ ...input, roleName: e.target.value });
                   setReview(null);
@@ -244,7 +259,7 @@ function Bound({
               Description
               <textarea
                 value={input.description ?? ""}
-                disabled={pending || locked || record?.isSystemRole}
+                disabled={deactivate || pending || locked || record?.isSystemRole}
                 onChange={(e) => {
                   setInput({ ...input, description: e.target.value });
                   setReview(null);
@@ -254,7 +269,7 @@ function Bound({
             {record?.isSystemRole ? (
               <p>System role protected. No metadata changes allowed.</p>
             ) : (
-              <button disabled={pending || locked}>Review metadata</button>
+              <button disabled={pending || locked || (deactivate && !record?.isActive)}>{deactivate ? "Review deactivation" : "Review metadata"}</button>
             )}
           </form>
           {review && !locked && (
@@ -267,7 +282,7 @@ function Bound({
                 disabled={!dispatchEnabled || pending || (roleId !== undefined && (!version || record?.isSystemRole))}
                 onClick={() => void create()}
               >
-                {roleId === undefined ? "Confirm create" : "Confirm update"}
+                {deactivate ? "Confirm deactivate" : roleId === undefined ? "Confirm create" : "Confirm update"}
               </button>
             </section>
           )}

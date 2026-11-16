@@ -169,8 +169,8 @@ export function createCustomRoleApi(
       }
     },
     async update(roleId: number, input: Pick<CustomRoleInput, "roleName" | "description">,
-      etag: string, current: () => boolean, signal?: AbortSignal): Promise<CustomRoleResult> {
-      if (!enabled || !id(roleId) || !validMetadata(input.roleName, input.description)
+      etag: string, current: () => boolean, signal?: AbortSignal, deactivate = false): Promise<CustomRoleResult> {
+      if (!enabled || !id(roleId) || (!deactivate && !validMetadata(input.roleName, input.description))
         || !/^"[0-9A-F]{16}"$/.test(etag) || !current() || signal?.aborted)
         return { outcome: "NOT_DISPATCHED", reason: "INVALID_REQUEST" };
       let status: number | undefined;
@@ -197,12 +197,13 @@ export function createCustomRoleApi(
         nextVersion = response.headers.get("ETag");
         return response;
       });
-      const result = await client({ method: "PATCH", url: `/api/roles/${roleId}`, expectedStatus: 200,
-        body: input, csrfToken: token.data, signal,
+      const result = await client({ method: deactivate ? "POST" : "PATCH",
+        url: `/api/roles/${roleId}${deactivate ? "/deactivate" : ""}`, expectedStatus: 200,
+        body: deactivate ? undefined : input, csrfToken: token.data, signal,
         decode(value) {
           const data = role(value);
-          return data?.roleId === roleId && !data.isSystemRole && data.roleName === input.roleName.trim()
-            && data.description === (input.description?.trim() || null)
+          return data?.roleId === roleId && !data.isSystemRole
+            && (deactivate ? !data.isActive : data.roleName === input.roleName.trim() && data.description === (input.description?.trim() || null))
             && nextVersion && /^"[0-9A-F]{16}"$/.test(nextVersion) && nextVersion !== etag ? data : undefined;
         },
       });

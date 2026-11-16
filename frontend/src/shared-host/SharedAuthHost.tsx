@@ -112,6 +112,7 @@ export function SharedAuthHost({
       {roleAssignmentEnabled && <Route path="/roles/new" element={<CustomRoleForm dispatchEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/:roleId" element={<RoleCatalogRoute mode="detail" creationEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/:roleId/edit" element={<CustomRoleEditRoute />} />}
+      {roleAssignmentEnabled && <Route path="/roles/:roleId/deactivate" element={<CustomRoleEditRoute deactivate />} />}
       {roleAssignmentEnabled && <Route path="/roles/:roleId/permissions" element={<RoleCatalogRoute mode="matrix" />} />}
       {roleAssignmentEnabled && <Route path="/permissions" element={<RoleCatalogRoute mode="catalog" />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
