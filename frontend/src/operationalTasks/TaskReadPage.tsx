@@ -42,6 +42,7 @@ export function TaskReadPage() {
   const [planned, setPlanned] = useState<AuthorityGeneration | null>(null);
   const [reopened, setReopened] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
+  const [workflowNotice, setWorkflowNotice] = useState<{ owner: AuthorityGeneration; branch: number; task: number; message: string } | null>(null);
   const [query, setQuery] = useState<{
     branch: number;
     search: string;
@@ -57,6 +58,13 @@ export function TaskReadPage() {
     error?: string;
   } | null>(null);
   const key = JSON.stringify(query);
+  function workflowChanged(message: string) {
+    if (!owner || !query?.id) return;
+    setWorkflowNotice({ owner, branch: query.branch, task: query.id, message });
+    setResult(null);
+    setProgressRevision(n => n + 1);
+    setQuery({ ...query, revision: query.revision + 1 });
+  }
   const workloadBranches = dashboardWorkloadBranches(params);
   useEffect(() => {
     if (params.has("workloadBranches")) { setQuery(null); return; }
@@ -205,6 +213,7 @@ export function TaskReadPage() {
           MSG19: Task declined and returned to Pending Assignment.
         </p>
       )}
+      {workflowNotice?.owner === owner && workflowNotice.branch === query?.branch && workflowNotice.task === query.id && <p role="status">{workflowNotice.message}</p>}
       {assigned === owner && (
         <p role="status">
           MSG08: Task assigned. The new executor must accept before starting.
@@ -360,6 +369,7 @@ export function TaskReadPage() {
               branch={detail.task.branchId}
               task={detail.task.id}
               owner={owner}
+              onChanged={workflowChanged}
               onDeclined={() => {
                 setDeclined(owner);
                 setResult(null);
@@ -386,6 +396,7 @@ export function TaskReadPage() {
             branch={detail.task.branchId}
             task={detail.task.id}
             owner={owner}
+            onChanged={workflowChanged}
           />
           <p>{detail.progressTotalCount} recorded updates</p>
           <ul>

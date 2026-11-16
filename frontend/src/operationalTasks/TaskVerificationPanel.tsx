@@ -12,10 +12,12 @@ export function TaskVerificationPanel({
   branch,
   task,
   owner,
+  onChanged,
 }: {
   branch: number;
   task: number;
   owner: AuthorityGeneration;
+  onChanged?: (message: string) => void;
 }) {
   const { actions } = useAuth();
   const [snapshot, setSnapshot] = useState<VerificationSnapshot | null>(null);
@@ -91,6 +93,11 @@ export function TaskVerificationPanel({
         note,
         controller.signal,
       );
+      if (!controller.signal.aborted && onChanged) {
+        setLocked(true);
+        onChanged(result.messageCode + (decision === "ACCEPT" ? ": Task closed." : ": Task returned to the same assignee. Start again to continue work."));
+        return;
+      }
       const updated = await readVerification(branch, task, controller.signal);
       if (!controller.signal.aborted) {
         setSnapshot(updated);

@@ -23,11 +23,13 @@ export function TaskProgressPanel({
   task,
   owner,
   onDeclined,
+  onChanged,
 }: {
   branch: number;
   task: number;
   owner: AuthorityGeneration;
   onDeclined?: () => void;
+  onChanged?: (message: string) => void;
 }) {
   const { actions } = useAuth();
   const [current, setCurrent] = useState<TaskProgressSnapshot | null>(null);
@@ -143,6 +145,7 @@ export function TaskProgressPanel({
         setMessage(
           "Progress saved. Reaching 100% does not complete this task.",
         );
+        onChanged?.("Progress saved. Reaching 100% does not complete this task.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) failure(reason);
@@ -224,6 +227,7 @@ export function TaskProgressPanel({
           setReasonId(0);
           setPauseNote("");
           setMessage("Task paused. Working interval closed.");
+          onChanged?.("Task paused. Working interval closed.");
         }
       }
     } catch (reason) {
@@ -251,6 +255,7 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) {
         setCurrent(updated);
         setMessage("Task resumed. Working time is now being recorded.");
+        onChanged?.("Task resumed. Working time is now being recorded.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
@@ -288,6 +293,7 @@ export function TaskProgressPanel({
             ? "MSG08: Task accepted."
             : "Task started. Working time is now being recorded.",
         );
+        onChanged?.(action === "accept" ? "MSG08: Task accepted. Start when ready." : "Task started. Working time is now being recorded.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
@@ -349,6 +355,12 @@ export function TaskProgressPanel({
         },
         controller.signal,
       );
+      if (!controller.signal.aborted && onChanged) {
+        setLocked(true);
+        setFiles([]);
+        onChanged("MSG09: Task submitted for verification. Working interval closed.");
+        return;
+      }
       const updated = await readTaskProgress(branch, task, controller.signal);
       if (!controller.signal.aborted) {
         show(updated);
