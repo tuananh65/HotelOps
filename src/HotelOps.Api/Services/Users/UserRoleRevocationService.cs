@@ -65,14 +65,15 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         var assignment = assignments.Single(a => a.UserRoleId == assignmentId);
         var branchId = assignment.BranchId;
         var role = await db.Roles.AsNoTracking().SingleAsync(r => r.RoleId == assignment.RoleId, ct);
-        if (!role.IsActive || role.IsSystemRole || !UserRoleDelegationPolicy.TryGetDepartment(role.RoleCode, out var departmentCode)) return new(RevokeRoleStatus.Forbidden);
-        var grants = await db.RolePermissions.AsNoTracking().Where(g => g.RoleId == role.RoleId).Select(g => g.Permission.PermissionCode + "/" + g.DataScope).ToArrayAsync(ct);
-        if (!UserRoleDelegationPolicy.Matches(role.RoleCode, grants)) return new(RevokeRoleStatus.Forbidden);
-        _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={branchId}").AsNoTracking().ToArrayAsync(ct);
-        _ = await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH (HOLDLOCK) WHERE department_id={target.DepartmentId}").AsNoTracking().ToArrayAsync(ct);
-        if (!await db.Branches.AnyAsync(b => b.BranchId == branchId && b.IsActive, ct)
-            || !await db.Departments.AnyAsync(d => d.DepartmentId == target.DepartmentId && d.BranchId == branchId && d.IsActive && d.DepartmentCode == departmentCode, ct)
-            || !await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == branchId && a.RevokedAt == null && a.GrantedAt <= now, ct)) return new(RevokeRoleStatus.Forbidden);
+        // UC010 revokes an existing assignment, not the role catalog record.
+        // System/custom roles and unbound/secondary-branch assignments all use
+        // the same current global administrator authority and last-admin guard.
+        // Losing membership or deactivating the role must not make its old
+        // assignment impossible to revoke. Open responsibilities are still read
+        // across every branch below, including inactive or unbound paths.
+        if (branchId is { } selectedBranch)
+            _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={selectedBranch}")
+                .AsNoTracking().ToArrayAsync(ct);
         // Read the complete target, not just the role branch; unscoped/inactive-branch
         // responsibilities may still require this executor. Readers never certify writers.
         var responsibilities = new TransactionalUserResponsibilities(db,
@@ -90,7 +91,7 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         if (await Responsibilities() is { } dependency) return new(dependency);
         if (PendingReleaseGates.Count != 0) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
         if (await Authority() is { } preWrite) return new(preWrite);
-        // Refresh mutable eligibility/expiry at the write boundary under retained locks.
+        // Refresh target and assignment identity at the write boundary under retained locks.
         var finalTarget = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == targetId, ct);
         var finalAssignments = await db.UserRoles.AsNoTracking().Where(a => a.UserId == targetId).ToArrayAsync(ct);
         if (ValidateAssignment(finalTarget, finalAssignments, assignmentId, expected, clock.GetUtcNow().UtcDateTime) is { } changed)
@@ -109,8 +110,13 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
             EntityId = assignmentId.ToString(CultureInfo.InvariantCulture),
             Action = "UPDATE",
             OccurredAt = now,
-            OldValues = JsonSerializer.Serialize(new { isActive = true, effectiveGrants = roleResponsibilities.Before }),
-            NewValues = JsonSerializer.Serialize(new { isActive = false, revokedSessions = revoked, effectiveGrants = roleResponsibilities.After }),
+            OldValues = JsonSerializer.Serialize(new { userId = targetId, roleId = assignment.RoleId, roleCode = role.RoleCode,
+                branchId, assignedBy = assignment.AssignedBy, assignedAtUtc = assignment.AssignedAt,
+                expiresAtUtc = assignment.ExpiresAt, isActive = true, effectiveGrants = roleResponsibilities.Before }),
+            NewValues = JsonSerializer.Serialize(new { userId = targetId, roleId = assignment.RoleId, roleCode = role.RoleCode,
+                branchId, assignedBy = assignment.AssignedBy, assignedAtUtc = assignment.AssignedAt,
+                expiresAtUtc = assignment.ExpiresAt, isActive = false, revokedSessions = revoked,
+                effectiveGrants = roleResponsibilities.After }),
             ChangedFields = "[\"isActive\"]"
         };
         db.Add(audit); try { await db.SaveChangesAsync(ct); } finally { db.Entry(audit).State = EntityState.Detached; }
@@ -133,8 +139,11 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
             return RevokeRoleStatus.Conflict;
         var selected = history.SingleOrDefault(a => a.UserRoleId == assignmentId);
         if (selected == null) return RevokeRoleStatus.NotFound;
-        if (selected.UserId != target.UserId || selected.BranchId == null || selected.BranchId != target.PrimaryBranchId || target.DepartmentId == null) return RevokeRoleStatus.Forbidden;
-        if (!selected.IsActive || selected.AssignedAt > nowUtc || selected.ExpiresAt <= nowUtc) return RevokeRoleStatus.Conflict;
+        if (selected.UserId != target.UserId || selected.BranchId is <= 0) return RevokeRoleStatus.Forbidden;
+        // A scheduled grant can be cancelled before it becomes effective, and an
+        // expired active record can be explicitly revoked. Neither operation
+        // restores access or rewrites its original assignment/expiry evidence.
+        if (!selected.IsActive) return RevokeRoleStatus.Conflict;
         return null;
     }
     // Missing external participation is explicit, immutable evidence debt; never a config switch.
