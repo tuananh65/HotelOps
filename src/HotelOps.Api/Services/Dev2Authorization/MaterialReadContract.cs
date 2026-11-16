@@ -19,7 +19,7 @@ internal static class MaterialReadContract
 {
     private static readonly object DisclosedScopeKey = new();
     private const string Policy = "Material list/detail/availability/fulfillment receipts: HTTPS current unrestricted SQL session; independent MR_VIEW; "
-        + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch; "
+        + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch, UC096 actor and current workflow/reviewer authority; "
         + "serializable through final disclosure; no reservation, mutation or raw audit authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042" }.Select(id =>
         new Dev2ActionContract(id, "DEV3_142A_MATERIAL_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
@@ -73,7 +73,12 @@ internal static class MaterialReadContract
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         await using var admission = db.Database.CurrentTransaction == null ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
-        var users = await new UserEligibilityLock(db).LockAsync([a.Actor.UserId], ct);
+        // The pending-review authority check locks requester and approver. Acquire
+        // both in canonical order before any actor/source locks to avoid inversion.
+        var requester = a.Identity.ActionName == "Availability"
+            ? await db.MaterialRequests.AsNoTracking().Where(r => r.RequestId == Id(a)).Select(r => (long?)r.RequesterId).SingleOrDefaultAsync(ct)
+            : null;
+        var users = await new UserEligibilityLock(db).LockAsync(requester.HasValue ? [a.Actor.UserId, requester.Value] : [a.Actor.UserId], ct);
         if (!users.TryGetValue(a.Actor.UserId, out var actor) || actor == null || actor.DeletedAt != null
             || actor.AccountStatus != "ACTIVE" || actor.EmploymentStatus != "ACTIVE") return false;
         if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null || ticket.IsRestricted
@@ -97,6 +102,9 @@ internal static class MaterialReadContract
             if (a.Identity.ActionName == "Availability" && !await db.MaterialRequests.AsNoTracking().AnyAsync(r => r.RequestId == Id(a)
                 && r.SourceWarehouse != null && r.SourceWarehouse.IsActive && r.SourceWarehouse.BranchId == r.BranchId, ct))
                 throw new Dev2AccessDenied(404);
+            if (a.Identity.ActionName == "Availability"
+                && !await MaterialAvailabilityAccess.CanReadAsync(db, Id(a), a.Actor.UserId, now, ct))
+                throw new Dev2AccessDenied(403);
         }
         return true;
     }

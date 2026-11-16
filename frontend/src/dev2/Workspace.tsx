@@ -587,7 +587,9 @@ function Screen({
       )}
       {module === "material-requests" && record.requestId != null && record.requesterId != null && Array.isArray(record.lines) && (
         <section aria-label="Material request review context">
-          <Link to={`/operations/material-requests/${record.requestId}?action=A004A-040`}>View available stock</Link>
+          {(record.rawStatus === "APPROVED" || record.rawStatus === "PARTIALLY_ISSUED"
+            || materialApprovalReady(record, actor, "A004A-047")) &&
+            <Link to={`/operations/material-requests/${record.requestId}?action=A004A-040`}>View available stock</Link>}
           <p>Stock is a read-only preview in base units; reviewing a request does not reserve materials.</p>
           <p>Recent requests by this requester, subject to your current read scope:</p>
           <ul>{record.lines.filter(isObject).filter((line, index, lines) => line.isActive === true

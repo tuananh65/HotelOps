@@ -444,3 +444,10 @@ User approved all eligible Storekeepers in the issuing warehouse branch, rather 
 
 Changed source: MaterialStorekeeperNotification.cs, MaterialApprovalNotificationWorker.cs, NotificationCenterService.cs.
 Direct validation: dotnet build HotelOps.slnx --no-restore PASS, zero errors/warnings; git diff --check PASS (Git reports LF/CRLF normalization warnings). Automated/business/API/SQL/browser tests NOT RUN per code-first instruction. Worker remains opt-in; delivery and query translation have not been verified against SQL. UC095 remains pending runtime/business acceptance; no new COMPLETE_VERIFIED claim.
+
+### UC096 availability preconditions — 2026-11-16
+
+Direct source comparison against UC096 PRE-02 found Availability admitted stock reads for any request state with MR_VIEW/INVENTORY_VIEW. Added MaterialAvailabilityAccess: current eligible Storekeeper/Department Head/Operations Manager role and branch access; Approved/Partially Issued, or Pending Approval with the latest unresolved cycle assigned to this actor and current mapped material approval authority. Rechecked before disclosure inside the existing serializable contract; current SQL session and independent grants remain required. Requester/actor locks acquired in canonical order before reviewer checks. UI availability link follows the loaded lifecycle/reviewer state; server remains authoritative. No schema or DB changes.
+
+Backend build --no-restore PASS (0 warnings/errors). Runtime, SQL and business tests NOT RUN per instruction. UC096 remains PARTIAL: current source only previews the source warehouse; warehouse selection, in-transit quantities and explicit unit-safe fulfillable-line presentation remain to implement. This is an authorization correction, not full UC completion.
+Frontend typecheck and production build PASS. Existing Vite warnings: ignored React Router use-client directives and bundle above 500 kB (913.89 kB).
