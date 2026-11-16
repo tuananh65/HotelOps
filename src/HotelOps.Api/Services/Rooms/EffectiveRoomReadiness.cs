@@ -82,7 +82,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
                 WHERE p.room_id=r.room_id AND p.workflow_status='PASSED' AND p.status='COMPLETED' AND p.result='PASS'
                 AND pc.status<>'CANCELLED' AND pc.workflow_status<>'CANCELLED') THEN 1 ELSE 0 END) AS EverPassed,
             CONVERT(bit,CASE WHEN c.workflow_status='REWORK_REQUIRED' AND EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
-                WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status IN('PENDING_ACCEPTANCE','IN_PROGRESS')) THEN 1 ELSE 0 END) AS ReworkOutstanding,
+                WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status IN('PENDING_ACCEPTANCE','ACCEPTED','IN_PROGRESS','ON_HOLD')) THEN 1 ELSE 0 END) AS ReworkOutstanding,
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
                 WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status='PENDING_REINSPECTION') THEN 1 ELSE 0 END) AS ReworkSubmitted,
             CONVERT(bit,CASE WHEN c.cleaning_task_id IS NULL OR c.workflow_status IS NOT NULL THEN 1 ELSE 0 END) AS SourceAvailable

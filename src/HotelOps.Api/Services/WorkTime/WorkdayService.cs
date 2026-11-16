@@ -17,7 +17,7 @@ public sealed record WorkdayResult(int Status, object? Value = null, string? Cod
 public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IHttpContextAccessor http, ISqlSessionService sessions, IPermissionService permissions,
     SqlWorkTimeTransactionParticipant participant, OwnWorkdaySnapshotReader reader,
-    RoomTypeCreationService? workflows = null)
+    RoomTypeCreationService? workflows = null, IConfiguration? configuration = null, IHostEnvironment? environment = null)
 {
     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
 
@@ -72,6 +72,12 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             if (!await db.Workdays.AsNoTracking().AnyAsync(d => d.WorkdayId == workdayId
                     && d.UserId == actor.UserId && d.BranchId == branchId, ct))
                 return new(403, Code: "TIME_SCOPE_DENIED");
+            // Maintenance currently has no work_intervals bridge. An empty interval list
+            // therefore cannot prove that this employee has stopped all running work.
+            // Serializable retains this ownership/state read until End commits.
+            if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.AssigneeId == actor.UserId
+                    && w.Status == "IN_PROGRESS", ct))
+                return new(503, Code: "PAUSE_ALL_MAINTENANCE_BRIDGE_REQUIRED");
             if (pauseAll)
             {
                 var dayBefore = await db.Workdays.AsNoTracking().SingleAsync(d => d.WorkdayId == workdayId, ct);
@@ -85,10 +91,14 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                     if (interval.WorkdayId != workdayId || interval.BranchId != branchId)
                         return new(409, Code: "TIME_STATE_CONFLICT");
                     // Unsupported owning workflows remain running and this entire transaction rolls back.
-                    if (interval.WorkItemKind != "TASK" || workflows is null)
+                    if (interval.WorkItemKind is not ("TASK" or "CLEANING" or "REWORK") || workflows is null)
                         return new(503, Code: "PAUSE_ALL_SOURCE_UNAVAILABLE");
-                    var paused = await workflows.PauseTaskForWorkdayEndAsync(actor.UserId, branchId,
-                        interval.WorkItemId, participant, ct);
+                    var paused = interval.WorkItemKind == "REWORK"
+                        ? await workflows.HoldReworkForWorkdayEndAsync(actor.UserId, branchId, interval.WorkItemId, participant,
+                            configuration?["Evidence:PrivateRoot"] ?? (environment == null ? null : Path.Combine(environment.ContentRootPath, "App_Data", "evidence")), ct)
+                        : interval.WorkItemKind == "CLEANING"
+                        ? await workflows.HoldCleaningForWorkdayEndAsync(actor.UserId, branchId, interval.WorkItemId, participant, ct)
+                        : await workflows.PauseTaskForWorkdayEndAsync(actor.UserId, branchId, interval.WorkItemId, participant, ct);
                     if (paused.Status != RoomTypeBatchStatus.Success)
                         return new(paused.Status == RoomTypeBatchStatus.Forbidden ? 403
                             : paused.Status == RoomTypeBatchStatus.Stale ? 412

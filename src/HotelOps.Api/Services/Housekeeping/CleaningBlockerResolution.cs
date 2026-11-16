@@ -31,7 +31,7 @@ public sealed partial class RoomTypeCreationService
         THEN 1 ELSE 0 END AS [Value]
         """).SingleAsync(ct) == 1;
 
-    private async Task<string?> ResolveCleaningBlockers(long task, long branch, long actor, string note, DateTime now, CancellationToken ct)
+    private async Task<string?> ResolveCleaningBlockers(long task, long branch, long actor, string note, DateTime now, CancellationToken ct, bool endOfShift = false)
     {
         if (!await ResumeTrialInstalled(ct)) return "BLOCKER_RESOLUTION_CONTRACT_REQUIRED";
         // Every historical BLOCKED source must have explicit durable state. Never infer closure
@@ -52,6 +52,8 @@ public sealed partial class RoomTypeCreationService
         // including an imported resolved flag without source confirmation proof.
         if (blockers.Any(x => x.IncidentId != null || x.MaterialRequestId != null)) return "BLOCKER_SOURCE_CONFIRMATION_REQUIRED";
         var open = blockers.Where(x => x.ResolvedAt == null).ToArray();
+        // Ending a shift never proves that an actual blocker has been resolved.
+        if (endOfShift) return open.Length == 0 ? null : "ACTIVE_BLOCKER";
         if (blockers.Length == 0) return "NO_PERSISTED_BLOCKER";
         foreach (var blocker in open)
         {

@@ -101,6 +101,13 @@ const source = {
     },
   ],
 };
+test("held rework can expose Resume only while ON_HOLD", async () => {
+  globalThis.fetch = async () => Response.json({ ...source, state: "ON_HOLD", capability: "RESUME_REWORK" }, { headers: { ETag: tag } });
+  assert.equal((await readRework("2", "3")).capability, "RESUME_REWORK");
+  globalThis.fetch = async () => Response.json({ ...source, capability: "RESUME_REWORK" }, { headers: { ETag: tag } });
+  await assert.rejects(readRework("2", "3"), /INVALID_REWORK_RESPONSE/);
+});
+
 test("canonical submission binds the durable publication and never accepts usable room readiness", async () => {
   for (const readiness of ["BLOCKED", "PENDING_INSPECTION", "PENDING_CLEANING", "READY", "UNKNOWN"]) {
     for (const matchingPublication of [true, false]) {

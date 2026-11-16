@@ -61,7 +61,8 @@ public sealed partial class RoomTypeCreationService
             return new(RoomTypeBatchStatus.Success, new CleaningExecutionDto(task, branch, row.TaskNo, state.State, active?.AssignmentId,
                 active?.AssigneeUserId, row.ActualStartAt is { } time ? DateTime.SpecifyKind(time, DateTimeKind.Utc) : null,
                 WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", complete ? "PROVISIONAL_V1" : "UNAVAILABLE",
-                resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision)), WorkflowTag(state.Revision));
+                resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision),
+                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null), WorkflowTag(state.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_VIEW", token));
     }
     public async Task<RoomTypeBatchResult> StartCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, StartCleaningRequest input, CancellationToken ct)
@@ -95,8 +96,9 @@ public sealed partial class RoomTypeCreationService
                 if (assignments.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
+                var endOfShift = resume && await IsCleaningEndOfShiftHold(task, token);
                 var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid, admission, admission, admission);
-                var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note)
+                var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note, endOfShift)
                     : CleaningLifecycleRules.StartConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker);
                 if (conflict != null) return LifecycleFailure(conflict == "CURRENT_ASSIGNEE_REQUIRED" ? RoomTypeBatchStatus.Forbidden
                     : conflict == "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Inactive, conflict);
@@ -122,7 +124,8 @@ public sealed partial class RoomTypeCreationService
                     if (row.ActualStartAt == null) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ACTUAL_START_REQUIRED");
                     if (await db.WorkIntervals.AsNoTracking().AnyAsync(x => x.WorkItemKind == "CLEANING" && x.WorkItemId == task && x.ClosedAt == null, token))
                         return LifecycleFailure(RoomTypeBatchStatus.Inactive, "TASK_INTERVAL_ALREADY_OPEN");
-                    var resolution = await ResolveCleaningBlockers(task, branch, actor, CleaningLifecycleRules.Reason(input.Note, 1), now, token);
+                    var resolution = await ResolveCleaningBlockers(task, branch, actor,
+                        endOfShift ? "Resume after end of shift" : CleaningLifecycleRules.Reason(input.Note, 1), now, token, endOfShift);
                     if (resolution != null) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, resolution);
                 }
                 if (resume)
@@ -185,7 +188,7 @@ public sealed partial class RoomTypeCreationService
                 var startedAt = row.ActualStartAt is { } first ? DateTime.SpecifyKind(first, DateTimeKind.Utc) : now;
                 var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, blocked ? "BLOCKED" : "CLEANING_IN_PROGRESS", blocked);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualStartAt }, new { action = resume ? "RESUME_CLEANING" : "START_CLEANING", input.Note,
-                    sourceOperationId, contract = resume ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
+                    sourceOperationId, holdReason = endOfShift ? "END_OF_SHIFT" : null, contract = resume ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
                 return new(RoomTypeBatchStatus.Success, result, WorkflowTag((await CleaningState(task, token)).Revision));
             }, ct, requireRoomTypeSchema: false, afterUserLocks: token => time.LockUsersAsync([ticket.UserId], token),
                 featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token));

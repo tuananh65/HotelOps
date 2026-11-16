@@ -29,6 +29,13 @@ const plan = {
   startCapability: "UNAVAILABLE",
   reassignCapability: "PROVISIONAL_NOT_ACCEPTED",
 };
+
+test("End of shift hold metadata is preserved and unknown reasons are rejected", async () => {
+  globalThis.fetch = async () => Response.json({...plan,state:"ON_HOLD",holdReason:"END_OF_SHIFT",resumeCapability:"PROVISIONAL_V1"},{headers:{ETag:tag}});
+  assert.equal((await readCleaningExecution("1","2")).holdReason,"END_OF_SHIFT");
+  globalThis.fetch = async () => Response.json({...plan,holdReason:"CLIENT_OVERRIDE"},{headers:{ETag:tag}});
+  await assert.rejects(readCleaningExecution("1","2"),/INVALID_CLEANING_EXECUTION/);
+});
 test("UC030 accepts only a different assignee, confirmed capability, UTC future deadline and override reason", () => {
   assert.deepEqual(
     reassignmentCommand(

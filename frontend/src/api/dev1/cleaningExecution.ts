@@ -18,6 +18,7 @@ export interface CleaningExecution {
   blockerReasons?: { id: number; code: string; name: string }[];
   items?: CleaningProgressItem[];
   progressETag?: string | null;
+  holdReason?: "END_OF_SHIFT" | null;
 }
 const tag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
@@ -76,7 +77,8 @@ export async function readCleaningExecution(
     ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(
       d.completeCapability,
     ) ||
-    ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(d.resumeCapability)
+    ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(d.resumeCapability) ||
+    ![undefined, null, "END_OF_SHIFT"].includes(d.holdReason)
   )
     throw new ApiError(502, "INVALID_CLEANING_EXECUTION");
   if (

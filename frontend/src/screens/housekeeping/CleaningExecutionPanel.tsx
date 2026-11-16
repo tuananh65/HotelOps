@@ -105,8 +105,8 @@ export default function CleaningExecutionPanel({
     setNotice("");
     try {
       const result = await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
-        resolveBlocker: resume,
-        ...(resume ? { note: resolutionNote.trim() } : {}),
+        resolveBlocker: resume && data.holdReason !== "END_OF_SHIFT",
+        ...(resume && data.holdReason !== "END_OF_SHIFT" ? { note: resolutionNote.trim() } : {}),
       });
       if (alive.current) {
         setNotice(result.hasEffectiveBlock
@@ -272,7 +272,9 @@ export default function CleaningExecutionPanel({
           {data.startCapability === "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" && (
             <>
               {data.resumeCapability === "PROVISIONAL_V1" ? (
-                <form
+                data.holdReason === "END_OF_SHIFT" ? (
+                  <button disabled={busy || !!pending || !!closurePending} onClick={() => void start(true)}>Resume after end of shift</button>
+                ) : (<form
                   onSubmit={(event) => {
                     event.preventDefault();
                     void start(true);
@@ -296,7 +298,7 @@ export default function CleaningExecutionPanel({
                   >
                     Tiếp tục dọn phòng
                   </button>
-                </form>
+                </form>)
               ) : (
                 <>
                   <button disabled>Tiếp tục dọn phòng</button>

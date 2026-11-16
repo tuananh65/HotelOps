@@ -54,7 +54,7 @@ export default function ReworkExecutionPanel({
       ? null
       : data?.state === "PENDING_ACCEPTANCE"
         ? "accept"
-        : data?.state === "ACCEPTED"
+        : data?.state === "ACCEPTED" || (data?.state === "ON_HOLD" && data.capability === "RESUME_REWORK")
           ? "start"
           : data?.state === "IN_PROGRESS"
             ? "complete"
@@ -214,7 +214,7 @@ export default function ReworkExecutionPanel({
                     {action === "accept"
                       ? "Accept rework"
                       : action === "start"
-                        ? "Start rework"
+                        ? data?.state === "ON_HOLD" ? "Resume rework" : "Start rework"
                         : "Complete rework"}
                   </button>
                 </>

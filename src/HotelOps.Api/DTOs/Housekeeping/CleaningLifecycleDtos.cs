@@ -15,7 +15,7 @@ public sealed record CleaningExecutionDto(long Id, long BranchId, string TaskNum
     string StartCapability, string ReassignCapability,
     string ReportBlockerCapability = "UNAVAILABLE", string CompleteCapability = "UNAVAILABLE",
     string ResumeCapability = "UNAVAILABLE", IReadOnlyList<CleaningReferenceDto>? BlockerReasons = null,
-    IReadOnlyList<ProgressItemDto>? Items = null, string? ProgressETag = null);
+    IReadOnlyList<ProgressItemDto>? Items = null, string? ProgressETag = null, string? HoldReason = null);
 public sealed record CleaningClosureResult(long Id, long BranchId, long AssignmentId, Guid OperationId,
     Guid PublicationId, long ProgressId, long ClosedIntervalId, string State, DateTime OccurredAtUtc,
     string Readiness, bool HasEffectiveBlock, string SourceETag, string Notification = "PENDING_DELIVERY", string Contract = "PROVISIONAL_NOT_ACCEPTED",

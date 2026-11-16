@@ -125,8 +125,8 @@ test("confirmed start then end refresh authoritative current", () =>
     assert.equal((await posts(p)).length, 2);
   }));
 test("unsupported open interval blocks End", () =>
-  run({ enabled: true, working: true, open: true, kind: "CLEANING" }, async (p) => {
-    await p.getByText(/End blocked:/).waitFor();
+  run({ enabled: true, working: true, open: true, kind: "UNSUPPORTED" }, async (p) => {
+    await p.getByRole("alert").waitFor();
     assert.equal(
       await p
         .getByRole("button", { name: "End workday", exact: true })
@@ -758,15 +758,15 @@ test("unscheduled current workday can End without a new shift assignment",()=>ru
  assert.equal((await posts(p)).length,1);
  await p.getByText(/Unscheduled workday; Branch/).waitFor();
 }));
-test("unscheduled open interval still blocks End",()=>run({enabled:true,working:true,unscheduled:true,open:true,kind:"CLEANING"},async p=>{
- await p.getByText(/End blocked:/).waitFor();
+test("unscheduled unsupported open interval still blocks End",()=>run({enabled:true,working:true,unscheduled:true,open:true,kind:"UNSUPPORTED"},async p=>{
+ await p.getByRole('alert').waitFor();
  assert.equal(await p.getByRole('button',{name:'End workday',exact:true}).isDisabled(),true);
  assert.equal((await posts(p)).length,0);
 }));
 
 test("task Pause All reviews before End",()=>run({enabled:true,working:true,open:true},async p=>{
  await p.getByRole('button',{name:'Pause All and end workday',exact:true}).click();
- await p.getByText(/The running task will be paused with End of Shift/).waitFor();
+ await p.getByText(/The running work will be paused or held with End of Shift/).waitFor();
  assert.equal((await posts(p)).length,0);
  await p.getByRole('button',{name:'Confirm workday end',exact:true}).click();
  await p.getByText('No current working day.').waitFor();
@@ -780,5 +780,23 @@ test("unscheduled start uses verified membership and reason",()=>run({enabled:tr
  assert.equal((await posts(p)).length,0);
  await p.getByRole('button',{name:'Confirm unscheduled start',exact:true}).click();
  await p.getByText('Working day 20',{exact:true}).waitFor();
+ assert.equal((await posts(p)).length,1);
+}));
+
+test("Cleaning Pause All uses a hold before ending workday",()=>run({enabled:true,working:true,open:true,kind:'CLEANING'},async p=>{
+ await p.getByRole('button',{name:'Pause All and end workday',exact:true}).click();
+ await p.getByText(/The running work will be paused or held with End of Shift/).waitFor();
+ assert.equal((await posts(p)).length,0);
+ await p.getByRole('button',{name:'Confirm workday end',exact:true}).click();
+ await p.getByText('No current working day.').waitFor();
+ assert.equal((await posts(p)).length,1);
+}));
+
+test("Rework Pause All reviews before ending workday",()=>run({enabled:true,working:true,open:true,kind:'REWORK'},async p=>{
+ await p.getByRole('button',{name:'Pause All and end workday',exact:true}).click();
+ await p.getByText(/The running work will be paused or held with End of Shift/).waitFor();
+ assert.equal((await posts(p)).length,0);
+ await p.getByRole('button',{name:'Confirm workday end',exact:true}).click();
+ await p.getByText('No current working day.').waitFor();
  assert.equal((await posts(p)).length,1);
 }));

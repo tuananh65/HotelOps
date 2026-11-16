@@ -182,7 +182,7 @@ function Bound({
     !!day &&
     day.branchId === branchId &&
     (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
-    (day.openInterval === null || day.openInterval.workItemKind === "TASK") &&
+    (day.openInterval === null || ["TASK", "CLEANING", "REWORK"].includes(day.openInterval.workItemKind)) &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
     if (
@@ -351,7 +351,7 @@ function Bound({
             {day.openInterval && (
               <p role="alert">
                 {day.openInterval.workItemKind === "TASK"
-                  ? "A task is running. Pause All will pause it with End of Shift, close its interval and end this workday together."
+                  ? "Work is running. Pause All will pause or hold it with End of Shift, close its interval and end this workday together."
                   : "End blocked: close this interval through its owning workflow. Pause All is not yet available for this work type."}
               </p>
             )}
@@ -371,7 +371,7 @@ function Bound({
         disabled={!dispatchEnabled || !endAllowed || pending || locked}
         onClick={() => prepare("end")}
       >
-        {day?.openInterval?.workItemKind === "TASK" ? "Pause All and end workday" : "End workday"}
+        {day?.openInterval && ["TASK", "CLEANING", "REWORK"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
       </button>
       {review && (
         <section aria-label="Review scheduled workday">
@@ -400,7 +400,7 @@ function Bound({
           <p>
             Actual time is determined by the server.
             {review.operation === "end" && review.day?.openInterval
-              ? " The running task will be paused with End of Shift and its interval closed. If pausing fails, the workday stays Working."
+              ? " The running work will be paused or held with End of Shift and its interval closed. If pausing fails, the workday stays Working."
               : " This does not reassign work or close task intervals."}
           </p>
           <button

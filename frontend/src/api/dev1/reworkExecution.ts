@@ -14,7 +14,7 @@ export interface ReworkExecution {
   sourceETag: string;
   inspectionETag: string;
   capability:
-    "READ_ONLY" | "ACCEPT_START" | "SUBMIT_REWORK" | "PROVISIONAL_NOT_ACCEPTED";
+    "READ_ONLY" | "ACCEPT_START" | "RESUME_REWORK" | "SUBMIT_REWORK" | "PROVISIONAL_NOT_ACCEPTED";
   sourceAuthority: "FE05_COMMITTED_V1";
   conclusion?: {
     reinspectionId: number;
@@ -78,6 +78,7 @@ export async function readRework(
       "PENDING_ACCEPTANCE",
       "ACCEPTED",
       "IN_PROGRESS",
+      "ON_HOLD",
       "PENDING_REINSPECTION",
       "COMPLETED",
       "FAILED",
@@ -85,6 +86,7 @@ export async function readRework(
     ![
       "READ_ONLY",
       "ACCEPT_START",
+      "RESUME_REWORK",
       "SUBMIT_REWORK",
       "PROVISIONAL_NOT_ACCEPTED",
     ].includes(d.capability) ||
@@ -115,6 +117,7 @@ export async function readRework(
       d.defects.length
   )
     invalid();
+  if (d.capability === "RESUME_REWORK" && d.state !== "ON_HOLD") invalid();
   const terminal = d.state === "COMPLETED" || d.state === "FAILED";
   if (terminal) {
     const c = d.conclusion;

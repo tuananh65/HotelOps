@@ -1,0 +1,38 @@
+# UC139 Cleaning / Rework Pause All source
+
+Status: PARTIAL_IMPLEMENTATION / NOT_TESTED for the complete UC. No new COMPLETE_VERIFIED UC is claimed.
+
+## Approved contract and implementation
+
+The Project Leader approved Rework ON_HOLD in the existing workflow_status column while preserving physical status IN_PROGRESS. Cleaning retains its existing ON_HOLD workflow state. Neither adapter completes, cancels or reassigns work. END_OF_SHIFT is recorded by the server; Pause All does not ask for a fabricated blocker reason or note.
+
+WorkdayService now dispatches TASK, CLEANING and REWORK inside its existing serializable, current-session-authorized transaction with user/time locks and workday ETag. The owning service validates its source and current executor, closes the real open interval, writes the canonical held state with row-version comparison, appends a reason receipt and audit, and rechecks authority. Workday End remains in that same transaction and cannot commit with an open interval. Failure in any step rolls back all writes. Unsupported sources remain fail-closed.
+
+Cleaning validates current room/cycle/assignment and refuses unresolved, linked or unproven blockers. The existing Resume endpoint recognizes only a receipt matching the held task revision and closed interval. Manual blocker Resume retains its existing confirmation/note and blocker checks. The original ActualStartAt is preserved; resumed execution opens a new interval.
+
+Rework validates current HK_STAFF eligibility, CLEANING_EXECUTE and the existing trusted FE05 authority reader, which independently requires CLEANING_VIEW and verifies committed producer, audit, source/evidence digests and current failed inspection/cycle. Duplicate open reworks and inspector-as-executor are denied. Resume reuses POST /branches/{branch}/reworks/{id}/start and its existing CSRF, strong ETag, operation key, audit replay, current assignee, shift/workday and authority checks. Only an END_OF_SHIFT receipt bound to the current ON_HOLD revision permits this transition. Its response remains the existing Start/IN_PROGRESS receipt contract; audit additionally identifies resumedFrom=END_OF_SHIFT. The UI displays Resume rework only for the server capability RESUME_REWORK. Legacy provisional execution does not gain a new transition.
+
+Effective room readiness treats held/accepted Rework as outstanding. No room is made usable by pausing work. Generated EF entities and mappings are unchanged.
+
+## SQL installation and rollback
+
+- scripts/verification/CanonicalDatabase/CleaningEndOfShift.sql adds an immutable Cleaning hold receipt.
+- scripts/verification/CanonicalDatabase/ReworkEndOfShift.sql adds an immutable Rework hold receipt and extends the existing trusted CHECK with only ON_HOLD + IN_PROGRESS. It preserves the prior CHECK definition, including any independently installed ACCEPTED/FAILED states.
+- Both require exact server/database/nonzero GUID and disposable database naming, use a transactional migration lock, and support ApplyChanges=0 rollback. They create no users, grants or role assignments.
+- Rework runtime additionally requires the existing committed FE05 authority and Assigned Rework Execution installations. These scripts do not install or impersonate those prerequisites.
+- No persistent migration was applied in this increment. No shared/production database was modified. Post-install removal after real receipts exist is not authorized by these scripts; immutable history must be preserved.
+
+## Direct evidence, 2026-11-16
+
+- dotnet build HotelOps.slnx --no-restore: PASS, zero warnings/errors.
+- npm run build: TypeScript and Vite PASS. Existing React Router directive warnings and >500 kB bundle warning remain.
+- Focused regression classes ReworkLifecycleTests, WorkdayControllerAdmissionTests and CleaningClosureBoundaryTests: 80 PASS. These do not prove the new SQL lifecycle end-to-end.
+- Rework transport: 9 PASS, including ON_HOLD/Resume capability validation. Cleaning transport in the preceding uncommitted increment: 15 PASS.
+- Browser with mocked API: 4 PASS (Cleaning/Rework Pause All review and unknown-source denial for scheduled/unscheduled workdays). This is not HTTPS/SQL evidence.
+- dotnet test HotelOps.slnx --no-restore: exit 0 without discovered tests; not counted as coverage.
+- Read-only disposable identity verified, followed by two Rework migration installations in an outer rollback transaction: PASS. Two trusted FKs and enabled immutable trigger verified. A temporary table using the installed CHECK accepted ON_HOLD/IN_PROGRESS and rejected ON_HOLD/COMPLETED. Rollback restored the exact original CHECK and removed receipt store/markers. Local transcript script: artifacts/uc139-rework-end-of-shift/migration-rollback.sql (ignored artifact).
+- Cleaning migration previously ran twice with outer rollback, trusted FK/trigger metadata and removal checks: PASS. These DDL checks do not prove receipt DML immutability or application transaction behavior.
+
+## Remaining UC139 acceptance
+
+Actual UI -> HTTPS -> SQL Hold/Resume, stale versions, revoked permissions, concurrent ownership/authority changes, receipt retry and rollback behavior require runtime QA. Incident/Maintenance does not yet participate in the work_intervals bridge (the participant supports CLEANING/REWORK/TASK); its existing Hold/Resume only changes maintenance state and work logs. End now explicitly denies while the employee owns IN_PROGRESS Maintenance, even when there is no work interval, with PAUSE_ALL_MAINTENANCE_BRIDGE_REQUIRED. This serializable read prevents an empty interval list being mistaken for stopped Maintenance. The remaining Incident bridge and full UC139 runtime acceptance are the next implementation/verification work.

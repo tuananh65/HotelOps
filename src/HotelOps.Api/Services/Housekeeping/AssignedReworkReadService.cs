@@ -26,7 +26,7 @@ public sealed partial class RoomTypeCreationService
             var terminal=state.State is "COMPLETED" or "FAILED";
             if(!terminal&&await db.CleaningReworks.CountAsync(w=>w.InspectionId==row.InspectionId&&w.Status!="COMPLETED"&&w.Status!="CANCELLED",token)!=1)
                 return LifecycleFailure(RoomTypeBatchStatus.Inactive,"DUPLICATE_REWORK_SOURCE");
-            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION" or "COMPLETED" or "FAILED"))
+            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "ON_HOLD" or "PENDING_REINSPECTION" or "COMPLETED" or "FAILED"))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_EXECUTION_READ_CONTRACT_REQUIRED");
             var submitted=terminal||state.State=="PENDING_REINSPECTION";
             ReworkConclusionDto? conclusion=null;
@@ -99,7 +99,9 @@ public sealed partial class RoomTypeCreationService
                 WorkflowTag(binding.InspectionRevision),output,
                 state.State is "PENDING_ACCEPTANCE" or "ACCEPTED" && await AssignedReworkExecutionInstalled(token)
                     &&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
-                    ? "ACCEPT_START" : state.State=="IN_PROGRESS"&&await ReworkSubmissionInstalled(token)
+                    ? "ACCEPT_START" : state.State=="ON_HOLD"&&await AssignedReworkExecutionInstalled(token)
+                        &&await IsReworkEndOfShiftHold(id,token)&&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
+                        ? "RESUME_REWORK" : state.State=="IN_PROGRESS"&&await ReworkSubmissionInstalled(token)
                         &&await ReworkSubmissionWriterAvailable(token)&&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
                         ? "SUBMIT_REWORK" : "READ_ONLY",ReworkAuthorityContract.Origin,conclusion),WorkflowTag(state.Revision));
         },ct,featurePermission:token=>ReworkAccess(ticket.UserId,branch,id,"CLEANING_VIEW",token),

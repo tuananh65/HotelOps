@@ -21,6 +21,14 @@ public sealed class CleaningClosureBoundaryTests
     private static RoomTypeCreationService Service() => new(null!, null!, null!, null!, TimeProvider.System);
 
     [Theory]
+    [InlineData("ON_HOLD", 1, 1, null)]
+    [InlineData("ON_HOLD", 2, 1, "CURRENT_ASSIGNEE_REQUIRED")]
+    [InlineData("IN_PROGRESS", 1, 1, "TASK_NOT_ON_HOLD")]
+    public void Proven_end_of_shift_resume_preserves_owner_and_state_without_fabricated_blocker_confirmation(
+        string state, long actor, long owner, string? expected)
+        => Assert.Equal(expected, CleaningLifecycleRules.ResumeConflict(state, actor, owner, false, null, endOfShift: true));
+
+    [Theory]
     [InlineData("ON_HOLD", 1, 1, true, "resolved", null)]
     [InlineData("ON_HOLD", 2, 1, true, "resolved", "CURRENT_ASSIGNEE_REQUIRED")]
     [InlineData("ASSIGNED", 1, 1, true, "resolved", "TASK_NOT_ON_HOLD")]

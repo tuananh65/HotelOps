@@ -79,7 +79,10 @@ public sealed partial class RoomTypeCreationService
                 }
                 var state=await ReworkState(id,token);
                 if(tag!=WorkflowTag(state.Revision))return new(RoomTypeBatchStatus.Stale);
-                var next=ReworkLifecycleRules.Next(state.State,action);
+                // Resume reuses Start's authenticated, idempotent interval-opening contract.
+                // Only a receipt bound to the current hold revision permits this transition.
+                var endOfShift=state.State=="ON_HOLD"&&action=="start"&&await IsReworkEndOfShiftHold(id,token);
+                var next=endOfShift?"IN_PROGRESS":ReworkLifecycleRules.Next(state.State,action);
                 if(next==null||row.CompletedAt!=null)return new(RoomTypeBatchStatus.Inactive);
                 var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token),DateTimeKind.Utc);
                 var legacy=action=="accept"?"PENDING":"IN_PROGRESS";
@@ -97,7 +100,8 @@ public sealed partial class RoomTypeCreationService
                 var result=new ReworkCommandResult(id,branch,row.CleaningTaskId,row.InspectionId,actor,action,next,operation,
                     WorkflowTag((await ReworkState(id,token)).Revision),now,interval,null,roomState.Readiness,"NOT_REQUIRED",AssignedReworkExecutionContract);
                 await BatchAuditAsync(actor,branch,"cleaning_reworks",id,new{state.State},new{operationId=operation,fingerprint,
-                    authorityOperationId=authority!.OperationId,authoritySourceDigest=Convert.ToHexString(authority.SourceDigest),entity=result},
+                    authorityOperationId=authority!.OperationId,authoritySourceDigest=Convert.ToHexString(authority.SourceDigest),
+                    resumedFrom=endOfShift?"END_OF_SHIFT":null,entity=result},
                     ["workflowStatus","workInterval"],token);
                 return new(RoomTypeBatchStatus.Success,result,result.SourceETag);
             },ct,requireRoomTypeSchema:false,
