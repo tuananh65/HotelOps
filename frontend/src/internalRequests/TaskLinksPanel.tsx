@@ -6,6 +6,7 @@ import { InternalRequestTaskCreationPanel } from "./TaskCreationPanel";
 interface Item { taskId: number; code: string; title: string; state: string | null; mandatory: boolean | null; path: string }
 interface View { requestId: number; branchId: number; version: string; canLink: boolean; items: Item[]; total: number; page: number; candidates: boolean }
 const validVersion = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9+/]{11}=$/.test(v);
+const canClassify = (item: Item) => item.mandatory === null && item.state !== null && ["PENDING_ASSIGNMENT","ASSIGNED","ACCEPTED","IN_PROGRESS","PAUSED","PENDING_VERIFICATION"].includes(item.state);
 class Failure extends Error { constructor(readonly status: number) { super("Linked work unavailable"); } }
 async function json(path: string, signal: AbortSignal, init?: RequestInit): Promise<unknown> {
   const response = await fetch(path, { ...init, credentials: "same-origin", cache: "no-store", redirect: "error", signal });
@@ -38,15 +39,16 @@ export function InternalRequestTaskLinksPanel({ id, onLinked }: { id: number; on
     return () => abort.abort();
   }, [id, owner, candidates, page, revision, key, actions]);
   const view = owner && loaded?.owner === owner && loaded.key === key ? loaded.view : null;
+  const legacy = !candidates ? view?.items.find(t => String(t.taskId) === selected && canClassify(t)) : undefined;
   async function link() {
     const abort = controller.current;
-    if (!owner || !view?.canLink || !candidates || !abort || abort.signal.aborted || sending.current) return;
+    if (!owner || !view?.canLink || (!candidates && !legacy) || !abort || abort.signal.aborted || sending.current) return;
     const taskId = Number(selected);
-    if (!view.items.some(t => t.taskId === taskId) || !["required", "optional"].includes(mandatory)) { setMessage("Select a task and whether it is required for completion."); return; }
+    if (!view.items.some(t => t.taskId === taskId && (candidates || canClassify(t))) || !["required", "optional"].includes(mandatory)) { setMessage("Select a task and whether it is required for completion."); return; }
     sending.current = true; setBusy(true); setMessage("");
     try {
-      const csrf = await json("/api/auth/csrf", abort.signal) as { csrfToken?: unknown };
-      if (typeof csrf.csrfToken !== "string" || !csrf.csrfToken || abort.signal.aborted) throw new Error("Security check failed");
+      const csrf = await json("/api/auth/csrf", abort.signal) as { csrfToken?: unknown; headerName?: unknown };
+      if (csrf?.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted) throw new Error("Security check failed");
       const raw = await json(`/api/internal-requests/${id}/linked-tasks`, abort.signal, { method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": `"${view.version}"` },
         body: JSON.stringify({ taskId, mandatory: mandatory === "required" }) }) as { requestId?: unknown; taskId?: unknown; mandatory?: unknown; version?: unknown };
@@ -67,15 +69,19 @@ export function InternalRequestTaskLinksPanel({ id, onLinked }: { id: number; on
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} tasks on this page.</p>}
       <ul>{view.items.map(t => <li key={t.taskId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}
-        {!candidates && <span> — {t.mandatory === null ? "Completion requirement unclassified" : t.mandatory ? "Required for completion" : "Optional"}</span>}</li>)}</ul>
+        {!candidates && <span> — {t.mandatory === null ? "Completion requirement unclassified" : t.mandatory ? "Required for completion" : "Optional"}</span>}
+        {!candidates && view.canLink && canClassify(t) && <button disabled={busy} onClick={() => { setSelected(String(t.taskId)); setMandatory(""); }}>Set completion requirement for {t.code}</button>}
+        {!candidates && t.mandatory === null && !canClassify(t) && <span> - Historical classification is required before request completion.</span>}</li>)}</ul>
       <button disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Previous tasks</button><span> Page {page} </span>
       <button disabled={busy || page * 25 >= view.total} onClick={() => setPage(p => p + 1)}>Next tasks</button>
-      {candidates && view.canLink && <div aria-busy={busy}>
-        <label>Open task<select aria-label="Open task" disabled={busy} value={selected} onChange={e => setSelected(e.target.value)}><option value="">Select task</option>
-          {view.items.map(t => <option key={t.taskId} value={t.taskId}>{t.code}: {t.title}</option>)}</select></label>
+      {(candidates || legacy) && view.canLink && <div aria-busy={busy}>
+        {candidates && <label>Open task<select aria-label="Open task" disabled={busy} value={selected} onChange={e => setSelected(e.target.value)}><option value="">Select task</option>
+          {view.items.map(t => <option key={t.taskId} value={t.taskId}>{t.code}: {t.title}</option>)}</select></label>}
+        {legacy && <p>Set the completion requirement for {legacy.code}: {legacy.title}. Save whether this linked work is required before the request can be completed.</p>}
         <label>Completion requirement<select aria-label="Completion requirement" disabled={busy} value={mandatory} onChange={e => setMandatory(e.target.value)}><option value="">Select requirement</option>
           <option value="required">Required for completion</option><option value="optional">Optional</option></select></label>
-        <button disabled={busy} onClick={() => void link()}>Save task link</button>
+        <button disabled={busy} onClick={() => void link()}>{legacy ? "Save completion requirement" : "Save task link"}</button>
+        {legacy && <button disabled={busy} onClick={() => { setSelected(""); setMandatory(""); }}>Cancel classification</button>}
       </div>}
     </>}
   </section>;
