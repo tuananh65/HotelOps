@@ -144,6 +144,15 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
             await tx.CommitAsync(ct);return new($"/operations/material-requests/{requestId}");
         }
+        if(source is {NotificationType:MaterialRequests.MaterialApprovalNotificationDelivery.DecisionKind,SourceType:MaterialRequests.MaterialApprovalNotificationDelivery.DecisionSource,SourceId:>0})
+        {
+            var requestId=await MaterialRequests.MaterialApprovalNotificationDelivery.DecisionTargetAsync(db,source.SourceId.Value,user,ct);
+            if(requestId==null||!await db.MaterialRequestApprovals.AsNoTracking().AnyAsync(d=>d.ApprovalId==source.SourceId
+                &&d.ApproverId==source.CreatedBy&&d.DecidedAt==source.CreatedAt,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await tx.CommitAsync(ct);return new($"/operations/material-requests/{requestId}");
+        }
         if(source is {NotificationType:"CLEANING_TASK_CANCELLED",SourceType:"CLEANING_TASK",SourceId:>0})
         {
             await CancellationReceiptAsync(id,user,now,ct);

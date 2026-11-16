@@ -316,3 +316,22 @@ Source is ready for UC093 Human QA, not COMPLETE_VERIFIED. Runtime requires the
 verified material lifecycle and department-mapping capabilities, actual grants and
 enabled notification worker. Human QA must cover edit/reapproval, stale versions,
 revoked access, first-issue rejection, cancellation rollback and notice retries.
+
+## Requester review-decision notifications (2026-11-16)
+
+RETURNED, APPROVED and REJECTED decision receipts now act as durable requester
+notification intents. The opt-in material worker scans committed, cycle-correlated
+receipts inside the finite notification retention window. Delivery validates current
+requester eligibility, independent MR_VIEW and branch/resource provenance, and
+rechecks before committing its idempotent receipt. Notification Center source
+opening verifies decision actor/time and current access again. Historical decisions
+remain identified by their receipt instead of pretending to describe current state.
+No schema, grants, database contents or worker configuration were changed.
+
+UC095 approval quantities now default to requested quantities, matching its normal
+flow step 2; explicit Save, quantity validation and all-zero rejection reason remain.
+Backend build PASS (0 warnings/errors), frontend typecheck and production build
+PASS with existing React Router/use-client and large-bundle warnings. Business,
+SQL, API and browser tests NOT RUN. No additional COMPLETE_VERIFIED UC claimed.
+Storekeeper notification, remainder-close requester notification, scoped stock
+review and fulfillment admission still require implementation/acceptance.

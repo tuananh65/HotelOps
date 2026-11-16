@@ -32,7 +32,7 @@ function operationDefaults(operation: Operation, source: Values = {}): Values {
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true) });
   if (operation.id === "A004A-047" && Array.isArray(source.lines))
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true)
-      .map(l => ({ requestLineId: l.requestLineId, approvedQty: "" })) });
+      .map(l => ({ requestLineId: l.requestLineId, approvedQty: l.requestedQty })) });
   return defaults(operation.fields, source);
 }
 function readAction(operation: Operation, fallback: string): string {
