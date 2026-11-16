@@ -14,8 +14,8 @@ public sealed partial class ProvisionalCleaningNotification
 {
     public async Task<bool> ClosureAvailableAsync(CancellationToken ct)
     {
-        if (env.IsDevelopment() && config["CleaningClosure:Capability"] == "VERIFIED_V1")
-            return await HotelOps.Api.Data.CleaningClosureSchema.InstalledAsync(db, ct);
+        if (env.IsDevelopment() && await HotelOps.Api.Data.CleaningClosureSchema.InstalledAsync(db, ct))
+            return true;
         if (!env.IsDevelopment() || config["CleaningClosure:Candidate"] != "FS015_PROVISIONAL"
             || db.Database.GetDbConnection().Database is not ("HotelOps_Canonical_FS015_Cleaning_V1_Fresh" or "HotelOps_Canonical_FS016_Rework_V1_Fresh")) return false;
         return await db.Database.SqlQuery<int>($"""

@@ -115,6 +115,7 @@ public sealed class CleaningAssignmentNotificationSource(HotelOpsDbContext db, R
             JOIN dbo.rooms r ON r.room_id=t.room_id
             JOIN dbo.room_cleaning_cycle_state c ON c.room_id=r.room_id
             JOIN dbo.notification_publications p ON p.assignment_id=a.assignment_id AND p.actor_user_id=a.assigned_by
+              AND p.event_type='CLEANING_TASK_ASSIGNED'
             JOIN dbo.notification_operation_reservations o ON o.actor_user_id=p.actor_user_id AND o.operation_key=p.operation_key
             WHERE a.assignment_id={assignmentId}
             """).SingleAsync(ct);
