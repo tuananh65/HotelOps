@@ -81,6 +81,8 @@ public sealed class InternalRequestDecisionService(HotelOpsDbContext db,Internal
             if(request.SubmittedAt==null||request.SubmittedAt>now)throw new InternalRequestReadException(409,"IR_SUBMISSION_TIME_INVALID");
             var deadline=input.Deadline?.UtcDateTime??request.DueAt;
             if(deadline!=request.DueAt&&reason==null)throw new ValidationException("Changing the deadline requires a reason.");
+            if(deadline!=request.DueAt&&deadline<=request.CreatedAt)
+                throw new ValidationException("Deadline must be later than the official request creation time.");
             var status=input.Accept?"ACCEPTED":"REJECTED";
             var changed=await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.internal_requests SET status={status},due_at={deadline},updated_at={now}

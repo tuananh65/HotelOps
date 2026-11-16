@@ -150,8 +150,10 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
             {
                 if (!access.CanChangeDeadline) throw new InternalRequestReadException(403, "IR_DEADLINE_AUTHORITY_REQUIRED");
                 if (input.DeadlineReason == null) throw new ValidationException("Deadline change requires a reason.");
-                // Existing request contract has no planned-start field. Do not reinterpret
-                // RequiredAt or submission time as a planned start, or forbid overdue dates.
+                // Approved UC122 window starts at official creation, including after revision.
+                // A deadline may already be overdue, but cannot precede or equal its origin.
+                if (deadline <= request.CreatedAt)
+                    throw new ValidationException("Deadline must be later than the official request creation time.");
             }
             var previous = await SnapshotAsync(db, id, ct);
             var changed = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET due_at={deadline},updated_at={now} WHERE internal_request_id={id} AND status='IN_PROGRESS' AND row_version={version}", ct);
