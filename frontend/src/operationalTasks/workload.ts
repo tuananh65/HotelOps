@@ -2,7 +2,7 @@ import { taskWorkflowStates } from "./api";
 import { planningRequest } from "./planning";
 
 export interface WorkloadFilters {
-  taskSet?: "OPEN" | "OVERDUE" | "CLOSED_IN_PERIOD";
+  taskSet?: "OPEN" | "OVERDUE" | "CLOSED_IN_PERIOD" | "EFFORT_IN_PERIOD";
   calendar?: "UTC" | "Asia/Ho_Chi_Minh";
   from?: string;
   to?: string;
@@ -166,7 +166,7 @@ export async function readWorkload(
   }
   if (filters.overdueOnly) params.set("overdueOnly", "true");
   if (filters.taskSet !== undefined) {
-    if (!["OPEN", "OVERDUE", "CLOSED_IN_PERIOD"].includes(filters.taskSet) || employee !== null || filters.employeeId !== undefined)
+    if (!["OPEN", "OVERDUE", "CLOSED_IN_PERIOD", "EFFORT_IN_PERIOD"].includes(filters.taskSet) || employee !== null || filters.employeeId !== undefined)
       throw Error("Invalid task population");
     params.set("taskSet", filters.taskSet);
   }

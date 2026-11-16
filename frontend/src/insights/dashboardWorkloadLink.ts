@@ -19,6 +19,7 @@ export function dashboardWorkloadLink(filters: Dashboard["filters"], key: string
   if (key === "overdueTasks") query.set("overdueOnly", "true");
   if (key === "closedTasksInPeriod" || key === "averageTaskCompletionHours") query.set("status", "CLOSED");
   if (key === "openTasks") query.set("taskSet", "OPEN");
+  if (["taskEffortHours", "taskProvisionalHours", "taskOpenIntervals"].includes(key)) query.set("taskSet", "EFFORT_IN_PERIOD");
   if (key === "overdueTasks") query.set("taskSet", "OVERDUE");
   if (key === "closedTasksInPeriod" || key === "averageTaskCompletionHours") query.set("taskSet", "CLOSED_IN_PERIOD");
   return `/operational-tasks?${query}`;
@@ -32,7 +33,7 @@ export function dashboardWorkloadFilters(params: URLSearchParams): WorkloadFilte
   if (!date(from) || !date(to) || from > to || from < "0001-01-01" || to === "9999-12-31"
     || department !== null && (!/^[1-9]\d*$/.test(department) || !id(Number(department)))
     || status !== null && status !== "CLOSED" || overdue !== null && overdue !== "true"
-    || taskSet !== null && !["OPEN", "OVERDUE", "CLOSED_IN_PERIOD"].includes(taskSet)) return undefined;
+    || taskSet !== null && !["OPEN", "OVERDUE", "CLOSED_IN_PERIOD", "EFFORT_IN_PERIOD"].includes(taskSet)) return undefined;
   return { from, to, calendar: "UTC", ...(department === null ? {} : { departmentId: Number(department) }),
     ...(status === null ? {} : { status }), ...(overdue === null ? {} : { overdueOnly: true }),
     ...(taskSet === null ? {} : { taskSet: taskSet as WorkloadFilters["taskSet"] }) };

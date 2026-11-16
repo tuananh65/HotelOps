@@ -117,11 +117,16 @@ export function DashboardPage() {
                 tasks show current status at the snapshot time.
               </p>
               {data.missingSources.length > 0 && (
+                <>
                 <p role="status">
-                  Incomplete dashboard: some indicators are unavailable.
+                  MSG29: Incomplete dashboard: some indicators are unavailable.
                   Recorded room status is not a verified effective-readiness
                   decision.
                 </p>
+                <ul aria-label="Unavailable dashboard sources">
+                  {data.missingSources.map((source, index) => <li key={`${index}:${source}`}>{source}</li>)}
+                </ul>
+                </>
               )}
               <section aria-label="Dashboard indicators">
                 <dl>

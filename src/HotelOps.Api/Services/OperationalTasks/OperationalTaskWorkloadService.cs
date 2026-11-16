@@ -18,17 +18,17 @@ public sealed partial class RoomTypeCreationService
             || query.Status != null && !TaskWorkflowRead.States.Contains(query.Status)
             || query.Search?.Length > 150 || query.Search?.Any(char.IsControl) == true
             || query.DeadlineTo < query.DeadlineFrom || query.Calendar is not ("UTC" or "Asia/Ho_Chi_Minh")
-            || query.TaskSet is not (null or "OPEN" or "OVERDUE" or "CLOSED_IN_PERIOD"))
+            || query.TaskSet is not (null or "OPEN" or "OVERDUE" or "CLOSED_IN_PERIOD" or "EFFORT_IN_PERIOD"))
             throw new ValidationException("Invalid workload filters.");
     }
 
-    private async Task<PermissionEvaluation> WorkloadAccess(long actor, long branch, CancellationToken ct)
+    private async Task<PermissionEvaluation> WorkloadAccess(long actor, long branch, CancellationToken ct, bool tasksOnly = false)
     {
         var now = clock.GetUtcNow().UtcDateTime;
         // SRS UC113 actors; grants stay on an eligible actor's own assignment.
         // Department Head is branch-wide, not limited to the user's department.
         var allowed = await db.UserRoles.AsNoTracking().Where(r => r.UserId == actor
-            && (r.Role.RoleCode == "DEPT_MANAGER" || r.Role.RoleCode == "OPERATIONS_MANAGER")
+            && (r.Role.RoleCode == "DEPT_MANAGER" || r.Role.RoleCode == "OPERATIONS_MANAGER" || tasksOnly && r.Role.RoleCode == "OWNER")
             && r.IsActive && r.Role.IsActive && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)
             && (r.BranchId == branch || r.BranchId == null)
             && r.User.AccountStatus == "ACTIVE" && r.User.EmploymentStatus == "ACTIVE" && r.User.DeletedAt == null
@@ -87,6 +87,10 @@ public sealed partial class RoomTypeCreationService
                 if (query.TaskSet == "OVERDUE") facts = facts.Where(t => t.Overdue);
                 if (query.TaskSet == "CLOSED_IN_PERIOD") facts = facts.Where(t => t.State == "CLOSED"
                     && t.CompletedAt >= period.Start && t.CompletedAt < period.End && t.CompletedAt <= now);
+                if (query.TaskSet == "EFFORT_IN_PERIOD") facts = facts.Where(t => db.WorkIntervals.Any(i => i.WorkItemKind == "TASK"
+                    && i.WorkItemId == t.TaskId && i.BranchId == branch && i.EffectiveStartedAt < period.End
+                    && (i.EffectiveEndedAt == null && now > period.Start || i.EffectiveEndedAt > period.Start)
+                    && db.Workdays.Any(d => d.WorkdayId == i.WorkdayId && d.UserId == i.UserId && d.BranchId == branch && d.DepartmentId == t.DepartmentId)));
                 var total = await facts.CountAsync(token);
                 var rows = await facts.OrderBy(t => t.Code).ThenBy(t => t.TaskId)
                     .Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(token);
@@ -163,7 +167,7 @@ public sealed partial class RoomTypeCreationService
                 count, query.Page, query.PageSize, count == 0 ? "MSG10" : null, query.Calendar));
         }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
         {
-            var access = await WorkloadAccess(ticket.UserId, branch, token);
+            var access = await WorkloadAccess(ticket.UserId, branch, token, tasksOnly);
             if (!access.IsGranted || !includesShiftData) return access;
             return await permissions.EvaluateBranchAsync("SHIFT_VIEW", branch, token);
         });

@@ -13,7 +13,7 @@ test("dashboard workload navigation retains exact scope and explicit UTC period"
     assert.equal(url.pathname, "/operational-tasks");
     assert.equal(url.searchParams.get("branchId"), "7");
     assert.deepEqual(parse(url.searchParams), { from: filters.from, to: filters.to, calendar: "UTC", departmentId: 8,
-      ...({ openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD" }[key] ? { taskSet: { openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD" }[key] } : {}),
+      ...({ openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD", taskEffortHours: "EFFORT_IN_PERIOD", taskProvisionalHours: "EFFORT_IN_PERIOD", taskOpenIntervals: "EFFORT_IN_PERIOD" }[key] ? { taskSet: { openTasks: "OPEN", overdueTasks: "OVERDUE", closedTasksInPeriod: "CLOSED_IN_PERIOD", taskEffortHours: "EFFORT_IN_PERIOD", taskProvisionalHours: "EFFORT_IN_PERIOD", taskOpenIntervals: "EFFORT_IN_PERIOD" }[key] } : {}),
       ...(key === "overdueTasks" ? { overdueOnly: true } : {}), ...(key === "closedTasksInPeriod" ? { status: "CLOSED" } : {}) });
   }
 });

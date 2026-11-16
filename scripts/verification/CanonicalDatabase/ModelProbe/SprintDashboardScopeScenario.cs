@@ -95,6 +95,47 @@ internal static class SprintDashboardScopeScenario
             finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }
         }
         await Browser(false);
+        var ownerRole=await db.Roles.SingleAsync(r=>r.RoleCode=="OWNER"&&r.IsActive,ct);
+        foreach(var code in new[]{"DASHBOARD_VIEW","TASK_VIEW"})
+        {
+            var permission=await db.Permissions.SingleAsync(p=>p.PermissionCode==code,ct);
+            if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==ownerRole.RoleId&&g.PermissionId==permission.PermissionId,ct))
+                db.RolePermissions.Add(new(){RoleId=ownerRole.RoleId,PermissionId=permission.PermissionId,DataScope="BRANCH",GrantedAt=now});
+        }
+        await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        await db.UserRoles.Where(r=>r.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.RoleId,ownerRole.RoleId),ct);
+        var ownerDashboard=await Read("/api/dashboards/operations?"+query);
+        Check(ownerDashboard.Status==200&&ownerDashboard.Body.GetProperty("metrics").EnumerateArray().Any(m=>m.GetProperty("key").GetString()=="closedTasksInPeriod"),"Owner with DASHBOARD_VIEW sees UC132 task metrics");
+        var taskPath=$"/api/branches/{branches[0].BranchId}/task-workload/tasks?{query}&calendar=UTC&taskSet=CLOSED_IN_PERIOD";
+        var ownerTasks=await Read(taskPath);
+        Check(ownerTasks.Status==200,"Owner TASK_VIEW grants task-only population");
+        var ownerTaskId=ownerTasks.Body.GetProperty("tasks")[0].GetProperty("taskId").GetInt64();
+        Check((await Read($"/api/branches/{branches[0].BranchId}/operational-tasks/{ownerTaskId}")).Status==200,"Owner task detail independently authorizes TASK_VIEW");
+        Check((await Read($"/api/branches/{branches[0].BranchId}/task-workload?{query}&calendar=UTC")).Status==403
+            &&(await Read($"/api/branches/{branches[0].BranchId}/task-workload/{user.UserId}?{query}&calendar=UTC")).Status==403,"Owner cannot read UC113 employees intervals or workdays");
+        await Browser(false);
+        var ownerTaskGrant=await db.RolePermissions.SingleAsync(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="TASK_VIEW",ct);
+        var taskScope=ownerTaskGrant.DataScope;
+        await db.RolePermissions.Where(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="TASK_VIEW").ExecuteUpdateAsync(s=>s.SetProperty(g=>g.DataScope,"OWN"),ct);
+        Check((await Read(taskPath)).Status==403,"Owner without branch TASK_VIEW cannot drill down");
+        await db.RolePermissions.Where(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="TASK_VIEW").ExecuteUpdateAsync(s=>s.SetProperty(g=>g.DataScope,taskScope),ct);
+        var dashboardGrant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="DASHBOARD_VIEW",ct);
+        await db.RolePermissions.Where(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="DASHBOARD_VIEW").ExecuteUpdateAsync(s=>s.SetProperty(g=>g.DataScope,"OWN"),ct);
+        var missingDashboard=await Read("/api/dashboards/operations?"+query);
+        Check(missingDashboard.Status==403||missingDashboard.Status==200&&!missingDashboard.Body.GetProperty("metrics").EnumerateArray().Any(m=>m.GetProperty("key").GetString()=="closedTasksInPeriod"),"Owner without scoped DASHBOARD_VIEW receives no UC132 metrics");
+        await db.RolePermissions.Where(g=>g.RoleId==ownerRole.RoleId&&g.Permission.PermissionCode=="DASHBOARD_VIEW").ExecuteUpdateAsync(s=>s.SetProperty(g=>g.DataScope,dashboardGrant.DataScope),ct);
+        var foreign=await db.Branches.Where(b=>b.BranchId!=branches[0].BranchId&&b.BranchId!=branches[1].BranchId).Select(b=>b.BranchId).FirstAsync(ct);
+        Check((await Read($"/api/dashboards/operations?branchId={foreign}&{query}")).Status==403
+            &&(await Read($"/api/branches/{foreign}/task-workload/tasks?{query}&calendar=UTC&taskSet=OPEN")).Status==403,"Owner has no implicit cross-branch dashboard or task access");
+        var manager=await db.Roles.SingleAsync(r=>r.RoleCode=="DEPT_MANAGER"&&r.IsActive,ct);
+        var dashboardPermission=await db.Permissions.SingleAsync(p=>p.PermissionCode=="DASHBOARD_VIEW",ct);
+        if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==manager.RoleId&&g.PermissionId==dashboardPermission.PermissionId,ct))
+        { db.RolePermissions.Add(new(){RoleId=manager.RoleId,PermissionId=dashboardPermission.PermissionId,DataScope="BRANCH",GrantedAt=now});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear(); }
+        await db.UserRoles.Where(r=>r.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.RoleId,manager.RoleId),ct);
+        var managerDashboard=await Read("/api/dashboards/operations?"+query);
+        Check(managerDashboard.Status==403||managerDashboard.Status==200&&!managerDashboard.Body.GetProperty("metrics").EnumerateArray().Any(m=>m.GetProperty("key").GetString()=="closedTasksInPeriod"),"Department Head cannot infer UC132 access from DASHBOARD_VIEW");
+        Check((await Read($"/api/branches/{branches[0].BranchId}/task-workload?{query}&calendar=UTC")).Status==200,"Department Head keeps independent UC113 access");
+        await db.UserRoles.Where(r=>r.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.RoleId,ownerRole.RoleId),ct);
         await db.UserRoles.Where(r => r.UserId == user.UserId && r.BranchId == branches[1].BranchId)
             .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsActive, false), ct);
         Check((await Read($"/api/branches/{branches[1].BranchId}/task-workload/tasks?{query}&calendar=UTC&taskSet=CLOSED_IN_PERIOD")).Status == 403,

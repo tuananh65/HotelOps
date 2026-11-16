@@ -112,7 +112,7 @@ internal static class SprintTaskDashboardScenario
             "canonical lifecycle distribution distinguishes physical IN_PROGRESS stages");
         var workloadPath = $"/api/branches/{branch}/task-workload?departmentId={department.DepartmentId}&from={now.AddDays(-1):yyyy-MM-dd}&to={now:yyyy-MM-dd}";
         var taskPath = workloadPath.Replace("task-workload?", "task-workload/tasks?") + "&calendar=UTC";
-        foreach (var (population, expectedCount) in new[] { ("OPEN", 4), ("OVERDUE", 2), ("CLOSED_IN_PERIOD", 1) })
+        foreach (var (population, expectedCount) in new[] { ("OPEN", 4), ("OVERDUE", 2), ("CLOSED_IN_PERIOD", 1), ("EFFORT_IN_PERIOD", 1) })
         {
             var populationResult = await send(HttpMethod.Get, taskPath + "&taskSet=" + population, null, null, true);
             Check(populationResult.Status == 200 && populationResult.Body.GetProperty("totalCount").GetInt32() == expectedCount

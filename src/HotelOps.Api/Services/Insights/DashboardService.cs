@@ -60,14 +60,23 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
             missing.Add("UC131: rooms/cleaning have no approved department mapping; department-filtered figures withheld");
         }
 
-        var tasks = db.OperationalTasks.AsNoTracking().Where(t => branches.Contains(t.BranchId)
-            && (department == null || t.DepartmentId == department));
-        groups.AddRange(await tasks.GroupBy(t => new { t.Status, t.PriorityId })
-            .Select(g => new DistributionRow("operational_tasks.status/priority_id", g.Key.Status, g.LongCount(),
-                g.Key.PriorityId == null ? null : g.Key.PriorityId.ToString())).ToArrayAsync(ct));
-        await TaskDashboardQueries.AppendAsync(db, filters, now.UtcDateTime, metrics, groups, missing, ct);
-        await TaskEffortDashboard.AppendAsync(db, filters, now.UtcDateTime, metrics, missing, ct);
-        await TaskCompletionDashboard.AppendAsync(db, filters, now.UtcDateTime, metrics, missing, ct);
+        var taskAccess = new TaskDashboardAccess(db, access, clock);
+        var taskAllowed = true;
+        foreach (var branch in branches)
+            taskAllowed &= await taskAccess.AllowedAsync(branch, ct);
+        if (branches.Length == 0) taskAllowed = await taskAccess.AllowedAsync(null, ct);
+        if (taskAllowed)
+        {
+            var tasks = db.OperationalTasks.AsNoTracking().Where(t => branches.Contains(t.BranchId)
+                && (department == null || t.DepartmentId == department));
+            groups.AddRange(await tasks.GroupBy(t => new { t.Status, t.PriorityId })
+                .Select(g => new DistributionRow("operational_tasks.status/priority_id", g.Key.Status, g.LongCount(),
+                    g.Key.PriorityId == null ? null : g.Key.PriorityId.ToString())).ToArrayAsync(ct));
+            await TaskDashboardQueries.AppendAsync(db, filters, now.UtcDateTime, metrics, groups, missing, ct);
+            await TaskEffortDashboard.AppendAsync(db, filters, now.UtcDateTime, metrics, missing, ct);
+            await TaskCompletionDashboard.AppendAsync(db, filters, now.UtcDateTime, metrics, missing, ct);
+        }
+        else missing.Add("UC132: task indicators require Operations Manager or Owner with DASHBOARD_VIEW in every selected branch");
 
         // Incident has no authoritative department field. Do not derive it from
         // reporter identity or duplicate it across related maintenance works.
