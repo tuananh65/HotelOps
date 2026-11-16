@@ -45,6 +45,16 @@ internal static class MaintenanceClosureSource
 
     internal static async Task<Source?> ReadAsync(HotelOpsDbContext db, long auditId, CancellationToken ct)
     {
+        var source = await ReadHistoricalAsync(db, auditId, ct);
+        if (source == null) return null;
+        return await db.Incidents.AsNoTracking().AnyAsync(i => i.IncidentId == source.IncidentId
+            && i.Status == "CLOSED" && i.ClosedAt == source.At && i.ClosureNote == source.Note, ct) ? source : null;
+    }
+
+    // Historical closure proof remains bound to the closed work, audit and event.
+    // A later Incident cycle must not alter that proof; recipients are authorized separately.
+    internal static async Task<Source?> ReadHistoricalAsync(HotelOpsDbContext db, long auditId, CancellationToken ct)
+    {
         if (db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
             throw new InvalidOperationException("Serializable notification source transaction required.");
         var audit = await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(a => a.AuditId == auditId, ct);
@@ -52,8 +62,7 @@ internal static class MaintenanceClosureSource
         if (source == null) return null;
         if (!await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.MaintenanceWorkId == source.WorkId
             && w.IncidentId == source.IncidentId && w.Incident!.BranchId == source.BranchId
-            && w.Status == "CLOSED" && w.Incident.Status == "CLOSED" && w.Incident.ClosedAt == source.At
-            && w.Incident.ReportedBy == source.ReporterId && w.Incident.ClosureNote == source.Note
+            && w.Status == "CLOSED" && w.Incident.ReportedBy == source.ReporterId
             && w.AssigneeId == source.TechnicianId && w.ReviewedBy == source.ActorId && w.ReviewedAt == source.At, ct)) return null;
         if (await db.IncidentEvents.AsNoTracking().CountAsync(e => e.IncidentId == source.IncidentId
             && e.EventType == "STATUS_CHANGED" && e.FromStatus == "RESOLVED" && e.ToStatus == "CLOSED"

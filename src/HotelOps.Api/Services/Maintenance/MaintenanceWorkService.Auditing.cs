@@ -40,7 +40,7 @@ public sealed partial class MaintenanceWorkService
         Dictionary<string, object?>? before, Dictionary<string, object?> after)
     {
         var changed = before is null ? null :
-            after.Keys.Where(key => !Equals(before[key], after[key])).ToArray();
+            after.Keys.Where(key => !before.TryGetValue(key, out var oldValue) || !Equals(oldValue, after[key])).ToArray();
         if (changed is { Length: 0 })
             return;
 

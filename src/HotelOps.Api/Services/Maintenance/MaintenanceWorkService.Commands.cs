@@ -123,6 +123,12 @@ public sealed partial class MaintenanceWorkService
             afterWork["closure_reporter_id"] = incident.ReportedBy;
             afterWork["verification_note"] = verified.Note.Trim();
             afterWork["verified_submission_audit_id"] = reviewedSubmission!.Review.SubmissionAuditId;
+            // Bind historical SLA to this committed closure, before a future Reopen
+            // replaces the Incident's current-cycle deadlines. Never use planned dates.
+            afterWork["incident_cycle_sla_version"] = 1;
+            afterWork["incident_cycle_discovered_at"] = incident.DiscoveredAt;
+            afterWork["incident_cycle_sla"] = await HotelOps.Api.Services.Incidents.IncidentSlaRead.ReadAsync(
+                _dbContext, incident.IncidentId, cancellationToken);
             if (incident.AssetId is long assetId)
             {
                 var asset = await _dbContext.Assets.AsNoTracking().SingleOrDefaultAsync(a => a.AssetId == assetId

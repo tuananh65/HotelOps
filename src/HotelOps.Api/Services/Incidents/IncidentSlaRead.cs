@@ -1,6 +1,9 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Incidents;
+using HotelOps.Api.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text.Json;
 
 namespace HotelOps.Api.Services.Incidents;
 
@@ -35,12 +38,49 @@ internal static class IncidentSlaRead
 
     internal static async Task<IncidentSlaDto> ForWorkAsync(HotelOpsDbContext db, long actor, long branch, long work, CancellationToken ct)
     {
-        var incident = await db.MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == work)
-            .Select(w => w.IncidentId).SingleAsync(ct);
+        var source = await db.MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == work)
+            .Select(w => new { w.IncidentId, w.Status, w.ReviewedAt, w.ReviewedBy }).SingleAsync(ct);
+        var incident = source.IncidentId;
         if (incident == null) return new(null, null, "NOT_APPLICABLE");
         var scope = await IncidentReadAccess.ReadAsync(db, actor, branch, ct, sourceRecord: true);
         if (!await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == incident, ct))
             return new(null, null, "INCIDENT_SLA_ACCESS_UNAVAILABLE");
+        if (source.Status == "CLOSED")
+        {
+            var key = work.ToString(CultureInfo.InvariantCulture);
+            var audits = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "maintenance_works"
+                && a.EntityId == key && a.Action == "UPDATE" && a.BranchId == branch
+                && a.ActorUserId == source.ReviewedBy && a.OccurredAt == source.ReviewedAt).ToArrayAsync(ct);
+            var closures = audits.Where(a => MaintenanceClosureSource.Parse(a) is { } parsed
+                && parsed.WorkId == work && parsed.IncidentId == incident).ToArray();
+            if (closures.Length != 1 || await MaintenanceClosureSource.ReadHistoricalAsync(db, closures[0].AuditId, ct) == null)
+                return new(null, null, "INCIDENT_CYCLE_SLA_PROVENANCE_UNAVAILABLE");
+            try
+            {
+                using var document = JsonDocument.Parse(closures[0].NewValues!);
+                var root = document.RootElement;
+                if (root.TryGetProperty("incident_cycle_sla_version", out var version))
+                {
+                    var discovered = root.GetProperty("incident_cycle_discovered_at").GetDateTime();
+                    var snapshot = root.GetProperty("incident_cycle_sla").Deserialize<IncidentSlaDto>();
+                    var original = await db.Incidents.AsNoTracking().Where(i => i.IncidentId == incident)
+                        .Select(i => i.DiscoveredAt).SingleAsync(ct);
+                    if (version.GetInt32() != 1 || discovered != original || snapshot == null)
+                        return new(null, null, "INCIDENT_CYCLE_SLA_INVALID");
+                    var normalized = Normalize(discovered, snapshot.ResponseDeadlineAt, snapshot.ResolutionDeadlineAt);
+                    if (snapshot == normalized) return normalized;
+                    if (snapshot is { ResponseDeadlineAt: null, ResolutionDeadlineAt: null,
+                        UnavailableReason: "INCIDENT_SLA_STORAGE_UNAVAILABLE" or "INCIDENT_SLA_INVALID" }) return snapshot;
+                    return new(null, null, "INCIDENT_CYCLE_SLA_INVALID");
+                }
+            }
+            catch (Exception error) when (error is JsonException or InvalidOperationException or KeyNotFoundException or FormatException or OverflowException)
+            { return new(null, null, "INCIDENT_CYCLE_SLA_INVALID"); }
+            // Legacy closures have no snapshot. Current deadlines are usable only
+            // while this exact closure is still the Incident's current cycle.
+            if (await MaintenanceClosureSource.ReadAsync(db, closures[0].AuditId, ct) == null)
+                return new(null, null, "INCIDENT_CYCLE_SLA_NOT_RECORDED");
+        }
         return await ReadAsync(db, incident.Value, ct);
     }
     private sealed class Row
