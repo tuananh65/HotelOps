@@ -1077,6 +1077,16 @@ export const operations: Operation[] = [
         optional: false,
       },
       {
+        name: "diagnosis",
+        type: "string",
+        optional: false,
+      },
+      {
+        name: "actionTaken",
+        type: "string",
+        optional: false,
+      },
+      {
         name: "resolutionNote",
         type: "string",
         optional: true,

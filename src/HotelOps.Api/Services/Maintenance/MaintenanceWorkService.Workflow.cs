@@ -70,7 +70,7 @@ public sealed partial class MaintenanceWorkService
         SubmitMaintenanceResultRequest request, CancellationToken cancellationToken)
     {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["SubmitResult"], request.ActorUserId, id, request);
-        var note = RequiredNote(request.ResolutionNote, "ResolutionNote");
+        var note = MaintenanceResolution.Note(request);
         return ExecuteCorrectiveAsync(id, request, note, (work, incident, now, token) =>
         {
             RequireState(work, "IN_PROGRESS");

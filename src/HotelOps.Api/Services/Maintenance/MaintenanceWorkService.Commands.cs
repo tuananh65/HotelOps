@@ -76,7 +76,7 @@ public sealed partial class MaintenanceWorkService
         if (workTime is not null && work.AssigneeId != discovered.AssigneeId)
             throw new ValidationException("The maintenance assignee changed after time-lock discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest)
+        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest)
             await MaintenanceExecutionVersion.RequireAsync(_dbContext, id, _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString(), cancellationToken);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
 
@@ -93,8 +93,16 @@ public sealed partial class MaintenanceWorkService
             now = await OpenWorkIntervalAsync(workTime, work, incident, cancellationToken);
             if (request is StartMaintenanceWorkRequest) work.ActualStartAt = now;
         }
+        var afterWork = WorkSnapshot(work);
+        if (request is SubmitMaintenanceResultRequest resultInput)
+        {
+            beforeWork["submitted_diagnosis"] = null;
+            beforeWork["submitted_action_taken"] = null;
+            afterWork["submitted_diagnosis"] = resultInput.Diagnosis.Trim();
+            afterWork["submitted_action_taken"] = resultInput.ActionTaken.Trim();
+        }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
-            now, beforeWork, WorkSnapshot(work));
+            now, beforeWork, afterWork);
         if (incident.Status != previousStatus)
         {
             _dbContext.IncidentEvents.Add(new IncidentEvent
@@ -113,12 +121,12 @@ public sealed partial class MaintenanceWorkService
 
         if (_dbContext.ChangeTracker.HasChanges())
             await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
-        var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest
+        var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest
             ? await DetailAsync((await MaintenanceReadAccess.ReadAsync(_dbContext, TrustedActorId, incident.BranchId, cancellationToken))
                 .Apply(_dbContext.MaintenanceWorks.AsNoTracking()), id, cancellationToken)
                 ?? throw new Dev2AccessDenied(403)
             : await RequireDetailAsync(id, cancellationToken);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest)
+        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest)
             result.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(_dbContext, id, cancellationToken);
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
