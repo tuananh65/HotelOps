@@ -39,7 +39,8 @@ internal sealed class ReinspectionPassedNotificationDelivery(HotelOpsDbContext d
         if(receipt==null||receipt!=hint)return "SOURCE_DENIED";
         var user=receipt.Notification.RecipientUserId;var branch=receipt.BranchId;var rework=receipt.ReworkId;
         var now=clock.GetUtcNow().UtcDateTime;
-        if(!await ReworkRecipientReadAccess.EligibleAssignees(db,branch,now).AnyAsync(u=>u.UserId==user,ct)
+        if(!await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db,ct)
+            ||!await ReworkRecipientReadAccess.EligibleAssignees(db,branch,now).AnyAsync(u=>u.UserId==user,ct)
             ||!(await ReworkRecipientReadAccess.EvaluateAsync(db,user,branch,rework,"CLEANING_VIEW",now,ct)).IsGranted)
             return "RECIPIENT_READ_DENIED";
         var notices=await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE notification_type={Kind} AND source_type='CLEANING_REWORK' AND source_id={rework}")

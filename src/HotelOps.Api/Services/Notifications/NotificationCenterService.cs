@@ -639,7 +639,8 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         if(source.NotificationType==ReinspectionPassedNotificationSource.Kind)
         {
-            if(!await ReworkRecipientReadAccess.EligibleAssignees(db,branch.Value,now).AnyAsync(u=>u.UserId==user,ct))
+            if(!await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db,ct)
+                ||!await ReworkRecipientReadAccess.EligibleAssignees(db,branch.Value,now).AnyAsync(u=>u.UserId==user,ct))
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             var audits=await db.AuditLogs.FromSqlInterpolated($"""
                 SELECT * FROM dbo.audit_logs WHERE entity_type='REINSPECTION' AND action='UPDATE' AND branch_id={branch.Value}

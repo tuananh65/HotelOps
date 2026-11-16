@@ -18,7 +18,8 @@ public sealed partial class RoomTypeCreationService
         if (inspection <= 0) throw new ValidationException("Inspection ID must be positive.");
         return BatchAsync(ticket, sid, branch, async (_, token) =>
         {
-            if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, token)
+                || !await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
             var rooms = await HistoryRooms(token);
             if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive)).Select(r => r.RoomId);

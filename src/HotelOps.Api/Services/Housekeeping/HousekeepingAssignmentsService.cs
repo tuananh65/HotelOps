@@ -15,7 +15,8 @@ public sealed partial class RoomTypeCreationService
         => HotelOps.Api.Services.Notifications.ReworkRecipientReadAccess.EligibleAssignees(db, branch, now);
     private IQueryable<User> EligibleHousekeepers(long branch, DateTime now) => EligibleReworkAssignees(branch, now).Where(u =>
         db.ShiftAssignments.Any(a => a.UserId == u.UserId && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
-            && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
+            && a.Shift.BranchId == branch && a.Shift.Department.BranchId == branch && a.Shift.Department.IsActive
+            && a.Shift.Department.DepartmentCode == "HK" && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
             && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now));
     private IQueryable<User> EligibleInspectors(long branch, DateTime now)
         => db.Users.AsNoTracking().Where(u => u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
@@ -95,7 +96,9 @@ public sealed partial class RoomTypeCreationService
         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueReworkAssignee(input.AssigneeId, branch, input.DueAt, token), permissionCode: "INSPECTION_PERFORM");
     }
     private async Task<bool> DueReworkAssignee(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
+        && await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, ct)
         && await EligibleReworkAssignees(branch, clock.GetUtcNow().UtcDateTime).AnyAsync(u => u.UserId == id, ct);
     private async Task<bool> DueHousekeeper(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
+        && await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, ct)
         && await EligibleHousekeeper(id, branch, clock.GetUtcNow().UtcDateTime, ct);
 }

@@ -37,7 +37,11 @@ public sealed partial class RoomTypeCreationService
                 && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
                 && db.UserRoles.Any(r => r.UserId == u.UserId && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == role
                     && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)));
-            if (!inspection) candidates = candidates.Where(u => u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == "HK");
+            if (!inspection)
+            {
+                if (!await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+                candidates = EligibleReworkAssignees(branch, now);
+            }
             else candidates = candidates.Where(u =>
                 !db.CleaningAssignments.Any(a => a.CleaningTaskId == taskId && a.AssigneeUserId == u.UserId && a.AssignmentStatus != "CANCELLED")
                 && !db.CleaningProgressLogs.Any(p => p.CleaningTaskId == taskId && p.LoggedBy == u.UserId)
@@ -46,7 +50,8 @@ public sealed partial class RoomTypeCreationService
             var total = await candidates.CountAsync(token);
             var page = await candidates.OrderBy(u => u.FullName).ThenBy(u => u.UserId).Skip((query.Page - 1) * query.PageSize).Take(query.PageSize)
                 .Select(u => new PlanningStaffDto(u.UserId, u.FullName,
-                    u.Department != null && u.Department.BranchId == branch ? u.DepartmentId : null,
+                    inspection ? (u.Department != null && u.Department.BranchId == branch ? u.DepartmentId : null)
+                        : db.Departments.Where(d => d.BranchId == branch && d.IsActive && d.DepartmentCode == "HK").Select(d => (long?)d.DepartmentId).FirstOrDefault(),
                     db.CleaningAssignments.Where(a => a.AssigneeUserId == u.UserId && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null
                         && roomIds.Contains(a.CleaningTask.RoomId) && a.CleaningTask.Status != "COMPLETED" && a.CleaningTask.Status != "CANCELLED").Select(a => a.CleaningTaskId).Distinct().Count(),
                     db.CleaningAssignments.Where(a => a.AssigneeUserId == u.UserId && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null

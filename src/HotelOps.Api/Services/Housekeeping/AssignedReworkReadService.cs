@@ -105,7 +105,8 @@ public sealed partial class RoomTypeCreationService
                         &&await ReworkSubmissionWriterAvailable(token)&&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
                         ? "SUBMIT_REWORK" : "READ_ONLY",ReworkAuthorityContract.Origin,conclusion),WorkflowTag(state.Revision));
         },ct,featurePermission:token=>ReworkAccess(ticket.UserId,branch,id,"CLEANING_VIEW",token),
-            eligibility:token=>EligibleReworkAssignees(branch,clock.GetUtcNow().UtcDateTime).AnyAsync(u=>u.UserId==ticket.UserId,token));
+            eligibility:async token=>await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db,token)
+                &&await EligibleReworkAssignees(branch,clock.GetUtcNow().UtcDateTime).AnyAsync(u=>u.UserId==ticket.UserId,token));
     }
     private sealed class ExecutorReinspectionSource
     {

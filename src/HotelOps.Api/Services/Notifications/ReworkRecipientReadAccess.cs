@@ -7,8 +7,14 @@ namespace HotelOps.Api.Services.Notifications;
 internal static class ReworkRecipientReadAccess
 {
     internal static IQueryable<HotelOps.Api.Entities.User> EligibleAssignees(HotelOpsDbContext db,long branch,DateTime now)
-        => db.Users.AsNoTracking().Where(u=>u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
-            &&u.Department!=null&&u.Department.IsActive&&u.Department.BranchId==branch&&u.Department.DepartmentCode=="HK"
+        => db.Users.FromSqlInterpolated($"""
+            SELECT u.* FROM dbo.users u WITH(HOLDLOCK)
+            WHERE EXISTS(SELECT 1 FROM dbo.employee_department_memberships m WITH(HOLDLOCK)
+              JOIN dbo.departments d WITH(HOLDLOCK) ON d.department_id=m.department_id AND d.branch_id=m.branch_id
+              JOIN dbo.branches b WITH(HOLDLOCK) ON b.branch_id=m.branch_id
+              WHERE m.user_id=u.user_id AND m.branch_id={branch} AND m.granted_at<={now} AND m.revoked_at IS NULL
+                AND d.department_code='HK' AND d.is_active=1 AND b.is_active=1)
+            """).AsNoTracking().Where(u=>u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
             &&u.UserBranchAccessUsers.Any(a=>a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now)
             &&db.UserRoles.Any(r=>r.UserId==u.UserId&&r.BranchId==branch&&r.IsActive&&r.Role.IsActive&&r.Role.RoleCode=="HK_STAFF"
                 &&r.AssignedAt<=now&&(r.ExpiresAt==null||r.ExpiresAt>now)));
