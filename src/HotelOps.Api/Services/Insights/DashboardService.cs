@@ -12,6 +12,12 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         var now = clock.GetUtcNow();
         var filters = await access.FiltersAsync("DASHBOARD_VIEW", query, now, ct);
+        // A department has one real branch. Echo the effective intersection so
+        // drill-down does not request that department from unrelated branches.
+        if (filters.DepartmentId is { } selectedDepartment)
+            filters = filters with { BranchIds = await db.Departments.AsNoTracking()
+                .Where(d => d.DepartmentId == selectedDepartment && filters.BranchIds.Contains(d.BranchId))
+                .Select(d => d.BranchId).ToArrayAsync(ct) };
         var branches = filters.BranchIds;
         var department = filters.DepartmentId;
         var start = InsightAccess.Start(filters);

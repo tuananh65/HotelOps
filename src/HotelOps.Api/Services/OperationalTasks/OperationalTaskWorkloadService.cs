@@ -52,7 +52,7 @@ public sealed partial class RoomTypeCreationService
             if (!await TaskPlanningStore.InstalledAsync(db, token) || !await TaskVerificationStore.InstalledAsync(db, token))
                 return new(RoomTypeBatchStatus.SchemaRequired);
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
-            var period = WorkTimePeriod.Create(query.From, query.To, now, query.Calendar);
+            var period = WorkTimePeriod.ForWorkload(query.From, query.To, now, query.Calendar);
             var deadline = query.DeadlineFrom != null || query.DeadlineTo != null
                 ? WorkTimePeriod.Create(query.DeadlineFrom ?? query.DeadlineTo, query.DeadlineTo ?? query.DeadlineFrom, now, query.Calendar)
                 : (WorkTimePeriod?)null;

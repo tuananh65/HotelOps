@@ -1,0 +1,23 @@
+[
+    {
+        "records":  99,
+        "trial":  1,
+        "failure":  "InvalidOperationException: Sequence contains more than one element.",
+        "success":  false,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  131,
+        "trial":  2,
+        "failure":  null,
+        "success":  true,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+        "records":  133,
+        "trial":  3,
+        "failure":  null,
+        "success":  true,
+        "cleanup":  "DROPPED_AND_BACKUP_REMOVED"
+    }
+]

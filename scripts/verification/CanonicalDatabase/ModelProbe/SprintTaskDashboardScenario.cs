@@ -132,6 +132,13 @@ internal static class SprintTaskDashboardScenario
             "default hotel-day Workload remains unchanged and includes full crossing interval");
         Check((await send(HttpMethod.Get, workloadPath + "&calendar=CLIENT", null, null, true)).Status == 400,
             "unsupported workload calendar rejected");
+        var longWorkloadPath = workloadPath.Replace($"from={now.AddDays(-1):yyyy-MM-dd}", $"from={now.AddDays(-500):yyyy-MM-dd}");
+        var longWorkload = await send(HttpMethod.Get, longWorkloadPath + "&calendar=UTC", null, null, true);
+        Check(longWorkload.Status == 200 && longWorkload.Body.GetProperty("from").GetString() == now.AddDays(-500).ToString("yyyy-MM-dd")
+            && longWorkload.Body.GetProperty("items").EnumerateArray().Single(r => r.GetProperty("userId").GetInt64() == actor).GetProperty("closedEffortSeconds").GetInt64() == 3000,
+            "500-day UTC employee workload retains full historical closed effort without truncation");
+        Check((await send(HttpMethod.Get, longWorkloadPath, null, null, true)).Status == 400,
+            "default hotel-calendar workload still enforces its existing period guard");
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("frontend/scripts/sprintTaskDashboardBrowser.mjs");

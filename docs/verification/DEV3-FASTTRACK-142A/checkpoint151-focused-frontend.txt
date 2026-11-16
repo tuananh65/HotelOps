@@ -1,0 +1,25 @@
+✔ dashboard workload navigation retains exact scope and explicit UTC period (1.8594ms)
+✔ navigation never chooses an arbitrary branch or accepts invalid periods (0.2274ms)
+✔ multi-branch navigation preserves every branch and the exact long UTC period (0.4187ms)
+✔ malformed deep links cannot auto-load different filters (0.1761ms)
+✔ task read scopes URL and preserves credentials, cancellation and no-store (18.682ms)
+✔ foreign branch data is rejected (0.6609ms)
+✔ wrong detail identity is rejected (0.3241ms)
+✔ unsafe IDs cause no network request (0.1855ms)
+✔ 401 is a typed session failure (0.2369ms)
+✔ invalid progress history cannot render (0.3684ms)
+✔ dashboard task population includes unassigned tasks and rejects mismatched scope/state (16.1061ms)
+✔ explicit UTC calendar is sent and must be confirmed by the response (0.7379ms)
+✔ workload preserves filters, identity and read-only request safety (0.3964ms)
+✔ invalid periods, physical states and identities never issue a request (0.2937ms)
+✔ foreign or inconsistent workload aggregates fail closed (1.1665ms)
+✔ employee intervals separate closed effort, provisional and unavailable shift time (0.6221ms)
+✔ forbidden and aborted reads are not retried (0.3ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 393.2668

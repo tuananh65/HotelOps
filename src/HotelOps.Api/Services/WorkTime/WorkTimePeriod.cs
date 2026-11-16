@@ -6,6 +6,19 @@ namespace HotelOps.Api.Services.WorkTime;
 // for provisional time, and never mix workday duration into task effort.
 internal readonly record struct WorkTimePeriod(DateOnly From, DateOnly To, DateTime Start, DateTime End)
 {
+    // Dashboard UTC ranges do not have the interactive workday editor's one-year
+    // limit. Workload reads remain SQL-paginated; other callers keep Create guards.
+    internal static WorkTimePeriod ForWorkload(DateOnly? from, DateOnly? to, DateTime now, string calendar)
+    {
+        if (calendar != "UTC") return Create(from, to, now, calendar);
+        var first = from ?? DateOnly.FromDateTime(now);
+        var last = to ?? first;
+        if (last < first || last == DateOnly.MaxValue)
+            throw new ValidationException("Select an ordered UTC period ending before 9999-12-31.");
+        return new(first, last, first.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+            last.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+    }
+
     internal static WorkTimePeriod Create(DateOnly? from, DateOnly? to, DateTime now, string calendar = "Asia/Ho_Chi_Minh")
     {
         if (calendar is not ("UTC" or "Asia/Ho_Chi_Minh"))

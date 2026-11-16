@@ -16,6 +16,7 @@ const sources: Record<string, string> = {
   "rooms.operational_status": "Recorded room status",
   "cleaning_tasks.status": "Cleaning tasks",
   "operational_tasks.status/priority_id": "Operational tasks / priority",
+  "operational_tasks.workflow_status/priority_id": "Task workflow / priority",
   "incidents.status/severity_id": "Open incidents / severity",
   "maintenance_works.status": "Maintenance work",
   "low_stock.warehouse_id": "Low stock by warehouse",

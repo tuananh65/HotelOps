@@ -12,7 +12,7 @@ import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import { TaskReopenPanel } from "./TaskReopenPanel";
 import { TaskWorkloadPanel } from "./TaskWorkloadPanel";
-import { dashboardWorkloadFilters } from "../insights/dashboardWorkloadLink";
+import { dashboardWorkloadBranches, dashboardWorkloadFilters } from "../insights/dashboardWorkloadLink";
 import {
   readTasks,
   taskWorkflowStates,
@@ -57,7 +57,9 @@ export function TaskReadPage() {
     error?: string;
   } | null>(null);
   const key = JSON.stringify(query);
+  const workloadBranches = dashboardWorkloadBranches(params);
   useEffect(() => {
+    if (params.has("workloadBranches")) { setQuery(null); return; }
     const sourceBranch = Number(params.get("branchId"));
     const sourceTask = params.has("taskId")
       ? Number(params.get("taskId"))
@@ -120,6 +122,19 @@ export function TaskReadPage() {
     return (
       <p role="status">Task data is hidden while your session is checked.</p>
     );
+  if (params.has("workloadBranches")) return (
+    <main aria-label="Dashboard workload across branches">
+      <h1>Dashboard workload</h1>
+      <Link to="/dashboard">Back to dashboard</Link>
+      {!workloadBranches ? <p role="alert">Invalid workload scope. Return to the dashboard and select the filters again.</p> : <>
+        <p>Branches: {workloadBranches.join(", ")}. Each branch shows its own current snapshot and pagination. Access is checked again for every branch.</p>
+        {workloadBranches.map(id => <section key={`${owner}:${id}:${params.toString()}`} aria-label={`Workload branch ${id}`}>
+          <h2>Branch {id}</h2>
+          <TaskWorkloadPanel branch={id} owner={owner} initialFilters={dashboardWorkloadFilters(params)} />
+        </section>)}
+      </>}
+    </main>
+  );
   return (
     <main>
       <h1>Operational tasks</h1>

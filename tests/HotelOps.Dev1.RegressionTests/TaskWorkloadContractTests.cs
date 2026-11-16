@@ -19,6 +19,19 @@ public sealed class TaskWorkloadContractTests
     }
     private static readonly DateTime Now = new(2026, 11, 15, 18, 0, 0, DateTimeKind.Utc);
     [Fact]
+    public void Dashboard_utc_workload_preserves_full_period_without_relaxing_workday_editor_bounds()
+    {
+        var from = new DateOnly(2020, 1, 1);
+        var to = new DateOnly(2026, 11, 16);
+        var period = WorkTimePeriod.ForWorkload(from, to, Now, "UTC");
+        Assert.Equal(from, period.From);
+        Assert.Equal(to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), period.End);
+        Assert.Throws<ValidationException>(() => WorkTimePeriod.Create(from, to, Now, "UTC"));
+        Assert.Throws<ValidationException>(() => WorkTimePeriod.ForWorkload(from, to, Now, "Asia/Ho_Chi_Minh"));
+        Assert.Throws<ValidationException>(() => WorkTimePeriod.ForWorkload(to, from, Now, "UTC"));
+        Assert.Throws<ValidationException>(() => WorkTimePeriod.ForWorkload(from, DateOnly.MaxValue, Now, "UTC"));
+    }
+    [Fact]
     public void Explicit_utc_calendar_preserves_dashboard_boundaries_without_changing_hotel_default()
     {
         var utc = WorkTimePeriod.Create(null, null, Now, "UTC");

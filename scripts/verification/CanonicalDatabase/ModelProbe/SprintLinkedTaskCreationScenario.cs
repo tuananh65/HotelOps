@@ -221,5 +221,8 @@ internal static class SprintLinkedTaskCreationScenario
         Check(!endedView.GetProperty("canUpdate").GetBoolean(), "former handler has no current update action");
         Check((await Send(HttpMethod.Post, evidencePath, new { percent = 80, note = "Former handler" }, endedView.GetProperty("version").GetString())).Status == 403,
             "former handler public mutation denied despite retained request read access");
+        // Run the extra branch fixture after scenarios that deliberately require
+        // the original two-branch fixture; all sources remain for whole-clone cleanup.
+        await SprintDashboardScopeScenario.RunAsync(db, checks, ct, password);
     }
 }

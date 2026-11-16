@@ -72,7 +72,7 @@ export function TaskWorkloadPanel({
           setDenied(true);
         setError(
           error instanceof TaskProgressError && error.status === 400
-            ? "Check the reference IDs and dates. Use an ordered period of at most 366 days."
+            ? "Check the reference IDs and dates. Use an ordered period; hotel-calendar queries allow at most 366 days."
             : "Workload is unavailable. Reload after checking your filters and access.",
         );
       })

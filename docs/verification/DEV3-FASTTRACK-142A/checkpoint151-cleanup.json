@@ -1,0 +1,22 @@
+{
+    "instance":  "meita",
+    "sharedDatabaseMutation":  false,
+    "httpsListeners":  0,
+    "clones":  [
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint151-trial1-clone.json.cleanup.json",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint151-trial2-clone.json.cleanup.json",
+                       "databaseAbsent":  true
+                   },
+                   {
+                       "backupAbsent":  true,
+                       "trial":  "checkpoint151-trial3-clone.json.cleanup.json",
+                       "databaseAbsent":  true
+                   }
+               ]
+}
