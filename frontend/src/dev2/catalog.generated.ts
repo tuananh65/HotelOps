@@ -819,6 +819,11 @@ export const operations: Operation[] = [
         type: "long?",
         optional: true,
       },
+      { name: "areaId", type: "long?", optional: true },
+      { name: "assetId", type: "long?", optional: true },
+      { name: "keyword", type: "string?", optional: true },
+      { name: "detectedFrom", type: "DateTimeOffset?", optional: true },
+      { name: "detectedTo", type: "DateTimeOffset?", optional: true },
       {
         name: "page",
         type: "int",

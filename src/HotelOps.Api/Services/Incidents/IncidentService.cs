@@ -385,6 +385,30 @@ public sealed class IncidentService : IIncidentService
             query = query.Where(incident => incident.SeverityId == severityId);
         if (request.RoomId is long roomId)
             query = query.Where(incident => incident.RoomId == roomId);
+        if (request.BranchId is <= 0 || request.RoomId is <= 0 || request.AreaId is <= 0
+            || request.AssetId is <= 0 || request.PriorityId is <= 0 || request.SeverityId is <= 0)
+            throw new ValidationException("Filter identifiers must be positive when supplied.");
+        if (request.AreaId is long areaId)
+            query = query.Where(incident => incident.AreaId == areaId);
+        if (request.AssetId is long assetId)
+            query = query.Where(incident => incident.AssetId == assetId);
+        if (request.DetectedFrom is {} from && request.DetectedTo is {} to && from > to)
+            throw new ValidationException("DetectedFrom must not be later than DetectedTo.");
+        if (request.DetectedFrom is {} detectedFrom)
+        {
+            var fromUtc = detectedFrom.UtcDateTime;
+            query = query.Where(incident => incident.DiscoveredAt >= fromUtc);
+        }
+        if (request.DetectedTo is {} detectedTo)
+        {
+            var toUtc = detectedTo.UtcDateTime;
+            query = query.Where(incident => incident.DiscoveredAt <= toUtc);
+        }
+        var keyword = request.Keyword?.Trim();
+        if (keyword is { Length: > 200 }) throw new ValidationException("Keyword must not exceed 200 characters.");
+        if (!string.IsNullOrEmpty(keyword))
+            query = query.Where(incident => incident.IncidentNo.Contains(keyword)
+                || incident.IncidentTitle.Contains(keyword) || incident.Description.Contains(keyword));
 
         if (request.CategoryId is <= 0) throw new ValidationException("CategoryId must be positive.");
         var categoryAvailable = db is not null && await IncidentCategoryStore.InstalledAsync(db, cancellationToken);

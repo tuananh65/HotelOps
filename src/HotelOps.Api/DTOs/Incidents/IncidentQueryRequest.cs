@@ -9,6 +9,11 @@ public sealed class IncidentQueryRequest
     public long? SeverityId { get; init; }
     public long? CategoryId { get; init; }
     public long? RoomId { get; init; }
+    public long? AreaId { get; init; }
+    public long? AssetId { get; init; }
+    public string? Keyword { get; init; }
+    public DateTimeOffset? DetectedFrom { get; init; }
+    public DateTimeOffset? DetectedTo { get; init; }
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;
 }

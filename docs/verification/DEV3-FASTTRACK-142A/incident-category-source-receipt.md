@@ -13,6 +13,9 @@ Implemented:
   A caller with creation permission alone cannot read this lookup without INCIDENT_VIEW.
 - List category filtering happens before pagination/counting and intersects the
   authorized query. Category display is enriched in one bounded query per page.
+- UC143 list also supports keyword over incident number/title/description, room/area/asset
+  and inclusive detected-time bounds normalized to UTC. Invalid IDs, reversed bounds
+  and keywords over 200 characters are rejected. Filters apply before count/pagination.
 - Active reference/group validation with locks inside the existing admitted command
   transaction; category binding and CREATE audit commit with the incident.
 - Detail enrichment after the scoped incident query succeeds; missing storage or
@@ -40,6 +43,8 @@ Remaining acceptance dependencies:
   enabling this storage. Do not apply the candidate to shared/production databases.
 - Priority SLA durations/configuration, processing-cycle deadline history and triage
   lifecycle are still required for UC052/RPT-03 SLA completion.
+- UC143 still needs approved current assignee/department sources, deadline sorting,
+  SLA/overdue evidence and full evidence/progress detail; search does not close this UC.
 - Human QA must cover inactive/wrong-group categories, rollback, cross-branch reports,
   historical uncategorized records, query translation and CSV output.
 
