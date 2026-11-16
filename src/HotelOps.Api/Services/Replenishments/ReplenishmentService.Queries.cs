@@ -134,7 +134,10 @@ public sealed partial class ReplenishmentService
     {
         var offset = Offset(p); await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct);
         var scoped = readableRequests.Where(r => p.BranchId == null || r.BranchId == p.BranchId);
-        var rows = (await MaterialCandidates(p.WarehouseId, p.ItemId, ct, scoped)).ToArray();
+        // Filter after calculating demand across the authorized population; a navigation
+        // hint must not change the physical-shortage calculation or grant read access.
+        var rows = (await MaterialCandidates(p.WarehouseId, p.ItemId, ct, scoped))
+            .Where(x => p.SourceRequestId == null || x.RequestId == p.SourceRequestId).ToArray();
         if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());
     }
 }

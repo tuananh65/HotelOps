@@ -122,12 +122,28 @@ internal sealed partial class MaterialApprovalNotificationDelivery
         var notice = notices.SingleOrDefault();
         if (notice == null)
         {
+            string? fulfillmentMessage = null;
+            if (type == NoticeType.Fulfillment)
+            {
+                // Batch quantities are historical; remaining quantities are explicitly
+                // labelled with delivery time, since subsequent issues may already exist.
+                var lines = await db.MaterialRequestLines.AsNoTracking()
+                    .Where(l => l.RequestId == current.RequestId && l.IsActive)
+                    .OrderBy(l => l.LineNo)
+                    .Select(l => new { l.LineNo, l.Item.ItemName, l.Uom.UomName, l.ApprovedQty, l.FulfilledQty,
+                        Issued = db.MaterialFulfillmentLines.Where(f => f.FulfillmentId == decisionId && f.RequestLineId == l.LineId)
+                            .Sum(f => (decimal?)f.IssuedQty) ?? 0m }).ToArrayAsync(ct);
+                fulfillmentMessage = "Material issue posted. Remaining quantities as of delivery (UTC "
+                    + now.ToString("O", System.Globalization.CultureInfo.InvariantCulture) + "): "
+                    + string.Join("; ", lines.Select(l => FormattableString.Invariant(
+                        $"Line {l.LineNo} {l.ItemName}: issued in this batch {l.Issued} {l.UomName}; remaining {(l.ApprovedQty.HasValue ? (l.ApprovedQty.Value - l.FulfilledQty).ToString(System.Globalization.CultureInfo.InvariantCulture) : "N/A")} {l.UomName}")));
+            }
             notice = new Notification { NotificationType = kind, SourceType = source, SourceId = decisionId,
                 Title = type == NoticeType.ReplenishmentReceipt ? "Replenishment receipt recorded"
                     : type == NoticeType.Fulfillment ? "Materials ready for pickup"
                     : type == NoticeType.Remainder ? "Material request remainder closed" : "Material request review updated",
                 Message = type == NoticeType.ReplenishmentReceipt ? "A posted warehouse receipt was linked to replenishment for your material request. Open your request to review its current fulfillment status. This notice does not reserve or issue stock."
-                    : type == NoticeType.Fulfillment ? "A material issue was posted for your request. Open the request to review this batch and the remaining quantities."
+                    : type == NoticeType.Fulfillment ? fulfillmentMessage!
                     : type == NoticeType.Remainder ? "The unissued remainder of your material request was closed. Open the request to review its history."
                     : "A review decision was recorded for your material request. Open it to see the decision and current status.",
                 Priority = "NORMAL", CreatedBy = current.ActorId, CreatedAt = current.At };

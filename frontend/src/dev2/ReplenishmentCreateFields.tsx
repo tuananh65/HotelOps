@@ -19,22 +19,23 @@ export function replenishmentCreateReady(v: Values): boolean {
 export function ReplenishmentCreateFields({ values, onChange }: { values: Values; onChange: (v: Values) => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
-  const [source, setSource] = useState("low-stock"), [page, setPage] = useState(1), [revision, setRevision] = useState(0);
+  const [source, setSource] = useState(values.shortageSource === "material-requests" ? "material-requests" : "low-stock"), [page, setPage] = useState(1), [revision, setRevision] = useState(0);
+  const sourceRequestId = positive(values.sourceRequestId) ? String(values.sourceRequestId) : "";
   const branch = String(values.branchId ?? ""), warehouse = String(values.warehouseId ?? "");
-  const key = `${branch}:${warehouse}:${source}:${page}:${revision}`;
+  const key = `${branch}:${warehouse}:${source}:${sourceRequestId}:${page}:${revision}`;
   const [loaded, setLoaded] = useState<{ owner: typeof owner; key: string; data?: Page }>();
   useEffect(() => {
     setLoaded(undefined);
     if (owner === null || !positive(branch) || !positive(warehouse)) return;
     const abort = new AbortController();
-    void http({ method: "GET", url: `/api/replenishment-shortages/${source}?branchId=${branch}&warehouseId=${warehouse}&page=${page}&pageSize=20`,
+    void http({ method: "GET", url: `/api/replenishment-shortages/${source}?branchId=${branch}&warehouseId=${warehouse}&page=${page}&pageSize=20${source === "material-requests" && sourceRequestId ? `&sourceRequestId=${encodeURIComponent(sourceRequestId)}` : ""}`,
       expectedStatus: 200, decode, signal: abort.signal }).then(result => {
       if (abort.signal.aborted) return;
       setLoaded({ owner, key, data: result.ok ? result.data : undefined });
       if (!result.ok && (result.error.kind === "stale" || result.error.kind === "http" && result.error.status === 401)) void actions.revalidate();
     });
     return () => abort.abort();
-  }, [owner, branch, warehouse, source, page, key, actions]);
+  }, [owner, branch, warehouse, source, sourceRequestId, page, key, actions]);
   const current = loaded?.owner === owner && loaded.key === key ? loaded : undefined;
   const lines = Array.isArray(values.lines) ? values.lines.filter(isObject) : [];
   function reset(next: Values) { onChange({ ...next, lines: [], shortageScope: "" }); setPage(1); }
@@ -60,6 +61,8 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
       <option value="low-stock">Below minimum stock</option><option value="material-requests">Approved material requests</option>
     </select></label>
     <p>Material demand includes only requests you can currently read. Quantities use base units; these figures do not reserve stock.</p>
+    {source === "material-requests" && sourceRequestId && <p>Showing authorized shortages for request {sourceRequestId}.
+      <button type="button" onClick={() => reset({ ...values, sourceRequestId: "" })}>Show all visible requests</button></p>}
     <button type="button" onClick={() => { reset(values); setRevision(r => r + 1); }}>Refresh shortages and clear selection</button>
     {!current?.data && <p role="status">{current ? "Shortages unavailable. Check your current grants and warehouse scope." : "Enter branch and warehouse to load authorized shortages."}</p>}
     {current?.data?.items.length === 0 && <p>No visible shortages.</p>}

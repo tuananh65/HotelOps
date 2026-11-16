@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { createHttpClient, isObject } from "../auth/http";
 import { useAuth } from "../auth/AuthProvider";
 import type { Values } from "./contracts";
@@ -61,6 +62,7 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
       {available?.sharedItemStock === true && <p>Stock is shared with other lines of this material. Combined quantities are checked when posting.</p>}
       {available?.fulfillableQty != null && maximum < Number(line.openFulfillableQty)
         && <p><strong>Insufficient stock for the full remainder.</strong> Choose Partial or request replenishment.
+          {record.branchId != null && record.sourceWarehouseId != null && <Link to={`/operations/replenishments?action=A004A-056&branchId=${encodeURIComponent(String(record.branchId))}&warehouseId=${encodeURIComponent(String(record.sourceWarehouseId))}&shortageSource=material-requests&sourceRequestId=${encodeURIComponent(String(record.requestId))}`}>Create replenishment for this request</Link>}
           {values.mode === "FullRemaining" && <button type="button" onClick={() => onChange({ ...values, mode: "Partial", lines: [] })}>Enter partial quantities</button>}</p>}
       {values.mode === "Partial" && <label>Quantity to issue (zero skips this line)
         <input type="number" min="0" max={maximum} step="0.001" required

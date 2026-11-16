@@ -17,6 +17,7 @@ public sealed class ReplenishmentPage
     public long? BranchId { get; set; }
     public long? WarehouseId { get; set; }
     public long? ItemId { get; set; }
+    public long? SourceRequestId { get; set; }
     public string? Status { get; set; }
     public string? SourceType { get; set; }
     public string? Supplier { get; set; }

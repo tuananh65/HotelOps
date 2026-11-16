@@ -39,6 +39,8 @@ function key(session: object) {
   return identities.get(session);
 }
 function operationDefaults(operation: Operation, source: Values = {}): Values {
+  if (operation.id === "A004A-056") return { ...defaults(operation.fields, source), branchId: source.branchId,
+    sourceRequestId: source.sourceRequestId, shortageSource: source.shortageSource };
   if (operation.id === "A004A-051") return defaults(operation.fields, { ...source, mode: "FullRemaining", lines: [] });
   if (operation.id === "A004A-044" && Array.isArray(source.lines))
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true) });
@@ -117,6 +119,8 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     "requesterId",
     "internalRequestId",
     "sourceVersion",
+    "sourceRequestId",
+    "shortageSource",
   ])
     if (query.has(name)) context[name] = query.get(name)!;
   return (
@@ -621,6 +625,10 @@ function Screen({
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
+      {module === "material-requests" && record.rawStatus === "PARTIALLY_ISSUED" && record.branchId != null
+        && record.sourceWarehouseId != null && (!enabledModules || enabledModules.includes("replenishments"))
+        && (!enabledActions || enabledActions.includes("A004A-056"))
+        && <Link to={`/operations/replenishments?action=A004A-056&branchId=${encodeURIComponent(String(record.branchId))}&warehouseId=${encodeURIComponent(String(record.sourceWarehouseId))}&shortageSource=material-requests&sourceRequestId=${encodeURIComponent(String(record.requestId))}`}>Check shortage and create replenishment for the remainder</Link>}
       {module === "replenishments" && operation.id === "A004A-053" && record.replenishmentId != null
         && <ReplenishmentWaitingRequests record={record} />}
       {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-057")
