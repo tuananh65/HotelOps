@@ -82,15 +82,15 @@ export function InternalRequestHistoryPage() {
   const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
   const [completionNotice, setCompletionNotice] = useState<number | null>(null);
   const [escalationNotice, setEscalationNotice] = useState<number | null>(null);
-  const [workNotice, setWorkNotice] = useState<{ id: number; message: string } | null>(null);
+  const [workNotice, setWorkNotice] = useState<{ owner: typeof owner; id: number; message: string; receiptId?: number } | null>(null);
   useEffect(() => setWorkNotice(null), [selected, owner]);
   useEffect(() => setEscalationNotice(null), [selected, owner]);
   useEffect(() => setCompletionNotice(null), [selected, owner]);
   const [eventPage, setEventPage] = useState(1);
   const [assignmentPage, setAssignmentPage] = useState(1);
   const [revision, setRevision] = useState(0);
-  function refreshWork(id: number, message: string) {
-    setWorkNotice({ id, message });
+  function refreshWork(id: number, message: string, receiptId?: number) {
+    setWorkNotice({ owner, id, message, receiptId });
     setRevision(v => v + 1);
   }
   const query = new URLSearchParams({
@@ -277,6 +277,9 @@ export function InternalRequestHistoryPage() {
         <button onClick={() => setSelected(null)}>Back to requests</button>
       )}
       {!visible && <p role="status">Loading history…</p>}
+      {workNotice?.owner === owner && workNotice.id === selected && <p role="status">{workNotice.message}{" "}
+        {workNotice.receiptId && <Link to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}>Open my handover receipt</Link>}
+      </p>}
       {visible?.error && <p role="alert">{visible.error}{" "}
         <button onClick={() => setRevision(value => value + 1)}>Reload history</button>
       </p>}
@@ -348,7 +351,6 @@ export function InternalRequestHistoryPage() {
       {visible?.timeline && (
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
-          {workNotice?.id === visible.timeline.requestId && <p role="status">{workNotice.message}</p>}
           {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
@@ -357,7 +359,7 @@ export function InternalRequestHistoryPage() {
             onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Progress saved. Request remains In Progress.")} />
           {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Request escalated.</p>}
           <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={handoverState => refreshWork(visible.timeline!.requestId, `MSG08: Handover ${handoverState}.`)} />
+          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={(handoverState, receiptId) => refreshWork(visible.timeline!.requestId, `MSG08: Handover ${handoverState}.`, receiptId)} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Task linked.")} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Cleaning task linked.")} />
           <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Incident linked.")} />
