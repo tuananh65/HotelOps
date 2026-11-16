@@ -25,6 +25,7 @@ import { MaterialAvailabilityView } from "./MaterialAvailabilityView";
 import { MaterialHistoryView } from "./MaterialHistoryView";
 import { ReplenishmentCloseFields, replenishmentCanClose } from "./ReplenishmentCloseFields";
 import { ReplenishmentReceiptFields } from "./ReplenishmentReceiptFields";
+import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
 import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
 
 const identities = new WeakMap<object, number>();
@@ -205,6 +206,11 @@ function Screen({
     if (submitting.current) return;
     let commandInput = input;
     try {
+      if (target.id === "A004A-059") {
+        if (!replenishmentPostReady(record, input) || String(args.id) !== String(record.replenishmentId))
+          throw Error("Load an eligible Draft receipt, verify every line and confirm posting.");
+        commandInput = { ...input, expectedRowVersion: record.rowVersion };
+      }
       if (target.id === "A004A-056" && !replenishmentCreateReady(input))
         throw Error("Select authorized shortages and enter positive base quantities before creating a replenishment.");
       if (target.id === "A004A-058") {
@@ -523,7 +529,7 @@ function Screen({
         <fieldset disabled={busy}>
           <legend>{operation.name}</legend>
           <Fields
-            fields={materialRequesterActions.includes(operation.id) || ["A004A-051", "A004A-057", "A004A-058"].includes(operation.id) ? [] : routeFields}
+            fields={materialRequesterActions.includes(operation.id) || ["A004A-051", "A004A-057", "A004A-058", "A004A-059"].includes(operation.id) ? [] : routeFields}
             values={parameters}
             actor={actor}
             onChange={(v) => {
@@ -543,7 +549,7 @@ function Screen({
             onChange={branchId => change({ ...values, branchId, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "",
               receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
-            fields={materialApprovalActions.includes(operation.id) || materialSubmit || ["A004A-049", "A004A-056", "A004A-057", "A004A-058"].includes(operation.id) ? []
+            fields={materialApprovalActions.includes(operation.id) || materialSubmit || ["A004A-049", "A004A-056", "A004A-057", "A004A-058", "A004A-059"].includes(operation.id) ? []
               : operation.id === "A004A-051" ? operation.fields.filter(f => ["mode", "documentDate"].includes(f.name))
               : materialWrite ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && needsApproval ? { ...f, optional: false } : f)
@@ -577,7 +583,9 @@ function Screen({
           {operation.id === "A004A-057" && <ReplenishmentCloseFields record={record} values={values} onChange={change} />}
           {operation.id === "A004A-056" && <ReplenishmentCreateFields values={values} onChange={change} />}
           {operation.id === "A004A-058" && <ReplenishmentReceiptFields record={record} values={values} onChange={change} />}
+          {operation.id === "A004A-059" && <ReplenishmentPostFields record={record} values={values} onChange={change} />}
           <button type="submit" disabled={busy || denied || uncertain
+            || operation.id === "A004A-059" && (!replenishmentPostReady(record, values) || String(parameters.id) !== String(record.replenishmentId))
             || operation.id === "A004A-056" && !replenishmentCreateReady(values)
             || operation.id === "A004A-058" && (!replenishmentCanClose(record) || !Array.isArray(values.lines)
               || !values.lines.length || values.receiptSelectionVersion !== record.rowVersion)
@@ -610,6 +618,8 @@ function Screen({
         && replenishmentCanClose(record) && <Link to={`/operations/replenishments/${encodeURIComponent(String(record.replenishmentId))}?action=A004A-057`}>Close unreceived remainder</Link>}
       {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-058")
         && replenishmentCanClose(record) && <Link to={`/operations/replenishments/${encodeURIComponent(String(record.replenishmentId))}?action=A004A-058`}>Link posted receipts</Link>}
+      {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-059")
+        && replenishmentCanClose(record) && <Link to={`/operations/replenishments/${encodeURIComponent(String(record.replenishmentId))}?action=A004A-059`}>Verify and post Draft receipt</Link>}
       {["A004A-040", "A004A-041", "A004A-042"].includes(operation.id) && recordId && <Link to={`/operations/material-requests/${encodeURIComponent(recordId)}`}>Return to material request</Link>}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.fulfillments) && (
         <section aria-label="Material issue receipts"><p>Issue receipts</p>

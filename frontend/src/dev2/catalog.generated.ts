@@ -2176,7 +2176,7 @@ export const operations: Operation[] = [
     name: "Post",
     method: "POST",
     route: "/api/replenishments/{id:long}/receipts/post",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_RECEIVE", "STOCK_RECEIPT_POST"],
+    permissions: ["REPLENISHMENT_RECEIVE", "REPLENISHMENT_VIEW", "INVENTORY_VIEW", "STOCK_RECEIPT_POST"],
     authorityKind: "replenishment",
     expectedStatus: 200,
     dto: "ReplenishmentPost",

@@ -17,9 +17,10 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 
 internal static class ReplenishmentReadContract
 {
-    private const string Policy = "UC101 HTTPS current unrestricted SQL session; active STOREKEEPER or OPERATIONS_MANAGER; independent REPLENISHMENT_VIEW on actual warehouse branch; explicit branch-scoped list/count before pagination; descendant provenance and independent MR_VIEW for linked material detail; Serializable disclosure; receipt candidates require STOREKEEPER plus REPLENISHMENT_RECEIVE and INVENTORY_VIEW, posted movement evidence and no previous credit; shortage selection requires STOREKEEPER plus CREATE and INVENTORY_VIEW; independent current MR_VIEW filters request demand before aggregation/count/paging; no raw audit";
+    private const string Policy = "UC101 HTTPS current unrestricted SQL session; active STOREKEEPER or OPERATIONS_MANAGER; independent REPLENISHMENT_VIEW on actual warehouse branch; explicit branch-scoped list/count before pagination; descendant provenance and independent MR_VIEW for linked material detail; Serializable disclosure; receipt candidates require STOREKEEPER plus REPLENISHMENT_RECEIVE and INVENTORY_VIEW, posted movement evidence and no previous credit; shortage selection requires STOREKEEPER plus CREATE and INVENTORY_VIEW; independent current MR_VIEW filters request demand before aggregation/count/paging; Draft receipt selection additionally requires STOCK_RECEIPT_POST and same-warehouse full-line disclosure; no raw audit";
     private static bool Shortage(Dev2BoundAction a) => a.Identity.ActionName is "Low" or "Material";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-052", "A004A-053", "A004A-055", "A004A-060", "A004A-061", "REPLENISHMENT-RECEIPT-CANDIDATES" }.Select(id => new Dev2ActionContract(
+    private static bool ReceiptSelection(Dev2BoundAction a) => a.Identity.ActionName is "ReceiptCandidates" or "DraftReceipts";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-052", "A004A-053", "A004A-055", "A004A-060", "A004A-061", "REPLENISHMENT-RECEIPT-CANDIDATES", "REPLENISHMENT-DRAFT-RECEIPTS" }.Select(id => new Dev2ActionContract(
         id, "DEV3_142A_REPLENISHMENT_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
         async (a, ct) => {
             var branch=await Branch(a,ct);
@@ -28,9 +29,10 @@ internal static class ReplenishmentReadContract
                 grants.Add(new("REPLENISHMENT_CREATE",new(Dev2PermissionTargetKind.Branch,branch)));
                 grants.Add(new("INVENTORY_VIEW",new(Dev2PermissionTargetKind.Branch,branch)));
             }
-            if(a.Identity.ActionName=="ReceiptCandidates") {
+            if(ReceiptSelection(a)) {
                 grants.Add(new("REPLENISHMENT_RECEIVE",new(Dev2PermissionTargetKind.Branch,branch)));
                 grants.Add(new("INVENTORY_VIEW",new(Dev2PermissionTargetKind.Branch,branch)));
+                if(a.Identity.ActionName=="DraftReceipts") grants.Add(new("STOCK_RECEIPT_POST",new(Dev2PermissionTargetKind.Branch,branch)));
             }
             return grants;
         },
@@ -49,6 +51,7 @@ internal static class ReplenishmentReadContract
                 || a.Identity.DecisionId == "A004A-060" && a.Identity.ActionName == "Low"
                 || a.Identity.DecisionId == "A004A-061" && a.Identity.ActionName == "Material"
                 || a.Identity.DecisionId == "REPLENISHMENT-RECEIPT-CANDIDATES" && a.Identity.ActionName == "ReceiptCandidates"
+                || a.Identity.DecisionId == "REPLENISHMENT-DRAFT-RECEIPTS" && a.Identity.ActionName == "DraftReceipts"
                 || a.Identity.DecisionId == "A004A-053" && a.Identity.ActionName == "Get" || a.Identity.DecisionId == "A004A-055" && a.Identity.ActionName == "Receipts")) return false;
         var db=Db(a);
         if (phase==Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction==null) return false;
@@ -62,7 +65,7 @@ internal static class ReplenishmentReadContract
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var branch=await Branch(a,ct);
         if (!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==a.Actor.UserId && r.IsActive && r.Role.IsActive
-            && (r.Role.RoleCode=="STOREKEEPER" || !Shortage(a) && a.Identity.ActionName!="ReceiptCandidates" && r.Role.RoleCode=="OPERATIONS_MANAGER")
+            && (r.Role.RoleCode=="STOREKEEPER" || !Shortage(a) && !ReceiptSelection(a) && r.Role.RoleCode=="OPERATIONS_MANAGER")
             && (r.BranchId==null || r.BranchId==branch) && r.AssignedAt<=now && (r.ExpiresAt==null || r.ExpiresAt>now)
             && db.UserBranchAccesses.Any(b=>b.UserId==a.Actor.UserId && b.BranchId==branch && b.Branch.IsActive && b.GrantedAt<=now && b.RevokedAt==null),ct)) return false;
         if(a.Identity.ActionName=="Material") {
@@ -92,6 +95,8 @@ internal static class ReplenishmentReadContract
         try
         {
             var service=a.Http.RequestServices.GetRequiredService<ReplenishmentService>();
+            if(a.Identity.ActionName=="DraftReceipts")
+                return new OkObjectResult(await service.DraftReceipts(Id(a),a.Arguments.GetValueOrDefault("after") is long cursor ? cursor : 0,ct));
             if(a.Identity.ActionName=="Low") return new OkObjectResult(await service.LowStock(Page(a),ct));
             if(a.Identity.ActionName=="Material") {
                 var db=Db(a);
