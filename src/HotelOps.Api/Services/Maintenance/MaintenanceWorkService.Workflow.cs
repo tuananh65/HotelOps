@@ -91,6 +91,8 @@ public sealed partial class MaintenanceWorkService
         {
             RequireState(work, "PENDING");
             RequireAssignee(work, TrustedActorId);
+            if (work.ActualStartAt != null)
+                throw new ValidationException("Existing start evidence must be reconciled before starting pending work.");
             work.Status = "IN_PROGRESS";
             work.ActualStartAt = now;
             incident.Status = "IN_PROGRESS";

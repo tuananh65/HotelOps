@@ -13,7 +13,7 @@ const time = (v: unknown) => {
   return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
 };
 
-export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canHold = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canHold?: boolean }) {
+export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
     return <section aria-label="Maintenance work results">
@@ -30,7 +30,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
-    {(canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowResume={canResume} allowHold={canHold} />}
+    {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
     <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
       <dt>Source</dt><dd>{show(data.source)}</dd><dt>Location / asset</dt><dd>{target(data)}</dd>

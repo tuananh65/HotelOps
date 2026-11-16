@@ -16,8 +16,8 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 
 internal static class MaintenanceResumeContract
 {
-    private const string Policy = "UC055 Hold/Resume: HTTPS current unrestricted SQL session, active assigned MAINTENANCE_STAFF, same-role MAINTENANCE_EXECUTE plus independent MAINTENANCE_VIEW, current branch and corrective source scope; exact request/root binding; trusted rowversion If-Match under source locks; Serializable transaction; Working workday and single interval; no material disclosure or other action admission";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-027", "A004A-028" }.Select(id => new Dev2ActionContract(id, "DEV3_142A_MAINTENANCE_HOLD_RESUME_V2",
+    private const string Policy = "UC054/055 Start/Hold/Resume: HTTPS current unrestricted SQL session, active assigned MAINTENANCE_STAFF, same-role MAINTENANCE_EXECUTE plus independent MAINTENANCE_VIEW, current branch and corrective source scope; exact request/root binding; trusted rowversion If-Match under source locks; Serializable transaction; Working workday and single interval; no material disclosure or other action admission";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-026", "A004A-027", "A004A-028" }.Select(id => new Dev2ActionContract(id, "DEV3_142A_MAINTENANCE_EXECUTION_V3",
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
         (a, ct) => Task.FromResult<IReadOnlyList<Dev2PermissionRequirement>>([
             new("MAINTENANCE_EXECUTE", new(Dev2PermissionTargetKind.Resource, Resource: new("maintenance_work", Id(a)))),
@@ -38,10 +38,11 @@ internal static class MaintenanceResumeContract
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
     private static string Action(Dev2BoundAction a) => a.Identity.DecisionId switch
-    { "A004A-027" => "HoldWork", "A004A-028" => "ResumeWork", _ => throw new Dev2AccessDenied(403) };
+    { "A004A-026" => "StartWork", "A004A-027" => "HoldWork", "A004A-028" => "ResumeWork", _ => throw new Dev2AccessDenied(403) };
     private static MaintenanceActorRequest Input(Dev2BoundAction a)
         => (a.Identity.DecisionId, a.Arguments.GetValueOrDefault("request")) switch
         {
+            ("A004A-026", StartMaintenanceWorkRequest input) => input,
             ("A004A-027", HoldMaintenanceWorkRequest input) => input,
             ("A004A-028", ResumeMaintenanceWorkRequest input) => input,
             _ => throw new Dev2AccessDenied(403)

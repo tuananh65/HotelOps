@@ -7,6 +7,22 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class MaintenanceExecutionAccessTests
 {
     [Fact]
+    public void Start_contract_requires_exact_request_and_does_not_admit_other_actions()
+    {
+        var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-026");
+        var request = new HotelOps.Api.DTOs.Maintenance.StartMaintenanceWorkRequest { ActorUserId = 10 };
+        var action = new HotelOps.Api.Services.Dev2Authorization.Dev2BoundAction(
+            new("A004A-026", typeof(HotelOps.Api.Controllers.MaintenanceWorksController), "StartWork", "POST", "api/maintenance-works/{id:long}/start"),
+            new Microsoft.AspNetCore.Http.DefaultHttpContext(), new(10, 20, false), new Dictionary<string, object?> { ["id"] = 1L, ["request"] = request });
+        Assert.True(contract.RequiresActionTransaction);
+        Assert.True(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "StartWork", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "ResumeWork", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "StartWork", 2, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "StartWork", 1,
+            new HotelOps.Api.DTOs.Maintenance.StartMaintenanceWorkRequest { ActorUserId = 10 })));
+    }
+
+    [Fact]
     public void Hold_contract_rejects_a_resume_body_and_wrong_source()
     {
         var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-027");

@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function MaintenanceResumePanel({ data, allowHold = false, allowResume = true }: { data: Values; allowHold?: boolean; allowResume?: boolean }) {
+export function MaintenanceResumePanel({ data, allowStart = false, allowHold = false, allowResume = true }: { data: Values; allowStart?: boolean; allowHold?: boolean; allowResume?: boolean }) {
   const { state } = useAuth();
   const session = state.session;
   const current = useRef(session); current.current = session;
@@ -15,10 +15,11 @@ export function MaintenanceResumePanel({ data, allowHold = false, allowResume = 
   useEffect(() => () => writer.current?.abort(), [session, data]);
   const id = data.maintenanceWorkId, tag = data.executionETag;
   const actor = Number(session?.user.id);
+  const start = allowStart && data.canStart === true && data.status === "PENDING";
   const hold = allowHold && data.canHold === true && data.status === "IN_PROGRESS";
   const resumeAllowed = allowResume && data.canResume === true && data.status === "ON_HOLD";
-  const action = hold ? "hold" : "resume", verb = hold ? "Hold" : "Resume";
-  if (!session || (!hold && !resumeAllowed) || typeof id !== "number"
+  const action = start ? "start" : hold ? "hold" : "resume", verb = start ? "Start" : hold ? "Hold" : "Resume";
+  if (!session || (!start && !hold && !resumeAllowed) || typeof id !== "number"
       || !Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(actor) || actor <= 0
       || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
   async function resume() {
@@ -43,7 +44,7 @@ export function MaintenanceResumePanel({ data, allowHold = false, allowResume = 
           || result.assigneeId !== actor || typeof result.executionETag !== "string"
           || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag)
         throw Error(`${verb} response could not be confirmed. Reload before any further action.`);
-      if (current.current === session && !abort.signal.aborted) setMessage(`Work ${hold ? "put on hold" : "resumed"}. Reload the work detail to view the current state.`);
+      if (current.current === session && !abort.signal.aborted) setMessage(`Work ${start ? "started" : hold ? "put on hold" : "resumed"}. Reload the work detail to view the current state.`);
     } catch (error) {
       if (current.current === session && !abort.signal.aborted) setMessage(error instanceof Error ? error.message : `${verb} not confirmed. Reload before retrying.`);
     } finally {
@@ -51,7 +52,7 @@ export function MaintenanceResumePanel({ data, allowHold = false, allowResume = 
     }
   }
   return <section aria-label={`${verb} maintenance`}>
-    <p>{hold ? "Hold stops the work interval. SLA time continues while work is on hold." : "Resume opens a new work interval. Start your workday first and stop any other running work."}</p>
+    <p>{start ? "Accept and Start opens a work interval. A Working workday and no other running work are required." : hold ? "Hold stops the work interval. SLA time continues while work is on hold." : "Resume opens a new work interval. Start your workday first and stop any other running work."}</p>
     {hold && <label>Hold reason and note<textarea value={reason} disabled={busy || review || attempted} onChange={e => setReason(e.target.value)} /></label>}
     {message && <p role="status">{message}</p>}
     {!review ? <button type="button" disabled={busy || attempted || (hold && reason.trim().length < 10)} onClick={() => setReview(true)}>{verb} maintenance</button>
