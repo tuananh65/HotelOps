@@ -65,7 +65,22 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
                 await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}").SingleAsync(ct);
             }
             var root = new MaterialReplenishment { WarehouseId = warehouse.WarehouseId, Warehouse = warehouse, RequestedBy = TrustedActorId, SupplierName = string.IsNullOrEmpty(supplier) ? null : supplier, ExpectedOn = input.ExpectedOn, Status = "REQUESTED", CreatedAt = DateTime.UtcNow };
-            foreach (var l in input.Lines) root.MaterialReplenishmentLines.Add(new() { LineNo = l.LineNo, WarehouseId = warehouse.WarehouseId, ItemId = l.ItemId, BaseUomId = await BaseUom(l.ItemId, ct), SourceType = l.SourceType, SourceThresholdId = l.SourceThresholdId, SourceMaterialRequestLineId = l.SourceMaterialRequestLineId, RequestedBaseQty = Quantity(l.RequestedBaseQty), IsOpenCoverage = true, Note = l.Note?.Trim() });
+            foreach (var l in input.Lines)
+            {
+                var baseUom = await BaseUom(l.ItemId, ct);
+                var requested = Quantity(l.RequestedBaseQty);
+                if (l.InputUomId.HasValue != l.InputQty.HasValue) throw Invalid("InputUomId and InputQty must be supplied together.");
+                if (l.InputUomId is long unit && l.InputQty is decimal amount)
+                {
+                    var converted = await quantities.ConvertToBase(l.ItemId, unit, amount, ct);
+                    if (converted.BaseUomId != baseUom || converted.BaseQty != requested)
+                        throw Invalid("Unit conversion changed or base quantity does not match. Reload shortages and confirm quantities.");
+                }
+                root.MaterialReplenishmentLines.Add(new() { LineNo = l.LineNo, WarehouseId = warehouse.WarehouseId,
+                    ItemId = l.ItemId, BaseUomId = baseUom, SourceType = l.SourceType, SourceThresholdId = l.SourceThresholdId,
+                    SourceMaterialRequestLineId = l.SourceMaterialRequestLineId, RequestedBaseQty = requested,
+                    IsOpenCoverage = true, Note = l.Note?.Trim() });
+            }
             await Claims(db, root.MaterialReplenishmentLines, ct);
             root.Warehouse = await Warehouse(warehouse.WarehouseId, true, ct);
             foreach (var l in root.MaterialReplenishmentLines.OrderBy(x => x.ItemId))
@@ -89,7 +104,8 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
             // Keep header/line Save boundaries observable by SQL fault-injection tests.
             var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
-            Audit(db, root, TrustedActorId, "REPLENISHMENT_CREATED", null);
+            Audit(db, root, TrustedActorId, "REPLENISHMENT_CREATED", null,
+                new { InputUnits = input.Lines.Select(l => new { l.LineNo, l.ItemId, l.InputUomId, l.InputQty, l.RequestedBaseQty }).ToArray() });
             await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return (await Get(root.ReplenishmentId, ct))!;
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }

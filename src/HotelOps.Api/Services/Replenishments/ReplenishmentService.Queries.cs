@@ -94,7 +94,7 @@ public sealed partial class ReplenishmentService
             var balance = await quantities.ObserveStock(t.WarehouseId, t.ItemId, ct); if (balance >= t.MinimumQty) continue;
             var coverage = await db.MaterialReplenishmentLines.AsNoTracking().Include(x => x.MaterialReplenishment).SingleOrDefaultAsync(x => x.WarehouseId == t.WarehouseId && x.ItemId == t.ItemId && x.IsOpenCoverage, ct);
             result.Add(new(t.WarehouseId, t.Warehouse.BranchId, t.ItemId, t.Item.BaseUomId, balance, t.MinimumQty, t.MinimumQty - balance, t.ThresholdId, coverage?.ReplenishmentId, coverage?.MaterialReplenishment.Status)
-            { ItemName = t.Item.ItemName, UnitName = t.Item.BaseUom.UomName });
+            { ItemName = t.Item.ItemName, UnitName = t.Item.BaseUom.UomName, Units = await InputUnits(t.ItemId, t.Item.BaseUomId, t.Item.BaseUom.UomName, ct) });
         }
         if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());
     }
@@ -121,13 +121,24 @@ public sealed partial class ReplenishmentService
             var stock = await quantities.ObserveStock(l.Request.SourceWarehouseId!.Value, l.ItemId, ct);
             var claim = await db.MaterialReplenishmentLines.Where(x => x.WarehouseId == l.Request.SourceWarehouseId && x.ItemId == l.ItemId && x.IsOpenCoverage).Select(x => (long?)x.ReplenishmentId).SingleOrDefaultAsync(ct);
             result.Add(new(l.RequestId, l.Request.RequestNo, l.LineId, l.Request.BranchId, l.Request.SourceWarehouseId.Value, l.ItemId, l.UomId, converted.BaseUomId, l.ApprovedQty.Value, l.FulfilledQty, remaining, converted.BaseQty, stock, 0, 0, claim)
-            { ItemName = l.Item.ItemName, UnitName = l.Item.BaseUom.UomName });
+            { ItemName = l.Item.ItemName, UnitName = l.Item.BaseUom.UomName, Units = await InputUnits(l.ItemId, l.Item.BaseUomId, l.Item.BaseUom.UomName, ct) });
         }
         // Physical context aggregates observable demand, not reservations or suggested order quantities.
         return result.GroupBy(x => (x.WarehouseId, x.ItemId)).SelectMany(g => g.Select(x => x with { AggregateApprovedDemandBaseQty = g.Sum(y => y.RemainingBaseQty), PhysicalShortageBaseQty = Math.Max(0, g.Sum(y => y.RemainingBaseQty) - x.CurrentOnHand) })).Where(x => x.PhysicalShortageBaseQty > 0).ToList();
     }
     public async Task<ReplenishmentPaged<MaterialRequestShortage>> MaterialShortages(ReplenishmentPage p, CancellationToken ct)
         => await MaterialShortagesScoped(p, db.MaterialRequests.AsNoTracking(), ct);
+
+    private async Task<IReadOnlyList<ReplenishmentUnit>> InputUnits(long item, long baseUom, string baseName, CancellationToken ct)
+    {
+        var units = await db.UomConversions.AsNoTracking()
+            .Where(c => c.ItemId == item && c.ToUomId == baseUom && c.FromUomId != baseUom
+                && c.IsActive && c.FromUom.IsActive && c.ToUom.IsActive && c.ConversionFactor > 0)
+            .OrderBy(c => c.FromUomId)
+            .Select(c => new ReplenishmentUnit(c.FromUomId, c.FromUom.UomName, c.ConversionFactor)).ToListAsync(ct);
+        units.Insert(0, new(baseUom, baseName, 1m));
+        return units;
+    }
 
     internal async Task<ReplenishmentPaged<MaterialRequestShortage>> MaterialShortagesScoped(ReplenishmentPage p,
         IQueryable<HotelOps.Api.Entities.MaterialRequest> readableRequests, CancellationToken ct)

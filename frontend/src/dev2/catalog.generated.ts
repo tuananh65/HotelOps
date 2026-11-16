@@ -2082,6 +2082,8 @@ export const operations: Operation[] = [
             type: "long?",
             optional: true,
           },
+          { name: "inputUomId", type: "long?", optional: true },
+          { name: "inputQty", type: "decimal?", optional: true },
           {
             name: "requestedBaseQty",
             type: "decimal",

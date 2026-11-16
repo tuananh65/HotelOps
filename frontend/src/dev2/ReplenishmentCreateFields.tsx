@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
 import type { Values } from "./contracts";
+import { replenishmentBaseQuantity } from "./replenishmentQuantity";
 
 const http = createHttpClient();
 type Page = { items: Values[]; total: number };
@@ -14,7 +15,8 @@ function decode(v: unknown): Page | undefined {
 export function replenishmentCreateReady(v: Values): boolean {
   return positive(v.branchId) && positive(v.warehouseId) && v.shortageScope === `${v.branchId}:${v.warehouseId}`
     && Array.isArray(v.lines) && v.lines.length > 0 && v.lines.every(l => isObject(l)
-      && positive(l.itemId) && Number.isFinite(Number(l.requestedBaseQty)) && Number(l.requestedBaseQty) > 0);
+      && positive(l.itemId) && positive(l.inputUomId)
+      && replenishmentBaseQuantity(l.inputQty, l.factorToBase) === l.requestedBaseQty && Number(l.requestedBaseQty) > 0);
 }
 export function ReplenishmentCreateFields({ values, onChange }: { values: Values; onChange: (v: Values) => void }) {
   const { state, actions } = useAuth();
@@ -50,6 +52,7 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
       sourceType: low ? "LOW_STOCK" : "MATERIAL_REQUEST_SHORTAGE", sourceThresholdId: low ? id : null,
       sourceMaterialRequestLineId: low ? null : id, requestedBaseQty: quantity, note: null,
       itemName: c.itemName, unitName: c.unitName,
+      units: c.units, inputUomId: c.baseUomId, inputQty: quantity, factorToBase: 1,
     }] });
   }
   return <section aria-label="Create replenishment from shortages">
@@ -77,11 +80,23 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
     </div>)}
     <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
     <button type="button" disabled={!current?.data || page * 20 >= current.data.total} onClick={() => setPage(p => p + 1)}>Next</button>
-    {lines.map(l => <label key={String(l.itemId)}>{String(l.itemName || `Item ${l.itemId}`)} requested quantity ({String(l.unitName || "base unit")})
-      <input type="number" required min="0.001" step="0.001" value={String(l.requestedBaseQty)} onChange={e => onChange({ ...values,
-        lines: lines.map(x => x.itemId === l.itemId ? { ...x, requestedBaseQty: e.target.value } : x) })} />
+    {lines.map(l => <div key={String(l.itemId)}>
+      <label>{String(l.itemName || `Item ${l.itemId}`)} unit
+        <select value={String(l.inputUomId)} onChange={e => {
+          const unit = (Array.isArray(l.units) ? l.units.filter(isObject) : []).find(u => String(u.uomId) === e.target.value);
+          if (!unit) return;
+          onChange({ ...values, lines: lines.map(x => x.itemId === l.itemId ? { ...x, inputUomId: unit.uomId,
+            factorToBase: unit.factorToBase, inputQty: "", requestedBaseQty: null } : x) });
+        }}>
+          {(Array.isArray(l.units) ? l.units.filter(isObject) : []).map(u => <option key={String(u.uomId)} value={String(u.uomId)}>{String(u.unitName)}</option>)}
+        </select>
+      </label>
+      <label>Requested quantity<input type="number" required min="0.001" step="0.001" value={String(l.inputQty)} onChange={e => onChange({ ...values,
+        lines: lines.map(x => x.itemId === l.itemId ? { ...x, inputQty: e.target.value,
+          requestedBaseQty: replenishmentBaseQuantity(e.target.value, x.factorToBase) } : x) })} /></label>
+      <p>{l.requestedBaseQty == null ? "Enter a positive quantity converting exactly to at most three decimal places in base units." : `Equivalent: ${l.requestedBaseQty} ${l.unitName}.`}</p>
       <button type="button" onClick={() => onChange({ ...values, lines: lines.filter(x => x.itemId !== l.itemId) })}>Remove</button>
-    </label>)}
+    </div>)}
     <p>The server rechecks shortage, source access and duplicate coverage atomically when creating the request.</p>
   </section>;
 }

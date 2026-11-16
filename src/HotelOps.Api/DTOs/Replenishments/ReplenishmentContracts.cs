@@ -3,7 +3,9 @@ using HotelOps.Api.DTOs.Inventory;
 namespace HotelOps.Api.DTOs.Replenishments;
 
 public sealed record ReplenishmentLineWrite(int LineNo, long ItemId, string SourceType, long? SourceThresholdId,
-    long? SourceMaterialRequestLineId, decimal RequestedBaseQty, string? Note = null);
+    long? SourceMaterialRequestLineId, decimal RequestedBaseQty, string? Note = null,
+    long? InputUomId = null, decimal? InputQty = null);
+public sealed record ReplenishmentUnit(long UomId, string UnitName, decimal FactorToBase);
 public sealed record ReplenishmentCreate(long ActorUserId, long WarehouseId, string? SupplierName, DateOnly? ExpectedOn, IReadOnlyList<ReplenishmentLineWrite> Lines);
 public sealed record ReplenishmentClose(long ActorUserId, string ExpectedRowVersion, string Reason);
 public sealed record ReplenishmentReceiptMapping(long StockDocumentLineId, long ReplenishmentLineId);
@@ -62,6 +64,7 @@ public sealed record ReplenishmentHistory(ReplenishmentDto Replenishment, IReadO
 public sealed record LowStockShortage(long WarehouseId, long BranchId, long ItemId, long BaseUomId, decimal OnHand,
     decimal MinimumQty, decimal DeficitToMinimum, long ThresholdId, long? ExistingActiveReplenishmentId, string? ExistingCoverageStatus)
 {
+    public IReadOnlyList<ReplenishmentUnit> Units { get; init; } = [];
     public string ItemName { get; init; } = "";
     public string UnitName { get; init; } = "";
 }
@@ -70,6 +73,7 @@ public sealed record MaterialRequestShortage(long RequestId, string RequestNo, l
     decimal RemainingBaseQty, decimal CurrentOnHand, decimal AggregateApprovedDemandBaseQty, decimal PhysicalShortageBaseQty,
     long? ExistingActiveReplenishmentId)
 {
+    public IReadOnlyList<ReplenishmentUnit> Units { get; init; } = [];
     public string ItemName { get; init; } = "";
     public string UnitName { get; init; } = "";
 }
