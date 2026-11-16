@@ -43,3 +43,11 @@ Detail exposes CanResume for this proven returned state; the canonical Resume pa
 Validation: backend build PASS (zero warnings/errors); frontend typecheck/build PASS with existing React Router use-client and bundle-size warnings; 20 focused execution/Return/read tests PASS; four mocked browser tests PASS (Hold, Resume, Start, returned-work Resume). Solution test exits zero without discovery. These tests do not execute the new Return-proof SQL, workday/interval transaction or concurrent restart, which remain NOT_RUN. UC059 remains PARTIAL pending Verify notifications, full reviewer UI/authorization and SQL/HTTPS acceptance.
 
 Files: MaintenanceReturnedExecution.cs (new), MaintenanceWorkService.Commands.cs, MaintenanceWorkService.Logs.cs, MaintenanceReadContract.cs, MaintenanceResumeContract.cs, MaintenanceResumePanel.tsx, maintenance-hold-resume-browser.test.mjs and this receipt.
+
+## Direct disposable SQL escalation evidence
+
+Ran IncidentEscalationRollbackProbe.sql against the revalidated Recovery_2b221f40 disposable (recovery GUID 5270D07C-7C27-477B-A60E-86485ADD7FAD). The probe owns an outer transaction, includes the guarded installer as a nested transaction, and creates only synthetic branch/user/Incident/event/escalation rows. No role/grant changes, no shared database access, no FK/CHECK/trigger disabling. Expected constraint errors are statement-scoped within the test; the outer transaction is always rolled back.
+
+Actual SQL result: PASS for duplicate Open rejection (unique index), foreign-Incident closure event rejection (composite FK), successful closure preserving opening event/time in OUTPUT, repeated closure affecting zero rows, and rollback cleanup of all fixture rows plus table/source unique key/capability marker. This provides direct database constraint and DML evidence. It does not execute IncidentEscalationClosure through EF, authenticate an HTTP request, validate full Maintenance transaction rollback, or exercise concurrent sessions. Those acceptance checks remain outstanding; UC059 is still PARTIAL.
+
+Only the focused SQL probe and this receipt changed in this increment. No C#/frontend changes; builds were not rerun. The probe's PASS is direct execution evidence, not a historical handoff claim.
