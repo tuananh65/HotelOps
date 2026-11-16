@@ -28,10 +28,8 @@ public sealed class InternalRequestProgressAuthority(HotelOpsDbContext db, Inter
         if (row?.ReceivingDepartmentId is not {} department || row.Status != "IN_PROGRESS") return (false, false);
         if (await managers.AllowsDepartmentAsync(user, row.BranchId, department, ct)) return (true, true);
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        // Home department is relevant to handler membership, never management authority.
-        if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user && u.DepartmentId == department, ct)
-            || !await db.Departments.AsNoTracking().AnyAsync(d => d.DepartmentId == department
-            && d.BranchId == row.BranchId && d.IsActive && d.Branch.IsActive, ct)) return (false, false);
+        if (!await InternalRequestEmployeeMembership.InstalledAsync(db, ct)
+            || !await InternalRequestEmployeeMembership.Members(db, row.BranchId, department, now).AnyAsync(u => u.UserId == user, ct)) return (false, false);
         var assignments = await db.InternalRequestAssignments.AsNoTracking().Where(a => a.InternalRequestId == request && a.Status == "ACTIVE")
             .Select(a => new { a.AssigneeId, a.AssignedAt, a.EndedAt }).ToArrayAsync(ct);
         if (assignments.Length != 1 || assignments[0].AssigneeId != user || assignments[0].EndedAt != null

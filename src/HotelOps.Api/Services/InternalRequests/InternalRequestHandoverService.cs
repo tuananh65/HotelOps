@@ -29,13 +29,13 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
     }
     private async Task SchemaAsync(CancellationToken ct)
     {
-        if(!await InternalRequestHandoverStore.InstalledAsync(db,ct)||!await InternalRequestDecisionStore.InstalledAsync(db,ct)
+        if(!await InternalRequestEmployeeMembership.InstalledAsync(db,ct)||!await InternalRequestHandoverStore.InstalledAsync(db,ct)||!await InternalRequestDecisionStore.InstalledAsync(db,ct)
             ||!await InternalRequestAssignmentService.InstalledAsync(db,ct)||!await new InternalRequestProcessAuthority(db).InstalledAsync(ct))throw new InternalRequestReadException(503,"IR_HANDOVER_SCHEMA_REQUIRED");
     }
     internal static async Task<bool> EligibleAsync(HotelOpsDbContext db,long user,long branch,long department,DateTime now,CancellationToken ct)
     {
-        if(!await db.Users.AsNoTracking().AnyAsync(u=>u.UserId==user&&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
-            &&u.DepartmentId==department&&u.Department!.IsActive&&u.Department.BranchId==branch&&u.Department.Branch.IsActive,ct))return false;
+        if(!await InternalRequestEmployeeMembership.InstalledAsync(db,ct)
+            ||!await InternalRequestEmployeeMembership.Members(db,branch,department,now).AnyAsync(u=>u.UserId==user,ct))return false;
         var grants=await(from assignment in db.UserRoles.AsNoTracking() join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
             where assignment.UserId==user&&grant.Permission.PermissionCode=="IR_PROCESS"
             select new{Role=assignment.Role.RoleCode,Path=new PermissionGrantPath(grant.Permission.PermissionCode,grant.DataScope,assignment.BranchId,
@@ -97,7 +97,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
         var submit=eligible&&active.Length==1&&active[0].AssigneeId==ticket.UserId&&pending==null;
         var decide=eligible&&pending?.ReceiverId==ticket.UserId&&active.Length==1&&active[0].AssignmentId==pending.SenderAssignmentId&&pending.DepartmentId==row.ReceivingDepartmentId;
         var receivers=new List<InternalRequestFilterValue>();
-        if(submit)foreach(var user in await db.Users.AsNoTracking().Where(u=>u.UserId!=ticket.UserId&&u.DepartmentId==row.ReceivingDepartmentId&&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null)
+        if(submit)foreach(var user in await InternalRequestEmployeeMembership.Members(db,row.BranchId,row.ReceivingDepartmentId,now).Where(u=>u.UserId!=ticket.UserId)
             .OrderBy(u=>u.FullName).ThenBy(u=>u.UserId).Select(u=>new InternalRequestFilterValue(u.UserId,u.FullName)).ToArrayAsync(ct))
             if(await CanReceiveAsync(user.Id,row,now,ct))receivers.Add(user);
         var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct);

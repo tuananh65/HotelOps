@@ -37,10 +37,8 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
     }
 
     private async Task<bool> HandlerAsync(long handler, long branch, long department, DateTime now, CancellationToken ct) =>
-        await db.Users.AsNoTracking().AnyAsync(u => u.UserId == handler && u.DeletedAt == null
-            && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DepartmentId == department
-            && u.Department!.BranchId == branch && u.Department.IsActive && u.Department.Branch.IsActive
-            && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now), ct);
+        await InternalRequestEmployeeMembership.InstalledAsync(db, ct)
+        && await InternalRequestEmployeeMembership.Members(db, branch, department, now).AnyAsync(u => u.UserId == handler, ct);
 
     public async Task<InternalRequestAssignmentView> ReadAsync(SessionReference ticket, long sid, long id, CancellationToken ct)
     {
@@ -48,16 +46,14 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct);
         await SessionAsync(ticket, sid, ct);
-        if (!await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
+        if (!await InternalRequestEmployeeMembership.InstalledAsync(db, ct) || !await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
             throw new InternalRequestReadException(503, "IR_ASSIGNMENT_SCHEMA_REQUIRED");
         if (!await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct)) throw new InternalRequestReadException(403, "IR_PROCESS_REQUIRED");
-        var now = DateTime.UtcNow;
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var scope = await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId, now, ct);
         var request = await scope.Apply(db.InternalRequests.AsNoTracking(), now).SingleOrDefaultAsync(r => r.InternalRequestId == id, ct);
         if (request == null) throw new InternalRequestReadException(404, "IR_NOT_FOUND");
-        var handlers = await db.Users.AsNoTracking().Where(u => u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE"
-            && u.DepartmentId == request.ReceivingDepartmentId && u.Department!.BranchId == request.BranchId && u.Department.IsActive
-            && u.UserBranchAccessUsers.Any(a => a.BranchId == request.BranchId && a.RevokedAt == null && a.GrantedAt <= now))
+        var handlers = await InternalRequestEmployeeMembership.Members(db, request.BranchId, request.ReceivingDepartmentId, now)
             .OrderBy(u => u.FullName).ThenBy(u => u.UserId).Select(u => new InternalRequestHandler(u.UserId, u.FullName,
                 u.InternalRequestAssignmentAssignees.Count(a => a.Status == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now
                     && a.InternalRequest.BranchId == request.BranchId && a.InternalRequest.ReceivingDepartmentId == request.ReceivingDepartmentId
@@ -67,7 +63,7 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
         var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
         await SessionAsync(ticket, sid, ct);
         if (!await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct)) throw new InternalRequestReadException(403, "IR_AUTHORITY_CHANGED");
-        var finalNow = DateTime.UtcNow;
+        var finalNow = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var finalScope = await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId, finalNow, ct);
         if (!await finalScope.Apply(db.InternalRequests.AsNoTracking(), finalNow).AnyAsync(r => r.InternalRequestId == id, ct))
             throw new InternalRequestReadException(403, "IR_SCOPE_CHANGED");
@@ -87,7 +83,7 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
             // Same stable order as account lifecycle operations; never take an assignee lock after a request lock.
             await new UserEligibilityLock(db).LockAsync([ticket.UserId, input.HandlerId], ct);
             await SessionAsync(ticket, sid, ct);
-            if (!await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
+            if (!await InternalRequestEmployeeMembership.InstalledAsync(db, ct) || !await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
                 throw new InternalRequestReadException(503, "IR_ASSIGNMENT_SCHEMA_REQUIRED");
             if (!await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct))
                 throw new InternalRequestReadException(403, "IR_PROCESS_REQUIRED");
@@ -126,7 +122,7 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_assignment_outbox(event_id,recipient_id,assignment_id,created_at) VALUES({entry.EventId},{recipient},{assignment.AssignmentId},{now})", ct);
             await SessionAsync(ticket, sid, ct);
             if (!await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct)
-                || !await HandlerAsync(input.HandlerId, request.BranchId, department, DateTime.UtcNow, ct))
+                || !await HandlerAsync(input.HandlerId, request.BranchId, department, await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct), ct))
                 throw new InternalRequestReadException(403, "IR_AUTHORITY_CHANGED");
             var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
             await tx.CommitAsync(ct);
