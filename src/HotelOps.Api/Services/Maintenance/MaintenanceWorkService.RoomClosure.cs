@@ -39,6 +39,7 @@ public sealed partial class MaintenanceWorkService
             var before = (await readiness.ReadAsync([roomId], now, ct))[roomId];
             var released = blocks.Where(b => b.IncidentId == incident.IncidentId && b.BlockedAt <= now
                 && (b.ReleasedAt == null || b.ReleasedAt > now)).ToArray();
+            if (released.Length == 0) continue;
             foreach (var block in released)
             {
                 var old = BlockClosureSnapshot(block);
@@ -70,7 +71,9 @@ public sealed partial class MaintenanceWorkService
             AddAudit("rooms", roomId, incident.BranchId, TrustedActorId, now, oldRoom, new()
             {
                 ["operational_status"] = room.OperationalStatus, ["effective_readiness"] = after.Readiness,
-                ["released_block_ids"] = released.Select(b => b.BlockId).ToArray(), ["maintenance_work_id"] = work.MaintenanceWorkId
+                ["released_block_ids"] = released.Select(b => b.BlockId).ToArray(), ["maintenance_work_id"] = work.MaintenanceWorkId,
+                ["notification_kind"] = "INCIDENT_ROOM_RELEASE", ["notification_version"] = 1,
+                ["incident_id"] = incident.IncidentId
             });
         }
     }

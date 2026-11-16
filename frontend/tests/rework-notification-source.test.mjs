@@ -10,6 +10,19 @@ await build({
 });
 const { resolveInboxSource, openInboxSource } =
   await import("../.test-output/rework-notification/inbox.mjs");
+
+test("incident closure resolves room and existing participant targets without arbitrary action URLs", async () => {
+  const signal = new AbortController().signal;
+  for (const path of ["/rooms/8?branchId=9", "/operations/maintenance/11?action=A004A-036", "/operations/incidents/12?action=A004A-023"]) {
+    globalThis.fetch = async () => Response.json({ path });
+    assert.equal(await resolveInboxSource(7, signal), path);
+  }
+  for (const path of ["/rooms/8?branchId=0", "/rooms/8?branchId=9&next=evil", "/rooms/9007199254740992?branchId=9",
+    "/rooms/8?branchId=9&branchId=10", "/operations/maintenance/11?action=A004A-031", "/operations/incidents/12?action=A004A-023&edit=1"]) {
+    globalThis.fetch = async () => Response.json({ path });
+    await assert.rejects(resolveInboxSource(7, signal), /Invalid notification source/);
+  }
+});
 test("source resolver uses current session and only accepts canonical rework/history paths", async () => {
   const abort = new AbortController();
   globalThis.fetch = async (url, options) => {

@@ -151,6 +151,9 @@ export async function resolveInboxSource(
     return data.path;
   }
   const ids =
+    /^\/rooms\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/operations\/maintenance\/([1-9][0-9]*)\?action=A004A-036$/.exec(data.path) ??
+    /^\/operations\/incidents\/([1-9][0-9]*)\?action=A004A-023$/.exec(data.path) ??
     /^\/cleaning\/tasks\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)&monitor=1$/.exec(
       data.path,
     ) ??
