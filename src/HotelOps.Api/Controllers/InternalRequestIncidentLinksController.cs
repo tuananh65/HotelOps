@@ -21,7 +21,14 @@ public sealed class InternalRequestIncidentLinksController(InternalRequestIncide
     }
 
     [HttpPost]
-    public async Task<IActionResult> Link(long id, [FromBody] InternalRequestIncidentLinkInput input, CancellationToken ct)
+    public Task<IActionResult> Link(long id, [FromBody] InternalRequestIncidentLinkInput input, CancellationToken ct) =>
+        Save(id, input, false, ct);
+
+    [HttpPost("completion-requirement")]
+    public Task<IActionResult> Classify(long id, [FromBody] InternalRequestIncidentLinkInput input, CancellationToken ct) =>
+        Save(id, input, true, ct);
+
+    private async Task<IActionResult> Save(long id, InternalRequestIncidentLinkInput input, bool classifyLegacy, CancellationToken ct)
     {
         if (!Request.IsHttps) throw new InternalRequestReadException(400, "HTTPS_REQUIRED");
         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sid)) throw new InternalRequestReadException(401, "SESSION_INVALID");
@@ -32,7 +39,9 @@ public sealed class InternalRequestIncidentLinksController(InternalRequestIncide
         try { version = Convert.FromBase64String(tag[1..^1]); }
         catch (FormatException) { throw new InternalRequestReadException(400, "IR_VERSION_INVALID"); }
         if (version.Length != 8 || Convert.ToBase64String(version) != tag[1..^1]) throw new InternalRequestReadException(400, "IR_VERSION_INVALID");
-        var result = await service.LinkAsync(ticket!, sid, id, version, input, ct);
+        var result = classifyLegacy
+            ? await service.ClassifyAsync(ticket!, sid, id, version, input, ct)
+            : await service.LinkAsync(ticket!, sid, id, version, input, ct);
         Response.Headers.ETag = '"' + result + '"';
         return Ok(new { requestId = id, incidentId = input.IncidentId, mandatory = input.Mandatory, version = result });
     }

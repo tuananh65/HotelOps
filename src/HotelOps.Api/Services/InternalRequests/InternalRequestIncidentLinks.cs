@@ -114,7 +114,13 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
             $"/operations/incidents/{t.IncidentId}")).ToArray(), total, page, candidates, request.BranchId);
     }
 
-    public async Task<string> LinkAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestIncidentLinkInput input, CancellationToken ct)
+    public Task<string> LinkAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestIncidentLinkInput input, CancellationToken ct) =>
+        SaveAsync(ticket, sid, id, version, input, false, ct);
+
+    public Task<string> ClassifyAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestIncidentLinkInput input, CancellationToken ct) =>
+        SaveAsync(ticket, sid, id, version, input, true, ct);
+
+    private async Task<string> SaveAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestIncidentLinkInput input, bool classifyLegacy, CancellationToken ct)
     {
         if (id <= 0 || input.IncidentId <= 0 || version.Length != 8) throw new ValidationException("Request, incident and loaded version required.");
         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Linking requires a clean context.");
@@ -129,14 +135,21 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
             var tasks = await VisibleIncidentsAsync(ticket.UserId, request.BranchId, ct);
             if (!await tasks.AnyAsync(t => t.IncidentId == input.IncidentId, ct)) throw new InternalRequestReadException(404, "IR_TARGET_NOT_FOUND");
             var state = await States().Where(s => s.IncidentId == input.IncidentId).Select(s => s.State).SingleOrDefaultAsync(ct);
-            if (!Open(state)) throw new InternalRequestReadException(409, "IR_TARGET_NOT_OPEN");
+            // Classification records a deliberate requirement for existing legacy provenance only.
+            // It neither creates a new source relationship nor changes the target lifecycle.
+            if (classifyLegacy)
+            {
+                if (!(request.RelatedIncidentId == input.IncidentId))
+                    throw new InternalRequestReadException(409, "IR_LEGACY_LINK_REQUIRED");
+            }
+            else if (!Open(state)) throw new InternalRequestReadException(409, "IR_TARGET_NOT_OPEN");
             if (await Links(id).AnyAsync(l => l.IncidentId == input.IncidentId, ct)) throw new InternalRequestReadException(409, "IR_INCIDENT_ALREADY_LINKED");
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
             var changed = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET updated_at={now} WHERE internal_request_id={id} AND row_version={version}", ct);
             if (changed != 1) throw new InternalRequestReadException(412, "IR_VERSION_CHANGED");
             var audit = new AuditLog { ActorUserId = ticket.UserId, BranchId = request.BranchId, EntityType = "internal_requests",
                 EntityId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = "UPDATE", OccurredAt = now,
-                NewValues = JsonSerializer.Serialize(new { operation = "LINK_INCIDENT", input.IncidentId, input.Mandatory }), ChangedFields = "[\"linked_work\"]" };
+                NewValues = JsonSerializer.Serialize(new { operation = classifyLegacy ? "CLASSIFY_LEGACY_INCIDENT_LINK" : "LINK_INCIDENT", input.IncidentId, input.Mandatory, previousRequirement = (bool?)null }), ChangedFields = "[\"linked_work\"]" };
             db.AuditLogs.Add(audit); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_incident_links(internal_request_id,incident_id,is_mandatory,audit_id) VALUES({id},{input.IncidentId},{input.Mandatory},{audit.AuditId})", ct);
             await RequestAsync(ticket, sid, id, ct);
