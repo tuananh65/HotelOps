@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { Link } from "react-router-dom";
 
 interface Item {
   materialRequestId: number; code: string; purpose: string; state: string; mandatory: boolean;
@@ -97,6 +98,7 @@ export function InternalRequestMaterialLinksPanel({ id, onLinked }: { id: number
     {visible?.view && <>
       {visible.view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} materials on this page.</p>}
       <ul>{visible.view.items.map(item => <li key={item.materialRequestId}>
+        <Link to={`/operations/material-requests/${item.materialRequestId}`}>Open material request</Link>{" "}
         <strong>{item.code}</strong>: {item.purpose} — {item.state}
         {!candidates && <p>{!item.mandatory ? "Optional for completion" : item.completionSatisfied
           ? "Required material: completion evidence confirmed"

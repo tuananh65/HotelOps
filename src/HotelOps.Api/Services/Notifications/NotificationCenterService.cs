@@ -118,6 +118,25 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:MaterialRequests.MaterialApprovalNotificationDelivery.Kind,SourceType:MaterialRequests.MaterialApprovalNotificationDelivery.Source,SourceId:>0})
+        {
+            var hint=await db.MaterialRequestApprovalCycles.AsNoTracking().Where(c=>c.ApprovalCycleId==source.SourceId)
+                .Select(c=>new{c.RequestId,c.Request.RequesterId}).SingleOrDefaultAsync(ct);
+            if(hint==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await new Users.UserEligibilityLock(db).LockAsync([user,hint.RequesterId],ct);
+            var cycle=await db.MaterialRequestApprovalCycles.AsNoTracking().Include(c=>c.Request)
+                .SingleOrDefaultAsync(c=>c.ApprovalCycleId==source.SourceId&&c.RequestId==hint.RequestId&&c.Request.RequesterId==hint.RequesterId,ct);
+            if(cycle==null||cycle.AssignedApproverId!=user||cycle.SubmittedBy!=source.CreatedBy||cycle.SubmittedAt!=source.CreatedAt)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            try{await MaterialRequests.MaterialApprovalAuthority.ValidateAsync(db,cycle.Request,user,ct);}
+            catch(System.ComponentModel.DataAnnotations.ValidationException){throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");}
+            var scope=await MaterialRequests.MaterialRequestReadAccess.ReadAsync(db,user,cycle.Request.BranchId,clock.GetUtcNow().UtcDateTime,ct);
+            if(!await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r=>r.RequestId==cycle.RequestId,ct)
+                ||!await MaterialRequests.MaterialReadProvenance.ValidAsync(db,cycle.RequestId,cycle.Request.BranchId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await tx.CommitAsync(ct);return new($"/operations/material-requests/{cycle.RequestId}");
+        }
         if(source is {NotificationType:"CLEANING_TASK_CANCELLED",SourceType:"CLEANING_TASK",SourceId:>0})
         {
             await CancellationReceiptAsync(id,user,now,ct);

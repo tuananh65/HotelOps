@@ -71,6 +71,7 @@ export function SharedAuthHost({
   operationalTasksEnabled = false,
   internalRequestsEnabled = false,
   incidentReadEnabled = false,
+  materialReadEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -84,11 +85,14 @@ export function SharedAuthHost({
   operationalTasksEnabled?: boolean;
   internalRequestsEnabled?: boolean;
   incidentReadEnabled?: boolean;
+  materialReadEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
-      {incidentReadEnabled && <Route path="/operations/*" element={<Protected><Dev2Workspace readOnly enabledModules={["incidents"]} /></Protected>} />}
+      {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace readOnly
+        enabledModules={[...(incidentReadEnabled ? ["incidents"] : []), ...(materialReadEnabled ? ["material-requests"] : [])]}
+        enabledActions={["A004A-022", "A004A-023", "A004A-037", "A004A-038"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests/new" element={<Protected><InternalRequestIntakePage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}
@@ -294,6 +298,7 @@ export function SharedAuthHost({
             {internalRequestsEnabled && <InternalRequestAccessLink />}
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
             {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
+            {materialReadEnabled && <Link to="/operations/material-requests">Material requests</Link>}
             {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>

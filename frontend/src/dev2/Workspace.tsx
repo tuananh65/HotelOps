@@ -41,7 +41,7 @@ function readAction(operation: Operation, fallback: string): string {
   }
   return fallback;
 }
-export function Dev2Workspace({ readOnly = false, enabledModules }: { readOnly?: boolean; enabledModules?: string[] } = {}) {
+export function Dev2Workspace({ readOnly = false, enabledModules, enabledActions }: { readOnly?: boolean; enabledModules?: string[]; enabledActions?: string[] } = {}) {
   const { state, actions } = useAuth();
   if (state.status === "RESTRICTED" || state.session?.mustChangePassword)
     return <Navigate to="/change-password" replace />;
@@ -62,7 +62,7 @@ export function Dev2Workspace({ readOnly = false, enabledModules }: { readOnly?:
     <Routes>
       <Route
         path=":module/:id?"
-        element={<Workspace key={key(state.session)} readOnly={readOnly} enabledModules={enabledModules} />}
+        element={<Workspace key={key(state.session)} readOnly={readOnly} enabledModules={enabledModules} enabledActions={enabledActions} />}
       />
       <Route
         path="*"
@@ -71,7 +71,7 @@ export function Dev2Workspace({ readOnly = false, enabledModules }: { readOnly?:
     </Routes>
   );
 }
-function Workspace({ readOnly, enabledModules }: { readOnly: boolean; enabledModules?: string[] }) {
+function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boolean; enabledModules?: string[]; enabledActions?: string[] }) {
   const { module = "incidents", id = "" } = useParams();
   const { state, actions } = useAuth();
   const [query, setQuery] = useSearchParams();
@@ -95,6 +95,7 @@ function Workspace({ readOnly, enabledModules }: { readOnly: boolean; enabledMod
     <Screen
       readOnly={readOnly}
       enabledModules={enabledModules}
+      enabledActions={enabledActions}
       key={`${module}:${id}:${query.toString()}`}
       module={module}
       recordId={id}
@@ -114,6 +115,7 @@ function Workspace({ readOnly, enabledModules }: { readOnly: boolean; enabledMod
 function Screen({
   readOnly,
   enabledModules,
+  enabledActions,
   module,
   recordId,
   actor,
@@ -125,6 +127,7 @@ function Screen({
 }: {
   readOnly: boolean;
   enabledModules?: string[];
+  enabledActions?: string[];
   module: string;
   recordId: string;
   actor: string;
@@ -134,7 +137,8 @@ function Screen({
   select: (v: string) => void;
   expired: () => void;
 }) {
-  const available = operations.filter((x) => x.module === module && (!readOnly || x.method === "GET"));
+  const available = operations.filter((x) => x.module === module && (!readOnly || x.method === "GET")
+    && (!enabledActions || enabledActions.includes(x.id)));
   const initial = available.find(
     (x) => x.id === (actionId ?? (recordId ? config.detail : config.list)),
   )!;
@@ -547,7 +551,7 @@ function Screen({
           </Link>
         </p>
       )}
-      {module === "material-requests" && record.requestId != null && (
+      {!readOnly && module === "material-requests" && record.requestId != null && (
         <p>
           <Link
             to={`/operations/material-requests/${record.requestId}?action=A004A-051`}

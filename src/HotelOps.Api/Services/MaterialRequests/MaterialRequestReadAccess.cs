@@ -14,6 +14,9 @@ internal static class MaterialRequestReadAccess
         internal IQueryable<MaterialRequest> Apply(IQueryable<MaterialRequest> requests) => requests.Where(r =>
             r.BranchId == BranchId && r.Branch.IsActive && r.Department.BranchId == r.BranchId
             && (r.SourceWarehouse == null || r.SourceWarehouse.BranchId == r.BranchId)
+            && (r.ReceivingRoom == null || r.ReceivingRoom.BranchId == r.BranchId)
+            && (r.ReceivingArea == null || r.ReceivingArea.BranchId == r.BranchId)
+            && (r.Incident == null || r.Incident.BranchId == r.BranchId)
             && (Branch || Own && r.RequesterId == UserId));
     }
 

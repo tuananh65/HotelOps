@@ -8,9 +8,11 @@ public sealed partial class MaterialRequestService
     private static DateTime Utc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
     private static DateTime? Utc(DateTime? value) => value.HasValue ? Utc(value.Value) : null;
     public async Task<MaterialPageDto> List(MaterialPage p, CancellationToken ct)
+        => await ListAsync(db.MaterialRequests.AsNoTracking(), p, ct);
+
+    internal static async Task<MaterialPageDto> ListAsync(IQueryable<HotelOps.Api.Entities.MaterialRequest> q, MaterialPage p, CancellationToken ct)
     {
         if (p.Page < 1 || p.PageSize < 1 || p.PageSize > 100 || (long)(p.Page - 1) * p.PageSize > int.MaxValue || p.From > p.To) throw Invalid("Invalid page/date range.");
-        var q = db.MaterialRequests.AsNoTracking();
         if (p.BranchId is long b) q = q.Where(x => x.BranchId == b);
         if (p.DepartmentId is long d) q = q.Where(x => x.DepartmentId == d);
         if (p.RequesterId is long u) q = q.Where(x => x.RequesterId == u);

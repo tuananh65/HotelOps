@@ -17,6 +17,7 @@ export function AuthRouteHost() {
       operationalTasksEnabled
       internalRequestsEnabled
       incidentReadEnabled
+      materialReadEnabled
     />
   );
 }

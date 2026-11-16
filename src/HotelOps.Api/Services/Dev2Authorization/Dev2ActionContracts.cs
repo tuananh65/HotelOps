@@ -41,7 +41,7 @@ internal static class Dev2ActionContracts
     // Production acceptance remains separate from the owner's trial-only V1 policy.
     // The demo slice requires its compiled policy hash and exact trial database configuration.
     private static readonly FrozenDictionary<string, Dev2ActionContract> Accepted =
-        IncidentReadContract.Contracts.Concat(MaterialCreateContract.Contracts)
+        IncidentReadContract.Contracts.Concat(MaterialCreateContract.Contracts).Concat(MaterialReadContract.Contracts)
             .ToFrozenDictionary(c => c.DecisionId, StringComparer.Ordinal);
     internal static IReadOnlySet<string> DecisionIds { get; } = Accepted.Keys.ToFrozenSet(StringComparer.Ordinal);
     internal static Dev2ActionContract? Find(Dev2KnownAction identity, HttpContext? http = null) =>

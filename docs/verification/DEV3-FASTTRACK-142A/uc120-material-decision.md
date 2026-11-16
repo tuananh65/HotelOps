@@ -177,3 +177,26 @@ PollSeconds defaults to 30) and the worker; it was not enabled or executed again
 No schema, grants or database data changed. Backend build PASS, 0 warnings/errors;
 business/API/browser tests NOT RUN per instruction. Notification source navigation,
 material detail admission and the creation UI remain outstanding; no UC promoted.
+
+## Material read and notification navigation
+
+GET list/detail now use independent MR_VIEW, a current HTTPS SQL session and
+Serializable scoped reads. List requires an explicit branch and filters OWN to
+RequesterId. The final disclosure scope must match the scope used to select the
+response, including when a broader grant expires while OWN remains valid.
+Detail validates approval-line/request and fulfillment/document branch provenance;
+missing legacy proof fails closed rather than exposing unrelated stock records.
+Raw audit history, inventory availability and other material actions are not admitted.
+
+Canonical operations routes now expose material list/detail alongside incident reads,
+with an explicit admitted-action menu. Linked material rows open this detail route.
+Approval notification source resolution rechecks receipt/cycle provenance, current
+mapped approval authority, MR_VIEW and current session before returning that route.
+Read-only screens no longer show the fulfillment mutation shortcut.
+
+The first backend build caught a nullable-pattern long.Value error, corrected before
+delivery. Final backend build PASS (0 warnings/errors), TypeScript PASS, Vite PASS
+(existing React Router use-client and >500 kB chunk warnings). SQL/API/browser and
+business tests NOT RUN per instruction. No database mutation. Creation UI/catalog,
+remaining lifecycle admission and full UC092 history acceptance remain open; no UC
+promoted on source/build evidence alone.
