@@ -36,7 +36,14 @@ public sealed record ReplenishmentLineDto(long ReplenishmentLineId, int LineNo, 
 public sealed record ReplenishmentDto(long ReplenishmentId, string ReplenishmentNo, string RawStatus, string RowVersion,
     long WarehouseId, long BranchId, long RequestedBy, string? SupplierName, DateOnly? ExpectedOn, DateTime CreatedAt,
     DateTime? UpdatedAt, DateTime? ClosedAt, long? ClosedBy, string? CloseReason, IReadOnlyList<ReplenishmentLineDto> Lines,
-    IReadOnlyList<ReplenishmentReceiptDto> Receipts);
+    IReadOnlyList<ReplenishmentReceiptDto> Receipts)
+{
+    public bool WaitingRequestsVisible { get; init; }
+    public IReadOnlyList<ReplenishmentWaitingRequest> WaitingRequests { get; init; } = [];
+}
+public sealed record ReplenishmentWaitingRequest(long RequestId, string RequestNo, string Status,
+    long RequestLineId, long ItemId, string ItemName, string UnitName, decimal ApprovedQty,
+    decimal FulfilledQty, decimal RemainingQty);
 public sealed record ReplenishmentSummary(long ReplenishmentId, string ReplenishmentNo, long WarehouseId, long BranchId,
     string Status, string? SupplierName, DateOnly? ExpectedOn, DateTime CreatedAt)
 {

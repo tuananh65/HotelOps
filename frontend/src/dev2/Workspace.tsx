@@ -26,6 +26,7 @@ import { MaterialHistoryView } from "./MaterialHistoryView";
 import { ReplenishmentCloseFields, replenishmentCanClose } from "./ReplenishmentCloseFields";
 import { ReplenishmentReceiptFields } from "./ReplenishmentReceiptFields";
 import { ReplenishmentListView } from "./ReplenishmentListView";
+import { ReplenishmentWaitingRequests } from "./ReplenishmentWaitingRequests";
 import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
 import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
 
@@ -616,6 +617,8 @@ function Screen({
         ? <ReplenishmentListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
+      {module === "replenishments" && operation.id === "A004A-053" && record.replenishmentId != null
+        && <ReplenishmentWaitingRequests record={record} />}
       {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-057")
         && replenishmentCanClose(record) && <Link to={`/operations/replenishments/${encodeURIComponent(String(record.replenishmentId))}?action=A004A-057`}>Close unreceived remainder</Link>}
       {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-058")

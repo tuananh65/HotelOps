@@ -1,0 +1,12 @@
+﻿{
+    "run":  "77c41aba8cac4bd984561c9e0522f297",
+    "backupSetId":  4,
+    "source":  "HotelOps_DEV3_142A_Recovery_2b221f40",
+    "restore":  "HotelOps_DEV3_142A_FE10Restore_77c41aba",
+    "copyOnly":  true,
+    "checksum":  true,
+    "damaged":  false,
+    "sourceGuid":  "5270D07C-7C27-477B-A60E-86485ADD7FAD",
+    "restoredGuid":  "4FF3480B-9D24-4B70-BAE9-A2B059E8AB2F",
+    "scope":  "Disposable only; no business mutation"
+}

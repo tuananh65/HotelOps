@@ -1,0 +1,9 @@
+﻿{
+    "mode":  "Transactional SQL trial",
+    "created":  3,
+    "afterRollback":  0,
+    "businessRowsWritten":  0,
+    "backupSetId":  4,
+    "status":  "TRIAL_ROLLBACK_PASS",
+    "executionPolicyChanged":  false
+}

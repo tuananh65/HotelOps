@@ -17,11 +17,12 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 
 internal static class ReplenishmentReadContract
 {
+    private static readonly object WaitingScopeKey = new();
     private const string Policy = "UC101 HTTPS current unrestricted SQL session; active STOREKEEPER or OPERATIONS_MANAGER; independent REPLENISHMENT_VIEW on actual warehouse branch; explicit branch-scoped list/count before pagination; descendant provenance and independent MR_VIEW for linked material detail; Serializable disclosure; receipt candidates require STOREKEEPER plus REPLENISHMENT_RECEIVE and INVENTORY_VIEW, posted movement evidence and no previous credit; shortage selection requires STOREKEEPER plus CREATE and INVENTORY_VIEW; independent current MR_VIEW filters request demand before aggregation/count/paging; Draft receipt selection additionally requires STOCK_RECEIPT_POST and same-warehouse full-line disclosure; no raw audit";
     private static bool Shortage(Dev2BoundAction a) => a.Identity.ActionName is "Low" or "Material";
     private static bool ReceiptSelection(Dev2BoundAction a) => a.Identity.ActionName is "ReceiptCandidates" or "DraftReceipts";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-052", "A004A-053", "A004A-055", "A004A-060", "A004A-061", "REPLENISHMENT-RECEIPT-CANDIDATES", "REPLENISHMENT-DRAFT-RECEIPTS" }.Select(id => new Dev2ActionContract(
-        id, "DEV3_142A_REPLENISHMENT_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
+        id, "DEV3_142A_REPLENISHMENT_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy + "; waiting requests require independent current MR_VIEW scope rechecked before disclosure"))),
         async (a, ct) => {
             var branch=await Branch(a,ct);
             var grants=new List<Dev2PermissionRequirement> { new("REPLENISHMENT_VIEW",new(Dev2PermissionTargetKind.Branch,branch)) };
@@ -64,6 +65,13 @@ internal static class ReplenishmentReadContract
         if (!session.IsValid || session.Session?.SessionId!=sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var branch=await Branch(a,ct);
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure
+            && a.Http.Items[WaitingScopeKey] is MaterialRequestReadAccess.Scope disclosed)
+        {
+            var current = await MaterialRequestReadAccess.ReadAsync(db, a.Actor.UserId, branch, now, ct);
+            if (disclosed.Branch && !current.Branch || disclosed.Own && !current.Branch && !current.Own)
+                return false;
+        }
         if (!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==a.Actor.UserId && r.IsActive && r.Role.IsActive
             && (r.Role.RoleCode=="STOREKEEPER" || !Shortage(a) && !ReceiptSelection(a) && r.Role.RoleCode=="OPERATIONS_MANAGER")
             && (r.BranchId==null || r.BranchId==branch) && r.AssignedAt<=now && (r.ExpiresAt==null || r.ExpiresAt>now)
@@ -117,7 +125,23 @@ internal static class ReplenishmentReadContract
                         || l.SourceMaterialRequestLine!=null && l.SourceMaterialRequestLine.Request.BranchId!=branch));
                 return new OkObjectResult(await ReplenishmentService.ListAsync(Db(a),scoped,Page(a),ct));
             }
-            object? result=a.Identity.ActionName=="Get" ? await service.Get(Id(a),ct) : await service.Receipts(Id(a),ct);
+            object? result;
+            if (a.Identity.ActionName == "Get")
+            {
+                var detail = await service.Get(Id(a), ct);
+                if (detail != null)
+                {
+                    var now = await Db(a).Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+                    var scope = await MaterialRequestReadAccess.ReadAsync(Db(a), a.Actor.UserId, detail.BranchId, now, ct);
+                    if (scope.Branch || scope.Own)
+                    {
+                        detail = await service.WithWaitingRequests(detail, scope.Apply(Db(a).MaterialRequests.AsNoTracking()), ct);
+                        a.Http.Items[WaitingScopeKey] = scope;
+                    }
+                }
+                result = detail;
+            }
+            else result = await service.Receipts(Id(a),ct);
             return result==null ? new NotFoundResult() : new OkObjectResult(result);
         }
         catch(ValidationException) { return new ConflictObjectResult(new ProblemDetails { Status=409,Title="Replenishment reconciliation required" }); }

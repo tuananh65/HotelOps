@@ -1,0 +1,9 @@
+﻿{
+    "database":  "HotelOps_DEV3_142A_Recovery_2b221f40",
+    "backupSetId":  4,
+    "tablesCreated":  3,
+    "businessRows":  0,
+    "status":  "APPLIED_DISPOSABLE_ONLY",
+    "executionPolicyChanged":  false,
+    "sourceSha256":  "2CD673D0EE393FEB8FE0D7F340E5068F4858A853C2C9551B0D2394B27232B787"
+}
