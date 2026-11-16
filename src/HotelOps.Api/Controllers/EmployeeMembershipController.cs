@@ -28,6 +28,10 @@ public sealed class EmployeeMembershipController(EmployeeMembershipService servi
         var problem=new ProblemDetails{Status=409,Title="MEMBERSHIP_DEPENDENCIES",Detail="Resolve the current responsibilities before removing membership."};
         problem.Extensions["dependencies"]=dependencies;return Conflict(problem);
     }
+    [HttpPost("restore")] public async Task<IActionResult> Restore(long userId,long branchId,EmployeeMembershipInput input,CancellationToken ct)
+    {
+        var(t,s)=Identity();await service.AddAsync(t,s,userId,branchId,Version(),input,ct,restore:true);return NoContent();
+    }
     private byte[] Version()
     {
         var tags=Request.Headers.IfMatch;
