@@ -28,6 +28,8 @@ import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { CreateUserFlowBoundary } from "../users/CreateUserFlowBoundary";
 import { UpdateUserFlowBoundary } from "../users/UpdateUserFlowBoundary";
 import { CredentialResetRoute } from "../users/CredentialResetRoute";
+import { AddUserBranchFlowBoundary } from "../users/AddUserBranchFlowBoundary";
+import { RoleCatalogRoute } from "../roles/RoleCatalogRoute";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { InspectionExecutionAuthRoute } from "./InspectionExecutionAuthRoute";
@@ -104,6 +106,11 @@ export function SharedAuthHost({
       {accountManagementEnabled && <Route path="/users/new" element={<CreateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}
+      {accountManagementEnabled && <Route path="/users/:id/branches/add" element={<AddUserBranchFlowBoundary />} />}
+      {roleAssignmentEnabled && <Route path="/roles" element={<RoleCatalogRoute mode="list" />} />}
+      {roleAssignmentEnabled && <Route path="/roles/:roleId" element={<RoleCatalogRoute mode="detail" />} />}
+      {roleAssignmentEnabled && <Route path="/roles/:roleId/permissions" element={<RoleCatalogRoute mode="matrix" />} />}
+      {roleAssignmentEnabled && <Route path="/permissions" element={<RoleCatalogRoute mode="catalog" />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
@@ -326,6 +333,7 @@ export function SharedAuthHost({
             {(inspectionExecutionEnabled || notificationsEnabled) && <Link to="/inspection-history">Inspection history</Link>}
             {checklistEnabled && <Link to="/inspections/checklists">Inspection checklists</Link>}
             {usersReadEnabled && <Link to="/users">Users</Link>}
+            {roleAssignmentEnabled && <Link to="/roles">Roles and permissions</Link>}
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {structureReadEnabled && <Link to="/room-directory">Room directory</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
