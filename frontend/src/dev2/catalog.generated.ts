@@ -2104,7 +2104,7 @@ export const operations: Operation[] = [
     name: "Close",
     method: "POST",
     route: "/api/replenishments/{id:long}/close",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_CLOSE"],
+    permissions: ["REPLENISHMENT_CLOSE", "REPLENISHMENT_VIEW"],
     authorityKind: "replenishment",
     expectedStatus: 200,
     dto: "ReplenishmentClose",
