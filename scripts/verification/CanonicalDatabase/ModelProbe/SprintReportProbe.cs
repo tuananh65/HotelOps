@@ -31,7 +31,11 @@ internal static class SprintReportProbe
         {
             await using var command = db.Database.GetDbConnection().CreateCommand(); command.Transaction = tx.GetDbTransaction();
             // Exact server/database/GUID/disposable run and empty-fixture checks precede every INSERT.
-            command.CommandText = await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintApproveFixture.sql", ct);
+            var fixture = await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintApproveFixture.sql", ct);
+            const string resultSeed = "VALUES(@inspection,@item,'PASS');";
+            if (!fixture.Contains(resultSeed, StringComparison.Ordinal)) throw new Exception("Expected inspection fixture result seed missing");
+            // A report defect needs a failed criterion, written while the fixture is still INSPECTING.
+            command.CommandText = fixture.Replace(resultSeed, "VALUES(@inspection,@item,'FAIL');", StringComparison.Ordinal);
             long actor, branch, inspection;
             await using (var reader = await command.ExecuteReaderAsync(ct))
             { if (!await reader.ReadAsync(ct)) throw new Exception("No fixture"); actor = reader.GetInt64(0); branch = reader.GetInt64(1); inspection = reader.GetInt64(2); }
@@ -157,6 +161,11 @@ internal static class SprintReportProbe
             Check((await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct)).Rows.Count == 0, "inspector and housekeeper filters intersect");
             var cleanerCsv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(cleanerReport).Content);
             Check(cleanerCsv.Contains("housekeeperId") && cleanerCsv.Contains(cleanerReport.SnapshotId), "frozen cleaner report CSV retains applied filter and snapshot");
+            var criterion = await db.InspectionChecklistItems.Where(i => i.Version.RoomInspections.Any(r => r.InspectionId == inspection))
+                .Select(i => i.ItemId).FirstAsync(ct);
+            db.InspectionDefects.Add(new InspectionDefect { InspectionId = inspection, ChecklistItemId = criterion,
+                Description = "Synthetic report criterion", Status = "OPEN" });
+            await db.SaveChangesAsync(ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.room_inspections SET workflow_status='FAILED',status='COMPLETED',result='FAIL' WHERE inspection_id={inspection};
                 UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED',status='IN_PROGRESS' WHERE cleaning_task_id={cleaningTask};
@@ -178,6 +187,26 @@ internal static class SprintReportProbe
             Check(!Encoding.UTF8.GetString(ReportCsvRenderer.Render(cleanerReport).Content).Contains("PENDING")
                 && Encoding.UTF8.GetString(ReportCsvRenderer.Render(reworkReport).Content).Contains("PENDING"),
                 "old frozen report does not acquire later rework while new snapshot exports it");
+            var outcomes = reworkReport.Sections.Single(s => s.Key == "inspection_outcomes").Rows;
+            Check(outcomes.Count == 1 && ((JsonElement)outcomes[0]["result"]!).GetString() == "FAIL"
+                && ((JsonElement)outcomes[0]["inspectionCount"]!).GetInt64() == 1,
+                "inspection outcome summary counts selected failed inspection once despite related rework");
+            var beforeOutcomes = cleanerReport.Sections.Single(s => s.Key == "inspection_outcomes").Rows;
+            Check(((JsonElement)beforeOutcomes[0]["result"]!).ValueKind == JsonValueKind.Null
+                && ((JsonElement)beforeOutcomes[0]["inspectionCount"]!).GetInt64() == 1,
+                "unfinished inspection remains a null-result bucket rather than an invented failure");
+            cleanerQuery.HousekeeperId = officialCleaner;
+            var defectReport = await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct);
+            var defectGroups = defectReport.Sections.Single(s => s.Key == "defects_by_criterion").Rows;
+            Check(defectGroups.Count == 1 && ((JsonElement)defectGroups[0]["checklistItemId"]!).GetInt64() == criterion
+                && ((JsonElement)defectGroups[0]["defectCount"]!).GetInt64() == 1
+                && ((JsonElement)defectGroups[0]["severityId"]!).ValueKind == JsonValueKind.Null,
+                "defects aggregate by exact criterion and retain unspecified severity without dropping the row");
+            cleanerQuery.HousekeeperId = actor;
+            var excluded = await queries.MaterializeAsync("inspections", cleanerQuery, filters, now, ct);
+            Check(excluded.Sections.Single(s => s.Key == "defects_by_criterion").Rows.Count == 0
+                && excluded.Sections.Single(s => s.Key == "inspection_outcomes").Rows.Count == 0,
+                "aggregate sections intersect the same housekeeper-filtered inspection population");
             var inventory = results["items"];
             inventoryObservation = inventory.Sections;
             Check(inventory.Rows.Count == 1 && ((JsonElement)inventory.Rows[0]["onHand"]!).ValueKind == JsonValueKind.String

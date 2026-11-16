@@ -56,7 +56,11 @@ try {
     const response = await pending;
     assert.equal(response.status(), 200);
     const snapshot = await response.json();
-    assert.equal(snapshot.totalCount, 2);
+    assert.equal(snapshot.totalCount, 3);
+    const outcomes = snapshot.sections.find(s => s.key === "inspection_outcomes");
+    assert.equal(outcomes.rows.length, 1);
+    assert.equal(outcomes.rows[0].result, "FAIL");
+    assert.equal(outcomes.rows[0].inspectionCount, 1);
     const reworks = snapshot.sections.find(s => s.key === "cleaning_reworks");
     assert.equal(reworks.rows.length, 1);
     assert.equal(reworks.rows[0].storedStatus, "PENDING");
@@ -66,6 +70,7 @@ try {
     assert.equal(snapshot.appliedFilters.inspectorId, String(fixture.inspector));
     await page.getByRole("region", { name: "Report preview", exact: true }).waitFor();
     await page.getByRole("heading", { name: "cleaning_reworks", exact: true }).waitFor();
+    await page.getByRole("heading", { name: "inspection_outcomes", exact: true }).waitFor();
     await page.getByRole("cell", { name: "PENDING", exact: true }).waitFor();
     for (const format of ["CSV", "XLSX"]) {
       stage = "actor filtered " + format;
@@ -79,6 +84,7 @@ try {
       if (format === "CSV") {
         const csv = bytes.toString("utf8");
         assert.ok(csv.includes("cleaning_reworks") && csv.includes("PENDING"));
+        assert.ok(csv.includes("inspection_outcomes") && csv.includes("inspectionCount"));
         assert.ok(csv.includes("housekeeperId") && csv.includes(String(fixture.housekeeper)));
         assert.ok(csv.includes("inspectorId") && csv.includes(String(fixture.inspector)));
         assert.ok(csv.includes(snapshot.snapshotId));

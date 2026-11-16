@@ -63,12 +63,12 @@ internal static class SprintReportActorsScenario
             return await response.Content.ReadFromJsonAsync<JsonElement>(ct);
         }
         var initial = await Preview(cleaner, actor);
-        Check(initial.GetProperty("totalCount").GetInt32() == 1 && initial.GetProperty("rows")[0].GetProperty("id").GetInt64() == inspection.InspectionId,
+        Check(initial.GetProperty("rows").GetArrayLength() == 1 && initial.GetProperty("rows")[0].GetProperty("id").GetInt64() == inspection.InspectionId,
             "public combined cleaner/inspector filters select the officially attributed inspection");
         Check((await Preview(actor)).GetProperty("totalCount").GetInt32() == 0, "inspector and assigning actor are not inferred as cleaner");
         Check((await Preview(cleaner, cleaner)).GetProperty("totalCount").GetInt32() == 0, "inspector filter intersects cleaner filter");
         await db.Users.Where(u => u.UserId == cleaner).ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "INACTIVE"), ct);
-        Check((await Preview(cleaner, actor)).GetProperty("totalCount").GetInt32() == 1, "inactive cleaner retains immutable historical attribution");
+        Check((await Preview(cleaner, actor)).GetProperty("rows").GetArrayLength() == 1, "inactive cleaner retains immutable historical attribution");
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE dbo.room_inspections SET workflow_status='FAILED',status='COMPLETED',result='FAIL' WHERE inspection_id={inspection.InspectionId};
             UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED' WHERE cleaning_task_id={inspection.CleaningTaskId};

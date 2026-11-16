@@ -120,7 +120,16 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Select(w => new { Id = w.ReworkId, w.InspectionId, w.CleaningTaskId, w.AssigneeUserId,
                         StoredStatus = w.Status, w.RequestedAt, w.CompletedAt }),
                     "id", "inspectionId", "cleaningTaskId", "assigneeUserId", "storedStatus", "requestedAt", "completedAt");
-                missing.Add("first inspection/cycle and rework aggregation unavailable");
+                await Add("inspection_outcomes", inspections.GroupBy(i => new { i.Status, i.Result })
+                    .OrderBy(g => g.Key.Status).ThenBy(g => g.Key.Result)
+                    .Select(g => new { StoredStatus = g.Key.Status, g.Key.Result, InspectionCount = g.LongCount() }),
+                    "storedStatus", "result", "inspectionCount");
+                await Add("defects_by_criterion", db.InspectionDefects.AsNoTracking().Where(d => ids.Contains(d.InspectionId))
+                    .GroupBy(d => new { d.ChecklistItemId, d.SeverityId, d.Status })
+                    .OrderBy(g => g.Key.ChecklistItemId).ThenBy(g => g.Key.SeverityId).ThenBy(g => g.Key.Status)
+                    .Select(g => new { g.Key.ChecklistItemId, g.Key.SeverityId, StoredStatus = g.Key.Status, DefectCount = g.LongCount() }),
+                    "checklistItemId", "severityId", "storedStatus", "defectCount");
+                missing.Add("first inspection/cycle and rework-round aggregation unavailable; outcome counts are inspections, not cleaning-cycle pass rates");
                 missing.Add("Related rework rows follow the selected inspection period; storedStatus is not the rework workflow state");
                 if (query.HousekeeperId is null)
                     missing.Add("historical housekeeper coverage has not been verified for this unfiltered report");
