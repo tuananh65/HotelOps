@@ -27,6 +27,7 @@ export function MaintenanceReadView({ data, detail, canDetail }: { data: Values;
     </section>;
   }
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
+  const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
     <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
@@ -39,6 +40,15 @@ export function MaintenanceReadView({ data, detail, canDetail }: { data: Values;
     {logs.length === 0 ? <p>No work logs recorded.</p> : <ol>{logs.map((log, index) => <li key={show(log.logId) + ":" + index}>
       {time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} minutes)
     </li>)}</ol>}
-    {data.materialUsageAvailable !== true && <p>Material usage and stock references are unavailable in this view. They require separate material and inventory authorization.</p>}
+    <h4>Material usage</h4>
+    {data.materialUsageAvailable !== true ? <p>Material usage is unavailable: current material/inventory access and source document integrity must both be verified.</p>
+      : usages.length === 0 ? <p>No material usage recorded.</p>
+      : <table><thead><tr><th>Item ID</th><th>Used quantity</th><th>Unit ID</th><th>Base quantity</th><th>Base unit ID</th><th>Issue document</th><th>Material request</th></tr></thead>
+        <tbody>{usages.map((usage, index) => <tr key={show(usage.usageId) + ":" + index}>
+          <td>{show(usage.itemId)}</td><td>{show(usage.usedQty)}</td><td>{show(usage.uomId)}</td>
+          <td>{show(usage.usedBaseQty)}</td><td>{show(usage.baseUomId)}</td><td>{show(usage.documentNo)}</td>
+          <td>{typeof usage.requestId === "number" && Number.isSafeInteger(usage.requestId) && usage.requestId > 0
+            ? <Link to={`/operations/material-requests/${usage.requestId}?action=A004A-038`}>{usage.requestId}</Link> : "Unavailable"}</td>
+        </tr>)}</tbody></table>}
   </section>;
 }

@@ -18,7 +18,7 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class MaintenanceReadContract
 {
     internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V2";
-    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail excludes material references without independent material authority; no mutation admission";
+    private const string Policy = "List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; no mutation admission";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-035", "A004A-036" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(IsList(a) ? "maintenance_list" : "maintenance_work", IsList(a) ? await BranchAsync(a, ct) : Id(a))))],
@@ -41,6 +41,7 @@ internal static class MaintenanceReadContract
             .SingleOrDefaultAsync(ct) ?? throw new Dev2AccessDenied(404);
     }
     private static readonly object ScopeKey = new();
+    private static readonly object UsageKey = new();
     private sealed class Resolver(Dev2BoundAction a) : HotelOps.Api.Security.Authorization.IPermissionResourceResolver
     {
         public async Task<HotelOps.Api.Security.Authorization.VerifiedPermissionResource?> ResolveAsync(string permission,
@@ -81,6 +82,12 @@ internal static class MaintenanceReadContract
             throw new Dev2AccessDenied(404);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ScopeKey] is MaintenanceReadAccess.Scope disclosed
             && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && !IsList(a)
+            && a.Http.Items[UsageKey] is MaintenanceUsageRead.Result { Available: true } shown)
+        {
+            var fresh = await MaintenanceUsageRead.ReadAsync(db, a.Actor.UserId, branch, Id(a), ct);
+            if (!fresh.Available || !fresh.Items.SequenceEqual(shown.Items)) return false;
+        }
         return true;
     }
 
@@ -95,7 +102,14 @@ internal static class MaintenanceReadContract
         {
             if (IsList(a)) return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct));
             var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
-            return detail == null ? new NotFoundResult() : new OkObjectResult(detail);
+            if (detail == null) return new NotFoundResult();
+            var usage = await MaintenanceUsageRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
+            a.Http.Items[UsageKey] = usage;
+            detail.MaterialUsageAvailable = usage.Available;
+            if (usage.Available)
+                foreach (var log in detail.MaintenanceWorkLogs)
+                    log.MaterialUsages = usage.Items.Where(u => u.MaintenanceWorkLogId == log.LogId).ToArray();
+            return new OkObjectResult(detail);
         }
         catch (ValidationException) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid maintenance filters" }); }
     }

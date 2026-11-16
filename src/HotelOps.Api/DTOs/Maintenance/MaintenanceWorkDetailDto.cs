@@ -2,7 +2,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkDetailDto
 {
-    public bool MaterialUsageAvailable { get; init; }
+    public bool MaterialUsageAvailable { get; set; }
     public long MaintenanceWorkId { get; init; }
     public string? AssigneeName { get; init; }
     public string? PriorityName { get; init; }

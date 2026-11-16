@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Maintenance;
@@ -46,5 +48,16 @@ public sealed class MaintenanceReadAccessTests
             Assert.True(contract.RequiresReadTransaction);
             Assert.False(contract.MatchesServiceInvocation(null!, null!));
         }
+    }
+    [Fact] public void UsageProvenanceQueryTranslatesWithoutOpeningDatabase()
+    {
+        using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+            .UseSqlServer("Server=localhost;Database=UnusedQueryTranslationOnly;Integrated Security=true;TrustServerCertificate=true").Options);
+        var sql = MaintenanceUsageRead.VisibleSources(db.MaintenanceMaterialUsages.Where(u => u.MaintenanceWorkId == 42),
+            db.MaterialRequests.Where(r => r.BranchId == 7 && r.RequesterId == 10).Select(r => r.RequestId), 7, 42).ToQueryString();
+        Assert.Contains("maintenance_material_usages", sql);
+        Assert.Contains("material_fulfillment_lines", sql);
+        Assert.Contains("POSTED", sql);
+        Assert.Contains("requester_id", sql);
     }
 }
