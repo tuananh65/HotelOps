@@ -42,7 +42,7 @@ internal static class SprintReportApiScenario
             using(var denied=await Post("/api/reports/tasks/preview",new{branchId=branch.BranchId},false))Check((int)denied.StatusCode==400,"report preview requires CSRF");
             using var preview=await Post("/api/reports/tasks/preview",new{branchId=branch.BranchId});preview.EnsureSuccessStatusCode();
             var report=await preview.Content.ReadFromJsonAsync<JsonElement>(ct);var id=report.GetProperty("snapshotId").GetString()!;
-            Check(report.GetProperty("totalCount").GetInt32()==1,"authorized preview materializes scoped task");
+            Check(report.GetProperty("rows").GetArrayLength()==1 && report.GetProperty("totalCount").GetInt32()==2,"authorized preview materializes scoped task and summary");
             var expectedCsv=HotelOps.Api.Services.Insights.ReportCsvRenderer.Render(
                 JsonSerializer.Deserialize<HotelOps.Api.DTOs.Insights.ReportResult>(report.GetRawText(),new JsonSerializerOptions(JsonSerializerDefaults.Web))!).Content;
             await db.OperationalTasks.Where(t=>t.TaskCode==prefix).ExecuteUpdateAsync(s=>s.SetProperty(t=>t.ProgressPercent,(byte)73),ct);

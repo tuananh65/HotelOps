@@ -81,6 +81,17 @@ internal static class SprintReportActorsScenario
                 "cached report does not acquire rework created after its snapshot");
         var browser = await SprintReportsBrowser.RunAsync(username, password, branch, department, "inspection-actors", ct, cleaner, actor);
         checks.Add(new { reportActorsBrowser = browser });
+        db.OperationalTasks.Add(new() { TaskCode=prefix+"TASK",Title="Synthetic summary task",BranchId=branch,DepartmentId=department,
+            Status="TODO",ProgressPercent=0,CreatedBy=actor,CreatedAt=DateTime.UtcNow });
+        await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        var taskBrowser=await SprintReportsBrowser.RunAsync(username,password,branch,department,"task-summary",ct);
+        checks.Add(new { reportTaskSummaryBrowser=taskBrowser });
+        foreach(var item in taskBrowser.GetProperty("exports").EnumerateArray())
+        {
+            var taskSnapshot=item.GetString();
+            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==taskSnapshot&&a.Action=="CREATE",ct)==2,
+                "task summary browser CSV/XLSX each persist export audit");
+        }
         foreach (var exported in browser.GetProperty("exports").EnumerateArray())
         {
             var id = exported.GetString();

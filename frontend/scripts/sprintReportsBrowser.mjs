@@ -45,6 +45,33 @@ try {
     checks.push(
       "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
     );
+  } else if (fixture.mode === "task-summary") {
+    stage = "task status summary";
+    await page.getByLabel("Branch", { exact: true }).selectOption(String(fixture.branch));
+    await page.getByLabel("Department", { exact: true }).selectOption(String(fixture.department));
+    const pending=page.waitForResponse(r=>r.url().endsWith("/api/reports/tasks/preview")&&r.request().method()==="POST");
+    await page.getByRole("button",{name:"Preview",exact:true}).click();
+    const response=await pending; assert.equal(response.status(),200);
+    const snapshot=await response.json();
+    const summary=snapshot.sections.find(s=>s.key==="task_status_summary");
+    assert.ok(snapshot.rows.length>0);
+    assert.equal(summary.rows.reduce((n,r)=>n+r.taskCount,0),snapshot.rows.length);
+    assert.ok(summary.rows.some(r=>r.workflowState===null&&r.overdue===null));
+    await page.getByRole("heading",{name:"task_status_summary",exact:true}).waitFor();
+    await page.getByRole("columnheader",{name:"taskCount",exact:true}).waitFor();
+    for(const format of ["CSV","XLSX"]){
+      stage="task summary "+format;
+      const pendingDownload=page.waitForEvent("download");
+      await page.getByRole("button",{name:"Export "+format,exact:true}).click();
+      const file=await pendingDownload;const stream=await file.createReadStream();const parts=[];
+      for await(const chunk of stream)parts.push(chunk);
+      const bytes=Buffer.concat(parts);
+      if(format==="CSV"){assert.ok(bytes.toString("utf8").includes('"task_status_summary"'));assert.ok(bytes.toString("utf8").includes('"taskCount"'));}
+      else assert.equal(bytes.readUInt32LE(0),0x04034b50);
+      await file.delete();
+    }
+    exports.push(snapshot.snapshotId);
+    checks.push("RPT06 scoped task status summary reconciles with details and renders/downloads via CSV/XLSX");
   } else if (fixture.mode === "inspection-actors") {
     stage = "inspection actor filters";
     await page.getByLabel("Report type", { exact: true }).selectOption("inspections");
@@ -148,7 +175,8 @@ try {
     assert.equal(response.status(), 200);
     const snapshot = await response.json();
     stage = "validate snapshot";
-    assert.equal(snapshot.totalCount, 26);
+    assert.equal(snapshot.rows.length, 26);
+    assert.equal(snapshot.totalCount, 27);
     assert.deepEqual(snapshot.filters.branchIds, [fixture.branch]);
     assert.equal(snapshot.filters.departmentId, fixture.department);
     stage = "render preview";
@@ -159,7 +187,7 @@ try {
       .getByText("Partial report — unavailable indicators:", { exact: true })
       .waitFor();
     stage = "pagination";
-    assert.equal(await page.locator("tbody tr").count(), 25);
+    assert.equal(await page.locator("tbody tr").count(), 26);
     await page.getByRole("button", { name: "Next page", exact: true }).click();
     assert.equal(await page.locator("tbody tr").count(), 1);
     assert.ok(
@@ -170,7 +198,7 @@ try {
     await page
       .getByRole("button", { name: "Previous page", exact: true })
       .click();
-    assert.equal(await page.locator("tbody tr").count(), 25);
+    assert.equal(await page.locator("tbody tr").count(), 26);
     checks.push(
       "26 persisted task rows paginate 25 plus 1 without changing snapshot",
     );

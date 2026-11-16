@@ -95,10 +95,16 @@ internal static class SprintReportProbe
                 Check(data.MissingSources.Count > 0 && data.ExportFormats.Length == 0, key + " remains partial and does not advertise authorized exports");
                 results[key] = data;
             }
-            Check(results["tasks"].TotalCount == 2 && results["tasks"].Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).SequenceEqual(new[] { first.TaskId, last.TaskId }),
+            Check(results["tasks"].Rows.Count == 2 && results["tasks"].Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).SequenceEqual(new[] { first.TaskId, last.TaskId }),
                 "tasks include UTC start/last instant; exclude next day, foreign branch and inconsistent department");
             Check(((JsonElement)results["tasks"].Rows[0]["workflowState"]!).ValueKind == JsonValueKind.Null
                 && ((JsonElement)results["tasks"].Rows[0]["overdue"]!).ValueKind == JsonValueKind.Null, "unclassified task lifecycle is not invented by report");
+            var unknownTaskSummary = results["tasks"].Sections.Single(s=>s.Key=="task_status_summary").Rows;
+            Check(unknownTaskSummary.Count==1 && ((JsonElement)unknownTaskSummary[0]["workflowState"]!).ValueKind==JsonValueKind.Null
+                && ((JsonElement)unknownTaskSummary[0]["overdue"]!).ValueKind==JsonValueKind.Null
+                && ((JsonElement)unknownTaskSummary[0]["taskCount"]!).GetInt64()==2,
+                "task status summary preserves unknown lifecycle and counts only scoped UTC-period detail population");
+            ReportResult? frozenTaskSummary = null;
             await db.OperationalTasks.Where(t => t.TaskId == first.TaskId).ExecuteUpdateAsync(u => u.SetProperty(t => t.Status, "IN_PROGRESS").SetProperty(t => t.DueAt, start.AddSeconds(-1)), ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({first.TaskId},'IN_PROGRESS')", ct);
             foreach (var state in new[] { "IN_PROGRESS", "PAUSED" })
@@ -106,9 +112,21 @@ internal static class SprintReportProbe
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status={state} WHERE task_id={first.TaskId}", ct);
                 var taskReport = await queries.MaterializeAsync("tasks", query, filters, now, ct);
                 Check(((JsonElement)taskReport.Rows[0]["workflowState"]!).GetString() == state && ((JsonElement)taskReport.Rows[0]["overdue"]!).GetBoolean(), "canonical task state and overdue reported: " + state);
+                var summary=taskReport.Sections.Single(s=>s.Key=="task_status_summary").Rows;
+                Check(summary.Count==2 && summary.Sum(r=>((JsonElement)r["taskCount"]!).GetInt64())==taskReport.Rows.Count
+                    && summary.Any(r=>((JsonElement)r["workflowState"]!).ValueKind==JsonValueKind.String
+                        && ((JsonElement)r["workflowState"]!).GetString()==state && ((JsonElement)r["overdue"]!).GetBoolean()
+                        && ((JsonElement)r["taskCount"]!).GetInt64()==1), "task status and overdue buckets reconcile with detail: "+state);
+                frozenTaskSummary=taskReport;
             }
             await db.OperationalTasks.Where(t => t.TaskId == first.TaskId).ExecuteUpdateAsync(u => u.SetProperty(t => t.Status, "TODO"), ct);
             var inconsistentTask = await queries.MaterializeAsync("tasks", query, filters, now, ct);
+            Check(inconsistentTask.Sections.Single(s=>s.Key=="task_status_summary").Rows.Count==1
+                && ((JsonElement)inconsistentTask.Sections.Single(s=>s.Key=="task_status_summary").Rows[0]["taskCount"]!).GetInt64()==2,
+                "inconsistent task lifecycle returns to unknown summary rather than an invented overdue bucket");
+            var taskSummaryCsv=Encoding.UTF8.GetString(ReportCsvRenderer.Render(frozenTaskSummary!).Content);
+            Check(taskSummaryCsv.Contains("task_status_summary") && taskSummaryCsv.Contains("taskCount") && taskSummaryCsv.Contains("PAUSED"),
+                "frozen task summary CSV retains canonical state after source inconsistency");
             Check(((JsonElement)inconsistentTask.Rows[0]["workflowState"]!).ValueKind == JsonValueKind.Null
                 && ((JsonElement)inconsistentTask.Rows[0]["overdue"]!).ValueKind == JsonValueKind.Null, "inconsistent physical/workflow state yields unknown rather than false overdue");
             Check(results["requests"].TotalCount == 1, "requests exclude mismatched department linkage");
@@ -222,7 +240,8 @@ internal static class SprintReportProbe
             var csv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(cached).Content);
             Check(csv.Contains(snapshot.SnapshotId) && csv.Contains(first.TaskCode) && !csv.Contains(prefix + "D"), "CSV uses frozen scoped server rows");
             var scoped = await queries.MaterializeAsync("tasks", new() { BranchId = branch, DepartmentId = ownDept.DepartmentId }, filters with { DepartmentId = ownDept.DepartmentId }, now, ct);
-            Check(scoped.TotalCount == 2, "supported department filter executes against SQL");
+            Check(scoped.Rows.Count == 2 && scoped.Sections.Single(s=>s.Key=="task_status_summary").Rows
+                .Sum(r=>((JsonElement)r["taskCount"]!).GetInt64())==2, "supported department filter scopes details and task summary against SQL");
             foreach (var key in ReportSnapshotQueries.Keys)
             {
                 var empty = await queries.MaterializeAsync(key, new(), filters with { BranchIds = [] }, now, ct);
@@ -234,10 +253,10 @@ internal static class SprintReportProbe
             Check(rejected, "mismatched resolved branch filters refused");
             // Exercise the actual SQL materialization cap, not just the CSV renderer.
             await db.Database.ExecuteSqlInterpolatedAsync($@"INSERT dbo.operational_tasks(task_code,title,branch_id,department_id,status,progress_percent,created_by,created_at)
-                SELECT TOP (49998) CONCAT({prefix},'LIMIT',ROW_NUMBER() OVER(ORDER BY a.object_id,b.object_id)),N'Synthetic report cap',{branch},{ownDept.DepartmentId},'TODO',0,{actor},{start}
+                SELECT TOP (49997) CONCAT({prefix},'LIMIT',ROW_NUMBER() OVER(ORDER BY a.object_id,b.object_id)),N'Synthetic report cap',{branch},{ownDept.DepartmentId},'TODO',0,{actor},{start}
                 FROM sys.all_objects a CROSS JOIN sys.all_objects b", ct);
             var atLimit = await queries.MaterializeAsync("tasks", query, filters, now, ct);
-            Check(atLimit.TotalCount == 50000, "exactly 50000 SQL rows accepted");
+            Check(atLimit.TotalCount == 50000 && atLimit.Rows.Count==49999, "exactly 50000 detail plus summary SQL rows accepted");
             db.OperationalTasks.Add(TaskRow("OVER", branch, ownDept.DepartmentId, start)); await db.SaveChangesAsync(ct);
             rejected = false;
             try { await queries.MaterializeAsync("tasks", query, filters, now, ct); }

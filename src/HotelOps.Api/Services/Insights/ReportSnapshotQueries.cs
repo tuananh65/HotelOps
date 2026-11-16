@@ -224,6 +224,11 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                             && state.State != "CLOSED" && state.State != "CANCELLED" };
                 await Add("operational_tasks", rows.OrderBy(t => t.Id),
                     "id", "taskCode", "branchId", "departmentId", "status", "priorityId", "progressPercent", "createdAt", "dueAt", "actualStartAt", "completedAt", "workflowState", "overdue");
+                await Add("task_status_summary", rows.GroupBy(t => new { t.WorkflowState, t.Overdue })
+                    .OrderBy(g => g.Key.WorkflowState).ThenBy(g => g.Key.Overdue)
+                    .Select(g => new { g.Key.WorkflowState, g.Key.Overdue, TaskCount = g.LongCount() }),
+                    "workflowState", "overdue", "taskCount");
+                missing.Add("Task status summary uses the same created-in-period task population as detail rows; null lifecycle/overdue is an unknown bucket, not a non-overdue task");
                 missing.Add("Task work-time/shift-effort indicators are not aggregated; null workflow/overdue means canonical lifecycle is unavailable or inconsistent");
                 break;
             }
