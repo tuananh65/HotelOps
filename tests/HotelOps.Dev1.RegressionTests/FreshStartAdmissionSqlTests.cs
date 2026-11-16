@@ -34,12 +34,16 @@ public sealed class FreshStartAdmissionSqlTests
         Assert.Matches("^HotelOps_DEV3_142A_Recovery_[a-f0-9]{8}$", target);
         var guid = Guid.Parse(root.GetProperty("recoveryGuid").GetString()!);
         Assert.NotEqual(Guid.Empty, guid);
+        var server = Environment.GetEnvironmentVariable("DEV3_RECOVERY_SERVER") ?? "localhost\\MSSQLSERVER01";
+        if (server != "localhost\\MSSQLSERVER01")
+            Assert.Matches("^tcp:127[.]0[.]0[.]1,[0-9]{1,5}$", server);
         await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
-            .UseSqlServer($"Server=localhost\\MSSQLSERVER01;Database={target};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
+            .UseSqlServer($"Server={server};Database={target};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         Assert.Equal(root.GetProperty("expectedServer").GetString(), await db.Database.SqlQuery<string>($"SELECT CONVERT(nvarchar(128),SERVERPROPERTY('ServerName')) AS [Value]").SingleAsync());
         Assert.Equal(target, await db.Database.SqlQuery<string>($"SELECT DB_NAME() AS [Value]").SingleAsync());
         Assert.Equal(guid, await db.Database.SqlQuery<Guid>($"SELECT database_guid AS [Value] FROM sys.database_recovery_status WHERE database_id=DB_ID()").SingleAsync());
         Assert.True(await CleaningStartSchema.InstalledAsync(db, default));
+        Assert.True(await CleaningResumeSchema.InstalledAsync(db, default));
         var task = await db.CleaningTasks.AsNoTracking().Where(t => t.Room.IsActive && !db.RoomBlocks.Any(b => b.RoomId == t.RoomId))
             .Where(t => !db.CleaningAssignments.Any(a => a.CleaningTaskId == t.CleaningTaskId && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null))
             .Select(t => new { t.CleaningTaskId, t.RoomId, t.Room.BranchId, Actor = t.CreatedBy }).FirstAsync();
@@ -149,6 +153,18 @@ public sealed class FreshStartAdmissionSqlTests
             var audit=await db.AuditLogs.AsNoTracking().SingleAsync(a=>a.RequestId==operation.ToString("D"));
             using var data=JsonDocument.Parse(audit.NewValues!);
             Assert.Equal(blocked ? "BLOCKED" : "CLEANING_IN_PROGRESS",data.RootElement.GetProperty("effectiveReadiness").GetString());
+            // Resume persistence contract: blocker resolution must change the parent task ETag.
+            var blockerReason=await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="BLOCKER" && r.IsActive)
+                .Select(r=>r.ReferenceId).FirstAsync();
+            var progress=new CleaningProgressLog { CleaningTaskId=taskId, Status="BLOCKED", ProgressPercent=50,
+                BlockerTypeId=blockerReason, Note="DEV3 synthetic resume blocker", LoggedBy=actor, LoggedAt=now };
+            db.CleaningProgressLogs.Add(progress); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.fs014_cleaning_blocker_resolutions(progress_id) VALUES({progress.ProgressId})");
+            var blockedVersion=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.fs014_cleaning_blocker_resolutions SET resolved_by={actor},resolved_at={now},resolution_note=N'Synthetic obstacle removed' WHERE progress_id={progress.ProgressId}");
+            var resolvedVersion=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={taskId}").SingleAsync();
+            Assert.False(blockedVersion.SequenceEqual(resolvedVersion));
+            Assert.Equal(1,await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs014_cleaning_blocker_resolutions WHERE progress_id={progress.ProgressId} AND resolved_by={actor} AND resolved_at={now} AND resolution_note=N'Synthetic obstacle removed'").SingleAsync());
             await tx.RollbackAsync();
         }
         Assert.False(await db.Rooms.AnyAsync(r=>r.RoomId==roomId));

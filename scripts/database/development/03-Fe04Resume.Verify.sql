@@ -1,0 +1,6 @@
+IF OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions','U') IS NULL THROW 51990,'Blocker resolution storage missing',1;
+IF NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_fs014_blocker_version') AND parent_id=OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions') AND is_disabled=0) THROW 51990,'Blocker version trigger missing',1;
+IF (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions') AND is_disabled=0 AND is_not_trusted=0)<>2 THROW 51990,'Blocker foreign keys missing',1;
+IF (SELECT COUNT(*) FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions') AND is_disabled=0 AND is_not_trusted=0)<>2 THROW 51990,'Blocker constraints missing',1;
+IF COL_LENGTH('dbo.fs014_cleaning_blocker_resolutions','resolution_note')<>1000 THROW 51990,'Blocker note storage mismatch',1;
+IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.cleaning_tasks') AND name='row_version' AND system_type_id=189 AND is_nullable=0) THROW 51990,'Parent version missing',1;

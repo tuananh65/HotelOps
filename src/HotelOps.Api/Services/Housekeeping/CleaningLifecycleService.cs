@@ -45,7 +45,7 @@ public sealed partial class RoomTypeCreationService
                 ? state.State == "ASSIGNED" ? "AVAILABLE" : state.State == "ON_HOLD" ? "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" : "STATE_CONFLICT" : "UNAVAILABLE";
             var reassign = installed && candidateNotification != null && await candidateNotification.AvailableAsync(token)
                 && (await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, token)).IsGranted ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE";
-            var resume = installed && state.State == "ON_HOLD" && active?.AssigneeUserId == ticket.UserId
+            var resume = startInstalled && state.State == "ON_HOLD" && active?.AssigneeUserId == ticket.UserId
                 && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 && await ResumeTrialInstalled(token) ? "PROVISIONAL_V1" : "UNAVAILABLE";
             var closure = installed && state.State == "IN_PROGRESS" && active?.AssigneeUserId == ticket.UserId

@@ -13,6 +13,9 @@ public sealed partial class RoomTypeCreationService
     }
 
     private async Task<bool> ResumeTrialInstalled(CancellationToken ct) =>
+        await HotelOps.Api.Data.CleaningResumeSchema.InstalledAsync(db, ct) || await LegacyResumeTrialInstalled(ct);
+
+    private async Task<bool> LegacyResumeTrialInstalled(CancellationToken ct) =>
         await db.Database.SqlQuery<int>($"""
         SELECT CASE WHEN ((DB_NAME()='HotelOps_Canonical_FS014_Resume_V1_Fresh'
         AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS014.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS014'))

@@ -93,6 +93,9 @@ public sealed partial class ProvisionalCleaningNotification
 
 public sealed partial class ProvisionalCleaningDelivery
 {
+    internal async Task<string> DeliverClosureOnlyAsync(CancellationToken ct)
+        => await candidate.ClosureAvailableAsync(ct) ? await DeliverClosureOneAsync(ct, null) : "DISABLED";
+
     private sealed class ClosureIntent
     {
         public long Id { get; set; }

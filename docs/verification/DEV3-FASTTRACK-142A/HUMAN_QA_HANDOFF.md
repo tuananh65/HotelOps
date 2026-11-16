@@ -1,6 +1,6 @@
 # FASTTRACK-142A — Human QA handoff / source gap inventory
 
-Updated C173, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
+Updated C174, 2026-11-16. Canonical integration branch; no production deployment. Development-only HotelOpsDB schema batch authorized and applied at C171. This is the single 144-UC handoff. Full historical evidence and dependency descriptions remain in [UC_STATUS_MATRIX.md](UC_STATUS_MATRIX.md); [SRS scope](../../requirements/srs_sections/02_use_case_specifications.md).
 
 Source covered **29/144** = **27 historical COMPLETE_VERIFIED + 2 IMPLEMENTED_PENDING_QA awaiting acceptance (UC032, UC038)**. No new COMPLETE_VERIFIED. The implementation enum IMPLEMENTED_PENDING_QA means source implemented; for the 27 already verified rows, the separate COMPLETE_VERIFIED field takes precedence and does not reopen QA. Pending-QA totals exclude those 27. Other rows are conservative source gaps, not implementation claims based on builds. NOT_TESTED means no current complete-UC assessment; historical slice checks remain linked and are not erased.
 
@@ -10,7 +10,9 @@ C172: fresh-Start SQL admission ports now implemented; execution schema batch ap
 
 C173: UC031 effective-block Start corrected to SRS step 6/GBR-044. Known block evidence allows execution while preserving physical room status; unknown evidence still denies. SQL canonical writer verified for blocked/clear cases with synthetic rollback fixtures; FE shows blocked-use notice. No new complete UC.
 
-Priority A next: FE04 Resume, completion and cancellation integration; FE13 material/legacy target adapters where authority contract exists; notification producer gaps. FE13 reopen/receipt/reroute and JOB06 finite archive retention still need their exact missing contracts. Approved RPT03 category/SLA decision is recorded below, not treated as installed storage.
+C174: Resume now recognizes an exact versioned schema capability independent of legacy trial DB names. Recovery-only Resume schema installed/replayed (89 tables); HotelOpsDB unchanged at 88. Added opt-in bounded closure delivery worker, disabled by default and still requiring existing closure capability. Focused 40 PASS plus recovery SQL 1 PASS; no full Resume/closure HTTP acceptance.
+
+Priority A next: FE04 closure/outbox/cleaner-attribution capability integration, then full Resume/Complete and cancellation; FE13 material/legacy target adapters where authority contract exists; notification producer gaps. FE13 reopen/receipt/reroute and JOB06 finite archive retention still need their exact missing contracts. Approved RPT03 category/SLA decision is recorded below, not treated as installed storage.
 
 New RPT03 contract: official INCIDENT_CATEGORY catalog and Incident.CategoryId FK/group; ResponseDeadlineAt/ResolutionDeadlineAt derived from DiscoveredAt plus approved Priority SLA configuration at Triage, never maintenance planned times. Reason/history for changes; retain prior processing-cycle SLA on Reopen. Duration configuration is not approved/provided. UC050/052 persistence, UI/API and guarded installer remain to implement; no client ActorUserId authority permitted. Missing metrics remain N/A with reason.
 

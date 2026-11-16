@@ -1,0 +1,9 @@
+[
+    {
+        "marker":  "HotelOps.CleaningResume.V1",
+        "path":  "scripts/database/development/03-Fe04Resume.sql",
+        "sha256":  "56B2F290C05D30F1E4DE0C01AC9E01FFA582455A7A8F6AD8EFBBDC8F0CDD5CD9",
+        "id":  "fe04-resume-v1",
+        "start":  "SET XACT_ABORT ON;"
+    }
+]

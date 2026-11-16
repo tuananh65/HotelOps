@@ -1,0 +1,13 @@
+# C174 — Resume capability and closure delivery worker
+
+Baseline `be1b0d4612a3d98d4a23990b1e00c085f26b99ce`. Concrete source progress; no UC completion promotion. 29/144 source covered, 2 awaiting QA, 27 historical COMPLETE_VERIFIED.
+
+Resume: added exact hash-bound capability for the existing FS014 blocker-resolution schema, keeping enabled parent-version trigger and trusted FK/CHECK checks. Metadata can advertise Resume with the new execution foundation instead of requiring Reassign's old procedure package. Existing session, current assignee, note, workday, interval, ETag and blocker-source guards retained. Incident/material-linked blockers still fail closed pending source confirmation.
+
+Schema: FE04_RESUME_V1 manifest `3DBB01F89934CAC8F39FF7D8D50DC85EEDACB45CAEA1C42F2D1B816E9688F589`. Exact recovery clone identity/backup guard, rollback + independent absence, apply and replay PASS. Clone now 89 tables. **Not applied to HotelOpsDB**; no shared/production mutation this batch. No blocker backfill, invented catalog or historical resolution.
+
+Notification: new `CleaningClosureNotifications:Enabled` opt-in worker (default false), bounded to 100 attempts/poll, fresh scope per attempt, reusing existing durable intent/recipient checks/transaction/retry handling. It calls only closure delivery, never falls back to assignment processing. Missing closure capability stops scanning. No second ledger or local config activation. Canonical closure/outbox/cleaner-attribution installer still required; delivery is not certified.
+
+Validation: backend build PASS (0 warnings/errors); 40 focused lifecycle/CSRF/worker tests PASS. Recovery SQL fixture PASS: actual parent ETag changes after blocker resolution, persisted resolver/time/note and rollback cleanup, plus earlier canonical blocked/clear Start cases. Two initial attempts failed with query/pre-login timeouts. Diagnostic read found the local TCP listener; fixture used its verified loopback port with encryption and unchanged timeout/identity guards. This does not prove the root cause or general network stability. Source test permits only loopback override and verifies server/database/GUID before writes. Solution test command exited 0 but executes no separate regression suite. FE source unchanged; C173 typecheck/build last PASS, not rerun. No current browser/HTTPS business acceptance claimed.
+
+Remaining: durable closure capability including immutable publication/operation source checks and cleaner attribution, post-commit delivery on the canonical environment, authenticated Resume→Complete→Inspection acceptance, Cancel and linked blocker adapters where business contracts are missing. Continue this workflow; do not relabel it COMPLETE_VERIFIED from component evidence.

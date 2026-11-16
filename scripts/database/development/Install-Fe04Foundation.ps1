@@ -1,7 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$RecoveryReceipt,
  [Parameter(Mandatory=$true)][ValidateSet('Recovery','Development')][string]$Target,
  [switch]$RollbackTrial,
- [ValidateSet('fe04-foundation','fe04-execution')][string]$SchemaBatch='fe04-foundation')
+ [ValidateSet('fe04-foundation','fe04-execution','fe04-resume')][string]$SchemaBatch='fe04-foundation')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $receipt=Get-Content -LiteralPath $RecoveryReceipt -Raw | ConvertFrom-Json
@@ -15,7 +15,7 @@ $directory=Split-Path -Parent (Resolve-Path -LiteralPath $RecoveryReceipt).Path
 $schemaPath=Join-Path $directory 'baseline-schema.json'
 if((Get-FileHash -LiteralPath $schemaPath -Algorithm SHA256).Hash -cne $receipt.schemaSha256){throw 'Baseline schema mismatch'}
 $manifestPath=Join-Path $PSScriptRoot "$SchemaBatch-v1.json"
-$migrationId=if($SchemaBatch -eq 'fe04-foundation'){'FE04_FOUNDATION_V1'}else{'FE04_EXECUTION_V1'}
+$migrationId=if($SchemaBatch -eq 'fe04-foundation'){'FE04_FOUNDATION_V1'}elseif($SchemaBatch -eq 'fe04-execution'){'FE04_EXECUTION_V1'}else{'FE04_RESUME_V1'}
 $manifestHash=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash
 $manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $packages=@()
