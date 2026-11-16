@@ -13,13 +13,6 @@ const strongEtag = (value: unknown): value is string =>
   value.length === 18 &&
   /^"[0-9A-F]{16}"$/.test(value);
 
-const allowedRoles: readonly string[] = [
-  "HK_STAFF",
-  "HK_SUPERVISOR",
-  "MAINTENANCE_STAFF",
-  "MAINTENANCE_LEAD",
-  "STOREKEEPER",
-];
 // Match .NET String.Trim, including U+0085 and excluding U+FEFF.
 const trimRoleCode = (value: string) =>
   value.replace(
@@ -182,7 +175,7 @@ export function createUserRoleAssignmentApi(
       if (
         !normalizedRole ||
         normalizedRole.length > 60 ||
-        !allowedRoles.includes(normalizedRole)
+        /[\x00-\x1f\x7f-\x9f]/.test(normalizedRole)
       )
         return invalid("INVALID_ROLE_CODE");
       const body = JSON.stringify({ roleCode: normalizedRole, branchId });

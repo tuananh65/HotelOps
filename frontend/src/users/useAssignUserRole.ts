@@ -19,13 +19,7 @@ export function normalizeAssignmentRole(value: string): string | null {
     /^[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+|[\u0009-\u000D\u0020\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+$/g,
     "",
   );
-  return [
-    "HK_STAFF",
-    "HK_SUPERVISOR",
-    "MAINTENANCE_STAFF",
-    "MAINTENANCE_LEAD",
-    "STOREKEEPER",
-  ].includes(normalized)
+  return normalized.length > 0 && normalized.length <= 60 && !/[\x00-\x1f\x7f-\x9f]/.test(normalized)
     ? normalized
     : null;
 }
@@ -292,7 +286,7 @@ function failureMessage(status?: number, reason?: string): string {
     case "PRIMARY_SCOPE_CONFLICT":
       return "The primary branch or department is incompatible with this assignment. This flow cannot repair it.";
     case "EXISTING_ROLE_PATH_CONFLICT":
-      return "Existing role history prevents first-role assignment. This flow cannot replace, regrant or reactivate a role.";
+      return "This role already has an assignment record in the selected branch. Existing history was preserved; other roles can be added separately.";
     case "LAST_DURABLE_ADMIN":
       return "The server rejected the assignment to preserve the last durable administrator.";
     case "CSRF_VALIDATION_FAILED":

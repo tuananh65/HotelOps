@@ -1,5 +1,8 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { createRoleCatalogApi } from "../roles/roleCatalogApi";
+import type { RoleDto } from "../roles/contracts";
 import {
   assignmentBranchId,
   normalizeAssignmentRole,
@@ -22,6 +25,29 @@ function ConfirmationForm({
   );
   const reviewed = useRef<typeof review>(null);
   const [error, setError] = useState("");
+  const [roles, setRoles] = useState<RoleDto[]>([]);
+  const [catalogState, setCatalogState] = useState("Loading active role catalog...");
+  useEffect(() => {
+    const abort = new AbortController();
+    const api = createRoleCatalogApi();
+    void (async () => {
+      const rows: RoleDto[] = [];
+      for (let page = 1; page <= 80; page++) {
+        const result = await api.roles(page, "", "true", abort.signal);
+        if (abort.signal.aborted) return;
+        if (!result.ok || result.data.total > 2000) {
+          setCatalogState("Active role catalog unavailable or access denied."); return;
+        }
+        rows.push(...result.data.items);
+        if (page * result.data.pageSize >= result.data.total) {
+          setRoles([...new Map(rows.map(row => [row.roleId, row])).values()]);
+          setCatalogState(rows.length ? "" : "No active roles are available."); return;
+        }
+      }
+      setCatalogState("Role catalog exceeds the supported page limit.");
+    })();
+    return () => abort.abort();
+  }, []);
   function invalidate() {
     reviewed.current = null;
     setReview(null);
@@ -31,9 +57,9 @@ function ConfirmationForm({
     invalidate();
     const roleCode = normalizeAssignmentRole(role),
       branchId = assignmentBranchId(branch);
-    if (!roleCode || branchId === null) {
+    if (!roleCode || branchId === null || !roles.some(r => r.roleCode === roleCode && r.isActive)) {
       setError(
-        "Enter an exact supported Role Code and a positive safe integer Branch ID using decimal digits only.",
+        "Select an active role and enter a positive Branch ID for the user's current branch access.",
       );
       return;
     }
@@ -57,22 +83,21 @@ function ConfirmationForm({
     >
       <label>
         Role Code
-        <input
+        <select
           name="roleCode"
-          type="text"
-          autoComplete="off"
           required
+          disabled={!!catalogState}
           value={role}
           onChange={(e) => {
             setRole(e.target.value);
             invalidate();
           }}
-        />
+        >
+          <option value="">Select an active role</option>
+          {roles.map(r => <option key={r.roleId} value={r.roleCode}>{r.roleCode} — {r.roleName}</option>)}
+        </select>
       </label>
-      <p>
-        Supported codes: HK_STAFF, HK_SUPERVISOR, MAINTENANCE_STAFF,
-        MAINTENANCE_LEAD, STOREKEEPER.
-      </p>
+      {catalogState && <p role="status">{catalogState}</p>}
       <label>
         Branch ID
         <input
@@ -88,7 +113,7 @@ function ConfirmationForm({
           }}
         />
       </label>
-      <button type="button" onClick={preview}>
+      <button type="button" onClick={preview} disabled={!!catalogState}>
         Review Assignment
       </button>
       {review && (
@@ -99,8 +124,8 @@ function ConfirmationForm({
           <p>Role Code: {review.role}</p>
           <p>Branch ID: {review.branch}</p>
           <p>
-            First-role-only V1. The server may reject this request if any
-            UserRole history exists, including inactive or expired assignments.
+            The assignment is limited to this branch. Existing roles remain assigned.
+            A duplicate role/branch assignment is rejected, including historical records.
           </p>
           <button type="button" onClick={confirm}>
             Confirm Assign Role
@@ -131,13 +156,13 @@ export function AssignUserRolePage({
       <Link to="/profile">Profile</Link>
       <p>
         Loading a profile does not grant permission to assign roles. The server
-        verifies account eligibility, role history, active role and permission
-        envelope, primary branch, department, membership, actor authority and
+        verifies account eligibility, active catalog role, duplicate assignment,
+        branch membership, actor authority and
         administrator safety when POST is processed.
       </p>
       <p>
-        This first-role-only V1 flow cannot revoke, replace, reassign,
-        reactivate or regrant roles.
+        Assignments add to the user's roles. Scope and segregation-of-duty checks
+        still apply to each business operation. The user's sessions will end after assignment.
       </p>
       {progress.phase === "unknown" && (
         <>

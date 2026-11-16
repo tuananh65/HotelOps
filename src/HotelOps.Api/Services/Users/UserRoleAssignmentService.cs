@@ -27,7 +27,8 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
         if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
             return new(AssignRoleStatus.SessionInvalid);
-        if (actor.IsRestricted || actor.UserId == targetId || !UserRoleDelegationPolicy.TryGetDepartment(request.RoleCode, out var departmentCode))
+        if (actor.IsRestricted || actor.UserId == targetId || string.IsNullOrWhiteSpace(request.RoleCode)
+            || request.RoleCode.Length > 60 || request.RoleCode.Any(char.IsControl))
             return new(AssignRoleStatus.Forbidden);
         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null || Transaction.Current is not null
             || db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Role assignment requires a clean SQL context and its own transaction.");
@@ -43,10 +44,8 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
                 .AsNoTracking().ToListAsync(ct);
         await authorityLocks.LockAuthorityAsync(actor.UserId, targetId, ct);
         // Snapshot already retains all grant/permission ranges (including ROLE_MANAGE).
-        // Explicitly retain destination/Department rows while final checks may advance time.
+        // Retain the destination branch while final checks may advance time.
         _ = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={request.BranchId}")
-            .AsNoTracking().ToListAsync(ct);
-        _ = await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.users u WHERE u.user_id={targetId} AND u.department_id=dbo.departments.department_id)")
             .AsNoTracking().ToListAsync(ct);
 
         async Task<AssignRoleStatus?> Gate(byte[] version, long? insertedId)
@@ -57,23 +56,24 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
                 || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted) return AssignRoleStatus.Forbidden;
             var target = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserId == targetId && u.DeletedAt == null, ct);
             if (target is null) return AssignRoleStatus.NotFound;
-            if (target.AccountStatus != "ACTIVE") return AssignRoleStatus.Inactive;
+            if (target.AccountStatus != "ACTIVE" || target.EmploymentStatus != "ACTIVE") return AssignRoleStatus.Inactive;
             if (!target.RowVersion.AsSpan().SequenceEqual(version)) return AssignRoleStatus.Stale;
             var now = clock.GetUtcNow().UtcDateTime;
-            if (target.PrimaryBranchId != request.BranchId || target.DepartmentId is null
-                || !await db.Branches.AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, ct)
-                || !await db.Departments.AnyAsync(d => d.DepartmentId == target.DepartmentId && d.BranchId == request.BranchId
-                    && d.IsActive && d.DepartmentCode == departmentCode, ct)
+            if (!await db.Branches.AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, ct)
                 || !await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == request.BranchId
                     && a.RevokedAt == null && a.GrantedAt <= now, ct)) return AssignRoleStatus.ScopeConflict;
             var role = await db.Roles.AsNoTracking().SingleOrDefaultAsync(r => r.RoleCode == request.RoleCode, ct);
-            if (role is null || !role.IsActive || role.IsSystemRole || role.RoleCode != request.RoleCode) return AssignRoleStatus.Forbidden;
-            var grants = await db.RolePermissions.AsNoTracking().Where(g => g.RoleId == role.RoleId)
-                .Select(g => g.Permission.PermissionCode + "/" + g.DataScope).ToArrayAsync(ct);
-            if (!UserRoleDelegationPolicy.Matches(request.RoleCode, grants)) return AssignRoleStatus.Forbidden;
-            // V1 proves no historical/dormant/future conflicting paths, rather than guessing
-            // which combinations are safe. No existing assignment is ever updated or revived.
-            if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && (!insertedId.HasValue || r.UserRoleId != insertedId.Value), ct))
+            if (role is null || !role.IsActive || role.RoleCode != request.RoleCode) return AssignRoleStatus.Forbidden;
+            // UC009 owns current grants. Adding a role never bypasses resource/department
+            // authority or segregation of duties enforced by each business operation.
+            var operationsManager = role.RoleCode == "OPERATIONS_MANAGER" || await db.UserRoles.AnyAsync(a => a.UserId == targetId
+                && a.IsActive && a.Role.IsActive && a.Role.RoleCode == "OPERATIONS_MANAGER" && (a.ExpiresAt == null || a.ExpiresAt > now), ct);
+            if (operationsManager && await db.UserBranchAccesses.Where(a => a.UserId == targetId && a.RevokedAt == null
+                && a.Branch.IsActive).Select(a => a.BranchId).Distinct().CountAsync(ct) != 1) return AssignRoleStatus.ScopeConflict;
+            // The schema retains one record per user/role/branch. Preserve old assignments;
+            // a prior assignment for another role or branch does not prohibit additional roles.
+            if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && r.RoleId == role.RoleId && r.BranchId == request.BranchId
+                && (!insertedId.HasValue || r.UserRoleId != insertedId.Value), ct))
                 return AssignRoleStatus.RoleConflict;
             return null;
         }
@@ -107,6 +107,7 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
             catch (GlobalAdministrationInvariantException) { return new(AssignRoleStatus.LastAdministrator); }
         }
         if (await Gate(version, assignment.UserRoleId) is { } finalDenied) return new(finalDenied);
+        await new SessionRevocationService(db).RevokeAllAsync(targetId, clock.GetUtcNow().UtcDateTime, ct);
         if (!await db.UserRoles.AnyAsync(r => r.UserRoleId == assignment.UserRoleId && r.UserId == targetId && r.RoleId == selectedRoleId
             && r.BranchId == request.BranchId && r.AssignedBy == actor.UserId && r.AssignedAt == assignedAt && r.IsActive && r.ExpiresAt == null, ct))
             throw new DbUpdateConcurrencyException("Staged role assignment was not preserved.");
