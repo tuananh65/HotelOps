@@ -2,6 +2,7 @@ import { taskWorkflowStates } from "./api";
 import { planningRequest } from "./planning";
 
 export interface WorkloadFilters {
+  calendar?: "UTC" | "Asia/Ho_Chi_Minh";
   from?: string;
   to?: string;
   departmentId?: number;
@@ -24,6 +25,7 @@ export interface WorkloadEmployee {
   provisionalSeconds: number;
 }
 interface Snapshot {
+  calendar?: "UTC" | "Asia/Ho_Chi_Minh";
   branchId: number;
   from: string;
   to: string;
@@ -156,6 +158,10 @@ export async function readWorkload(
     params.set("search", filters.search);
   }
   if (filters.overdueOnly) params.set("overdueOnly", "true");
+  if (filters.calendar !== undefined) {
+    if (filters.calendar !== "UTC" && filters.calendar !== "Asia/Ho_Chi_Minh") throw Error("Invalid calendar");
+    params.set("calendar", filters.calendar);
+  }
   const response = await planningRequest(
     `/api/branches/${branch}/task-workload${employee === null ? "" : `/${employee}`}?${params}`,
     signal,
@@ -163,6 +169,7 @@ export async function readWorkload(
   const data = (await response.json()) as WorkloadPage | WorkloadDetail;
   if (
     !data ||
+    (data.calendar ?? "Asia/Ho_Chi_Minh") !== (filters.calendar ?? "Asia/Ho_Chi_Minh") ||
     data.branchId !== branch ||
     data.page !== page ||
     data.pageSize !== 20 ||

@@ -107,6 +107,17 @@ internal static class SprintTaskDashboardScenario
             .Select(g => g.GetProperty("status").GetString()).ToArray();
         Check(states.Contains("PAUSED") && states.Contains("PENDING_VERIFICATION") && states.Contains("CLOSED"),
             "canonical lifecycle distribution distinguishes physical IN_PROGRESS stages");
+        var workloadPath = $"/api/branches/{branch}/task-workload?departmentId={department.DepartmentId}&from={now.AddDays(-1):yyyy-MM-dd}&to={now:yyyy-MM-dd}";
+        var utcWorkload = await send(HttpMethod.Get, workloadPath + "&calendar=UTC", null, null, true);
+        Check(utcWorkload.Status == 200 && utcWorkload.Body.GetProperty("calendar").GetString() == "UTC"
+            && utcWorkload.Body.GetProperty("items").EnumerateArray().Single(r => r.GetProperty("userId").GetInt64() == actor).GetProperty("closedEffortSeconds").GetInt64() == 2400,
+            "explicit UTC Workload agrees with dashboard effort across midnight");
+        var localWorkload = await send(HttpMethod.Get, workloadPath, null, null, true);
+        Check(localWorkload.Status == 200 && localWorkload.Body.GetProperty("calendar").GetString() == "Asia/Ho_Chi_Minh"
+            && localWorkload.Body.GetProperty("items").EnumerateArray().Single(r => r.GetProperty("userId").GetInt64() == actor).GetProperty("closedEffortSeconds").GetInt64() == 3000,
+            "default hotel-day Workload remains unchanged and includes full crossing interval");
+        Check((await send(HttpMethod.Get, workloadPath + "&calendar=CLIENT", null, null, true)).Status == 400,
+            "unsupported workload calendar rejected");
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("frontend/scripts/sprintTaskDashboardBrowser.mjs");
@@ -126,6 +137,15 @@ internal static class SprintTaskDashboardScenario
             }
             finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }
         }
+        var viewGrants = await db.RolePermissions.AsNoTracking().Where(g => g.Permission.PermissionCode == "TASK_VIEW"
+            && db.UserRoles.Any(r => r.UserId == actor && r.RoleId == g.RoleId)).ToArrayAsync(ct);
+        var viewGrantIds = viewGrants.Select(g => g.RolePermissionId).ToArray();
+        await db.RolePermissions.Where(g => viewGrantIds.Contains(g.RolePermissionId)).ExecuteDeleteAsync(ct);
+        Check((await send(HttpMethod.Get, workloadPath + "&calendar=UTC", null, null, true)).Status == 403
+            && (await send(HttpMethod.Get, path, null, null, true)).Status == 200,
+            "DASHBOARD_VIEW does not replace revoked TASK_VIEW for workload drill-down");
+        foreach (var grant in viewGrants) db.RolePermissions.Add(new() { RoleId = grant.RoleId, PermissionId = grant.PermissionId, DataScope = grant.DataScope, GrantedAt = grant.GrantedAt });
+        await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var legacy = await Seed(null, now.AddHours(-1));
         var overlap = Interval(-30, -25);
         db.WorkIntervals.Add(overlap); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();

@@ -35,11 +35,23 @@ try {
   await distributions.getByRole("cell", { name: "PAUSED", exact: true }).waitFor();
   await distributions.getByRole("cell", { name: "PENDING_VERIFICATION", exact: true }).waitFor();
   await distributions.getByRole("cell", { name: "CLOSED", exact: true }).waitFor();
+  stage = "UTC workload drill-down";
+  const workloadResponse = page.waitForResponse(r => new URL(r.url()).pathname === `/api/branches/${fixture.branch}/task-workload`);
+  await indicators.locator("div").filter({ has: page.getByText("Task effort", { exact: true }) })
+    .getByRole("link", { name: "Review workload", exact: true }).click();
+  const workload = await workloadResponse;
+  assert.equal(workload.status(), 200);
+  const query = new URL(workload.url()).searchParams;
+  assert.equal(query.get("calendar"), "UTC"); assert.equal(query.get("departmentId"), String(fixture.department));
+  assert.equal(query.get("from"), fixture.from); assert.equal(query.get("to"), fixture.to);
+  await page.getByRole("table", { name: "Employee workload" }).getByRole("cell", { name: "2400", exact: true }).waitFor();
+  assert.equal(await page.getByLabel("Workload department ID").inputValue(), String(fixture.department));
+  await page.getByText("Period calendar: UTC.", { exact: true }).waitFor();
   stage = "logout";
   await page.goto("https://localhost:7142/profile");
   await page.getByRole("button", { name: "Logout", exact: true }).click();
   await page.waitForURL("https://localhost:7142/login");
-  process.stdout.write(JSON.stringify({ success: true, checks: ["canonical dashboard filters reach HTTPS", "open=4 overdue=2 closedInPeriod=1 rendered", "Paused/Pending Verification/Closed rendered separately", "closed effort 0.67 hours and one open interval rendered separately"] }));
+  process.stdout.write(JSON.stringify({ success: true, checks: ["canonical dashboard filters reach HTTPS", "open=4 overdue=2 closedInPeriod=1 rendered", "Paused/Pending Verification/Closed rendered separately", "closed effort 0.67 hours and one open interval rendered separately", "dashboard effort link opens authorized Workload with same UTC scope and 2400 closed seconds"] }));
 } catch {
   process.stdout.write(JSON.stringify({ success: false, stage })); process.exitCode = 1;
 } finally { if (browser) await browser.close(); }

@@ -6,9 +6,11 @@ namespace HotelOps.Api.Services.WorkTime;
 // for provisional time, and never mix workday duration into task effort.
 internal readonly record struct WorkTimePeriod(DateOnly From, DateOnly To, DateTime Start, DateTime End)
 {
-    internal static WorkTimePeriod Create(DateOnly? from, DateOnly? to, DateTime now)
+    internal static WorkTimePeriod Create(DateOnly? from, DateOnly? to, DateTime now, string calendar = "Asia/Ho_Chi_Minh")
     {
-        var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+        if (calendar is not ("UTC" or "Asia/Ho_Chi_Minh"))
+            throw new ValidationException("Unsupported work-time calendar.");
+        var zone = calendar == "UTC" ? TimeZoneInfo.Utc : TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
         var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(now, DateTimeKind.Utc), zone));
         var first = from ?? today;
         var last = to ?? first;

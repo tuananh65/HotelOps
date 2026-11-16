@@ -15,30 +15,32 @@ export function TaskWorkloadPanel({
   branch,
   owner,
   initialSearch = "",
+  initialFilters,
 }: {
   branch: number;
   owner: AuthorityGeneration;
   initialSearch?: string;
+  initialFilters?: WorkloadFilters;
 }) {
   const { actions } = useAuth();
   const [form, setForm] = useState({
-    from: "",
-    to: "",
-    departmentId: "",
+    from: initialFilters?.from ?? "",
+    to: initialFilters?.to ?? "",
+    departmentId: initialFilters?.departmentId?.toString() ?? "",
     employeeId: "",
     priorityId: "",
-    status: "",
+    status: initialFilters?.status ?? "",
     deadlineFrom: "",
     deadlineTo: "",
     search: initialSearch,
-    overdueOnly: false,
+    overdueOnly: initialFilters?.overdueOnly ?? false,
   });
   const [query, setQuery] = useState<{
     filters: WorkloadFilters;
     page: number;
     employee: number | null;
     revision: number;
-  } | null>(null);
+  } | null>(initialFilters ? { filters: initialFilters, page: 1, employee: null, revision: 0 } : null);
   const [result, setResult] = useState<WorkloadPage | WorkloadDetail | null>(
     null,
   );
@@ -79,7 +81,7 @@ export function TaskWorkloadPanel({
     return () => controller.abort();
   }, [branch, owner, actions, query]);
   function load() {
-    const filters: WorkloadFilters = { overdueOnly: form.overdueOnly };
+    const filters: WorkloadFilters = { overdueOnly: form.overdueOnly, calendar: initialFilters?.calendar };
     for (const key of [
       "from",
       "to",
@@ -125,6 +127,7 @@ export function TaskWorkloadPanel({
   return (
     <section aria-label="Task workload">
       <h3>Workload and time logs</h3>
+      <p>Period calendar: {initialFilters?.calendar ?? "Asia/Ho_Chi_Minh"}.</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();

@@ -12,6 +12,7 @@ import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import { TaskReopenPanel } from "./TaskReopenPanel";
 import { TaskWorkloadPanel } from "./TaskWorkloadPanel";
+import { dashboardWorkloadFilters } from "../insights/dashboardWorkloadLink";
 import {
   readTasks,
   taskWorkflowStates,
@@ -177,10 +178,11 @@ export function TaskReadPage() {
       </form>
       {query && data && (
         <TaskWorkloadPanel
-          key={`${owner}:${query.branch}:${query.id ?? "list"}`}
+          key={`${owner}:${query.branch}:${query.id ?? "list"}:${params.toString()}`}
           branch={query.branch}
           owner={owner}
           initialSearch={detail?.task.code ?? ""}
+          initialFilters={dashboardWorkloadFilters(params)}
         />
       )}
       {declined === owner && (

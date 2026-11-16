@@ -1,4 +1,5 @@
 import { DashboardFilters } from "./DashboardFilters";
+import { dashboardWorkloadLink } from "./dashboardWorkloadLink";
 import { ReportAccessLink } from "./ReportsPage";
 import { InternalRequestAccessLink } from "../internalRequests/HistoryPage";
 import { useEffect, useState } from "react";
@@ -127,9 +128,12 @@ export function DashboardPage() {
                     <div key={m.key}>
                       <dt>{m.label}</dt>
                       <dd>
-                        {m.value === null
+                        <span>{m.value === null
                           ? "N/A"
-                          : `${m.value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${m.unit}`}
+                          : `${m.value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${m.unit}`}</span>
+                        {m.value !== null && dashboardWorkloadLink(data.filters, m.key) && (
+                          <> <Link to={dashboardWorkloadLink(data.filters, m.key)!}>Review workload</Link></>
+                        )}
                       </dd>
                     </div>
                   ))}

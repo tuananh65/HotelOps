@@ -17,7 +17,7 @@ public sealed partial class RoomTypeCreationService
             || query.DepartmentId <= 0 || query.EmployeeId <= 0 || query.PriorityId <= 0
             || query.Status != null && !TaskWorkflowRead.States.Contains(query.Status)
             || query.Search?.Length > 150 || query.Search?.Any(char.IsControl) == true
-            || query.DeadlineTo < query.DeadlineFrom)
+            || query.DeadlineTo < query.DeadlineFrom || query.Calendar is not ("UTC" or "Asia/Ho_Chi_Minh"))
             throw new ValidationException("Invalid workload filters.");
     }
 
@@ -49,9 +49,9 @@ public sealed partial class RoomTypeCreationService
             if (!await TaskPlanningStore.InstalledAsync(db, token) || !await TaskVerificationStore.InstalledAsync(db, token))
                 return new(RoomTypeBatchStatus.SchemaRequired);
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
-            var period = WorkTimePeriod.Create(query.From, query.To, now);
+            var period = WorkTimePeriod.Create(query.From, query.To, now, query.Calendar);
             var deadline = query.DeadlineFrom != null || query.DeadlineTo != null
-                ? WorkTimePeriod.Create(query.DeadlineFrom ?? query.DeadlineTo, query.DeadlineTo ?? query.DeadlineFrom, now)
+                ? WorkTimePeriod.Create(query.DeadlineFrom ?? query.DeadlineTo, query.DeadlineTo ?? query.DeadlineFrom, now, query.Calendar)
                 : (WorkTimePeriod?)null;
             if (query.DepartmentId is { } department && !await db.Departments.AsNoTracking()
                 .AnyAsync(d => d.DepartmentId == department && d.BranchId == branch, token)) return new(RoomTypeBatchStatus.NotFound);
@@ -123,7 +123,7 @@ public sealed partial class RoomTypeCreationService
                 }
                 return new(RoomTypeBatchStatus.Success, new TaskWorkloadDetail(branch, person.UserId, person.FullName, period.From,
                     period.To, WorkloadUtc(now), taskRows.Select(t => t with { Deadline = UtcTaskDate(t.Deadline), CompletedAt = UtcTaskDate(t.CompletedAt) }).ToArray(),
-                    await mine.CountAsync(token), logRows, await logs.CountAsync(token), shifts, shiftCount, query.Page, query.PageSize));
+                    await mine.CountAsync(token), logRows, await logs.CountAsync(token), shifts, shiftCount, query.Page, query.PageSize, query.Calendar));
             }
             var count = await users.CountAsync(token);
             var people = await users.OrderBy(u => u.FullName).ThenBy(u => u.UserId).Skip((query.Page - 1) * query.PageSize).Take(query.PageSize)
@@ -144,7 +144,7 @@ public sealed partial class RoomTypeCreationService
                     await decisions.Where(v => v.SubmittedBy == person.UserId).Select(v => v.TaskId).Distinct().CountAsync(token), closed, open));
             }
             return new(RoomTypeBatchStatus.Success, new TaskWorkloadPage(branch, period.From, period.To, WorkloadUtc(now), result,
-                count, query.Page, query.PageSize, count == 0 ? "MSG10" : null));
+                count, query.Page, query.PageSize, count == 0 ? "MSG10" : null, query.Calendar));
         }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
         {
             var access = await WorkloadAccess(ticket.UserId, branch, token);

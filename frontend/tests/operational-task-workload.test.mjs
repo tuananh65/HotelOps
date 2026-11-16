@@ -51,6 +51,18 @@ const snapshot = {
   pageSize: 20,
 };
 const page = { ...snapshot, items: [row], totalCount: 1, messageCode: null };
+test("explicit UTC calendar is sent and must be confirmed by the response", async (t) => {
+  let response = { ...page, calendar: "UTC" };
+  t.mock.method(globalThis, "fetch", async (path) => {
+    assert.equal(new URL(path, "https://example.invalid").searchParams.get("calendar"), "UTC");
+    return Response.json(response);
+  });
+  await readWorkload(1, { calendar: "UTC" }, 1, null, signal);
+  response = { ...page, calendar: "Asia/Ho_Chi_Minh" };
+  await assert.rejects(readWorkload(1, { calendar: "UTC" }, 1, null, signal), /snapshot/);
+  response = page;
+  await assert.rejects(readWorkload(1, { calendar: "UTC" }, 1, null, signal), /snapshot/);
+});
 test("workload preserves filters, identity and read-only request safety", async (t) => {
   const calls = [];
   t.mock.method(globalThis, "fetch", async (path, init) => {

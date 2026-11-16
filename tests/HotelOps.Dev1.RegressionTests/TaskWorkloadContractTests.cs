@@ -10,6 +10,17 @@ public sealed class TaskWorkloadContractTests
 {
     private static readonly DateTime Now = new(2026, 11, 15, 18, 0, 0, DateTimeKind.Utc);
     [Fact]
+    public void Explicit_utc_calendar_preserves_dashboard_boundaries_without_changing_hotel_default()
+    {
+        var utc = WorkTimePeriod.Create(null, null, Now, "UTC");
+        Assert.Equal(new DateOnly(2026, 11, 15), utc.From);
+        Assert.Equal(new DateTime(2026, 11, 15, 0, 0, 0, DateTimeKind.Utc), utc.Start);
+        Assert.Equal(utc.Start.AddDays(1), utc.End);
+        Assert.Equal(600, utc.Seconds(utc.Start.AddMinutes(-10), utc.Start.AddMinutes(10), Now));
+        Assert.Throws<ValidationException>(() => WorkTimePeriod.Create(null, null, Now, "CLIENT"));
+        Assert.Throws<ValidationException>(() => RoomTypeCreationService.ValidateWorkloadQuery(new(Calendar: "CLIENT")));
+    }
+    [Fact]
     public void Default_period_uses_hotel_day_and_half_open_utc_bounds()
     {
         var period = WorkTimePeriod.Create(null, null, Now);
