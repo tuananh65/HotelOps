@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.Housekeeping;
 
-// Ports intentionally have NO production implementation until the owning teams accept D03/D04/D05.
+// The SQL admission participant implements these ports inside the caller's transaction.
 // These must be trusted server-side transaction participants, never HTTP/request-provided flags.
 public interface IFreshStartD03FinalAuthorization
 {
@@ -37,7 +37,7 @@ public sealed record FreshStartCleaningSourceReceipt(
 /// <summary>
 /// FE04 source bridge to the canonical FE03 participant; NEVER authorizes a public START by itself.
 /// No fallback to ReleasedAt, synthetic Clear, or a request ETag as transaction proof.
-/// The current caller supplies no owner-approved contracts: fresh START therefore stays fail-closed.
+/// Missing transaction participants still fail closed; production HTTP input cannot supply them.
 /// </summary>
 public sealed class FreshStartCleaningTransactionEvidence : IFreshStartCleaningTransactionEvidence
 {

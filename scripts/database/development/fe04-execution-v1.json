@@ -1,0 +1,9 @@
+[
+    {
+        "marker":  "HotelOps.CleaningExecution.V1",
+        "path":  "scripts/database/development/02-Fe04Execution.sql",
+        "sha256":  "F7B07D054E6A9D666EEF5D16CEE2E2F2F2CF16BACFC8E15823989ECF7B3D3170",
+        "id":  "fe04-execution-v1",
+        "start":  "SET XACT_ABORT ON;"
+    }
+]

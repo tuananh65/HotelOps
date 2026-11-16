@@ -1,4 +1,9 @@
 # Review artifact approvals bind raw bytes, including line endings.
 scripts/verification/UC012Fixtures/review-artifacts/* -text
+# Execution migration receipts bind exact reviewed bytes across checkout platforms.
+scripts/database/development/02-Fe04Execution.sql -text whitespace=cr-at-eol
+scripts/database/development/02-Fe04Execution.Verify.sql -text whitespace=cr-at-eol
+scripts/database/development/fe04-execution-v1.json -text whitespace=cr-at-eol
+scripts/database/development/fe04-execution-verification-v1.json -text whitespace=cr-at-eol
 # Unified diff context lines retain their required leading space on blank lines.
 docs/fullstack-integration/DEV3_SOURCE_PUBLICATION/held/PR51_ROWVERSION_CUTOVER.patch -text whitespace=-blank-at-eol

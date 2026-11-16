@@ -40,7 +40,8 @@ public sealed partial class RoomTypeCreationService
             var assignments = await db.CleaningAssignments.AsNoTracking().Where(x => x.CleaningTaskId == task && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null).Take(2).ToArrayAsync(token);
             var active = assignments.Length == 1 ? assignments[0] : null;
             var installed = await CleaningExecutionInstalled(token);
-            var start = installed && active?.AssigneeUserId == ticket.UserId && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
+            var startInstalled = installed || await HotelOps.Api.Data.CleaningStartSchema.InstalledAsync(db, token);
+            var start = startInstalled && active?.AssigneeUserId == ticket.UserId && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 ? state.State == "ASSIGNED" ? "AVAILABLE" : state.State == "ON_HOLD" ? "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" : "STATE_CONFLICT" : "UNAVAILABLE";
             var reassign = installed && candidateNotification != null && await candidateNotification.AvailableAsync(token)
                 && (await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, token)).IsGranted ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE";
@@ -67,11 +68,23 @@ public sealed partial class RoomTypeCreationService
         if (task <= 0 || !CleaningLifecycleRules.StrongTag(tag)) throw new ValidationException("Task and a strong task ETag are required.");
         if (input.Note != null) CleaningLifecycleRules.Reason(input.Note, 1);
         var time = new SqlWorkTimeTransactionParticipant(db);
+        var admission = new SqlFreshStartCleaningAdmission(db, ticket, sid, async token =>
+        {
+            if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId
+                || actor.SessionId != sid || actor.IsRestricted || ticket.IsRestricted) return false;
+            var session = await sessions.ValidateSessionAsync(ticket, token);
+            return session.IsValid && session.Session?.SessionId == sid && !session.Session.IsRestricted
+                && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
+                && await DueHousekeeper(ticket.UserId, branch, DateTime.MaxValue, token);
+        });
         try
         {
             return await BatchAsync(ticket, sid, branch, async (actor, token) =>
             {
-                if (!await CleaningExecutionInstalled(token) || !await LifecycleInstalled(token)) return new(RoomTypeBatchStatus.SchemaRequired);
+                if ((!await CleaningExecutionInstalled(token) && !await HotelOps.Api.Data.CleaningStartSchema.InstalledAsync(db, token))
+                    || !await LifecycleInstalled(token) || !await HotelOps.Api.Data.ProgressSchema.InstalledAsync(db, token))
+                    return new(RoomTypeBatchStatus.SchemaRequired);
+                if (!await admission.AcquireAsync(branch, task, token)) return new(RoomTypeBatchStatus.NotFound);
                 var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(x => x.CleaningTaskId == task && x.Room.BranchId == branch
                     && x.Room.IsActive && x.Room.Floor.IsActive && (x.Room.AreaId == null || x.Room.Area!.IsActive), token);
                 if (row == null) return new(RoomTypeBatchStatus.NotFound);
@@ -81,17 +94,15 @@ public sealed partial class RoomTypeCreationService
                 if (assignments.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
-                // No D03/D04/D05 owner implementation has been accepted/registered.
-                var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid);
+                var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid, admission, admission, admission);
                 var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note)
                     : CleaningLifecycleRules.StartConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker);
                 if (conflict != null) return LifecycleFailure(conflict == "CURRENT_ASSIGNEE_REQUIRED" ? RoomTypeBatchStatus.Forbidden
                     : conflict == "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Inactive, conflict);
                 if (!resume)
                 {
-                    // The candidate is intentionally fail-closed before any task/room mutation:
-                    // there is no accepted D03 final authorization, D04 room-first lock protocol,
-                    // or D05 temporal/range StartGate. A synthetic Clear is not authority.
+                    // Session/permission/current assignment and the actual transaction's
+                    // user/time/room/task/block locks must all be proven before mutation.
                     await freshEvidence.RequireAdmissionAsync(db, actor, branch, row.RoomId,
                         task, owner.AssignmentId, token);
                     if (row.ActualStartAt != null)
