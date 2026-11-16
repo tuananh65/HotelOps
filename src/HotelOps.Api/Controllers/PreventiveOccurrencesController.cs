@@ -11,14 +11,15 @@ namespace HotelOps.Api.Controllers;
 [Route("api/branches/{branch:long}/preventive-occurrences")]
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadService service,PreventiveOccurrenceManagementService management,
-    PreventiveOccurrenceExecutionService execution):ControllerBase
+    PreventiveOccurrenceExecutionService execution,IConfiguration configuration,IWebHostEnvironment environment):ControllerBase
 {
     public sealed record Assignment(long AssigneeId);
     public sealed record Cancellation(string Reason);
-    [HttpPost("{id:long}/complete"),RequestSizeLimit(262144)]
+    private string EvidenceRoot=>configuration["Evidence:PrivateRoot"]??Path.Combine(environment.ContentRootPath,"App_Data","evidence");
+    [HttpPost("{id:long}/complete"),RequestSizeLimit(72*1024*1024)]
     public async Task<PreventiveOccurrenceView> Complete(long branch,long id,PreventiveCompletionInput input,CancellationToken ct)
     {
-        var(ticket,sid)=Identity();return await execution.CompleteAsync(ticket,sid,branch,id,Version(),input,ct);
+        var(ticket,sid)=Identity();return await execution.CompleteAsync(ticket,sid,branch,id,Version(),input,EvidenceRoot,ct);
     }
     [HttpPost("{id:long}/start"),RequestSizeLimit(1024)]
     public async Task<PreventiveOccurrenceView> Start(long branch,long id,CancellationToken ct)
@@ -63,5 +64,19 @@ public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadServ
     public async Task<PreventiveOccurrenceHistory> History(long branch,long id,CancellationToken ct)
     {
         var(ticket,sid)=Identity();return await service.HistoryAsync(ticket,sid,branch,id,ct);
+    }
+    [HttpGet("{id:long}/evidence")]
+    public async Task<IReadOnlyList<InternalRequestEvidenceView>> Evidence(long branch,long id,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await service.EvidenceAsync(ticket,sid,branch,id,ct);
+    }
+    [HttpGet("{id:long}/evidence/{attachment:long}")]
+    public async Task<IActionResult> EvidenceFile(long branch,long id,long attachment,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();var file=await service.EvidenceFileAsync(ticket,sid,branch,id,attachment,EvidenceRoot,ct);
+        Response.Headers["X-Content-Type-Options"]="nosniff";
+        Response.Headers["Content-Security-Policy"]="sandbox";
+        Response.Headers.CacheControl="no-store";
+        return File(file.Bytes,file.MimeType,file.Name);
     }
 }

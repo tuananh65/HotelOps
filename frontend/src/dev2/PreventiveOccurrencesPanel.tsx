@@ -11,6 +11,7 @@ type Occurrence = { runId: number; scheduleId: number; title: string; instructio
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 type LinkedIncident = { incidentId: number; number: string; title: string; status: string; checkKey: string; linkedAt: string };
 type History = { previousOccurrences: Occurrence[]; incidents: LinkedIncident[] };
+type Evidence = { id: number; name: string; mimeType: string; size: number };
 function valid(v: unknown): v is Occurrence {
   return isObject(v) && positive(v.runId) && positive(v.scheduleId) && typeof v.title === "string" && typeof v.instruction === "string"
     && typeof v.status === "string" && typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt))
@@ -35,6 +36,19 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
   const [history,setHistory] = useState<Record<number,History>>({});
+  const [uploads,setUploads] = useState<Record<number,File[]>>({}), [evidence,setEvidence] = useState<Record<number,Evidence[]>>({});
+  async function loadEvidence(id: number) {
+    if(!owner||owner!==mounted||sending.current)return;
+    const abort=new AbortController();controller.current=abort;sending.current=true;setBusy(true);setMessage("");
+    try{
+      const response=await fetch(`/api/branches/${branchId}/preventive-occurrences/${id}/evidence`,{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
+      if(!response.ok)throw Error(`Evidence unavailable (${response.status}).`);
+      const raw: unknown=await response.json();
+      if(!Array.isArray(raw)||!raw.every(e=>isObject(e)&&positive(e.id)&&typeof e.name==="string"&&typeof e.mimeType==="string"&&positive(e.size)))throw Error("Evidence response could not be confirmed.");
+      if(!abort.signal.aborted&&current.current===owner)setEvidence(old=>({...old,[id]:raw as Evidence[]}));
+    }catch(e){if(!abort.signal.aborted&&current.current===owner){setEvidence({});setMessage(String(e));}}
+    finally{sending.current=false;if(!abort.signal.aborted&&current.current===owner)setBusy(false);}
+  }
   async function loadHistory(id: number) {
     if (!owner || owner !== mounted || sending.current) return;
     const abort = new AbortController(); controller.current = abort; sending.current=true; setBusy(true); setMessage("");
@@ -65,6 +79,14 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
     const abort = new AbortController(); controller.current = abort; sending.current = true; setBusy(true); setMessage("");
     let submitted = false;
     try {
+      const selected=complete?(uploads[row.runId]??[]):[];
+      if(selected.length>5||selected.some(f=>f.size<1||f.size>10*1024*1024||!["image/jpeg","image/png","application/pdf"].includes(f.type)))throw Error("Select at most five JPG, PNG or PDF files, up to 10 MiB each.");
+      const files=await Promise.all(selected.map(async file=>{
+        const bytes=new Uint8Array(await file.arrayBuffer());let binary="";
+        for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+        return {name:file.name,mimeType:file.type,base64:btoa(binary)};
+      }));
+      if(abort.signal.aborted||current.current!==owner)return;
       const bootstrap = await fetch("/api/auth/csrf", {credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
       if (!bootstrap.ok) throw Error("Session check failed.");
       const csrf: unknown = await bootstrap.json();
@@ -74,7 +96,7 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
       const response = await fetch(`/api/branches/${branchId}/preventive-occurrences/${row.runId}/${complete ? "complete" : start ? "start" : cancel ? "cancel" : "assign"}`, {
         method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":row.version},
-        body:JSON.stringify(complete ? {results,note:notes[row.runId] ?? null} : start ? {} : cancel ? {reason} : {assigneeId}) });
+        body:JSON.stringify(complete ? {results,note:notes[row.runId] ?? null,files} : start ? {} : cancel ? {reason} : {assigneeId}) });
       if (!response.ok) throw Error(response.status === 412 ? "Occurrence changed." : `Change not confirmed (${response.status}).`);
       const raw: unknown = await response.json();
       if (!valid(raw) || raw.runId !== row.runId) throw Error("Change response could not be confirmed.");
@@ -85,7 +107,7 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   async function load(more = false) {
     if (!owner || owner !== mounted || sending.current) return;
     const abort = new AbortController(); controller.current = abort;
-    sending.current = true; setBusy(true); setMessage(""); setHistory({});
+    sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
       const response = await fetch(`/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
@@ -121,8 +143,11 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
           <label>Check note<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label>
           {outcomes[`${r.runId}:${c.key}`] === "FAIL" && !busy && !uncertain && <Link to={incidentUrl(r,c.key)}>Report Incident for this failed check</Link>}</div>)}
         <label>Completion note<textarea maxLength={4000} value={notes[r.runId] ?? ""} onChange={e => setNotes({...notes,[r.runId]:e.target.value})} /></label>
+        <label>Photos or supporting files (up to five, 10 MiB each)<input type="file" multiple accept="image/jpeg,image/png,application/pdf" onChange={e=>setUploads({...uploads,[r.runId]:Array.from(e.target.files??[])})} /></label>
         <button onClick={() => void change(r,false,false,true)}>Complete occurrence</button>
       </fieldset>}
+      {r.status==="COMPLETED"&&<><button disabled={busy} onClick={()=>void loadEvidence(r.runId)}>Load completion evidence</button>
+        {evidence[r.runId]&&<ul>{evidence[r.runId].map(e=><li key={e.id}><a href={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/evidence/${e.id}`} download>{e.name}</a> ({Math.ceil(e.size/1024)} KiB)</li>)}</ul>}</>}
       {r.results && <ul>{r.results.map(c => <li key={c.key}>{r.checkItems.find(i => i.key === c.key)?.description}: {c.passed ? "Pass" : "Fail"}{c.note && ` — ${c.note}`}</li>)}</ul>}
       <p>{r.roomId ? `Room #${r.roomId}` : r.areaId ? `Area #${r.areaId}` : `Asset #${r.assetId}`}</p>
       <ul>{r.checkItems.map(c => <li key={c.key}>{c.description}{c.required ? " (required)" : ""}</li>)}</ul>

@@ -12,7 +12,8 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.PreventiveMaintenance;
 
 public sealed record PreventiveCheckResult(string Key,bool? Passed,string? Note);
-public sealed record PreventiveCompletionInput(PreventiveCheckResult[] Results,string? Note);
+public sealed record PreventiveCompletionInput(PreventiveCheckResult[] Results,string? Note,
+    IReadOnlyList<HotelOps.Api.DTOs.Housekeeping.EvidenceUpload>? Files=null);
 
 public sealed partial class PreventiveOccurrenceExecutionService
 {
@@ -24,13 +25,14 @@ public sealed partial class PreventiveOccurrenceExecutionService
         """).AnyAsync(x=>x==1,ct);
 
     public async Task<PreventiveOccurrenceView> CompleteAsync(SessionReference ticket,long sid,long branch,long id,string version,
-        PreventiveCompletionInput input,CancellationToken ct)
+        PreventiveCompletionInput input,string evidenceRoot,CancellationToken ct)
     {
-        if(input.Results==null||input.Results.Length>100||input.Note?.Length>4000
+        if(input.Results==null||input.Results.Length>100||input.Note?.Length>4000||input.Files?.Count>5
             ||input.Results.Any(r=>r==null||string.IsNullOrWhiteSpace(r.Key)||r.Key.Length>64||r.Passed==null||r.Note?.Length>2000)
             ||input.Results.Select(r=>r.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=input.Results.Length)
             throw new InternalRequestReadException(400,"INVALID_CHECK_RESULTS");
         if(db.Database.CurrentTransaction!=null||db.ChangeTracker.HasChanges())throw new InvalidOperationException("Clean occurrence context required.");
+        using var files=new HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime();
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         try
         {
@@ -70,12 +72,13 @@ public sealed partial class PreventiveOccurrenceExecutionService
                   AND CONVERT(varchar(16),row_version,2)={version[1..^1]}
                 """,ct);
             if(affected!=1)throw new InternalRequestReadException(412,"OCCURRENCE_CHANGED");
+            var attachmentIds=await PreventiveEvidenceStore.StageAsync(db,id,ticket.UserId,now,input.Files,evidenceRoot,files,ct);
             var results=JsonSerializer.Serialize(input.Results);
             var audit=new AuditLog{BranchId=branch,ActorUserId=ticket.UserId,EntityType="preventive_maintenance_runs",
                 EntityId=id.ToString(CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
                 OldValues=JsonSerializer.Serialize(new{status=before.Status,version=before.Version,scheduleNextDueAt=oldNext}),
                 NewValues=JsonSerializer.Serialize(new{eventType="PREVENTIVE_OCCURRENCE_COMPLETED",runId=id,status="COMPLETED",
-                    results=input.Results,note=run.Note,intervalId=closed.IntervalId,completedAt=now,scheduleNextDueAt=schedule.NextDueAt})};
+                    results=input.Results,note=run.Note,attachmentIds,intervalId=closed.IntervalId,completedAt=now,scheduleNextDueAt=schedule.NextDueAt})};
             db.AuditLogs.Add(audit);await db.SaveChangesAsync(ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT dbo.preventive_occurrence_completions(run_id,interval_id,audit_id,actor_id,completed_at,results_json,note,next_due_at)
@@ -83,7 +86,7 @@ public sealed partial class PreventiveOccurrenceExecutionService
                 """,ct);
             if(!await MaintenanceExecutionAccess.GrantsAsync(db,ticket.UserId,branch,ct))throw new InternalRequestReadException(403,"MAINTENANCE_EXECUTE_REQUIRED");
             var after=(await reader.ReadAsync(ticket,sid,branch,id,0,ct)).Single();
-            await tx.CommitAsync(ct);return after;
+            await files.BeforeCommitAsync(ct);await tx.CommitAsync(ct);return after;
         }
         catch(WorkTimeContractException e)
         {
