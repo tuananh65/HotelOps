@@ -83,6 +83,8 @@ public sealed partial class MaintenanceWorkService
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
         var resolutionMaterials = request is SubmitMaintenanceResultRequest
             ? await ValidateResolutionMaterialsAsync(work, incident, cancellationToken) : null;
+        var resolutionEvidence = request is SubmitMaintenanceResultRequest submission
+            ? await ValidateResolutionEvidenceAsync(submission, incident, cancellationToken) : null;
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
@@ -103,9 +105,11 @@ public sealed partial class MaintenanceWorkService
             beforeWork["submitted_diagnosis"] = null;
             beforeWork["submitted_action_taken"] = null;
             beforeWork["submitted_materials"] = null;
+            beforeWork["submitted_evidence"] = null;
             afterWork["submitted_diagnosis"] = resultInput.Diagnosis.Trim();
             afterWork["submitted_action_taken"] = resultInput.ActionTaken.Trim();
             afterWork["submitted_materials"] = resolutionMaterials;
+            afterWork["submitted_evidence"] = resolutionEvidence;
         }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, afterWork);
@@ -134,6 +138,9 @@ public sealed partial class MaintenanceWorkService
             : await RequireDetailAsync(id, cancellationToken);
         if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest)
             result.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(_dbContext, id, cancellationToken);
+        if (request is SubmitMaintenanceResultRequest finalSubmission && resolutionEvidence is { Count: > 0 }
+            && !resolutionEvidence.SequenceEqual(await ValidateResolutionEvidenceAsync(finalSubmission, incident, cancellationToken)))
+            throw new ValidationException("Result evidence changed during submission. Reload before retrying.");
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }

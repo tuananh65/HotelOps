@@ -11,4 +11,6 @@ public sealed class SubmitMaintenanceResultRequest : MaintenanceActorRequest
     public string ActionTaken { get; init; } = string.Empty;
 
     public string? ResolutionNote { get; init; }
+
+    public IReadOnlyList<long>? ResultAttachmentIds { get; init; }
 }

@@ -7,6 +7,16 @@ namespace HotelOps.Dev1.RegressionTests;
 
 public sealed class MaintenanceResolutionTests
 {
+    [Fact]
+    public void Evidence_selection_rejects_invalid_or_duplicate_ids_and_normalizes_order()
+    {
+        Assert.Empty(MaintenanceResolution.EvidenceIds(null));
+        Assert.Equal(new long[] { 3, 8 }, MaintenanceResolution.EvidenceIds([8, 3]));
+        foreach (var ids in new long[][] { [0], [-1], [3, 3] })
+            Assert.Throws<ValidationException>(() => MaintenanceResolution.Note(new()
+            { Diagnosis = "Worn seal", ActionTaken = "Replaced seal", ResultAttachmentIds = ids }));
+    }
+
     [Theory]
     [InlineData("", "Replaced seal")]
     [InlineData(" \r\n", "Replaced seal")]
