@@ -5,6 +5,7 @@ public sealed class IncidentDetailDto
     public string? AssignmentWorkflow { get; set; }
     public bool CanAssign { get; set; }
     public bool CanCancelTriage { get; set; }
+    public bool CanManageRoomBlocks { get; set; }
     public IncidentSlaDto? Sla { get; set; }
     public string? TriageETag { get; set; }
     public bool CanTriage { get; set; }

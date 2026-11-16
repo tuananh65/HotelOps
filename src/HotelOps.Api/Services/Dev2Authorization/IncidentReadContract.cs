@@ -22,10 +22,11 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class IncidentReadContract
 {
     private static readonly object AssignmentKey = new();
+    private static readonly object RoomBlocksKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V6";
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V7";
     private const string Policy = "Pending Triage cancellation availability requires native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
-        + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
+        + "Room block availability requires installed explicit scope, open source, native version, current Lead ROOM_BLOCK_MANAGE and independent ROOM_VIEW/INCIDENT_VIEW; current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
         + "evidence metadata and private download require current source visibility and exact attachment ownership; "
@@ -100,6 +101,8 @@ internal static class IncidentReadContract
             && !await IncidentTriageAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(AssignmentKey)
             && !await MaintenanceAssignmentAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(RoomBlocksKey)
+            && !await IncidentRoomBlockAccess.AllowsAsync(db,a.Actor.UserId,branch,Id(a),ct)) return false;
         return true;
     }
 
@@ -138,6 +141,10 @@ internal static class IncidentReadContract
                 result.AssignmentWorkflow = await IncidentAssignmentWorkflow.ReadAsync(db,
                     await query.SingleAsync(i => i.IncidentId == result.IncidentId, ct), ct);
                 result.TriageETag = await IncidentTriageStore.TagAsync(db, result.IncidentId, ct);
+                result.CanManageRoomBlocks = result.TriageETag != null && result.Status is not ("CLOSED" or "CANCELLED")
+                    && await IncidentRoomBlockService.InstalledAsync(db,ct)
+                    && await IncidentRoomBlockAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
+                if(result.CanManageRoomBlocks) a.Http.Items[RoomBlocksKey]=true;
                 result.CanCancelTriage = result.TriageETag != null && result.AssignmentWorkflow == "PENDING_TRIAGE"
                     && await IncidentTriageAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
                 if(result.CanCancelTriage) a.Http.Items[TriageOptionsKey]=true;

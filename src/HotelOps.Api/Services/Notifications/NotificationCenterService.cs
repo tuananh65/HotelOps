@@ -384,6 +384,18 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/notifications/{id}/asset-condition");
         }
+        if(source is {NotificationType:IncidentRoomBlockSource.Kind,SourceType:IncidentRoomBlockSource.SourceType,SourceId:>0})
+        {
+            var released=await IncidentRoomBlockSource.ReadAsync(db,source.SourceId.Value,ct);
+            if(released==null||released.ActorId!=source.CreatedBy||released.At!=source.CreatedAt
+                ||!await IncidentRoomBlockSource.CanReadAsync(db,user,released,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await IncidentRoomBlockSource.CanReadAsync(db,user,released,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/rooms/{released.RoomId}?branchId={released.BranchId}");
+        }
         if(source is {NotificationType:IncidentRoomReleaseSource.Kind,SourceType:IncidentRoomReleaseSource.SourceType,SourceId:>0})
         {
             var released=await IncidentRoomReleaseSource.ReadAsync(db,source.SourceId.Value,ct);

@@ -32,6 +32,8 @@ export interface RoomHistory {
     id: number;
     fromStatusCode: string | null;
     toStatusCode: string;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
     changedAtUtc: string;
     changedByUserId: number | null;
     reason: string | null;

@@ -84,8 +84,11 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     var page = await orderedEvents.Skip(checked((query.Page-1)*query.PageSize)).Take(query.PageSize)
                         .TagWith("UC023:HistoryPage").ToArrayAsync(ct);
                     var sources = await Sources(page, requestedRoom, ct);
+                    var readinessHistory = await RoomReadinessHistory.ReadAsync(db,requestedRoom,page.Select(x=>x.Id).ToArray(),ct);
                     timeline = new(page.Select(x => new RoomStatusEventDto(x.Id,x.From,x.To,
-                        DateTime.SpecifyKind(x.At,DateTimeKind.Utc),x.Reason,sources[x.Id],x.ChangedByUserId)).ToArray(),query.Page,query.PageSize,count);
+                        DateTime.SpecifyKind(x.At,DateTimeKind.Utc),x.Reason,sources[x.Id],x.ChangedByUserId)
+                        { EffectiveFrom=readinessHistory.GetValueOrDefault(x.Id)?.EffectiveFrom,
+                          EffectiveTo=readinessHistory.GetValueOrDefault(x.Id)?.EffectiveTo }).ToArray(),query.Page,query.PageSize,count);
                 }
                 else
                 {

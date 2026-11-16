@@ -327,7 +327,7 @@ export default function RoomStatusBoardScreen() {
             {history.items.map((e) => (
               <li key={e.id}>
                 <time>{e.changedAtUtc}</time> · {e.fromStatusCode || "—"} →{" "}
-                {e.toStatusCode} · {e.reason || "—"} · Nguồn{" "}
+                {e.toStatusCode} · {e.effectiveTo && <>Readiness: {e.effectiveFrom || "—"} → {e.effectiveTo} · </>}{e.reason || "—"} · Nguồn{" "}
                 {e.source.type || "—"} {e.source.id ?? ""} (
                 {e.source.availability}) · Người thay đổi (ID):{" "}
                 {e.changedByUserId ?? "Chưa ghi nhận"}{" "}

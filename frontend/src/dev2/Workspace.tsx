@@ -1,5 +1,6 @@
 import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { IncidentCancellationPanel } from "./IncidentCancellationPanel";
+import { IncidentRoomBlocksPanel } from "./IncidentRoomBlocksPanel";
 import { MaintenanceAssignmentPanel } from "./MaintenanceAssignmentPanel";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -670,6 +671,8 @@ function Screen({
         && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data)
         && <IncidentCancellationPanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+      {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canManageRoomBlocks === true && typeof data.incidentId === "number"
+        && <IncidentRoomBlocksPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canAssign === true && typeof data.incidentId === "number"
         && <MaintenanceAssignmentPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)

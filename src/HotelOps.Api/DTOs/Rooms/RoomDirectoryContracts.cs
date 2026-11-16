@@ -64,7 +64,11 @@ public sealed record RoomDirectoryResponse(IReadOnlyList<RoomDirectoryItemDto> I
 
 public sealed record RoomStatusSourceDto(string? Type, long? Id, string Availability);
 public sealed record RoomStatusEventDto(long Id, string? FromStatusCode, string ToStatusCode,
-    DateTime ChangedAtUtc, string? Reason, RoomStatusSourceDto Source, long? ChangedByUserId = null);
+    DateTime ChangedAtUtc, string? Reason, RoomStatusSourceDto Source, long? ChangedByUserId = null)
+{
+    public string? EffectiveFrom { get; init; }
+    public string? EffectiveTo { get; init; }
+}
 public sealed record RoomCurrentStatusEvidenceDto(string Availability, string? Reason,
     DateTime? RecordedAtUtc, RoomStatusSourceDto? Source);
 public sealed record RoomDirectoryDetailDto(RoomDirectoryItemDto Room, string? Description,
