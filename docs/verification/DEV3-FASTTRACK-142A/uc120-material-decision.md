@@ -160,3 +160,20 @@ Backend build PASS, 0 warnings/errors. CSRF middleware remains unchanged. No SQL
 mutations or API/business/browser tests were executed for this batch. UC091 still
 needs its UI, approver/catalog lookup and durable notification; other material
 mutation/read action admissions remain separate outstanding work. No UC promoted.
+
+## Approval notification delivery source
+
+The persisted approval cycle now supplies durable notification intent without a new
+table: only committed, latest PENDING cycles on PENDING_APPROVAL requests are scanned.
+Drafts, rolled-back cycles and superseded/resolved cycles do not generate delivery.
+The worker uses a fresh context per cycle, ordered user locks and a Serializable
+transaction. It checks exact assigned-approver mapping/approval grant and independent
+MR_VIEW before delivery and again before commit. Notification provenance and recipient
+receipt conflicts fail closed; retries reuse the same cycle source/recipient receipt.
+The existing finite NotificationCenter retention bounds scans and delivery.
+
+Registered MaterialApprovalNotifications options (Enabled defaults to false,
+PollSeconds defaults to 30) and the worker; it was not enabled or executed against SQL.
+No schema, grants or database data changed. Backend build PASS, 0 warnings/errors;
+business/API/browser tests NOT RUN per instruction. Notification source navigation,
+material detail admission and the creation UI remain outstanding; no UC promoted.

@@ -44,6 +44,10 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskSeriesNotific
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskReopenNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationNotificationDelivery>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TaskNotificationWorker>();
+builder.Services.AddOptions<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationOptions>()
+    .BindConfiguration("MaterialApprovalNotifications").Validate(o => o.PollSeconds is >= 1 and <= 3600).ValidateOnStart();
+builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery>();
+builder.Services.AddHostedService<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();
 builder.Services.AddHostedService<HotelOps.Api.Services.OperationalTasks.TaskSeriesWorker>();
