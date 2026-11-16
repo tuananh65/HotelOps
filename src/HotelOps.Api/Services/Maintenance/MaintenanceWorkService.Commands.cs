@@ -51,7 +51,11 @@ public sealed partial class MaintenanceWorkService
             && !await HotelOps.Api.Services.Incidents.IncidentEscalationClosure.InstalledAsync(_dbContext, cancellationToken))
             throw new Dev2AccessDenied(503);
         if (request is SubmitMaintenanceResultRequest or VerifyMaintenanceWorkRequest)
+        {
+            if (!await HotelOps.Api.Data.MaintenanceMaterialUsageSchema.InstalledAsync(_dbContext, cancellationToken))
+                throw new Dev2AccessDenied(503);
             await LockResolutionMaterialsAsync(id, cancellationToken);
+        }
         HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant? workTime = null;
         if (OpensWorkInterval(request) || ClosesWorkInterval(request))
         {

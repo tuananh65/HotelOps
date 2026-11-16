@@ -12,7 +12,7 @@ internal static class MaintenanceVerifyAvailability
     {
         if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Review transaction required.");
         if (!await IncidentEscalationClosure.InstalledAsync(db, ct)
-            || await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.maintenance_material_usages','U') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(ct) != 1)
+            || !await MaintenanceMaterialUsageSchema.InstalledAsync(db, ct))
             return false;
         if (await db.MaintenanceWorkLogs.AsNoTracking().AnyAsync(l => l.MaintenanceWorkId == work && l.MaterialIssueId != null, ct))
             return false; // Header-only legacy material attribution is not reviewable evidence.
