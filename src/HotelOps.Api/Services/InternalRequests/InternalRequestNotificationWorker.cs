@@ -11,6 +11,32 @@ internal sealed class InternalRequestNotificationOptions
 internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory scopes,IOptions<InternalRequestNotificationOptions> options,
     TimeProvider clock,ILogger<InternalRequestNotificationWorker> logger):BackgroundService
 {
+    private async Task DeliverRecipientsAsync<T>(long eventId,
+        Func<T,long,CancellationToken,Task<long[]>> pending,
+        Func<T,long,long,CancellationToken,Task<string>> deliver,CancellationToken ct) where T : notnull
+    {
+        long[] recipients;
+        await using (var scope = scopes.CreateAsyncScope())
+            recipients = await pending(scope.ServiceProvider.GetRequiredService<T>(),eventId,ct);
+        foreach (var recipient in recipients)
+        {
+            ct.ThrowIfCancellationRequested();
+            // Each recipient owns its context and transaction; one corrupt receipt or
+            // transient failure must not prevent another recipient's notification.
+            try
+            {
+                await using var scope = scopes.CreateAsyncScope();
+                await deliver(scope.ServiceProvider.GetRequiredService<T>(),eventId,recipient,ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception error)
+            {
+                logger.LogWarning("Internal request {Delivery} event {EventId} recipient {RecipientId} retained after {ErrorType}",
+                    typeof(T).Name,eventId,recipient,error.GetType().Name);
+            }
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if(!options.Value.Enabled)return;
@@ -50,8 +76,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         assignments=await scope.ServiceProvider.GetRequiredService<InternalRequestAssignmentDelivery>().PendingAsync(assignmentCursor,ct);
                     foreach(var id in assignments)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestAssignmentDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestAssignmentDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request assignment notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }
@@ -66,8 +93,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         routes=await scope.ServiceProvider.GetRequiredService<InternalRequestRouteDelivery>().PendingAsync(routeCursor,ct);
                     foreach(var id in routes)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestRouteDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestRouteDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request route notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }
@@ -114,8 +142,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         handovers=await scope.ServiceProvider.GetRequiredService<InternalRequestHandoverDelivery>().PendingAsync(handoverCursor,ct);
                     foreach(var id in handovers)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestHandoverDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestHandoverDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request handover notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }
@@ -130,8 +159,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         withdrawals=await scope.ServiceProvider.GetRequiredService<InternalRequestWithdrawalDelivery>().PendingAsync(withdrawalCursor,ct);
                     foreach(var id in withdrawals)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestWithdrawalDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestWithdrawalDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request withdrawal notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }
@@ -146,8 +176,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         intakes=await scope.ServiceProvider.GetRequiredService<InternalRequestIntakeDelivery>().PendingAsync(intakeCursor,ct);
                     foreach(var id in intakes)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestIntakeDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestIntakeDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request intake notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }
@@ -162,8 +193,9 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                         escalations=await scope.ServiceProvider.GetRequiredService<InternalRequestEscalationDelivery>().PendingAsync(escalationCursor,ct);
                     foreach(var id in escalations)
                     {
-                        await using var scope=scopes.CreateAsyncScope();
-                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestEscalationDelivery>().DeliverEventAsync(id,ct);}
+                        try{await DeliverRecipientsAsync<InternalRequestEscalationDelivery>(id,
+                            (delivery,eventId,token)=>delivery.PendingRecipientsAsync(eventId,token),
+                            (delivery,eventId,recipient,token)=>delivery.DeliverAsync(eventId,recipient,token),ct);}
                         catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                         catch(Exception error){logger.LogWarning("Internal request escalation notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                     }

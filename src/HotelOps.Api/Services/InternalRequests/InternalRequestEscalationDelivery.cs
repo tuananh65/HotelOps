@@ -62,6 +62,13 @@ public sealed class InternalRequestEscalationDelivery(HotelOpsDbContext db,TimeP
             .Select(r=>r.EventId).Distinct().Order().Take(100).ToArrayAsync(ct);
     }
 
+    internal async Task<long[]> PendingRecipientsAsync(long eventId, CancellationToken ct)
+    {
+        if (!await InternalRequestEscalationService.InstalledAsync(db, ct) || !await NotificationAcknowledgmentStore.InstalledAsync(db, ct)) return [];
+        return await Query(db).Where(r => r.EventId == eventId && r.NotificationId == null)
+            .Select(r => r.RecipientId).Distinct().Order().ToArrayAsync(ct);
+    }
+
     public async Task DeliverEventAsync(long id,CancellationToken ct)
     {
         if(!await InternalRequestEscalationService.InstalledAsync(db,ct)||!await NotificationAcknowledgmentStore.InstalledAsync(db,ct))return;

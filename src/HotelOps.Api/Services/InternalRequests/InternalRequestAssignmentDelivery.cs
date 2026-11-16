@@ -39,6 +39,13 @@ public sealed class InternalRequestAssignmentDelivery(HotelOpsDbContext db, Time
             .Select(r => r.EventId).Distinct().OrderBy(id => id).Take(100).ToArrayAsync(ct);
     }
 
+    internal async Task<long[]> PendingRecipientsAsync(long eventId, CancellationToken ct)
+    {
+        if (!await InternalRequestAssignmentService.InstalledAsync(db, ct)) return [];
+        return await Query(db).Where(r => r.EventId == eventId && r.NotificationId == null)
+            .Select(r => r.RecipientId).Distinct().Order().ToArrayAsync(ct);
+    }
+
     public async Task DeliverEventAsync(long eventId, CancellationToken ct)
     {
         if (!await InternalRequestAssignmentService.InstalledAsync(db, ct)) return;
