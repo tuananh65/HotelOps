@@ -8,7 +8,7 @@ type Context = { incidentId: number; previousWorkId: number; closedAt: string; c
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 const date = (v: unknown): v is string => typeof v === "string" && Number.isFinite(Date.parse(v));
 
-export function IncidentReopenPanel({ data }: { data: Values }) {
+export function IncidentReopenPanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const mountedOwner = useRef(owner).current;
@@ -70,8 +70,7 @@ export function IncidentReopenPanel({ data }: { data: Values }) {
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || !positive(result.eventId) || result.workflow !== "PENDING_TRIAGE"
         || typeof result.version !== "string" || !/^"[0-9A-F]{16}"$/.test(result.version)) throw Error("Reopen response could not be confirmed. Reload the incident.");
-      if (!abort.signal.aborted && currentOwner.current === owner)
-        setMessage("Incident reopened to Pending Triage. Previous handling history is preserved. Reload the incident to classify, triage and assign the new cycle.");
+      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = "Incident reopened to Pending Triage. Previous handling history is preserved. Classify, triage and assign the new cycle."; setMessage(notice); onCommitted?.(notice); }
     } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Reopen not confirmed. Reload."); }
     finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }

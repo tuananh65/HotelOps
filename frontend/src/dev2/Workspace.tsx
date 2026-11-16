@@ -217,6 +217,7 @@ function Screen({
   const [data, setData] = useState<unknown>();
   const [message, setMessage] = useState("");
   const [maintenanceCommitNotice, setMaintenanceCommitNotice] = useState("");
+  const [incidentCommitNotice, setIncidentCommitNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [denied, setDenied] = useState(false);
   const [sessionLost, setSessionLost] = useState(false);
@@ -504,6 +505,9 @@ function Screen({
     && ["PENDING_APPROVAL", "APPROVED"].includes(String(record.rawStatus));
   const historicalLineMax = Array.isArray(record.lines)
     ? Math.max(0, ...record.lines.filter(isObject).map(l => Number(l.lineNo))) : 0;
+  const incidentCommitted = (notice: string) => {
+    setData(undefined); setRecord({}); setDenied(false); setIncidentCommitNotice(notice); setRevision(v => v + 1);
+  };
   const change = (v: Values) => {
     setValues(v);
     setDenied(false);
@@ -516,6 +520,7 @@ function Screen({
         <Link to="/dashboard">Workspace home</Link>
       </header>
       {maintenanceCommitNotice && <p role="status">{maintenanceCommitNotice}</p>}
+      {incidentCommitNotice && <p role="status">{incidentCommitNotice}</p>}
       {context.occurrenceId != null && <p role="status">Reporting a failed check from occurrence #{String(context.occurrenceId)}. Keep the original target. After saving, reload the occurrence before continuing.</p>}
       {context.internalRequestId != null && actionId === config.create && !available.some(op => op.id === actionId) && <p role="status">
         Creating this linked work is unavailable with the current access. No linked work has been created.{" "}
@@ -699,18 +704,18 @@ function Screen({
       {operation.id === "A004A-023" && isObject(data) && !denied && !sessionLost && available.some(op => op.id === "A004A-023")
         && (!enabledActions || enabledActions.includes("A004A-036")) && <IncidentMaintenanceLinks data={data} />}
       {operation.id === "A004A-023" && !readOnly && (!enabledActions || enabledActions.includes("A004A-020")) && data !== undefined && !denied && !sessionLost && isObject(data)
-        && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentTriagePanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data)
-        && <IncidentCancellationPanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentCancellationPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.status === "CLOSED"
-        && <IncidentReopenPanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentReopenPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.status !== "CLOSED" && data.status !== "CANCELLED"
-        && <IncidentClassificationPanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentClassificationPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !denied && !sessionLost && isObject(data) && typeof data.incidentId === "number" && <IncidentEscalationPanel key={String(data.incidentId)} id={data.incidentId} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canManageRoomBlocks === true && typeof data.incidentId === "number"
         && <IncidentRoomBlocksPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canAssign === true && typeof data.incidentId === "number"
-        && <MaintenanceAssignmentPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
+        && <MaintenanceAssignmentPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {operation.id === "A004A-023" && data !== undefined && !denied && !sessionLost && typeof record.incidentId === "number" && record.incidentId > 0

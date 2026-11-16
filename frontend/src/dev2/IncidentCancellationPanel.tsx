@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function IncidentCancellationPanel({ data }: { data: Values }) {
+export function IncidentCancellationPanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const [kind, setKind] = useState("INVALID"), [reason, setReason] = useState(""), [original, setOriginal] = useState("");
@@ -32,7 +32,10 @@ export function IncidentCancellationPanel({ data }: { data: Values }) {
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || result.status !== "CANCELLED" || typeof result.eventId !== "number" || !Number.isSafeInteger(result.eventId) || result.eventId <= 0)
         throw Error("Cancellation response could not be confirmed. Reload.");
-      if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: "Incident cancelled. Its effective blocks were removed; room readiness was recalculated. Reporter notification is queued subject to current access. Reload to see the current record." });
+      if (!abort.signal.aborted && current.current === owner) {
+        const notice = "Incident cancelled. Its effective blocks were removed; room readiness was recalculated. Reporter notification is queued subject to current access.";
+        setMessage({ owner, text: notice }); onCommitted?.(notice);
+      }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: e instanceof Error ? e.message : "Cancellation not confirmed. Reload." }); }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); setReview(false); } }
   }

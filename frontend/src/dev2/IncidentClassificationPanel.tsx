@@ -11,7 +11,7 @@ const options = (v: unknown): v is Option[] => Array.isArray(v) && v.every(x =>
   isObject(x) && positive(x.id) && typeof x.code === "string" && typeof x.name === "string");
 const tag = (v: unknown): v is string => typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
 
-export function IncidentClassificationPanel({ data }: { data: Values }) {
+export function IncidentClassificationPanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const mountedOwner = useRef(owner).current;
@@ -66,9 +66,7 @@ export function IncidentClassificationPanel({ data }: { data: Values }) {
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || !positive(result.eventId) || !tag(result.version) || typeof result.suggestRoomBlock !== "boolean")
         throw Error("Classification response could not be confirmed. Reload.");
-      if (!abort.signal.aborted && currentOwner.current === owner) setMessage(result.suggestRoomBlock
-        ? "Classification saved. Consider blocking the affected room using Block Room. Reload the incident to continue."
-        : "Classification saved. Reload the incident to continue.");
+      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = result.suggestRoomBlock ? "Classification saved. Consider blocking the affected room using Block Room." : "Classification saved."; setMessage(notice); onCommitted?.(notice); }
     } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Classification not confirmed. Reload."); }
     finally { if (!abort.signal.aborted) { setBusy(false); sending.current = false; } }
   }

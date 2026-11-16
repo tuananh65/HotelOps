@@ -11,7 +11,7 @@ const option = (v: unknown): v is Option => isObject(v) && positive(v.priorityId
   && instant(v.responseDeadlineAt) && instant(v.resolutionDeadlineAt) && typeof v.targetVersion === "string" && /^[0-9A-F]{16}$/.test(v.targetVersion);
 const utc = (v: string) => v && Number.isFinite(Date.parse(v + "+07:00")) ? new Date(v + "+07:00").toISOString() : undefined;
 const displayTime = (v: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(v));
-export function IncidentTriagePanel({ data }: { data: Values }) {
+export function IncidentTriagePanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const actor = state.session ? Number(state.session.user.id) : 0;
@@ -55,7 +55,7 @@ export function IncidentTriagePanel({ data }: { data: Values }) {
         || Date.parse(String(result.sla.responseDeadlineAt)) !== Date.parse(utc(response) ?? chosen.responseDeadlineAt)
         || Date.parse(String(result.sla.resolutionDeadlineAt)) !== Date.parse(utc(resolution) ?? chosen.resolutionDeadlineAt))
         throw Error("Triage response could not be confirmed. Reload to check the current record.");
-      if (!abort.signal.aborted && current.current === session) { setSaved(true); setMessage("Triage saved. The incident is pending assignment."); }
+      if (!abort.signal.aborted && current.current === session) { setSaved(true); setMessage("Triage saved. The incident is pending assignment."); onCommitted?.("Triage saved. The incident is pending assignment."); }
     } catch (e) { if (!abort.signal.aborted && current.current === session) setMessage(e instanceof Error ? e.message : "Triage not confirmed. Reload."); }
     finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }

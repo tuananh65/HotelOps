@@ -7,7 +7,7 @@ type Technician = { userId: number; name: string; openIncidents: number | null; 
 type Context = { incidentId: number; incidentVersion: string; workId: number | null; workVersion: string | null; assigneeId: number | null; technicians: Technician[]; departmentId: number | null; departments: { departmentId: number; name: string }[] };
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 const version = (v: unknown): v is string => typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
-export function MaintenanceAssignmentPanel({ incidentId }: { incidentId: number }) {
+export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incidentId: number; onCommitted?: (notice: string) => void }) {
   const { state } = useAuth(), owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const current = useRef(owner); current.current = owner;
   const abort = useRef<AbortController | null>(null), sending = useRef(false);
@@ -64,7 +64,7 @@ export function MaintenanceAssignmentPanel({ incidentId }: { incidentId: number 
       const result: unknown = await response.json();
       if (!isObject(result) || !positive(result.workId) || !positive(result.auditId) || result.workflow !== "ASSIGNED" || data.workId !== null && data.workId !== result.workId)
         throw Error("Assignment response could not be confirmed. Reload.");
-      if (!controller.signal.aborted && current.current === owner) { setSaved(result.workId); setMessage("Assignment saved. Notifications are queued for eligible recipients."); }
+      if (!controller.signal.aborted && current.current === owner) { setSaved(result.workId); setMessage("Assignment saved. Notifications are queued for eligible recipients."); onCommitted?.("Assignment saved. Notifications are queued for eligible recipients."); }
     } catch (e) { if (!controller.signal.aborted && current.current === owner) setMessage(e instanceof Error ? e.message : "Assignment not confirmed."); }
     finally { if (!controller.signal.aborted) { sending.current = false; setBusy(false); setReview(false); } }
   }
