@@ -133,7 +133,7 @@ export function createShiftPlanApi(
         r.status === 201 &&
         obj(v) &&
         Number.isInteger(v.createdShifts) &&
-        Number(v.createdShifts) > 0 &&
+        Number(v.createdShifts) >= 0 &&
         Number(v.createdShifts) <= snapshot.length &&
         v.createdAssignments === snapshot.length &&
         v.notificationCount === snapshot.length

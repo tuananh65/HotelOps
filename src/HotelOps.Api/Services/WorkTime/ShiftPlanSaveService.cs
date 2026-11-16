@@ -16,7 +16,7 @@ public interface IShiftPlanNotificationParticipant
 }
 public sealed record ShiftPlanSaved(int CreatedShifts, int CreatedAssignments, int NotificationCount);
 public sealed record ShiftPlanSaveResult(int Status, ShiftPlanSaved? Value = null);
-/// <summary>New future plans, with current scoped authority and atomic audit/notification staging.</summary>
+/// <summary>Future assignments to new or existing plans, with atomic audit/notification staging.</summary>
 public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAccessor current, IPermissionDataSource paths,
  ISqlSessionService sessions, TimeProvider clock, IShiftPlanNotificationParticipant? notifications = null)
 {
@@ -62,28 +62,45 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         var entries = request.Drafts.Select((d, i) => (Draft: d, Row: preview.Value.Rows[i])).ToArray();
         var starts = entries.Select(x => x.Row.StartUtc!.Value).ToArray();
         if (!AreAssignmentsStillFuture(starts, new DateTimeOffset(now))) return new(409); // V1 creates future assignments only.
-                                                                                         // Insert-only V1: reject existing template/date plans. Never infer update authority or a fake ETag.
-        foreach (var group in entries.GroupBy(x => (x.Draft.TemplateId, x.Draft.ShiftDate)))
-            if (await db.WorkShifts.AnyAsync(s => s.BranchId == branch && s.DepartmentId == department && s.ShiftTemplateId == group.Key.TemplateId && s.ShiftDate == group.Key.ShiftDate, ct)) return new(409);
         var created = new List<ShiftAssignmentNotice>(); var shiftCount = 0;
         try
         {
             foreach (var group in entries.GroupBy(x => (x.Draft.TemplateId, x.Draft.ShiftDate)))
             {
-                var first = group.First(); var shift = new WorkShift
+                var first = group.First();
+                var existing = await db.WorkShifts.AsNoTracking().Where(s => s.BranchId == branch && s.DepartmentId == department
+                    && s.ShiftTemplateId == group.Key.TemplateId && s.ShiftDate == group.Key.ShiftDate).Take(2).ToArrayAsync(ct);
+                // Never guess between duplicate dated plans or silently change an existing schedule.
+                // The retained range lock serializes concurrent additions, including different employees.
+                if (existing.Length > 1) return new(409);
+                var shift = existing.SingleOrDefault();
+                var isNew = shift == null;
+                if (shift != null)
                 {
-                    BranchId = branch,
-                    DepartmentId = department,
-                    ShiftTemplateId = group.Key.TemplateId,
-                    ShiftDate = group.Key.ShiftDate,
-                    ScheduledStartAt = first.Row.StartUtc!.Value.UtcDateTime,
-                    ScheduledEndAt = first.Row.EndUtc!.Value.UtcDateTime,
-                    RequiredStaffCount = group.Count(),
-                    Status = "PLANNED",
-                    CreatedBy = actor,
-                    CreatedAt = now
-                };
-                db.Add(shift); await db.SaveChangesAsync(ct); shiftCount++;
+                    if (shift.Status != "PLANNED" || shift.ScheduledStartAt != first.Row.StartUtc!.Value.UtcDateTime
+                        || shift.ScheduledEndAt != first.Row.EndUtc!.Value.UtcDateTime) return new(409);
+                    var employees = group.Select(x => x.Draft.EmployeeId).ToArray();
+                    // The existing unique (shift,user) key includes cancellations. Preserve their receipts:
+                    // an addition must never revive or overwrite a cancelled assignment.
+                    if (await db.ShiftAssignments.AnyAsync(a => a.ShiftId == shift.ShiftId && employees.Contains(a.UserId), ct)) return new(409);
+                }
+                else
+                {
+                    shift = new WorkShift
+                    {
+                        BranchId = branch,
+                        DepartmentId = department,
+                        ShiftTemplateId = group.Key.TemplateId,
+                        ShiftDate = group.Key.ShiftDate,
+                        ScheduledStartAt = first.Row.StartUtc!.Value.UtcDateTime,
+                        ScheduledEndAt = first.Row.EndUtc!.Value.UtcDateTime,
+                        RequiredStaffCount = group.Count(),
+                        Status = "PLANNED",
+                        CreatedBy = actor,
+                        CreatedAt = now
+                    };
+                    db.Add(shift); await db.SaveChangesAsync(ct); shiftCount++;
+                }
                 foreach (var row in group)
                 {
                     var assignment = new ShiftAssignment { ShiftId = shift.ShiftId, UserId = row.Draft.EmployeeId, AssignmentStatus = "ASSIGNED", AssignedBy = actor, AssignedAt = now };
@@ -95,10 +112,13 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
                     BranchId = branch,
                     EntityType = "work_shifts",
                     EntityId = shift.ShiftId.ToString(CultureInfo.InvariantCulture),
-                    Action = "CREATE",
+                    Action = isNew ? "CREATE" : "UPDATE",
                     OccurredAt = now,
-                    NewValues = JsonSerializer.Serialize(new { shift.ShiftId, branch, department, templateId = shift.ShiftTemplateId, date = shift.ShiftDate, employees = group.Select(x => x.Draft.EmployeeId).ToArray() }),
-                    ChangedFields = "[\"shift\",\"assignments\"]"
+                    OldValues = isNew ? null : JsonSerializer.Serialize(new { shift.ShiftId, shift.ScheduledStartAt, shift.ScheduledEndAt, shift.RequiredStaffCount }),
+                    NewValues = JsonSerializer.Serialize(new { operation = isNew ? "CREATE_SHIFT_PLAN" : "ADD_SHIFT_ASSIGNMENTS", shift.ShiftId, branch, department,
+                        templateId = shift.ShiftTemplateId, date = shift.ShiftDate, shift.ScheduledStartAt, shift.ScheduledEndAt, shift.RequiredStaffCount,
+                        employees = group.Select(x => x.Draft.EmployeeId).ToArray(), assignmentIds = created.Where(x => x.ShiftId == shift.ShiftId).Select(x => x.AssignmentId).ToArray() }),
+                    ChangedFields = isNew ? "[\"shift\",\"assignments\"]" : "[\"assignments\"]"
                 });
                 await db.SaveChangesAsync(ct);
             }

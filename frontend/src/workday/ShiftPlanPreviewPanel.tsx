@@ -9,7 +9,7 @@ import {
   type PreviewAdapter,
   type ShiftDraft,
 } from "./shiftPlanPreview";
-/** Unmounted internal-preview presentation. An adapter must authorize all server resources; a logged-in UI is never that authority. */
+/** Review and save future assignments; all scope and conflict checks are enforced by the API. */
 export function ShiftPlanPreviewPanel({
   adapter,
   saveAdapter,
@@ -167,13 +167,15 @@ function Bound({
       setPreview(null);
       setDrafts([]);
       if (result.ok)
-        setMessage("Shift plan saved; employee notifications staged.");
+        setMessage(`${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
       else {
         if (result.status === 401) setSessionBlocked(true);
         setMessage(
           result.outcome === "OUTCOME_UNKNOWN"
             ? "Save outcome unknown. Do not replay; verify with an authorized owner."
-            : "Shift plan was not confirmed. No automatic retry.",
+            : result.status === 409
+              ? "Assignment conflict. Reload the roster: an employee may already be assigned, a cancellation may exist, or the dated shift may differ from the current definition."
+              : "Shift plan was not confirmed. No automatic retry.",
         );
       }
     } catch {
@@ -195,8 +197,8 @@ function Bound({
     <section aria-label="Shift plan preview">
       <h1>Plan shift assignments</h1>
       <p>
-        Diagnostic preview only. Every resource requires server authorization. A
-        preview does not save a roster.
+        Add employees to future shifts, then preview and save. An existing dated
+        shift keeps its schedule and staffing requirement. Cancelled assignments stay in history.
       </p>
       {!adapter && (
         <p role="alert">
@@ -292,7 +294,7 @@ function Bound({
             </button>
             {saveReview && (
               <>
-                <p>Confirm this new plan. Server revalidation is mandatory.</p>
+                <p>Confirm these assignments. Existing assignments and scheduled times will be preserved.</p>
                 <button disabled={pending} onClick={() => void savePlan()}>
                   Confirm save plan
                 </button>
