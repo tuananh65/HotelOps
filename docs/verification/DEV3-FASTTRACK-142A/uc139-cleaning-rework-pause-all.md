@@ -41,6 +41,8 @@ Direct validation: frontend production build (including TypeScript) PASS; assign
 
 ## Remaining UC139 acceptance
 
+Follow-up direct SQL evidence: `ModelProbe --rework-workday-boundary` executed the production EF `ReworkWorkdayBoundary.IsStoppedAsync` method on the identity-guarded disposable database. Synthetic Rework without an interval was rejected for IN_PROGRESS and NULL workflow, allowed for ON_HOLD and PENDING_REINSPECTION, and did not block an unrelated actor. The ON_HOLD installer and all fixture rows ran within an owning serializable rollback transaction; post-rollback synthetic user/branch absence was verified. This is query-level evidence, not full Workday HTTP authorization/rollback or concurrency acceptance. ModelProbe build emitted three existing EF1002 warnings in SprintCredentialScenario.cs, outside this increment.
+
 Current-source correction: Maintenance now participates through MaintenanceEndOfShift and the MAINTENANCE interval bridge; the historical paragraph below describes the earlier implementation. Live full-workflow acceptance is still pending.
 
 End Workday additionally rejects physically IN_PROGRESS Rework when its canonical workflow is running, missing or unknown, even if a legacy source has no open interval. ON_HOLD and PENDING_REINSPECTION remain valid stopped workflow states; no physical status is changed. The check runs under the existing serializable workday transaction and user/time locks, across branches. A missing workflow column fails closed. This correction does not fabricate or close an interval for legacy data.

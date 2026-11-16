@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 1 && args[0] == "--rework-workday-boundary")
+    return await ReworkWorkdayBoundaryProbe.RunAsync();
+
 if (args.Length == 1 && args[0] == "--recovery-diagnostic-host")
 {
     // Diagnostic host only: emit method names, never exception messages, values or credentials.
