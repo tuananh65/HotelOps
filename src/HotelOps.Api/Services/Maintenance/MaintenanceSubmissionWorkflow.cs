@@ -1,5 +1,6 @@
 using System.Globalization;
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.Incidents;
 using HotelOps.Api.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,11 @@ internal static class MaintenanceSubmissionWorkflow
     {
         var status=await db.Incidents.AsNoTracking().Where(i=>i.IncidentId==incident).Select(i=>i.Status).SingleAsync(ct);
         if(status!="RESOLVED") return null;
-        var works=await db.MaintenanceWorks.AsNoTracking().Where(w=>w.IncidentId==incident).Select(w=>w.MaintenanceWorkId).Take(2).ToArrayAsync(ct);
+        var cycle=await IncidentReopenStore.ReadAsync(db,incident,ct);
+        var cycleStart=cycle?.ReopenedAt ?? DateTime.MinValue;
+        if(cycle!=null && await db.MaintenanceWorks.AsNoTracking().AnyAsync(w=>w.IncidentId==incident && w.CreatedAt<cycleStart
+            && w.Status!="CLOSED" && w.Status!="CANCELLED",ct)) return "UNVERIFIED";
+        var works=await db.MaintenanceWorks.AsNoTracking().Where(w=>w.IncidentId==incident && w.CreatedAt>=cycleStart).Select(w=>w.MaintenanceWorkId).Take(2).ToArrayAsync(ct);
         return works.Length==1 ? await ReadAsync(db,works[0],ct) ?? "UNVERIFIED" : "UNVERIFIED";
     }
 }

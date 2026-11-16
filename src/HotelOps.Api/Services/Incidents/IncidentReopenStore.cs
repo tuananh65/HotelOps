@@ -55,10 +55,11 @@ internal static class IncidentReopenStore
     }
 
     // Missing storage is tolerated only for incidents that have never been reopened.
-    internal static async Task<Boundary?> ReadAsync(HotelOpsDbContext db, long incident, CancellationToken ct)
+    internal static async Task<Boundary?> ReadAsync(HotelOpsDbContext db, long incident, CancellationToken ct, long? eventId = null)
     {
         RequireTransaction(db);
-        var latestEvent = await db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident && e.EventType == "REOPENED")
+        var latestEvent = await db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident && e.EventType == "REOPENED"
+            && (eventId == null || e.EventId == eventId))
             .OrderByDescending(e => e.EventId).FirstOrDefaultAsync(ct);
         if (!await InstalledAsync(db, ct))
         {
@@ -70,7 +71,8 @@ internal static class IncidentReopenStore
               closure_event_id AS ClosureEventId,closure_audit_id AS ClosureAuditId,reopen_audit_id AS AuditId,
               recurrence_discovered_at AS DiscoveredAt,previous_closed_at AS ClosedAt,reopened_at AS ReopenedAt,
               previous_response_deadline_at AS PreviousResponseDeadlineAt,previous_resolution_deadline_at AS PreviousResolutionDeadlineAt
-            FROM dbo.incident_reopen_cycles WITH(HOLDLOCK) WHERE incident_id={incident} ORDER BY reopen_event_id DESC
+            FROM dbo.incident_reopen_cycles WITH(HOLDLOCK) WHERE incident_id={incident}
+              AND ({eventId} IS NULL OR reopen_event_id={eventId}) ORDER BY reopen_event_id DESC
             """).SingleOrDefaultAsync(ct);
         if (row == null && latestEvent == null) return null;
         if (row == null || latestEvent == null || row.EventId != latestEvent.EventId

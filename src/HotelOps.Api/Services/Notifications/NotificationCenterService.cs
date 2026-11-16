@@ -131,6 +131,13 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
             await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}?action=A004A-023");
         }
+        if(source is {NotificationType:Incidents.IncidentReopenedNotificationDelivery.Kind,SourceType:Incidents.IncidentReopenedNotificationDelivery.Kind,SourceId:>0})
+        {
+            var incidentId = await Incidents.IncidentReopenedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
+            if (incidentId == null) throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
+            await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}?action=A004A-023");
+        }
         if(source is {NotificationType:Incidents.IncidentCancelledNotificationDelivery.Kind,SourceType:Incidents.IncidentCancelledNotificationDelivery.Kind,SourceId:>0})
         {
             var incidentId = await Incidents.IncidentCancelledNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
