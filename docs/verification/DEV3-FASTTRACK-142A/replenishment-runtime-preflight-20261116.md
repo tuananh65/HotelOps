@@ -1,0 +1,13 @@
+# Replenishment runtime preflight, 2026-11-16
+
+Direct read-only SQL preflight identified `meita\MSSQLSERVER01`, database `HotelOps_DEV3_142A_Recovery_2b221f40`, GUID `5270D07C-7C27-477B-A60E-86485ADD7FAD`. Initial sandbox Windows authentication failed with SSPI; elevated read-only queries succeeded. No DEV3-prefixed extended properties, replenishment tables, or REPLENISHMENT permission rows were returned by the metadata checks. No database mutation was attempted.
+
+The new `ModelProbe --replenishment-read-probe <new-output-path>` uses explicit environment-provided server/database/GUID, rejects empty GUIDs and non-disposable names, verifies identity, and runs the production notification EF expression with Take(0). It uses integrated authentication, Encrypt=true, no TrustServerCertificate bypass, and ReadOnly application intent. Application intent is not claimed to be a SQL permission boundary; this mode only issues the inspected identity SELECT and generated zero-row SELECT.
+
+Two executions failed with SQL `Invalid object name 'material_replenishment_receipt_lines'`. EF translation reached SQL execution, but schema acceptance did not pass. The GUID fields in the saved JSON receipts unexpectedly contain zeroes despite the second run printing matching nonzero expected/actual GUIDs to stdout and two independent SQL identity queries returning the expected GUID. Preserve both files as observed; do not use those JSON GUID fields as identity proof or infer a cause for the discrepancy.
+
+The historical FE10 integration runner targets `KIENPC/HotelOpsDB`, starts HTTP, and uses legacy actor/fixtures; it was inspected but NOT executed. It is not valid acceptance evidence for current production authorization or the disposable target. New HTTPS lifecycle tests need current synthetic principals, CSRF, grants and schema on the verified disposable database, with rollback/cleanup. No shared database mutation is authorized by this preflight.
+
+Probe build passed with three pre-existing EF1002 warnings in SprintCredentialScenario.cs (lines 62, 72, 83); those scenarios were not invoked. Backend solution build passes. Solution test command executes no tests because only the API project is included. UC100/101 remain unverified; no COMPLETE_VERIFIED increment.
+
+The source package was located at database/patches/20261021_replenishment_contract.sql. It has not been executed. Next prerequisite: review its target/dependencies against the current disposable schema and EF mappings, prepare a guarded disposable installer and verify backup before any isolated mutation. The approved permission installer alone cannot supply missing replenishment tables. Continue independent source work while this runtime dependency remains open.

@@ -1,0 +1,18 @@
+{
+  "recordedUtc": "2026-11-16T07:59:44.5318655Z",
+  "server": "meita\\MSSQLSERVER01",
+  "database": "HotelOps_DEV3_142A_Recovery_2b221f40",
+  "expectedDatabaseGuid": "5270d07c-7c27-477b-a60e-86485add7fad",
+  "actualDatabaseGuid": "5270d07c-7c27-477b-a60e-86485add7fad",
+  "readOnly": true,
+  "mutations": 0,
+  "transport": "Local integrated SQL; not HTTPS/TLS acceptance",
+  "results": [
+    {
+      "check": "production-replenishment-notification-query",
+      "status": "FAIL",
+      "error": "Invalid object name \u0027material_replenishment_receipt_lines\u0027."
+    }
+  ],
+  "acceptance": "Query translation/schema execution only; no lifecycle, authorization, delivery or UC completion claim"
+}

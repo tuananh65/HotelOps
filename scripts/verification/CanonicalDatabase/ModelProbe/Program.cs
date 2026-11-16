@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 2 && args[0] == "--replenishment-read-probe")
+    return await ReplenishmentReadProbe.RunAsync(args[1]);
+
 if (args.Length == 3 && args[0] == "--sprint-task-notification-discovery")
     return await SprintTaskNotificationDiscoveryProbe.RunAsync(args[1],args[2]);
 if (args.Length == 3 && args[0] == "--sprint-task-decline")
