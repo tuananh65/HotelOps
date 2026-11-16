@@ -56,7 +56,21 @@ export function WorkCategoriesPage() {
       const saved=await fetch(url,{method:selected?"PUT":"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,...(selected?{"If-Match":selected.version}:{})},
         body:JSON.stringify({code,name,description:description.trim()||null,departmentId:branch?Number(department):null,isActive:active,confirmation:confirmed})});
-      if(!saved.ok){const error: unknown=await saved.json();throw Error(isObject(error)&&typeof error.title==="string"?error.title:"Save was not confirmed ("+saved.status+").");}
+      if(!saved.ok){
+        const error: unknown=await saved.json();
+        const code=isObject(error)&&typeof error.code==="string"?error.code:null;
+        // These responses reject the write before commit. Keep the form for correction.
+        if(saved.status===409&&code==="MSG35"||saved.status===400&&code!==null&&[
+          "INVALID_CATEGORY_INPUT","CATEGORY_SCOPE_MISMATCH","DEACTIVATION_CONFIRMATION_REQUIRED",
+          "NEW_CATEGORY_MUST_BE_ACTIVE","ACTIVE_DEPARTMENT_REQUIRED"
+        ].includes(code)){
+          if(!controller.signal.aborted&&current.current===owner){
+            setMessage(code==="MSG35"?"MSG35: This category code already exists. Enter another code and save again.":"Category input was rejected. Check the required fields, department and deactivation confirmation.");
+          }
+          return;
+        }
+        throw Error(isObject(error)&&typeof error.title==="string"?error.title:"Save was not confirmed ("+saved.status+").");
+      }
       const value: unknown=await saved.json();if(!valid(value))throw Error("Save response could not be confirmed.");
       if(!controller.signal.aborted&&current.current===owner){clear();setMessage("Category saved. Reload the catalog to continue.");}
     } catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e));if(submitted)setUncertain(true);}}
