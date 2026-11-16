@@ -353,7 +353,7 @@ export function InternalRequestHistoryPage() {
           <h2>Request {visible.timeline.requestId}</h2>
           {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestDecisionPanel id={visible.timeline.requestId} />
+          <InternalRequestDecisionPanel id={visible.timeline.requestId} onChanged={message => refreshWork(visible.timeline!.requestId, message)} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId}
             onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Progress saved. Request remains In Progress.")} />

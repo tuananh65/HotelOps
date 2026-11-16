@@ -13,7 +13,10 @@ namespace HotelOps.Api.Services.InternalRequests;
 public sealed record InternalRequestDecisionInput(bool Accept,string? Reason,DateTimeOffset? Deadline);
 public sealed record InternalRequestDecisionResult(long RequestId,string Status,string Version,long EventId,string Message);
 public sealed record InternalRequestDecisionView(long RequestId,string Subject,string Description,string Status,
-    DateTimeOffset SubmittedAt,DateTimeOffset? Deadline,double AgeSeconds,string Version,bool CanDecide);
+    DateTimeOffset SubmittedAt,DateTimeOffset? Deadline,double AgeSeconds,string Version,bool CanDecide)
+{
+    public DateTimeOffset? DesiredDeadline { get; init; }
+}
 
 public sealed class InternalRequestDecisionService(HotelOpsDbContext db,InternalRequestProcessAuthority authority,
     ISqlSessionService sessions,ICurrentUserAccessor current)
@@ -57,7 +60,8 @@ public sealed class InternalRequestDecisionService(HotelOpsDbContext db,Internal
         await tx.CommitAsync(ct);
         var submitted=DateTime.SpecifyKind(row.SubmittedAt??row.CreatedAt,DateTimeKind.Utc);
         return new(id,row.Subject,row.Description,row.Status,new(submitted),row.DueAt is {} due?new DateTimeOffset(DateTime.SpecifyKind(due,DateTimeKind.Utc)):null,
-            Math.Max(0,(now-submitted).TotalSeconds),Convert.ToBase64String(version),allowed&&row.Status=="PENDING_ACCEPTANCE"&&row.SubmittedAt!=null&&row.SubmittedAt<=now);
+            Math.Max(0,(now-submitted).TotalSeconds),Convert.ToBase64String(version),allowed&&row.Status=="PENDING_ACCEPTANCE"&&row.SubmittedAt!=null&&row.SubmittedAt<=now)
+        {DesiredDeadline=row.RequiredAt is {} desired?new DateTimeOffset(DateTime.SpecifyKind(desired,DateTimeKind.Utc)):null};
     }
 
     public async Task<InternalRequestDecisionResult> DecideAsync(SessionReference ticket,long sid,long id,

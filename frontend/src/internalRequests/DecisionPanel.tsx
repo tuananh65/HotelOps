@@ -5,7 +5,7 @@ import { InternalRequestRoutePanel } from "./RoutePanel";
 
 interface DecisionView {
   requestId: number; subject: string; description: string; status: string;
-  submittedAt: string; deadline: string | null; ageSeconds: number;
+  submittedAt: string; deadline: string | null; desiredDeadline?: string | null; ageSeconds: number;
   version: string; canDecide: boolean;
 }
 class DecisionFailure extends Error { constructor(readonly status: number) { super("Decision request failed"); } }
@@ -15,6 +15,7 @@ function decode(value: unknown, id: number): DecisionView {
   const v = value as DecisionView | null;
   if (!v || v.requestId !== id || typeof v.subject !== "string" || typeof v.description !== "string"
     || typeof v.status !== "string" || !utc(v.submittedAt) || !(v.deadline === null || utc(v.deadline))
+    || !(v.desiredDeadline === undefined || v.desiredDeadline === null || utc(v.desiredDeadline))
     || !Number.isFinite(v.ageSeconds) || v.ageSeconds < 0 || !version(v.version) || typeof v.canDecide !== "boolean")
     throw new Error("Invalid decision response");
   return v;
@@ -26,7 +27,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
   return response.json();
 }
 
-export function InternalRequestDecisionPanel({ id }: { id: number }) {
+export function InternalRequestDecisionPanel({ id, onChanged }: { id: number; onChanged?: (message: string) => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [revision, setRevision] = useState(0);
@@ -68,6 +69,7 @@ export function InternalRequestDecisionPanel({ id }: { id: number }) {
       if (!abort.signal.aborted) {
         setResult({ owner, id, view: { ...view, status: accept ? "ACCEPTED" : "REJECTED", deadline: adjustedDeadline ?? view.deadline, version: raw.version, canDecide: false } });
         setReason(""); setDeadline(""); setMessage(accept ? "MSG08: Request accepted." : "MSG19: Request rejected.");
+        onChanged?.(accept ? "MSG08: Request accepted. Assign a handler to start processing." : "MSG19: Request rejected.");
       }
     } catch (e) {
       if (!abort.signal.aborted) {
@@ -85,12 +87,15 @@ export function InternalRequestDecisionPanel({ id }: { id: number }) {
       <h3>{view.subject}</h3><p>{view.description}</p><p>Status: {view.status}</p>
       <p>Submitted: {view.submittedAt}; age: {Math.floor(view.ageSeconds / 60)} minutes.</p>
       <p>Deadline (UTC): {view.deadline ?? "No deadline"}</p>
+      <p>Requester’s desired deadline (UTC): {view.desiredDeadline ?? "Not specified"}</p>
       {view.canDecide && <InternalRequestRoutePanel id={id} onRouted={() => {
         setResult(null); setMessage("MSG08: Request routed. Reload decision to check the new department and your current access.");
+        onChanged?.("MSG08: Request routed. Current department and access have been refreshed.");
       }} />}
       {(view.status === "ACCEPTED" || view.status === "IN_PROGRESS") && <InternalRequestAssignmentPanel id={id} onAssigned={version => {
         setResult(previous => previous?.owner === owner && previous.id === id
           ? { ...previous, view: { ...previous.view, status: "IN_PROGRESS", version, canDecide: false } } : previous);
+        onChanged?.("MSG08: Handler assigned. Request is In Progress.");
       }} />}
       {view.canDecide && <div aria-busy={busy}>
         <label>Decision reason<input value={reason} maxLength={4000} disabled={busy} onChange={e => setReason(e.target.value)} /></label>
