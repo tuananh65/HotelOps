@@ -40,7 +40,6 @@ public sealed partial class MaintenanceWorkService
             incident.Status = "CLOSED";
             incident.ClosedAt = now;
             incident.ClosureNote = note;
-
         }, cancellationToken);
     }
 
@@ -62,7 +61,6 @@ public sealed partial class MaintenanceWorkService
             incident.Status = "IN_PROGRESS";
             incident.ResolvedAt = null;
             AddWorkLog(work, TrustedActorId, reason, 0, now);
-
         }, cancellationToken, restoreAssigneeResponsibility: true);
     }
 
