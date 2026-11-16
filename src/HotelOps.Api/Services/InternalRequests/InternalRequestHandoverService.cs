@@ -18,6 +18,8 @@ public sealed record InternalRequestHandoverView(long RequestId,string Version,l
 
 public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
+    private async Task<DateTime> NowAsync(CancellationToken ct)=>DateTime.SpecifyKind(
+        await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
     private async Task SessionAsync(SessionReference ticket,long sid,CancellationToken ct)
     {
         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
@@ -43,7 +45,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
     }
     private async Task<InternalRequest> ReadRequestAsync(long user,long id,CancellationToken ct)
     {
-        var now=DateTime.UtcNow;var scope=await new InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+        var now=await NowAsync(ct);var scope=await new InternalRequestReadAccess(db).ReadAsync(user,now,ct);
         // Pending receiver read expansion is not approved yet. Existing IR_VIEW scope remains mandatory.
         var row=await scope.Apply(db.InternalRequests.FromSqlInterpolated($"SELECT * FROM dbo.internal_requests WITH(UPDLOCK,HOLDLOCK) WHERE internal_request_id={id}").AsNoTracking(),now)
             .SingleOrDefaultAsync(ct);
@@ -63,7 +65,8 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
     private async Task<InternalRequestAssignment> HandlerAsync(InternalRequest row,CancellationToken ct)
     {
         var active=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==row.InternalRequestId&&a.Status=="ACTIVE").ToArrayAsync(ct);
-        if(row.Status!="IN_PROGRESS"||row.ReceivingDepartmentId==null||active.Length!=1||active[0].EndedAt!=null||active[0].AssignedAt>DateTime.UtcNow)
+        var now=await NowAsync(ct);
+        if(row.Status!="IN_PROGRESS"||row.ReceivingDepartmentId==null||active.Length!=1||active[0].EndedAt!=null||active[0].AssignedAt>now)
             throw new InternalRequestReadException(409,"IR_HANDLER_STATE_REQUIRED");
         return active[0];
     }
@@ -88,14 +91,15 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await SessionAsync(ticket,sid,ct);await SchemaAsync(ct);
         var row=await ReadRequestAsync(ticket.UserId,id,ct);var pending=await InternalRequestHandoverStore.Rows(db).Where(h=>h.RequestId==id&&h.State=="PENDING_ACKNOWLEDGMENT").SingleOrDefaultAsync(ct);
-        var active=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=DateTime.UtcNow).ToArrayAsync(ct);
-        var eligible=row.Status=="IN_PROGRESS"&&row.ReceivingDepartmentId is {} department&&await EligibleAsync(db,ticket.UserId,row.BranchId,department,DateTime.UtcNow,ct);
+        var now=await NowAsync(ct);
+        var active=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now).ToArrayAsync(ct);
+        var eligible=row.Status=="IN_PROGRESS"&&row.ReceivingDepartmentId is {} department&&await EligibleAsync(db,ticket.UserId,row.BranchId,department,now,ct);
         var submit=eligible&&active.Length==1&&active[0].AssigneeId==ticket.UserId&&pending==null;
         var decide=eligible&&pending?.ReceiverId==ticket.UserId&&active.Length==1&&active[0].AssignmentId==pending.SenderAssignmentId&&pending.DepartmentId==row.ReceivingDepartmentId;
         var receivers=new List<InternalRequestFilterValue>();
         if(submit)foreach(var user in await db.Users.AsNoTracking().Where(u=>u.UserId!=ticket.UserId&&u.DepartmentId==row.ReceivingDepartmentId&&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null)
             .OrderBy(u=>u.FullName).ThenBy(u=>u.UserId).Select(u=>new InternalRequestFilterValue(u.UserId,u.FullName)).ToArrayAsync(ct))
-            if(await CanReceiveAsync(user.Id,row,DateTime.UtcNow,ct))receivers.Add(user);
+            if(await CanReceiveAsync(user.Id,row,now,ct))receivers.Add(user);
         var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct);
         await tx.CommitAsync(ct);return new(id,Convert.ToBase64String(version),pending?.Id,pending?.State,pending?.ReceiverId,pending?.Summary,pending?.Note,submit,decide,receivers.ToArray());
     }
@@ -172,7 +176,7 @@ public sealed class InternalRequestHandoverService(HotelOpsDbContext db,ISqlSess
             if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET updated_at={now} WHERE internal_request_id={id} AND row_version={version}",ct)!=1)
                 throw new InternalRequestReadException(412,"IR_VERSION_CHANGED");
             await SessionAsync(ticket,sid,ct);await ReadRequestAsync(ticket.UserId,id,ct);
-            if(!await EligibleAsync(db,ticket.UserId,row.BranchId,handover.DepartmentId,DateTime.UtcNow,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
+            if(!await EligibleAsync(db,ticket.UserId,row.BranchId,handover.DepartmentId,await NowAsync(ct),ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
             var next=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);await tx.CommitAsync(ct);return new(id,handover.Id,newState,Convert.ToBase64String(next),"MSG08");
         }finally{db.ChangeTracker.Clear();}
     }

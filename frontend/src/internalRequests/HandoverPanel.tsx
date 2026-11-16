@@ -33,7 +33,7 @@ export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(s
   async function send(action:"submit"|"acknowledge"|"reject"){
     const abort=controller.current;
     if(!owner||!view||sending.current||!abort||abort.signal.aborted||action==="submit"&&!view.canSubmit||action!=="submit"&&!view.canDecide)return;
-    if(action==="submit"&&(!receiver||!summary.trim())||action==="reject"&&!reason.trim()){setMessage("Enter the required receiver and summary, or rejection reason.");return;}
+    if(action==="submit"&&(!view.receivers.some(r=>r.id===Number(receiver))||!summary.trim())||action==="reject"&&!reason.trim()){setMessage("Select a currently eligible receiver and enter the summary, or enter the rejection reason.");return;}
     sending.current=true;setBusy(true);setMessage("");
     try{
       const csrf=await json("/api/auth/csrf",abort.signal) as {csrfToken?:unknown};
@@ -53,10 +53,11 @@ export function InternalRequestHandoverPanel({id,onSaved}:{id:number;onSaved?:(s
     {message&&<p role="status">{message}</p>}<button disabled={busy} onClick={()=>setRevision(v=>v+1)}>Reload handover</button>
     {view?.state&&<><p>Handover: {view.state}. The sender remains responsible until acknowledgment.</p><p>{view.summary}</p><p>{view.note}</p></>}
     {view?.canSubmit&&<>
+      {view.receivers.length===0&&<p role="status">No eligible receiver currently has permission to open this request. The current handler remains responsible.</p>}
       <label>New handler<select aria-label="New handler" value={receiver} disabled={busy} onChange={e=>setReceiver(e.target.value)}><option value="">Select</option>{view.receivers.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
       <label>Status summary<textarea maxLength={4000} value={summary} disabled={busy} onChange={e=>setSummary(e.target.value)}/></label>
       <label>Handover notes<textarea maxLength={4000} value={note} disabled={busy} onChange={e=>setNote(e.target.value)}/></label>
-      <button disabled={busy} onClick={()=>void send("submit")}>Submit handover</button>
+      <button disabled={busy||!view.receivers.some(r=>r.id===Number(receiver))||!summary.trim()} onClick={()=>void send("submit")}>Submit handover</button>
     </>}
     {view?.canDecide&&<>
       <label>Handover rejection reason<textarea maxLength={4000} value={reason} disabled={busy} onChange={e=>setReason(e.target.value)}/></label>
