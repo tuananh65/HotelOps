@@ -186,7 +186,9 @@ function MutationForm({
     </form>
   );
 }
-export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
+export function HotelWorkspace({ screen = "structure", readOnly = false, directoryBasePath = "/rooms" }: {
+  screen?: Screen; readOnly?: boolean; directoryBasePath?: string;
+}) {
   const { state, actions } = useAuth();
   const route = useLocation(),
     params = useParams();
@@ -321,6 +323,7 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
       (object(snapshotValue.details) &&
         snapshotValue.details.isActive === false));
   const formAllowed =
+    !readOnly &&
     context &&
     kind &&
     !flow.unknown &&
@@ -342,7 +345,7 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
             Update branch information
           </Link>
         )}
-        {Object.entries({
+        {Object.entries(readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
           "/hotel": "Branch structure",
           "/floors": "Floors",
           "/areas": "Areas",
@@ -355,15 +358,15 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
           </Link>
         ))}
       </nav>
-      <p>
+      {!readOnly && <p>
         Data and decisions come from the server. No demo identity or permission
         graph is used.
-      </p>
-      <p>
+      </p>}
+      {!readOnly && <p>
         Branch listing, branch deactivation, floor/area deactivation, room
         deactivation and department deactivation are outside this integration
         slice.
-      </p>
+      </p>}
       <section aria-label="Hotel structure selectors">
         <label>
           Branch ID
@@ -391,11 +394,11 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
             {screen !== "structure" && (
               <>
                 <option value="detail">Read record</option>
-                <option value="create">Create</option>
-                <option value="edit">Update</option>
+                {!readOnly && <option value="create">Create</option>}
+                {!readOnly && <option value="edit">Update</option>}
               </>
             )}
-            {screen === "roomTypes" && (
+            {!readOnly && screen === "roomTypes" && (
               <option value="deactivate">Deactivate room type</option>
             )}
             {screen === "rooms" && (
@@ -650,7 +653,7 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
         <section aria-label="Server hotel data">
           <h2>Server record snapshot</h2>
           {screen === "rooms" && action === "browse" ? (
-            <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} />
+            <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} basePath={directoryBasePath} />
           ) : (
             <Values value={snapshot.data} />
           )}

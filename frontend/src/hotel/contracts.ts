@@ -146,6 +146,8 @@ const roomDirectoryItem = record({
   area: nullable(record(identity)),
   roomType: record(identity),
   operationalStatusCode: text,
+  effectiveReadiness: (value: unknown) => typeof value === "string" &&
+    ["INACTIVE", "BLOCKED", "PENDING_CLEANING", "PENDING_INSPECTION", "CLEANING_IN_PROGRESS", "REWORK_REQUIRED", "READY"].includes(value) ? value : "UNKNOWN",
   isActive: boolean,
 });
 export const roomsDto = page(roomDirectoryItem);

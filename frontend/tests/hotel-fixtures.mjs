@@ -60,6 +60,7 @@ export const directoryItem = {
   area: { id: 12, code: "A1", name: "Server Area" },
   roomType: { id: 14, code: "DLX", name: "Server Deluxe" },
   operationalStatusCode: "AVAILABLE",
+  effectiveReadiness: "BLOCKED",
   isActive: true,
 };
 export const rooms = {

@@ -2,14 +2,14 @@ import { Link } from "react-router-dom";
 import type { ReadTypes } from "./contracts";
 
 /** Read navigation only; the target API independently checks access. */
-export function RoomDirectoryResults({ data }: { data: ReadTypes["rooms"] }) {
+export function RoomDirectoryResults({ data, basePath = "/rooms" }: { data: ReadTypes["rooms"]; basePath?: string }) {
   return (
     <section aria-label="Room directory results">
       <p>
         Page {data.page}. {data.totalCount} rooms reported by the server.
       </p>
       {data.items.length === 0 ? (
-        <p>No rooms on this page.</p>
+        <p>MSG10: No rooms match the current filters on this page.</p>
       ) : (
         <table>
           <caption>Rooms returned by the server</caption>
@@ -21,6 +21,7 @@ export function RoomDirectoryResults({ data }: { data: ReadTypes["rooms"] }) {
               <th scope="col">Area</th>
               <th scope="col">Room type</th>
               <th scope="col">Stored status</th>
+              <th scope="col">Effective readiness</th>
               <th scope="col">Active</th>
               <th scope="col">Read actions</th>
             </tr>
@@ -34,16 +35,17 @@ export function RoomDirectoryResults({ data }: { data: ReadTypes["rooms"] }) {
                 <td>{room.area?.name ?? "No area"}</td>
                 <td>{room.roomType.name}</td>
                 <td>{room.operationalStatusCode}</td>
+                <td>{room.effectiveReadiness}</td>
                 <td>{room.isActive ? "Yes" : "No"}</td>
                 <td>
                   <Link
-                    to={`/rooms/${room.id}?branchId=${room.branchId}`}
+                    to={`${basePath}/${room.id}?branchId=${room.branchId}`}
                     aria-label={`Read room ${room.roomNumber} in branch ${room.branchId}`}
                   >
                     Read details
                   </Link>{" "}
                   <Link
-                    to={`/rooms/${room.id}?branchId=${room.branchId}&view=history`}
+                    to={`${basePath}/${room.id}?branchId=${room.branchId}&view=history`}
                     aria-label={`Read history for room ${room.roomNumber} in branch ${room.branchId}`}
                   >
                     Recorded status history

@@ -66,18 +66,19 @@ const bundle = await build({
     resolveDir: process.cwd(),
     contents: `
 import React,{StrictMode} from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom';
-import {AuthProvider} from './src/auth/AuthProvider'; import {HotelRouteHost} from './src/hotel/HotelRouteHost'; import {createAuthApi} from './src/auth/authApi'; import {createAuthStore} from './src/auth/authStore';
+import {SharedAuthHost} from './src/shared-host/SharedAuthHost'; import {AuthProvider} from './src/auth/AuthProvider'; import {HotelRouteHost} from './src/hotel/HotelRouteHost'; import {createAuthApi} from './src/auth/authApi'; import {createAuthStore} from './src/auth/authStore';
 const scenario=window.scenario, calls=[], unexpected=[], waiting=new Map();
 const defaults=${JSON.stringify(defaults)}; const sessions=[...(scenario.sessions??[{body:${JSON.stringify(session())}}])];
 function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},'TimeoutError');if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},'AbortError');const response=new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':r.type??'application/json',...r.headers}});if(r.unreadable)response.text=async()=>{throw new Error('body unavailable')};return response;}
 const fetcher=async(url,init)=>{const parsed=new URL(url,'https://hotelops.test'),key=init.method+' '+parsed.pathname; const c={url,method:init.method,body:init.body,headers:Object.fromEntries(new Headers(init.headers)),credentials:init.credentials,cache:init.cache,redirect:init.redirect,aborted:init.signal?.aborted??false};calls.push(c);init.signal?.addEventListener('abort',()=>{c.aborted=true},{once:true});
 let r;if(parsed.pathname==='/api/auth/session')r=sessions.shift();else if(parsed.pathname==='/api/auth/csrf')r=scenario.csrf??{body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(scenario.responses?.[key])r=scenario.responses[key].shift();else r=defaults[key];
 if(!r){unexpected.push(key);throw new Error('Unexpected request');}if(r.deferred)return new Promise((resolve,reject)=>waiting.set(r.deferred,{resolve,reject}));return respond(r);};
-window.fetch=fetcher; const store=createAuthStore(createAuthApi(fetcher));const host=<HotelRouteHost/>;const root=createRoot(document.getElementById('root'));root.render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
+window.fetch=fetcher; const store=createAuthStore(createAuthApi(fetcher));const host=scenario.canonical?<SharedAuthHost structureReadEnabled/>:<HotelRouteHost/>;const root=createRoot(document.getElementById('root'));root.render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
 window.fixture={calls,unexpected,revalidate:()=>store.revalidate(),navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'));},finish(label,r){const p=waiting.get(label);if(!p)throw new Error('No pending response');waiting.delete(label);try{p.resolve(respond(r))}catch(e){p.reject(e)}},unmount(){root.unmount()}};
 `,
   },
   bundle: true,
+  loader: { ".css": "empty" },
   write: false,
   metafile: true,
   format: "iife",
@@ -781,6 +782,25 @@ for (const result of [
       },
     );
   });
+
+test("UC023 canonical read-only directory preserves effective readiness and scoped navigation", async () => {
+  await withHotel("/room-directory?branchId=1", { canonical: true }, async (p) => {
+    await load(p);
+    const results = p.getByRole("region", { name: "Room directory results", exact: true });
+    await results.getByRole("table").waitFor();
+    assert.ok((await results.innerText()).includes("BLOCKED"));
+    assert.equal(await p.getByRole("option", { name: "Create", exact: true }).count(), 0);
+    assert.equal(await p.getByRole("option", { name: "Update", exact: true }).count(), 0);
+    await results.getByRole("link", { name: "Read room 101 in branch 1", exact: true }).click();
+    assert.ok(p.url().includes("/room-directory/15?branchId=1"));
+    await load(p);
+    assert.ok((await calls(p)).some(c => c.url === "/api/rooms/15?branchId=1"));
+    await p.getByRole("combobox", { name: "Action", exact: true }).selectOption("history");
+    await load(p);
+    assert.ok((await calls(p)).some(c => c.url === "/api/rooms/15/history?branchId=1&page=1&pageSize=20"));
+    assert.equal((await writes(p)).length, 0);
+  });
+});
 
 test("UC023 directory rows open scoped detail and recorded history without entering IDs", async () => {
   await withHotel("/rooms?branchId=1", {}, async (p) => {
