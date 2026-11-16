@@ -43,7 +43,7 @@ export function MaintenanceSubmissionPanel({ data }: { data: Values }) {
         : "Submission was not confirmed. Reload and check result fields, material records, evidence and current access.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.incidentId !== incident
-        || result.assigneeId !== actor || result.status !== "COMPLETED" || typeof result.executionETag !== "string"
+        || result.assigneeId !== actor || result.status !== "COMPLETED" || result.submissionWorkflow !== "PENDING_VERIFICATION" || typeof result.executionETag !== "string"
         || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag
         || typeof result.resolvedAt !== "string" || !Number.isFinite(Date.parse(result.resolvedAt)))
         throw Error("Submission response could not be confirmed. Reload to check current state.");

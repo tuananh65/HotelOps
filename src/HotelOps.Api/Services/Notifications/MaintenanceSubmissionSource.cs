@@ -53,6 +53,11 @@ internal static class MaintenanceSubmissionSource
         if (!await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.WorkItemKind == "MAINTENANCE"
             && i.WorkItemId == source.WorkId && i.UserId == source.ActorId && i.BranchId == source.BranchId
             && i.ClosedAt == source.At && i.EffectiveEndedAt == source.At, ct)) return null;
+        if (await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.WorkItemKind == "MAINTENANCE"
+            && i.WorkItemId == source.WorkId && i.ClosedAt == null, ct)) return null;
+        if (!await db.IncidentEvents.AsNoTracking().AnyAsync(e => e.IncidentId == source.IncidentId
+            && e.EventType == "STATUS_CHANGED" && e.FromStatus == "IN_PROGRESS" && e.ToStatus == "RESOLVED"
+            && e.ActorId == source.ActorId && e.OccurredAt == source.At, ct)) return null;
         return source;
     }
 

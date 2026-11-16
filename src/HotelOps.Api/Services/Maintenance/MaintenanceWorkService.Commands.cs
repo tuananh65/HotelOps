@@ -217,6 +217,12 @@ public sealed partial class MaintenanceWorkService
         if (request is SubmitMaintenanceResultRequest finalSubmission && resolutionEvidence is { Count: > 0 }
             && !resolutionEvidence.SequenceEqual(await ValidateResolutionEvidenceAsync(finalSubmission, incident, cancellationToken)))
             throw new ValidationException("Result evidence changed during submission. Reload before retrying.");
+        if (request is SubmitMaintenanceResultRequest)
+        {
+            result.SubmissionWorkflow = await MaintenanceSubmissionWorkflow.ReadAsync(_dbContext,id,cancellationToken);
+            if (result.SubmissionWorkflow != "PENDING_VERIFICATION")
+                throw new ValidationException("Committed submission evidence and closed interval are required.");
+        }
         if (reviewedSubmission != null)
             await RequireReviewEvidenceAsync(reviewedSubmission.Review, reviewedSubmission.Evidence, incident, cancellationToken);
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);

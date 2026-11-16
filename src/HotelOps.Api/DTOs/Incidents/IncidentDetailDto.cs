@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class IncidentDetailDto
 {
+    public string? SubmissionWorkflow { get; set; }
     public string? AssignmentWorkflow { get; set; }
     public bool CanAssign { get; set; }
     public bool CanCancelTriage { get; set; }

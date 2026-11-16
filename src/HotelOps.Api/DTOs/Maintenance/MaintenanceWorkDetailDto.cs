@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkDetailDto
 {
+    public string? SubmissionWorkflow { get; set; }
     public HotelOps.Api.DTOs.Incidents.IncidentSlaDto? IncidentSla { get; set; }
     public string? AssignmentWorkflow { get; set; }
     public string? ExecutionETag { get; set; }

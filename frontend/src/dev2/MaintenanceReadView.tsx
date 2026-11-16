@@ -37,6 +37,8 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
+    {data.submissionWorkflow === "PENDING_VERIFICATION" && <p role="status">Pending verification. The repair result is submitted and its work interval is closed. The Incident remains open until an independent verifier accepts it.</p>}
+    {data.submissionWorkflow === "UNVERIFIED" && <p role="alert">Submission evidence is inconsistent or unavailable. Verification cannot proceed until the record is reconciled.</p>}
     {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
       && (data.assignmentWorkflow === "ASSIGNED" || data.assignmentWorkflow === "PENDING_ASSIGNMENT")
       && <Link to={`/operations/incidents/${data.incidentId}?action=A004A-023`}>Open incident assignment</Link>}
