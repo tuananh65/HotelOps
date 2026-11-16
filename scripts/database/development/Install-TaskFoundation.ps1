@@ -13,7 +13,8 @@ $reviewed=@(
     @{Path='scripts/verification/CanonicalDatabase/TaskVerificationIsolated.sql';Hash='8ECA6260429F7FF2388BB18346FC36672C0F0EA9560A4DFD3F9F383D670E2873';Boundary='Exact disposable source required'},
     @{Path='scripts/verification/CanonicalDatabase/TaskDeclineIsolated.sql';Hash='77A9FF90F2446D081BD597FAF713CC4AD753F65F8B0495E028CA0992D9EA9398';Boundary='Exact owned disposable database required.'},
     @{Path='scripts/verification/CanonicalDatabase/TaskPlanningIsolated.sql';Hash='054C23600489500DA67B634D8D08C6D7F6A2815606E3AD3078C167B9BFA9AFC8';Boundary='Exact owned disposable database required.'},
-    @{Path='scripts/verification/CanonicalDatabase/TaskReopenIsolated.sql';Hash='4ADD65A6C6000BBC20D40DBEC19E6D7D1DD01B574406549862CB675020E10B77';Boundary='Exact owned disposable database required.'}
+    @{Path='scripts/verification/CanonicalDatabase/TaskReopenIsolated.sql';Hash='4ADD65A6C6000BBC20D40DBEC19E6D7D1DD01B574406549862CB675020E10B77';Boundary='Exact owned disposable database required.'},
+    @{Path='scripts/verification/CanonicalDatabase/TaskSeriesIsolated.sql';Hash='F125B88E9B9D0405E90FD29B5C6C299801A1C7AD4FD2D993025357F116885202';Boundary='Exact owned disposable database required.'}
 )
 $packages=@()
 foreach($item in $reviewed){
