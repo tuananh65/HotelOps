@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function MaintenanceDeclinePanel({ data }: { data: Values }) {
+export function MaintenanceDeclinePanel({ data, onCommitted }: { data: Values; onCommitted?: (message: string) => void }) {
   const { state } = useAuth(), session = state.session;
   const [bound] = useState(session), current = useRef(session); current.current = session;
   const [reason, setReason] = useState(""), [review, setReview] = useState(false);
@@ -38,7 +38,12 @@ export function MaintenanceDeclinePanel({ data }: { data: Values }) {
         || typeof result.auditId !== "number" || !Number.isSafeInteger(result.auditId) || result.auditId <= 0
         || typeof result.declinedAt !== "string" || Number.isNaN(Date.parse(result.declinedAt)))
         throw Error("Decline response could not be confirmed. Reload to check current state.");
-      if (!abort.signal.aborted && current.current === session) setMessage("Assignment declined. Pending Assignment. You can no longer start this assignment. Reload the list.");
+      if (!abort.signal.aborted && current.current === session) {
+        const notice = "Assignment declined. The work is pending assignment.";
+        setMessage(notice);
+        setReason("");
+        onCommitted?.(notice);
+      }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Decline not confirmed. Reload.");
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }

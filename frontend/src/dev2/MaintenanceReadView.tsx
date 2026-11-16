@@ -42,7 +42,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
     {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
       && (data.assignmentWorkflow === "ASSIGNED" || data.assignmentWorkflow === "PENDING_ASSIGNMENT")
       && <Link to={`/operations/incidents/${data.incidentId}?action=A004A-023`}>Open incident assignment</Link>}
-    {canStart && <MaintenanceDeclinePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {canStart && <MaintenanceDeclinePanel onCommitted={onCommitted} key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {Array.isArray(data.declines) && data.declines.length > 0 && <section aria-label="Assignment decline history">
       <h3>Assignment declines</h3><ul>{data.declines.filter(isObject).map(row => <li key={String(row.auditId)}>
         {time(row.occurredAt)} ? Assignee {show(row.previousAssigneeId)}: {show(row.reason)}
