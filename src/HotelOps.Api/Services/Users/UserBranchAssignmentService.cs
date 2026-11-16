@@ -20,6 +20,8 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
     public async Task<AddBranchResult> AddAsync(SessionReference reference, long sessionId, long targetId,
         long branchId, byte[] expectedVersion, CancellationToken ct)
     {
+        // Preserve existing construction contracts; persisted scope/session timestamps use SQL time.
+        ArgumentNullException.ThrowIfNull(clock);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(branchId);
         ArgumentNullException.ThrowIfNull(expectedVersion);
@@ -54,14 +56,14 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
         if (await Gate(null) is { } denied) return new(denied);
         var target = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserId == targetId && u.DeletedAt == null, ct);
         if (target is null) return new(AddBranchStatus.NotFound);
-        if (target.AccountStatus != "ACTIVE") return new(AddBranchStatus.Inactive);
+        if (target.AccountStatus != "ACTIVE" || target.EmploymentStatus != "ACTIVE") return new(AddBranchStatus.Inactive);
         if (branch is null || !branch.IsActive) return new(AddBranchStatus.InvalidBranch);
         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AddBranchStatus.Stale);
         if (await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == branchId, ct)) return new(AddBranchStatus.Duplicate);
         // Fail closed for all existing destination assignments, including currently inactive/expired ones.
         // This slice does not reconcile/reactivate dormant role paths or infer their intended eligibility.
         if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && r.BranchId == branchId, ct)) return new(AddBranchStatus.RoleConflict);
-        var now = clock.GetUtcNow().UtcDateTime;
+        var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct), DateTimeKind.Utc);
         if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && r.IsActive && r.Role.IsActive
             && r.Role.RoleCode == "OPERATIONS_MANAGER" && (r.ExpiresAt == null || r.ExpiresAt > now), ct))
             return new(AddBranchStatus.OperationsManagerConflict);
@@ -74,11 +76,13 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
         catch (DbUpdateException error) when (error.InnerException is SqlException { Number: 2601 or 2627 })
         { return new(AddBranchStatus.Duplicate); }
         finally { db.Entry(membership).State = EntityState.Detached; }
+        // Scope changes invalidate existing sessions atomically with the new membership and its audit.
+        var revokedSessions = await new SessionRevocationService(db).RevokeAllAsync(targetId, now, ct);
         var audit = new AuditLog { ActorUserId = actor.UserId, BranchId = branchId, EntityType = "user_branch_access",
             EntityId = membership.AccessId.ToString(CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = now,
             OldValues = JsonSerializer.Serialize(new { membership = (object?)null }),
             NewValues = JsonSerializer.Serialize(new { userId = targetId, branchId, accessLevel = "STANDARD", isPrimary = false,
-                grantedBy = actor.UserId, grantedAt = now }),
+                grantedBy = actor.UserId, grantedAt = now, revokedSessions }),
             ChangedFields = JsonSerializer.Serialize(new[] { "membership" }) };
         db.Add(audit);
         try { await db.SaveChangesAsync(ct); }

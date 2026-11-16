@@ -117,7 +117,7 @@ export function AddUserBranchPage({
       )}
       {membership && (
         <section aria-label="Confirmed membership" role="status">
-          <p>Branch membership addition confirmed by the server.</p>
+          <p>Branch membership addition confirmed by the server. The employee must sign in again to use the updated branch scope.</p>
           <p>accessId: {membership.accessId}</p>
           <p>userId: {membership.userId}</p>
           <p>branchId: {membership.branchId}</p>
