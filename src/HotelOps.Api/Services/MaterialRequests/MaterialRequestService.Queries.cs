@@ -36,7 +36,7 @@ public sealed partial class MaterialRequestService
         // Header FK also safely identifies legacy ISSUE returns without inventing
         // a request-line mapping from ItemId or line order.
         var issueDocuments = batches.Where(x => x.StockDocumentId != null).Select(x => x.StockDocumentId!.Value).ToArray();
-        var returns = await db.StockReturnLineDetails.AsNoTracking().Where(x => issueDocuments.Contains(x.OriginalIssueLine.DocumentId) && x.OriginalIssueLine.Document.DocumentType == "ISSUE")
+        var returns = issueDocuments.Length == 0 ? [] : await db.StockReturnLineDetails.AsNoTracking().Where(x => issueDocuments.Contains(x.OriginalIssueLine.DocumentId) && x.OriginalIssueLine.Document.DocumentType == "ISSUE")
             .Select(x => new MaterialReturnDto(x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.StockDocumentLine.Document.Status, x.OriginalIssueLineId)).Distinct().ToListAsync(ct);
         var isNew = await NewWorkflow(r, ct); var eligible = isNew && r.Status is "DRAFT" or "PENDING_APPROVAL" or "NEEDS_INFORMATION" or "APPROVED" or "PARTIALLY_ISSUED";
         return new(r.RequestId, r.RequestNo, r.Status, isNew, eligible, eligible ? null : isNew ? "Terminal workflow state." : "Legacy workflow: mutation reconciliation unavailable.", Convert.ToBase64String(r.RowVersion),

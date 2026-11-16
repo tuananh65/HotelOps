@@ -42,6 +42,13 @@ internal static class MaterialRequestCreation
         return binding;
     }
 
+    internal static async Task RevalidateAsync(HotelOpsDbContext db, long actor, MaterialRequestWrite input, CancellationToken ct)
+    {
+        var version = Validate(null, input);
+        if (version is not null)
+            await AuthorizeAsync(db, new(actor, input.BranchId, input.InternalRequestId!.Value, version, input.RequestLink!.Mandatory), ct);
+    }
+
     private static async Task AuthorizeAsync(HotelOpsDbContext db, Binding binding, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)

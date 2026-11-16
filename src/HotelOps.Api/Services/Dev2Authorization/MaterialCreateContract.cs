@@ -1,0 +1,134 @@
+using System.Data;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text;
+using HotelOps.Api.Controllers;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.MaterialRequests;
+using HotelOps.Api.Security;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Incidents;
+using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.MaterialRequests;
+using HotelOps.Api.Services.Users;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+
+namespace HotelOps.Api.Services.Dev2Authorization;
+
+// UC091 creation only. Other material mutations retain their separate admission.
+// The client actor is checked for consistency; session/principal and SQL grant paths
+// establish authority. The outer action owns commit through response validation.
+internal static class MaterialCreateContract
+{
+    private const string ResourceType = "material_request_creation";
+    private const string Policy = "UC091 create: HTTPS current unrestricted SQL session; eligible actor; "
+        + "active branch access; approved actor role with MR_CREATE and independent MR_VIEW in current scope; "
+        + "requester always principal; exact bound input; Serializable action transaction through disclosure; "
+        + "approved mapped approver and independent source-link authorization; lifecycle schema required";
+    private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
+        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
+
+    internal static IEnumerable<Dev2ActionContract> Contracts =>
+    [new("A004A-043", "DEV3_142A_MATERIAL_CREATE_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
+        (a, _) => Task.FromResult<IReadOnlyList<Dev2PermissionRequirement>>(
+            [new("MR_CREATE", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId))),
+             new("MR_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId)))]),
+        Dev2PermissionCombination.All, ValidateAsync,
+        (a, invocation) => invocation.Controller == "MaterialRequests" && invocation.Action == "Create"
+            && invocation.RootId == null && ReferenceEquals(invocation.Input, Input(a)),
+        (a, _) => new CreationResolver(a), null,
+        (a, phase, ct) => ValidateAsync(a, phase, ct), RequiresActionTransaction: true)];
+
+    private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
+    private static MaterialRequestWrite Input(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("input") as MaterialRequestWrite
+        ?? throw new Dev2AccessDenied(403);
+
+    private sealed class CreationResolver(Dev2BoundAction a) : IPermissionResourceResolver
+    {
+        public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource,
+            long currentUserId, CancellationToken ct)
+        {
+            // A creation context is the actual active branch + authenticated requester,
+            // not a fabricated persisted material ID or client-supplied owner claim.
+            var input = Input(a);
+            if (permissionCode is not ("MR_CREATE" or "MR_VIEW") || resource.ResourceType != ResourceType
+                || resource.ResourceId != input.BranchId || currentUserId != a.Actor.UserId
+                || input.ActorUserId != currentUserId) return null;
+            return await Db(a).Branches.AsNoTracking().AnyAsync(b => b.BranchId == input.BranchId && b.IsActive, ct)
+                ? new(input.BranchId, true) : null;
+        }
+    }
+
+    private static async Task<bool> ValidateAsync(Dev2BoundAction a, Dev2AuthorizationPhase phase, CancellationToken ct)
+    {
+        if (a.Identity.ControllerType != typeof(MaterialRequestsController) || a.Identity.ActionName != "Create"
+            || a.Identity.DecisionId != "A004A-043" || a.Identity.HttpMethod != "POST" || !a.Http.Request.IsHttps) return false;
+        var input = Input(a);
+        if (input.ActorUserId != a.Actor.UserId || input.BranchId <= 0 || input.Lines == null
+            || input.AssignedApproverUserId is <= 0) return false;
+        var db = Db(a);
+        if (phase != Dev2AuthorizationPhase.Admission && db.Database.CurrentTransaction == null) return false;
+        await using var admission = db.Database.CurrentTransaction == null
+            ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
+        if (db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable) return false;
+        // Same deterministic user-lock order as the writer, before session/catalog/source locks.
+        long[] ids = input.Submit && input.AssignedApproverUserId is long approver
+            ? [a.Actor.UserId, approver] : [a.Actor.UserId];
+        var users = await new UserEligibilityLock(db).LockAsync(ids, ct);
+        if (!users.TryGetValue(a.Actor.UserId, out var actor) || actor is null || actor.DeletedAt != null
+            || actor.AccountStatus != "ACTIVE" || actor.EmploymentStatus != "ACTIVE") return false;
+        if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null
+            || sid != a.Actor.SessionId || ticket.UserId != a.Actor.UserId || ticket.IsRestricted) return false;
+        var session = await a.Http.RequestServices.GetRequiredService<ISqlSessionService>().ValidateSessionAsync(ticket, ct);
+        if (!session.IsValid || session.Session?.SessionId != sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(b => b.UserId == a.Actor.UserId && b.BranchId == input.BranchId
+            && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
+        var paths = await (from assignment in db.UserRoles.AsNoTracking()
+            join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+            where assignment.UserId == a.Actor.UserId && CreatorRoles.Contains(assignment.Role.RoleCode)
+                && grant.Permission.PermissionCode == "MR_CREATE"
+            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, assignment.BranchId,
+                assignment.IsActive, assignment.Role.IsActive, assignment.AssignedAt, assignment.ExpiresAt,
+                assignment.Branch != null && assignment.Branch.IsActive,
+                db.UserBranchAccesses.Any(b => b.UserId == a.Actor.UserId && b.BranchId == assignment.BranchId
+                    && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
+        if (!paths.Any(p => PermissionGrantRules.IsEligible(p, now)
+            && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL" || p.BranchId == input.BranchId
+                && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN"))) return false;
+        if (await db.Database.SqlQuery<int>($"""
+            SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0
+              AND name='HotelOps.MaterialLifecycle.V1' AND CONVERT(nvarchar(20),value)='1')
+              AND COL_LENGTH('dbo.material_requests','row_version')=8
+              AND OBJECT_ID('dbo.material_request_approval_cycles','U') IS NOT NULL
+              AND OBJECT_ID('dbo.material_request_approval_line_snapshots','U') IS NOT NULL
+              THEN 1 ELSE 0 END AS Value
+            """).SingleAsync(ct) != 1) throw new Dev2AccessDenied(503);
+        if (input.IncidentId is long incident)
+        {
+            var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, input.BranchId, ct);
+            if (!await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == incident, ct)) return false;
+        }
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure)
+        {
+            var created = db.MaterialRequests.Local.Where(r => r.RequesterId == a.Actor.UserId && r.BranchId == input.BranchId).ToArray();
+            if (created.Length != 1 || created[0].RequestId <= 0) return false;
+            var scope = await MaterialRequestReadAccess.ReadAsync(db, a.Actor.UserId, input.BranchId, now, ct);
+            if (!await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == created[0].RequestId, ct)) return false;
+            try
+            {
+                if (input.Submit)
+                {
+                    if (input.AssignedApproverUserId is not long selected) return false;
+                    await MaterialApprovalAuthority.ValidateAsync(db, created[0], selected, ct);
+                }
+                await MaterialRequestCreation.RevalidateAsync(db, a.Actor.UserId, input, ct);
+            }
+            catch (ValidationException) { throw new Dev2AccessDenied(403); }
+            catch (InternalRequestReadException e) { throw new Dev2AccessDenied(e.Status); }
+        }
+        return true;
+    }
+}

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Services.MaterialRequests;
+using HotelOps.Api.Services.InternalRequests;
 using Microsoft.AspNetCore.Mvc;
 using HotelOps.Api.Controllers.Filters;
 
@@ -15,6 +16,7 @@ public sealed class MaterialRequestsController(MaterialRequestService service) :
     {
         try { var result = await operation(); return result is null ? NotFound() : location is null ? Ok(result) : Created(location(result), result); }
         catch (ValidationException e) { return Problem(statusCode: 400, title: "Material Request validation failed", detail: e.Message); }
+        catch (InternalRequestReadException e) { return Problem(statusCode: e.Status, title: e.Code); }
     }
     [HttpGet] public Task<IActionResult> List([FromQuery] MaterialPage page, CancellationToken ct) => Execute(() => service.List(page, ct));
     [HttpGet("{id:long}")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));

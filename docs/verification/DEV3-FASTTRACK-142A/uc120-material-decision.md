@@ -139,3 +139,24 @@ also creates its approval cycle rather than returning early on content equality.
 Production material mutation admission and the create/approver-selection UI remain
 outstanding; these changes alone do not complete UC091/094/095/118/120. No database
 mutation or business/API/browser tests were run for this source batch.
+
+## Material Create action admission
+
+Added the production source contract for POST /api/material-requests only. Current
+HTTPS cookie/SQL session, active user and branch access, an approved UC091 role's
+MR_CREATE grant, and independent MR_VIEW are required. OWN grants resolve against
+the authenticated creation context; caller ActorUserId cannot create authority.
+Optional incident links also require current incident read scope.
+
+The contract opts into an outer Serializable action transaction through response
+authorization. Service save/commit calls lease that transaction; response failures
+roll back the creation, link and audit. Final disclosure rechecks the mapped
+approver and linked IR authority. Other contracts retain their existing behavior.
+The material lifecycle capability is required; missing schema fails closed. Empty
+fulfillment history no longer queries unrelated return storage for a new request.
+Source-link failures now return their intended 403/404/409/412/503 HTTP status.
+
+Backend build PASS, 0 warnings/errors. CSRF middleware remains unchanged. No SQL
+mutations or API/business/browser tests were executed for this batch. UC091 still
+needs its UI, approver/catalog lookup and durable notification; other material
+mutation/read action admissions remain separate outstanding work. No UC promoted.

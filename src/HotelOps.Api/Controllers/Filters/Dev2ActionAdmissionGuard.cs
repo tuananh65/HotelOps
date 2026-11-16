@@ -101,7 +101,7 @@ public static class Dev2ActionAdmissionGuard
             else
             {
                 var db = context.HttpContext.RequestServices.GetRequiredService<HotelOpsDbContext>();
-                await using var actionTransaction = Dev2DemoBindings.ExpandedEnabled
+                await using var actionTransaction = Dev2DemoBindings.ExpandedEnabled || contract.RequiresActionTransaction
                     ? await Dev2ServiceAuthority.BeginActionAsync(db, httpAccessor, context.HttpContext.RequestAborted) : null;
                 if (actionTransaction is not null) await grant.RevalidateAsync(Dev2AuthorizationPhase.Admission, context.HttpContext.RequestAborted);
                 var executed = await next();

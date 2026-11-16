@@ -25,7 +25,8 @@ internal sealed record Dev2ActionContract(
     Func<Dev2BoundAction, Dev2ResourceFactReader, IPermissionResourceResolver>? ResourceResolver,
     Func<Dev2BoundAction, CancellationToken, Task<IActionResult>>? ScopedReadHandler,
     Func<Dev2BoundAction, Dev2AuthorizationPhase, CancellationToken, Task<bool>> TransactionAuthorityBoundary,
-    bool RequiresReadTransaction = false)
+    bool RequiresReadTransaction = false,
+    bool RequiresActionTransaction = false)
 {
     public bool IsComplete(Dev2KnownAction identity) => DecisionId == identity.DecisionId
         && !string.IsNullOrWhiteSpace(AcceptedSourceReference)
@@ -40,7 +41,8 @@ internal static class Dev2ActionContracts
     // Production acceptance remains separate from the owner's trial-only V1 policy.
     // The demo slice requires its compiled policy hash and exact trial database configuration.
     private static readonly FrozenDictionary<string, Dev2ActionContract> Accepted =
-        IncidentReadContract.Contracts.ToFrozenDictionary(c => c.DecisionId, StringComparer.Ordinal);
+        IncidentReadContract.Contracts.Concat(MaterialCreateContract.Contracts)
+            .ToFrozenDictionary(c => c.DecisionId, StringComparer.Ordinal);
     internal static IReadOnlySet<string> DecisionIds { get; } = Accepted.Keys.ToFrozenSet(StringComparer.Ordinal);
     internal static Dev2ActionContract? Find(Dev2KnownAction identity, HttpContext? http = null) =>
         Accepted.TryGetValue(identity.DecisionId, out var contract) && contract.IsComplete(identity) ? contract
