@@ -52,6 +52,7 @@ public sealed partial class IncidentCancellationService(HotelOpsDbContext db, IS
         }
         var incident=rows.Single(i=>i.IncidentId==id);
         if(!await IncidentTriageAccess.AllowsAsync(db,ticket.UserId,incident.BranchId,id,ct)) throw new InternalRequestReadException(403,"SCOPED_TRIAGE_REQUIRED");
+        if(!await IncidentEscalationClosure.InstalledAsync(db,ct)) throw new InternalRequestReadException(503,"ESCALATION_STORAGE_UNAVAILABLE");
         var version=await IncidentTriageStore.TagAsync(db,id,ct) ?? throw new InternalRequestReadException(503,"INCIDENT_VERSION_UNAVAILABLE");
         if(version!=tag) throw new InternalRequestReadException(412,"INCIDENT_CHANGED");
         if(await IncidentAssignmentWorkflow.ReadAsync(db,incident,ct)!="PENDING_TRIAGE") throw new InternalRequestReadException(409,"PENDING_TRIAGE_REQUIRED");
@@ -67,6 +68,12 @@ public sealed partial class IncidentCancellationService(HotelOpsDbContext db, IS
         var ev=new IncidentEvent { IncidentId=id,EventType="STATUS_CHANGED",FromStatus="OPEN",ToStatus="CANCELLED",ActorId=ticket.UserId,OccurredAt=now,Note=input.Reason };
         db.IncidentEvents.Add(ev);
         await db.SaveChangesAsync(ct);
+        var escalations=await IncidentEscalationClosure.CloseAsync(db,id,incident.BranchId,ticket.UserId,ev.EventId,now,ct);
+        foreach(var escalation in escalations)
+            db.AuditLogs.Add(new AuditLog {EntityType="incident_escalations",EntityId=escalation.EscalationId.ToString(CultureInfo.InvariantCulture),
+                Action="UPDATE",BranchId=incident.BranchId,ActorUserId=ticket.UserId,OccurredAt=now,
+                OldValues=JsonSerializer.Serialize(new{state="OPEN",opened_event_id=escalation.OpenedEventId,opened_at=escalation.OpenedAt}),
+                NewValues=JsonSerializer.Serialize(new{state="CLOSED",closed_event_id=ev.EventId,closed_at=now,incident_id=id})});
         db.AuditLogs.Add(new AuditLog { EntityType="incidents",EntityId=id.ToString(CultureInfo.InvariantCulture),Action="UPDATE",BranchId=incident.BranchId,
             ActorUserId=ticket.UserId,OccurredAt=now,OldValues=JsonSerializer.Serialize(new {status="OPEN",workflow="PENDING_TRIAGE"}),
             NewValues=JsonSerializer.Serialize(new {status="CANCELLED",cancellation_kind=input.Kind,original_incident_id=input.OriginalIncidentId,

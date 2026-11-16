@@ -1,3 +1,4 @@
+import { IncidentEscalationPanel } from "./IncidentEscalationPanel";
 import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { IncidentCancellationPanel } from "./IncidentCancellationPanel";
 import { IncidentRoomBlocksPanel } from "./IncidentRoomBlocksPanel";
@@ -671,6 +672,7 @@ function Screen({
         && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data)
         && <IncidentCancellationPanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+      {operation.id === "A004A-023" && !denied && !sessionLost && isObject(data) && typeof data.incidentId === "number" && <IncidentEscalationPanel key={String(data.incidentId)} id={data.incidentId} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canManageRoomBlocks === true && typeof data.incidentId === "number"
         && <IncidentRoomBlocksPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canAssign === true && typeof data.incidentId === "number"

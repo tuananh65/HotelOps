@@ -65,6 +65,8 @@ builder.Services.AddOptions<HotelOps.Api.Services.Incidents.IncidentNotification
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentReportedNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCancelledNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCancellationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Incidents.IncidentNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();

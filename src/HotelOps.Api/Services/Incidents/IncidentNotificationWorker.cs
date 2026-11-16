@@ -14,7 +14,7 @@ internal sealed class IncidentNotificationWorker(IServiceScopeFactory scopes, IO
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled) return;
-        long cursor = 0, cancellationCursor = 0;
+        long cursor = 0, cancellationCursor = 0, escalationCursor = 0;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -49,6 +49,22 @@ internal sealed class IncidentNotificationWorker(IServiceScopeFactory scopes, IO
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception error) { logger.LogWarning("Incident cancellation scan deferred after {ErrorType}", error.GetType().Name); }
+            try
+            {
+                long[] pending;
+                await using (var scope = scopes.CreateAsyncScope())
+                    pending = await scope.ServiceProvider.GetRequiredService<IncidentEscalatedNotificationDelivery>().PendingAsync(escalationCursor, ct);
+                foreach (var id in pending)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<IncidentEscalatedNotificationDelivery>().DeliverAsync(id, ct); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Incident escalation notice {EventId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                escalationCursor = pending.Length == 100 ? pending[^1] : 0;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
+            catch (Exception error) { logger.LogWarning("Incident escalation scan deferred after {ErrorType}", error.GetType().Name); }
             try { await Task.Delay(TimeSpan.FromSeconds(options.Value.PollSeconds), clock, ct); }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
         }
