@@ -522,6 +522,9 @@ public sealed class IncidentService : IIncidentService
         return new IncidentPagedResponse
         {
             Items = items,
+            AppliedFilters = request,
+            SortOrder = slaAvailable ? "RESOLUTION_DEADLINE_ASC" : "REPORTED_AT_DESC",
+            EvaluatedAtUtc = DateTime.SpecifyKind(evaluatedAt,DateTimeKind.Utc),
             Page = request.Page,
             PageSize = request.PageSize,
             TotalCount = totalCount,

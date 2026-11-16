@@ -40,6 +40,7 @@ import { ReplenishmentListView } from "./ReplenishmentListView";
 import { ReplenishmentDetailView } from "./ReplenishmentDetailView";
 import { MaterialListView } from "./MaterialListView";
 import { MaterialReviewHistory } from "./MaterialReviewHistory";
+import { IncidentListView } from "./IncidentListView";
 import { MaintenanceReadView } from "./MaintenanceReadView";
 import { MaterialTaskLinks } from "./MaterialTaskLinks";
 import { ReplenishmentWaitingRequests } from "./ReplenishmentWaitingRequests";
@@ -685,6 +686,8 @@ function Screen({
       )}
       {data !== undefined && (["A004A-035", "A004A-036"].includes(operation.id) && isObject(data)
         ? <MaintenanceReadView data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} canVerify={!readOnly && (!enabledActions || enabledActions.includes("A004A-031"))} canReturn={!readOnly && (!enabledActions || enabledActions.includes("A004A-032"))} canLog={!readOnly && (!enabledActions || enabledActions.includes("A004A-029"))} canMaterials={!enabledActions || enabledActions.includes("A004A-034")} canSubmit={!readOnly && (!enabledActions || enabledActions.includes("A004A-030"))} canStart={!readOnly && (!enabledActions || enabledActions.includes("A004A-026"))} canResume={!readOnly && (!enabledActions || enabledActions.includes("A004A-028"))} canHold={!readOnly && (!enabledActions || enabledActions.includes("A004A-027"))} />
+        : operation.id === "A004A-022" && isObject(data)
+        ? <IncidentListView data={data} canDetail={available.some(op => op.id === "A004A-023")} />
         : operation.id === "A004A-040" && isObject(data)
         ? <MaterialAvailabilityView data={data} /> : operation.id === "A004A-052" && isObject(data)
         ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)
