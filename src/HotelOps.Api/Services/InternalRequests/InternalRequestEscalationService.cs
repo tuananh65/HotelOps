@@ -11,19 +11,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
 
-public sealed record InternalRequestEscalationInput(string Reason, long? PriorityId = null, DateTimeOffset? Deadline = null);
+public sealed record InternalRequestEscalationInput(string Reason, long? PriorityId = null, DateTimeOffset? Deadline = null, long? HandlerId = null);
 public sealed record InternalRequestEscalationResult(long RequestId, long EventId, string Version);
 public sealed record InternalRequestEscalationView(long RequestId,string Version,string TimingStatus,bool CanEscalate,bool HasOpen,
-    DateTime CreatedAt,DateTime? Deadline,long? PriorityId,InternalRequestFilterValue[] Priorities);
+    DateTime CreatedAt,DateTime? Deadline,long? PriorityId,InternalRequestFilterValue[] Priorities)
+{
+    public long? HandlerId { get; init; }
+    public InternalRequestFilterValue[] Handlers { get; init; } = [];
+}
 
-// UC122 priority/deadline intervention with durable, acknowledgment-required notification intent.
+// UC122 priority/deadline/handler intervention with durable, acknowledgment-required notification intent.
 public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
 {
     internal static string Validate(InternalRequestEscalationInput input)
     {
         var reason=input.Reason?.Trim();
         if(reason is null || reason.Length is <10 or >4000 || reason.Any(char.IsControl)
-            || input.PriorityId is <=0 || input.PriorityId==null && input.Deadline==null)
+            || input.PriorityId is <=0 || input.HandlerId is <=0 || input.PriorityId==null && input.Deadline==null && input.HandlerId==null)
             throw new ValidationException("An intervention and a reason of 10-4000 characters without controls are required.");
         return reason;
     }
@@ -49,6 +53,18 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
         if(!valid.IsValid||valid.Session?.SessionId!=sid||valid.Session.IsRestricted)throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
 
+    private async Task<bool> HandlerEligibleAsync(long user,InternalRequest request,DateTime now,CancellationToken ct)
+        => request.ReceivingDepartmentId is {} department
+            && await InternalRequestHandoverService.EligibleAsync(db,user,request.BranchId,department,now,ct)
+            && await InternalRequestHandoverReadAccess.HasScopeAsync(db,user,request.BranchId,now,ct);
+
+    private async Task<bool> CanChangeHandlerAsync(InternalRequest request,CancellationToken ct)
+        => request.Status=="IN_PROGRESS" && request.ReceivingDepartmentId!=null
+            && await InternalRequestAssignmentService.InstalledAsync(db,ct)
+            && await InternalRequestEmployeeMembership.InstalledAsync(db,ct)
+            && await InternalRequestHandoverStore.InstalledAsync(db,ct)
+            && !await InternalRequestHandoverStore.Rows(db).AnyAsync(h=>h.RequestId==request.InternalRequestId&&h.State=="PENDING_ACKNOWLEDGMENT",ct);
+
     public async Task<InternalRequestEscalationView> ReadAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
     {
         if(id<=0)throw new ValidationException("Request required.");
@@ -64,11 +80,20 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
         var priorities=await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="PRIORITY"&&r.IsActive).OrderBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId)
             .Select(r=>new InternalRequestFilterValue(r.ReferenceId,r.DisplayName)).ToArrayAsync(ct);
         var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
+        var assignments=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE").ToArrayAsync(ct);
+        var handler=assignments.Length==1&&assignments[0].EndedAt==null&&assignments[0].AssignedAt<=now?assignments[0].AssigneeId:(long?)null;
+        var handlers=new List<InternalRequestFilterValue>();
+        if(handler!=null&&!open&&timing is ("AT_RISK" or "OVERDUE")&&await CanChangeHandlerAsync(row,ct))
+            foreach(var candidate in await InternalRequestEmployeeMembership.Members(db,row.BranchId,row.ReceivingDepartmentId,now)
+                .Where(u=>u.UserId!=handler).OrderBy(u=>u.FullName).ThenBy(u=>u.UserId)
+                .Select(u=>new InternalRequestFilterValue(u.UserId,u.FullName)).ToArrayAsync(ct))
+                if(await HandlerEligibleAsync(candidate.Id,row,now,ct))handlers.Add(candidate);
         await SessionAsync(ticket,sid,ct);
         if(!await authority.AllowsAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
         await tx.CommitAsync(ct);
         return new(id,Convert.ToBase64String(version),timing,!open&&timing is "AT_RISK" or "OVERDUE",open,
-            DateTime.SpecifyKind(row.CreatedAt,DateTimeKind.Utc),row.DueAt is {} due?DateTime.SpecifyKind(due,DateTimeKind.Utc):null,row.PriorityId,priorities);
+            DateTime.SpecifyKind(row.CreatedAt,DateTimeKind.Utc),row.DueAt is {} due?DateTime.SpecifyKind(due,DateTimeKind.Utc):null,row.PriorityId,priorities)
+        {HandlerId=handler,Handlers=handlers.ToArray()};
     }
 
     private Task<long[]> CandidatesAsync(long request,CancellationToken ct) => db.Database.SqlQuery<long>($"""
@@ -90,7 +115,7 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         try
         {
-            await new UserEligibilityLock(db).LockAsync(candidates.Append(ticket.UserId),ct);
+            await new UserEligibilityLock(db).LockAsync(candidates.Append(ticket.UserId).Concat(input.HandlerId is {} selectedHandler?[selectedHandler]:[]),ct);
             await SessionAsync(ticket,sid,ct);
             var authority=new InternalRequestEscalationAuthority(db);
             if(!await authority.AllowsAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_ESCALATION_AUTHORITY_REQUIRED");
@@ -106,15 +131,29 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
             var deadline=input.Deadline?.UtcDateTime??request.DueAt;
             var priority=input.PriorityId??request.PriorityId;
             if(deadline<=request.CreatedAt)throw new ValidationException("Deadline must be after official creation time.");
-            if(deadline==request.DueAt&&priority==request.PriorityId)throw new ValidationException("Intervention must change priority or deadline.");
             if(input.PriorityId is {} selected&&!await db.ReferenceValues.AsNoTracking().AnyAsync(r=>r.ReferenceId==selected&&r.GroupCode=="PRIORITY"&&r.IsActive,ct))
                 throw new ValidationException("Active priority reference required.");
             var assignments=await db.InternalRequestAssignments.AsNoTracking().Where(a=>a.InternalRequestId==id&&a.Status=="ACTIVE").ToArrayAsync(ct);
             if(assignments.Length>1||assignments.Any(a=>a.EndedAt!=null||a.AssignedAt>now))throw new InternalRequestReadException(409,"IR_ASSIGNMENT_INCONSISTENT");
             var handler=assignments.SingleOrDefault()?.AssigneeId;
+            var previousHandler=handler;
+            var changeHandler=input.HandlerId is {} replacement&&replacement!=handler;
+            if(deadline==request.DueAt&&priority==request.PriorityId&&!changeHandler)
+                throw new ValidationException("Intervention must change priority, deadline or handler.");
+            if(changeHandler)
+            {
+                if(handler==null||!await CanChangeHandlerAsync(request,ct))throw new InternalRequestReadException(409,"IR_HANDLER_STATE_REQUIRED");
+                if(!await HandlerEligibleAsync(input.HandlerId!.Value,request,now,ct))throw new InternalRequestReadException(403,"IR_HANDLER_NOT_ELIGIBLE");
+                if(await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignments[0].AssignmentId&&a.Status=="ACTIVE"&&a.EndedAt==null)
+                    .ExecuteUpdateAsync(s=>s.SetProperty(a=>a.Status,"REASSIGNED").SetProperty(a=>a.EndedAt,now),ct)!=1)
+                    throw new InternalRequestReadException(409,"IR_HANDLER_CHANGED");
+                db.InternalRequestAssignments.Add(new(){InternalRequestId=id,AssigneeId=input.HandlerId.Value,AssignedBy=ticket.UserId,
+                    AssignedAt=now,Status="ACTIVE",AssignmentNote=reason});
+                await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();handler=input.HandlerId;
+            }
             var recipients=new List<(long User,bool Requester,bool Handler,bool Manager)>();
             var departmentAuthority=new InternalRequestProcessAuthority(db);
-            foreach(var candidate in candidates)
+            foreach(var candidate in candidates.Concat(handler is {} currentHandler?[currentHandler]:[]).Distinct().Order())
             {
                 var scope=await new InternalRequestReadAccess(db).ReadAsync(candidate,now,ct);
                 if(!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==id,ct))continue;
@@ -123,7 +162,7 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
             }
             var entry=new InternalRequestEvent{InternalRequestId=id,EventType="ESCALATE",OldStatus=request.Status,NewStatus=request.Status,EventNote=reason,ActorId=ticket.UserId,OccurredAt=now};
             var audit=new AuditLog{ActorUserId=ticket.UserId,BranchId=request.BranchId,EntityType="internal_requests",EntityId=id.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
-                OldValues=JsonSerializer.Serialize(new{request.PriorityId,request.DueAt}),NewValues=JsonSerializer.Serialize(new{operation="ESCALATE",priorityId=priority,dueAt=deadline,reason}),ChangedFields="[\"priority_id\",\"due_at\",\"escalation\"]"};
+                OldValues=JsonSerializer.Serialize(new{request.PriorityId,request.DueAt,handlerId=previousHandler}),NewValues=JsonSerializer.Serialize(new{operation="ESCALATE",priorityId=priority,dueAt=deadline,handlerId=handler,reason}),ChangedFields=changeHandler?"[\"priority_id\",\"due_at\",\"handler\",\"escalation\"]":"[\"priority_id\",\"due_at\",\"escalation\"]"};
             db.AddRange(entry,audit);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET priority_id={priority},due_at={deadline},updated_at={now} WHERE internal_request_id={id} AND row_version={version}",ct)!=1)
                 throw new InternalRequestReadException(412,"IR_VERSION_CHANGED");
@@ -133,6 +172,9 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_escalation_outbox(event_id,recipient_id,is_requester,is_handler,is_manager,created_at) VALUES({entry.EventId},{recipient.User},{recipient.Requester},{recipient.Handler},{recipient.Manager},{now})",ct);
             await SessionAsync(ticket,sid,ct);
             if(!await authority.AllowsAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
+            if(changeHandler&&!await HandlerEligibleAsync(handler!.Value,request,
+                await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),ct))
+                throw new InternalRequestReadException(403,"IR_HANDLER_NOT_ELIGIBLE");
             var next=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
             await tx.CommitAsync(ct);
             return new(id,entry.EventId,Convert.ToBase64String(next));
