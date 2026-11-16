@@ -40,7 +40,9 @@ public sealed partial class RoomTypeCreationService
             if (!inspection)
             {
                 if (!await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
-                candidates = EligibleReworkAssignees(branch, now);
+                // These options serve Cleaning Assign/Reassign, whose mutation guard
+                // requires the current planned shift. Rework has its separate eligibility contract.
+                candidates = EligibleHousekeepers(branch, now);
             }
             else candidates = candidates.Where(u =>
                 !db.CleaningAssignments.Any(a => a.CleaningTaskId == taskId && a.AssigneeUserId == u.UserId && a.AssignmentStatus != "CANCELLED")

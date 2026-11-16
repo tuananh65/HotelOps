@@ -15,7 +15,12 @@ import {
   closureCommand,
   type ClosureCommand,
 } from "../../api/dev1/cleaningExecution";
-export default function CleaningExecutionPanel({
+export default function CleaningExecutionPanel(props: { branch: string; task: string }) {
+  // A route change must not retarget an unresolved command to another task.
+  return <CleaningExecutionContent key={`${props.branch}:${props.task}`} {...props} />;
+}
+
+function CleaningExecutionContent({
   branch,
   task,
 }: {
@@ -39,6 +44,8 @@ export default function CleaningExecutionPanel({
     key: string;
   } | null>(null);
   const [pending, setPending] = useState<{
+    branch: string;
+    task: string;
     command: ReassignmentCommand;
     tag: string;
     key: string;
@@ -121,14 +128,14 @@ export default function CleaningExecutionPanel({
     }
   }
   async function execute(c: NonNullable<typeof pending>) {
-    if (busy) return;
+    if (busy || c.branch !== branch || c.task !== task) return;
     setBusy(true);
     setError("");
     setNotice("");
     try {
       await mutateCleaningExecution(
-        branch,
-        task,
+        c.branch,
+        c.task,
         "reassign",
         c.tag,
         c.command,
@@ -140,7 +147,16 @@ export default function CleaningExecutionPanel({
         setRefresh((n) => n + 1);
       }
     } catch (e) {
-      if (alive.current) setError(message(e));
+      if (alive.current) {
+        setError(message(e));
+        // These responses reject this command. Keep the same key only when
+        // delivery/commit is ambiguous (network/server failure).
+        if (e instanceof ApiError && [400, 409, 412, 422].includes(e.status)) {
+          setPending(null);
+          setNotice(message(e));
+          setRefresh((n) => n + 1);
+        }
+      }
     } finally {
       if (alive.current) setBusy(false);
     }
@@ -158,7 +174,7 @@ export default function CleaningExecutionPanel({
       );
       if (!plan?.candidates.some((c) => c.id === command.assigneeId))
         throw Error("INVALID_CANDIDATE");
-      const c = { command, tag: data.sourceETag, key: crypto.randomUUID() };
+      const c = { branch, task, command, tag: data.sourceETag, key: crypto.randomUUID() };
       setPending(c);
       void execute(c);
     } catch {
