@@ -19,9 +19,10 @@ internal static class MaterialReadContract
 {
     private static readonly object DisclosedScopeKey = new();
     private static readonly object DisclosedLinkedWorkKey = new();
+    private static readonly object DisclosedIncidentKey = new();
     private const string Policy = "Material list/detail/availability/fulfillment receipts: HTTPS current unrestricted SQL session; independent MR_VIEW; "
         + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch, UC096 actor and current workflow/reviewer authority; "
-        + "serializable through final disclosure; linked internal requests additionally require current IR_VIEW and same branch, rechecked before disclosure; no reservation, mutation or raw audit authority";
+        + "serializable through final disclosure; linked internal requests additionally require current IR_VIEW and same branch; incident details require current INCIDENT_VIEW and same branch; both rechecked before disclosure; no reservation, mutation or raw audit authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042" }.Select(id =>
         new Dev2ActionContract(id, "DEV3_142A_MATERIAL_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             RequirementsAsync,
@@ -90,6 +91,9 @@ internal static class MaterialReadContract
         var scope = await MaterialRequestReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), now, ct);
         if (!scope.Branch && !scope.Own) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure
+            && a.Http.Items[DisclosedIncidentKey] is long incidentId
+            && !await MaterialLinkedWorkRead.CanDiscloseIncidentAsync(db, a.Actor.UserId, scope.BranchId, incidentId, ct)) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure
             && a.Http.Items[DisclosedLinkedWorkKey] is long[] linked
             && !await MaterialLinkedWorkRead.CanDiscloseAsync(db, a.Actor.UserId, scope.BranchId, linked, now, ct)) return false;
         // A branch grant can expire while an OWN grant remains valid. Do not
@@ -139,6 +143,7 @@ internal static class MaterialReadContract
             if (result != null)
             {
                 result = await MaterialLinkedWorkRead.ReadAsync(db, result, a.Actor.UserId, ct);
+                if (result.LinkedIncident != null) a.Http.Items[DisclosedIncidentKey] = result.LinkedIncident.IncidentId;
                 a.Http.Items[DisclosedLinkedWorkKey] = result.LinkedInternalRequests.Select(r => r.RequestId).ToArray();
             }
             return result == null ? new NotFoundResult() : new OkObjectResult(result);

@@ -37,9 +37,11 @@ public sealed record MaterialRequestDto(long RequestId, string RequestNo, string
     IReadOnlyList<MaterialFulfillmentDto> Fulfillments, IReadOnlyList<MaterialReturnDto> Returns)
 {
     public bool LinkedWorkAvailable { get; init; }
+    public MaterialLinkedIncidentDto? LinkedIncident { get; init; }
     public IReadOnlyList<MaterialLinkedRequestDto> LinkedInternalRequests { get; init; } = [];
 }
 public sealed record MaterialLinkedRequestDto(long RequestId, string RequestNo, string Status, bool Mandatory);
+public sealed record MaterialLinkedIncidentDto(long IncidentId, string IncidentNo, string Title, string Status);
 public sealed record MaterialAuditDto(long AuditId, string EntityType, string EntityId, string Action, long? ActorUserId,
     DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record MaterialHistoryDto(MaterialRequestDto Request, IReadOnlyList<MaterialAuditDto> Audit);

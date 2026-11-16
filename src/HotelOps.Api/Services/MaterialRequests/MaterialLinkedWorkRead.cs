@@ -1,6 +1,7 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.Incidents;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.MaterialRequests;
@@ -18,6 +19,16 @@ internal static class MaterialLinkedWorkRead
     {
         if (db.Database.CurrentTransaction == null)
             throw new InvalidOperationException("Linked work disclosure requires the authorized read transaction.");
+        // Incident linkage is a baseline FK and must not depend on the separate
+        // Internal Request material-link schema capability.
+        if (material.IncidentId is long incident)
+        {
+            var incidents = await IncidentReadAccess.ReadAsync(db, actor, material.BranchId, ct);
+            var detail = await incidents.Apply(db.Incidents.AsNoTracking()).Where(i => i.IncidentId == incident)
+                .Select(i => new MaterialLinkedIncidentDto(i.IncidentId, i.IncidentNo, i.IncidentTitle, i.Status))
+                .SingleOrDefaultAsync(ct);
+            material = material with { LinkedIncident = detail };
+        }
         if (!await InternalRequestCompletionService.InstalledAsync(db, ct)) return material;
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var scope = await new InternalRequestReadAccess(db).ReadAsync(actor, now, ct);
@@ -45,5 +56,12 @@ internal static class MaterialLinkedWorkRead
         var scope = await new InternalRequestReadAccess(db).ReadAsync(actor, now, ct);
         return await scope.Apply(db.InternalRequests.AsNoTracking(), now)
             .CountAsync(r => r.BranchId == branch && ids.Contains(r.InternalRequestId), ct) == ids.Distinct().Count();
+    }
+
+    internal static async Task<bool> CanDiscloseIncidentAsync(HotelOpsDbContext db, long actor,
+        long branch, long incident, CancellationToken ct)
+    {
+        var scope = await IncidentReadAccess.ReadAsync(db, actor, branch, ct);
+        return await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == incident, ct);
     }
 }

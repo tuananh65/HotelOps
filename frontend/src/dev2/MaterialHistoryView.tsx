@@ -62,7 +62,13 @@ export function MaterialHistoryView({ record }: { record: Values }) {
     {rows(record.returns).length ? <ul>{rows(record.returns).map((receipt, index) => <li key={`${receipt.documentId}:${receipt.originalIssueLineId}:${index}`}>
       {String(receipt.documentNo)} — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
     </li>)}</ul> : <p>No linked return documents recorded.</p>}
-    {record.incidentId != null && <p>Linked incident: {String(record.incidentId)}. Access to the incident is checked separately.</p>}
+    {record.incidentId != null && <section aria-label="Linked incident">
+      <h3>Linked incident</h3>
+      {isObject(record.linkedIncident) ? <p>
+        <Link to={`/operations/incidents/${encodeURIComponent(String(record.linkedIncident.incidentId))}`}>{String(record.linkedIncident.incidentNo)}</Link>
+        {" "}{String(record.linkedIncident.title)} — {String(record.linkedIncident.status)}
+      </p> : <p>Incident details unavailable in your current incident viewing scope. The historical link is retained.</p>}
+    </section>}
     <h3>Linked internal requests</h3>
     {record.linkedWorkAvailable !== true ? <p>Linked internal request information is unavailable.</p>
       : rows(record.linkedInternalRequests).length === 0 ? <p>No linked internal requests in your current viewing scope.</p>
