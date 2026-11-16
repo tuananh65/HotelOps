@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class RecoveryAuthProbe
 {
-    internal static async Task<int> RunAsync(string output)
+    internal static async Task<int> RunAsync(string output, bool replenishment = false)
     {
         if (File.Exists(output)) throw new IOException("Evidence already exists.");
         const string database = "HotelOps_DEV3_142A_Recovery_2b221f40";
@@ -64,6 +64,7 @@ internal static class RecoveryAuthProbe
             using (await Send(HttpMethod.Get, "/api/auth/session", 200)) { }
             foreach (var path in new[] { "/api/material-requests?branchId=1", "/api/replenishments?branchId=1" })
                 using (await Send(HttpMethod.Get, path, 403)) { }
+            if (replenishment) await RecoveryReplenishmentScenario.RunAsync(db, http, user.UserId, token!, checks, ct);
             using (await Send(HttpMethod.Post, "/api/auth/logout", 400)) { }
             using (await Send(HttpMethod.Get, "/api/auth/session", 200)) { }
             using (await Send(HttpMethod.Post, "/api/auth/logout", 204, token: token)) { }
@@ -96,7 +97,8 @@ internal static class RecoveryAuthProbe
             catch (Exception e) { failure = (failure ?? "") + " Cleanup: " + e.GetBaseException().Message; }
             await File.WriteAllTextAsync(output, JsonSerializer.Serialize(new { database, fixtureUserId = user.UserId,
                 checks, failure, cleanup = cleaned, success = failure == null && cleaned,
-                scope = "Synthetic HTTPS login/session/CSRF/logout and no-grant denial; no positive business workflow acceptance" }, new JsonSerializerOptions { WriteIndented = true }));
+                scope = replenishment ? "Synthetic HTTPS Create/read/Close replenishment with isolated grants and fixture cleanup; not complete UC acceptance"
+                    : "Synthetic HTTPS login/session/CSRF/logout and no-grant denial; no positive business workflow acceptance" }, new JsonSerializerOptions { WriteIndented = true }));
         }
         Console.WriteLine($"RECOVERY_AUTH {(failure == null && cleaned ? "PASS" : "FAIL")}; cleanup={cleaned}");
         return failure == null && cleaned ? 0 : 1;
