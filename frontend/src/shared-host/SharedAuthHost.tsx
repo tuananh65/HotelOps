@@ -90,9 +90,9 @@ export function SharedAuthHost({
   return (
     <Routes>
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
-      {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace readOnly
+      {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace
         enabledModules={[...(incidentReadEnabled ? ["incidents"] : []), ...(materialReadEnabled ? ["material-requests"] : [])]}
-        enabledActions={["A004A-022", "A004A-023", "A004A-037", "A004A-038"]} /></Protected>} />}
+        enabledActions={["A004A-022", "A004A-023", "A004A-037", "A004A-038", "A004A-043"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests/new" element={<Protected><InternalRequestIntakePage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}

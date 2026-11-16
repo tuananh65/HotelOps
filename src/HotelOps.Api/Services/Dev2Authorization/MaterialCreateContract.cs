@@ -14,6 +14,7 @@ using HotelOps.Api.Services.MaterialRequests;
 using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Services.Dev2Authorization;
 
@@ -23,10 +24,11 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class MaterialCreateContract
 {
     private const string ResourceType = "material_request_creation";
+    private static readonly object ApproverOptionsKey = new();
     private const string Policy = "UC091 create: HTTPS current unrestricted SQL session; eligible actor; "
         + "active branch access; approved actor role with MR_CREATE and independent MR_VIEW in current scope; "
         + "requester always principal; exact bound input; Serializable action transaction through disclosure; "
-        + "approved mapped approver and independent source-link authorization; lifecycle schema required";
+        + "approved mapped approver and independent source-link authorization; lifecycle schema required; scoped current mapped approver lookup";
     private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
         "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
 
@@ -39,11 +41,36 @@ internal static class MaterialCreateContract
         (a, invocation) => invocation.Controller == "MaterialRequests" && invocation.Action == "Create"
             && invocation.RootId == null && ReferenceEquals(invocation.Input, Input(a)),
         (a, _) => new CreationResolver(a), null,
-        (a, phase, ct) => ValidateAsync(a, phase, ct), RequiresActionTransaction: true)];
+        (a, phase, ct) => ValidateAsync(a, phase, ct), RequiresActionTransaction: true),
+     new("MATERIAL-CREATE-APPROVERS", "DEV3_142A_MATERIAL_CREATE_APPROVERS_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
+        (a, _) => Task.FromResult<IReadOnlyList<Dev2PermissionRequirement>>(
+            [new("MR_CREATE", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId))),
+             new("MR_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(ResourceType, Input(a).BranchId)))]),
+        Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new CreationResolver(a),
+        ReadApproversAsync, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true)];
 
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
-    private static MaterialRequestWrite Input(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("input") as MaterialRequestWrite
-        ?? throw new Dev2AccessDenied(403);
+    private static MaterialRequestWrite Input(Dev2BoundAction a)
+    {
+        if (a.Identity.DecisionId != "MATERIAL-CREATE-APPROVERS")
+            return a.Arguments.GetValueOrDefault("input") as MaterialRequestWrite ?? throw new Dev2AccessDenied(403);
+        if (a.Arguments.GetValueOrDefault("branchId") is not long branch || branch <= 0) throw new Dev2AccessDenied(400);
+        var warehouse = a.Arguments.GetValueOrDefault("sourceWarehouseId") as long?;
+        if (warehouse is <= 0) throw new Dev2AccessDenied(400);
+        return new(a.Actor.UserId, branch, 0, warehouse, "", null, null, null, null, null, []);
+    }
+
+    private static async Task<IActionResult> ReadApproversAsync(Dev2BoundAction a, CancellationToken ct)
+    {
+        var input = Input(a);
+        try
+        {
+            var result = await MaterialApprovalAuthority.CandidatesAsync(Db(a), a.Actor.UserId, input.BranchId, input.SourceWarehouseId, ct);
+            a.Http.Items[ApproverOptionsKey] = result;
+            return new OkObjectResult(result);
+        }
+        catch (ValidationException e) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Approver routing unavailable", Detail = e.Message }); }
+    }
 
     private sealed class CreationResolver(Dev2BoundAction a) : IPermissionResourceResolver
     {
@@ -63,8 +90,9 @@ internal static class MaterialCreateContract
 
     private static async Task<bool> ValidateAsync(Dev2BoundAction a, Dev2AuthorizationPhase phase, CancellationToken ct)
     {
-        if (a.Identity.ControllerType != typeof(MaterialRequestsController) || a.Identity.ActionName != "Create"
-            || a.Identity.DecisionId != "A004A-043" || a.Identity.HttpMethod != "POST" || !a.Http.Request.IsHttps) return false;
+        var lookup = a.Identity.DecisionId == "MATERIAL-CREATE-APPROVERS" && a.Identity.ActionName == "Approvers" && a.Identity.HttpMethod == "GET";
+        if (a.Identity.ControllerType != typeof(MaterialRequestsController) || !a.Http.Request.IsHttps
+            || !(lookup || a.Identity.ActionName == "Create" && a.Identity.DecisionId == "A004A-043" && a.Identity.HttpMethod == "POST")) return false;
         var input = Input(a);
         if (input.ActorUserId != a.Actor.UserId || input.BranchId <= 0 || input.Lines == null
             || input.AssignedApproverUserId is <= 0) return false;
@@ -111,7 +139,18 @@ internal static class MaterialCreateContract
             var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, input.BranchId, ct);
             if (!await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == incident, ct)) return false;
         }
-        if (phase == Dev2AuthorizationPhase.BeforeDisclosure)
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && lookup)
+        {
+            if (a.Http.Items[ApproverOptionsKey] is MaterialApprovalAuthority.Options selected)
+            {
+                MaterialApprovalAuthority.Options current;
+                try { current = await MaterialApprovalAuthority.CandidatesAsync(db, a.Actor.UserId, input.BranchId, input.SourceWarehouseId, ct); }
+                catch (ValidationException) { return false; }
+                if (current.DepartmentId != selected.DepartmentId || current.RequiredPermission != selected.RequiredPermission
+                    || !current.Items.SequenceEqual(selected.Items)) return false;
+            }
+        }
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && !lookup)
         {
             var created = db.MaterialRequests.Local.Where(r => r.RequesterId == a.Actor.UserId && r.BranchId == input.BranchId).ToArray();
             if (created.Length != 1 || created[0].RequestId <= 0) return false;

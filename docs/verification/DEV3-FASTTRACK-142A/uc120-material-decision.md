@@ -200,3 +200,24 @@ delivery. Final backend build PASS (0 warnings/errors), TypeScript PASS, Vite PA
 business tests NOT RUN per instruction. No database mutation. Creation UI/catalog,
 remaining lifecycle admission and full UC092 history acceptance remain open; no UC
 promoted on source/build evidence alone.
+
+## Create form and approved approver picker
+
+Canonical Material Requests now exposes Create alongside the admitted list/detail
+actions. Its Submit selector uses a typed approver dropdown from the new scoped
+GET /api/material-requests/creation-approvers lookup. Changing branch/warehouse
+clears the selected approver. Session changes or lookup errors discard the list;
+an empty/unavailable list cannot satisfy the browser's required Submit selection.
+The existing transport supplies the session actor and CSRF token; the server
+continues to independently authorize every command and revalidate approver mapping.
+
+Lookup requires the same MR_CREATE + MR_VIEW/current session/branch authority as
+creation. It returns only active independent DEPT_MANAGER candidates with current
+exact department mapping and the approved L1/fallback grant. Before disclosure it
+recomputes the routing and candidate list, rejecting expired or changed authority.
+No client-selected actor, role ID or inferred department-manager relationship is used.
+
+Backend build PASS (0 warnings/errors), frontend typecheck/build PASS with unchanged
+React Router/chunk warnings. No SQL writes or business/API/browser tests. The form
+still needs business catalog selectors in place of the inherited numeric reference
+fields, linked-create UI integration and Human QA; no full UC completion claimed.

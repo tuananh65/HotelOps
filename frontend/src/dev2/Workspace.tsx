@@ -15,6 +15,7 @@ import { modules, label, type Operation, type Values } from "./contracts";
 import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
+import { MaterialApproverField } from "./MaterialApproverField";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -93,7 +94,7 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     if (query.has(name)) context[name] = query.get(name)!;
   return (
     <Screen
-      readOnly={readOnly}
+      readOnly={readOnly || enabledActions !== undefined && !operations.some(op => op.module === module && op.method !== "GET" && enabledActions.includes(op.id))}
       enabledModules={enabledModules}
       enabledActions={enabledActions}
       key={`${module}:${id}:${query.toString()}`}
@@ -468,13 +469,19 @@ function Screen({
             }}
           />
           <Fields
-            fields={["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
+            fields={operation.id === "A004A-043" ? operation.fields.filter(f => f.name !== "assignedApproverUserId")
+              : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}
             actor={actor}
-            onChange={v => change(["A004A-021", "A004A-022"].includes(operation.id) && v.branchId !== values.branchId ? { ...v, categoryId: "" } : v)}
+            onChange={v => change(operation.id === "A004A-043" && (v.branchId !== values.branchId || v.sourceWarehouseId !== values.sourceWarehouseId)
+              ? { ...v, assignedApproverUserId: "" }
+              : ["A004A-021", "A004A-022"].includes(operation.id) && v.branchId !== values.branchId ? { ...v, categoryId: "" } : v)}
           />
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
+          {operation.id === "A004A-043" && <MaterialApproverField branch={values.branchId} warehouse={values.sourceWarehouseId}
+            value={values.assignedApproverUserId} required={values.submit === true}
+            onChange={assignedApproverUserId => change({ ...values, assignedApproverUserId })} />}
           {operation.id === "A004A-051" && (
             <p>
               Mode: Partial with explicit quantities, or FullRemaining without
@@ -551,7 +558,7 @@ function Screen({
           </Link>
         </p>
       )}
-      {!readOnly && module === "material-requests" && record.requestId != null && (
+      {!readOnly && available.some(op => op.id === "A004A-051") && module === "material-requests" && record.requestId != null && (
         <p>
           <Link
             to={`/operations/material-requests/${record.requestId}?action=A004A-051`}
@@ -569,7 +576,7 @@ function Screen({
           </Link>
         </p>
       )}
-      {!readOnly && <footer>
+      {!readOnly && !enabledActions && <footer>
         <Link to="/inventory/items">Inventory item catalogue</Link> ·{" "}
         <Link to="/operations/inventory?action=inventory:Movements">
           Stock movements

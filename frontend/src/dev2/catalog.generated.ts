@@ -1394,7 +1394,7 @@ export const operations: Operation[] = [
     name: "Create",
     method: "POST",
     route: "/api/material-requests",
-    permissions: ["MR_CREATE"],
+    permissions: ["MR_CREATE", "MR_VIEW"],
     authorityKind: "branch-input",
     expectedStatus: 201,
     dto: "MaterialRequestWrite",

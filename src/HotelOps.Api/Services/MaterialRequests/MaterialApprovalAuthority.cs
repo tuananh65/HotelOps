@@ -15,6 +15,31 @@ namespace HotelOps.Api.Services.MaterialRequests;
 internal static class MaterialApprovalAuthority
 {
     internal sealed record Route(long DepartmentId, string Permission);
+    internal sealed record Candidate(long UserId, string EmployeeCode, string FullName);
+    internal sealed record Options(long BranchId, long? SourceWarehouseId, long DepartmentId, string RequiredPermission, Candidate[] Items);
+
+    internal static async Task<Options> CandidatesAsync(HotelOpsDbContext db, long requester, long branch, long? warehouse, CancellationToken ct)
+    {
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        var route = await ResolveAsync(db, new MaterialRequest { RequesterId = requester, BranchId = branch, SourceWarehouseId = warehouse }, now, ct);
+        var mapped = db.Database.SqlQuery<long>($"""
+            SELECT user_id AS Value FROM dbo.department_management_access
+            WHERE branch_id={branch} AND department_id={route.DepartmentId} AND granted_at<={now} AND revoked_at IS NULL
+            """);
+        var candidates = await (from assignment in db.UserRoles.AsNoTracking()
+            join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+            where assignment.UserId != requester && assignment.BranchId == branch && assignment.IsActive
+                && assignment.Role.IsActive && assignment.Role.RoleCode == "DEPT_MANAGER"
+                && assignment.AssignedAt <= now && (assignment.ExpiresAt == null || assignment.ExpiresAt > now)
+                && assignment.Branch!.IsActive && assignment.User.DeletedAt == null
+                && assignment.User.AccountStatus == "ACTIVE" && assignment.User.EmploymentStatus == "ACTIVE"
+                && grant.Permission.PermissionCode == route.Permission && (grant.DataScope == "ALL" || grant.DataScope == "BRANCH")
+                && mapped.Contains(assignment.UserId)
+                && db.UserBranchAccesses.Any(b => b.UserId == assignment.UserId && b.BranchId == branch && b.GrantedAt <= now && b.RevokedAt == null)
+            select new Candidate(assignment.UserId, assignment.User.EmployeeCode, assignment.User.FullName))
+            .Distinct().OrderBy(c => c.FullName).ThenBy(c => c.UserId).ToArrayAsync(ct);
+        return new(branch, warehouse, route.DepartmentId, route.Permission, candidates);
+    }
 
     private static async Task<bool> MappedAsync(HotelOpsDbContext db, long user, long branch, long department, DateTime now, CancellationToken ct) =>
         await db.Database.SqlQuery<int>($"""
