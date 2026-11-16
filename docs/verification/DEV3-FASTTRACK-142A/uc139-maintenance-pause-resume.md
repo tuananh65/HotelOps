@@ -1,0 +1,34 @@
+# UC139 / UC055 Maintenance Pause All and Resume
+
+Source increment; UC139 and UC055 remain PARTIAL_IMPLEMENTATION. Newly COMPLETE_VERIFIED UCs: 0.
+
+## Implemented behavior
+
+Workday Pause All dispatches corrective MAINTENANCE intervals to an internal owning-workflow adapter. It requires a current MAINTENANCE_STAFF execution grant and independent MAINTENANCE_VIEW, current assignee, branch access and coherent Incident/location source. It locks Incident then Maintenance, checks the exact open interval, closes it, sets the existing maintenance status ON_HOLD, and writes the End of Shift work log plus audit with END_OF_SHIFT, interval/workday IDs and server time. These writes and Workday End share the existing serializable session/ETag transaction. No deadline, SLA, assignment, completion or Incident physical status is rewritten. Any remaining IN_PROGRESS Maintenance (including legacy work without an interval) prevents End and rolls back the whole Pause All transaction.
+
+The new production contract admits only MaintenanceWorks.ResumeWork (A004A-028). It requires HTTPS, current unrestricted SQL session, active assigned MAINTENANCE_STAFF, same-role MAINTENANCE_EXECUTE, independent MAINTENANCE_VIEW, current branch access and coherent corrective source. The resource resolver supports existing OWN/BRANCH grants without broadening them. Exact controller/action/root/request binding remains mandatory; client ActorUserId must match the independently validated principal and never supplies authority. All other legacy Maintenance mutations keep their existing admission gates.
+
+Resume compares the current native rowversion with If-Match after source locks, requires ON_HOLD, preserves historical ActualStartAt, and opens a new interval under the existing Working workday/single-open-interval guards. State, interval and audit commit together. Duplicate/stale requests cannot create a second interval; the client must reload after uncertain outcomes. The returned detail is scoped and excludes material references/usages, which require independent read permissions. Capability disclosure is rechecked before returning the read response.
+
+Canonical operations navigation now includes the existing scoped Maintenance list/detail and the versioned Resume panel. Resume is not exposed through the generic unversioned action form. The panel requires server canResume + a strong execution ETag, asks for confirmation, obtains current CSRF, binds the session, sends If-Match and disables retries until reload. Workday UI recognizes Maintenance Pause All. Read-only workspace mode suppresses Resume.
+
+## Schema and safety
+
+MaintenanceExecutionVersion.sql adds only maintenance_works.row_version (SQL native rowversion) plus a version marker. No EF generated entity/mapping, CHECK status, grant, role or database data is replaced. The installer requires exact disposable server/database/nonzero GUID, runs with a migration lock, and supports rollback. Pause All and Resume fail closed without the verified concurrency capability; Pause All also requires the compiled production Resume contract so it cannot strand work behind a demo-only Resume.
+
+No persistent installation was performed. No shared/production database mutation occurred. Existing work logs and audit retention apply; this increment does not introduce another authoritative workflow state or claim immutable audit storage.
+
+## Direct verification, 2026-11-16
+
+- Backend solution build PASS, zero warnings/errors.
+- Frontend TypeScript/Vite build PASS. Existing React Router module-directive and >500 kB bundle warnings remain.
+- Focused backend tests: 16 PASS, covering role/grant/branch/revocation boundaries, exact Resume invocation binding and existing Maintenance read/Workday admission regression. An initial GLOBAL-scope fixture expectation and a test actor-constructor compile error were corrected; the final run passed.
+- Three mocked-browser checks PASS: Maintenance Pause All confirmation and unknown-source denial for scheduled/unscheduled workdays. These do not execute SQL.
+- dotnet test HotelOps.slnx --no-restore exits 0 without test discovery; not counted as coverage.
+- Verified disposable SQL: two native-rowversion installations in an enclosing rollback transaction PASS; type/length verified and original schema/marker absence restored. Local script: artifacts/uc139-maintenance-resume/migration-rollback.sql (ignored artifact).
+- Auth/router browser regression: 49 PASS with mocked HTTP. The existing esbuild import.meta/iife test-bundle warning remains. This suite proves auth-routing regression, not the new Resume UI or live authorization.
+- Actual UI -> HTTPS -> SQL Pause/Resume, revocation/concurrency races and rollback: NOT_RUN. Full UC acceptance is not claimed.
+
+## Remaining work
+
+Install the guarded migration only in the authorized runtime environment, then verify Pause All -> End -> next Working workday -> Resume with real SQL session/CSRF and rollback/negative cases. Complete canonical Start/Hold/Submit/Return-re-execution and legacy interval reconciliation; preventive occurrence integration remains separate. UC139 cannot be promoted to COMPLETE_VERIFIED from builds, mocked browser tests or DDL checks alone.

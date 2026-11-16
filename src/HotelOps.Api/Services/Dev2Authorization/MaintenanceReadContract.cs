@@ -42,6 +42,7 @@ internal static class MaintenanceReadContract
     }
     private static readonly object ScopeKey = new();
     private static readonly object UsageKey = new();
+    private static readonly object ResumeKey = new();
     private sealed class Resolver(Dev2BoundAction a) : HotelOps.Api.Security.Authorization.IPermissionResourceResolver
     {
         public async Task<HotelOps.Api.Security.Authorization.VerifiedPermissionResource?> ResolveAsync(string permission,
@@ -80,6 +81,8 @@ internal static class MaintenanceReadContract
         if (!scope.Lead && !scope.Staff) return false;
         if (!IsList(a) && !await scope.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == Id(a), ct))
             throw new Dev2AccessDenied(404);
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(ResumeKey)
+            && !await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ScopeKey] is MaintenanceReadAccess.Scope disclosed
             && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && !IsList(a)
@@ -103,6 +106,10 @@ internal static class MaintenanceReadContract
             if (IsList(a)) return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct));
             var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
             if (detail == null) return new NotFoundResult();
+            detail.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(db, Id(a), ct);
+            detail.CanResume = detail.Status == "ON_HOLD" && detail.ExecutionETag != null
+                && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
+            if (detail.CanResume) a.Http.Items[ResumeKey] = true;
             var usage = await MaintenanceUsageRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             a.Http.Items[UsageKey] = usage;
             detail.MaterialUsageAvailable = usage.Available;

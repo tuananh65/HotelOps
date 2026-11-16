@@ -2,6 +2,8 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkDetailDto
 {
+    public string? ExecutionETag { get; set; }
+    public bool CanResume { get; set; }
     public bool MaterialUsageAvailable { get; set; }
     public long MaintenanceWorkId { get; init; }
     public string? AssigneeName { get; init; }

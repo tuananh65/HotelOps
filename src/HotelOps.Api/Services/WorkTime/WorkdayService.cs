@@ -72,12 +72,6 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             if (!await db.Workdays.AsNoTracking().AnyAsync(d => d.WorkdayId == workdayId
                     && d.UserId == actor.UserId && d.BranchId == branchId, ct))
                 return new(403, Code: "TIME_SCOPE_DENIED");
-            // Maintenance currently has no work_intervals bridge. An empty interval list
-            // therefore cannot prove that this employee has stopped all running work.
-            // Serializable retains this ownership/state read until End commits.
-            if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.AssigneeId == actor.UserId
-                    && w.Status == "IN_PROGRESS", ct))
-                return new(503, Code: "PAUSE_ALL_MAINTENANCE_BRIDGE_REQUIRED");
             if (pauseAll)
             {
                 var dayBefore = await db.Workdays.AsNoTracking().SingleAsync(d => d.WorkdayId == workdayId, ct);
@@ -90,6 +84,13 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                 {
                     if (interval.WorkdayId != workdayId || interval.BranchId != branchId)
                         return new(409, Code: "TIME_STATE_CONFLICT");
+                    if (interval.WorkItemKind == "MAINTENANCE")
+                    {
+                        var held = await HotelOps.Api.Services.Maintenance.MaintenanceEndOfShift.HoldAsync(
+                            db, participant, actor.UserId, branchId, interval.WorkItemId, ct);
+                        if (held.Status != 200) return held;
+                        continue;
+                    }
                     // Unsupported owning workflows remain running and this entire transaction rolls back.
                     if (interval.WorkItemKind is not ("TASK" or "CLEANING" or "REWORK") || workflows is null)
                         return new(503, Code: "PAUSE_ALL_SOURCE_UNAVAILABLE");
@@ -106,6 +107,11 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                             Code: "PAUSE_ALL_" + paused.Status.ToString().ToUpperInvariant());
                 }
             }
+            // Legacy running work without an interval is not silently assumed stopped.
+            // This also rejects additional running work after holding the single open interval.
+            if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.AssigneeId == actor.UserId
+                    && w.Status == "IN_PROGRESS", ct))
+                return new(503, Code: "PAUSE_ALL_MAINTENANCE_RECONCILIATION_REQUIRED");
             var day = await participant.EndWorkdayAsync(actor.UserId, branchId, workdayId, expectedVersion, ct);
             return new(200, Response(day));
         }, ct);

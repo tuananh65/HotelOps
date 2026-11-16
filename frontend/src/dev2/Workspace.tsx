@@ -174,7 +174,8 @@ function Screen({
   select: (v: string) => void;
   expired: () => void;
 }) {
-  const available = operations.filter((x) => x.module === module && (!readOnly || x.method === "GET")
+  // Resume is rendered from the versioned detail, never the unversioned generic form.
+  const available = operations.filter((x) => x.id !== "A004A-028" && x.module === module && (!readOnly || x.method === "GET")
     && (!enabledActions || enabledActions.includes(x.id)));
   const initial = available.find(
     (x) => x.id === (actionId ?? (recordId ? config.detail : config.list)),
@@ -656,7 +657,7 @@ function Screen({
         </p>
       )}
       {data !== undefined && (["A004A-035", "A004A-036"].includes(operation.id) && isObject(data)
-        ? <MaintenanceReadView data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} />
+        ? <MaintenanceReadView data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} canResume={!readOnly && (!enabledActions || enabledActions.includes("A004A-028"))} />
         : operation.id === "A004A-040" && isObject(data)
         ? <MaterialAvailabilityView data={data} /> : operation.id === "A004A-052" && isObject(data)
         ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)

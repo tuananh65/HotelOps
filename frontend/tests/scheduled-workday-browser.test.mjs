@@ -800,3 +800,12 @@ test("Rework Pause All reviews before ending workday",()=>run({enabled:true,work
  await p.getByText('No current working day.').waitFor();
  assert.equal((await posts(p)).length,1);
 }));
+
+test("Maintenance Pause All reviews before ending workday",()=>run({enabled:true,working:true,open:true,kind:'MAINTENANCE'},async p=>{
+ await p.getByRole('button',{name:'Pause All and end workday',exact:true}).click();
+ await p.getByText(/The running work will be paused or held with End of Shift/).waitFor();
+ assert.equal((await posts(p)).length,0);
+ await p.getByRole('button',{name:'Confirm workday end',exact:true}).click();
+ await p.getByText('No current working day.').waitFor();
+ assert.equal((await posts(p)).length,1);
+}));

@@ -182,7 +182,7 @@ function Bound({
     !!day &&
     day.branchId === branchId &&
     (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
-    (day.openInterval === null || ["TASK", "CLEANING", "REWORK"].includes(day.openInterval.workItemKind)) &&
+    (day.openInterval === null || ["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind)) &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
     if (
@@ -371,7 +371,7 @@ function Bound({
         disabled={!dispatchEnabled || !endAllowed || pending || locked}
         onClick={() => prepare("end")}
       >
-        {day?.openInterval && ["TASK", "CLEANING", "REWORK"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
+        {day?.openInterval && ["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
       </button>
       {review && (
         <section aria-label="Review scheduled workday">
