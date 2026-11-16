@@ -8,13 +8,13 @@ namespace HotelOps.Api.Services.Notifications;
 public sealed partial class ProvisionalCleaningNotification
 {
     public async Task<bool> CancellationReadinessAvailableAsync(CancellationToken ct)
-        => env.IsDevelopment() && config["CleaningCancellation:Capability"] == "VERIFIED_V1"
+        => env.IsDevelopment()
             && await HotelOps.Api.Data.CleaningCancellationReadinessSchema.InstalledAsync(db, ct);
 
     public async Task<bool> CancellationAvailableAsync(CancellationToken ct)
     {
-        if(env.IsDevelopment() && config["CleaningCancellation:Capability"]=="VERIFIED_V1")
-            return await HotelOps.Api.Data.CleaningCancellationSchema.InstalledAsync(db,ct);
+        if(env.IsDevelopment() && await HotelOps.Api.Data.CleaningCancellationSchema.InstalledAsync(db,ct))
+            return true;
         if (!env.IsDevelopment() || config["CleaningCancellation:Candidate"] != "FS018_PROVISIONAL"
             || db.Database.GetDbConnection().Database != "HotelOps_Canonical_FS018_Cancellation_V1_Fresh") return false;
         return await db.Database.SqlQuery<int>($"""
