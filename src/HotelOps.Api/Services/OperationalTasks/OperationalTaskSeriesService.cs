@@ -21,7 +21,7 @@ public sealed partial class RoomTypeCreationService
         var newlyCreated = false;
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
-            if (!await TaskSeriesStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await TaskAssignmentEligibility.InstalledAsync(db, token) || !await TaskSeriesStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
             if (template.InternalRequestId != null) return new(RoomTypeBatchStatus.SchemaRequired);
             var prior = await TaskSeriesStore.Query(db).SingleOrDefaultAsync(s => s.CreationKey == template.RequestKey, token);
             if (prior != null)

@@ -1,16 +1,16 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.OperationalTasks;
 
 internal static class TaskAssignmentEligibility
 {
+    internal static Task<bool> InstalledAsync(HotelOpsDbContext db, CancellationToken ct) => WorkdayMembershipStore.InstalledAsync(db, ct);
     internal static IQueryable<User> Candidates(HotelOpsDbContext db, long branch, long department, DateTime now) =>
-        db.Users.AsNoTracking().Where(u => u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
-            && u.DepartmentId == department && u.Department != null && u.Department.BranchId == branch && u.Department.IsActive && u.Department.Branch.IsActive
-            && db.UserBranchAccesses.Any(a => a.UserId == u.UserId && a.BranchId == branch && a.GrantedAt <= now && a.RevokedAt == null)
-            && db.UserRoles.Any(r => r.UserId == u.UserId && r.IsActive && r.Role.IsActive
+        WorkdayMembershipStore.Employees(db, branch, department, now).Where(u =>
+            db.UserRoles.Any(r => r.UserId == u.UserId && r.IsActive && r.Role.IsActive
                 && (r.Role.RoleCode == "HK_STAFF" || r.Role.RoleCode == "MAINTENANCE_STAFF" || r.Role.RoleCode == "STOREKEEPER")
                 && (r.BranchId == branch || r.BranchId == null) && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)));
 

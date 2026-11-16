@@ -39,7 +39,7 @@ public sealed partial class RoomTypeCreationService
                 .OrderBy(r => r.SortOrder).ThenBy(r => r.ReferenceId).Select(r => new TaskPlanningLookup(r.ReferenceId, r.DisplayName)).ToArrayAsync(token);
             var recurring = await TaskSeriesStore.InstalledAsync(db, token);
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
-            var executors = recurring && department is { } selected
+            var executors = recurring && await TaskAssignmentEligibility.InstalledAsync(db, token) && department is { } selected
                 ? await TaskAssignmentEligibility.Candidates(db, branch, selected, now).OrderBy(u => u.FullName).ThenBy(u => u.UserId)
                     .Select(u => new TaskPlanningLookup(u.UserId, u.FullName)).ToArrayAsync(token)
                 : [];

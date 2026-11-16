@@ -108,7 +108,8 @@ internal sealed class TaskSeriesGeneration(HotelOpsDbContext db, TimeProvider cl
 
     private static async Task RequireCurrentAuthorityAsync(HotelOpsDbContext db, StoredTaskSeries row, CreateOperationalTaskRequest template, DateTime now, CancellationToken ct)
     {
-        if (!(await TaskSubmissionAccess.ManagersAsync(db, row.BranchId, now, ct)).Contains(row.CreatedBy)
+        if (!await TaskAssignmentEligibility.InstalledAsync(db, ct)
+            || !(await TaskSubmissionAccess.ManagersAsync(db, row.BranchId, now, ct)).Contains(row.CreatedBy)
             || !await TaskAssignmentEligibility.Candidates(db, row.BranchId, row.DepartmentId, now).AnyAsync(u => u.UserId == row.DefaultAssigneeId, ct)
             || !await RoomTypeCreationService.TaskCreationReferencesAsync(db, row.BranchId, template, ct))
             throw new ValidationException("Recurring authority, default executor or catalog is no longer eligible.");

@@ -42,7 +42,7 @@ public sealed partial class RoomTypeCreationService
             throw new ValidationException("Invalid task or executor filters.");
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
-            if (!await TaskReopenStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await TaskAssignmentEligibility.InstalledAsync(db, token) || !await TaskReopenStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
             var task = await TaskAssignmentEligibility.ScopedTasks(db, branch).SingleOrDefaultAsync(t => t.TaskId == id, token);
             if (task == null) return new(RoomTypeBatchStatus.NotFound);
             var version = await ProgressRevision(false, id, token);
@@ -88,7 +88,7 @@ public sealed partial class RoomTypeCreationService
         long department = 0;
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
-            if (!await TaskReopenStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await TaskAssignmentEligibility.InstalledAsync(db, token) || !await TaskReopenStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
             var task = await db.OperationalTasks.FromSqlInterpolated($"SELECT * FROM dbo.operational_tasks WITH(UPDLOCK,HOLDLOCK) WHERE task_id={id}")
                 .AsNoTracking().SingleOrDefaultAsync(token);
             if (task == null || !await TaskAssignmentEligibility.ScopedTasks(db, branch).AnyAsync(t => t.TaskId == id, token)) return new(RoomTypeBatchStatus.NotFound);
