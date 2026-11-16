@@ -11,7 +11,7 @@ namespace HotelOps.Api.Services.MaterialRequests;
 
 // The approval cycle is the durable intent: the writer persists it with request,
 // line snapshots and audit. Rolled-back submissions cannot appear in this scan.
-internal sealed class MaterialApprovalNotificationDelivery(HotelOpsDbContext db, IOptions<NotificationCenterOptions> retention)
+internal sealed partial class MaterialApprovalNotificationDelivery(HotelOpsDbContext db, IOptions<NotificationCenterOptions> retention)
 {
     internal const string Kind = "MATERIAL_APPROVAL_REQUESTED";
     internal const string Source = "MATERIAL_APPROVAL_CYCLE";

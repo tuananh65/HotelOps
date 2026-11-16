@@ -19,6 +19,7 @@ import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
 import { MaterialBranchField } from "./MaterialBranchField";
 import { MaterialApprovalFields, materialApprovalActions, materialApprovalReady } from "./MaterialApprovalFields";
+import { MaterialCancellationFields, materialRequesterActions, materialRequesterReady } from "./MaterialRequesterFields";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -27,6 +28,8 @@ function key(session: object) {
   return identities.get(session);
 }
 function operationDefaults(operation: Operation, source: Values = {}): Values {
+  if (operation.id === "A004A-044" && Array.isArray(source.lines))
+    return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true) });
   if (operation.id === "A004A-047" && Array.isArray(source.lines))
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true)
       .map(l => ({ requestLineId: l.requestLineId, approvedQty: "" })) });
@@ -394,6 +397,12 @@ function Screen({
     (m) => ({ name: m[1], type: "long", optional: false }),
   );
   const branch = values.branchId ?? record.branchId ?? context.branchId;
+  const materialWrite = ["A004A-043", "A004A-044"].includes(operation.id);
+  const materialSubmit = operation.id === "A004A-045";
+  const needsApproval = materialSubmit || values.submit === true || operation.id === "A004A-044"
+    && ["PENDING_APPROVAL", "APPROVED"].includes(String(record.rawStatus));
+  const historicalLineMax = Array.isArray(record.lines)
+    ? Math.max(0, ...record.lines.filter(isObject).map(l => Number(l.lineNo))) : 0;
   const change = (v: Values) => {
     setValues(v);
     setDenied(false);
@@ -465,7 +474,9 @@ function Screen({
       </div>
       <p className="dev2-permission">
         Required access:{" "}
-        {materialApprovalActions.includes(operation.id) ? "Current assigned approver with mapped approval authority and MR_VIEW" : operation.permissions.join(" + ") || operation.permissionHint}. The
+        {materialApprovalActions.includes(operation.id) ? "Current assigned approver with mapped approval authority and MR_VIEW"
+          : materialRequesterActions.includes(operation.id) ? "Current requester with MR_CREATE and independent MR_VIEW"
+          : operation.permissions.join(" + ") || operation.permissionHint}. The
         server checks your branch, resource, ownership and workflow for every
         request.
       </p>
@@ -479,7 +490,7 @@ function Screen({
         <fieldset disabled={busy}>
           <legend>{operation.name}</legend>
           <Fields
-            fields={routeFields}
+            fields={materialRequesterActions.includes(operation.id) ? [] : routeFields}
             values={parameters}
             actor={actor}
             onChange={(v) => {
@@ -499,8 +510,9 @@ function Screen({
             onChange={branchId => change({ ...values, branchId, assignedApproverUserId: "", departmentId: "", sourceWarehouseId: "",
               receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
-            fields={materialApprovalActions.includes(operation.id) ? [] : operation.id === "A004A-043" ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
-              .map(f => f.name === "neededAt" && values.submit === true ? { ...f, optional: false } : f)
+            fields={materialApprovalActions.includes(operation.id) || materialSubmit || operation.id === "A004A-049" ? []
+              : materialWrite ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
+              .map(f => f.name === "neededAt" && needsApproval ? { ...f, optional: false } : f)
               : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
             values={values}
             actor={actor}
@@ -510,13 +522,18 @@ function Screen({
           />
           {["A004A-021", "A004A-022"].includes(operation.id) && <IncidentCategoryField branch={values.branchId}
             value={values.categoryId} onChange={categoryId => change({ ...values, categoryId })} />}
-          {operation.id === "A004A-043" && <MaterialCatalogFields values={values} onChange={change} />}
+          {materialWrite && <MaterialCatalogFields values={values} onChange={change}
+            historicalLineMax={operation.id === "A004A-044" ? historicalLineMax : undefined} />}
+          {materialRequesterActions.includes(operation.id) && !materialRequesterReady(record, actor, operation.id)
+            && <p role="status">Open your current request in an eligible state before saving. Changes are unavailable after the first issue.</p>}
+          {operation.id === "A004A-049" && <MaterialCancellationFields values={values} onChange={change} />}
           {materialApprovalActions.includes(operation.id) && <>
             {!materialApprovalReady(record, actor, operation.id) && <p role="status">Load a request currently awaiting your decision before saving.</p>}
             <MaterialApprovalFields record={record} values={values} action={operation.id} onChange={change} />
           </>}
-          {operation.id === "A004A-043" && <MaterialApproverField branch={values.branchId} warehouse={values.sourceWarehouseId}
-            value={values.assignedApproverUserId} required={values.submit === true}
+          {(materialWrite || materialSubmit) && <MaterialApproverField branch={materialSubmit ? record.branchId : values.branchId}
+            warehouse={materialSubmit ? record.sourceWarehouseId : values.sourceWarehouseId}
+            value={values.assignedApproverUserId} required={needsApproval}
             onChange={assignedApproverUserId => change({ ...values, assignedApproverUserId })} />}
           {operation.id === "A004A-051" && (
             <p>
@@ -526,7 +543,9 @@ function Screen({
           )}
           <button type="submit" disabled={busy || denied || uncertain
             || materialApprovalActions.includes(operation.id) && !materialApprovalReady(record, actor, operation.id)
-            || operation.id === "A004A-043" && (!Array.isArray(values.lines) || values.lines.length === 0)}>
+            || materialRequesterActions.includes(operation.id) && (!materialRequesterReady(record, actor, operation.id)
+              || String(parameters.id) !== String(record.requestId))
+            || materialWrite && (!Array.isArray(values.lines) || values.lines.length === 0)}>
             {busy
               ? "Working…"
               : operation.method === "GET"

@@ -20,7 +20,9 @@ function decode(raw: unknown): Catalog | undefined {
   return raw as Catalog;
 }
 
-export function MaterialCatalogFields({ values, onChange }: { values: Values; onChange: (value: Values) => void }) {
+export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
+  values: Values; onChange: (value: Values) => void; historicalLineMax?: number;
+}) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const branch = String(values.branchId ?? "");
@@ -54,7 +56,7 @@ export function MaterialCatalogFields({ values, onChange }: { values: Values; on
     </select></label>;
   }
   function updateLine(index: number, changes: Values) {
-    onChange({ ...values, lines: lines.map((line, n) => n === index ? { ...line, ...changes, lineNo: n + 1 } : line) });
+    onChange({ ...values, lines: lines.map((line, n) => n === index ? { ...line, ...changes } : line) });
   }
   return <section aria-label="Material choices">
     <button type="button" onClick={() => setRevision(v => v + 1)}>Reload material choices</button>
@@ -68,24 +70,26 @@ export function MaterialCatalogFields({ values, onChange }: { values: Values; on
     <fieldset><legend>Requested materials</legend>
       {lines.map((line, index) => {
         const item = catalog?.items.find(i => String(i.id) === String(line.itemId));
-        return <fieldset key={index}><legend>Line {index + 1}</legend>
-          <label>Item<select required value={item ? String(item.id) : ""}
+        const persisted = historicalLineMax !== undefined && line.requestLineId != null;
+        return <fieldset key={String(line.lineNo)}><legend>Line {String(line.lineNo)}</legend>
+          {persisted && <p>To change material or unit, remove this line and add a new one. Its history is retained.</p>}
+          <label>Item<select required disabled={persisted} value={item ? String(item.id) : ""}
             onChange={e => updateLine(index, { itemId: e.target.value, uomId: "" })}>
             <option value="">Select material</option>{catalog?.items.map(i => <option key={i.id} value={i.id}>{i.code}: {i.name}</option>)}
           </select></label>
-          <label>Unit<select required value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
+          <label>Unit<select required disabled={persisted} value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
             onChange={e => updateLine(index, { uomId: e.target.value })}>
             <option value="">Select unit</option>{item?.units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select></label>
           <label>Quantity<input type="number" min="0.001" step="0.001" required value={String(line.requestedQty ?? "")}
             onChange={e => updateLine(index, { requestedQty: e.target.value })} /></label>
           <label>Note (optional)<input value={String(line.note ?? "")} onChange={e => updateLine(index, { note: e.target.value })} /></label>
-          <button type="button" onClick={() => onChange({ ...values, lines: lines.filter((_, n) => n !== index).map((l, n) => ({ ...l, lineNo: n + 1 })) })}>Remove line</button>
+          <button type="button" onClick={() => onChange({ ...values, lines: lines.filter((_, n) => n !== index) })}>Remove line</button>
         </fieldset>;
       })}
       {lines.length === 0 && <p>Add at least one material line to save the request.</p>}
       <button type="button" disabled={!catalog?.items.length}
-        onClick={() => onChange({ ...values, lines: [...lines, { lineNo: lines.length + 1, itemId: "", uomId: "", requestedQty: "", note: "" }] })}>Add material</button>
+        onClick={() => onChange({ ...values, lines: [...lines, { lineNo: Math.max(historicalLineMax ?? 0, 0, ...lines.map(l => Number(l.lineNo))) + 1, itemId: "", uomId: "", requestedQty: "", note: "" }] })}>Add material</button>
     </fieldset>
   </section>;
 }

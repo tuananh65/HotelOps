@@ -38,10 +38,15 @@ public sealed partial class MaterialRequestService
             if (id != null) RecheckDiscovery(r, discovered);
             if (id != null && needsCycle)
             {
-                var latestCycle = await Latest(r.RequestId, ct);
-                if (discoveredCycle is null || latestCycle.ApprovalCycleId != discoveredCycle.ApprovalCycleId
+                var latestCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(c => c.RequestId == r.RequestId)
+                    .OrderByDescending(c => c.RevisionNo).FirstOrDefaultAsync(ct);
+                // First submission of a draft has no previous cycle. Still reject
+                // a cycle appearing/changing while acquiring the requester locks.
+                if ((latestCycle is null) != (discoveredCycle is null)
+                    || latestCycle is not null && discoveredCycle is not null && (latestCycle.ApprovalCycleId != discoveredCycle.ApprovalCycleId
                     || latestCycle.AssignedApproverId != discoveredCycle.AssignedApproverId || latestCycle.SubmittedBy != discoveredCycle.SubmittedBy
                     || latestCycle.Status != discoveredCycle.Status || latestCycle.RevisionNo != discoveredCycle.RevisionNo)
+                    || latestCycle is null && discovered.Status != "DRAFT")
                     throw Invalid("Approval context changed during User lock acquisition. Reload.");
             }
             if (input.NeededAt is DateTime time && time.Kind != DateTimeKind.Utc) throw Invalid("NeededAt must use UTC (Z).");
@@ -167,6 +172,8 @@ public sealed partial class MaterialRequestService
             r.UpdatedAt = DateTime.UtcNow;
             await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
+            if (command == "cancel" && currentCycle != null)
+                MaterialApprovalNotificationDelivery.EnqueueCancellation(db, r);
             Audit(r, TrustedActorId, action, evt, before, new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId });
             await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             if (responsibleApprover is {} decisionActor) await MaterialApprovalAuthority.ValidateAsync(db, r, decisionActor, ct);

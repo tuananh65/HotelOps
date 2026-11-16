@@ -286,3 +286,33 @@ PASS with existing router/chunk warnings. No SQL writes or business/API/browser
 tests. Requester resubmission/edit/cancel admission, requester decision notices,
 inventory review/fulfillment and full runtime acceptance remain outstanding.
 No UC promoted solely from these source/build results.
+
+## UC093 requester lifecycle source closure (2026-11-16)
+
+Edit, Submit/resubmit and Cancel now have compiled production admission with current
+HTTPS cookie session, requester ownership, MR_CREATE plus independent MR_VIEW,
+approved creator role and branch access. The action transaction remains Serializable
+through final response authorization. Approver fallback is checked again after
+ordered user locks; stale discovery cannot acquire a different approver out of order.
+First submission through Edit now accepts a Draft with no previous approval cycle.
+
+Canonical UI loads the request/version and active lines. It preserves historical
+line identities/numbers, requires a new line for item/UOM replacement, and allocates
+new numbers above all historical lines. Submit uses the mapped approver selector;
+Cancel requires a reason and explicit confirmation. State/ownership/first-issue
+checks disable unavailable actions; server state/version guards remain authoritative.
+
+Cancellation of a previously submitted request persists a notification intent in
+the same transaction as status/audit. The existing opt-in worker delivers it with
+current mapped approver authority and MR_VIEW, finite notification retention and
+idempotent receipt checks. Opening it rechecks source provenance and current access.
+Draft cancellation without a prior cycle does not invent an approver. No schema,
+grant, shared database or worker configuration was changed.
+
+Direct checks: backend build PASS, zero warnings/errors; frontend typecheck and
+production build PASS. Existing React Router use-client and >500 kB bundle warnings
+remain. Business/API/browser/SQL tests NOT RUN per acceleration instruction.
+Source is ready for UC093 Human QA, not COMPLETE_VERIFIED. Runtime requires the
+verified material lifecycle and department-mapping capabilities, actual grants and
+enabled notification worker. Human QA must cover edit/reapproval, stale versions,
+revoked access, first-issue rejection, cancellation rollback and notice retries.

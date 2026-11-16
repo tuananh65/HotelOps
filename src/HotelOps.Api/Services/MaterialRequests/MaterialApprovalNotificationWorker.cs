@@ -15,7 +15,7 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled) return;
-        long cursor = 0;
+        long cursor = 0, cancellationCursor = 0;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -32,6 +32,17 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
                 }
                 // Wrap after each complete scan, including recipients temporarily denied.
                 cursor = pending.Length == 100 ? pending[^1] : 0;
+                long[] cancellations;
+                await using (var scope = scopes.CreateAsyncScope())
+                    cancellations = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().PendingCancellationsAsync(cancellationCursor, ct);
+                foreach (var id in cancellations)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverCancellationAsync(id, ct); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Material cancellation notice {NotificationId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                cancellationCursor = cancellations.Length == 100 ? cancellations[^1] : 0;
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception error) { logger.LogWarning("Material approval notification scan retained after {ErrorType}", error.GetType().Name); }
