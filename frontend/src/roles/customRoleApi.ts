@@ -1,5 +1,5 @@
 import { createHttpClient } from "../auth/http";
-import { role, type RoleDto } from "./contracts";
+import { id, role, type RoleDto } from "./contracts";
 export interface CustomRoleInput {
   roleCode: string;
   roleName: string;
@@ -43,6 +43,24 @@ export function createCustomRoleApi(
   enabled = false,
 ) {
   return {
+    async metadata(roleId: number, signal?: AbortSignal) {
+      let etag: string | null = null;
+      let status: number | undefined;
+      const client = createHttpClient(async (url, init) => {
+        const response = await fetcher(url, init);
+        etag = response.headers.get("ETag");
+        status = response.status;
+        return response;
+      });
+      if (!id(roleId)) return { ok: false as const, status: 400 };
+      const result = await client({ method: "GET", url: `/api/roles/${roleId}/metadata`, expectedStatus: 200, signal,
+        decode(value) {
+          const data = role(value);
+          return data?.roleId === roleId && etag && /^"[0-9A-F]{16}"$/.test(etag) ? { role: data, etag } : undefined;
+        },
+      });
+      return result.ok ? { ok: true as const, data: result.data } : { ok: false as const, status };
+    },
     async create(
       input: CustomRoleInput,
       current: () => boolean,
@@ -150,11 +168,48 @@ export function createCustomRoleApi(
         };
       }
     },
-    async update(): Promise<CustomRoleResult> {
-      return {
-        outcome: "NOT_DISPATCHED",
-        reason: "ROLE_VERSION_CONTRACT_REQUIRED",
-      };
+    async update(roleId: number, input: Pick<CustomRoleInput, "roleName" | "description">,
+      etag: string, current: () => boolean, signal?: AbortSignal): Promise<CustomRoleResult> {
+      if (!enabled || !id(roleId) || !validMetadata(input.roleName, input.description)
+        || !/^"[0-9A-F]{16}"$/.test(etag) || !current() || signal?.aborted)
+        return { outcome: "NOT_DISPATCHED", reason: "INVALID_REQUEST" };
+      let status: number | undefined;
+      const bootstrap = createHttpClient(async (url, init) => {
+        const response = await fetcher(url, init);
+        status = response.status;
+        return response;
+      });
+      const token = await bootstrap({ method: "GET", url: "/api/auth/csrf", expectedStatus: 200, signal,
+        decode(value) {
+          if (value && typeof value === "object" && "headerName" in value && value.headerName === "X-CSRF-TOKEN"
+            && "csrfToken" in value && typeof value.csrfToken === "string" && /^[\x21-\x7e]{1,8192}$/.test(value.csrfToken)) return value.csrfToken;
+        },
+      });
+      if (!token.ok) return { outcome: "NOT_DISPATCHED", reason: "CSRF", status };
+      if (!current() || signal?.aborted) return { outcome: "NOT_DISPATCHED", reason: "STALE" };
+      status = undefined;
+      let nextVersion: string | null = null;
+      const client = createHttpClient(async (url, init) => {
+        const headers = new Headers(init?.headers);
+        headers.set("If-Match", etag);
+        const response = await fetcher(url, { ...init, headers });
+        status = response.status;
+        nextVersion = response.headers.get("ETag");
+        return response;
+      });
+      const result = await client({ method: "PATCH", url: `/api/roles/${roleId}`, expectedStatus: 200,
+        body: input, csrfToken: token.data, signal,
+        decode(value) {
+          const data = role(value);
+          return data?.roleId === roleId && !data.isSystemRole && data.roleName === input.roleName.trim()
+            && data.description === (input.description?.trim() || null)
+            && nextVersion && /^"[0-9A-F]{16}"$/.test(nextVersion) && nextVersion !== etag ? data : undefined;
+        },
+      });
+      if (!current() || signal?.aborted) return { outcome: "OUTCOME_UNKNOWN", reason: "STALE" };
+      if (result.ok) return { outcome: "CONFIRMED", data: result.data };
+      return { outcome: status && [400, 401, 403, 404, 409, 412, 428].includes(status) ? "REJECTED" : "OUTCOME_UNKNOWN",
+        reason: "HTTP", status };
     },
   };
 }

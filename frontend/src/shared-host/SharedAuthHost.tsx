@@ -30,7 +30,7 @@ import { UpdateUserFlowBoundary } from "../users/UpdateUserFlowBoundary";
 import { CredentialResetRoute } from "../users/CredentialResetRoute";
 import { AddUserBranchFlowBoundary } from "../users/AddUserBranchFlowBoundary";
 import { RoleCatalogRoute } from "../roles/RoleCatalogRoute";
-import { CustomRoleForm } from "../roles/CustomRoleForm";
+import { CustomRoleForm, CustomRoleEditRoute } from "../roles/CustomRoleForm";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { InspectionExecutionAuthRoute } from "./InspectionExecutionAuthRoute";
@@ -110,7 +110,8 @@ export function SharedAuthHost({
       {accountManagementEnabled && <Route path="/users/:id/branches/add" element={<AddUserBranchFlowBoundary />} />}
       {roleAssignmentEnabled && <Route path="/roles" element={<RoleCatalogRoute mode="list" creationEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/new" element={<CustomRoleForm dispatchEnabled />} />}
-      {roleAssignmentEnabled && <Route path="/roles/:roleId" element={<RoleCatalogRoute mode="detail" />} />}
+      {roleAssignmentEnabled && <Route path="/roles/:roleId" element={<RoleCatalogRoute mode="detail" creationEnabled />} />}
+      {roleAssignmentEnabled && <Route path="/roles/:roleId/edit" element={<CustomRoleEditRoute />} />}
       {roleAssignmentEnabled && <Route path="/roles/:roleId/permissions" element={<RoleCatalogRoute mode="matrix" />} />}
       {roleAssignmentEnabled && <Route path="/permissions" element={<RoleCatalogRoute mode="catalog" />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}

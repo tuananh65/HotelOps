@@ -10,9 +10,9 @@ using HotelOps.Api.Services.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Rbac;
-public sealed record CustomRoleResult(int Status,string? Code=null,CustomRoleCreatedDto? Value=null);
+public sealed record CustomRoleResult(int Status,string? Code=null,CustomRoleCreatedDto? Value=null,byte[]? Version=null);
 /** Creates unassigned custom roles. Metadata PATCH requires a durable version contract. */
-public sealed class CustomRoleService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,TimeProvider clock,IHttpContextAccessor http)
+public sealed partial class CustomRoleService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,TimeProvider clock,IHttpContextAccessor http)
 {
  public static Role NewRole(CustomRoleCreateRequest request,DateTime now)=>new(){RoleCode=request.RoleCode,RoleName=request.RoleName,Description=request.Description,IsSystemRole=false,IsActive=true,CreatedAt=now};
  private int Identity(out CurrentUserInfo actor){if(!current.TryGetCurrentUser(out actor)||!HotelOpsCookieTicket.TryRead(http.HttpContext?.User,out var ticket,out var sid)||ticket!.UserId!=actor.UserId||sid!=actor.SessionId)return 401;return actor.IsRestricted||ticket.IsRestricted?403:200;}

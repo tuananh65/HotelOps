@@ -245,9 +245,10 @@ function Catalog({
                 {d.role.isSystemRole
                   ? "System role — protected"
                   : "Custom role"}
-                . Editing and deactivation are unavailable for every role.
+                .
               </p>
               <Link to={`/roles/${roleId}/permissions`}>Permission matrix</Link>
+              {creationEnabled && !d.role.isSystemRole && <Link to={`/roles/${roleId}/edit`}>Edit role metadata</Link>}
               <ul>
                 {d.grants.map((x) => (
                   <li key={x.rolePermissionId}>

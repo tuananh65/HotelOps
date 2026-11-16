@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { Link, useParams } from "react-router-dom";
 import { createRoleCatalogApi } from "./roleCatalogApi";
 import {
   createCustomRoleApi,
@@ -15,7 +16,12 @@ function key(x: object) {
   if (!keys.has(x)) keys.set(x, ++n);
   return keys.get(x)!;
 }
-/** Creation is enabled by the canonical host; metadata updates remain unavailable. */
+export function CustomRoleEditRoute() {
+  const { roleId = "" } = useParams();
+  if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId))) return <p role="alert">Invalid role ID.</p>;
+  return <CustomRoleForm roleId={Number(roleId)} dispatchEnabled />;
+}
+/** Both operations retain current-session binding and never replay a mutation. */
 export function CustomRoleForm({
   roleId,
   dispatchEnabled = false,
@@ -83,6 +89,7 @@ function Bound({
     }),
     [review, setReview] = useState<CustomRoleInput | null>(null),
     [record, setRecord] = useState<RoleDto | null>(null),
+    [version, setVersion] = useState<string | null>(null),
     [loading, setLoading] = useState(roleId !== undefined),
     [pending, setPending] = useState(false),
     [message, setMessage] = useState(""),
@@ -102,7 +109,7 @@ function Bound({
     if (roleId === undefined) return;
     const abort = new AbortController();
     let active = true;
-    void read.detail(roleId, abort.signal).then((r) => {
+    void api.metadata(roleId, abort.signal).then((r) => {
       if (!active || !current()) return;
       setLoading(false);
       if (!r.ok) {
@@ -111,6 +118,7 @@ function Bound({
         return;
       }
       setRecord(r.data.role);
+      setVersion(r.data.etag);
       setInput({
         roleCode: r.data.role.roleCode,
         roleName: r.data.role.roleName,
@@ -121,20 +129,22 @@ function Bound({
       active = false;
       abort.abort();
     };
-  }, [read, roleId, current]);
+  }, [api, roleId, current]);
   async function create() {
     if (
       !review ||
       !dispatchEnabled ||
       attempted.current ||
       !mounted.current ||
-      !current()
+      !current() || (roleId !== undefined && (!version || !record || record.isSystemRole))
     )
       return;
     attempted.current = true;
     setPending(true);
     controller.current = new AbortController();
-    const result = await api.create(
+    const result = roleId !== undefined ? await api.update(roleId,
+      { roleName: review.roleName, description: review.description }, version!,
+      () => mounted.current && current(), controller.current.signal) : await api.create(
       review,
       () => mounted.current && current(),
       controller.current.signal,
@@ -152,7 +162,7 @@ function Bound({
       return;
     }
     setMessage(
-      `Created custom role ${result.data.roleId}. Refreshing authoritative detail...`,
+      `Saved custom role ${result.data.roleId}. Refreshing authoritative detail...`,
     );
     const fresh = await read.detail(
       result.data.roleId,
@@ -162,12 +172,12 @@ function Bound({
     if (fresh.ok) {
       setRecord(fresh.data.role);
       setMessage(
-        `Created custom role ${fresh.data.role.roleId}. Authoritative detail refreshed.`,
+        `Saved custom role ${fresh.data.role.roleId}. Authoritative detail refreshed.`,
       );
     } else {
       setRecord(null);
       setMessage(
-        "Create confirmed, authoritative refresh unavailable. Do not replay Create.",
+        "Save confirmed, authoritative refresh unavailable. Do not replay Save.",
       );
     }
   }
@@ -178,16 +188,11 @@ function Bound({
           ? "Create custom role"
           : "Edit custom role metadata"}
       </h1>
+      <Link to="/roles">Back to roles</Link>
       <p>
         No automatic grants or assignments. Names do not establish authority.
       </p>
       {!dispatchEnabled && <p>Mutation dispatch OFF.</p>}
-      {roleId !== undefined && (
-        <p>
-          Update disabled: durable stale-update contract is not approved. No
-          synthetic ETag.
-        </p>
-      )}
       {loading ? (
         <p>Loading role...</p>
       ) : readError ? (
@@ -206,7 +211,7 @@ function Bound({
                 setMessage(
                   roleId === undefined
                     ? "Review metadata before confirming."
-                    : "Metadata valid; update remains fail-closed.",
+                    : "Review the metadata changes before confirming.",
                 );
               } else setMessage("Required code/name or metadata is invalid.");
             }}
@@ -259,10 +264,10 @@ function Bound({
               </p>
               <p>{review.description}</p>
               <button
-                disabled={roleId !== undefined || !dispatchEnabled || pending}
+                disabled={!dispatchEnabled || pending || (roleId !== undefined && (!version || record?.isSystemRole))}
                 onClick={() => void create()}
               >
-                Confirm create
+                {roleId === undefined ? "Confirm create" : "Confirm update"}
               </button>
             </section>
           )}
