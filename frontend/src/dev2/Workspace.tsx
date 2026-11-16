@@ -15,6 +15,7 @@ import { modules, label, type Operation, type Values } from "./contracts";
 import { Fields, defaults } from "./Fields";
 import { DataView } from "./DataView";
 import { IncidentCategoryField } from "./IncidentCategoryField";
+import { IncidentEvidencePanel } from "./IncidentEvidencePanel";
 import { IncidentDuplicateReview, incidentLocationKey, type IncidentReview } from "./IncidentDuplicateReview";
 import { MaterialApproverField } from "./MaterialApproverField";
 import { MaterialCatalogFields } from "./MaterialCatalogFields";
@@ -645,6 +646,8 @@ function Screen({
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
+      {operation.id === "A004A-023" && data !== undefined && !denied && !sessionLost && typeof record.incidentId === "number" && record.incidentId > 0
+        && <IncidentEvidencePanel key={record.incidentId} incidentId={record.incidentId} />}
       {module === "material-requests" && operation.id === "A004A-038" && record.requestId != null
         && <><MaterialTaskLinks record={record} /><MaterialTaskLinks record={record} kind="cleaning" /></>}
       {module === "material-requests" && materialApprovalReady(record, actor, "A004A-047")

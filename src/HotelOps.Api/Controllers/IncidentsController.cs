@@ -101,6 +101,14 @@ public class IncidentsController : ControllerBase
     public IActionResult GetIncidentCategories(long branchId)
         => Problem(statusCode: 503, title: "INCIDENT_CATEGORY_READ_ADMISSION_REQUIRED");
 
+    [HttpGet("{id:long}/evidence")]
+    public IActionResult GetIncidentEvidence(long id, [FromQuery] int page = 1)
+        => Problem(statusCode: 503, title: "INCIDENT_EVIDENCE_READ_ADMISSION_REQUIRED");
+
+    [HttpGet("{id:long}/evidence/{attachment:long}")]
+    public IActionResult DownloadIncidentEvidence(long id, long attachment)
+        => Problem(statusCode: 503, title: "INCIDENT_EVIDENCE_READ_ADMISSION_REQUIRED");
+
     [HttpGet("{id:long}")]
     public async Task<ActionResult<IncidentDetailDto>> GetIncident(long id, CancellationToken cancellationToken)
     {

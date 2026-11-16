@@ -23,8 +23,9 @@ internal static class IncidentReadContract
     private const string Policy = "GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
-        + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; no mutation authority";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ" }.Select(id =>
+        + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
+        + "evidence metadata and private download require current source visibility and exact attachment ownership; no mutation authority";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ", "INCIDENT-EVIDENCE-LIST", "INCIDENT-EVIDENCE-DOWNLOAD" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("INCIDENT_VIEW", new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, null, ReadAsync,
@@ -50,7 +51,9 @@ internal static class IncidentReadContract
             || a.Identity.DecisionId == "A004A-022" && a.Identity.ActionName != "GetIncidents"
             || a.Identity.DecisionId == "A004A-023" && a.Identity.ActionName != "GetIncident"
             || a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ" && a.Identity.ActionName != "GetIncidentCategories"
-            || a.Identity.DecisionId is not ("A004A-022" or "A004A-023" or "INCIDENT-CATEGORIES-READ") || !a.Http.Request.IsHttps) return false;
+            || a.Identity.DecisionId == "INCIDENT-EVIDENCE-LIST" && a.Identity.ActionName != "GetIncidentEvidence"
+            || a.Identity.DecisionId == "INCIDENT-EVIDENCE-DOWNLOAD" && a.Identity.ActionName != "DownloadIncidentEvidence"
+            || a.Identity.DecisionId is not ("A004A-022" or "A004A-023" or "INCIDENT-CATEGORIES-READ" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD") || !a.Http.Request.IsHttps) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         // The admission guard first calls us before installing its read transaction.
@@ -67,7 +70,8 @@ internal static class IncidentReadContract
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
         var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct);
         if (!scope.Lead && !scope.Staff) return false;
-        if (a.Identity.DecisionId == "A004A-023" && !await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == Id(a), ct))
+        if (a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD"
+            && !await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == Id(a), ct))
             throw new Dev2AccessDenied(404);
         return true;
     }
@@ -80,6 +84,11 @@ internal static class IncidentReadContract
         var query = scope.Apply(db.Incidents.AsNoTracking());
         try
         {
+            if (a.Identity.DecisionId == "INCIDENT-EVIDENCE-LIST")
+                return await IncidentEvidenceRead.ListAsync(db, Id(a), a.Arguments.GetValueOrDefault("page") is int pageNumber ? pageNumber : 1, ct);
+            if (a.Identity.DecisionId == "INCIDENT-EVIDENCE-DOWNLOAD")
+                return a.Arguments.GetValueOrDefault("attachment") is long attachment && attachment > 0
+                    ? await IncidentEvidenceRead.DownloadAsync(db, a.Http, Id(a), attachment, ct) : new BadRequestResult();
             if (a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ")
                 return new OkObjectResult(await db.ReferenceValues.AsNoTracking()
                     .Where(r => r.GroupCode == "INCIDENT_CATEGORY" && r.IsActive)
