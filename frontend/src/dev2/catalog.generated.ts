@@ -1355,7 +1355,7 @@ export const operations: Operation[] = [
     name: "Availability",
     method: "GET",
     route: "/api/material-requests/{id:long}/availability",
-    permissions: ["DEV2_DEMO_MR_VIEW", "INVENTORY_VIEW"],
+    permissions: ["MR_VIEW", "INVENTORY_VIEW"],
     authorityKind: "material-request",
     expectedStatus: 200,
     fields: [],

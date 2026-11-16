@@ -353,3 +353,25 @@ No schema, grant or database change was made. Backend build PASS (0 warnings/err
 diff check PASS. No frontend change; frontend checks were not repeated. SQL/API/
 browser/business tests NOT RUN. Storekeeper recipients, stock review and fulfillment
 admission remain open; no new COMPLETE_VERIFIED UC is asserted.
+
+## UC094/096 scoped stock review (2026-11-16)
+
+Availability A004A-040 is now admitted through the compiled material read contract.
+It requires independent MR_VIEW on the request and INVENTORY_VIEW on its actual
+issuing warehouse branch, plus current HTTPS/SQL session and account eligibility.
+The warehouse must be active and in the request branch. Request scope/provenance
+and both grants are checked through final disclosure under Serializable; no stock
+reservation or inventory mutation is introduced.
+
+Canonical review pages link to the existing base-unit stock preview and back to
+the material request. Each distinct active item also links to the scoped material
+list filtered by the current request's branch, requester and item, ordered newest
+first. MR_VIEW filtering remains on the server and no broader read grant is inferred
+from approval authority. Availability metadata now names approved MR_VIEW instead
+of the former demo-only permission.
+
+Backend build PASS (0 warnings/errors), frontend typecheck and production build
+PASS with existing React Router/use-client and bundle-size warnings; diff check
+PASS. No DB changes, runtime/API/browser or business tests. Review/fulfillment
+end-to-end acceptance and Storekeeper notifications remain; no UC promoted to
+COMPLETE_VERIFIED from build results.

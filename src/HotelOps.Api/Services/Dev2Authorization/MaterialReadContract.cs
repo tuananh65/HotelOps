@@ -18,15 +18,27 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 internal static class MaterialReadContract
 {
     private static readonly object DisclosedScopeKey = new();
-    private const string Policy = "Material list/detail: HTTPS current unrestricted SQL session; independent MR_VIEW; "
-        + "SQL-derived branch/requester scope and descendant provenance; serializable through final disclosure; no mutation/history/inventory authority";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038" }.Select(id =>
+    private const string Policy = "Material list/detail/availability: HTTPS current unrestricted SQL session; independent MR_VIEW; "
+        + "SQL-derived branch/requester scope and descendant provenance; availability additionally requires INVENTORY_VIEW on actual warehouse branch; "
+        + "serializable through final disclosure; no reservation, mutation or raw audit authority";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-037", "A004A-038", "A004A-040" }.Select(id =>
         new Dev2ActionContract(id, "DEV3_142A_MATERIAL_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
-            async (a, ct) => [new("MR_VIEW", new(Dev2PermissionTargetKind.Resource,
-                Resource: new(a.Identity.ActionName == "List" ? "material_list" : "material_request",
-                    a.Identity.ActionName == "List" ? await BranchAsync(a, ct) : Id(a))))],
+            RequirementsAsync,
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new Resolver(a),
             ReadAsync, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true));
+
+    private static async Task<IReadOnlyList<Dev2PermissionRequirement>> RequirementsAsync(Dev2BoundAction a, CancellationToken ct)
+    {
+        var branch = await BranchAsync(a, ct);
+        var requirements = new List<Dev2PermissionRequirement>
+        {
+            new("MR_VIEW", new(Dev2PermissionTargetKind.Resource,
+                Resource: new(a.Identity.ActionName == "List" ? "material_list" : "material_request",
+                    a.Identity.ActionName == "List" ? branch : Id(a))))
+        };
+        if (a.Identity.ActionName == "Availability") requirements.Add(new("INVENTORY_VIEW", new(Dev2PermissionTargetKind.Branch, branch)));
+        return requirements;
+    }
 
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
@@ -54,7 +66,8 @@ internal static class MaterialReadContract
     {
         if (!a.Http.Request.IsHttps || a.Identity.ControllerType != typeof(MaterialRequestsController) || a.Identity.HttpMethod != "GET"
             || !(a.Identity.DecisionId == "A004A-037" && a.Identity.ActionName == "List"
-                || a.Identity.DecisionId == "A004A-038" && a.Identity.ActionName == "Get")) return false;
+                || a.Identity.DecisionId == "A004A-038" && a.Identity.ActionName == "Get"
+                || a.Identity.DecisionId == "A004A-040" && a.Identity.ActionName == "Availability")) return false;
         var db = Db(a);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction == null) return false;
         await using var admission = db.Database.CurrentTransaction == null ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
@@ -72,10 +85,13 @@ internal static class MaterialReadContract
         // publish a page selected under the broader, now-expired scope.
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure
             && (a.Http.Items[DisclosedScopeKey] is not MaterialRequestReadAccess.Scope selectedScope || selectedScope != scope)) return false;
-        if (a.Identity.ActionName == "Get")
+        if (a.Identity.ActionName != "List")
         {
             if (!await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == Id(a), ct)) throw new Dev2AccessDenied(404);
             if (!await MaterialReadProvenance.ValidAsync(db, Id(a), scope.BranchId, ct)) throw new Dev2AccessDenied(404);
+            if (a.Identity.ActionName == "Availability" && !await db.MaterialRequests.AsNoTracking().AnyAsync(r => r.RequestId == Id(a)
+                && r.SourceWarehouse != null && r.SourceWarehouse.IsActive && r.SourceWarehouse.BranchId == r.BranchId, ct))
+                throw new Dev2AccessDenied(404);
         }
         return true;
     }
@@ -90,6 +106,11 @@ internal static class MaterialReadContract
         try
         {
             if (a.Identity.ActionName == "List") return new OkObjectResult(await MaterialRequestService.ListAsync(scope.Apply(db.MaterialRequests.AsNoTracking()), Page(a), ct));
+            if (a.Identity.ActionName == "Availability")
+            {
+                var availability = await a.Http.RequestServices.GetRequiredService<MaterialRequestService>().Availability(Id(a), ct);
+                return availability == null ? new NotFoundResult() : new OkObjectResult(availability);
+            }
             var result = await a.Http.RequestServices.GetRequiredService<MaterialRequestService>().Get(Id(a), ct);
             return result == null ? new NotFoundResult() : new OkObjectResult(result);
         }

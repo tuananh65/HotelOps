@@ -102,6 +102,7 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     "fulfillmentId",
     "conversionId",
     "itemId",
+    "requesterId",
     "internalRequestId",
     "sourceVersion",
   ])
@@ -561,6 +562,20 @@ function Screen({
         </p>
       )}
       {data !== undefined && <DataView data={data} title={config.name} />}
+      {operation.id === "A004A-040" && recordId && <Link to={`/operations/material-requests/${encodeURIComponent(recordId)}`}>Return to material request</Link>}
+      {module === "material-requests" && record.requestId != null && record.requesterId != null && Array.isArray(record.lines) && (
+        <section aria-label="Material request review context">
+          <Link to={`/operations/material-requests/${record.requestId}?action=A004A-040`}>View available stock</Link>
+          <p>Stock is a read-only preview in base units; reviewing a request does not reserve materials.</p>
+          <p>Recent requests by this requester, subject to your current read scope:</p>
+          <ul>{record.lines.filter(isObject).filter((line, index, lines) => line.isActive === true
+            && lines.findIndex(other => other.isActive === true && other.itemId === line.itemId) === index).map(line => (
+            <li key={String(line.itemId)}><Link to={`/operations/material-requests?branchId=${encodeURIComponent(String(record.branchId))}&requesterId=${encodeURIComponent(String(record.requesterId))}&itemId=${encodeURIComponent(String(line.itemId))}`}>
+              {String(line.itemName ?? `Material ${line.itemId}`)}
+            </Link></li>
+          ))}</ul>
+        </section>
+      )}
       {operation.method === "GET" &&
         isObject(data) &&
         typeof data.page === "number" &&
