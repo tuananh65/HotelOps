@@ -480,3 +480,11 @@ MaterialHistoryView renders creation, submission cycles, decisions with cycle qu
 Direct verification: dotnet build HotelOps.slnx --no-restore PASS (0 warnings/errors); npm run typecheck PASS; npm run build PASS. Existing Vite warnings: ignored React Router use-client directive and bundle >500 kB (922.99 kB JS). git diff --check PASS. Business/API/SQL/browser tests NOT RUN per code-first instruction; projected nested list query requires SQL QA. No database mutation. No new COMPLETE_VERIFIED UC.
 
 UC100/101 decision requested: production replenishment permissions and role/scope contract. Existing catalog uses DEV2_DEMO_REPLENISHMENT_*; production mutations remain closed while awaiting decision. Independent UC099 work proceeded.
+
+### Approved UC100/101 permission foundation — 2026-11-16
+
+Project Leader approved independent REPLENISHMENT_VIEW/CREATE/CLOSE/RECEIVE. Storekeeper may act with current grants; Operations Manager read only; Department Head excluded. Prepared scripts/database/development/ReplenishmentPermissionsV1.sql: versioned idempotent catalog, exact disposable database/server/GUID guard, schema/semantic conflict checks, transactional rollback by default, explicit recent verified-backup gate before Apply. No grants inserted. SQL script NOT EXECUTED; current backup/runtime identity not reverified in this turn, no database mutation.
+
+Added compiled production detail/receipts admission A004A-053/055 with HTTPS, unrestricted current SQL session, active allowed role and branch access, independent REPLENISHMENT_VIEW on actual warehouse branch, active warehouse, descendant provenance and independent current MR_VIEW/provenance for every linked request. Missing linked-MR authority denies aggregate disclosure rather than leaking source metadata. Rechecked through Serializable disclosure. Raw audit/history, list/shortage endpoints and mutations remain unadmitted pending their own bindings; no demo grant substitution.
+
+Direct dotnet build HotelOps.slnx --no-restore PASS, zero warnings/errors. SQL/API/business tests NOT RUN per code-first instruction. This is source groundwork, not UC100/101 completion or runtime verification. Next: scoped list/shortage and create/close/receipt-post contracts, then canonical UI wiring. UC099 independent history progress is preserved.

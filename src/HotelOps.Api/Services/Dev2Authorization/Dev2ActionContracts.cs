@@ -44,6 +44,7 @@ internal static class Dev2ActionContracts
         IncidentReadContract.Contracts.Concat(MaterialCreateContract.Contracts).Concat(MaterialReadContract.Contracts)
             .Concat(MaterialApprovalContract.Contracts).Concat(MaterialRequesterContract.Contracts)
             .Concat(MaterialIssueContract.Contracts)
+            .Concat(ReplenishmentReadContract.Contracts)
             .ToFrozenDictionary(c => c.DecisionId, StringComparer.Ordinal);
     internal static IReadOnlySet<string> DecisionIds { get; } = Accepted.Keys.ToFrozenSet(StringComparer.Ordinal);
     internal static Dev2ActionContract? Find(Dev2KnownAction identity, HttpContext? http = null) =>
