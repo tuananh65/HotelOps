@@ -1,3 +1,4 @@
+import { ShiftDefinitionsPanel } from "./ShiftDefinitionsPanel";
 import { ShiftRosterPanel } from "./ShiftRosterPanel";
 import { useMemo } from "react";
 import { ShiftPlanPreviewPanel } from "./ShiftPlanPreviewPanel";
@@ -13,7 +14,7 @@ export function SecureShiftPlanWorkspace({
     [saveEnabled],
   );
   return (
-    <><ShiftRosterPanel /><ShiftPlanPreviewPanel
+    <><ShiftDefinitionsPanel /><ShiftRosterPanel /><ShiftPlanPreviewPanel
       adapter={api.preview}
       saveAdapter={saveEnabled ? api.save : undefined}
     /></>
