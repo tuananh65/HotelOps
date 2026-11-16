@@ -12,7 +12,7 @@ namespace HotelOps.Api.Services.PreventiveMaintenance;
 
 public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string Title,string Instruction,
     PreventiveCheckItem[] CheckItems,long? AssetId,long? RoomId,long? AreaId,long? AssigneeId,string Status,
-    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version);
+    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel);
 
 public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -50,7 +50,8 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
         long? id,long afterId,CancellationToken ct)
     {
         if(branch<=0||id is <=0||afterId<0)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
-        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await using var tx=db.Database.CurrentTransaction==null
+            ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct) : null;
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
         var scope=await AccessAsync(ticket,sid,branch,ct);
         if(!await PreventiveOccurrenceGeneration.InstalledAsync(db,ct))
@@ -74,6 +75,8 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
             ORDER BY r.run_id
             """).ToArrayAsync(ct);
         var result=new List<PreventiveOccurrenceView>();
+        var canAssign=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"MAINTENANCE_ASSIGN",ct);
+        var canCancel=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"PM_MANAGE",ct);
         foreach(var row in rows)
         {
             Snapshot? snapshot;
@@ -88,12 +91,14 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
             result.Add(new(row.RunId,row.ScheduleId,snapshot.Title,snapshot.Instruction,snapshot.CheckItems,
                 snapshot.AssetId,snapshot.RoomId,snapshot.AreaId,row.AssigneeId,row.Status,
                 DateTime.SpecifyKind(row.DueAt,DateTimeKind.Utc),row.PerformedAt is {} performed?DateTime.SpecifyKind(performed,DateTimeKind.Utc):null,
-                row.Result,row.Note,'"'+row.Version+'"'));
+                row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
+                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED"));
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);
         if(result.Any(r=>!finalScope.Lead&&(!finalScope.Staff||r.AssigneeId!=ticket.UserId)))
             throw new InternalRequestReadException(403,"MAINTENANCE_VIEW_REQUIRED");
         if(id!=null&&result.Count==0)throw new InternalRequestReadException(404,"OCCURRENCE_UNAVAILABLE");
-        await tx.CommitAsync(ct);return result;
+        if(tx!=null)await tx.CommitAsync(ct);
+        return result;
     }
 }

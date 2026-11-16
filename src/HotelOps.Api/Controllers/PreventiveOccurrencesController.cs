@@ -10,8 +10,27 @@ namespace HotelOps.Api.Controllers;
 [ApiController,Authorize,InternalRequestReadErrors]
 [Route("api/branches/{branch:long}/preventive-occurrences")]
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
-public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadService service):ControllerBase
+public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadService service,PreventiveOccurrenceManagementService management):ControllerBase
 {
+    public sealed record Assignment(long AssigneeId);
+    public sealed record Cancellation(string Reason);
+    private string Version()
+    {
+        var tags=Request.Headers.IfMatch;
+        if(tags.Count!=1||tags[0] is not {Length:18} tag||tag[0]!='"'||tag[^1]!='"'||tag[1..^1].Any(c=>!char.IsAsciiHexDigitUpper(c)))
+            throw new InternalRequestReadException(428,"OCCURRENCE_VERSION_REQUIRED");
+        return tag;
+    }
+    [HttpPost("{id:long}/assign"),RequestSizeLimit(16384)]
+    public async Task<PreventiveOccurrenceView> Assign(long branch,long id,Assignment input,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await management.ChangeAsync(ticket,sid,branch,id,Version(),input.AssigneeId,null,false,ct);
+    }
+    [HttpPost("{id:long}/cancel"),RequestSizeLimit(16384)]
+    public async Task<PreventiveOccurrenceView> Cancel(long branch,long id,Cancellation input,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await management.ChangeAsync(ticket,sid,branch,id,Version(),null,input.Reason,true,ct);
+    }
     private (SessionReference Ticket,long Sid) Identity()
     {
         if(!Request.IsHttps)throw new InternalRequestReadException(400,"HTTPS_REQUIRED");
