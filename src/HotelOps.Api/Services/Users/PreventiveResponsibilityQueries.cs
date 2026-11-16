@@ -9,6 +9,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
     private sealed class Row
     {
         public long RunId {get;set;}
+        public long BranchId {get;set;}
         public string State {get;set;}="";
         public bool TargetValid {get;set;}
         public DateTime? PerformedAt {get;set;}
@@ -16,7 +17,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
         public long? WorkId {get;set;}
         public int OpenIntervals {get;set;}
     }
-    internal async Task<Dev1ResponsibilityReview> ReadAsync(long target,CancellationToken ct)
+    internal async Task<Dev1ResponsibilityReview> ReadAsync(long target,CancellationToken ct, IReadOnlyList<RevokeGrant>? before=null, IReadOnlyList<RevokeGrant>? after=null, DateTime? now=null)
     {
         if(db.Database.CurrentTransaction==null)throw new InvalidOperationException("User responsibility review requires the owning transaction.");
         var blockers=new SortedSet<string>(StringComparer.Ordinal);
@@ -24,7 +25,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
         if(!await PreventiveOccurrenceGeneration.InstalledAsync(db,ct))
             return new([], ["PREVENTIVE_RESPONSIBILITY_STORAGE_UNAVAILABLE"]);
         var rows=await db.Database.SqlQuery<Row>($"""
-            SELECT d.run_id AS RunId,d.workflow_status AS State,r.performed_at AS PerformedAt,r.performed_by AS PerformedBy,
+            SELECT d.run_id AS RunId,d.branch_id AS BranchId,d.workflow_status AS State,r.performed_at AS PerformedAt,r.performed_by AS PerformedBy,
               r.maintenance_work_id AS WorkId,
               (SELECT COUNT(*) FROM dbo.work_intervals i WITH(HOLDLOCK) WHERE i.work_item_kind='OCCURRENCE'
                 AND i.work_item_id=d.run_id AND i.closed_at IS NULL) AS OpenIntervals,
@@ -44,7 +45,17 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
         foreach(var row in rows)
         {
             var fact=$"PREVENTIVE_OCCURRENCE:{row.RunId}";
-            if(row.State is "ASSIGNED" or "IN_PROGRESS")blockers.Add(fact);
+            if(row.State is "ASSIGNED" or "IN_PROGRESS")
+            {
+                if(before==null && after==null)blockers.Add(fact);
+                else
+                {
+                    var impact=before==null || after==null || now==null ? RevokeCapabilityImpact.Unknown
+                        : RevokeRoleGrantImpact.PreventiveExecutor(before,after,row.BranchId,now.Value);
+                    if(impact==RevokeCapabilityImpact.Lost)blockers.Add(fact);
+                    if(impact==RevokeCapabilityImpact.Unknown)unresolved.Add(fact+"_AUTHORITY_UNRESOLVED");
+                }
+            }
             if(!row.TargetValid || row.WorkId!=null || row.State is not ("ASSIGNED" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED")
                 || (row.State=="COMPLETED" ? row.PerformedAt==null || row.PerformedBy!=target : row.PerformedAt!=null || row.PerformedBy!=null)
                 || row.OpenIntervals!=(row.State=="IN_PROGRESS"?1:0))unresolved.Add(fact+"_INCONSISTENT");

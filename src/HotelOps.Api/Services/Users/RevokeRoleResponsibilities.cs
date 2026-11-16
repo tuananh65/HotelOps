@@ -125,6 +125,9 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
         // Other designated FE11 roles and all writer coordination remain explicit gates;
         // an empty target assignment set is not complete role-dependency acceptance.
         // Current assignee only; never CreatedBy, ReviewedBy or Incident.ReportedBy.
+        var preventive=await new PreventiveResponsibilityQueries(db).ReadAsync(target,ct,before,after,now);
+        blockers.UnionWith(preventive.Blockers);
+        unresolved.UnionWith(preventive.Unresolved);
         var works = await Dev2DependencyQueries.AssignedWorks(db.MaintenanceWorks.AsNoTracking(), target)
             .Select(w => new { w.MaintenanceWorkId, w.Status,
                 IncidentBranch = w.Incident == null ? (long?)null : w.Incident.BranchId,

@@ -43,6 +43,28 @@ public static class RevokeRoleGrantImpact
         return Has(after) ? RevokeCapabilityImpact.Preserved : RevokeCapabilityImpact.Lost;
     }
 
+    internal static RevokeCapabilityImpact PreventiveExecutor(IReadOnlyList<RevokeGrant> before,
+        IReadOnlyList<RevokeGrant> after,long branch,DateTime now)
+    {
+        if(branch<=0 || now.Kind!=DateTimeKind.Utc)return RevokeCapabilityImpact.Unknown;
+        // Reuse the same actor-aware, branch-specific predicates as occurrence execution.
+        // An equivalent permission on another role or branch cannot preserve assignment eligibility.
+        bool CanExecute(IReadOnlyList<RevokeGrant> grants)=>grants.Any(g=>g.RoleCode!=null
+            && Maintenance.MaintenanceExecutionAccess.Allows(g.RoleCode,g.Path,branch,now));
+        bool CanRead(IReadOnlyList<RevokeGrant> grants)
+        {
+            var scope=Maintenance.MaintenanceReadAccess.Resolve(1,branch,grants.Where(g=>g.RoleCode!=null)
+                .Select(g=>new Maintenance.MaintenanceReadAccess.Grant(g.RoleCode!,g.Path)),now);
+            return scope.Lead || scope.Staff;
+        }
+        if(before.Concat(after).Any(g=>g.Path.BranchId==branch
+            && g.Path.PermissionCode is "MAINTENANCE_VIEW" or "MAINTENANCE_EXECUTE"
+            && PermissionGrantRules.IsEligible(g.Path,now)
+            && (g.RoleCode==null || PermissionGrantRules.EffectiveScope(g.Path)==null)))return RevokeCapabilityImpact.Unknown;
+        if(!CanRead(before) || !CanExecute(before))return RevokeCapabilityImpact.Unknown;
+        return CanRead(after) && CanExecute(after)?RevokeCapabilityImpact.Preserved:RevokeCapabilityImpact.Lost;
+    }
+
     public static RevokeCapabilityImpact Maintenance(string? state, bool currentAssignee,
         IReadOnlyList<RevokeGrant> before, IReadOnlyList<RevokeGrant> after, long? branch, DateTime nowUtc)
     {
