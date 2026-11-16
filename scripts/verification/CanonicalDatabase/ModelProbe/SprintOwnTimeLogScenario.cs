@@ -22,6 +22,10 @@ internal static class SprintOwnTimeLogScenario
             OpenedAt=now.AddMinutes(start),EffectiveStartedAt=now.AddMinutes(start),ClosedBy=end.HasValue?actor:null,ClosedAt=end.HasValue?now.AddMinutes(end.Value):null,EffectiveEndedAt=end.HasValue?now.AddMinutes(end.Value):null};
         var empty=Interval(-25,-25);
         db.AddRange(Interval(-30,-20),empty,Interval(-10,null));await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        // Persisted interval read fixtures only: this does not certify source start/stop producers.
+        var cleaning=Interval(-20,-16);cleaning.WorkItemKind="CLEANING";
+        var rework=Interval(-16,-12);rework.WorkItemKind="REWORK";
+        db.WorkIntervals.AddRange(cleaning,rework);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         var code="D3TIMEOTHER"+Guid.NewGuid().ToString("N")[..8];
         var other=new User{Username=code,EmployeeCode=code,FullName="Synthetic other time owner",Email=code+"@example.invalid",AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",DepartmentId=department,CreatedAt=now};
         db.Users.Add(other);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
@@ -34,8 +38,8 @@ internal static class SprintOwnTimeLogScenario
         {
             Check((int)response.StatusCode==200,"own log HTTPS read allowed with current own attendance grant");
             var body=await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-            Check(body.GetProperty("total").GetInt32()==3&&body.GetProperty("items").GetArrayLength()==1,"daily summary spans all pages");
-            Check(body.GetProperty("workClosedSeconds").GetInt64()==600&&body.GetProperty("workProvisionalSeconds").GetInt64()>=600
+            Check(body.GetProperty("total").GetInt32()==5&&body.GetProperty("items").GetArrayLength()==1,"daily summary spans all pages");
+            Check(body.GetProperty("workClosedSeconds").GetInt64()==1080&&body.GetProperty("workProvisionalSeconds").GetInt64()>=600
                 &&body.GetProperty("workdayProvisionalSeconds").GetInt64()>=1800,"pause excluded and workday total separate from task effort");
         }
         using(var response=await http.GetAsync(path+"&page=2",ct))Check((int)response.StatusCode==200,"second own interval page available");
@@ -43,7 +47,7 @@ internal static class SprintOwnTimeLogScenario
         {
             Check((int)response.StatusCode==200,"query cannot replace authenticated time owner");
             var body=await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-            Check(body.GetProperty("total").GetInt32()==3&&body.GetProperty("items")[0].GetProperty("intervalId").GetInt64()!=otherInterval.IntervalId,"other employee intervals excluded despite same branch");
+            Check(body.GetProperty("total").GetInt32()==5&&body.GetProperty("items")[0].GetProperty("intervalId").GetInt64()!=otherInterval.IntervalId,"other employee intervals excluded despite same branch");
         }
         using(var response=await http.GetAsync(path+"&page=0",ct))Check((int)response.StatusCode==400,"invalid paging rejected");
         var foreign=await db.Branches.Where(b=>b.BranchId!=branch).Select(b=>b.BranchId).FirstAsync(ct);
@@ -56,10 +60,34 @@ internal static class SprintOwnTimeLogScenario
         using(var denied=await http.GetAsync(path,ct))Check((int)denied.StatusCode==409,"real overlap is denied even with a formerly zero-duration event");
         await db.WorkIntervals.Where(i=>i.IntervalId==empty.IntervalId).ExecuteUpdateAsync(u=>u.SetProperty(i=>i.EffectiveEndedAt,now.AddMinutes(-25)),ct);
         using(var allowed=await http.GetAsync(path,ct))Check((int)allowed.StatusCode==200,"zero-duration event within closed work is allowed without inflating effort");
+        using(var mixed=await http.GetAsync($"/api/branches/{branch}/workdays/own-time-log?date={date:yyyy-MM-dd}&pageSize=50",ct))
+        {
+            Check((int)mixed.StatusCode==200,"mixed-kind own interval read succeeds");
+            var body=await mixed.Content.ReadFromJsonAsync<JsonElement>(ct);
+            Check(body.GetProperty("items").EnumerateArray().Select(i=>i.GetProperty("kind").GetString()).Distinct().Order()
+                .SequenceEqual(new[]{"CLEANING","REWORK","TASK"}),"TASK CLEANING REWORK retained without source permission inheritance");
+            Check(body.GetProperty("items").EnumerateArray().Where(i=>i.GetProperty("kind").GetString() is "CLEANING" or "REWORK")
+                .All(i=>i.GetProperty("closedSeconds").GetInt64()==240&&i.GetProperty("provisionalSeconds").GetInt64()==0),"mixed closed durations contribute once and never to provisional total");
+        }
+        var previous=date.AddDays(-1);var midnight=previous.ToDateTime(TimeOnly.MinValue).AddHours(-7);
+        var overnight=new Workday{UserId=actor,BranchId=branch,DepartmentId=department,WorkDate=previous.AddDays(-1),IsUnscheduled=true,
+            UnscheduledReason="Synthetic midnight clipping",Status="ENDED",StartedAt=midnight.AddMinutes(-10),EndedAt=midnight.AddMinutes(10)};
+        db.Workdays.Add(overnight);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        var crossing=Interval(-30,-20);crossing.WorkdayId=overnight.WorkdayId;crossing.OpenedAt=crossing.EffectiveStartedAt=overnight.StartedAt;
+        crossing.ClosedAt=crossing.EffectiveEndedAt=overnight.EndedAt;db.WorkIntervals.Add(crossing);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        foreach(var selected in new[]{previous.AddDays(-1),previous})
+        {
+            using var response=await http.GetAsync($"/api/branches/{branch}/workdays/own-time-log?date={selected:yyyy-MM-dd}",ct);
+            Check((int)response.StatusCode==200,"overnight own interval readable on both hotel dates");
+            var body=await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+            Check(body.GetProperty("total").GetInt32()==1&&body.GetProperty("workClosedSeconds").GetInt64()==600
+                &&body.GetProperty("workdayClosedSeconds").GetInt64()==600&&body.GetProperty("workProvisionalSeconds").GetInt64()==0,
+                "hotel midnight clips work and workday separately without double counting across dates");
+        }
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add("frontend/scripts/sprintOwnTimeLogBrowser.mjs");
         using var browser=Process.Start(start)??throw new Exception("Own time log browser unavailable");
         var output=browser.StandardOutput.ReadToEndAsync(ct);var errors=browser.StandardError.ReadToEndAsync(ct);
-        try{await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch,foreign,intervalCount=3,date=date.ToString("yyyy-MM-dd")}));browser.StandardInput.Close();await browser.WaitForExitAsync(ct);
+        try{await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch,foreign,intervalCount=5,recorded="0h 18m 0s",kinds=new[]{"TASK","CLEANING","REWORK"},date=date.ToString("yyyy-MM-dd")}));browser.StandardInput.Close();await browser.WaitForExitAsync(ct);
             var proof=JsonSerializer.Deserialize<JsonElement>(await output);_=await errors;checks.Add(new{ownTimeLogBrowser=proof});if(browser.ExitCode!=0||!proof.GetProperty("success").GetBoolean())throw new Exception("Own time log browser failed at "+proof.GetProperty("stage").GetString());
         }finally{if(!browser.HasExited)browser.Kill(entireProcessTree:true);}
     }

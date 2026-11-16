@@ -10,7 +10,8 @@ try{
   await page.getByRole("button",{name:"Load time log",exact:true}).click();
   const region=page.getByRole("region",{name:"Own daily time log",exact:true});await region.waitFor();
   assert.equal(await region.locator("tbody tr").count(),fixture.intervalCount);await region.getByText(new RegExp(`Page 1 .* ${fixture.intervalCount} intervals`)).waitFor();
-  assert.equal(await region.locator("dl dd").first().textContent(),"0h 10m 0s");
+  assert.equal(await region.locator("dl dd").first().textContent(),fixture.recorded??"0h 10m 0s");
+  for(const kind of fixture.kinds??["TASK"]) assert.ok(await region.getByRole("cell",{name:kind,exact:true}).count()>0);
   stage="foreign branch clears data";await page.getByLabel("Branch ID",{exact:true}).fill(String(fixture.foreign));
   assert.equal(await region.count(),0);await page.getByRole("button",{name:"Load time log",exact:true}).click();await page.getByRole("alert").filter({hasText:"no longer have access"}).waitFor();assert.equal(await region.count(),0);
   stage="empty date";await page.getByLabel("Branch ID",{exact:true}).fill(String(fixture.branch));await page.getByLabel("Work date",{exact:true}).fill("1900-01-01");await page.getByRole("button",{name:"Load time log",exact:true}).click();await page.getByText("No work intervals for this day.",{exact:true}).waitFor();

@@ -1,0 +1,149 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_71e6f5ea",
+  "fixtureUserId": 1071271,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "ownTimeLogCheck": "own log HTTPS read allowed with current own attendance grant"
+    },
+    {
+      "ownTimeLogCheck": "daily summary spans all pages"
+    },
+    {
+      "ownTimeLogCheck": "pause excluded and workday total separate from task effort"
+    },
+    {
+      "ownTimeLogCheck": "second own interval page available"
+    },
+    {
+      "ownTimeLogCheck": "query cannot replace authenticated time owner"
+    },
+    {
+      "ownTimeLogCheck": "other employee intervals excluded despite same branch"
+    },
+    {
+      "ownTimeLogCheck": "invalid paging rejected"
+    },
+    {
+      "ownTimeLogCheck": "foreign branch own log denied"
+    },
+    {
+      "ownTimeLogCheck": "revoked attendance grant denies own time log"
+    },
+    {
+      "ownTimeLogCheck": "real overlap is denied even with a formerly zero-duration event"
+    },
+    {
+      "ownTimeLogCheck": "zero-duration event within closed work is allowed without inflating effort"
+    },
+    {
+      "ownTimeLogCheck": "mixed-kind own interval read succeeds"
+    },
+    {
+      "ownTimeLogCheck": "TASK CLEANING REWORK retained without source permission inheritance"
+    },
+    {
+      "ownTimeLogCheck": "mixed closed durations contribute once and never to provisional total"
+    },
+    {
+      "ownTimeLogCheck": "overnight own interval readable on both hotel dates"
+    },
+    {
+      "ownTimeLogCheck": "hotel midnight clips work and workday separately without double counting across dates"
+    },
+    {
+      "ownTimeLogCheck": "overnight own interval readable on both hotel dates"
+    },
+    {
+      "ownTimeLogCheck": "hotel midnight clips work and workday separately without double counting across dates"
+    },
+    {
+      "ownTimeLogBrowser": {
+        "success": true,
+        "checks": [
+          "Canonical own log shows expected intervals and pause-excluded total; branch edit immediately clears data; foreign branch403 renders denial; date change shows empty log; logout"
+        ]
+      }
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
