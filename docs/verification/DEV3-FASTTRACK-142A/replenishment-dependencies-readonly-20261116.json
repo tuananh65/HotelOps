@@ -1,0 +1,41 @@
+﻿{
+    "mode":  "Independent metadata SELECT",
+    "mutations":  0,
+    "dependencies":  [
+                         {
+                             "table":  "warehouses",
+                             "column":  "warehouse_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "users",
+                             "column":  "user_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "inventory_items",
+                             "column":  "item_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "units_of_measure",
+                             "column":  "uom_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "stock_thresholds",
+                             "column":  "threshold_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "material_request_lines",
+                             "column":  "line_id",
+                             "compatible":  1
+                         },
+                         {
+                             "table":  "stock_document_lines",
+                             "column":  "line_id",
+                             "compatible":  1
+                         }
+                     ]
+}
