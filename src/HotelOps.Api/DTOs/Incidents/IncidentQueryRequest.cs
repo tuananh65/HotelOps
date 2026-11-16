@@ -7,6 +7,7 @@ public sealed class IncidentQueryRequest
     public string? Status { get; init; }
     public long? PriorityId { get; init; }
     public long? SeverityId { get; init; }
+    public long? AssigneeId { get; init; }
     public long? CategoryId { get; init; }
     public long? RoomId { get; init; }
     public long? AreaId { get; init; }

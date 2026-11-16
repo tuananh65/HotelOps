@@ -21,6 +21,9 @@ public sealed class IncidentListDto
     public string? CategoryCode { get; set; }
     public string? CategoryName { get; set; }
     public string? CategoryUnavailableReason { get; set; }
+    public long? AssigneeId { get; set; }
+    public string? AssigneeName { get; set; }
+    public string? AssignmentUnavailableReason { get; set; }
     public string Status { get; init; } = string.Empty;
     public long ReportedBy { get; init; }
     public string ReportedByName { get; init; } = string.Empty;

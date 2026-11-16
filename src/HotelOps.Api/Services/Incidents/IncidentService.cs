@@ -408,6 +408,13 @@ public sealed class IncidentService : IIncidentService
             var categorized = IncidentCategoryStore.Rows(db!).Where(c => c.CategoryId == categoryId).Select(c => c.IncidentId);
             query = query.Where(i => categorized.Contains(i.IncidentId));
         }
+        if(request.AssigneeId is <=0)throw new ValidationException("AssigneeId must be positive.");
+        if(request.AssigneeId is {} assignee)
+        {
+            if(db==null)throw new Dev2AccessDenied(503);
+            var assigned=IncidentCurrentAssignment.Query(db).Where(w=>w.AssigneeId==assignee).Select(w=>w.IncidentId);
+            query=query.Where(i=>assigned.Contains(i.IncidentId));
+        }
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(incident => incident.ReportedAt)
@@ -441,6 +448,19 @@ public sealed class IncidentService : IIncidentService
             })
             .ToListAsync(cancellationToken);
 
+        if(db!=null && items.Count>0)
+        {
+            var visibleIds=items.Select(i=>i.IncidentId).ToArray();
+            var assignments=await IncidentCurrentAssignment.Query(db).Where(w=>visibleIds.Contains(w.IncidentId))
+                .ToDictionaryAsync(w=>w.IncidentId,cancellationToken);
+            foreach(var item in items)
+            {
+                var assignment=assignments.GetValueOrDefault(item.IncidentId);
+                item.AssigneeId=assignment?.AssigneeId;
+                item.AssigneeName=assignment?.AssigneeName;
+                item.AssignmentUnavailableReason=assignment==null?"CURRENT_ASSIGNMENT_NOT_PROVEN":assignment.AssigneeId==null?"UNASSIGNED":null;
+            }
+        }
         if (categoryAvailable && items.Count > 0)
         {
             var ids = items.Select(i => i.IncidentId).ToArray();

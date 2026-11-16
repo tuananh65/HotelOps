@@ -789,6 +789,7 @@ export const operations: Operation[] = [
     expectedStatus: 200,
     dto: "IncidentQueryRequest",
     fields: [
+      { name: "assigneeId", type: "long?", optional: true },
       {
         name: "branchId",
         type: "long?",
