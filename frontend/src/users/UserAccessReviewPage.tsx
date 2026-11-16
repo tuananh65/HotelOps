@@ -186,10 +186,12 @@ function UserReads({
   userId,
   roleAssignmentEnabled,
   accountActivationEnabled,
+  accountManagementEnabled,
 }: {
   userId: number;
   roleAssignmentEnabled: boolean;
   accountActivationEnabled: boolean;
+  accountManagementEnabled: boolean;
 }) {
   const { api } = useUsersContext();
   const [draft, setDraft] = useState({ feature: "", permissionCode: "" });
@@ -220,6 +222,10 @@ function UserReads({
         <h1>User account {userId}</h1>
         <Link to="/users">User directory</Link>
         <Link to="/profile">Profile</Link>
+        {accountManagementEnabled && <>
+          <Link to={`/users/${userId}/edit`}>Update account</Link>
+          <Link to={`/users/${userId}/reset-credential`}>Reset credential</Link>
+        </>}
         {roleAssignmentEnabled && (
           <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>
         )}
@@ -289,9 +295,11 @@ function UserReads({
 export function UserAccessReviewPage({
   roleAssignmentEnabled = false,
   accountActivationEnabled = false,
+  accountManagementEnabled = false,
 }: {
   roleAssignmentEnabled?: boolean;
   accountActivationEnabled?: boolean;
+  accountManagementEnabled?: boolean;
 } = {}) {
   const { id } = useParams();
   const numeric = id !== undefined && /^\d+$/.test(id) ? Number(id) : NaN;
@@ -309,6 +317,7 @@ export function UserAccessReviewPage({
       userId={numeric}
       roleAssignmentEnabled={roleAssignmentEnabled}
       accountActivationEnabled={accountActivationEnabled}
+      accountManagementEnabled={accountManagementEnabled}
     />
   );
 }

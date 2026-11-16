@@ -12,7 +12,7 @@ const filterId = (value: string): number | undefined => {
   return Number.isSafeInteger(numeric) && numeric > 0 ? numeric : NaN;
 };
 
-export function UserDirectoryPage() {
+export function UserDirectoryPage({ accountManagementEnabled = false }: { accountManagementEnabled?: boolean } = {}) {
   const { api } = useUsersContext();
   const [draft, setDraft] = useState({
     search: "",
@@ -49,6 +49,7 @@ export function UserDirectoryPage() {
     <main>
       <header>
         <h1>User directory</h1>
+        {accountManagementEnabled && <Link to="/users/new">Create user account</Link>}
         <Link to="/dashboard">Workspace</Link>
         <Link to="/profile">Profile</Link>
       </header>

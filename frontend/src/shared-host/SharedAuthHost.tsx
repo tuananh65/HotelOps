@@ -25,6 +25,9 @@ import { InternalRequestIntakePage, InternalRequestIntakeLink } from "../interna
 import { Dev2Workspace } from "../dev2/Workspace";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
+import { CreateUserFlowBoundary } from "../users/CreateUserFlowBoundary";
+import { UpdateUserFlowBoundary } from "../users/UpdateUserFlowBoundary";
+import { CredentialResetRoute } from "../users/CredentialResetRoute";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { InspectionExecutionAuthRoute } from "./InspectionExecutionAuthRoute";
@@ -70,6 +73,7 @@ export function SharedAuthHost({
   auditReadEnabled = false,
   roleAssignmentEnabled = false,
   accountActivationEnabled = false,
+  accountManagementEnabled = false,
   dashboardEnabled = false,
   notificationsEnabled = false,
   inspectionExecutionEnabled = false,
@@ -85,6 +89,7 @@ export function SharedAuthHost({
   auditReadEnabled?: boolean;
   roleAssignmentEnabled?: boolean;
   accountActivationEnabled?: boolean;
+  accountManagementEnabled?: boolean;
   dashboardEnabled?: boolean;
   notificationsEnabled?: boolean;
   inspectionExecutionEnabled?: boolean;
@@ -96,6 +101,9 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {accountManagementEnabled && <Route path="/users/new" element={<CreateUserFlowBoundary />} />}
+      {accountManagementEnabled && <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />}
+      {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
@@ -156,13 +164,14 @@ export function SharedAuthHost({
       )}
       {usersReadEnabled && (
         <Route element={<UsersRouteBoundary />}>
-          <Route path="/users" element={<UserDirectoryPage />} />
+          <Route path="/users" element={<UserDirectoryPage accountManagementEnabled={accountManagementEnabled} />} />
           <Route
             path="/users/:id"
             element={
               <UserAccessReviewPage
                 roleAssignmentEnabled={roleAssignmentEnabled}
                 accountActivationEnabled={accountActivationEnabled}
+                accountManagementEnabled={accountManagementEnabled}
               />
             }
           />

@@ -10,6 +10,7 @@ export function AuthRouteHost() {
       auditReadEnabled
       roleAssignmentEnabled
       accountActivationEnabled
+      accountManagementEnabled
       dashboardEnabled
       notificationsEnabled
       inspectionExecutionEnabled
