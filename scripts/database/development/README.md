@@ -1,5 +1,7 @@
 # Development database foundation
 
+Recovery cleaning API: after installing the cancellation/readiness successors, run `powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/verification/Start-Dev3RecoveryCleaningApi.ps1 -RecoveryReceipt <verified-recovery-receipt.json> -ValidateOnly`, then omit `-ValidateOnly` to serve HTTPS on localhost:7148. The launcher checks receipt ownership/backup, exact server/database/GUID, package markers, an empty cancellation pending queue and the local HTTPS certificate. It enables cancellation and its worker only in that process, disables unrelated workers and restores environment variables on exit. Application schema and authorization guards remain active. Use synthetic QA records only; existing pending intents require review before startup. Stop with Ctrl+C. This is not a production deployment or UC acceptance result.
+
 Authorized by FASTTRACK-142A Maximum Development Acceleration and the subsequent development-only confirmation. These scripts target the verified local development instance only; they are not production deployment tools.
 
 1. `scripts/verification/Backup-Dev3DevelopmentDatabase.ps1 -DevelopmentOwnershipConfirmed` checks exact instance/database/GUID, records schema inventory, creates a full COPY_ONLY/CHECKSUM backup, restores to a fresh recovery database and runs CHECKDB. It retains both backup and clone. Backup, inventory and receipts stay under ignored `artifacts/`; never commit them or use the recovery data as synthetic fixtures.
