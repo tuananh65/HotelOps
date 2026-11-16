@@ -51,6 +51,17 @@ public sealed partial class MaintenanceWorkService
             {
                 MaintenanceWorkId = work.MaintenanceWorkId,
                 WorkNo = work.WorkNo,
+                AssigneeName = work.Assignee != null ? work.Assignee.FullName : null,
+                PriorityName = work.Priority != null && work.Priority.GroupCode == "PRIORITY" ? work.Priority.DisplayName : null,
+                RoomNumber = work.Incident != null ? (work.Incident.Room != null ? work.Incident.Room.RoomNumber : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Room != null ? r.Schedule.Room.RoomNumber : null).FirstOrDefault(),
+                AreaName = work.Incident != null ? (work.Incident.Area != null ? work.Incident.Area.AreaName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Area != null ? r.Schedule.Area.AreaName : null).FirstOrDefault(),
+                AssetCode = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetCode : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
+                AssetName = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
+
                 Source = work.IncidentId != null ? "INCIDENT" : work.PreventiveMaintenanceRuns.Any() ? "PREVENTIVE" : null,
                 IncidentId = work.IncidentId,
                 AssigneeId = work.AssigneeId,
@@ -98,7 +109,19 @@ public sealed partial class MaintenanceWorkService
             {
                 MaintenanceWorkId = work.MaintenanceWorkId,
                 MaterialUsageAvailable = includeMaterialReferences,
+                Source = work.IncidentId != null ? "INCIDENT" : work.PreventiveMaintenanceRuns.Any() ? "PREVENTIVE" : null,
                 WorkNo = work.WorkNo,
+                AssigneeName = work.Assignee != null ? work.Assignee.FullName : null,
+                PriorityName = work.Priority != null && work.Priority.GroupCode == "PRIORITY" ? work.Priority.DisplayName : null,
+                RoomNumber = work.Incident != null ? (work.Incident.Room != null ? work.Incident.Room.RoomNumber : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Room != null ? r.Schedule.Room.RoomNumber : null).FirstOrDefault(),
+                AreaName = work.Incident != null ? (work.Incident.Area != null ? work.Incident.Area.AreaName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Area != null ? r.Schedule.Area.AreaName : null).FirstOrDefault(),
+                AssetCode = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetCode : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
+                AssetName = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
+
                 IncidentId = work.IncidentId,
                 AssigneeId = work.AssigneeId,
                 DepartmentId = work.DepartmentId,
