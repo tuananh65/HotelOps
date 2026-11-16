@@ -50,11 +50,11 @@ public static class RevokeRoleGrantImpact
         // Reuse the same actor-aware, branch-specific predicates as occurrence execution.
         // An equivalent permission on another role or branch cannot preserve assignment eligibility.
         bool CanExecute(IReadOnlyList<RevokeGrant> grants)=>grants.Any(g=>g.RoleCode!=null
-            && Maintenance.MaintenanceExecutionAccess.Allows(g.RoleCode,g.Path,branch,now));
+            && HotelOps.Api.Services.Maintenance.MaintenanceExecutionAccess.Allows(g.RoleCode,g.Path,branch,now));
         bool CanRead(IReadOnlyList<RevokeGrant> grants)
         {
-            var scope=Maintenance.MaintenanceReadAccess.Resolve(1,branch,grants.Where(g=>g.RoleCode!=null)
-                .Select(g=>new Maintenance.MaintenanceReadAccess.Grant(g.RoleCode!,g.Path)),now);
+            var scope=HotelOps.Api.Services.Maintenance.MaintenanceReadAccess.Resolve(1,branch,grants.Where(g=>g.RoleCode!=null)
+                .Select(g=>new HotelOps.Api.Services.Maintenance.MaintenanceReadAccess.Grant(g.RoleCode!,g.Path)),now);
             return scope.Lead || scope.Staff;
         }
         if(before.Concat(after).Any(g=>g.Path.BranchId==branch
