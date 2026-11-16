@@ -5,6 +5,7 @@ public sealed class MaintenanceWorkDetailDto
     public string? ExecutionETag { get; set; }
     public bool CanResume { get; set; }
     public bool CanStart { get; set; }
+    public bool CanSubmit { get; set; }
     public bool CanHold { get; set; }
     public bool MaterialUsageAvailable { get; set; }
     public long MaintenanceWorkId { get; init; }

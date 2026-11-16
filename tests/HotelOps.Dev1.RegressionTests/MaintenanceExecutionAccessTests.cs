@@ -7,6 +7,23 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class MaintenanceExecutionAccessTests
 {
     [Fact]
+    public void Submit_contract_cannot_invoke_start_or_use_another_request()
+    {
+        var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-030");
+        var request = new HotelOps.Api.DTOs.Maintenance.SubmitMaintenanceResultRequest
+        { ActorUserId = 10, Diagnosis = "Worn seal", ActionTaken = "Replaced seal" };
+        var action = new HotelOps.Api.Services.Dev2Authorization.Dev2BoundAction(
+            new("A004A-030", typeof(HotelOps.Api.Controllers.MaintenanceWorksController), "SubmitResult", "POST", "api/maintenance-works/{id:long}/submit-result"),
+            new Microsoft.AspNetCore.Http.DefaultHttpContext(), new(10, 20, false), new Dictionary<string, object?> { ["id"] = 1L, ["request"] = request });
+        Assert.True(contract.RequiresActionTransaction);
+        Assert.True(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "SubmitResult", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "StartWork", 1, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "SubmitResult", 2, request)));
+        Assert.False(contract.MatchesServiceInvocation(action, new("MaintenanceWorks", "SubmitResult", 1,
+            new HotelOps.Api.DTOs.Maintenance.SubmitMaintenanceResultRequest { ActorUserId = 10 })));
+    }
+
+    [Fact]
     public void Start_contract_requires_exact_request_and_does_not_admit_other_actions()
     {
         var contract = Assert.Single(HotelOps.Api.Services.Dev2Authorization.MaintenanceResumeContract.Contracts, c => c.DecisionId == "A004A-026");

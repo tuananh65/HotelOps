@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
+import { MaintenanceSubmissionPanel } from "./MaintenanceSubmissionPanel";
 import { MaintenanceResumePanel } from "./MaintenanceResumePanel";
 
 const show = (v: unknown) => typeof v === "string" || typeof v === "number" ? String(v) : "Unavailable";
@@ -13,7 +14,7 @@ const time = (v: unknown) => {
   return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
 };
 
-export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean }) {
+export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
     return <section aria-label="Maintenance work results">
@@ -30,6 +31,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
+    {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
     <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>

@@ -5,7 +5,9 @@ type Item = { id: number; name: string; note: string | null; authorId: number; u
 type Page = { incidentId: number; page: number; total: number; items: Item[]; version: string; canAdd: boolean;
   noteTotal: number; notes: { id: number; note: string | null; authorId: number; at: string }[] };
 const request = createHttpClient();
-export function IncidentEvidencePanel({ incidentId }: { incidentId: number }) {
+export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, onBusyChange }: { incidentId: number;
+  selectedIds?: number[]; onSelect?: (item: { id: number; name: string }, selected: boolean) => void;
+  onBusyChange?: (busy: boolean) => void }) {
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
   const [loaded, setLoaded] = useState<{ key: string; data?: Page; error?: string }>();
@@ -13,6 +15,7 @@ export function IncidentEvidencePanel({ incidentId }: { incidentId: number }) {
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(() => { onBusyChange?.(busy); }, [busy, onBusyChange]);
   const sending = useRef(false);
   const writer = useRef<AbortController | null>(null);
   useEffect(() => () => writer.current?.abort(), []);
@@ -84,6 +87,8 @@ export function IncidentEvidencePanel({ incidentId }: { incidentId: number }) {
     {current?.data && <>
       {!current.data.total && <p>No attachments recorded.</p>}
       <ul>{current.data.items.map(item => <li key={item.id}>
+        {onSelect && <label><input type="checkbox" checked={selectedIds.includes(item.id)}
+          onChange={e => onSelect({ id: item.id, name: item.name }, e.target.checked)} />Use {item.name} as result evidence</label>}
         <a href={`/api/incidents/${incidentId}/evidence/${item.id}`} download>{item.name}</a>
         <p>Uploaded by user {item.authorId} at {item.uploadedAt}</p>{item.note && <p>{item.note}</p>}
       </li>)}</ul>
