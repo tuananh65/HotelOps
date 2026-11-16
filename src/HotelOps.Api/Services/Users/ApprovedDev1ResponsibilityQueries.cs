@@ -1,4 +1,5 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -142,24 +143,50 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
                 else unresolved.Add("SHIFT_OPEN_ATTENDANCE_MAPPING");
             }
         }
-        // Task53 V1: exact designated-assignee evidence for stored nonterminal states.
-        // This does not resolve Pending Verification/Closed/reopen, requester next actions,
-        // or mandatory handover acknowledgment; retain the global contract gates above.
+        // Read the workflow projection and immutable closure proof used by task mutations.
+        // Requester next actions and mandatory handover remain separate coverage gates.
         var tasks = await (from assignment in db.OperationalTaskAssignments.AsNoTracking()
             where assignment.AssigneeId == targetId
             join parent in db.OperationalTasks.AsNoTracking() on assignment.TaskId equals parent.TaskId into parents
             from parent in parents.DefaultIfEmpty()
-            select new { assignment.AssignmentStatus, assignment.AssignedAt, assignment.EndedAt,
+            select new { assignment.TaskId, assignment.AssignmentStatus, assignment.AssignedAt, assignment.EndedAt,
+                CompletedAt = parent == null ? null : parent.CompletedAt,
                 Parent = parent == null ? null : parent.Status }).ToArrayAsync(ct);
+        var taskIds = tasks.Select(t => t.TaskId).Distinct().ToArray();
+        var taskStates = new Dictionary<long, string>();
+        var closedTasks = new HashSet<long>();
+        if (taskIds.Length > 0)
+        {
+            if (await ProgressSchema.InstalledAsync(db, ct))
+                taskStates = await TaskWorkflowRead.Query(db, now).Where(t => taskIds.Contains(t.TaskId))
+                    .ToDictionaryAsync(t => t.TaskId, t => t.State, ct);
+            else unresolved.Add("OPERATIONAL_TASK_WORKFLOW_REQUIRED");
+            if (tasks.Any(t => t.AssignmentStatus == "COMPLETED" && t.Parent == "COMPLETED" && t.EndedAt == t.CompletedAt))
+            {
+                if (await TaskVerificationStore.InstalledAsync(db, ct))
+                    closedTasks = (await TaskVerificationStore.ProvenClosedTaskIds(db, now)
+                        .Where(id => taskIds.Contains(id)).ToArrayAsync(ct)).ToHashSet();
+                else unresolved.Add("OPERATIONAL_TASK_CLOSURE_EVIDENCE_REQUIRED");
+            }
+        }
         foreach (var row in tasks)
         {
             if (row.AssignmentStatus is not ("ACTIVE" or "COMPLETED" or "REASSIGNED" or "CANCELLED")
                 || row.Parent is not ("TODO" or "IN_PROGRESS" or "BLOCKED" or "COMPLETED" or "CANCELLED"))
             { unresolved.Add("OPERATIONAL_TASK_UNRESOLVED"); continue; }
-            if (row.EndedAt < row.AssignedAt || row.AssignmentStatus == "ACTIVE" && row.EndedAt != null
+            if (row.AssignedAt > now || row.EndedAt > now || row.EndedAt < row.AssignedAt || row.AssignmentStatus == "ACTIVE" && row.EndedAt != null
                 || row.AssignmentStatus != "ACTIVE" && row.EndedAt == null)
             { unresolved.Add("OPERATIONAL_TASK_DATA_INCONSISTENCY"); continue; }
-            if (row.AssignmentStatus != "ACTIVE") continue;
+            if (row.AssignmentStatus != "ACTIVE")
+            {
+                // Historical assignments in earlier cycles do not prove or invalidate today's closure.
+                if (row.AssignmentStatus == "COMPLETED" && row.Parent == "COMPLETED" && row.EndedAt == row.CompletedAt
+                    && !closedTasks.Contains(row.TaskId)) unresolved.Add("OPERATIONAL_TASK_CLOSURE_EVIDENCE_REQUIRED");
+                continue;
+            }
+            if (!taskStates.TryGetValue(row.TaskId, out var state)
+                || state is not ("ASSIGNED" or "ACCEPTED" or "IN_PROGRESS" or "PAUSED" or "PENDING_VERIFICATION"))
+                unresolved.Add("OPERATIONAL_TASK_WORKFLOW_INCONSISTENCY");
             if (row.Parent is "TODO" or "IN_PROGRESS" or "BLOCKED") blockers.Add("OPERATIONAL_TASK_ASSIGNEE");
             else if (row.Parent == "COMPLETED") unresolved.Add("OPERATIONAL_TASK_TERMINAL_MAPPING");
             else unresolved.Add("OPERATIONAL_TASK_DATA_INCONSISTENCY");

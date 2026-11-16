@@ -1,4 +1,5 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.WorkTime;
 
 namespace HotelOps.Api.Services.Users;
 
@@ -14,12 +15,18 @@ internal sealed class IntegratedDeactivationResponsibilityQueries(HotelOpsDbCont
         var dev2States = await new Dev2ResponsibilityStateQueries(db).ReadUnresolvedAsync(targetId, ct);
         var preventive = await new PreventiveResponsibilityQueries(db).ReadAsync(targetId, ct);
         var workdays = await new WorkdayResponsibilityQueries(db).ReadAsync(targetId, ct);
+        // Scheduled and unscheduled days now share the deployed Workday/interval review.
+        // Retire only the obsolete model-level flags when its schema contract is present;
+        // preserve every row-level inconsistency, open responsibility and unrelated coverage gate.
+        var workdayModel = await WorkdayMembershipStore.InstalledAsync(db, ct);
+        var dev1Unresolved = dev1.Unresolved.Where(code => !workdayModel || code != "WORKDAY_CONTRACT");
+        var unsupported = dev1.Unsupported.Where(code => !workdayModel || code != "UNSCHEDULED_WORKDAY_MODEL").ToArray();
         // Runtime target data only. Release acceptance is enforced separately by
         // UserAccountDeactivationService immediately before its first mutation.
         return new(dev1.Blockers.Concat(dev2).Concat(workdays.Blockers).Concat(preventive.Blockers).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
-            dev1.Unresolved.Concat(dev2States).Concat(workdays.Unresolved).Concat(preventive.Unresolved).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray())
+            dev1Unresolved.Concat(dev2States).Concat(workdays.Unresolved).Concat(preventive.Unresolved).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray())
         {
-            Unsupported = dev1.Unsupported
+            Unsupported = unsupported
         };
     }
 }
