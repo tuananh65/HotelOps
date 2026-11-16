@@ -133,6 +133,13 @@ export function Fields({
           time = f.type.startsWith("DateTime"),
           number = /^(long|int|decimal)/.test(f.type);
         const value = values[f.name] ?? f.default ?? "";
+        if(f.type === "bool?" && f.optional) return <label key={name}>
+          {label(f.name)} (optional)
+          <select name={name} value={value===true?"true":value===false?"false":""}
+            onChange={e=>onChange({...values,[f.name]:e.target.value===""?"":e.target.value==="true"})}>
+            <option value="">All</option><option value="true">Yes</option><option value="false">No</option>
+          </select>
+        </label>;
         const display =
           time && value ? String(value).slice(0, 16) : String(value);
         return (

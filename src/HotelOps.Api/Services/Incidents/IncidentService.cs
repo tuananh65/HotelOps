@@ -415,10 +415,30 @@ public sealed class IncidentService : IIncidentService
             var assigned=IncidentCurrentAssignment.Query(db).Where(w=>w.AssigneeId==assignee).Select(w=>w.IncidentId);
             query=query.Where(i=>assigned.Contains(i.IncidentId));
         }
+        var slaAvailable=db!=null && await IncidentListSla.InstalledAsync(db,cancellationToken);
+        var evaluatedAt=db==null?DateTime.UtcNow:await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(cancellationToken);
+        IOrderedQueryable<Incident> ordered;
+        if(slaAvailable)
+        {
+            var deadlines=IncidentListSla.Query(db!);
+            if(request.Overdue is {} overdue)
+            {
+                var knownLate=deadlines.Where(s=>s.ResolutionDeadlineAt<evaluatedAt).Select(s=>s.IncidentId);
+                var knownOnTime=deadlines.Where(s=>s.ResolutionDeadlineAt>=evaluatedAt).Select(s=>s.IncidentId);
+                query=overdue?query.Where(i=>i.Status!="CLOSED" && i.Status!="CANCELLED" && knownLate.Contains(i.IncidentId))
+                    :query.Where(i=>i.Status=="CLOSED" || i.Status=="CANCELLED" || knownOnTime.Contains(i.IncidentId));
+            }
+            ordered=query.OrderBy(i=>deadlines.Where(s=>s.IncidentId==i.IncidentId).Select(s=>s.ResolutionDeadlineAt).FirstOrDefault()==null)
+                .ThenBy(i=>deadlines.Where(s=>s.IncidentId==i.IncidentId).Select(s=>s.ResolutionDeadlineAt).FirstOrDefault())
+                .ThenBy(i=>i.IncidentId);
+        }
+        else
+        {
+            if(request.Overdue!=null)throw new Dev2AccessDenied(503);
+            ordered=query.OrderByDescending(i=>i.ReportedAt).ThenByDescending(i=>i.IncidentId);
+        }
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
-            .OrderByDescending(incident => incident.ReportedAt)
-            .ThenByDescending(incident => incident.IncidentId)
+        var items = await ordered
             .Skip((int)offset)
             .Take(request.PageSize)
             .Select(incident => new IncidentListDto
@@ -448,6 +468,18 @@ public sealed class IncidentService : IIncidentService
             })
             .ToListAsync(cancellationToken);
 
+        var pageIncidentIds=items.Select(i=>i.IncidentId).ToArray();
+        var slaRows=slaAvailable && items.Count>0
+            ? await IncidentListSla.Query(db!).Where(s=>pageIncidentIds.Contains(s.IncidentId)).ToDictionaryAsync(s=>s.IncidentId,cancellationToken)
+            : new Dictionary<long,IncidentListSla.Row>();
+        foreach(var item in items)
+        {
+            var sla=slaRows.GetValueOrDefault(item.IncidentId);
+            item.ResponseDeadlineAt=sla?.ResponseDeadlineAt is {} response?DateTime.SpecifyKind(response,DateTimeKind.Utc):null;
+            item.ResolutionDeadlineAt=sla?.ResolutionDeadlineAt is {} resolution?DateTime.SpecifyKind(resolution,DateTimeKind.Utc):null;
+            item.SlaUnavailableReason=!slaAvailable?"INCIDENT_SLA_STORAGE_UNAVAILABLE":sla?.ResolutionDeadlineAt==null || sla.ResponseDeadlineAt==null?"INCIDENT_SLA_NOT_RECORDED_OR_INVALID":null;
+            item.IsOverdue=item.Status is "CLOSED" or "CANCELLED"?false:item.ResolutionDeadlineAt is {} due?evaluatedAt>due:null;
+        }
         if(db!=null && items.Count>0)
         {
             var visibleIds=items.Select(i=>i.IncidentId).ToArray();

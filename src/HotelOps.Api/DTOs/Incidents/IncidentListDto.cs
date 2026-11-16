@@ -24,6 +24,10 @@ public sealed class IncidentListDto
     public long? AssigneeId { get; set; }
     public string? AssigneeName { get; set; }
     public string? AssignmentUnavailableReason { get; set; }
+    public DateTime? ResponseDeadlineAt { get; set; }
+    public DateTime? ResolutionDeadlineAt { get; set; }
+    public bool? IsOverdue { get; set; }
+    public string? SlaUnavailableReason { get; set; }
     public string Status { get; init; } = string.Empty;
     public long ReportedBy { get; init; }
     public string ReportedByName { get; init; } = string.Empty;
