@@ -247,11 +247,13 @@ function Screen({
         if (input.mode === "Partial" && issueLines.length === 0) throw Error("Enter at least one positive issue quantity.");
         commandInput = { ...input, lines: input.mode === "FullRemaining" ? [] : issueLines };
       }
-      if (target.id === "A004A-043" && context.internalRequestId != null) {
-        if (!["required", "optional"].includes(String(input.materialRequirement))
+      if (["A004A-021", "A004A-043"].includes(target.id) && (context.internalRequestId != null || context.sourceVersion != null)) {
+        if (!Number.isSafeInteger(Number(context.internalRequestId)) || Number(context.internalRequestId) <= 0
+          || !Number.isSafeInteger(Number(context.branchId)) || Number(context.branchId) <= 0
+          || !["required", "optional"].includes(String(input.materialRequirement))
           || typeof context.sourceVersion !== "string" || !/^[A-Za-z0-9+/]{11}=$/.test(context.sourceVersion))
-          throw Error("Reload the Internal Request and choose whether the material is required for completion.");
-        commandInput = { ...input, internalRequestId: context.internalRequestId,
+          throw Error("Reload the Internal Request and choose whether this work is required for completion.");
+        commandInput = { ...input, branchId: context.branchId, internalRequestId: context.internalRequestId,
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
       payload(target.fields, commandInput, actor);
@@ -464,6 +466,10 @@ function Screen({
         <Link to="/profile">Profile</Link>
         <Link to="/dashboard">Workspace home</Link>
       </header>
+      {context.internalRequestId != null && actionId === config.create && !available.some(op => op.id === actionId) && <p role="status">
+        Creating this linked work is unavailable with the current access. No linked work has been created.{" "}
+        <Link to={`/internal-requests?requestId=${encodeURIComponent(String(context.internalRequestId))}`}>Return to source</Link>
+      </p>}
       <nav aria-label="Operations">
         {modules.filter(m => !enabledModules || enabledModules.includes(m.id)).map((m) => (
           <Link
@@ -548,8 +554,8 @@ function Screen({
               setDenied(false);
             }}
           />
-          {operation.id === "A004A-043" && context.internalRequestId != null && <section aria-label="Source Internal Request">
-            <p>This material request will be linked to the source Internal Request when saved.</p>
+          {["A004A-021", "A004A-043"].includes(operation.id) && context.internalRequestId != null && <section aria-label="Source Internal Request">
+            <p>This {operation.id === "A004A-021" ? "incident" : "material request"} will be linked to the source Internal Request when saved.</p>
             <Link to={`/internal-requests?requestId=${encodeURIComponent(String(context.internalRequestId))}`}>Return to source and reload</Link>
             <label>Completion requirement<select required value={String(values.materialRequirement ?? "")}
               onChange={event => change({ ...values, materialRequirement: event.target.value })}>
@@ -564,7 +570,8 @@ function Screen({
               : operation.id === "A004A-051" ? operation.fields.filter(f => ["mode", "documentDate"].includes(f.name))
               : materialWrite ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && needsApproval ? { ...f, optional: false } : f)
-              : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
+              : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId"
+                && !(operation.id === "A004A-021" && context.internalRequestId != null && f.name === "branchId")) : operation.fields}
             values={values}
             actor={actor}
             onChange={v => change(operation.id === "A004A-043" && v.branchId !== values.branchId
