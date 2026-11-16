@@ -8,6 +8,18 @@ internal static class MaintenanceReviewAccess
     internal static async Task<bool> AllowsAsync(HotelOpsDbContext db, long user, long branch, long work, CancellationToken ct)
     {
         if (await MaintenanceReviewSeparation.PerformedAsync(db, user, work, ct)) return false;
+        return await ScopedGrantAsync(db, user, branch, work, ct);
+    }
+
+    internal static async Task<bool> ScopedGrantAsync(HotelOpsDbContext db, long user, long branch, long work, CancellationToken ct)
+    {
+        if (!await BranchGrantAsync(db, user, branch, ct)) return false;
+        var read = await MaintenanceReadAccess.ReadAsync(db, user, branch, ct);
+        return await read.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == work, ct);
+    }
+
+    internal static async Task<bool> BranchGrantAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct)
+    {
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var paths = await (from role in db.UserRoles.AsNoTracking()
             join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
@@ -20,6 +32,6 @@ internal static class MaintenanceReviewAccess
             .ToArrayAsync(ct);
         if (!paths.Any(p => PermissionGrantRules.IsEligible(p, now) && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "GLOBAL")) return false;
         var read = await MaintenanceReadAccess.ReadAsync(db, user, branch, ct);
-        return await read.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == work, ct);
+        return read.Lead;
     }
 }

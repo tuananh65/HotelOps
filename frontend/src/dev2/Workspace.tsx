@@ -1,4 +1,5 @@
 import { IncidentTriagePanel } from "./IncidentTriagePanel";
+import { MaintenanceAssignmentPanel } from "./MaintenanceAssignmentPanel";
 import { useEffect, useRef, useState } from "react";
 import {
   Link,
@@ -666,6 +667,8 @@ function Screen({
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
       {operation.id === "A004A-023" && !readOnly && (!enabledActions || enabledActions.includes("A004A-020")) && data !== undefined && !denied && !sessionLost && isObject(data)
         && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+      {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.canAssign === true && typeof data.incidentId === "number"
+        && <MaintenanceAssignmentPanel key={String(data.incidentId) + ":" + String(data.triageETag)} incidentId={data.incidentId} />}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {operation.id === "A004A-023" && data !== undefined && !denied && !sessionLost && typeof record.incidentId === "number" && record.incidentId > 0
@@ -753,9 +756,9 @@ function Screen({
           </Link>{" "}
           ·{" "}
           <Link
-            to={`/operations/maintenance/${record.incidentId}?action=A004A-024`}
+            to={`/operations/incidents/${record.incidentId}?action=A004A-023`}
           >
-            Create work for incident {String(record.incidentId)}
+            Open incident assignment {String(record.incidentId)}
           </Link>{" "}
           ·{" "}
           <Link

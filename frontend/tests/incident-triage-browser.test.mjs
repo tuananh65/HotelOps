@@ -37,6 +37,6 @@ for (const stale of [false, true]) test(`Triage ${stale ? 'override with stale c
     assert.equal(calls.length,1);assert.equal(calls[0].method,'PATCH');assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
     assert.equal(calls[0].body.expectedSlaTargetVersion,'0000000000000005');assert.equal(calls[0].body.actorUserId,42);assert.equal(calls[0].body.priorityId,3);
     if(stale){assert.equal(calls[0].body.responseDeadlineAt,'2026-11-16T10:00:00.000Z');assert.equal(await review.isDisabled(),true);}
-    else {assert.equal(calls[0].body.responseDeadlineAt,undefined);assert.equal(await page.getByRole('link',{name:'Continue to assignment'}).getAttribute('href'),'/operations/maintenance/7?action=A004A-024');}
+    else {assert.equal(calls[0].body.responseDeadlineAt,undefined);assert.equal(await page.getByRole('link',{name:'Reload incident to assign'}).getAttribute('href'),'/operations/incidents/7?action=A004A-023');}
   } finally { await page.close(); }
 });

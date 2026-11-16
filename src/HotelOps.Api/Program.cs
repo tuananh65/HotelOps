@@ -45,6 +45,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceSubmis
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceReturnDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceDeclineDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Maintenance.MaintenanceDeclineService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Maintenance.MaintenanceAssignmentService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceAssignmentDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceClosureDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.IncidentRoomReleaseDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.IncidentAssetFollowupDelivery>();

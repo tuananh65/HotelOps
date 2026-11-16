@@ -8,6 +8,7 @@ using HotelOps.Api.DTOs.Incidents;
 using HotelOps.Api.Security;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Incidents;
+using HotelOps.Api.Services.Maintenance;
 using HotelOps.Api.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,10 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // borrow Internal Request permissions as authority over a linked incident.
 internal static class IncidentReadContract
 {
+    private static readonly object AssignmentKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V4";
-    private const string Policy = "Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V5";
+    private const string Policy = "Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
@@ -96,6 +98,8 @@ internal static class IncidentReadContract
             throw new Dev2AccessDenied(404);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(TriageOptionsKey)
             && !await IncidentTriageAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(AssignmentKey)
+            && !await MaintenanceAssignmentAccess.AllowsAsync(db, a.Actor.UserId, branch, Id(a), ct)) return false;
         return true;
     }
 
@@ -134,6 +138,11 @@ internal static class IncidentReadContract
                 result.AssignmentWorkflow = await IncidentAssignmentWorkflow.ReadAsync(db,
                     await query.SingleAsync(i => i.IncidentId == result.IncidentId, ct), ct);
                 result.TriageETag = await IncidentTriageStore.TagAsync(db, result.IncidentId, ct);
+                result.CanAssign = result.AssignmentWorkflow is "PENDING_ASSIGNMENT" or "ASSIGNED"
+                    && result.TriageETag != null && await MaintenanceAssignmentStore.InstalledAsync(db,ct)
+                    && await MaintenanceExecutionVersion.InstalledAsync(db,ct)
+                    && await MaintenanceAssignmentAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
+                if(result.CanAssign) a.Http.Items[AssignmentKey]=true;
                 if (result.TriageETag != null && result.AssignmentWorkflow == "PENDING_TRIAGE" && result.CategoryId != null && result.SeverityId is > 0
                     && result.Events.Count(e => e.EventType == "CREATED" && e.ToStatus == "OPEN" && e.ActorId == result.ReportedBy && e.OccurredAt == result.ReportedAt) == 1
                     && !result.Events.Any(e => e.EventType == "TRIAGED")

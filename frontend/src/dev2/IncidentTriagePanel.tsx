@@ -70,7 +70,7 @@ export function IncidentTriagePanel({ data }: { data: Values }) {
       {changed && <label>Reason for changing deadlines (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>}
     </fieldset>
     {message && <p role="status">{message}</p>}
-    {saved ? <Link to={`/operations/maintenance/${id}?action=A004A-024`}>Continue to assignment</Link>
+    {saved ? <Link to={`/operations/incidents/${id}?action=A004A-023`}>Reload incident to assign</Link>
       : review ? <><p>Confirm priority, deadlines and initial action plan?</p><button disabled={busy} onClick={() => void save()}>Confirm triage</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
       : <button disabled={!valid || attempted || busy} onClick={() => setReview(true)}>Review triage</button>}
   </section>;

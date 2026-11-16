@@ -11,16 +11,21 @@ public sealed partial class MaintenanceWorkService
     public Task<MaintenanceWorkDetailDto?> AssignWorkAsync(long id,
         AssignMaintenanceWorkRequest request, CancellationToken cancellationToken) {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["AssignWork"], request.ActorUserId, id, request);
-        return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+        return ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
         {
             RequireState(work, "PENDING");
+            if (work.AssigneeId == request.AssigneeId)
+                throw new ValidationException("The selected technician is already the current assignee.");
+            if (await MaintenanceAssignmentProof.ReadAsync(_dbContext, id, token) is not ("ASSIGNED" or "PENDING_ASSIGNMENT"))
+                throw new ValidationException("Verified Triage and unstarted Pending Assignment/Assigned work required.");
+            await MaintenanceAssignmentEligibility.RequireAsync(_dbContext, request.AssigneeId, incident.BranchId, id, token);
             var end = request.PlannedEndAt ?? work.PlannedEndAt;
-            ValidatePlannedTimes(work.PlannedStartAt, end);
+            MaintenanceAssignmentEligibility.RequirePlannedEnd(work.PlannedStartAt, request.PlannedEndAt
+                ?? (end is {} stored ? DateTime.SpecifyKind(stored, DateTimeKind.Utc) : null));
             work.AssigneeId = request.AssigneeId;
             if (request.Instruction is not null)
                 work.Instruction = request.Instruction;
             work.PlannedEndAt = end;
-            return Task.CompletedTask;
         }, cancellationToken, prepareOwners: token =>
             new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));
     }
@@ -81,7 +86,7 @@ public sealed partial class MaintenanceWorkService
         if (workTime is not null && work.AssigneeId != discovered.AssigneeId)
             throw new ValidationException("The maintenance assignee changed after time-lock discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
+        if (request is AssignMaintenanceWorkRequest or StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
             await MaintenanceExecutionVersion.RequireAsync(_dbContext, id, _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString(), cancellationToken);
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
         var returnedExecution = request is ResumeMaintenanceWorkRequest && work.Status == "IN_PROGRESS"
@@ -202,12 +207,12 @@ public sealed partial class MaintenanceWorkService
             }
             if (closed.Length > 0) await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         }
-        var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest
+        var result = request is AssignMaintenanceWorkRequest or StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest
             ? await DetailAsync((await MaintenanceReadAccess.ReadAsync(_dbContext, TrustedActorId, incident.BranchId, cancellationToken))
                 .Apply(_dbContext.MaintenanceWorks.AsNoTracking()), id, cancellationToken)
                 ?? throw new Dev2AccessDenied(403)
             : await RequireDetailAsync(id, cancellationToken);
-        if (request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
+        if (request is AssignMaintenanceWorkRequest or StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest)
             result.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(_dbContext, id, cancellationToken);
         if (request is SubmitMaintenanceResultRequest finalSubmission && resolutionEvidence is { Count: > 0 }
             && !resolutionEvidence.SequenceEqual(await ValidateResolutionEvidenceAsync(finalSubmission, incident, cancellationToken)))

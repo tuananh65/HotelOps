@@ -8,7 +8,13 @@ internal static class MaintenanceReviewSeparation
     internal static async Task<bool> PerformedAsync(HotelOpsDbContext db, long user, long work, CancellationToken ct)
     {
         if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.MaintenanceWorkId == work && w.AssigneeId == user, ct)
-            || await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == user
+            || await HistoricalPerformanceAsync(db, user, work, ct)) return true;
+        return false;
+    }
+
+    internal static async Task<bool> HistoricalPerformanceAsync(HotelOpsDbContext db, long user, long work, CancellationToken ct)
+    {
+        if (await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == user
                 && i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == work, ct)) return true;
         // A reassignment must not erase a prior submitter's segregation-of-duties evidence.
         // This includes historical submissions that predate the notification intent marker.

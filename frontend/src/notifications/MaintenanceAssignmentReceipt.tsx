@@ -1,0 +1,32 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthProvider";
+import { isObject } from "../auth/http";
+
+type Receipt = { auditId: number; workId: number; previousAssigneeId: number; assigneeId: number; occurredAt: string };
+export function MaintenanceAssignmentReceipt() {
+  const { id = "" } = useParams(), { state } = useAuth();
+  const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
+  const [result, setResult] = useState<{ owner: typeof owner; id: string; value?: Receipt; failed?: boolean } | null>(null);
+  useEffect(() => {
+    if (!owner) return;
+    const abort = new AbortController();
+    if (!/^[1-9][0-9]*$/.test(id) || !Number.isSafeInteger(Number(id))) { setResult({ owner, id, failed: true }); return; }
+    fetch(`/api/maintenance-assignment-receipts/${id}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal })
+      .then(async response => {
+        if (!response.ok) throw Error("Receipt unavailable");
+        const r: unknown = await response.json();
+        if (!isObject(r) || r.auditId !== Number(id) || r.previousAssigneeId !== Number(state.session?.user.id)
+          || ![r.workId, r.assigneeId].every(n => typeof n === "number" && Number.isSafeInteger(n) && n > 0)
+          || typeof r.occurredAt !== "string" || !r.occurredAt.endsWith("Z") || !Number.isFinite(Date.parse(r.occurredAt))) throw Error("Invalid receipt");
+        if (!abort.signal.aborted) setResult({ owner, id, value: r as Receipt });
+      }).catch(() => { if (!abort.signal.aborted) setResult({ owner, id, failed: true }); });
+    return () => abort.abort();
+  }, [id, owner, state.session]);
+  const current = result?.id === id && result.owner === owner ? result : null;
+  return <main><h1>Maintenance reassignment receipt</h1><Link to="/notifications">Notifications</Link>
+    {!owner || !current ? <p>Checking current access…</p> : current.failed ? <p role="alert">Receipt unavailable. Your current permissions may have changed.</p>
+      : current.value && <dl><dt>Work</dt><dd>{current.value.workId}</dd><dt>Reassigned to technician</dt><dd>{current.value.assigneeId}</dd>
+        <dt>Reassigned at</dt><dd>{new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(current.value.occurredAt))}</dd></dl>}
+  </main>;
+}

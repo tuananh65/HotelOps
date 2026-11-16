@@ -8,6 +8,7 @@ import { ReinspectionExecutionPage } from "../features/inspectionExecution/Reins
 import { ReinspectionOriginalPage } from "../features/inspectionExecution/ReinspectionOriginalPage";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 import { CleaningCancellationReceipt } from "../notifications/CleaningCancellationReceipt";
+import { MaintenanceAssignmentReceipt } from "../notifications/MaintenanceAssignmentReceipt";
 import { AssetConditionFollowup } from "../notifications/AssetConditionFollowup";
 import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
@@ -95,6 +96,7 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
