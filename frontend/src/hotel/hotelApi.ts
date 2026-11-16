@@ -194,6 +194,15 @@ function httpError(status: number, body: unknown): HotelError {
     "PARENT_CHANGE_CONFLICT",
     "DUPLICATE",
     "INVALIDREFERENCE",
+    "HEAD_ADMIN_REQUIRED",
+    "HEAD_SCHEMA_REQUIRED",
+    "HEAD_ROLE_OR_ACCESS_REQUIRED",
+    "HEAD_DEPARTMENT_REQUIRED",
+    "HEAD_MISSING_IR_PROCESS",
+    "HEAD_MISSING_MR_APPROVE_L1",
+    "HEAD_MISSING_MR_APPROVE_FALLBACK",
+    "HEAD_MAPPING_NOT_EFFECTIVE",
+    "HEAD_MAPPING_PROVENANCE_REQUIRED",
     "ROOM_TYPE_SCHEMA_REQUIRED",
   ].find((v) => v === identifier) as HotelError["reason"];
   const activeRooms =
@@ -500,6 +509,15 @@ export function createHotelApi(
               ? undefined
               : (p.code ?? p.title);
           const knownConflict = [
+            "HEAD_ADMIN_REQUIRED",
+            "HEAD_SCHEMA_REQUIRED",
+            "HEAD_ROLE_OR_ACCESS_REQUIRED",
+            "HEAD_DEPARTMENT_REQUIRED",
+            "HEAD_MISSING_IR_PROCESS",
+            "HEAD_MISSING_MR_APPROVE_L1",
+            "HEAD_MISSING_MR_APPROVE_FALLBACK",
+            "HEAD_MAPPING_NOT_EFFECTIVE",
+    "HEAD_MAPPING_PROVENANCE_REQUIRED",
             "STRUCTURE_CODE_EXISTS",
             "STRUCTURE_NOT_ACTIVE",
             "PARENT_CHANGE_CONFLICT",

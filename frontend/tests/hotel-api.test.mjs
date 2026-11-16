@@ -522,3 +522,12 @@ for (const phase of ["read", "csrf", "mutation"]) {
       );
   });
 }
+
+for (const title of ["HEAD_ADMIN_REQUIRED","HEAD_SCHEMA_REQUIRED","HEAD_ROLE_OR_ACCESS_REQUIRED","HEAD_DEPARTMENT_REQUIRED","HEAD_MISSING_IR_PROCESS","HEAD_MISSING_MR_APPROVE_L1","HEAD_MISSING_MR_APPROVE_FALLBACK","HEAD_MAPPING_PROVENANCE_REQUIRED","HEAD_MAPPING_NOT_EFFECTIVE"]) test('UC025 rejection is actionable without replay: '+title, async () => {
+  const h=harness(()=>response({status:409,title,detail:secret},409));
+  const result=await h.api.mutate('updateDepartment',{branchId:1,id:13},requests.updateDepartment,tag);
+  assert.equal(result.outcome,'REJECTED');
+  assert.equal(result.error.reason,title);
+  assert.equal(h.calls.length,2);
+  assert.equal(JSON.stringify(result).includes(secret),false);
+});

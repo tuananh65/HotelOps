@@ -58,24 +58,28 @@ public sealed partial class RoomTypeCreationService
         if (id <= 0) throw new ValidationException("Id must be positive.");
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
-            var row = await db.Departments.AsNoTracking().SingleOrDefaultAsync(x => x.DepartmentId == id && x.BranchId == branch, token);
+            var row = await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH(UPDLOCK,HOLDLOCK) WHERE department_id={id} AND branch_id={branch}").AsNoTracking().SingleOrDefaultAsync(token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
             var before = DepartmentDto(row); var tag = await DepartmentTag(before, token);
             if (input == null) return new(RoomTypeBatchStatus.Success, before, tag);
             if (!row.IsActive) return new(RoomTypeBatchStatus.Inactive);
             if (tag != expected) return new(RoomTypeBatchStatus.Stale);
+            await TransferDepartmentHeadAsync(actor, branch, id, row.ManagerUserId, input.ManagerUserId, token);
             await db.Database.ExecuteSqlInterpolatedAsync($"/* UC025:Update */ UPDATE dbo.departments SET department_name={input.Name},scope_description={input.Description},manager_user_id={input.ManagerUserId} WHERE department_id={id} AND branch_id={branch}", token);
             var after = before with { Name = input.Name, Description = input.Description, ManagerUserId = input.ManagerUserId };
             await BatchAuditAsync(actor, branch, "departments", id, before, after, ["name", "description", "managerUserId"], token);
             return new(RoomTypeBatchStatus.Success, after, await DepartmentTag(after, token));
         }, ct, additionalUsers: input?.ManagerUserId is { } manager ? [manager] : [],
-            eligibility: input == null ? null : token => EligibleDepartmentManager(branch, input.ManagerUserId, token), requireRoomTypeSchema: false);
+            requireRoomTypeSchema: false);
     }
     private static DepartmentInformationDto DepartmentDto(Department row) => new(row.DepartmentId, row.BranchId, row.DepartmentCode, row.DepartmentName, row.ScopeDescription, row.ManagerUserId, row.IsActive);
     private async Task<string> DepartmentTag(DepartmentInformationDto value, CancellationToken ct)
     {
         var key = value.Id.ToString(CultureInfo.InvariantCulture);
         var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "departments" && x.EntityId == key).Select(x => (long?)x.AuditId).MaxAsync(ct) ?? 0;
-        return '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision }, Json))) + '"';
+        string? rowVersion = null;
+        if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.departments','head_transfer_version')=8 THEN 1 ELSE 0 END AS Value").SingleAsync(ct) == 1)
+            rowVersion = await db.Database.SqlQuery<string>($"SELECT CONVERT(varchar(16),head_transfer_version,2) AS Value FROM dbo.departments WHERE department_id={value.Id} AND branch_id={value.BranchId}").SingleAsync(ct);
+        return '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, rowVersion }, Json))) + '"';
     }
 }

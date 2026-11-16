@@ -220,7 +220,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
   const branchId = decimalId(branch),
     id = decimalId(record),
     pageNumber = decimalId(page);
-  const kind = canonicalStructure && screen === "departments" && action === "edit" ? null : mutationFor(screen, action);
+  const kind = mutationFor(screen, action);
   const readKind = readFor(screen, action);
   const key = JSON.stringify([
     route.pathname,
@@ -397,7 +397,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
               <>
                 <option value="detail">Read record</option>
                 {!readOnly && <option value="create">Create</option>}
-                {!readOnly && !(canonicalStructure && screen === "departments") && <option value="edit">Update</option>}
+                {!readOnly && <option value="edit">Update</option>}
               </>
             )}
             {!readOnly && screen === "roomTypes" && (
@@ -697,7 +697,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
       )}
       {formAllowed && (
         <>
-        {canonicalStructure && screen === "departments" && <p>Department Head is an optional designation. Processing requests and approvals requires separate current permissions and department management mappings.</p>}
+        {canonicalStructure && screen === "departments" && <p>Changing Department Head also transfers designation authority in the same transaction. Independent mappings and work already assigned are preserved. The new Head must already have the required role, branch access and grants.</p>}
         <MutationForm
           key={`${key}:${snapshot?.revision ?? 0}`}
           kind={kind}

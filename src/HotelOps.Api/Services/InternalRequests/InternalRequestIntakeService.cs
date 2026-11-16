@@ -67,7 +67,7 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
         foreach(var b in branches)if(!await access.AllowsAsync(ticket.UserId,b.Id,ct))throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
         await tx.CommitAsync(ct);return result;
     }
-    private Task<long[]> Candidates(long branch,long department,CancellationToken ct)=>db.Database.SqlQuery<long>($"SELECT user_id AS Value FROM dbo.department_management_access WHERE branch_id={branch} AND department_id={department} AND revoked_at IS NULL AND granted_at<=SYSUTCDATETIME()").OrderBy(v=>v).ToArrayAsync(ct);
+    private Task<long[]> Candidates(long branch,long department,CancellationToken ct)=>db.Database.SqlQuery<long>($"SELECT user_id AS Value FROM dbo.department_management_access WHERE branch_id={branch} AND department_id={department} AND revoked_at IS NULL AND granted_at<=SYSUTCDATETIME() AND user_id=(SELECT manager_user_id FROM dbo.departments WHERE department_id={department} AND branch_id={branch} AND is_active=1)").OrderBy(v=>v).ToArrayAsync(ct);
 
     public async Task<InternalRequestIntakeResult> CreateAsync(SessionReference ticket,long sid,InternalRequestIntakeInput input,string root,CancellationToken ct)
     {
@@ -97,6 +97,7 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             if(!candidates.SequenceEqual(currentCandidates))throw new InternalRequestReadException(409,"IR_RECIPIENT_SCOPE_CHANGED");
             var recipients=new List<long>();var managers=new InternalRequestProcessAuthority(db);
             foreach(var recipient in candidates)if(await managers.AllowsDepartmentAsync(recipient,input.BranchId,input.DepartmentId,ct))recipients.Add(recipient);
+            if(recipients.Count!=1)throw new InternalRequestReadException(409,"IR_CURRENT_HEAD_AUTHORITY_REQUIRED");
             var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
             Validate(input,now);
             var home=await db.Users.AsNoTracking().Where(u=>u.UserId==ticket.UserId&&u.Department!=null&&u.Department.BranchId==input.BranchId).Select(u=>u.DepartmentId).SingleOrDefaultAsync(ct);

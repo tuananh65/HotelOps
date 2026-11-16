@@ -91,6 +91,7 @@ public sealed class RoomTypeBatchController(RoomTypeCreationService service) : C
                 _ => 503
             }, title: result.Status.ToString().ToUpperInvariant());
         }
+        catch (DepartmentHeadTransferException error) { return Problem(statusCode: 409, title: error.Message); }
         catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
     }
 }

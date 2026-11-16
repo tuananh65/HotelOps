@@ -35,6 +35,7 @@ internal static class MaterialApprovalAuthority
                 && assignment.User.AccountStatus == "ACTIVE" && assignment.User.EmploymentStatus == "ACTIVE"
                 && grant.Permission.PermissionCode == route.Permission && (grant.DataScope == "ALL" || grant.DataScope == "BRANCH")
                 && mapped.Contains(assignment.UserId)
+                && db.Departments.Any(d => d.DepartmentId == route.DepartmentId && d.BranchId == branch && d.IsActive && d.ManagerUserId == assignment.UserId)
                 && db.UserBranchAccesses.Any(b => b.UserId == assignment.UserId && b.BranchId == branch && b.GrantedAt <= now && b.RevokedAt == null)
             select new Candidate(assignment.UserId, assignment.User.EmployeeCode, assignment.User.FullName))
             .Distinct().OrderBy(c => c.FullName).ThenBy(c => c.UserId).ToArrayAsync(ct);

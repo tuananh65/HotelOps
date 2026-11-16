@@ -20,6 +20,15 @@ export interface HotelSnapshot {
 }
 export function hotelErrorMessage(error: HotelError) {
   if (error.reason === "DUPLICATE") return "MSG35: This code or number already exists in the selected scope.";
+  if (error.reason === "HEAD_ADMIN_REQUIRED") return "Administrator role is required to transfer a Department Head.";
+  if (error.reason === "HEAD_SCHEMA_REQUIRED") return "Department Head transfer schema must be installed and verified.";
+  if (error.reason === "HEAD_ROLE_OR_ACCESS_REQUIRED") return "The selected Head needs an active account, DEPT_MANAGER role and branch access.";
+  if (error.reason === "HEAD_DEPARTMENT_REQUIRED") return "The selected Head must belong to this department.";
+  if (error.reason === "HEAD_MISSING_IR_PROCESS") return "The selected Head needs IR_PROCESS in this branch.";
+  if (error.reason === "HEAD_MISSING_MR_APPROVE_L1") return "The selected Head needs MR_APPROVE_L1 in this branch.";
+  if (error.reason === "HEAD_MISSING_MR_APPROVE_FALLBACK") return "The selected Head needs MR_APPROVE_FALLBACK for this warehouse department.";
+  if (error.reason === "HEAD_MAPPING_NOT_EFFECTIVE") return "The selected Head has a future-dated mapping. Its activation time must be resolved before transfer.";
+  if (error.reason === "HEAD_MAPPING_PROVENANCE_REQUIRED") return "Existing authority mapping has unknown provenance. Reconcile its source before transferring the Head.";
   if (error.reason === "INVALIDREFERENCE") return "MSG03: A selected reference is unavailable or no longer eligible. Check its current branch and active status.";
   if (error.reason === "STRUCTURE_CODE_EXISTS") return "MSG35: This floor or area code already exists in the branch. Choose another code.";
   if (error.reason === "PARENT_FLOOR_UNAVAILABLE") return "MSG03: Select an active parent floor in this branch.";

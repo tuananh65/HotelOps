@@ -832,7 +832,7 @@ test("UC019 canonical preflight lists active rooms and prevents confirmation", a
   });
 });
 
-test("UC024 canonical creation keeps department designation separate from update authority", async () => {
+test("UC024 canonical creation remains available alongside UC025 update", async () => {
   await withHotel("/structure/departments?branchId=1&action=create", { canonical: true }, async p => {
     await fill(p, "createDepartment"); await review(p);
     assert.equal((await writes(p)).length, 0);
@@ -843,7 +843,7 @@ test("UC024 canonical creation keeps department designation separate from update
     assert.equal(sent[0].url, "/api/branches/1/departments");
     assert.equal(sent[0].headers["x-csrf-token"], secret);
     assert.deepEqual(JSON.parse(sent[0].body), requests.createDepartment);
-    assert.equal(await p.getByRole("option", { name: "Update", exact: true }).count(), 0);
+    assert.equal(await p.getByRole("option", { name: "Update", exact: true }).count(), 1);
     assert.ok((await p.locator("body").innerText()).includes("MSG08"));
   });
 });
@@ -970,4 +970,20 @@ test("UC023 empty results have no detail links and changing branch hides previou
       assert.equal((await writes(p)).length, 0);
     },
   );
+});
+
+test("UC025 canonical update preserves confirmation, CSRF and ETag", async () => {
+  await withHotel("/structure/departments?branchId=1", { canonical: true }, async p => {
+    await select(p, "edit", 13); await load(p);
+    await fill(p, "updateDepartment"); await review(p);
+    assert.equal((await writes(p)).length, 0);
+    await confirm(p);
+    await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+    const sent = await writes(p);
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].url, "/api/branches/1/departments/13");
+    assert.equal(sent[0].headers["x-csrf-token"], secret);
+    assert.equal(sent[0].headers["if-match"], tag);
+    assert.deepEqual(JSON.parse(sent[0].body), requests.updateDepartment);
+  });
 });
