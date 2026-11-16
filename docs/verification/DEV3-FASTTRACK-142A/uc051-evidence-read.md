@@ -1,5 +1,7 @@
 # UC051 Incident evidence read integration
 
+Historical read-only increment. The subsequent approved permission and write implementation are recorded in uc051-source-completion.md; its current status supersedes the partial status below.
+
 2026-11-16: PARTIAL_IMPLEMENTATION. No new source-complete or QA-verified UC.
 
 Implemented existing INCIDENT attachment listing and private downloads under the source-owned Incident read contract. The list is paginated and exposes file name, note, author and timestamp, never storage keys or external URLs. Download resolves only an undeleted attachment of this exact Incident, uses the existing private file reader with path/size/MIME checks, forces a download and sets no-store/nosniff/sandbox. Both endpoints revalidate current session and source visibility before disclosure within the admission guard's Serializable read transaction. Closed/Cancelled records can still be read when the user can read their source.

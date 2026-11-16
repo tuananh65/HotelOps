@@ -110,6 +110,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.HotelStructureUp
 builder.Services.AddScoped<HotelOps.Api.Services.Rooms.RoomDirectoryService>();
 builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeCreationService>();
 builder.Services.AddScoped<IIncidentService, IncidentService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEvidenceWrite>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();

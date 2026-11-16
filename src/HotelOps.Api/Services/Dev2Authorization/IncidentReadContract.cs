@@ -12,6 +12,7 @@ using HotelOps.Api.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
+using HotelOps.Api.Security.Authorization;
 
 namespace HotelOps.Api.Services.Dev2Authorization;
 
@@ -24,12 +25,30 @@ internal static class IncidentReadContract
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
-        + "evidence metadata and private download require current source visibility and exact attachment ownership; no mutation authority";
+        + "evidence metadata and private download require current source visibility and exact attachment ownership; "
+        + "UC051 source detail supports current eligible reporter/assignee or branch Lead/OM with independent INCIDENT_VIEW; UC143 list scope unchanged; no mutation authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ", "INCIDENT-EVIDENCE-LIST", "INCIDENT-EVIDENCE-DOWNLOAD" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
-            async (a, ct) => [new("INCIDENT_VIEW", new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
-            Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, null, ReadAsync,
+            async (a, ct) => [new("INCIDENT_VIEW", IsSource(a)
+                ? new(Dev2PermissionTargetKind.Resource, Resource: new("incident_source", Id(a)))
+                : new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
+            Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new SourceResolver(a), ReadAsync,
             (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true));
+
+    private static bool IsSource(Dev2BoundAction a) => a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD";
+    private sealed class SourceResolver(Dev2BoundAction a) : IPermissionResourceResolver
+    {
+        public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource, long currentUserId, CancellationToken ct)
+        {
+            if (!IsSource(a) || permissionCode != "INCIDENT_VIEW" || resource.ResourceType != "incident_source"
+                || resource.ResourceId != Id(a) || currentUserId != a.Actor.UserId) return null;
+            var row = await Db(a).Incidents.AsNoTracking().Where(i => i.IncidentId == Id(a) && i.Branch.IsActive)
+                .Select(i => new { i.BranchId, Own = i.ReportedBy == currentUserId || i.MaintenanceWorks.Any(w => w.AssigneeId == currentUserId
+                    && (w.Status == "PENDING" || w.Status == "IN_PROGRESS" || w.Status == "ON_HOLD")
+                    && (w.Department == null || w.Department.BranchId == i.BranchId)) }).SingleOrDefaultAsync(ct);
+            return row == null ? null : new(row.BranchId, row.Own);
+        }
+    }
 
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static IncidentQueryRequest Input(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("request") as IncidentQueryRequest
@@ -68,7 +87,8 @@ internal static class IncidentReadContract
         var now = DateTime.UtcNow; var branch = await BranchAsync(a, ct);
         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(b => b.UserId == a.Actor.UserId && b.BranchId == branch
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
-        var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct);
+        var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct,
+            sourceRecord: a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD");
         if (!scope.Lead && !scope.Staff) return false;
         if (a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD"
             && !await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == Id(a), ct))
@@ -80,12 +100,13 @@ internal static class IncidentReadContract
     {
         if (Db(a).Database.CurrentTransaction == null) throw new Dev2AccessDenied(503);
         var db = Db(a);
-        var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), ct);
+        var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), ct,
+            sourceRecord: a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD");
         var query = scope.Apply(db.Incidents.AsNoTracking());
         try
         {
             if (a.Identity.DecisionId == "INCIDENT-EVIDENCE-LIST")
-                return await IncidentEvidenceRead.ListAsync(db, Id(a), a.Arguments.GetValueOrDefault("page") is int pageNumber ? pageNumber : 1, ct);
+                return await IncidentEvidenceRead.ListAsync(db, a.Actor.UserId, Id(a), a.Arguments.GetValueOrDefault("page") is int pageNumber ? pageNumber : 1, ct);
             if (a.Identity.DecisionId == "INCIDENT-EVIDENCE-DOWNLOAD")
                 return a.Arguments.GetValueOrDefault("attachment") is long attachment && attachment > 0
                     ? await IncidentEvidenceRead.DownloadAsync(db, a.Http, Id(a), attachment, ct) : new BadRequestResult();

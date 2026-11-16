@@ -10,7 +10,7 @@ internal static class IncidentEvidenceRead
     private static IQueryable<HotelOps.Api.Entities.Attachment> Query(HotelOpsDbContext db, long incident) =>
         db.Attachments.AsNoTracking().Where(a => a.EntityType == "INCIDENT" && a.EntityId == incident && a.DeletedAt == null);
 
-    internal static async Task<IActionResult> ListAsync(HotelOpsDbContext db, long incident, int page, CancellationToken ct)
+    internal static async Task<IActionResult> ListAsync(HotelOpsDbContext db, long actor, long incident, int page, CancellationToken ct)
     {
         if (page < 1 || (long)(page - 1) * 25 > int.MaxValue) return new BadRequestResult();
         var query = Query(db, incident);
@@ -19,7 +19,14 @@ internal static class IncidentEvidenceRead
             .Skip((page - 1) * 25).Take(25)
             .Select(a => new { id = a.AttachmentId, name = a.OriginalFileName ?? a.FileName, a.MimeType,
                 size = a.FileSizeBytes, note = a.Description, authorId = a.UploadedBy, a.UploadedAt }).ToArrayAsync(ct);
-        return new OkObjectResult(new { incidentId = incident, page, total, items = rows });
+        var source = await db.Incidents.AsNoTracking().SingleAsync(i => i.IncidentId == incident, ct);
+        var notesQuery = db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident && e.EventType == "EVIDENCE_ADDED");
+        var noteTotal = await notesQuery.CountAsync(ct);
+        var notes = await notesQuery.OrderByDescending(e => e.EventId).Skip((page - 1) * 25).Take(25)
+            .Select(e => new { id = e.EventId, e.Note, authorId = e.ActorId, at = e.OccurredAt }).ToArrayAsync(ct);
+        return new OkObjectResult(new { incidentId = incident, page, total, items = rows, notes, noteTotal,
+            version = await IncidentEvidenceWrite.VersionAsync(db, source, ct),
+            canAdd = await IncidentEvidenceWrite.CanAddAsync(db, actor, source, ct) });
     }
 
     // Caller must establish and revalidate current Incident read authority in the same transaction.
