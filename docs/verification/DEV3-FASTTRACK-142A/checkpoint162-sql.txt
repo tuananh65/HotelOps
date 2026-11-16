@@ -1,0 +1,13 @@
+Test run for D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.1+bf6400fd51 (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.08]   Discovering: HotelOps.Dev1.RegressionTests
+[xUnit.net 00:00:00.19]   Discovered:  HotelOps.Dev1.RegressionTests
+[xUnit.net 00:00:00.21]   Starting:    HotelOps.Dev1.RegressionTests
+[xUnit.net 00:00:04.44]   Finished:    HotelOps.Dev1.RegressionTests
+  Passed HotelOps.Dev1.RegressionTests.RevokeMappingLockSqlTests.ReadCommittedResponsibilityReadRetainsExistingAndMissingMappingUntilTransactionEnds [4 s]
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 4.8551 Seconds
