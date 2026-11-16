@@ -108,6 +108,9 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                 }
             }
             // Legacy running work without an interval is not silently assumed stopped.
+            if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.preventive_occurrence_details','U') IS NULL THEN 0 ELSE 1 END AS Value").SingleAsync(ct)==1
+                && await db.Database.SqlQuery<int>($"SELECT 1 AS Value FROM dbo.preventive_occurrence_details WITH(HOLDLOCK) WHERE assignee_id={actor.UserId} AND workflow_status='IN_PROGRESS'").AnyAsync(ct))
+                return new(409, Code: "RUNNING_OCCURRENCE_REQUIRES_COMPLETION");
             // This also rejects additional running work after holding the single open interval.
             if (!await AssignedWorkdayBoundary.TasksStoppedAsync(db, actor.UserId, ct))
                 return new(503, Code: "PAUSE_ALL_TASK_RECONCILIATION_REQUIRED");

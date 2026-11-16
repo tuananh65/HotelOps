@@ -75,6 +75,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentClassificatio
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveScheduleService>();
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceReadService>();
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceManagementService>();
+builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceExecutionService>();
 builder.Services.AddOptions<HotelOps.Api.Services.PreventiveMaintenance.PreventiveGenerationOptions>()
     .BindConfiguration("PreventiveGeneration").Validate(o => o.LeadDays is >= 0 and <= 365).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceGeneration>();

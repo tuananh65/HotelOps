@@ -10,10 +10,16 @@ namespace HotelOps.Api.Controllers;
 [ApiController,Authorize,InternalRequestReadErrors]
 [Route("api/branches/{branch:long}/preventive-occurrences")]
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
-public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadService service,PreventiveOccurrenceManagementService management):ControllerBase
+public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadService service,PreventiveOccurrenceManagementService management,
+    PreventiveOccurrenceExecutionService execution):ControllerBase
 {
     public sealed record Assignment(long AssigneeId);
     public sealed record Cancellation(string Reason);
+    [HttpPost("{id:long}/start"),RequestSizeLimit(1024)]
+    public async Task<PreventiveOccurrenceView> Start(long branch,long id,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await execution.StartAsync(ticket,sid,branch,id,Version(),ct);
+    }
     private string Version()
     {
         var tags=Request.Headers.IfMatch;

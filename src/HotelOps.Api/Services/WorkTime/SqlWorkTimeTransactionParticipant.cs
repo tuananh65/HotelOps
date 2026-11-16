@@ -218,7 +218,7 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
         RequireLocks(op.ActorUserId, op.OwnerUserId);
         if (op.BranchId <= 0 || op.WorkItemId <= 0) throw Failure("TIME_STATE_CONFLICT");
         // MAINTENANCE identifies corrective maintenance_works, never a preventive occurrence.
-        if (op.WorkItemKind is not ("CLEANING" or "REWORK" or "TASK" or "MAINTENANCE")) throw Failure("TIME_SOURCE_UNRESOLVED");
+        if (op.WorkItemKind is not ("CLEANING" or "REWORK" or "TASK" or "MAINTENANCE" or "OCCURRENCE")) throw Failure("TIME_SOURCE_UNRESOLVED");
     }
     private async Task EligibleAsync(long userId, long branchId, DateTime now, CancellationToken ct)
     {
@@ -248,6 +248,20 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
                 && x.Status == "IN_PROGRESS" && x.CompletedAt == null && x.AssigneeUserId == op.OwnerUserId
                 && x.CleaningTask.Room.BranchId == op.BranchId && x.CleaningTask.Room.IsActive
                 && x.Inspection.RoomId == x.CleaningTask.RoomId && x.Inspection.CleaningTaskId == x.CleaningTaskId, ct);
+        else if (op.WorkItemKind == "OCCURRENCE")
+            valid = await db.Database.SqlQuery<int>($"""
+                SELECT 1 AS Value FROM dbo.preventive_occurrence_details d
+                JOIN dbo.preventive_maintenance_runs r ON r.run_id=d.run_id
+                JOIN dbo.preventive_maintenance_schedules s ON s.schedule_id=r.schedule_id
+                WHERE d.run_id={op.WorkItemId} AND d.assignee_id={op.OwnerUserId} AND d.branch_id={op.BranchId}
+                  AND d.workflow_status='IN_PROGRESS' AND r.performed_at IS NULL AND r.maintenance_work_id IS NULL
+                  AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
+                    AND EXISTS(SELECT 1 FROM dbo.assets a WHERE a.asset_id=s.asset_id AND a.branch_id={op.BranchId}))
+                  OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
+                    AND EXISTS(SELECT 1 FROM dbo.rooms a WHERE a.room_id=s.room_id AND a.branch_id={op.BranchId}))
+                  OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL
+                    AND EXISTS(SELECT 1 FROM dbo.areas a WHERE a.area_id=s.area_id AND a.branch_id={op.BranchId})))
+                """).AnyAsync(ct);
         else if (op.WorkItemKind == "MAINTENANCE")
             valid = await db.MaintenanceWorks.AsNoTracking().AnyAsync(x => x.MaintenanceWorkId == op.WorkItemId
                 && x.Status == "IN_PROGRESS" && x.AssigneeId == op.OwnerUserId && x.Incident != null

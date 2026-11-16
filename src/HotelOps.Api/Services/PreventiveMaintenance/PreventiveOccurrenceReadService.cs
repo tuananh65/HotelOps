@@ -12,7 +12,7 @@ namespace HotelOps.Api.Services.PreventiveMaintenance;
 
 public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string Title,string Instruction,
     PreventiveCheckItem[] CheckItems,long? AssetId,long? RoomId,long? AreaId,long? AssigneeId,string Status,
-    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel);
+    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart);
 
 public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -77,6 +77,7 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
         var result=new List<PreventiveOccurrenceView>();
         var canAssign=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"MAINTENANCE_ASSIGN",ct);
         var canCancel=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"PM_MANAGE",ct);
+        var canExecute=await MaintenanceExecutionAccess.GrantsAsync(db,ticket.UserId,branch,ct);
         foreach(var row in rows)
         {
             Snapshot? snapshot;
@@ -92,7 +93,7 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
                 snapshot.AssetId,snapshot.RoomId,snapshot.AreaId,row.AssigneeId,row.Status,
                 DateTime.SpecifyKind(row.DueAt,DateTimeKind.Utc),row.PerformedAt is {} performed?DateTime.SpecifyKind(performed,DateTimeKind.Utc):null,
                 row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
-                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED"));
+                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED"));
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);
         if(result.Any(r=>!finalScope.Lead&&(!finalScope.Staff||r.AssigneeId!=ticket.UserId)))
