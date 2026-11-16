@@ -461,3 +461,12 @@ Per-line fulfillment is capped by approved remainder and available stock using a
 Direct evidence: dotnet build HotelOps.slnx --no-restore PASS (0 warnings/errors); npm run typecheck PASS; npm run build PASS. Existing Vite warnings: React Router use-client ignored; JS bundle 916.87 kB exceeds warning threshold. git diff --check PASS. Automated/business/API/SQL/browser tests NOT RUN per code-first instruction. SQL query translation, concurrent inventory changes, multiple warehouses/UOMs, duplicate-item partial issue and UI-to-HTTPS-to-SQL acceptance remain Human QA gates. UC096 source implemented pending QA, not COMPLETE_VERIFIED.
 
 Files: MaterialRequestContracts.cs, MaterialRequestService.Queries.cs, MaterialRequestService.Availability.cs, MaterialAvailabilityView.tsx, Workspace.tsx; matrix and this receipt updated.
+
+### UC097/098 issue-form availability integration — 2026-11-16
+
+Issue form now loads availability through the existing authenticated transport, bound to current authority generation, request ID, issuing warehouse and request rowversion. Availability response carries the rowversion selected with its snapshot. Mismatching/failed responses show unavailable, and partial input limits become zero rather than reusing stale stock. Refresh aborts superseded reads; session loss triggers revalidation. No automatic mutation/retry or quantity allocation is introduced.
+
+Each open line displays remaining approved and fulfillable quantities in request UOM, missing-data reasons, shared-item-stock warning and shortage guidance. Partial inputs are capped at the current preview; a shortage offers a button to enter partial quantities. FullRemaining retains all-or-nothing server posting. The API remains authoritative for combined stock, decimal conversion, concurrency and permissions.
+
+Backend build --no-restore PASS, zero warnings/errors. No database/schema changes. Business/API/SQL/browser tests NOT RUN per code-first instruction. Replenishment creation remains a separate UC100 integration dependency; UI currently suggests replenishment without claiming that workflow is complete. No new COMPLETE_VERIFIED UC.
+Final frontend typecheck and production build PASS; existing React Router use-client warning and >500 kB bundle warning remain (919.53 kB JS). git diff --check PASS apart from line-ending normalization notices.

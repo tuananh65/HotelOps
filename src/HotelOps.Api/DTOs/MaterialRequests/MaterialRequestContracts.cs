@@ -40,7 +40,8 @@ public sealed record MaterialPageDto(int Page, int PageSize, int Total, IReadOnl
 public sealed record MaterialAvailabilityLineDto(long RequestLineId, long ItemId, long UomId, decimal RequestedQty,
     decimal? ApprovedQty, decimal FulfilledQty, decimal? RemainingApprovedQty);
 public sealed record MaterialAvailabilityDto(long RequestId, long WarehouseId, string Notice, object Stock,
-    IReadOnlyList<MaterialAvailabilityLineDto> Lines, IReadOnlyList<MaterialWarehouseAvailabilityDto>? Warehouses = null);
+    IReadOnlyList<MaterialAvailabilityLineDto> Lines, IReadOnlyList<MaterialWarehouseAvailabilityDto>? Warehouses = null,
+    string? RowVersion = null);
 public sealed record MaterialWarehouseAvailabilityDto(long WarehouseId, string WarehouseName,
     IReadOnlyList<MaterialStockPreviewDto> Lines);
 public sealed record MaterialStockPreviewDto(long RequestLineId, string ItemName, string UnitName, string BaseUnitName,
