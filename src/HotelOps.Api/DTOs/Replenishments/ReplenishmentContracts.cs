@@ -38,7 +38,12 @@ public sealed record ReplenishmentDto(long ReplenishmentId, string Replenishment
     DateTime? UpdatedAt, DateTime? ClosedAt, long? ClosedBy, string? CloseReason, IReadOnlyList<ReplenishmentLineDto> Lines,
     IReadOnlyList<ReplenishmentReceiptDto> Receipts);
 public sealed record ReplenishmentSummary(long ReplenishmentId, string ReplenishmentNo, long WarehouseId, long BranchId,
-    string Status, string? SupplierName, DateOnly? ExpectedOn, DateTime CreatedAt);
+    string Status, string? SupplierName, DateOnly? ExpectedOn, DateTime CreatedAt)
+{
+    public IReadOnlyList<ReplenishmentTrackingLine> Lines { get; init; } = [];
+}
+public sealed record ReplenishmentTrackingLine(int LineNo, long ItemId, string ItemName, long BaseUomId, string UnitName,
+    decimal RequestedBaseQty, decimal NetReceivedBaseQty, decimal RemainingBaseQty);
 public sealed record ReplenishmentAuditDto(long AuditId, string EntityType, string EntityId, string Action, long? ActorUserId,
     long? BranchId, DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record ReplenishmentHistory(ReplenishmentDto Replenishment, IReadOnlyList<ReplenishmentAuditDto> Audit);

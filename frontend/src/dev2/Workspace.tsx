@@ -25,6 +25,7 @@ import { MaterialAvailabilityView } from "./MaterialAvailabilityView";
 import { MaterialHistoryView } from "./MaterialHistoryView";
 import { ReplenishmentCloseFields, replenishmentCanClose } from "./ReplenishmentCloseFields";
 import { ReplenishmentReceiptFields } from "./ReplenishmentReceiptFields";
+import { ReplenishmentListView } from "./ReplenishmentListView";
 import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
 import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
 
@@ -611,7 +612,8 @@ function Screen({
         </p>
       )}
       {data !== undefined && (operation.id === "A004A-040" && isObject(data)
-        ? <MaterialAvailabilityView data={data} /> : <DataView data={data} title={config.name} />)}
+        ? <MaterialAvailabilityView data={data} /> : operation.id === "A004A-052" && isObject(data)
+        ? <ReplenishmentListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {module === "replenishments" && record.replenishmentId != null && available.some(op => op.id === "A004A-057")

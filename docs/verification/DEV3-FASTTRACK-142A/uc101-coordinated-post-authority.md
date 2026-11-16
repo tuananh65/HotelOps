@@ -29,3 +29,13 @@ Existing Serializable delivery, retention window, unique recipient receipt, retr
 Scope limitation: this closes the notification path for explicitly linked material replenishment credits only. Standalone/low-stock receipts still lack durable evidence of all requesters waiting at posting time; broader UC080 notification acceptance remains open. Worker enablement unchanged (opt-in); no worker or SQL mutation was run. Build PASS with zero warnings/errors. Solution test command exited zero with no tests executed. API/SQL/browser verification remains NOT_RUN, no new COMPLETE_VERIFIED UC.
 
 Changed files in this increment: MaterialReplenishmentNotification.cs, MaterialDecisionNotification.cs, MaterialApprovalNotificationWorker.cs, NotificationCenterService.cs, UC_STATUS_MATRIX.md and this receipt.
+
+## UC101 tracking-list quantities
+
+SRS UC101 normal-flow step 2 requires requested, received and remaining quantities on the tracking list; the prior summary DTO omitted them. Added per-item base-unit quantities and descriptive item/unit names to each paged summary. Source branch/warehouse filtering, count and expected-date ordering still precede pagination. Only roots on the requested page load their lines; receipt/reversal evidence and cached totals/status are reconciled before disclosure. Inconsistent evidence returns the existing reconciliation conflict, not unverified figures. No cross-unit aggregate and no linked Material Request identity is added to the list.
+
+Canonical list now displays each request's status, warehouse, supplier, expected date and an immediately visible quantity table. Closed remainders are labeled as not expected to arrive. The raw-audit History action remains unadmitted; timeline work was superseded by this directly required list gap.
+
+Direct validation: backend full build PASS, zero warnings/errors; frontend typecheck/build PASS, existing directive/bundle warnings (941.72 kB JS). Solution test command exited zero but ran no tests. API/SQL/browser acceptance NOT_RUN; disposable FE10 schema dependency remains unresolved. No database mutation; no COMPLETE_VERIFIED claim. Per-page reconciliation adds read queries proportional to page receipts, bounded by the existing 100-root page limit; production-scale performance is not measured.
+
+Files: ReplenishmentContracts.cs, ReplenishmentService.Queries.cs, ReplenishmentReadContract.cs, ReplenishmentListView.tsx, Workspace.tsx, this receipt.

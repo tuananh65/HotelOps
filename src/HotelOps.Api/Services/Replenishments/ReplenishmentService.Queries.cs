@@ -14,10 +14,11 @@ public sealed partial class ReplenishmentService
         return (p.Page - 1) * p.PageSize;
     }
     public async Task<ReplenishmentPaged<ReplenishmentSummary>> List(ReplenishmentPage p, CancellationToken ct)
-        => await ListAsync(db.MaterialReplenishments.AsNoTracking(), p, ct);
+        => await ListAsync(db, db.MaterialReplenishments.AsNoTracking(), p, ct);
 
     internal static async Task<ReplenishmentPaged<ReplenishmentSummary>> ListAsync(
-        IQueryable<HotelOps.Api.Entities.MaterialReplenishment> source, ReplenishmentPage p, CancellationToken ct)
+        HotelOps.Api.Data.HotelOpsDbContext context, IQueryable<HotelOps.Api.Entities.MaterialReplenishment> source,
+        ReplenishmentPage p, CancellationToken ct)
     {
         var offset = Offset(p); var q = source;
         if (p.BranchId is long b) q = q.Where(x => x.Warehouse.BranchId == b);
@@ -33,8 +34,21 @@ public sealed partial class ReplenishmentService
         if (p.CreatedTo is DateTime ce) q = q.Where(x => x.CreatedAt <= ce);
         var total = await q.CountAsync(ct);
         var rows = await q.OrderBy(x => x.ExpectedOn == null).ThenBy(x => x.ExpectedOn).ThenBy(x => x.ReplenishmentId).Skip(offset).Take(p.PageSize)
-            .Select(x => new ReplenishmentSummary(x.ReplenishmentId, x.ReplenishmentNo, x.WarehouseId, x.Warehouse.BranchId, x.Status, x.SupplierName, x.ExpectedOn, x.CreatedAt)).ToListAsync(ct);
-        return new(p.Page, p.PageSize, total, rows.Select(x => x with { CreatedAt = Utc(x.CreatedAt) }).ToArray());
+            .Include(x => x.Warehouse).Include(x => x.MaterialReplenishmentLines).ThenInclude(l => l.Item)
+            .Include(x => x.MaterialReplenishmentLines).ThenInclude(l => l.BaseUom).ToListAsync(ct);
+        var summaries = new List<ReplenishmentSummary>();
+        foreach (var row in rows)
+        {
+            // Do not publish cached received/remaining figures until receipt and reversal evidence reconciles.
+            await Reconcile(context, row, ct);
+            summaries.Add(new(row.ReplenishmentId, row.ReplenishmentNo, row.WarehouseId, row.Warehouse.BranchId,
+                row.Status, row.SupplierName, row.ExpectedOn, Utc(row.CreatedAt)) {
+                Lines = row.MaterialReplenishmentLines.OrderBy(l => l.LineNo).Select(l => new ReplenishmentTrackingLine(
+                    l.LineNo, l.ItemId, l.Item.ItemName, l.BaseUomId, l.BaseUom.UomName, l.RequestedBaseQty,
+                    l.ReceivedBaseQty, l.RequestedBaseQty - l.ReceivedBaseQty)).ToArray()
+            });
+        }
+        return new(p.Page, p.PageSize, total, summaries);
     }
     private async Task<ReplenishmentDto?> Read(long id, CancellationToken ct)
     {

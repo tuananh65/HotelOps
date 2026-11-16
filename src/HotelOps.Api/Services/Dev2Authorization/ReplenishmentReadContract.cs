@@ -115,7 +115,7 @@ internal static class ReplenishmentReadContract
                     && r.Warehouse.IsActive && r.Warehouse.Branch.IsActive
                     && !r.MaterialReplenishmentLines.Any(l=>l.WarehouseId!=r.WarehouseId
                         || l.SourceMaterialRequestLine!=null && l.SourceMaterialRequestLine.Request.BranchId!=branch));
-                return new OkObjectResult(await ReplenishmentService.ListAsync(scoped,Page(a),ct));
+                return new OkObjectResult(await ReplenishmentService.ListAsync(Db(a),scoped,Page(a),ct));
             }
             object? result=a.Identity.ActionName=="Get" ? await service.Get(Id(a),ct) : await service.Receipts(Id(a),ct);
             return result==null ? new NotFoundResult() : new OkObjectResult(result);
