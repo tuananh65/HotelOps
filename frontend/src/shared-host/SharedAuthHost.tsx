@@ -1,3 +1,4 @@
+import { SecureShiftPlanWorkspace } from "../workday/SecureShiftPlanWorkspace";
 import { ReferenceCatalogPage } from "../operationalTasks/ReferenceCatalogPage";
 import { PrioritySlaPage } from "../operationalTasks/PrioritySlaPage";
 import { WorkCategoriesPage } from "../operationalTasks/WorkCategoriesPage";
@@ -121,6 +122,7 @@ export function SharedAuthHost({
       {roleAssignmentEnabled && <Route path="/roles/:roleId/permissions/edit" element={<RolePermissionEditor />} />}
       {roleAssignmentEnabled && <Route path="/permissions" element={<RoleCatalogRoute mode="catalog" />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
+      {workdayReadEnabled && <Route path="/workday/shift-plans" element={<Protected><SecureShiftPlanWorkspace saveEnabled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
@@ -355,7 +357,7 @@ export function SharedAuthHost({
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
             {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
             {materialReadEnabled && <><Link to="/operations/material-requests">Material requests</Link><Link to="/operations/replenishments">Replenishments</Link></>}
-            {workdayReadEnabled && <Link to="/workday">Workday</Link>}
+            {workdayReadEnabled && <><Link to="/workday">Workday</Link><Link to="/workday/shift-plans">Shift planning</Link></>}
             {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>

@@ -6,7 +6,10 @@ namespace HotelOps.Api.Services.WorkTime;
 public sealed record ShiftPlanScope(string? Timezone);
 public sealed record ShiftPlanTemplate(long Id, long BranchId, bool IsActive,
     TimeOnly Start, TimeOnly End, bool CrossesMidnight);
-public sealed record ShiftPlanEmployee(long Id, bool Active, bool HasBranchAccess, long? DepartmentId);
+public sealed record ShiftPlanEmployee(long Id, bool Active, bool HasBranchAccess, long? DepartmentId)
+{
+    public IReadOnlyList<long>? DepartmentMemberships { get; init; }
+}
 
 /// <summary>Server-trusted readers only. Caller must authorize every requested resource first.</summary>
 public interface IShiftPlanPreviewReader
@@ -56,8 +59,8 @@ public sealed class ShiftPlanPreviewService(IShiftPlanPreviewReader reader)
                 var employee = await reader.ReadEmployeeAsync(draft.EmployeeId, draft.BranchId, ct);
                 if (employee is null || employee.Id != draft.EmployeeId || !employee.Active || !employee.HasBranchAccess)
                 { issues[i].Add(ShiftPlanIssue.EmployeeUnavailable); continue; }
-                // Current schema fact only: do not invent multi-department eligibility/assignment policy.
-                if (employee.DepartmentId != draft.DepartmentId)
+                // SQL readers provide explicit current memberships, including employees in multiple departments.
+                if (employee.DepartmentMemberships is {} memberships ? !memberships.Contains(draft.DepartmentId) : employee.DepartmentId != draft.DepartmentId)
                 { issues[i].Add(ShiftPlanIssue.EmployeeDepartmentUnconfirmed); continue; }
                 try { plans[i] = ShiftSchedulePlanner.Plan(draft.ShiftDate, template.Start, template.End, template.CrossesMidnight, timezone); }
                 catch (ArgumentException) { issues[i].Add(ShiftPlanIssue.InvalidTime); continue; }

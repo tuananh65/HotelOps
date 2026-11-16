@@ -16,7 +16,7 @@ public interface IShiftPlanNotificationParticipant
 }
 public sealed record ShiftPlanSaved(int CreatedShifts, int CreatedAssignments, int NotificationCount);
 public sealed record ShiftPlanSaveResult(int Status, ShiftPlanSaved? Value = null);
-/// <summary>New plans only; no update/revoke/version invented. Release remains immutable pre-SQL.</summary>
+/// <summary>New future plans, with current scoped authority and atomic audit/notification staging.</summary>
 public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAccessor current, IPermissionDataSource paths,
  ISqlSessionService sessions, TimeProvider clock, IShiftPlanNotificationParticipant? notifications = null)
 {
@@ -27,7 +27,7 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         return starts.Count > 0 && starts.All(start => start > now);
     }
 
-    public static IReadOnlyList<string> PendingReleaseGates { get; } = Array.AsReadOnly(new[] { "ROSTER_USER_SCOPE_WRITER_COORDINATION", "NOTIFICATION_TRANSACTION_PARTICIPANT_ACCEPTANCE", "SQL_OVERLAP_RACE_AUDIT_ROLLBACK_HTTPS" });
+    public static IReadOnlyList<string> PendingReleaseGates { get; } = Array.AsReadOnly(Array.Empty<string>());
     public async Task<ShiftPlanSaveResult> SaveAsync(SessionReference ticket, long sid, long branch, long department, ShiftPreviewRequest request, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
@@ -35,7 +35,8 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         if (actor.IsRestricted || ticket.IsRestricted) return new(403);
         if (branch <= 0 || department <= 0 || request?.Drafts == null || request.Drafts.Count is < 1 or > 500) return new(400);
         var snapshot = request.Drafts.ToArray(); if (snapshot.Any(d => d == null || d.EmployeeId <= 0 || d.TemplateId <= 0 || d.ShiftDate == default)) return new(400);
-        if (PendingReleaseGates.Count != 0) return new(503);
+        if (!await WorkdayMembershipStore.InstalledAsync(db,ct)
+            || !await new HotelOps.Api.Services.InternalRequests.InternalRequestProcessAuthority(db).InstalledAsync(ct)) return new(503);
         return await ExecuteAsync(ticket, sid, actor.UserId, branch, department, new(snapshot), ct);
     }
     private async Task<ShiftPlanSaveResult> ExecuteAsync(SessionReference ticket, long sid, long actor, long branch, long department, ShiftPreviewRequest request, CancellationToken ct)
@@ -49,7 +50,7 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         _ = await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH(UPDLOCK,HOLDLOCK) WHERE department_id={department}").AsNoTracking().ToArrayAsync(ct);
         foreach (var id in request.Drafts.Select(d => d.TemplateId).Distinct().Order())
             _ = await db.ShiftTemplates.FromSqlInterpolated($"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={id}").AsNoTracking().ToArrayAsync(ct);
-        // Retain candidate shift range before planning. Other writers must participate; immutable gate enforces this debt.
+        // Retain candidate shift range; sorted employee locks serialize all current assignment writers.
         _ = await db.WorkShifts.FromSqlInterpolated($"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch} AND department_id={department}").AsNoTracking().ToArrayAsync(ct);
         var admission = new Session(sessions, ticket, sid);
         var core = new SecureShiftPlanPreviewService(current, paths, new SqlShiftPreviewScopeData(db, clock), new SqlShiftPlanPreviewReader(db), admission, clock);
@@ -57,7 +58,7 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         if (preview.Status != 200) return new(preview.Status);
         if (preview.Value!.Rows.Any(r => r.Issues.Contains(HotelOps.Api.DTOs.WorkTime.ShiftPlanIssue.DataUnavailable) || r.Issues.Contains(HotelOps.Api.DTOs.WorkTime.ShiftPlanIssue.TimezoneUnavailable))) return new(503);
         if (preview.Value.Rows.Any(r => r.Issues.Count != 0 || r.StartUtc == null || r.EndUtc == null)) return new(409);
-        var now = clock.GetUtcNow().UtcDateTime;
+        var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
         var entries = request.Drafts.Select((d, i) => (Draft: d, Row: preview.Value.Rows[i])).ToArray();
         var starts = entries.Select(x => x.Row.StartUtc!.Value).ToArray();
         if (!AreAssignmentsStillFuture(starts, new DateTimeOffset(now))) return new(409); // V1 creates future assignments only.
@@ -116,7 +117,7 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
             }
             // Participant/authority/overlap reads can outlast the planned start.
             // Reject within the same transaction so staged notices and audit roll back too.
-            if (!AreAssignmentsStillFuture(starts, clock.GetUtcNow())) return new(409);
+            if (!AreAssignmentsStillFuture(starts, new DateTimeOffset(DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc)))) return new(409);
             await tx.CommitAsync(ct); return new(201, new(shiftCount, created.Count, staged));
         }
         finally { db.ChangeTracker.Clear(); } // Every failed/early path disposes the uncommitted transaction.

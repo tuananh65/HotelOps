@@ -26,7 +26,10 @@ public sealed class SqlShiftPlanPreviewReader(HotelOpsDbContext db) : IShiftPlan
     public async Task<ShiftPlanEmployee?> ReadEmployeeAsync(long employeeId, long branchId, CancellationToken ct)
     {
         var now = await ClockQuery().SingleAsync(ct);
-        return await EmployeeQuery(employeeId, branchId, now).SingleOrDefaultAsync(ct);
+        if(!await WorkdayMembershipStore.InstalledAsync(db,ct))throw new InvalidOperationException("Explicit employee membership storage required.");
+        var employee=await EmployeeQuery(employeeId, branchId, now).SingleOrDefaultAsync(ct);
+        if(employee==null)return null;
+        return employee with{DepartmentMemberships=(await WorkdayMembershipStore.ReadAsync(db,employeeId,branchId,now,ct)).Select(d=>d.DepartmentId).ToArray()};
     }
 
     private IQueryable<ShiftPlanEmployee> EmployeeQuery(long employeeId, long branchId, DateTime now) =>
@@ -34,7 +37,7 @@ public sealed class SqlShiftPlanPreviewReader(HotelOpsDbContext db) : IShiftPlan
             .Select(u => new ShiftPlanEmployee(u.UserId,
                 u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE",
                 db.UserBranchAccesses.Any(a => a.UserId == u.UserId && a.BranchId == branchId && a.GrantedAt <= now && a.RevokedAt == null),
-                u.DepartmentId));
+                null));
 
     public Task<bool> HasOverlapAsync(long employeeId, DateTimeOffset startUtc, DateTimeOffset endUtc, CancellationToken ct) =>
         new ShiftAssignmentConflictReader(db).HasOverlapAsync(employeeId, startUtc, endUtc, null, ct);

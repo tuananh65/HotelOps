@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ShiftPlanPreviewPanel } from "./ShiftPlanPreviewPanel";
 import { createShiftPlanApi } from "./shiftPlanApi";
-/** Standalone source integration. Production router remains unchanged. */
+/** Server authorizes every draft and repeats eligibility within the save transaction. */
 export function SecureShiftPlanWorkspace({
   saveEnabled = false,
 }: {

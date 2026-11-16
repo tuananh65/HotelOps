@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace HotelOps.Api.Controllers;
 
-[NonController] // Production OFF until privacy/SQL/HTTPS acceptance; no shared DI registration.
 [ApiController, Route("api/branches/{branchId:long}/departments/{departmentId:long}/shift-plans")]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class ShiftPlanPreviewController(SqlSecureShiftPreview service, ShiftPlanSaveService? save = null) : ControllerBase

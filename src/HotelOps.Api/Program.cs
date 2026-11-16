@@ -43,6 +43,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskPlanNotificat
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.UnscheduledWorkdayDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IShiftPlanNotificationParticipant,HotelOps.Api.Services.Notifications.ShiftPlanNotificationParticipant>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ShiftAssignmentNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlSecureShiftPreview>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftPlanSaveService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceSubmissionDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceReturnDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceDeclineDelivery>();
