@@ -39,7 +39,13 @@ public sealed record MaterialSummaryDto(long RequestId, string RequestNo, string
 public sealed record MaterialPageDto(int Page, int PageSize, int Total, IReadOnlyList<MaterialSummaryDto> Items);
 public sealed record MaterialAvailabilityLineDto(long RequestLineId, long ItemId, long UomId, decimal RequestedQty,
     decimal? ApprovedQty, decimal FulfilledQty, decimal? RemainingApprovedQty);
-public sealed record MaterialAvailabilityDto(long RequestId, long WarehouseId, string Notice, object Stock, IReadOnlyList<MaterialAvailabilityLineDto> Lines);
+public sealed record MaterialAvailabilityDto(long RequestId, long WarehouseId, string Notice, object Stock,
+    IReadOnlyList<MaterialAvailabilityLineDto> Lines, IReadOnlyList<MaterialWarehouseAvailabilityDto>? Warehouses = null);
+public sealed record MaterialWarehouseAvailabilityDto(long WarehouseId, string WarehouseName,
+    IReadOnlyList<MaterialStockPreviewDto> Lines);
+public sealed record MaterialStockPreviewDto(long RequestLineId, string ItemName, string UnitName, string BaseUnitName,
+    decimal? RemainingApprovedQty, decimal AvailableBaseQty, decimal? InTransitBaseQty,
+    decimal? FulfillableQty, string? UnavailableReason, string? TransitUnavailableReason, bool SharedItemStock);
 public sealed class MaterialPage
 {
     public int Page { get; set; } = 1;

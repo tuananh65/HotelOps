@@ -74,6 +74,7 @@ public sealed partial class MaterialRequestService
         var stocks = new List<object>();
         foreach (var item in r.Lines.Where(x => x.IsActive).Select(x => x.ItemId).Distinct()) { var s = await inventory.GetStock(w, item, ct); if (s != null) stocks.Add(s); }
         return new(id, w, "Preview only. Shared stock is reported once per item in base UOM; line quantities are not independent stock promises. No reservation.", stocks,
-            r.Lines.Where(x => x.IsActive).Select(x => new MaterialAvailabilityLineDto(x.RequestLineId, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.HistoricalRemainingQty)).ToArray());
+            r.Lines.Where(x => x.IsActive).Select(x => new MaterialAvailabilityLineDto(x.RequestLineId, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.HistoricalRemainingQty)).ToArray(),
+            await WarehouseAvailability(r, ct));
     }
 }

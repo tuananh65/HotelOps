@@ -451,3 +451,13 @@ Direct source comparison against UC096 PRE-02 found Availability admitted stock 
 
 Backend build --no-restore PASS (0 warnings/errors). Runtime, SQL and business tests NOT RUN per instruction. UC096 remains PARTIAL: current source only previews the source warehouse; warehouse selection, in-transit quantities and explicit unit-safe fulfillable-line presentation remain to implement. This is an authorization correction, not full UC completion.
 Frontend typecheck and production build PASS. Existing Vite warnings: ignored React Router use-client directives and bundle above 500 kB (913.89 kB).
+
+### UC096 branch warehouse availability source — 2026-11-16
+
+Implemented the remaining availability presentation across DTO, service and UI. Availability returns active warehouses in the authorized request branch; the UI selects a warehouse without changing the request's issuing warehouse. Stock comes from signed stock movements in base UOM. Inbound TRANSFER quantities subtract reconciled received/damaged/missing receipts with the immutable dispatch conversion factor; legacy states, mismatched receipt/document provenance or inconsistent quantities produce N/A with a reason. Transit is never added to issuable stock and transfer/source-branch identifiers are not exposed.
+
+Per-line fulfillment is capped by approved remainder and available stock using an active item-specific conversion. The preview respects decimal(18,3) for both issue and base quantity, and actual decimal(18,6) conversion mapping. Pending approval quantities remain N/A; inactive/ambiguous conversion or negative ledger balances carry explicit reasons. Repeated-item lines are labeled shared stock rather than claiming independent allocations. UI highlights shortage and suggests partial fulfillment or replenishment. Read contract retains Serializable disclosure, MR_VIEW, INVENTORY_VIEW, current session/role/branch and current reviewer preconditions. No reservation, posting, schema or database mutation.
+
+Direct evidence: dotnet build HotelOps.slnx --no-restore PASS (0 warnings/errors); npm run typecheck PASS; npm run build PASS. Existing Vite warnings: React Router use-client ignored; JS bundle 916.87 kB exceeds warning threshold. git diff --check PASS. Automated/business/API/SQL/browser tests NOT RUN per code-first instruction. SQL query translation, concurrent inventory changes, multiple warehouses/UOMs, duplicate-item partial issue and UI-to-HTTPS-to-SQL acceptance remain Human QA gates. UC096 source implemented pending QA, not COMPLETE_VERIFIED.
+
+Files: MaterialRequestContracts.cs, MaterialRequestService.Queries.cs, MaterialRequestService.Availability.cs, MaterialAvailabilityView.tsx, Workspace.tsx; matrix and this receipt updated.

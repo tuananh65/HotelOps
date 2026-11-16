@@ -21,6 +21,7 @@ import { MaterialBranchField } from "./MaterialBranchField";
 import { MaterialApprovalFields, materialApprovalActions, materialApprovalReady } from "./MaterialApprovalFields";
 import { MaterialCancellationFields, materialRequesterActions, materialRequesterReady } from "./MaterialRequesterFields";
 import { MaterialIssueFields, materialIssueReady } from "./MaterialIssueFields";
+import { MaterialAvailabilityView } from "./MaterialAvailabilityView";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -574,7 +575,8 @@ function Screen({
           {message}
         </p>
       )}
-      {data !== undefined && <DataView data={data} title={config.name} />}
+      {data !== undefined && (operation.id === "A004A-040" && isObject(data)
+        ? <MaterialAvailabilityView data={data} /> : <DataView data={data} title={config.name} />)}
       {["A004A-040", "A004A-041", "A004A-042"].includes(operation.id) && recordId && <Link to={`/operations/material-requests/${encodeURIComponent(recordId)}`}>Return to material request</Link>}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.fulfillments) && (
         <section aria-label="Material issue receipts"><p>Issue receipts</p>
