@@ -39,6 +39,13 @@ export function MaintenanceSubmissionPanel({ data, onCommitted }: { data: Values
         body: JSON.stringify({ actorUserId: actor, diagnosis: diagnosis.trim(), actionTaken: action.trim(),
           resolutionNote: note.trim() || null, resultAttachmentIds: selected.map(x => x.id) })
       });
+      if (response.status === 400) {
+        const problem: unknown = await response.json();
+        if (isObject(problem) && problem.title === "Maintenance validation failed" && typeof problem.detail === "string") {
+          if (!abort.signal.aborted && current.current === session) setAttempted(false);
+          throw Error(problem.detail + " Correct the result or reload the current work before reviewing again.");
+        }
+      }
       if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before submitting again."
         : "Submission was not confirmed. Reload and check result fields, material records, evidence and current access.");
       const result: unknown = await response.json();
