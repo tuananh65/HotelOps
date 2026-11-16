@@ -42,6 +42,7 @@ function httpError(status: number, value: unknown): UserBranchMembershipError {
         ? "INVALID_IF_MATCH"
         : matches("BRANCH_UNAVAILABLE")
           ? "BRANCH_UNAVAILABLE"
+          : matches("DEPARTMENT_UNAVAILABLE") ? "DEPARTMENT_UNAVAILABLE"
           : matches("CSRF_VALIDATION_FAILED")
             ? "CSRF_VALIDATION_FAILED"
             : matches("HTTPS_REQUIRED") || p.title === "HTTPS is required"
@@ -130,6 +131,7 @@ export function createUserBranchMembershipApi(
       etag,
       branchId,
       signal,
+      departmentId,
     ): Promise<AddBranchMembershipResult> {
       const invalid = (
         reason: UserBranchMembershipError["reason"],
@@ -138,9 +140,9 @@ export function createUserBranchMembershipApi(
         error: { kind: "invalid-request", reason },
       });
       // Validate primitives and freeze serialization before the first await.
-      if (!id(userId) || !id(branchId)) return invalid("INVALID_REQUEST");
+      if (!id(userId) || !id(branchId) || !id(departmentId)) return invalid("INVALID_REQUEST");
       if (!strongEtag(etag)) return invalid("INVALID_IF_MATCH");
-      const body = JSON.stringify({ branchId });
+      const body = JSON.stringify({ branchId, departmentId });
       if (new TextEncoder().encode(body).byteLength > 16384)
         return invalid("REQUEST_TOO_LARGE");
       let dispatched = false;
@@ -213,6 +215,7 @@ export function createUserBranchMembershipApi(
           value.userId !== userId ||
           !id(value.branchId) ||
           value.branchId !== branchId ||
+          value.departmentId !== departmentId ||
           value.accessLevel !== "STANDARD" ||
           value.isPrimary !== false ||
           !strongEtag(nextEtag) ||
@@ -230,6 +233,7 @@ export function createUserBranchMembershipApi(
             accessId: value.accessId,
             userId: value.userId,
             branchId: value.branchId,
+            departmentId,
             accessLevel: "STANDARD",
             isPrimary: false,
           },

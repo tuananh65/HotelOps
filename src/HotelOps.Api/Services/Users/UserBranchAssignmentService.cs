@@ -6,19 +6,20 @@ using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum AddBranchStatus { Success, Forbidden, SessionInvalid, NotFound, Inactive, InvalidBranch, Stale, Duplicate, RoleConflict, OperationsManagerConflict }
+public enum AddBranchStatus { Success, Forbidden, SessionInvalid, NotFound, Inactive, InvalidBranch, Stale, Duplicate, RoleConflict, OperationsManagerConflict, InvalidDepartment, StorageRequired }
 public sealed record AddBranchResult(AddBranchStatus Status, UserBranchMembershipDto? Membership = null, byte[]? Version = null);
 
 public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranchAssignmentAccess access,
     ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock)
 {
     public async Task<AddBranchResult> AddAsync(SessionReference reference, long sessionId, long targetId,
-        long branchId, byte[] expectedVersion, CancellationToken ct)
+        long branchId, byte[] expectedVersion, CancellationToken ct, long departmentId = 0)
     {
         // Preserve existing construction contracts; persisted scope/session timestamps use SQL time.
         ArgumentNullException.ThrowIfNull(clock);
@@ -58,8 +59,14 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
         if (target is null) return new(AddBranchStatus.NotFound);
         if (target.AccountStatus != "ACTIVE" || target.EmploymentStatus != "ACTIVE") return new(AddBranchStatus.Inactive);
         if (branch is null || !branch.IsActive) return new(AddBranchStatus.InvalidBranch);
+        if (departmentId <= 0 || !(await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH (HOLDLOCK) WHERE department_id={departmentId} AND branch_id={branchId}")
+                .AsNoTracking().ToArrayAsync(ct)).Any(d => d.IsActive)) return new(AddBranchStatus.InvalidDepartment);
+        if (!await WorkdayMembershipStore.InstalledAsync(db, ct)) return new(AddBranchStatus.StorageRequired);
         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AddBranchStatus.Stale);
         if (await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == branchId, ct)) return new(AddBranchStatus.Duplicate);
+        // A new branch must have an explicit working department (GBR-031). Existing orphan/history rows require reconciliation.
+        if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.employee_department_memberships WITH (UPDLOCK,HOLDLOCK) WHERE user_id={targetId} AND branch_id={branchId}").SingleAsync(ct) != 0)
+            return new(AddBranchStatus.Duplicate);
         // Fail closed for all existing destination assignments, including currently inactive/expired ones.
         // This slice does not reconcile/reactivate dormant role paths or infer their intended eligibility.
         if (await db.UserRoles.AnyAsync(r => r.UserId == targetId && r.BranchId == branchId, ct)) return new(AddBranchStatus.RoleConflict);
@@ -76,14 +83,15 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
         catch (DbUpdateException error) when (error.InnerException is SqlException { Number: 2601 or 2627 })
         { return new(AddBranchStatus.Duplicate); }
         finally { db.Entry(membership).State = EntityState.Detached; }
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.employee_department_memberships(user_id,branch_id,department_id,granted_at,recorded_by,provenance) VALUES({targetId},{branchId},{departmentId},{now},{actor.UserId},N'Explicit department selected during UC007 branch assignment')", ct);
         // Scope changes invalidate existing sessions atomically with the new membership and its audit.
         var revokedSessions = await new SessionRevocationService(db).RevokeAllAsync(targetId, now, ct);
         var audit = new AuditLog { ActorUserId = actor.UserId, BranchId = branchId, EntityType = "user_branch_access",
             EntityId = membership.AccessId.ToString(CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = now,
             OldValues = JsonSerializer.Serialize(new { membership = (object?)null }),
             NewValues = JsonSerializer.Serialize(new { userId = targetId, branchId, accessLevel = "STANDARD", isPrimary = false,
-                grantedBy = actor.UserId, grantedAt = now, revokedSessions }),
-            ChangedFields = JsonSerializer.Serialize(new[] { "membership" }) };
+                grantedBy = actor.UserId, grantedAt = now, departmentId, revokedSessions }),
+            ChangedFields = JsonSerializer.Serialize(new[] { "membership", "employee_department_memberships" }) };
         db.Add(audit);
         try { await db.SaveChangesAsync(ct); }
         finally { db.Entry(audit).State = EntityState.Detached; }
@@ -91,6 +99,6 @@ public sealed class UserBranchAssignmentService(HotelOpsDbContext db, UserBranch
         // Do not let this request's new membership bootstrap its own source/target authorization.
         if (await Gate(membership.AccessId) is { } finalDenied) return new(finalDenied);
         await transaction.CommitAsync(ct);
-        return new(AddBranchStatus.Success, new(membership.AccessId, targetId, branchId, "STANDARD", false), version);
+        return new(AddBranchStatus.Success, new UserBranchMembershipDto(membership.AccessId, targetId, branchId, "STANDARD", false) { DepartmentId = departmentId }, version);
     }
 }

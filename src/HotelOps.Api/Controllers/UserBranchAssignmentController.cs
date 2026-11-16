@@ -26,7 +26,7 @@ public sealed class UserBranchAssignmentController(UserBranchAssignmentService a
         if (header.Count != 1 || tag.Length != 18 || tag[0] != '"' || tag[^1] != '"'
             || !tag.AsSpan(1, 16).ToString().All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F')) return Failure(400, "INVALID_IF_MATCH");
         if (!AddUserBranchRequest.TryParse(body, out var request)) return Failure(400, "VALIDATION_FAILED");
-        var result = await assignments.AddAsync(reference!, sessionId, userId, request!.BranchId, Convert.FromHexString(tag[1..^1]), ct);
+        var result = await assignments.AddAsync(reference!, sessionId, userId, request!.BranchId, Convert.FromHexString(tag[1..^1]), ct, request.DepartmentId);
         switch (result.Status)
         {
             case AddBranchStatus.Success:
@@ -37,6 +37,8 @@ public sealed class UserBranchAssignmentController(UserBranchAssignmentService a
             case AddBranchStatus.NotFound: return Failure(404, "USER_NOT_FOUND");
             case AddBranchStatus.Inactive: return Failure(409, "TARGET_NOT_ACTIVE");
             case AddBranchStatus.InvalidBranch: return Failure(400, "BRANCH_UNAVAILABLE");
+            case AddBranchStatus.InvalidDepartment: return Failure(400, "DEPARTMENT_UNAVAILABLE");
+            case AddBranchStatus.StorageRequired: return Failure(503, "EMPLOYEE_MEMBERSHIP_STORAGE_REQUIRED");
             case AddBranchStatus.Stale: return Failure(412, "STALE_USER_VERSION");
             case AddBranchStatus.Duplicate: return Failure(409, "MEMBERSHIP_EXISTS");
             case AddBranchStatus.RoleConflict: return Failure(409, "EXISTING_ROLE_PATH_CONFLICT");

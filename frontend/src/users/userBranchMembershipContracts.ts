@@ -4,6 +4,7 @@ export interface UserBranchMembershipDto {
   readonly branchId: number;
   readonly accessLevel: "STANDARD";
   readonly isPrimary: false;
+  readonly departmentId?: number;
 }
 
 export interface UserBranchMembershipError {
@@ -24,6 +25,7 @@ export interface UserBranchMembershipError {
     | "CANCELLED"
     | "VALIDATION_FAILED"
     | "BRANCH_UNAVAILABLE"
+    | "DEPARTMENT_UNAVAILABLE"
     | "CSRF_VALIDATION_FAILED"
     | "HTTPS_REQUIRED"
     | "SESSION_INVALID"
@@ -61,5 +63,6 @@ export interface UserBranchMembershipApi {
     etag: string,
     branchId: number,
     signal?: AbortSignal,
+    departmentId?: number,
   ): Promise<AddBranchMembershipResult>;
 }

@@ -164,7 +164,7 @@ export function useAddUserBranch(target: number | null) {
       publish({ phase: "idle" });
     setAttempt((n) => n + 1);
   }
-  async function add(branchId: number) {
+  async function add(branchId: number, departmentId: number) {
     if (
       !mounted.current ||
       !owner ||
@@ -177,7 +177,7 @@ export function useAddUserBranch(target: number | null) {
       paused.current ||
       ["unknown", "stale", "confirmed"].includes(phase.current) ||
       !Number.isSafeInteger(branchId) ||
-      branchId <= 0
+      branchId <= 0 || !Number.isSafeInteger(departmentId) || departmentId <= 0
     )
       return;
     busy.current = true;
@@ -191,6 +191,7 @@ export function useAddUserBranch(target: number | null) {
         snapshot.etag,
         branchId,
         abort.signal,
+        departmentId,
       );
       if (
         !mounted.current ||
@@ -278,6 +279,8 @@ function failureMessage(status?: number, reason?: string): string {
       return "The Operations Manager scope constraint prevents adding this membership.";
     case "BRANCH_UNAVAILABLE":
       return "The destination branch is unavailable. Check the Branch ID.";
+    case "DEPARTMENT_UNAVAILABLE":
+      return "Select an active department belonging to the destination branch.";
     case "CSRF_VALIDATION_FAILED":
       return "The security check was rejected. No membership request has been retried.";
     case "HTTPS_REQUIRED":

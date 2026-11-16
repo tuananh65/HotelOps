@@ -11,30 +11,32 @@ function ConfirmationForm({
   add,
 }: {
   target: number;
-  add(branchId: number): Promise<void>;
+  add(branchId: number, departmentId: number): Promise<void>;
 }) {
   const [draft, setDraft] = useState("");
-  const [review, setReview] = useState<number | null>(null);
-  const reviewed = useRef<number | null>(null);
+  const [departmentDraft, setDepartmentDraft] = useState("");
+  const [review, setReview] = useState<{branch:number;department:number} | null>(null);
+  const reviewed = useRef<{branch:number;department:number} | null>(null);
   const [error, setError] = useState("");
   function preview() {
     const branch = destinationBranchId(draft);
-    if (branch === null) {
+    const department = destinationBranchId(departmentDraft);
+    if (branch === null || department === null) {
       setError(
-        "Enter a positive safe integer Branch ID using decimal digits only.",
+        "Enter positive Branch and Department IDs using decimal digits only.",
       );
       return;
     }
     setError("");
-    reviewed.current = branch;
-    setReview(branch);
+    reviewed.current = {branch,department};
+    setReview({branch,department});
   }
   function confirm() {
     if (reviewed.current === null) return;
     const branch = reviewed.current;
     reviewed.current = null;
     setReview(null);
-    void add(branch);
+    void add(branch.branch, branch.department);
   }
   return (
     <form
@@ -59,6 +61,11 @@ function ConfirmationForm({
           }}
         />
       </label>
+      <label>Working Department ID
+        <input type="text" inputMode="numeric" name="departmentId" autoComplete="off" required value={departmentDraft}
+          onChange={e=>{setDepartmentDraft(e.target.value);reviewed.current=null;setReview(null);setError("");}}/>
+      </label>
+      <p>The department must be active and belong to the destination branch. Both memberships are saved together.</p>
       <button type="button" onClick={preview}>
         Review Add Branch
       </button>
@@ -66,7 +73,7 @@ function ConfirmationForm({
         <section aria-label="Review branch membership">
           <p>
             Add STANDARD, nonprimary branch membership for Account ID: {target},
-            Destination Branch ID: {review}?
+            Destination Branch ID: {review.branch}, Working Department ID: {review.department}?
           </p>
           <button type="button" onClick={confirm}>
             Confirm Add Branch
@@ -102,8 +109,8 @@ export function AddUserBranchPage({
         membership, including for your own account.
       </p>
       <p>
-        This operation only adds a STANDARD, nonprimary membership. It does not
-        change the primary branch, department or roles.
+        This operation adds a STANDARD, nonprimary branch membership and the selected
+        working department membership. It does not change the primary branch, primary department or roles.
       </p>
       {progress.phase === "unknown" && (
         <>
@@ -121,6 +128,7 @@ export function AddUserBranchPage({
           <p>accessId: {membership.accessId}</p>
           <p>userId: {membership.userId}</p>
           <p>branchId: {membership.branchId}</p>
+          <p>Working department: {membership.departmentId}</p>
           <p>accessLevel: {membership.accessLevel}</p>
           <p>isPrimary: {String(membership.isPrimary)} (nonprimary)</p>
         </section>
