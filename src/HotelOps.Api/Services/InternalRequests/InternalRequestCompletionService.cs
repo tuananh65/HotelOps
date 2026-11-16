@@ -6,6 +6,7 @@ using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.MaterialRequests;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
@@ -36,11 +37,30 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
         if(!valid.IsValid||valid.Session?.SessionId!=sid||valid.Session.IsRestricted)throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
 
-    private Task<int> MaterialBlockersAsync(long id,long branch,CancellationToken ct)=>db.Database.SqlQuery<int>($"""
-        SELECT COUNT(*) AS Value FROM dbo.internal_request_material_links l
-        JOIN dbo.material_requests m ON m.request_id=l.material_request_id
-        WHERE l.internal_request_id={id} AND (l.is_mandatory=1 OR m.branch_id<>{branch})
-        """).SingleAsync(ct);
+    private sealed class MaterialLink { public long Id { get; set; } public bool Mandatory { get; set; } }
+
+    private async Task<int> MaterialBlockersAsync(long id,long branch,CancellationToken ct)
+    {
+        var links = await db.Database.SqlQuery<MaterialLink>($"""
+            SELECT material_request_id AS Id,is_mandatory AS Mandatory
+            FROM dbo.internal_request_material_links WHERE internal_request_id={id}
+            """).OrderBy(l => l.Id).ToArrayAsync(ct);
+        var blockers = 0;
+        foreach (var link in links)
+        {
+            // Optional work still needs valid branch provenance. Target metadata is never
+            // disclosed through this internal closure prerequisite.
+            if (!await db.MaterialRequests.AsNoTracking().AnyAsync(m => m.RequestId == link.Id
+                && m.BranchId == branch && m.Department.BranchId == branch, ct))
+            { blockers++; continue; }
+            if (!link.Mandatory) continue;
+            var evidence = await MaterialCompletionEvidence.ReadAsync(db, link.Id, branch, ct);
+            // Explicit DEV3 decision: both proven FULLY_ISSUED and REMAINDER_CLOSED
+            // satisfy mandatory-material completion. No other state is inferred closed.
+            if (!evidence.FullyIssuedProven && !evidence.RemainderClosureProven) blockers++;
+        }
+        return blockers;
+    }
 
     public async Task<InternalRequestCompletionView> ReadAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
     {
@@ -93,7 +113,7 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
             if(assignments.Length!=1||assignments[0].EndedAt!=null||assignments[0].AssignedAt>now)throw new InternalRequestReadException(409,"IR_ASSIGNMENT_INCONSISTENT");
             if((await InternalRequestCompletionWork.ReadKnownBlockersAsync(db,id,ct)).Count!=0)
                 throw new InternalRequestReadException(409,"IR_COMPLETION_BLOCKED");
-            // Pending approved mapping of Fully Issued / remainder closure. Do not infer closed.
+            // Reconcile approved terminal material states against their stored evidence.
             // Optional links still require valid branch provenance.
             if(await MaterialBlockersAsync(id,request.BranchId,ct)!=0)throw new InternalRequestReadException(409,"IR_MATERIAL_COMPLETION_UNRESOLVED");
             var entry=new InternalRequestEvent{InternalRequestId=id,EventType="COMPLETE",OldStatus="IN_PROGRESS",NewStatus="CLOSED",EventNote=result,ActorId=ticket.UserId,OccurredAt=now};

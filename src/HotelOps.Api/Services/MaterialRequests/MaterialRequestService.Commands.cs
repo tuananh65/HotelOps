@@ -204,7 +204,7 @@ public sealed partial class MaterialRequestService
             .Include(x => x.MaterialFulfillmentLines).Where(x => x.RequestId == r.RequestId).ToListAsync(ct);
         ValidateFulfillments(r, batches);
     }
-    private static void ValidateFulfillments(MaterialRequest r, IReadOnlyCollection<MaterialFulfillment> batches)
+    internal static void ValidateFulfillments(MaterialRequest r, IReadOnlyCollection<MaterialFulfillment> batches)
     {
         if (batches.Select(x => x.StockDocumentId).Distinct().Count() != batches.Count)
             throw Invalid("Each fulfillment requires its own ISSUE document.");
