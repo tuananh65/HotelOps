@@ -9,6 +9,25 @@ public enum RevokeCapabilityImpact { Preserved, Lost, Unknown }
 /// <summary>Counterfactual grant evaluation, never writer or release authorization.</summary>
 public static class RevokeRoleGrantImpact
 {
+    public static RevokeCapabilityImpact HousekeepingExecutor(string? workflowState, bool rework,
+        IReadOnlyList<RevokeGrant> before, IReadOnlyList<RevokeGrant> after, long? branch, DateTime nowUtc)
+    {
+        if (branch is null or <= 0 || nowUtc.Kind != DateTimeKind.Utc) return RevokeCapabilityImpact.Unknown;
+        var open = rework
+            ? workflowState is "PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "ON_HOLD" or "PENDING_REINSPECTION"
+            : workflowState is "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD" or "PENDING_INSPECTION" or "REWORK_REQUIRED";
+        if (!open) return RevokeCapabilityImpact.Unknown;
+        var execute = Evaluate(before, after, "CLEANING_EXECUTE", branch, true, nowUtc);
+        var read = Evaluate(before, after, "CLEANING_VIEW", branch, true, nowUtc);
+        if (execute == RevokeCapabilityImpact.Lost || read == RevokeCapabilityImpact.Lost) return RevokeCapabilityImpact.Lost;
+        // Assignee eligibility requires a current HK_STAFF assignment in this branch.
+        // A grant on a different actor role does not preserve that eligibility.
+        bool Staff(RevokeGrant g) => g.RoleCode == "HK_STAFF" && g.Path.BranchId == branch
+            && PermissionGrantRules.IsEligible(g.Path, nowUtc);
+        if (before.Any(Staff) && !after.Any(Staff)) return RevokeCapabilityImpact.Lost;
+        return before.Any(Staff) && after.Any(Staff) && execute == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved
+            ? RevokeCapabilityImpact.Preserved : RevokeCapabilityImpact.Unknown;
+    }
     public static RevokeCapabilityImpact Evaluate(IReadOnlyList<RevokeGrant> before,
         IReadOnlyList<RevokeGrant> after, string permission, long? branch, bool ownsResource, DateTime nowUtc)
     {

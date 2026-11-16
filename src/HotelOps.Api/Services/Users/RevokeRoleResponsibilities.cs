@@ -54,6 +54,9 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
             if (result == RevokeCapabilityImpact.Lost) blockers.Add(fact);
             if (result == RevokeCapabilityImpact.Unknown) unresolved.Add(fact + "_UNKNOWN");
         }
+        var housekeeping = await new RevokeHousekeepingResponsibilities(db).ReadAsync(target, before, after, now, ct);
+        blockers.UnionWith(housekeeping.Blockers);
+        unresolved.UnionWith(housekeeping.Unresolved);
         // FE11 uses task_progress_versions, not the physical TODO/IN_PROGRESS shorthand.
         // Keep all branches (including inactive ones); a scope loss cannot erase assigned work.
         var taskAssignments = await db.OperationalTaskAssignments.AsNoTracking()
