@@ -155,3 +155,19 @@ test("history 401/403/404/503 errors never trigger retry or prototype fallback",
     assert.equal(calls, 1);
   }
 });
+
+test("persisted inspection outcome supports filtering but never accepts denied or mismatched results", async () => {
+  const persisted = { ...coverage, inspection: "PERSISTED_SOURCE" };
+  const response = { ...page, coverage: persisted, items: [{ ...cycle, result: "PASS" }] };
+  globalThis.fetch = async () => Response.json(response);
+  assert.equal((await listTurnovers("4", new URLSearchParams({ result: "PASS" }))).items[0].result, "PASS");
+  await assert.rejects(listTurnovers("4", new URLSearchParams({ result: "FAIL" })), /INVALID_TURNOVER_RESPONSE/);
+  globalThis.fetch = async () => Response.json({ ...response, coverage: { ...persisted, inspection: "SOURCE_READ_DENIED" } });
+  await assert.rejects(listTurnovers("4", new URLSearchParams()), /INVALID_TURNOVER_RESPONSE/);
+  const inspection = { id: 8, cleaningTaskId: 3, roomId: 4, versionId: 9, versionNumber: 1, inspectorId: 5,
+    recordedStatus: "COMPLETED", atUtc: "2026-11-07T01:00:00Z", result: "PASS", coverage: "PERSISTED_SOURCE" };
+  globalThis.fetch = async () => Response.json({ ...detail, coverage: persisted, inspections: [inspection] });
+  assert.equal((await readTurnover("4", "3", new URLSearchParams())).inspections[0].result, "PASS");
+  globalThis.fetch = async () => Response.json({ ...detail, coverage: persisted, inspections: [{ ...inspection, recordedStatus: "PENDING" }] });
+  await assert.rejects(readTurnover("4", "3", new URLSearchParams()), /INVALID_TURNOVER_RESPONSE/);
+});

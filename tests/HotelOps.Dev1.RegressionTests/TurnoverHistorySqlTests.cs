@@ -37,7 +37,7 @@ public sealed class TurnoverHistorySqlTests
         var task=await db.CleaningTasks.AsNoTracking().Where(t=>t.Room.BranchId==branch).OrderByDescending(t=>t.CleaningTaskId).FirstAsync(ct);
         var before=await Snapshot(db,ct);var service=Service(db,supervisor.UserId);var ticket=CleaningClosureWorkflowTests.Ticket(supervisor.UserId);
         var result=await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch,PageSize:1),null,ct);Assert.Equal(TurnoverHistoryStatus.Success,result.Status);
-        var page=Assert.IsType<TurnoverPage>(result.Value);Assert.Single(page.Items);Assert.Equal(task.CleaningTaskId,page.Items[0].Id);Assert.Null(page.Items[0].Result);Assert.Equal("NOT_ACCEPTED",page.Coverage.Inspection);
+        var page=Assert.IsType<TurnoverPage>(result.Value);Assert.Single(page.Items);Assert.Equal(task.CleaningTaskId,page.Items[0].Id);Assert.Null(page.Items[0].Result);Assert.Equal("PERSISTED_SOURCE",page.Coverage.Inspection);
         var pointer=await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WHERE room_id={task.RoomId}").SingleAsync(ct);Assert.Equal(pointer==task.CleaningTaskId,page.Items[0].IsCurrentCycle);
         var detailResult=await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch,TimelinePageSize:3),task.CleaningTaskId,ct);Assert.Equal(TurnoverHistoryStatus.Success,detailResult.Status);
         var detail=Assert.IsType<TurnoverDetail>(detailResult.Value);Assert.InRange(detail.Timeline.Count,1,3);Assert.All(detail.Timeline,e=>Assert.Equal(DateTimeKind.Utc,e.AtUtc.Kind));Assert.Equal(TurnoverReadRules.Order(detail.Timeline),detail.Timeline);
@@ -46,7 +46,7 @@ public sealed class TurnoverHistorySqlTests
         Assert.All(detail.Inspections,i=>{Assert.Equal(task.RoomId,i.RoomId);Assert.Equal(task.CleaningTaskId,i.CleaningTaskId);Assert.Null(i.Result);});
         Assert.All(detail.Reworks,w=>Assert.Contains(detail.Inspections,i=>i.Id==w.InspectionId));
         var empty=Assert.IsType<TurnoverPage>((await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch,From:DateTime.UtcNow.AddDays(1)),null,ct)).Value);Assert.Empty(empty.Items);
-        Assert.Equal(TurnoverHistoryStatus.Unavailable,(await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch,Result:"FAIL"),null,ct)).Status);
+        Assert.Equal(TurnoverHistoryStatus.Success,(await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch,Result:"FAIL"),null,ct)).Status);
         var foreign=await db.CleaningTasks.Where(t=>t.RoomId!=task.RoomId).Select(t=>t.CleaningTaskId).FirstAsync(ct);
         Assert.Equal(TurnoverHistoryStatus.NotFound,(await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch),foreign,ct)).Status);
         Assert.Equal(TurnoverHistoryStatus.NotFound,(await service.ReadTurnoverAsync(ticket,1,task.RoomId,new(BranchId:branch),task.CleaningTaskId,ct,long.MaxValue,Path.GetTempPath())).Status);

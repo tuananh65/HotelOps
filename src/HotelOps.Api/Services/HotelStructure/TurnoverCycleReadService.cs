@@ -25,13 +25,13 @@ public sealed partial class TurnoverHistoryService
             var access = await permissions.EvaluateBranchAsync("INSPECTION_VIEW", room.BranchId, token);
             if (access.Decision == PermissionDecision.Unavailable) return new(TurnoverHistoryStatus.Unavailable);
             var inspect = access.IsGranted;
-            // No accepted conclusion/source adapter exists. Never filter by an unaccepted PASS/FAIL value.
-            if (q.Result != null) return new(TurnoverHistoryStatus.Unavailable, new { code = "INSPECTION_RESULT_SOURCE_NOT_ACCEPTED" });
+            // Filtering itself reveals inspection data; CLEANING_VIEW does not grant it.
+            if (q.Result != null && !inspect) return new(TurnoverHistoryStatus.Forbidden);
             var pointer = await HasTable("room_cleaning_cycle_state", token);
             var readiness = await HasTable("room_readiness_events", token);
             var workflow = await HasColumn("cleaning_tasks", "workflow_status", token);
             var reworkWorkflow = await HasColumn("cleaning_reworks", "workflow_status", token);
-            var coverage = new TurnoverCoverage("PERSISTED_SOURCE", inspect ? "NOT_ACCEPTED" : "SOURCE_READ_DENIED",
+            var coverage = new TurnoverCoverage("PERSISTED_SOURCE", inspect ? "PERSISTED_SOURCE" : "SOURCE_READ_DENIED",
                 inspect ? "PERSISTED_SOURCE_NOT_SHARED_ACCEPTED" : "SOURCE_READ_DENIED",
                 readiness ? "PERSISTED_EVENTS_NOT_SHARED_ACCEPTED" : "UNAVAILABLE",
                 "UNAVAILABLE_CYCLE_LINK_CONTRACT");
@@ -39,6 +39,10 @@ public sealed partial class TurnoverHistoryService
             if (cycleId != null) tasks = tasks.Where(t => t.CleaningTaskId == cycleId);
             if (q.From is { } from) tasks = tasks.Where(t => t.CreatedAt >= from);
             if (q.To is { } to) tasks = tasks.Where(t => t.CreatedAt <= to);
+            if (q.Result != null) tasks = tasks.Where(t => t.RoomInspections.Where(i => i.RoomId == roomId)
+                .OrderByDescending(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenByDescending(i => i.InspectionId)
+                .Select(i => i.Status == "COMPLETED" && (i.Result == "PASS" || i.Result == "FAIL" || i.Result == "CONDITIONAL")
+                    ? i.Result : null).FirstOrDefault() == q.Result);
             var total = await tasks.CountAsync(token);
             if (cycleId != null && total == 0) return new(TurnoverHistoryStatus.NotFound);
             var page = await tasks.OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.CleaningTaskId)
@@ -52,14 +56,22 @@ public sealed partial class TurnoverHistoryService
                 var state = workflow ? await db.Database.SqlQuery<string?>($"SELECT workflow_status AS [Value] FROM dbo.cleaning_tasks WHERE cleaning_task_id={task.CleaningTaskId}").SingleAsync(token) : null;
                 bool? currentCycle = pointer ? await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.room_cleaning_cycle_state WHERE room_id={roomId} AND cleaning_task_id={task.CleaningTaskId}").SingleAsync(token) == 1 : null;
                 var reworkCount = inspect ? await ValidReworks(task.CleaningTaskId, roomId).CountAsync(token) : (int?)null;
+                var outcome = inspect ? await TurnoverInspectionProjection.Latest(db.RoomInspections.AsNoTracking()
+                    .Where(i => i.RoomId == roomId && i.CleaningTaskId == task.CleaningTaskId)).FirstOrDefaultAsync(token) : null;
                 var idKey = task.CleaningTaskId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                var cancellation = task.Status == "CANCELLED" ? await db.AuditLogs.AsNoTracking().Where(a => a.BranchId == room.BranchId
-                    && a.EntityType == "cleaning_tasks" && a.EntityId == idKey && a.Action == "CANCEL")
-                    .OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.AuditId).Select(a => a.NewValues).FirstOrDefaultAsync(token) : null;
+                // Canonical cancellation writes UPDATE + action=CANCEL_CLEANING, not Action=CANCEL.
+                // Keep exact legacy CANCEL support; unrelated UPDATE reasons are not cancellation evidence.
+                var cancellation = task.Status == "CANCELLED" ? await db.Database.SqlQuery<string?>($"""
+                    SELECT TOP(1) new_values AS [Value] FROM dbo.audit_logs
+                    WHERE branch_id={room.BranchId} AND entity_type='cleaning_tasks' AND entity_id={idKey}
+                    AND (action='CANCEL' OR (action='UPDATE' AND
+                      JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE NULL END,'$.action')='CANCEL_CLEANING'))
+                    ORDER BY occurred_at DESC,audit_id DESC
+                    """).FirstOrDefaultAsync(token) : null;
                 cycles.Add(new(task.CleaningTaskId, roomId, room.BranchId, room.RoomNumber, task.TaskNo,
                     await db.ReferenceValues.Where(r => r.ReferenceId == task.CleaningTypeId).Select(r => r.DisplayName).SingleAsync(token),
                     task.Status, state, TurnoverReadRules.Utc(task.CreatedAt), TurnoverReadRules.Utc(task.ActualStartAt), TurnoverReadRules.Utc(task.ActualEndAt),
-                    currentCycle, null, reworkCount, TurnoverReadRules.CancellationReason(cancellation),
+                    currentCycle, outcome, reworkCount, TurnoverReadRules.CancellationReason(cancellation),
                     assignments.Select(a => a with { AssignedAtUtc = TurnoverReadRules.Utc(a.AssignedAtUtc), EndedAtUtc = TurnoverReadRules.Utc(a.EndedAtUtc) }).ToArray()));
             }
             object value = new TurnoverPage(roomId, room.BranchId, cycles, total, q, coverage);
@@ -67,7 +79,9 @@ public sealed partial class TurnoverHistoryService
             {
                 var inspections = inspect ? await db.RoomInspections.AsNoTracking().Where(i => i.RoomId == roomId && i.CleaningTaskId == cycle)
                     .OrderBy(i => i.CreatedAt).ThenBy(i => i.InspectionId).Select(i => new TurnoverInspection(i.InspectionId, cycle, roomId,
-                        i.VersionId, i.Version.VersionNo, i.InspectorUserId, i.Status, i.InspectedAt ?? i.CreatedAt, null, "NOT_ACCEPTED")).ToArrayAsync(token) : [];
+                        i.VersionId, i.Version.VersionNo, i.InspectorUserId, i.Status, i.InspectedAt ?? i.CreatedAt,
+                        i.Status == "COMPLETED" && (i.Result == "PASS" || i.Result == "FAIL" || i.Result == "CONDITIONAL") ? i.Result : null,
+                        "PERSISTED_SOURCE")).ToArrayAsync(token) : [];
                 var reworks = new List<TurnoverRework>();
                 if (inspect)
                     foreach (var r in await ValidReworks(cycle, roomId).OrderBy(w => w.RequestedAt).ThenBy(w => w.ReworkId).ToArrayAsync(token))
@@ -121,6 +135,7 @@ public sealed partial class TurnoverHistoryService
             """;
         if (readiness) sql += " UNION ALL SELECT 'READINESS',e.event_id,'RECORDED',e.occurred_at,e.actor_user_id,CASE WHEN e.has_effective_block=1 THEN 'BLOCKED' ELSE e.readiness END,NULL FROM dbo.room_readiness_events e WHERE e.room_id=@room AND e.cleaning_task_id=@cycle";
         if (inspect) sql += " UNION ALL SELECT 'REWORK',w.rework_id,'REQUESTED',w.requested_at,NULL,NULL,w.reason FROM dbo.cleaning_reworks w JOIN dbo.room_inspections i ON i.inspection_id=w.inspection_id WHERE w.cleaning_task_id=@cycle AND i.cleaning_task_id=@cycle AND i.room_id=@room";
+        if (inspect) sql += " UNION ALL SELECT 'INSPECTION',i.inspection_id,'INSPECTED',i.inspected_at,i.inspector_user_id,i.result,i.summary_note FROM dbo.room_inspections i WHERE i.cleaning_task_id=@cycle AND i.room_id=@room AND i.status='COMPLETED' AND i.inspected_at IS NOT NULL";
         if (inspect) sql += " UNION ALL SELECT 'REWORK_AUDIT',a.audit_id,a.action,a.occurred_at,a.actor_user_id,JSON_VALUE(a.new_values,'$.entity.state'),JSON_VALUE(a.new_values,'$.note') FROM dbo.audit_logs a JOIN dbo.cleaning_reworks w ON a.entity_id=CONVERT(varchar(30),w.rework_id) JOIN dbo.room_inspections i ON i.inspection_id=w.inspection_id WHERE a.branch_id=@branch AND a.entity_type='cleaning_reworks' AND w.cleaning_task_id=@cycle AND i.cleaning_task_id=@cycle AND i.room_id=@room";
         if (intervals)
         {

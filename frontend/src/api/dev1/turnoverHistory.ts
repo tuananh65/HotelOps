@@ -20,7 +20,7 @@ export interface Cycle {
   startUtc: string | null;
   endUtc: string | null;
   isCurrentCycle: boolean | null;
-  result: null;
+  result: "PASS" | "FAIL" | "CONDITIONAL" | null;
   reworkCount: number | null;
   cancellationReason: string | null;
   assignees: {
@@ -65,7 +65,7 @@ export interface TurnoverDetail {
     inspectorId: number;
     recordedStatus: string;
     atUtc: string;
-    result: null;
+    result: "PASS" | "FAIL" | "CONDITIONAL" | null;
     coverage: string;
   }[];
   reworks: {
@@ -106,7 +106,7 @@ function coverage(v: unknown): asserts v is Coverage {
   if (
     !obj(v) ||
     v.cleaning !== "PERSISTED_SOURCE" ||
-    !["NOT_ACCEPTED", "SOURCE_READ_DENIED"].includes(v.inspection) ||
+    !["NOT_ACCEPTED", "PERSISTED_SOURCE", "SOURCE_READ_DENIED"].includes(v.inspection) ||
     !["PERSISTED_SOURCE_NOT_SHARED_ACCEPTED", "SOURCE_READ_DENIED"].includes(
       v.rework,
     ) ||
@@ -129,7 +129,7 @@ function cycle(v: unknown, room: number, branch: number): asserts v is Cycle {
     !time(v.startUtc) ||
     !time(v.endUtc) ||
     !(v.isCurrentCycle === null || typeof v.isCurrentCycle === "boolean") ||
-    v.result !== null ||
+    ![null, "PASS", "FAIL", "CONDITIONAL"].includes(v.result) ||
     !(v.reworkCount === null || num(v.reworkCount, 0)) ||
     !nullable(v.cancellationReason) ||
     !Array.isArray(v.assignees) ||
@@ -209,7 +209,11 @@ export async function listTurnovers(
   )
     invalid();
   coverage(d.coverage);
-  for (const item of d.items) cycle(item, id, d.branchId);
+  for (const item of d.items) {
+    cycle(item, id, d.branchId);
+    if (d.coverage.inspection !== "PERSISTED_SOURCE" && item.result !== null) invalid();
+    if (q.has("result") && item.result !== q.get("result")) invalid();
+  }
   return d as unknown as TurnoverPage;
 }
 export async function readTurnover(
@@ -236,6 +240,7 @@ export async function readTurnover(
   )
     invalid();
   coverage(d.coverage);
+  if (d.coverage.inspection !== "PERSISTED_SOURCE" && d.cycle.result !== null) invalid();
   for (const e of d.timeline)
     if (
       !obj(e) ||
@@ -264,8 +269,9 @@ export async function readTurnover(
       i.roomId !== r ||
       !str(i.recordedStatus) ||
       !stamp(i.atUtc) ||
-      i.result !== null ||
-      i.coverage !== "NOT_ACCEPTED"
+      ![null, "PASS", "FAIL", "CONDITIONAL"].includes(i.result) ||
+      !["NOT_ACCEPTED", "PERSISTED_SOURCE"].includes(i.coverage) ||
+      (i.result !== null && (i.coverage !== "PERSISTED_SOURCE" || d.coverage.inspection !== "PERSISTED_SOURCE" || i.recordedStatus !== "COMPLETED"))
     )
       invalid();
   const inspections = new Set(d.inspections.map((i: { id: number }) => i.id));
@@ -301,7 +307,7 @@ export async function readTurnover(
       invalid();
   if (
     d.coverage.inspection === "SOURCE_READ_DENIED" &&
-    (d.inspections.length ||
+    (d.cycle.reworkCount !== null || d.timeline.some((e: TimelineEvent) => ["INSPECTION", "REWORK", "REWORK_AUDIT"].includes(e.sourceType)) || d.inspections.length ||
       d.reworks.length ||
       d.evidence.some(
         (e: { entityType: string }) => e.entityType === "INSPECTION",
@@ -318,7 +324,7 @@ export function turnoverError(e: unknown): string {
     if (e.status === 404)
       return "Không tìm thấy phòng, cycle hoặc evidence trong phạm vi được cấp quyền.";
     if (e.status === 503)
-      return "Nguồn tạm chưa khả dụng; bộ lọc PASS/FAIL cần Inspection contract accepted.";
+      return "Nguồn lịch sử tạm chưa khả dụng. Thử tải lại sau.";
     if (e.status === 0) return "Không kết nối được API. Thử tải lại.";
   }
   return "Dữ liệu hoặc bộ lọc turnover không hợp lệ; không dùng dữ liệu prototype thay thế.";

@@ -14,8 +14,8 @@ function CoverageNote({ value }: { value: Coverage }) {
     <p role="note">
       Coverage: Cleaning {value.cleaning} · Inspection {value.inspection} ·
       Rework {value.rework} · Readiness {value.readiness} · RoomHistory{" "}
-      {value.roomStatusHistory}. Kết quả Inspection chưa accepted; không suy
-      diễn PASS/FAIL.
+      {value.roomStatusHistory}. Kết quả kiểm tra là lịch sử, không thay thế
+      trạng thái sẵn sàng hiện tại của phòng.
     </p>
   );
 }
@@ -131,9 +131,9 @@ export default function RoomTurnoverHistoryScreen() {
             name="result"
             defaultValue={params.get("result") || ""}
           >
-            <option value="">Tất cả (coverage hiện có)</option>
-            <option value="PASS">PASS — cần nguồn accepted</option>
-            <option value="FAIL">FAIL — cần nguồn accepted</option>
+            <option value="">Tất cả</option>
+            <option value="PASS">PASS</option>
+            <option value="FAIL">FAIL</option>
           </select>
         </label>
         <label>
@@ -175,6 +175,7 @@ export default function RoomTurnoverHistoryScreen() {
                       "Nhân viên",
                       "Bắt đầu UTC",
                       "Kết thúc UTC",
+                      "Kết quả kiểm tra",
                       "Rework",
                       "Lý do hủy",
                     ].map((x) => (
@@ -203,6 +204,7 @@ export default function RoomTurnoverHistoryScreen() {
                       </td>
                       <td>{c.startUtc || "—"}</td>
                       <td>{c.endUtc || "—"}</td>
+                      <td>{c.result ?? "Chưa có kết quả hoặc không có quyền xem"}</td>
                       <td>{c.reworkCount ?? "Chưa xác định"}</td>
                       <td>{c.cancellationReason || "—"}</td>
                     </tr>
@@ -264,13 +266,15 @@ export default function RoomTurnoverHistoryScreen() {
           >
             Timeline sau
           </button>
-          <h2>Inspection metadata (chưa accepted)</h2>
+          <h2>Kiểm tra phòng</h2>
           <ul>
             {d.inspections.map((i) => (
               <li key={i.id}>
                 Inspection {i.id} · Checklist version {i.versionNumber} (ID{" "}
-                {i.versionId}) · {i.recordedStatus} · {i.atUtc} · Result
-                unavailable
+                {i.versionId}) · {i.recordedStatus} · {i.atUtc} · {i.result ?? "Chưa kết luận"}{" "}
+                <Link to={`/inspection-history/${i.id}?branchId=${d.cycle.branchId}`}>
+                  Xem tiêu chí, lỗi và ảnh kiểm tra
+                </Link>
               </li>
             ))}
           </ul>

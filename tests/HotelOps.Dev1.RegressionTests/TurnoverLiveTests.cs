@@ -88,13 +88,13 @@ public sealed class TurnoverLiveTests
             var source=$"/api/rooms/{task.RoomId}/turnover-history";
             using var listed=await client.GetAsync(source+$"?branchId={user.PrimaryBranchId}&pageSize=1",ct);
             Assert.Equal(HttpStatusCode.OK,listed.StatusCode);
-            var list=await listed.Content.ReadFromJsonAsync<TurnoverPage>(ct);Assert.Single(list!.Items);Assert.Null(list.Items[0].Result);Assert.Equal("NOT_ACCEPTED",list.Coverage.Inspection);
+            var list=await listed.Content.ReadFromJsonAsync<TurnoverPage>(ct);Assert.Single(list!.Items);Assert.Null(list.Items[0].Result);Assert.Equal("PERSISTED_SOURCE",list.Coverage.Inspection);
             using var detail=await client.GetAsync(source+$"/{task.CleaningTaskId}?branchId={user.PrimaryBranchId}&timelinePageSize=3",ct);
             Assert.Equal(HttpStatusCode.OK,detail.StatusCode);
             var data=await detail.Content.ReadFromJsonAsync<TurnoverDetail>(ct);Assert.Equal(task.CleaningTaskId,data!.Cycle.Id);Assert.InRange(data.Timeline.Count,1,3);Assert.All(data.Inspections,i=>Assert.Null(i.Result));
             using var foreign=await client.GetAsync(source+$"/{long.MaxValue}?branchId={user.PrimaryBranchId}",ct);Assert.Equal(HttpStatusCode.NotFound,foreign.StatusCode);
             using var denied=await client.GetAsync(source+"?branchId=99999999",ct);Assert.Equal(HttpStatusCode.Forbidden,denied.StatusCode);
-            using var filter=await client.GetAsync(source+$"?branchId={user.PrimaryBranchId}&result=PASS",ct);Assert.Equal(HttpStatusCode.ServiceUnavailable,filter.StatusCode);
+            using var filter=await client.GetAsync(source+$"?branchId={user.PrimaryBranchId}&result=PASS",ct);Assert.Equal(HttpStatusCode.OK,filter.StatusCode);
             using var monitor=await client.GetAsync($"/api/branches/{user.PrimaryBranchId}/cleaning-monitor/cleaning/{task.CleaningTaskId}",ct);Assert.Equal(HttpStatusCode.OK,monitor.StatusCode);
             Assert.Equal(businessBefore,await BusinessSnapshot(db,ct));
             using var logout = await Post("/api/auth/logout", new { }); Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
