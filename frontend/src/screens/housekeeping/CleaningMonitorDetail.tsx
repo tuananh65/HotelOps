@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../../auth/AuthProvider";
 import { Link } from "react-router-dom";
 import CleaningCancellationPanel from "./CleaningCancellationPanel";
 import {
@@ -15,20 +16,25 @@ export default function CleaningMonitorDetail({
   kind: string;
   id: string;
 }) {
+  const { state } = useAuth();
+  const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const [cancelled, setCancelled] = useState(false);
   const [page, setPage] = useState(1),
     [retry, setRetry] = useState(0);
-  const [result, setResult] = useState<MonitorDetail | null>(null),
+  const [loaded, setLoaded] = useState<{ key: string; value: MonitorDetail } | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
+  const key = `${owner}/${branch}/${kind}/${id}/${page}`;
+  const result = owner !== null && loaded?.key === key ? loaded.value : null;
+  useEffect(() => { setCancelled(false); setPage(1); }, [branch, kind, id, owner]);
   useEffect(() => {
     const abort = new AbortController();
-    setResult(null);
+    setLoaded(null);
     setError("");
     setLoading(true);
-    readCleaning(branch, kind, id, page, abort.signal)
+    if (owner !== null) readCleaning(branch, kind, id, page, abort.signal)
       .then((data) => {
-        if (!abort.signal.aborted) setResult(data);
+        if (!abort.signal.aborted) setLoaded({ key, value: data });
       })
       .catch((e) => {
         if (!abort.signal.aborted) setError(monitorError(e));
@@ -37,7 +43,7 @@ export default function CleaningMonitorDetail({
         if (!abort.signal.aborted) setLoading(false);
       });
     return () => abort.abort();
-  }, [branch, kind, id, page, retry]);
+  }, [branch, kind, id, page, retry, owner, key]);
   return (
     <>
       <h1>Cleaning Task Detail</h1>
@@ -67,7 +73,7 @@ export default function CleaningMonitorDetail({
               task={id}
               onCancelled={() => {
                 setCancelled(true);
-                setResult(null);
+                setLoaded(null);
                 setPage(1);
                 setRetry(v => v + 1);
               }}

@@ -5,10 +5,13 @@ import {
   monitorError,
   type MonitorPage,
 } from "../../api/dev1/cleaningMonitor";
+import { useAuth } from "../../auth/AuthProvider";
 import { PageHeader } from "../../ui";
 export default function CleaningTaskListScreen({
   kindOnly,
 }: { kindOnly?: "rework" } = {}) {
+  const { state } = useAuth();
+  const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const [params, setParams] = useSearchParams();
   const effectiveParams = new URLSearchParams(params);
   if (kindOnly) effectiveParams.set("kind", kindOnly);
@@ -16,6 +19,7 @@ export default function CleaningTaskListScreen({
     branch = params.get("branchId") || "";
   const [result, setResult] = useState<{
     key: string;
+    owner: typeof owner;
     data: MonitorPage;
   } | null>(null);
   const [error, setError] = useState<{ key: string; message: string } | null>(
@@ -28,10 +32,10 @@ export default function CleaningTaskListScreen({
     setResult(null);
     setError(null);
     setLoading(Boolean(branch));
-    if (branch)
+    if (branch && owner !== null)
       listCleaning(branch, new URLSearchParams(key), abort.signal)
         .then((data) => {
-          if (!abort.signal.aborted) setResult({ key, data });
+          if (!abort.signal.aborted) setResult({ key, owner, data });
         })
         .catch((e) => {
           if (!abort.signal.aborted)
@@ -41,7 +45,7 @@ export default function CleaningTaskListScreen({
           if (!abort.signal.aborted) setLoading(false);
         });
     return () => abort.abort();
-  }, [branch, key, retry]);
+  }, [branch, key, retry, owner]);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const next = new URLSearchParams();
@@ -52,7 +56,7 @@ export default function CleaningTaskListScreen({
     setParams(next);
     setRetry((v) => v + 1);
   }
-  const data = result?.key === key ? result.data : null;
+  const data = owner !== null && result?.owner === owner && result.key === key ? result.data : null;
   function changePage(page: number) {
     const next = new URLSearchParams(params);
     next.set("page", String(page));

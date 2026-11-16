@@ -16,6 +16,11 @@ public sealed record CleaningMonitorResult(CleaningMonitorStatus Status, object?
 public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
 {
+    internal static bool SupervisorCanMonitor(IEnumerable<PermissionGrantPath> sameRoleGrants, long branch, DateTime now) =>
+        sameRoleGrants.Any(p => p.PermissionCode == "CLEANING_VIEW" && p.BranchAccessActive
+            && PermissionGrantRules.IsEligible(p, now)
+            && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL"
+                || p.BranchId == branch && PermissionGrantRules.EffectiveScope(p) == "BRANCH"));
     private const int TimelineLimit = 100;
     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
 
@@ -136,6 +141,18 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             var valid = await sessions.ValidateSessionAsync(ticket, ct);
             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted)
                 return CleaningMonitorStatus.SessionInvalid;
+            var now = clock.GetUtcNow().UtcDateTime;
+            var roleGrants = await (from role in db.UserRoles.AsNoTracking()
+                join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
+                where role.UserId == ticket.UserId && role.Role.RoleCode == "HK_SUPERVISOR"
+                    && grant.Permission.PermissionCode == "CLEANING_VIEW"
+                    && (role.BranchId == branchId || role.BranchId == null)
+                select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, role.BranchId,
+                    role.IsActive, role.Role.IsActive, role.AssignedAt, role.ExpiresAt,
+                    role.Branch == null || role.Branch.IsActive,
+                    db.UserBranchAccesses.Any(a => a.UserId == ticket.UserId && a.BranchId == branchId
+                        && a.RevokedAt == null && a.GrantedAt <= now))).ToArrayAsync(ct);
+            if (!SupervisorCanMonitor(roleGrants, branchId, now)) return CleaningMonitorStatus.Forbidden;
             // Supervisor monitor requires an actual branch/global view grant. OWN is not promoted to branch access.
             var access = await permissions.EvaluateBranchAsync("CLEANING_VIEW", branchId, ct);
             return access.IsGranted ? null : access.Decision == PermissionDecision.Unavailable
