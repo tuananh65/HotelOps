@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.PreventiveMaintenance;
 
-public sealed class PreventiveOccurrenceExecutionService(HotelOpsDbContext db,PreventiveOccurrenceReadService reader)
+public sealed partial class PreventiveOccurrenceExecutionService(HotelOpsDbContext db,PreventiveOccurrenceReadService reader)
 {
     public async Task<PreventiveOccurrenceView> StartAsync(SessionReference ticket,long sid,long branch,long id,string version,CancellationToken ct)
     {

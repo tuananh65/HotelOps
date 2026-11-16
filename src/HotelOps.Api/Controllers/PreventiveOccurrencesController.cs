@@ -15,6 +15,11 @@ public sealed class PreventiveOccurrencesController(PreventiveOccurrenceReadServ
 {
     public sealed record Assignment(long AssigneeId);
     public sealed record Cancellation(string Reason);
+    [HttpPost("{id:long}/complete"),RequestSizeLimit(262144)]
+    public async Task<PreventiveOccurrenceView> Complete(long branch,long id,PreventiveCompletionInput input,CancellationToken ct)
+    {
+        var(ticket,sid)=Identity();return await execution.CompleteAsync(ticket,sid,branch,id,Version(),input,ct);
+    }
     [HttpPost("{id:long}/start"),RequestSizeLimit(1024)]
     public async Task<PreventiveOccurrenceView> Start(long branch,long id,CancellationToken ct)
     {

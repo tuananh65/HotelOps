@@ -12,7 +12,8 @@ namespace HotelOps.Api.Services.PreventiveMaintenance;
 
 public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string Title,string Instruction,
     PreventiveCheckItem[] CheckItems,long? AssetId,long? RoomId,long? AreaId,long? AssigneeId,string Status,
-    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart);
+    DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart,
+    bool CanComplete,PreventiveCheckResult[]? Results);
 
 public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -78,6 +79,7 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
         var canAssign=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"MAINTENANCE_ASSIGN",ct);
         var canCancel=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"PM_MANAGE",ct);
         var canExecute=await MaintenanceExecutionAccess.GrantsAsync(db,ticket.UserId,branch,ct);
+        var completionInstalled=await PreventiveOccurrenceExecutionService.CompletionInstalledAsync(db,ct);
         foreach(var row in rows)
         {
             Snapshot? snapshot;
@@ -89,11 +91,36 @@ public sealed class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSes
                 ||new[]{snapshot.AssetId,snapshot.RoomId,snapshot.AreaId}.Count(v=>v!=null)!=1
                 ||snapshot.AssetId!=row.AssetId||snapshot.RoomId!=row.RoomId||snapshot.AreaId!=row.AreaId)
                 throw new InternalRequestReadException(409,"OCCURRENCE_SNAPSHOT_INVALID");
+            PreventiveCheckResult[]? savedResults=null;
+            if(row.Status=="COMPLETED")
+            {
+                if(!completionInstalled)throw new InternalRequestReadException(503,"PREVENTIVE_COMPLETION_STORAGE_UNAVAILABLE");
+                var proofs=await db.Database.SqlQuery<string>($"""
+                    SELECT c.results_json AS Value FROM dbo.preventive_occurrence_completions c
+                    JOIN dbo.work_intervals i ON i.interval_id=c.interval_id
+                    JOIN dbo.audit_logs a ON a.audit_id=c.audit_id
+                    JOIN dbo.preventive_maintenance_runs r ON r.run_id=c.run_id
+                    WHERE c.run_id={row.RunId} AND c.actor_id={row.AssigneeId} AND c.completed_at=r.performed_at
+                      AND c.actor_id=r.performed_by AND c.next_due_at=r.next_due_at
+                      AND i.work_item_kind='OCCURRENCE' AND i.work_item_id=c.run_id AND i.user_id=c.actor_id
+                      AND i.branch_id={branch} AND i.closed_at=c.completed_at AND i.closed_by=c.actor_id
+                      AND a.entity_type='preventive_maintenance_runs' AND a.entity_id=CONVERT(varchar(30),c.run_id)
+                      AND a.actor_user_id=c.actor_id AND a.branch_id={branch} AND a.occurred_at=c.completed_at
+                    """).ToArrayAsync(ct);
+                if(proofs.Length!=1)throw new InternalRequestReadException(409,"COMPLETION_PROVENANCE_INVALID");
+                try{savedResults=JsonSerializer.Deserialize<PreventiveCheckResult[]>(proofs[0]);}
+                catch(JsonException){throw new InternalRequestReadException(409,"COMPLETION_PROVENANCE_INVALID");}
+                if(savedResults==null||savedResults.Any(r=>r==null||r.Passed==null||!snapshot.CheckItems.Any(c=>c.Key==r.Key))
+                    ||savedResults.Select(r=>r.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=savedResults.Length
+                    ||snapshot.CheckItems.Any(c=>c.Required&&!savedResults.Any(r=>r.Key==c.Key)))
+                    throw new InternalRequestReadException(409,"COMPLETION_PROVENANCE_INVALID");
+            }
             result.Add(new(row.RunId,row.ScheduleId,snapshot.Title,snapshot.Instruction,snapshot.CheckItems,
                 snapshot.AssetId,snapshot.RoomId,snapshot.AreaId,row.AssigneeId,row.Status,
                 DateTime.SpecifyKind(row.DueAt,DateTimeKind.Utc),row.PerformedAt is {} performed?DateTime.SpecifyKind(performed,DateTimeKind.Utc):null,
                 row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
-                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED"));
+                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED",
+                completionInstalled&&canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="IN_PROGRESS",savedResults));
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);
         if(result.Any(r=>!finalScope.Lead&&(!finalScope.Staff||r.AssigneeId!=ticket.UserId)))
