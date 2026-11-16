@@ -399,3 +399,22 @@ existing React Router/use-client and bundle-size warnings. No SQL mutation, sche
 grant or worker configuration change. Business/SQL/API/browser tests NOT RUN.
 Pickup notices, Storekeeper notification and full issue/rollback/concurrency Human
 QA remain; UC097/098 are not COMPLETE_VERIFIED solely from source/build evidence.
+
+## UC097/098 requester pickup notice (2026-11-16)
+
+Posted material fulfillments now provide durable pickup notification events for
+the requester, for both full and partial batches. The event requires an ISSUE/
+POSTED stock document linked to the exact fulfillment and warehouse, matching
+posting actor/time and nonempty fulfillment lines. Delivery and source opening
+reuse full fulfillment reconciliation of line identities, quantities, stock line
+correlation and cumulative quantities before allowing access.
+
+The existing finite-retention, idempotent requester delivery path uses separate
+event namespaces for decision, remainder closure and fulfillment. Current account,
+MR_VIEW, branch and provenance checks remain mandatory; notification links confer
+no permission. Batch notices do not claim that the entire request is fully issued.
+The worker remains opt-in and was not enabled or executed against a database here.
+
+Backend build PASS (0 warnings/errors); no frontend edits, SQL changes or runtime/
+business tests in this batch. No COMPLETE_VERIFIED promotion. Storekeeper approval/
+closure notices and full workflow runtime acceptance remain outstanding.

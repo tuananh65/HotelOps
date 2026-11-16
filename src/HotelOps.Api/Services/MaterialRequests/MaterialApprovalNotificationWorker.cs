@@ -15,7 +15,7 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled) return;
-        long cursor = 0, cancellationCursor = 0, decisionCursor = 0, remainderCursor = 0;
+        long cursor = 0, cancellationCursor = 0, decisionCursor = 0, remainderCursor = 0, fulfillmentCursor = 0;
         while (!ct.IsCancellationRequested)
         {
             try
@@ -56,15 +56,26 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
                 decisionCursor = decisions.Length == 100 ? decisions[^1] : 0;
                 long[] remainders;
                 await using (var scope = scopes.CreateAsyncScope())
-                    remainders = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().PendingDecisionsAsync(remainderCursor, ct, remainder: true);
+                    remainders = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().PendingDecisionsAsync(remainderCursor, ct, MaterialApprovalNotificationDelivery.NoticeType.Remainder);
                 foreach (var id in remainders)
                 {
                     await using var scope = scopes.CreateAsyncScope();
-                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverDecisionAsync(id, ct, remainder: true); }
+                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverDecisionAsync(id, ct, MaterialApprovalNotificationDelivery.NoticeType.Remainder); }
                     catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                     catch (Exception error) { logger.LogWarning("Material remainder notice {RequestId} retained after {ErrorType}", id, error.GetType().Name); }
                 }
                 remainderCursor = remainders.Length == 100 ? remainders[^1] : 0;
+                long[] fulfillments;
+                await using (var scope = scopes.CreateAsyncScope())
+                    fulfillments = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().PendingDecisionsAsync(fulfillmentCursor, ct, MaterialApprovalNotificationDelivery.NoticeType.Fulfillment);
+                foreach (var id in fulfillments)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>().DeliverDecisionAsync(id, ct, MaterialApprovalNotificationDelivery.NoticeType.Fulfillment); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Material pickup notice {FulfillmentId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                fulfillmentCursor = fulfillments.Length == 100 ? fulfillments[^1] : 0;
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception error) { logger.LogWarning("Material approval notification scan retained after {ErrorType}", error.GetType().Name); }

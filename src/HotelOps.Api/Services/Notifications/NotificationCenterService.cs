@@ -155,9 +155,18 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         }
         if(source is {NotificationType:MaterialRequests.MaterialApprovalNotificationDelivery.RemainderKind,SourceType:MaterialRequests.MaterialApprovalNotificationDelivery.RemainderSource,SourceId:>0})
         {
-            var requestId=await MaterialRequests.MaterialApprovalNotificationDelivery.DecisionTargetAsync(db,source.SourceId.Value,user,ct,remainder:true);
+            var requestId=await MaterialRequests.MaterialApprovalNotificationDelivery.DecisionTargetAsync(db,source.SourceId.Value,user,ct,MaterialRequests.MaterialApprovalNotificationDelivery.NoticeType.Remainder);
             if(requestId==null||!await db.MaterialRequests.AsNoTracking().AnyAsync(r=>r.RequestId==source.SourceId
                 &&r.RemainderClosedBy==source.CreatedBy&&r.RemainderClosedAt==source.CreatedAt,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await tx.CommitAsync(ct);return new($"/operations/material-requests/{requestId}");
+        }
+        if(source is {NotificationType:MaterialRequests.MaterialApprovalNotificationDelivery.FulfillmentKind,SourceType:MaterialRequests.MaterialApprovalNotificationDelivery.FulfillmentSource,SourceId:>0})
+        {
+            var requestId=await MaterialRequests.MaterialApprovalNotificationDelivery.DecisionTargetAsync(db,source.SourceId.Value,user,ct,MaterialRequests.MaterialApprovalNotificationDelivery.NoticeType.Fulfillment);
+            if(requestId==null||!await db.MaterialFulfillments.AsNoTracking().AnyAsync(f=>f.FulfillmentId==source.SourceId
+                &&f.FulfilledBy==source.CreatedBy&&f.FulfilledAt==source.CreatedAt,ct))
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
             await tx.CommitAsync(ct);return new($"/operations/material-requests/{requestId}");
