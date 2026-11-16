@@ -90,7 +90,8 @@ builder.Services.AddOptions<HotelOps.Api.Services.PreventiveMaintenance.Preventi
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceGeneration>();
 builder.Services.AddHostedService<HotelOps.Api.Services.PreventiveMaintenance.PreventiveGenerationWorker>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Incidents.IncidentNotificationWorker>();
-builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");
+builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration")
+    .Validate(o => o.RetrySeconds is >= 30 and <= 3600).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();
 builder.Services.AddHostedService<HotelOps.Api.Services.OperationalTasks.TaskSeriesWorker>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
