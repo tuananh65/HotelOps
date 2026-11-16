@@ -20,13 +20,13 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // borrow Internal Request permissions as authority over a linked incident.
 internal static class IncidentReadContract
 {
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V1";
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V2";
     private const string Policy = "GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and current authorization before disclosure; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
         + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
         + "evidence metadata and private download require current source visibility and exact attachment ownership; "
-        + "UC051 source detail supports current eligible reporter/assignee or branch Lead/OM with independent INCIDENT_VIEW; UC143 list scope unchanged; no mutation authority";
+        + "UC051 source detail supports current eligible reporter/assignee or branch Lead/OM with independent INCIDENT_VIEW; UC143 list scope unchanged; recorded SLA only, missing or invalid deadlines remain unavailable without planned-time inference; no mutation authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ", "INCIDENT-EVIDENCE-LIST", "INCIDENT-EVIDENCE-DOWNLOAD" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("INCIDENT_VIEW", IsSource(a)
@@ -125,6 +125,7 @@ internal static class IncidentReadContract
                 return new OkObjectResult(page);
             }
             var result = await IncidentService.DetailAsync(query, Id(a), ct, db);
+            if (result != null) result.Sla = await IncidentSlaRead.ReadAsync(db, result.IncidentId, ct);
             return result == null ? new NotFoundResult() : new OkObjectResult(result);
         }
         catch (ValidationException) { return new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid incident filters" }); }

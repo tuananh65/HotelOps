@@ -86,16 +86,17 @@ public sealed partial class MaintenanceWorkService
     public Task<MaintenanceWorkDetailDto?> StartWorkAsync(long id,
         StartMaintenanceWorkRequest request, CancellationToken cancellationToken) {
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["StartWork"], request.ActorUserId, id, request);
-        return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+        return ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
         {
             RequireState(work, "PENDING");
             RequireAssignee(work, TrustedActorId);
+            if (await MaintenanceAssignmentProof.ReadAsync(_dbContext, id, token) != "ASSIGNED")
+                throw new ValidationException("Verified triage, SLA and current assignment evidence are required before Start.");
             if (work.ActualStartAt != null)
                 throw new ValidationException("Existing start evidence must be reconciled before starting pending work.");
             work.Status = "IN_PROGRESS";
             work.ActualStartAt = now;
             incident.Status = "IN_PROGRESS";
-            return Task.CompletedTask;
         }, cancellationToken);
     }
 }

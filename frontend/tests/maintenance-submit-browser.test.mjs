@@ -44,7 +44,7 @@ for(const stale of [false,true])test(`Submit validates fields, selects existing 
 const readBundle = await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
 import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';
 import{MaintenanceReadView}from'./src/dev2/MaintenanceReadView';
-createRoot(document.getElementById('root')).render(<BrowserRouter><MaintenanceReadView detail canDetail data={{maintenanceWorkId:7,incidentId:8,status:'PENDING',maintenanceWorkLogs:[]}}/></BrowserRouter>);
+createRoot(document.getElementById('root')).render(<BrowserRouter><MaintenanceReadView detail canDetail data={{maintenanceWorkId:7,incidentId:8,status:'PENDING',source:'INCIDENT',maintenanceWorkLogs:[],...window.__maintenanceRead}}/></BrowserRouter>);
 `},bundle:true,write:false,format:'iife',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
 for(const denied of [false,true])test('Maintenance evidence read '+(denied?'denies independent Incident access':'never exposes upload controls'),async()=>{
  const page=await browser.newPage(),writes=[];page.setDefaultTimeout(5000);
@@ -55,7 +55,13 @@ for(const denied of [false,true])test('Maintenance evidence read '+(denied?'deni
     :route.fulfill({json:{incidentId:8,page:1,total:1,items:[{id:9,name:'reported.png',note:null,authorId:42,uploadedAt:'2026-11-16T12:00:00Z'}],version:'A'.repeat(43)+'=',canAdd:true,noteTotal:0,notes:[]}});
    return route.fulfill({contentType:'text/html',body:'<div id="root"></div>'});
   });
-  await page.goto('https://hotelops.test');await page.addScriptTag({content:readBundle.outputFiles[0].text});
+  await page.goto('https://hotelops.test');
+  await page.evaluate(denied=>{window.__maintenanceRead={plannedEndAt:'2030-01-01T00:00:00Z',incidentSla:denied?{responseDeadlineAt:null,resolutionDeadlineAt:null,unavailableReason:'INCIDENT_SLA_ACCESS_UNAVAILABLE'}:{responseDeadlineAt:'2026-11-16T09:00:00Z',resolutionDeadlineAt:'2026-11-16T12:00:00Z',unavailableReason:null}}},denied);
+  await page.addScriptTag({content:readBundle.outputFiles[0].text});
+  const sla=page.getByRole('region',{name:'Incident SLA deadlines'});
+  await sla.waitFor();
+  if(denied){assert.equal(await sla.locator('dd').first().innerText(),'Unavailable');await sla.getByText('Current access does not allow viewing Incident SLA deadlines.',{exact:true}).waitFor();}
+  else assert.equal(await sla.locator('dd').first().innerText(),await page.evaluate(()=>new Date('2026-11-16T09:00:00Z').toLocaleString()));
   if(denied)await page.getByText('Incident evidence is unavailable. Reload to check current access.',{exact:true}).waitFor();
   else {await page.getByRole('link',{name:'reported.png',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'reported.png',exact:true}).getAttribute('href'),'/api/incidents/8/evidence/9');}
   assert.equal(await page.getByRole('button',{name:'Save evidence',exact:true}).count(),0);

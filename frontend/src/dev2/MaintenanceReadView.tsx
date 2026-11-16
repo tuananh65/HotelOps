@@ -62,6 +62,21 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
       <dt>Planned end</dt><dd>{time(data.plannedEndAt)}</dd><dt>Actual start</dt><dd>{time(data.actualStartAt)}</dd>
       <dt>Resolution</dt><dd>{show(data.resolutionNote)}</dd><dt>Resolved at</dt><dd>{time(data.resolvedAt)}</dd></dl>
     <h4>Work history</h4>
+    {data.assignmentWorkflow != null && <p>Assignment workflow: {show(data.assignmentWorkflow)}.
+      {data.assignmentWorkflow === "UNVERIFIED" && " Triage and assignment evidence must be reconciled before accepting this work."}</p>}
+    {data.source === "INCIDENT" && <section aria-label="Incident SLA deadlines">
+      <h4>Incident SLA deadlines</h4>
+      <dl><dt>Response deadline</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.responseDeadlineAt) : "Unavailable"}</dd>
+        <dt>Resolution deadline</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.resolutionDeadlineAt) : "Unavailable"}</dd></dl>
+      {(!isObject(data.incidentSla) || data.incidentSla.unavailableReason != null) && <p>
+        {isObject(data.incidentSla) && data.incidentSla.unavailableReason === "INCIDENT_SLA_ACCESS_UNAVAILABLE"
+          ? "Current access does not allow viewing Incident SLA deadlines."
+          : isObject(data.incidentSla) && data.incidentSla.unavailableReason === "INCIDENT_SLA_INVALID"
+            ? "Recorded deadlines are inconsistent and cannot be used."
+            : "Incident SLA deadlines have not been recorded or are unavailable."}
+      </p>}
+      <p>Maintenance planned times do not replace Incident SLA deadlines.</p>
+    </section>}
     {logs.length === 0 ? <p>No work logs recorded.</p> : <ol>{logs.map((log, index) => <li key={show(log.logId) + ":" + index}>
       {typeof log.progressPercent === "number" && Number.isInteger(log.progressPercent) && log.progressPercent >= 0 && log.progressPercent <= 100 ? `${log.progressPercent}% ? ` : ""}{time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} minutes)
     </li>)}</ol>}

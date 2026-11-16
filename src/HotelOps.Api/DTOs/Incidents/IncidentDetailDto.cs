@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class IncidentDetailDto
 {
+    public IncidentSlaDto? Sla { get; set; }
     public long IncidentId { get; init; }
     public string IncidentNo { get; init; } = string.Empty;
     public long BranchId { get; init; }
