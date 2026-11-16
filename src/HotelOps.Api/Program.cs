@@ -120,6 +120,7 @@ builder.Services.AddScoped<IInventoryReceiptPosting>(services => services.GetReq
 builder.Services.AddScoped<IInventoryQuantityContext>(services => services.GetRequiredService<InventoryService>());
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialRequestService>();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialCreationAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialTaskLinks>();
 builder.Services.AddScoped<IInventoryIssuePosting>(services => services.GetRequiredService<InventoryService>());
 
 builder.Services.Configure<PasswordHasherOptions>(options =>

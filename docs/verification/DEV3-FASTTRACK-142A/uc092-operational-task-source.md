@@ -1,0 +1,13 @@
+# UC092 operational-task link source slice
+
+2026-11-16. PARTIAL_IMPLEMENTATION. No new complete UC, runtime acceptance or database mutation.
+
+Implemented GET/POST /api/material-requests/{id}/linked-tasks and canonical MaterialTaskLinks UI. Reads intersect current MR_VIEW with the existing operational-task visibility population shared with InternalRequestTaskLinks; branch/OWN behavior is unchanged. Candidate lists require the current requester, existing MR_CREATE eligibility and a non-Cancelled/non-Rejected material request. Task state comes from the authoritative task workflow, not legacy TODO. Lists are paginated with final scope/count revalidation.
+
+POST uses HTTPS, authenticated current SQL session, global CSRF middleware, fresh client session token, requester and current grant checks, canonical eight-byte expected rowversion, duplicate protection and Serializable transaction. It advances material rowversion, inserts audit and typed task link atomically, then rechecks requester/target visibility and open state. Links are additive: issued quantities, stock documents, task state and existing incident/IR attribution are not overwritten. Unknown client mutation outcomes are not automatically retried; UI reloads links before another attempt.
+
+Persistence: MaterialTaskLinksRecoveryV1.sql prepares a narrow request/task/audit FK table with non-cascading relationships. It uses exact known disposable identity plus recent backup/actual restore guards and defaults to rollback. It was NOT executed; no schema capability is asserted. Deployment and rollback/idempotency/schema verification remain required. Existing audit retention must preserve referenced audit until the approved archive contract can cover this new reference; do not disable its FK or cascade-delete it.
+
+Validation: first backend build failed on missing ICurrentUserAccessor namespace; corrected. Final dotnet build HotelOps.slnx --no-restore PASS, 0 warnings; frontend production build and explicit typecheck PASS. Existing React Router directive and bundle-size warnings remain. New endpoint API/SQL/browser tests NOT_RUN, deferred to Human QA under code-first directive. No generated EF entity modified.
+
+Remaining UC092: cleaning-task and maintenance-occurrence typed links and independent target authority; SQL installation and end-to-end acceptance for operational-task links. Human QA must cover requester versus nonrequester, revoked/cross-branch/OWN grants, closed or concurrently changed task, stale request version, duplicate link, rollback and audit retention. Source/QA totals remain 39/144 and historical 27/144.

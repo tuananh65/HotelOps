@@ -29,6 +29,7 @@ import { ReplenishmentListView } from "./ReplenishmentListView";
 import { ReplenishmentDetailView } from "./ReplenishmentDetailView";
 import { MaterialListView } from "./MaterialListView";
 import { MaterialReviewHistory } from "./MaterialReviewHistory";
+import { MaterialTaskLinks } from "./MaterialTaskLinks";
 import { ReplenishmentWaitingRequests } from "./ReplenishmentWaitingRequests";
 import { ReplenishmentPostFields, replenishmentPostReady } from "./ReplenishmentPostFields";
 import { ReplenishmentCreateFields, replenishmentCreateReady } from "./ReplenishmentCreateFields";
@@ -626,6 +627,8 @@ function Screen({
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
+      {module === "material-requests" && operation.id === "A004A-038" && record.requestId != null
+        && <MaterialTaskLinks record={record} />}
       {module === "material-requests" && materialApprovalReady(record, actor, "A004A-047")
         && <MaterialReviewHistory record={record} />}
       {module === "material-requests" && record.rawStatus === "PARTIALLY_ISSUED" && record.branchId != null
