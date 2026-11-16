@@ -40,6 +40,10 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
         async Task Add<T>(string source, IQueryable<T> rows, params string[] columns)
         {
             var data = await rows.Take(50001 - rowCount).ToArrayAsync(ct);
+            AddMaterialized(source, data, columns);
+        }
+        void AddMaterialized<T>(string source, T[] data, params string[] columns)
+        {
             rowCount += data.Length;
             if (rowCount > 50000) throw new InsightException(422, "REPORT_ROW_LIMIT", "Report exceeds 50,000 rows. Narrow the filters; no data was truncated.");
             var values = data.Select(row =>
@@ -229,7 +233,13 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Select(g => new { g.Key.WorkflowState, g.Key.Overdue, TaskCount = g.LongCount() }),
                     "workflowState", "overdue", "taskCount");
                 missing.Add("Task status summary uses the same created-in-period task population as detail rows; null lifecycle/overdue is an unknown bucket, not a non-overdue task");
-                missing.Add("Task work-time/shift-effort indicators are not aggregated; null workflow/overdue means canonical lifecycle is unavailable or inconsistent");
+                var effort = await TaskEffortRead.ReadAsync(db, filters, now.UtcDateTime, ct);
+                if (effort.Rows is {} effortRows)
+                    AddMaterialized("task_effort_by_employee", effortRows,
+                        "employeeId", "branchId", "closedEffortSeconds", "provisionalEffortSeconds", "openIntervals");
+                else missing.Add("Task effort unavailable: " + effort.MissingReason);
+                missing.Add("Employee task effort uses effective TASK intervals overlapping the selected UTC period regardless of task creation date; open effort is provisional, not completed effort");
+                missing.Add("Shift-time indicators remain unavailable; null workflow/overdue means canonical lifecycle is unavailable or inconsistent");
                 break;
             }
             case "requests":

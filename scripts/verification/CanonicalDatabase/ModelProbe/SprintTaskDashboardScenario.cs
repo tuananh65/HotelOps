@@ -84,6 +84,34 @@ internal static class SprintTaskDashboardScenario
         crossing.ClosedAt = crossing.EffectiveEndedAt = boundary.AddMinutes(10);
         db.WorkIntervals.Add(crossing); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var complete = await Read();
+        async Task<JsonElement> EffortReport(DateTime from, DateTime to)
+        {
+            var response=await send(HttpMethod.Post,"/api/reports/tasks/preview",
+                new { branchId=branch,departmentId=department.DepartmentId,from=from.ToString("yyyy-MM-dd"),to=to.ToString("yyyy-MM-dd") },null,true);
+            Check(response.Status==200,"authorized RPT06 effort HTTP200");
+            return response.Body;
+        }
+        static JsonElement EffortRows(JsonElement report)=>report.GetProperty("sections").EnumerateArray()
+            .Single(s=>s.GetProperty("key").GetString()=="task_effort_by_employee").GetProperty("rows");
+        var effortReport=await EffortReport(now.AddDays(-1),now);
+        var employeeEffort=EffortRows(effortReport).EnumerateArray().Single();
+        Check(employeeEffort.GetProperty("employeeId").GetInt64()==actor && employeeEffort.GetProperty("branchId").GetInt64()==branch
+            && employeeEffort.GetProperty("closedEffortSeconds").GetInt64()==2400
+            && employeeEffort.GetProperty("provisionalEffortSeconds").GetInt64()>=600 && employeeEffort.GetProperty("openIntervals").GetInt64()==1,
+            "RPT06 employee effort matches KPI06 UTC clipping and separates provisional effort");
+        var effortBrowser=await SprintReportsBrowser.RunAsync(username,password,branch,department.DepartmentId,"task-effort",ct,
+            from:now.AddDays(-1).ToString("yyyy-MM-dd"),to:now.ToString("yyyy-MM-dd"));
+        checks.Add(new { reportEmployeeEffortBrowser=effortBrowser });
+        foreach(var snapshot in effortBrowser.GetProperty("exports").EnumerateArray())
+        {
+            var snapshotId=snapshot.GetString();
+            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==snapshotId,ct)==2,
+                "RPT06 employee effort browser exports each persist audit");
+        }
+        Check(EffortRows(await EffortReport(boundary.AddDays(-1),boundary.AddDays(-1)))[0].GetProperty("closedEffortSeconds").GetInt64()==600,
+            "RPT06 prior period includes crossing effort even when task created outside that period");
+        Check(EffortRows(await EffortReport(now.AddDays(1),now.AddDays(1))).GetArrayLength()==0,
+            "RPT06 future period does not invent provisional employee effort");
         Check(Metric(complete, "averageTaskCompletionHours").ValueKind == JsonValueKind.Null
             && complete.GetProperty("missingSources").EnumerateArray().Any(s => s.GetString()!.StartsWith("KPI-05:")),
             "Closed task without proven processing-cycle receipts reports N/A, never guessed duration");
@@ -175,6 +203,10 @@ internal static class SprintTaskDashboardScenario
         Check(Metric(incomplete, "taskEffortHours").ValueKind == JsonValueKind.Null
             && Metric(incomplete, "taskProvisionalHours").ValueKind == JsonValueKind.Null,
             "overlapping intervals withhold effort instead of double counting");
+        var invalidEffort=await EffortReport(now.AddDays(-1),now);
+        Check(!invalidEffort.GetProperty("sections").EnumerateArray().Any(s=>s.GetProperty("key").GetString()=="task_effort_by_employee")
+            && invalidEffort.GetProperty("missingSources").EnumerateArray().Any(s=>s.GetString()!.Contains("overlapping task work intervals")),
+            "RPT06 overlapping intervals omit effort with explicit unavailable reason, not fabricated zero");
         await db.WorkIntervals.Where(i => i.IntervalId == overlap.IntervalId).ExecuteDeleteAsync(ct);
         Check(Metric(incomplete, "openTasks").ValueKind == JsonValueKind.Null
             && Metric(incomplete, "overdueTasks").ValueKind == JsonValueKind.Null

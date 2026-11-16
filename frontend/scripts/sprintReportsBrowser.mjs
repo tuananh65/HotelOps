@@ -45,18 +45,31 @@ try {
     checks.push(
       "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
     );
-  } else if (fixture.mode === "task-summary") {
+  } else if (fixture.mode === "task-summary" || fixture.mode === "task-effort") {
     stage = "task status summary";
     await page.getByLabel("Branch", { exact: true }).selectOption(String(fixture.branch));
     await page.getByLabel("Department", { exact: true }).selectOption(String(fixture.department));
+    if(fixture.from) await page.getByLabel("From (UTC)",{exact:true}).fill(fixture.from);
+    if(fixture.to) await page.getByLabel("To (UTC)",{exact:true}).fill(fixture.to);
     const pending=page.waitForResponse(r=>r.url().endsWith("/api/reports/tasks/preview")&&r.request().method()==="POST");
     await page.getByRole("button",{name:"Preview",exact:true}).click();
     const response=await pending; assert.equal(response.status(),200);
     const snapshot=await response.json();
     const summary=snapshot.sections.find(s=>s.key==="task_status_summary");
-    assert.ok(snapshot.rows.length>0);
+    if(fixture.mode==="task-summary") assert.ok(snapshot.rows.length>0);
+    else assert.equal(snapshot.rows.length,0); // Work this period on tasks created earlier still contributes effort.
     assert.equal(summary.rows.reduce((n,r)=>n+r.taskCount,0),snapshot.rows.length);
-    assert.ok(summary.rows.some(r=>r.workflowState===null&&r.overdue===null));
+    if(fixture.mode==="task-summary") assert.ok(summary.rows.some(r=>r.workflowState===null&&r.overdue===null));
+    else {
+      stage="employee effort rows";
+      const effort=snapshot.sections.find(s=>s.key==="task_effort_by_employee");
+      assert.equal(effort.rows.length,1);
+      assert.equal(effort.rows[0].closedEffortSeconds,2400);
+      assert.ok(effort.rows[0].provisionalEffortSeconds>=600);
+      assert.equal(effort.rows[0].openIntervals,1);
+      await page.getByRole("heading",{name:"task_effort_by_employee",exact:true}).waitFor();
+      await page.getByRole("columnheader",{name:"closedEffortSeconds",exact:true}).waitFor();
+    }
     await page.getByRole("heading",{name:"task_status_summary",exact:true}).waitFor();
     await page.getByRole("columnheader",{name:"taskCount",exact:true}).waitFor();
     for(const format of ["CSV","XLSX"]){
@@ -66,7 +79,7 @@ try {
       const file=await pendingDownload;const stream=await file.createReadStream();const parts=[];
       for await(const chunk of stream)parts.push(chunk);
       const bytes=Buffer.concat(parts);
-      if(format==="CSV"){assert.ok(bytes.toString("utf8").includes('"task_status_summary"'));assert.ok(bytes.toString("utf8").includes('"taskCount"'));}
+      if(format==="CSV"){assert.ok(bytes.toString("utf8").includes('"task_status_summary"'));assert.ok(bytes.toString("utf8").includes('"taskCount"'));if(fixture.mode==="task-effort"){assert.ok(bytes.toString("utf8").includes('"closedEffortSeconds"'));assert.ok(bytes.toString("utf8").includes('"2400"'));}}
       else assert.equal(bytes.readUInt32LE(0),0x04034b50);
       await file.delete();
     }
