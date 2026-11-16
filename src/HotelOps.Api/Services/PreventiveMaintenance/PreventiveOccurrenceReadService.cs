@@ -58,9 +58,11 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         await tx.CommitAsync(ct);return result;
     }
     public async Task<IReadOnlyList<PreventiveOccurrenceView>> ReadAsync(SessionReference ticket,long sid,long branch,
-        long? id,long afterId,CancellationToken ct)
+        long? id,long afterId,CancellationToken ct,bool mine=false,string? status=null)
     {
         if(branch<=0||id is <=0||afterId<0)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
+        if(status is not (null or "OPEN" or "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED"))
+            throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_STATUS");
         await using var tx=db.Database.CurrentTransaction==null
             ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct) : null;
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
@@ -77,6 +79,9 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
             JOIN dbo.preventive_maintenance_schedules s ON s.schedule_id=r.schedule_id
             WHERE d.branch_id={branch} AND ({scope.Lead}=1 OR ({scope.Staff}=1 AND d.assignee_id={ticket.UserId}))
               AND r.run_id>{afterId} AND ({id} IS NULL OR r.run_id={id})
+              AND ({mine}=0 OR d.assignee_id={ticket.UserId})
+              AND ({status} IS NULL OR d.workflow_status={status}
+                OR ({status}='OPEN' AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS')))
               AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
                     AND EXISTS(SELECT 1 FROM dbo.assets a WHERE a.asset_id=s.asset_id AND a.branch_id={branch}))
                 OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL

@@ -34,6 +34,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [busy,setBusy] = useState(false), sending = useRef(false);
   const [assignees,setAssignees] = useState<Record<number,string>>({}), [reasons,setReasons] = useState<Record<number,string>>({});
   const [uncertain,setUncertain] = useState(false);
+  const [mine,setMine] = useState(true), [status,setStatus] = useState("OPEN");
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
   const [history,setHistory] = useState<Record<number,History>>({});
@@ -110,7 +111,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     const abort = new AbortController(); controller.current = abort;
     sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
-      const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}`,
+      const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}&mine=${mine}${status ? `&status=${encodeURIComponent(status)}` : ""}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (!response.ok) throw Error(`Occurrences unavailable (${response.status}). Check current access and configuration.`);
       const payload: unknown = await response.json();
@@ -122,6 +123,13 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   }
   if (!owner || owner !== mounted || !positive(branchId)) return null;
   return <section aria-label="Scheduled maintenance occurrences"><h2>Scheduled maintenance</h2>
+    {runId == null && <fieldset disabled={busy}><legend>My work and branch occurrences</legend>
+      <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setRows([]);setHistory({});setEvidence({});}} />Assigned to me</label>
+      <label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
+        <option value="OPEN">Open work</option><option value="">All statuses</option><option value="PENDING_ASSIGNMENT">Pending assignment</option>
+        <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
+      </select></label><p>Branch results remain limited by your current permissions.</p>
+    </fieldset>}
     <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
     {runId == null && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
