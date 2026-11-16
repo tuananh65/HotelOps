@@ -378,7 +378,9 @@ export function TaskProgressPanel({
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
-        if (
+        if (!evidencePrepared)
+          setError("MSG23: Select up to five readable PNG, JPEG or PDF files, at most 10 MiB each, then submit again. Your edits are retained.");
+        else if (
           reason instanceof TaskProgressError &&
           reason.messageCode === "MSG03"
         )
