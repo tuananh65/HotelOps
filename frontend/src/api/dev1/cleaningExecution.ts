@@ -229,7 +229,12 @@ export async function mutateCleaningExecution(
       !Number.isFinite(Date.parse(d.occurredAtUtc)) ||
       d.readiness !==
         (action === "blockers" ? "PENDING_CLEANING" : "PENDING_INSPECTION") ||
-      typeof d.hasEffectiveBlock !== "boolean")
+      typeof d.hasEffectiveBlock !== "boolean" ||
+      (d.effectiveReadiness != null &&
+        (d.hasEffectiveBlock
+          ? d.effectiveReadiness !== "BLOCKED"
+          : !["PENDING_CLEANING", "UNKNOWN",
+              ...(action === "complete" ? ["PENDING_INSPECTION"] : [])].includes(d.effectiveReadiness))))
   )
     throw new ApiError(502, "INVALID_CLOSURE_RESULT_RELOAD_SOURCE");
   if (

@@ -18,7 +18,8 @@ public sealed record CleaningExecutionDto(long Id, long BranchId, string TaskNum
     IReadOnlyList<ProgressItemDto>? Items = null, string? ProgressETag = null);
 public sealed record CleaningClosureResult(long Id, long BranchId, long AssignmentId, Guid OperationId,
     Guid PublicationId, long ProgressId, long ClosedIntervalId, string State, DateTime OccurredAtUtc,
-    string Readiness, bool HasEffectiveBlock, string SourceETag, string Notification = "PENDING_DELIVERY", string Contract = "PROVISIONAL_NOT_ACCEPTED");
+    string Readiness, bool HasEffectiveBlock, string SourceETag, string Notification = "PENDING_DELIVERY", string Contract = "PROVISIONAL_NOT_ACCEPTED",
+    string? EffectiveReadiness = null);
 public sealed record StartedCleaningDto(long Id, long BranchId, long AssignmentId, string State,
     long IntervalId, DateTime ActualStartAtUtc, string Readiness, bool HasEffectiveBlock);
 public sealed record ReassignedCleaningDto(long Id, long BranchId, long PreviousAssignmentId, long AssignmentId,

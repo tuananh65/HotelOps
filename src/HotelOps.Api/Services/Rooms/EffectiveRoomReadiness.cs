@@ -38,6 +38,8 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         if (source.ReworkOutstanding || source.Cleaning == "REWORK_REQUIRED"
             && source.Inspection == "FAILED" && !source.ReworkSubmitted) return "REWORK_REQUIRED";
         if (source.Cleaning == "IN_PROGRESS") return "CLEANING_IN_PROGRESS";
+        // Approved UC034 clarification: never-passed still precedes submitted cleaning/rework.
+        // Pending Inspection is the task state; it does not override this room priority.
         if (source.Cleaning is "PENDING_ASSIGNMENT" or "ASSIGNED" or "ON_HOLD" || !source.EverPassed)
             return "PENDING_CLEANING";
         if (source.Cleaning == "PENDING_INSPECTION" || source.ReworkSubmitted) return "PENDING_INSPECTION";

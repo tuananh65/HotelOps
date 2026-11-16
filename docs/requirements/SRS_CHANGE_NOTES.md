@@ -92,3 +92,9 @@ Department Head permission details: Pending
 Room lifecycle transition rules: Pending
 
 Revised Permission Matrix: Pending
+
+## Approved FASTTRACK-142A clarification — UC034 / GBR-044 (2026-11-16)
+
+Project Leader decision: keep Pending Cleaning priority for a room that has never Passed inspection, even after the first cleaning Complete. Preserve GBR-044 ordering. The cleaning task still transitions to Pending Inspection under UC034; that lifecycle state is distinct from effective room readiness. Inactive and effective blocks retain precedence. No permission, physical status or database constraint change is authorized by this clarification.
+
+Completion API receipts expose effectiveReadiness separately from the historical lifecycle readiness field. It is computed from authoritative room/cycle/inspection facts in the same transaction. Historical receipts without this field do not prove room readiness; consumers must reload the authorized room board and must not infer READY.

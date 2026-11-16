@@ -58,4 +58,20 @@ public sealed class EffectiveRoomReadinessTests
         Assert.False(new EffectiveRoomState(1,"UNKNOWN").CanUse);
         Assert.False(new EffectiveRoomState(1,"BLOCKED").CanUse);
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FirstInspectionRetainsPendingCleaningAfterCleaningOrReworkSubmission(bool rework)
+    {
+        var source=Passed(); source.EverPassed=false; source.Inspection=null;
+        source.Cleaning=rework ? "REWORK_REQUIRED" : "PENDING_INSPECTION";
+        source.ReworkSubmitted=rework;
+        Assert.Equal("PENDING_CLEANING",EffectiveRoomReadiness.Calculate(source));
+        Assert.False(new EffectiveRoomState(1,EffectiveRoomReadiness.Calculate(source)).CanUse);
+        source.EverPassed=true;
+        Assert.Equal("PENDING_INSPECTION",EffectiveRoomReadiness.Calculate(source));
+        source.Blocked=true;
+        Assert.Equal("BLOCKED",EffectiveRoomReadiness.Calculate(source));
+    }
 }

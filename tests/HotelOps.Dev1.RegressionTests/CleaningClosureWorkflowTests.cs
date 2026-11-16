@@ -93,6 +93,23 @@ public sealed class CleaningClosureWorkflowTests
         else await Assert.ThrowsAsync<ValidationException>(() => service.CompleteCleaningAsync(null!, 0, 1, 1, tag, Guid.NewGuid().ToString(), new("note", tag, photos), default));
     }
 
+    [Theory]
+    [InlineData(false, null, true)]
+    [InlineData(false, "PENDING_CLEANING", true)]
+    [InlineData(false, "PENDING_INSPECTION", true)]
+    [InlineData(false, "UNKNOWN", true)]
+    [InlineData(false, "READY", false)]
+    [InlineData(false, "BLOCKED", false)]
+    [InlineData(true, "BLOCKED", true)]
+    [InlineData(true, "PENDING_INSPECTION", false)]
+    public void CompletionReceiptSeparatesLifecycleFromEffectiveRoomReadiness(bool blocked, string? readiness, bool valid)
+    {
+        var operation=Guid.NewGuid();
+        var receipt=new CleaningClosureResult(1,2,3,operation,Guid.NewGuid(),4,5,"PENDING_INSPECTION",DateTime.UtcNow,
+            "PENDING_INSPECTION",blocked,"\"0000000000000001\"",EffectiveReadiness:readiness);
+        Assert.Equal(valid, RoomTypeCreationService.ValidClosureReceipt(receipt,2,1,3,operation,true));
+    }
+
     [ClosureTrialTheory]
     [InlineData("report")]
     [InlineData("complete")]

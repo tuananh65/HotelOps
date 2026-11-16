@@ -51,6 +51,10 @@ public sealed partial class RoomTypeCreationService
         && value.OccurredAtUtc.Kind == DateTimeKind.Utc && CleaningLifecycleRules.StrongTag(value.SourceETag)
         && value.State == (complete ? "PENDING_INSPECTION" : "ON_HOLD")
         && value.Readiness == (complete ? "PENDING_INSPECTION" : "PENDING_CLEANING")
+        && (value.EffectiveReadiness == null || (value.HasEffectiveBlock
+            ? value.EffectiveReadiness == "BLOCKED"
+            : value.EffectiveReadiness is "PENDING_CLEANING" or "UNKNOWN"
+                || complete && value.EffectiveReadiness == "PENDING_INSPECTION"))
         && value.Notification == "PENDING_DELIVERY" && value.Contract == "PROVISIONAL_NOT_ACCEPTED";
 
     // This is a structural guard, not an authorization or completed-ledger substitute.
@@ -199,9 +203,16 @@ public sealed partial class RoomTypeCreationService
                 var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId
                     && x.BlockedAt <= now && (x.ReleasedAt == null || x.ReleasedAt > now), inner);
                 var readiness = reason == null ? "PENDING_INSPECTION" : "PENDING_CLEANING";
+                // Lifecycle readiness is retained in historical receipts. Effective room readiness
+                // follows GBR-044, including Pending Cleaning before the first Passed inspection.
+                var roomStates = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+                    .ReadAsync([row.RoomId], now, inner);
+                var effectiveReadiness = roomStates.TryGetValue(row.RoomId, out var roomState)
+                    ? roomState.Readiness : "UNKNOWN";
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{readiness},{blocked},{actor},{now})", inner);
                 var result = new CleaningClosureResult(task, branch, owner.AssignmentId, operation, Guid.NewGuid(), log.ProgressId,
-                    closed.IntervalId, next, now, readiness, blocked, WorkflowTag((await CleaningState(task, inner)).Revision));
+                    closed.IntervalId, next, now, readiness, blocked, WorkflowTag((await CleaningState(task, inner)).Revision),
+                    EffectiveReadiness: effectiveReadiness);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualEndAt },
                     new { operationId = operation, action = reason == null ? "COMPLETE_CLEANING" : "REPORT_CLEANING_BLOCKER", note,
                         reasonId = reason, progressId = log.ProgressId, entity = result }, ["workflowStatus", "workInterval", "readiness", "notification", "progress"], inner);

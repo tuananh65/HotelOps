@@ -185,7 +185,12 @@ export default function CleaningExecutionPanel({
           (c.action === "blockers"
             ? "Đã ghi nhận trở ngại và tạm dừng dọn phòng."
             : "Đã hoàn tất dọn phòng, chờ kiểm tra.") +
-            (result.hasEffectiveBlock ? " Phòng vẫn bị chặn sử dụng." : ""),
+            (result.hasEffectiveBlock ? " Phòng vẫn bị chặn sử dụng."
+              : result.effectiveReadiness === "PENDING_CLEANING"
+                ? " Trạng thái phòng: chờ dọn theo quy tắc hiện hành."
+                : result.effectiveReadiness === "PENDING_INSPECTION"
+                  ? " Trạng thái phòng: chờ kiểm tra."
+                  : " Chưa xác minh được trạng thái phòng; tải lại bảng trạng thái."),
         );
         setRefresh((n) => n + 1);
       }

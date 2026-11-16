@@ -342,3 +342,21 @@ test("Missing completion writer keeps blocker reporting available without permit
   assert.equal(closureCommand(read, "blockers", "Guest remains", "7").reasonId, 7);
   assert.throws(() => closureCommand(read, "complete", "All done"));
 });
+test("Completion retains task Pending Inspection while validating independent effective room readiness", async () => {
+  for (const [effectiveReadiness, hasEffectiveBlock, valid] of [
+    ["PENDING_CLEANING", false, true], ["PENDING_INSPECTION", false, true],
+    ["BLOCKED", true, true], ["UNKNOWN", false, true],
+    ["READY", false, false], ["BLOCKED", false, false], ["PENDING_INSPECTION", true, false],
+  ]) {
+    const receipt = { id: 2, branchId: 1, assignmentId: 4, state: "PENDING_INSPECTION",
+      operationId: key, publicationId: key, progressId: 12, closedIntervalId: 8,
+      occurredAtUtc: "2026-11-07T00:00:00Z", readiness: "PENDING_INSPECTION", effectiveReadiness,
+      hasEffectiveBlock, sourceETag: tag, notification: "PENDING_DELIVERY", contract: "PROVISIONAL_NOT_ACCEPTED" };
+    globalThis.fetch = async url => url.endsWith("/auth/csrf")
+      ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "fresh" })
+      : Response.json(receipt, { headers: { ETag: tag } });
+    const call = mutateCleaningExecution("1", "2", "complete", tag, closureCommand(closurePlan, "complete", "All done"), key);
+    if (valid) assert.equal((await call).effectiveReadiness, effectiveReadiness);
+    else await assert.rejects(call, e => e.status === 502);
+  }
+});
