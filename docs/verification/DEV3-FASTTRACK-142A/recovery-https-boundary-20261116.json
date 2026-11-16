@@ -1,0 +1,38 @@
+{
+    "checks":  [
+                   {
+                       "expected":  401,
+                       "path":  "/api/auth/session",
+                       "pass":  true,
+                       "actual":  401
+                   },
+                   {
+                       "expected":  401,
+                       "path":  "/api/material-requests?branchId=1",
+                       "pass":  true,
+                       "actual":  401
+                   },
+                   {
+                       "expected":  401,
+                       "path":  "/api/replenishments?branchId=1",
+                       "pass":  true,
+                       "actual":  401
+                   },
+                   {
+                       "expected":  401,
+                       "path":  "/api/internal-requests?branchId=1",
+                       "pass":  true,
+                       "actual":  401
+                   },
+                   {
+                       "expected":  200,
+                       "path":  "/api/auth/csrf",
+                       "pass":  true,
+                       "actual":  200
+                   }
+               ],
+    "baseUrl":  "https://localhost:7148",
+    "scope":  "Anonymous boundary and CSRF bootstrap only; not authenticated lifecycle",
+    "tls":  "Default platform validation; no bypass",
+    "recordedUtc":  "2026-11-16T08:25:16.2696813Z"
+}
