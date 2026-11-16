@@ -161,6 +161,8 @@ internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db,
             DeliveryStatus = "DELIVERED", DeliveredAt = clock.GetUtcNow().UtcDateTime
         });
         await db.SaveChangesAsync(ct);
+        if (!await InspectionRecipientReadAccess.CanReadAsync(db, recipientHint, audit.BranchId.Value, clock.GetUtcNow().UtcDateTime, ct))
+            throw new InvalidOperationException("INSPECTION_NOTIFICATION_RECIPIENT_CHANGED");
         db.ChangeTracker.Clear();
         return "DELIVERED";
     }

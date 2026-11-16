@@ -75,6 +75,14 @@ internal sealed class InspectionFailedNotificationDelivery(HotelOpsDbContext db,
                 DeliveryChannel = "IN_APP", DeliveryStatus = "DELIVERED", DeliveredAt = now });
             await db.SaveChangesAsync(ct);
         }
+        // Serializable locks do not stop a time-limited role/grant from expiring.
+        // Recheck the approved cleaner/supervisor scope at delivery commit time.
+        var finalNow = clock.GetUtcNow().UtcDateTime;
+        var finalSupervisors = await InspectionFailureRecipients.SupervisorsAsync(db, audit.BranchId.Value, finalNow, ct);
+        foreach (var user in eligible)
+            if ((user != cleaner.CleanerUserId && !finalSupervisors.Contains(user))
+                || !await InspectionRecipientReadAccess.CanReadAsync(db, user, audit.BranchId.Value, finalNow, ct))
+                throw new InvalidOperationException("INSPECTION_NOTIFICATION_RECIPIENT_CHANGED");
         await tx.CommitAsync(ct);
         db.ChangeTracker.Clear();
         return eligible.Count == intent.Recipients.Length ? "DELIVERED" : "RECIPIENT_READ_DENIED";
