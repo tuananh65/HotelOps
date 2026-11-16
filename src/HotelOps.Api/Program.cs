@@ -73,6 +73,10 @@ builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEscalatedNoti
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentCriticalNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentClassificationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveScheduleService>();
+builder.Services.AddOptions<HotelOps.Api.Services.PreventiveMaintenance.PreventiveGenerationOptions>()
+    .BindConfiguration("PreventiveGeneration").Validate(o => o.LeadDays is >= 0 and <= 365).ValidateOnStart();
+builder.Services.AddScoped<HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceGeneration>();
+builder.Services.AddHostedService<HotelOps.Api.Services.PreventiveMaintenance.PreventiveGenerationWorker>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Incidents.IncidentNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();
