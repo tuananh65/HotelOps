@@ -10,12 +10,15 @@ import {
   type useAssignUserRole,
 } from "./useAssignUserRole";
 import type { UserProfileDto } from "./userProfileContracts";
+import type { UserAccessReviewDto } from "./contracts";
 
 function ConfirmationForm({
   profile,
+  access,
   assign,
 }: {
   profile: UserProfileDto;
+  access: UserAccessReviewDto | null;
   assign(roleCode: string, branchId: number, reactivateExisting: boolean): Promise<void>;
 }) {
   const [role, setRole] = useState("");
@@ -82,6 +85,29 @@ function ConfirmationForm({
       noValidate
       onSubmit={(e) => e.preventDefault()}
     >
+      {access && <section aria-label="Current role assignments">
+        <h2>Assigned roles</h2>
+        <p>Read at <time dateTime={access.evaluatedAtUtc}>{access.evaluatedAtUtc}</time>.
+          {access.reviewerScope.isGlobal ? " Global access review." : " Only authorized branches are shown."}
+          {" "}The server rechecks current eligibility when saving.</p>
+        {access.assignedRoles.length === 0 ? <p>No assignments returned in this scope.</p> :
+          <table>
+            <caption>Assigned roles, including revoked and expired records</caption>
+            <thead><tr><th>Role</th><th>Branch</th><th>Assignment</th><th>Role status</th><th>Assigned UTC</th><th>Expires UTC</th><th>Action</th></tr></thead>
+            <tbody>{access.assignedRoles.map(row => <tr key={row.assignmentId}>
+              <td>{row.code} — {row.name}</td><td>{row.branchId ?? "Unbound"}</td>
+              <td>{!row.assignmentActive ? "Revoked" : Date.parse(row.assignedAtUtc) > Date.parse(access.evaluatedAtUtc)
+                ? "Scheduled" : row.expiresAtUtc && Date.parse(row.expiresAtUtc) <= Date.parse(access.evaluatedAtUtc)
+                  ? "Expired" : "Active"}</td>
+              <td>{row.roleActive ? "Active" : "Inactive"}</td>
+              <td>{row.assignedAtUtc}</td><td>{row.expiresAtUtc ?? "None"}</td>
+              <td>{!row.assignmentActive && row.roleActive && row.branchId !== null &&
+                <button type="button" disabled={!!catalogState} onClick={() => {
+                  setRole(row.code); setBranch(String(row.branchId)); setReactivateExisting(true); invalidate();
+                }}>Select for reactivation</button>}</td>
+            </tr>)}</tbody>
+          </table>}
+      </section>}
       <label>
         Role Code
         <select
@@ -164,6 +190,7 @@ export function AssignUserRolePage({
     <main>
       <h1>Assign role for user {target}</h1>
       <Link to="/profile">Profile</Link>
+      <Link to={`/users/${target}`}>Review effective access</Link>
       <p>
         Loading a profile does not grant permission to assign roles. The server
         verifies account eligibility, active catalog role, duplicate assignment,
@@ -218,10 +245,12 @@ export function AssignUserRolePage({
           <p>Account ID: {snapshot.profile.id}</p>
           <p>Full name: {snapshot.profile.fullName}</p>
           <p>Email: {snapshot.profile.email}</p>
+          {snapshot.accessMessage && <p role="status">{snapshot.accessMessage}</p>}
           {!locked && (
             <ConfirmationForm
               key={snapshot.revision}
               profile={snapshot.profile}
+              access={snapshot.access}
               assign={flow.assign}
             />
           )}

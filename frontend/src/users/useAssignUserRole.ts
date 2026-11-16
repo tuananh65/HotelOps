@@ -5,6 +5,8 @@ import { createUserProfileApi } from "./userProfileApi";
 import { createUserRoleAssignmentApi } from "./userRoleAssignmentApi";
 import type { UserProfileDto } from "./userProfileContracts";
 import type { UserRoleAssignmentDto } from "./userRoleAssignmentContracts";
+import { createUsersApi } from "./usersApi";
+import type { UserAccessReviewDto } from "./contracts";
 
 export const unknownRoleAssignmentMessage =
   "Role assignment outcome could not be confirmed. The role may already have been assigned. Do not retry automatically. Ask an authorized administrator to verify the current role assignment before making another change.";
@@ -24,7 +26,11 @@ export function normalizeAssignmentRole(value: string): string | null {
     : null;
 }
 
-type Snapshot = { profile: UserProfileDto; etag: string; revision: number };
+type Snapshot = {
+  profile: UserProfileDto; etag: string; revision: number;
+  access: UserAccessReviewDto | null;
+  accessMessage: string | null;
+};
 type Read = { owner: PublicSession; target: number; generation: number } & (
   | { kind: "loading" }
   | { kind: "error"; message: string }
@@ -51,6 +57,7 @@ export function useAssignUserRole(target: number | null) {
   const previous = useRef({ owner, target });
   const [profileApi] = useState(() => createUserProfileApi());
   const [assignmentApi] = useState(() => createUserRoleAssignmentApi());
+  const [usersApi] = useState(() => createUsersApi());
   const [attempt, setAttempt] = useState(0);
   const [read, setRead] = useState<Read | null>(null);
   const [progress, setProgress] = useState<Progress>({ phase: "idle" });
@@ -118,7 +125,10 @@ export function useAssignUserRole(target: number | null) {
     setRead({ owner, target, generation, kind: "loading" });
     void Promise.resolve().then(async () => {
       if (abort.signal.aborted || generation !== readGeneration.current) return;
-      const result = await profileApi.getProfile(target, abort.signal);
+      const [result, access] = await Promise.all([
+        profileApi.getProfile(target, abort.signal),
+        usersApi.getEffectiveAccess(target, {}, abort.signal),
+      ]);
       if (
         !mounted.current ||
         abort.signal.aborted ||
@@ -127,6 +137,13 @@ export function useAssignUserRole(target: number | null) {
         current.current.target !== target
       )
         return;
+      if (!access.ok && access.error.kind === "http"
+        && (access.error.status === 401 || access.error.code === "PASSWORD_CHANGE_REQUIRED")) {
+        setRead({ owner, target, generation, kind: "error",
+          message: failureMessage(access.error.status, access.error.code) });
+        recover(access.error.status, access.error.code);
+        return;
+      }
       if (result.ok)
         setRead({
           owner,
@@ -137,6 +154,8 @@ export function useAssignUserRole(target: number | null) {
             profile: result.data,
             etag: result.etag,
             revision: ++revision.current,
+            access: access.ok ? access.data : null,
+            accessMessage: access.ok ? null : "Assigned roles could not be read. Access review requires current USER_VIEW and ROLE_MANAGE in the applicable scope.",
           },
         });
       else {
@@ -154,7 +173,7 @@ export function useAssignUserRole(target: number | null) {
       ++readGeneration.current;
       abort.abort();
     };
-  }, [owner, target, attempt, profileApi]);
+  }, [owner, target, attempt, profileApi, usersApi]);
   const visible =
     owner &&
     read?.owner === owner &&
