@@ -118,10 +118,12 @@ export function TaskProgressPanel({
     setBusy(true);
     setError("");
     setMessage("");
+    let evidencePrepared = false;
     try {
       if (files.length > 5) throw new Error("Too many files");
       const photos = await Promise.all(files.map(uploadFile));
       controller.signal.throwIfAborted();
+      evidencePrepared = true;
       const updated = await saveTaskProgress(
         branch,
         task,
@@ -148,7 +150,11 @@ export function TaskProgressPanel({
         onChanged?.("Progress saved. Reaching 100% does not complete this task.");
       }
     } catch (reason) {
-      if (!controller.signal.aborted) failure(reason);
+      if (!controller.signal.aborted) {
+        if (!evidencePrepared || reason instanceof TaskProgressError && reason.status === 400 && reason.messageCode === "MSG23")
+          setError("MSG23: Select up to five readable PNG, JPEG or PDF files, at most 10 MiB each, then save again. Your edits are retained.");
+        else failure(reason);
+      }
     } finally {
       saving.current = false;
       if (!controller.signal.aborted) setBusy(false);
@@ -333,10 +339,12 @@ export function TaskProgressPanel({
     setBusy(true);
     setError("");
     setMessage("");
+    let evidencePrepared = false;
     try {
       if (files.length > 5) throw new Error("Too many evidence files");
       const photos = await Promise.all(files.map(uploadFile));
       controller.signal.throwIfAborted();
+      evidencePrepared = true;
       await submitTask(
         branch,
         task,
