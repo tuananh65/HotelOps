@@ -20,6 +20,7 @@ import { MaterialCatalogFields } from "./MaterialCatalogFields";
 import { MaterialBranchField } from "./MaterialBranchField";
 import { MaterialApprovalFields, materialApprovalActions, materialApprovalReady } from "./MaterialApprovalFields";
 import { MaterialCancellationFields, materialRequesterActions, materialRequesterReady } from "./MaterialRequesterFields";
+import { MaterialIssueFields, materialIssueReady } from "./MaterialIssueFields";
 
 const identities = new WeakMap<object, number>();
 let identity = 0;
@@ -28,6 +29,7 @@ function key(session: object) {
   return identities.get(session);
 }
 function operationDefaults(operation: Operation, source: Values = {}): Values {
+  if (operation.id === "A004A-051") return defaults(operation.fields, { ...source, mode: "FullRemaining", lines: [] });
   if (operation.id === "A004A-044" && Array.isArray(source.lines))
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true) });
   if (operation.id === "A004A-047" && Array.isArray(source.lines))
@@ -198,6 +200,16 @@ function Screen({
     if (submitting.current) return;
     let commandInput = input;
     try {
+      if (target.id === "A004A-051") {
+        if (!materialIssueReady(record, actor) || String(args.id) !== String(record.requestId))
+          throw Error("Load the current approved request before issuing materials.");
+        const enteredLines = Array.isArray(input.lines) ? input.lines.filter(isObject) : [];
+        if (input.mode === "Partial" && enteredLines.some(l => !Number.isFinite(Number(l.quantity)) || Number(l.quantity) < 0))
+          throw Error("Issue quantities must be valid nonnegative numbers.");
+        const issueLines = enteredLines.filter(l => Number(l.quantity) > 0);
+        if (input.mode === "Partial" && issueLines.length === 0) throw Error("Enter at least one positive issue quantity.");
+        commandInput = { ...input, lines: input.mode === "FullRemaining" ? [] : issueLines };
+      }
       if (target.id === "A004A-043" && context.internalRequestId != null) {
         if (!["required", "optional"].includes(String(input.materialRequirement))
           || typeof context.sourceVersion !== "string" || !/^[A-Za-z0-9+/]{11}=$/.test(context.sourceVersion))
@@ -205,7 +217,7 @@ function Screen({
         commandInput = { ...input, internalRequestId: context.internalRequestId,
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
-      payload(target.fields, input, actor);
+      payload(target.fields, commandInput, actor);
       operationPath(target, args);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Check the form.");
@@ -491,7 +503,7 @@ function Screen({
         <fieldset disabled={busy}>
           <legend>{operation.name}</legend>
           <Fields
-            fields={materialRequesterActions.includes(operation.id) ? [] : routeFields}
+            fields={materialRequesterActions.includes(operation.id) || operation.id === "A004A-051" ? [] : routeFields}
             values={parameters}
             actor={actor}
             onChange={(v) => {
@@ -512,6 +524,7 @@ function Screen({
               receivingRoomId: "", receivingAreaId: "", incidentId: "", priorityId: "", lines: [] })} />}
           <Fields
             fields={materialApprovalActions.includes(operation.id) || materialSubmit || operation.id === "A004A-049" ? []
+              : operation.id === "A004A-051" ? operation.fields.filter(f => ["mode", "documentDate"].includes(f.name))
               : materialWrite ? operation.fields.filter(f => ["purpose", "neededAt", "submit"].includes(f.name))
               .map(f => f.name === "neededAt" && needsApproval ? { ...f, optional: false } : f)
               : ["A004A-021", "A004A-022"].includes(operation.id) ? operation.fields.filter(f => f.name !== "categoryId") : operation.fields}
@@ -537,12 +550,12 @@ function Screen({
             value={values.assignedApproverUserId} required={needsApproval}
             onChange={assignedApproverUserId => change({ ...values, assignedApproverUserId })} />}
           {operation.id === "A004A-051" && (
-            <p>
-              Mode: Partial with explicit quantities, or FullRemaining without
-              lines. Requester/approver cannot fulfill their own request.
-            </p>
+            <><p>Current Storekeeper access, MR_FULFILL, STOCK_ISSUE_POST, INVENTORY_VIEW and MR_VIEW are required. Requester and approver cannot issue this request.</p>
+              {!materialIssueReady(record, actor) && <p role="status">Open an eligible approved request before issuing materials.</p>}
+              <MaterialIssueFields record={record} values={values} onChange={change} /></>
           )}
           <button type="submit" disabled={busy || denied || uncertain
+            || operation.id === "A004A-051" && !materialIssueReady(record, actor)
             || materialApprovalActions.includes(operation.id) && !materialApprovalReady(record, actor, operation.id)
             || materialRequesterActions.includes(operation.id) && (!materialRequesterReady(record, actor, operation.id)
               || String(parameters.id) !== String(record.requestId))

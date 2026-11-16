@@ -191,7 +191,8 @@ public sealed partial class MaterialRequestService
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
             State(r, "APPROVED", "PARTIALLY_ISSUED"); await Participant(TrustedActorId, r.BranchId, ct);
             var cycle = await Latest(id, ct);
-            if (cycle.Status != "APPROVED" || cycle.AssignedApproverId == TrustedActorId) throw Invalid("Issuer must differ from approving actor of approved cycle.");
+            if (cycle.Status != "APPROVED" || cycle.AssignedApproverId == TrustedActorId || r.RequesterId == TrustedActorId)
+                throw Invalid("Issuer must differ from requester and approving actor of approved cycle.");
             await Reconcile(r, ct);
             await ValidateContent(r, true, false, ct);
             var active = r.MaterialRequestLines.Where(x => x.IsActive).ToArray();

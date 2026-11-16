@@ -1852,7 +1852,7 @@ export const operations: Operation[] = [
     name: "Issue",
     method: "POST",
     route: "/api/material-requests/{id:long}/fulfillments",
-    permissions: ["MR_FULFILL", "STOCK_ISSUE_POST"],
+    permissions: ["MR_FULFILL", "STOCK_ISSUE_POST", "INVENTORY_VIEW", "MR_VIEW"],
     authorityKind: "material-request",
     expectedStatus: 201,
     dto: "MaterialIssue",

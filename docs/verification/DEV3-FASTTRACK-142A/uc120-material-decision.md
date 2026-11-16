@@ -375,3 +375,27 @@ PASS with existing React Router/use-client and bundle-size warnings; diff check
 PASS. No DB changes, runtime/API/browser or business tests. Review/fulfillment
 end-to-end acceptance and Storekeeper notifications remain; no UC promoted to
 COMPLETE_VERIFIED from build results.
+
+## UC097/098 issue admission and form (2026-11-16)
+
+Material Issue A004A-051 now has a compiled contract binding the exact principal,
+input and request. It requires an active STOREKEEPER assignment/access in the actual
+issuing warehouse branch, MR_FULFILL, STOCK_ISSUE_POST, INVENTORY_VIEW and independent
+MR_VIEW. Requester and current approved-cycle approver cannot issue. The service
+also rejects requester self-issue, closing a missing defense in the former service.
+Existing stock locks, conversion/aggregate balance checks, request version,
+fulfillment reconciliation and same-transaction stock/request/audit writes remain.
+Authority is checked before persistence/posting and before the outer commit after
+response authorization. No client ActorUserId establishes authority.
+
+Canonical UI exposes full remaining or partial issue using loaded approved lines,
+current request version, explicit document date and bounded quantities. It sends
+only positive partial lines and no explicit lines for FullRemaining. It cannot
+manually substitute line IDs; zero skips a partial line. Uncertain network outcomes
+retain the existing no-auto-retry behavior.
+
+Direct backend build PASS (0 warnings/errors); frontend typecheck/build PASS with
+existing React Router/use-client and bundle-size warnings. No SQL mutation, schema,
+grant or worker configuration change. Business/SQL/API/browser tests NOT RUN.
+Pickup notices, Storekeeper notification and full issue/rollback/concurrency Human
+QA remain; UC097/098 are not COMPLETE_VERIFIED solely from source/build evidence.
