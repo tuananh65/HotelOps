@@ -46,6 +46,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ShiftAssignmentNo
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlSecureShiftPreview>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftPlanSaveService>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftRosterService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.EmployeeMembershipService>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftAssignmentCancellation>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftDefinitionService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.MaintenanceSubmissionDelivery>();

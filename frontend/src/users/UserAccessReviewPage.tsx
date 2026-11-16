@@ -226,6 +226,7 @@ function UserReads({
           <Link to={`/users/${userId}/edit`}>Update account</Link>
           <Link to={`/users/${userId}/reset-credential`}>Reset credential</Link>
           <Link to={`/users/${userId}/branches/add`}>Add branch membership</Link>
+          <Link to={`/users/${userId}/departments`}>Department memberships</Link>
         </>}
         {roleAssignmentEnabled && (
           <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>

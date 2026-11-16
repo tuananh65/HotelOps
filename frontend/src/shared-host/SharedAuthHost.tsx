@@ -1,3 +1,4 @@
+import { EmployeeMembershipPage } from "../users/EmployeeMembershipPage";
 import { SecureShiftPlanWorkspace } from "../workday/SecureShiftPlanWorkspace";
 import { ReferenceCatalogPage } from "../operationalTasks/ReferenceCatalogPage";
 import { PrioritySlaPage } from "../operationalTasks/PrioritySlaPage";
@@ -112,6 +113,7 @@ export function SharedAuthHost({
       {accountManagementEnabled && <Route path="/users/new" element={<CreateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}
+      {accountManagementEnabled && <Route path="/users/:id/departments" element={<Protected><EmployeeMembershipPage /></Protected>} />}
       {accountManagementEnabled && <Route path="/users/:id/branches/add" element={<AddUserBranchFlowBoundary />} />}
       {roleAssignmentEnabled && <Route path="/roles" element={<RoleCatalogRoute mode="list" creationEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/new" element={<CustomRoleForm dispatchEnabled />} />}
