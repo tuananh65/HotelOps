@@ -15,11 +15,15 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
     {
         if(!caller.TryGetCurrentUser(out var user)||user.UserId<=0||user.SessionId<=0)throw new InsightException(401,"AUTH_REQUIRED","Authentication required.");
         if(user.IsRestricted)throw new InsightException(403,"RESTRICTED","Restricted session.");
-        var lifetimeHours=SqlSessionPolicy.NormalAbsoluteLifetime.TotalHours;
-        if(!await db.UserSessions.AsNoTracking().AnyAsync(s=>s.SessionId==user.SessionId&&s.UserId==user.UserId&&s.RevokedAt==null&&s.ExpiresAt>now
-            &&s.CreatedAt<=now&&s.CreatedAt.AddHours(lifetimeHours)>now&&s.ExpiresAt<=s.CreatedAt.AddHours(lifetimeHours)
-            &&s.User.DeletedAt==null&&s.User.AccountStatus=="ACTIVE"&&s.User.TemporaryPasswordExpiresAt==null,ct))throw new InsightException(401,"SESSION_INVALID","Session invalid.");
+        if(!await db.UserSessions.AsNoTracking().AnyAsync(NotificationSessionPolicy.Current(user.UserId,user.SessionId,now),ct))throw new InsightException(401,"SESSION_INVALID","Session invalid.");
         return user.UserId;
+    }
+    private async Task RevalidateSessionAsync(long expectedUser,CancellationToken ct)
+    {
+        // A Serializable transaction retains account/session locks but cannot stop
+        // wall-clock expiry while waiting for recipient or acknowledgment rows.
+        if(await UserAsync(clock.GetUtcNow().UtcDateTime,ct)!=expectedUser)
+            throw new InsightException(401,"SESSION_INVALID","Session changed during notification access.");
     }
     private IQueryable<NotificationRecipient> Inbox(long user,DateTime now)
     {
@@ -55,6 +59,7 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var acknowledgments=acknowledgmentAvailable
             ? await NotificationAcknowledgmentStore.Query(db).Where(a=>recipientIds.Contains(a.RecipientId)).ToDictionaryAsync(a=>a.RecipientId,ct)
             : new Dictionary<long,NotificationAcknowledgmentRow>();
+        await RevalidateSessionAsync(user,ct);
         await tx.CommitAsync(ct);
         return new(raw.Select(r=>new NotificationRow(r.Id,r.Type,r.Title,r.Message,r.Priority,Utc(r.CreatedAt),r.ReadAt is {} read?Utc(read):null,
             acknowledgments.GetValueOrDefault(r.RecipientId)?.RequiresAcknowledgment==true,
@@ -83,7 +88,7 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 NewValues=System.Text.Json.JsonSerializer.Serialize(new {notificationId=recipient.NotificationId,acknowledgedAt=Utc(now),readAt=Utc(recipient.ReadAt??now)}),
                 ChangedFields=recipient.ReadAt==null?"[\"acknowledgedAt\",\"readAt\"]":"[\"acknowledgedAt\"]"});
         }
-        await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
+        await db.SaveChangesAsync(ct);await RevalidateSessionAsync(user,ct);await tx.CommitAsync(ct);
     }
     public async Task MarkReadAsync(long? id,CancellationToken ct)
     {
@@ -109,6 +114,7 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             if(await query.CountAsync(ct)!=ids.Length)throw new InsightException(404,"NOT_FOUND","Notification not found.");
         }
         await query.Where(r=>r.ReadAt==null).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,now),ct);
+        await RevalidateSessionAsync(user,ct);
         await tx.CommitAsync(ct);
     }
     public async Task<NotificationSource> ResolveSourceAsync(long id,CancellationToken ct)
