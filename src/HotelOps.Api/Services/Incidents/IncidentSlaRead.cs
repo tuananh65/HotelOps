@@ -39,7 +39,7 @@ internal static class IncidentSlaRead
     internal static async Task<IncidentSlaDto> ForWorkAsync(HotelOpsDbContext db, long actor, long branch, long work, CancellationToken ct)
     {
         var source = await db.MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == work)
-            .Select(w => new { w.IncidentId, w.Status, w.ReviewedAt, w.ReviewedBy }).SingleAsync(ct);
+            .Select(w => new { w.IncidentId, w.Status, w.CreatedAt, w.ReviewedAt, w.ReviewedBy }).SingleAsync(ct);
         var incident = source.IncidentId;
         if (incident == null) return new(null, null, "NOT_APPLICABLE");
         var scope = await IncidentReadAccess.ReadAsync(db, actor, branch, ct, sourceRecord: true);
@@ -65,7 +65,27 @@ internal static class IncidentSlaRead
                     var snapshot = root.GetProperty("incident_cycle_sla").Deserialize<IncidentSlaDto>();
                     var original = await db.Incidents.AsNoTracking().Where(i => i.IncidentId == incident)
                         .Select(i => i.DiscoveredAt).SingleAsync(ct);
-                    if (version.GetInt32() != 1 || discovered != original || snapshot == null)
+                    var snapshotVersion = version.GetInt32();
+                    var expectedDiscovery = original;
+                    if (snapshotVersion == 2)
+                    {
+                        var recordedEvent = root.GetProperty("incident_cycle_reopen_event_id");
+                        long? recordedId = recordedEvent.ValueKind == JsonValueKind.Null ? null : recordedEvent.GetInt64();
+                        // Resolve the cycle that owned this work, not the latest cycle:
+                        // a subsequent Reopen must not invalidate historical snapshots.
+                        var owningId = await db.IncidentEvents.AsNoTracking()
+                            .Where(e => e.IncidentId == incident && e.EventType == "REOPENED" && e.OccurredAt <= source.CreatedAt)
+                            .OrderByDescending(e => e.EventId).Select(e => (long?)e.EventId).FirstOrDefaultAsync(ct);
+                        if (recordedId != owningId) return new(null, null, "INCIDENT_CYCLE_SLA_INVALID");
+                        if (recordedId is {} eventId)
+                        {
+                            var cycle = await IncidentReopenStore.ReadAsync(db, incident.Value, ct, eventId);
+                            if (cycle == null || cycle.ReopenedAt > source.CreatedAt)
+                                return new(null, null, "INCIDENT_CYCLE_SLA_INVALID");
+                            expectedDiscovery = cycle.DiscoveredAt;
+                        }
+                    }
+                    if (snapshotVersion is not (1 or 2) || discovered != expectedDiscovery || snapshot == null)
                         return new(null, null, "INCIDENT_CYCLE_SLA_INVALID");
                     var normalized = Normalize(discovered, snapshot.ResponseDeadlineAt, snapshot.ResolutionDeadlineAt);
                     if (snapshot == normalized) return normalized;

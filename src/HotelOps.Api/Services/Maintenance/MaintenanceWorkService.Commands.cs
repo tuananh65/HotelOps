@@ -125,8 +125,13 @@ public sealed partial class MaintenanceWorkService
             afterWork["verified_submission_audit_id"] = reviewedSubmission!.Review.SubmissionAuditId;
             // Bind historical SLA to this committed closure, before a future Reopen
             // replaces the Incident's current-cycle deadlines. Never use planned dates.
-            afterWork["incident_cycle_sla_version"] = 1;
-            afterWork["incident_cycle_discovered_at"] = incident.DiscoveredAt;
+            var cycle = await HotelOps.Api.Services.Incidents.IncidentReopenStore.ReadAsync(
+                _dbContext, incident.IncidentId, cancellationToken);
+            if (cycle != null && work.CreatedAt < cycle.ReopenedAt)
+                throw new ValidationException("Maintenance work does not belong to the current incident cycle.");
+            afterWork["incident_cycle_sla_version"] = 2;
+            afterWork["incident_cycle_reopen_event_id"] = cycle?.EventId;
+            afterWork["incident_cycle_discovered_at"] = cycle?.DiscoveredAt ?? incident.DiscoveredAt;
             afterWork["incident_cycle_sla"] = await HotelOps.Api.Services.Incidents.IncidentSlaRead.ReadAsync(
                 _dbContext, incident.IncidentId, cancellationToken);
             if (incident.AssetId is long assetId)

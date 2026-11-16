@@ -62,7 +62,9 @@ public sealed class IncidentEscalationService(HotelOpsDbContext db, ISqlSessionS
         var now=DateTime.SpecifyKind(await NowAsync(db,ct),DateTimeKind.Utc);
         var sla=await IncidentSlaRead.ReadAsync(db,id,ct);
         var severity=await SeverityAsync(incident,ct);
-        var timing=IncidentEscalationEligibility.Calculate(incident.Status,severity,incident.DiscoveredAt,sla.ResolutionDeadlineAt,now);
+        var cycle=await IncidentReopenStore.ReadAsync(db,id,ct);
+        var cycleDiscovery=cycle?.DiscoveredAt ?? incident.DiscoveredAt;
+        var timing=IncidentEscalationEligibility.Calculate(incident.Status,severity,cycleDiscovery,sla.ResolutionDeadlineAt,now);
         var tag=await IncidentTriageStore.TagAsync(db,id,ct);
         var can=tag!=null && timing.Eligible && !items.Any(e=>e.State=="OPEN")
             && await NotificationAcknowledgmentStore.InstalledAsync(db,ct)
@@ -91,7 +93,9 @@ public sealed class IncidentEscalationService(HotelOpsDbContext db, ISqlSessionS
         var now=DateTime.SpecifyKind(await NowAsync(db,ct),DateTimeKind.Utc);
         var sla=await IncidentSlaRead.ReadAsync(db,id,ct);
         var severity=await SeverityAsync(incident,ct);
-        var timing=IncidentEscalationEligibility.Calculate(incident.Status,severity,incident.DiscoveredAt,sla.ResolutionDeadlineAt,now);
+        var cycle=await IncidentReopenStore.ReadAsync(db,id,ct);
+        var cycleDiscovery=cycle?.DiscoveredAt ?? incident.DiscoveredAt;
+        var timing=IncidentEscalationEligibility.Calculate(incident.Status,severity,cycleDiscovery,sla.ResolutionDeadlineAt,now);
         if(!timing.Eligible) throw new InternalRequestReadException(409,"CRITICAL_AT_RISK_OR_OVERDUE_REQUIRED");
         if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.incident_escalations WITH(UPDLOCK,HOLDLOCK) WHERE incident_id={id} AND state='OPEN'").SingleAsync(ct)!=0)
             throw new InternalRequestReadException(409,"OPEN_ESCALATION_EXISTS");
@@ -106,7 +110,8 @@ public sealed class IncidentEscalationService(HotelOpsDbContext db, ISqlSessionS
         db.AuditLogs.Add(new AuditLog {EntityType="incidents",EntityId=id.ToString(CultureInfo.InvariantCulture),Action="UPDATE",BranchId=incident.BranchId,
             ActorUserId=ticket.UserId,OccurredAt=now,OldValues=JsonSerializer.Serialize(new{status=incident.Status}),
             NewValues=JsonSerializer.Serialize(new{status=incident.Status,event_id=ev.EventId,reason,requested_support=support,
-                severity,resolution_deadline_at=sla.ResolutionDeadlineAt,eligibility=timing.Classification,consumed_version=tag,notification_kind="INCIDENT_ESCALATED",notification_version=1})});
+                severity,cycle_discovered_at=cycleDiscovery,reopen_event_id=cycle?.EventId,
+                resolution_deadline_at=sla.ResolutionDeadlineAt,eligibility=timing.Classification,consumed_version=tag,notification_kind="INCIDENT_ESCALATED",notification_version=1})});
         await db.SaveChangesAsync(ct);
         await SessionAsync(ticket,sid,ct);
         if(!await IncidentEscalationAccess.AllowsAsync(db,ticket.UserId,incident.BranchId,id,ct)) throw new InternalRequestReadException(403,"SCOPED_INCIDENT_ESCALATE_REQUIRED");
