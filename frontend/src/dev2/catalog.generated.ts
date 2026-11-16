@@ -2134,7 +2134,7 @@ export const operations: Operation[] = [
     name: "Link",
     method: "POST",
     route: "/api/replenishments/{id:long}/receipts/link",
-    permissions: ["DEV2_DEMO_REPLENISHMENT_RECEIVE"],
+    permissions: ["REPLENISHMENT_RECEIVE", "REPLENISHMENT_VIEW", "INVENTORY_VIEW"],
     authorityKind: "replenishment",
     expectedStatus: 200,
     dto: "ReplenishmentLink",

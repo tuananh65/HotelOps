@@ -20,6 +20,7 @@ public sealed class ReplenishmentsController(ReplenishmentService service) : Con
     [HttpGet("{id:long}")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));
     [HttpGet("{id:long}/history")] public Task<IActionResult> History(long id, CancellationToken ct) => Execute(() => service.History(id, ct));
     [HttpGet("{id:long}/receipts")] public Task<IActionResult> Receipts(long id, CancellationToken ct) => Execute(() => service.Receipts(id, ct));
+    [HttpGet("{id:long}/receipt-candidates")] public IActionResult ReceiptCandidates(long id, [FromQuery] long after = 0) => Forbid();
     [HttpPost] public Task<IActionResult> Create(ReplenishmentCreate input, CancellationToken ct) => Execute(() => service.Create(input, ct), x => $"/api/replenishments/{x.ReplenishmentId}");
     [HttpPost("{id:long}/close")] public Task<IActionResult> Close(long id, ReplenishmentClose input, CancellationToken ct) => Execute(() => service.Close(id, input, ct));
     [HttpPost("{id:long}/receipts/link")] public Task<IActionResult> Link(long id, ReplenishmentLink input, CancellationToken ct) => Execute(() => service.Receive(id, input, ct));

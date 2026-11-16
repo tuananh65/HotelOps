@@ -66,6 +66,7 @@ public static class Dev2ActionAdmissionRegistry
         new("A004A-043", typeof(MaterialRequestsController), "Create", "POST", "api/material-requests"),
         new("MATERIAL-CREATE-APPROVERS", typeof(MaterialRequestsController), "Approvers", "GET", "api/material-requests/creation-approvers"),
         new("MATERIAL-CREATE-CATALOG", typeof(MaterialRequestsController), "CreationCatalog", "GET", "api/material-requests/creation-catalog"),
+        new("REPLENISHMENT-RECEIPT-CANDIDATES", typeof(ReplenishmentsController), "ReceiptCandidates", "GET", "api/replenishments/{id:long}/receipt-candidates"),
         new("A004A-044", typeof(MaterialRequestsController), "Edit", "PUT", "api/material-requests/{id:long}"),
         new("A004A-045", typeof(MaterialRequestsController), "Submit", "POST", "api/material-requests/{id:long}/submit"),
         new("A004A-046", typeof(MaterialRequestsController), "Information", "POST", "api/material-requests/{id:long}/request-information"),

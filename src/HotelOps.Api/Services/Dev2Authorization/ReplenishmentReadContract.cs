@@ -17,10 +17,18 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 
 internal static class ReplenishmentReadContract
 {
-    private const string Policy = "UC101 HTTPS current unrestricted SQL session; active STOREKEEPER or OPERATIONS_MANAGER; independent REPLENISHMENT_VIEW on actual warehouse branch; explicit branch-scoped list/count before pagination; descendant provenance and independent MR_VIEW for linked material detail; Serializable disclosure; no raw audit";
-    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-052", "A004A-053", "A004A-055" }.Select(id => new Dev2ActionContract(
+    private const string Policy = "UC101 HTTPS current unrestricted SQL session; active STOREKEEPER or OPERATIONS_MANAGER; independent REPLENISHMENT_VIEW on actual warehouse branch; explicit branch-scoped list/count before pagination; descendant provenance and independent MR_VIEW for linked material detail; Serializable disclosure; receipt candidates require STOREKEEPER plus REPLENISHMENT_RECEIVE and INVENTORY_VIEW, posted movement evidence and no previous credit; no raw audit";
+    internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-052", "A004A-053", "A004A-055", "REPLENISHMENT-RECEIPT-CANDIDATES" }.Select(id => new Dev2ActionContract(
         id, "DEV3_142A_REPLENISHMENT_READ_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
-        async (a, ct) => [new("REPLENISHMENT_VIEW", new(Dev2PermissionTargetKind.Branch, await Branch(a, ct)))],
+        async (a, ct) => {
+            var branch=await Branch(a,ct);
+            var grants=new List<Dev2PermissionRequirement> { new("REPLENISHMENT_VIEW",new(Dev2PermissionTargetKind.Branch,branch)) };
+            if(a.Identity.ActionName=="ReceiptCandidates") {
+                grants.Add(new("REPLENISHMENT_RECEIVE",new(Dev2PermissionTargetKind.Branch,branch)));
+                grants.Add(new("INVENTORY_VIEW",new(Dev2PermissionTargetKind.Branch,branch)));
+            }
+            return grants;
+        },
         Dev2PermissionCombination.All, Validate, (_, _) => false, null, Read, (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true));
     private static HotelOpsDbContext Db(Dev2BoundAction a) => a.Http.RequestServices.GetRequiredService<HotelOpsDbContext>();
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id>0 ? id : throw new Dev2AccessDenied(404);
@@ -33,6 +41,7 @@ internal static class ReplenishmentReadContract
     {
         if (!a.Http.Request.IsHttps || a.Identity.ControllerType != typeof(ReplenishmentsController) || a.Identity.HttpMethod != "GET"
             || !(a.Identity.DecisionId == "A004A-052" && a.Identity.ActionName == "List"
+                || a.Identity.DecisionId == "REPLENISHMENT-RECEIPT-CANDIDATES" && a.Identity.ActionName == "ReceiptCandidates"
                 || a.Identity.DecisionId == "A004A-053" && a.Identity.ActionName == "Get" || a.Identity.DecisionId == "A004A-055" && a.Identity.ActionName == "Receipts")) return false;
         var db=Db(a);
         if (phase==Dev2AuthorizationPhase.BeforeDisclosure && db.Database.CurrentTransaction==null) return false;
@@ -46,7 +55,7 @@ internal static class ReplenishmentReadContract
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var branch=await Branch(a,ct);
         if (!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==a.Actor.UserId && r.IsActive && r.Role.IsActive
-            && (r.Role.RoleCode=="STOREKEEPER" || r.Role.RoleCode=="OPERATIONS_MANAGER")
+            && (r.Role.RoleCode=="STOREKEEPER" || a.Identity.ActionName!="ReceiptCandidates" && r.Role.RoleCode=="OPERATIONS_MANAGER")
             && (r.BranchId==null || r.BranchId==branch) && r.AssignedAt<=now && (r.ExpiresAt==null || r.ExpiresAt>now)
             && db.UserBranchAccesses.Any(b=>b.UserId==a.Actor.UserId && b.BranchId==branch && b.Branch.IsActive && b.GrantedAt<=now && b.RevokedAt==null),ct)) return false;
         if(a.Identity.ActionName=="List")
@@ -72,6 +81,8 @@ internal static class ReplenishmentReadContract
         try
         {
             var service=a.Http.RequestServices.GetRequiredService<ReplenishmentService>();
+            if(a.Identity.ActionName=="ReceiptCandidates")
+                return new OkObjectResult(await service.ReceiptCandidates(Id(a),a.Arguments.GetValueOrDefault("after") is long after ? after : 0,ct));
             if(a.Identity.ActionName=="List")
             {
                 var branch=await Branch(a,ct);
