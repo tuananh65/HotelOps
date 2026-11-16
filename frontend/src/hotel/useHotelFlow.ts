@@ -23,7 +23,7 @@ export function hotelErrorMessage(error: HotelError) {
   if (error.reason === "HEAD_ADMIN_REQUIRED") return "Administrator role is required to transfer a Department Head.";
   if (error.reason === "HEAD_SCHEMA_REQUIRED") return "Department Head transfer schema must be installed and verified.";
   if (error.reason === "HEAD_ROLE_OR_ACCESS_REQUIRED") return "The selected Head needs an active account, DEPT_MANAGER role and branch access.";
-  if (error.reason === "HEAD_DEPARTMENT_REQUIRED") return "The selected Head must belong to this department.";
+  if (error.reason === "HEAD_DEPARTMENT_REQUIRED") return "The selected Head needs an active explicit membership in this department. For a new department, create it without a Head, configure membership, then assign the Head.";
   if (error.reason === "HEAD_MISSING_IR_PROCESS") return "The selected Head needs IR_PROCESS in this branch.";
   if (error.reason === "HEAD_MISSING_MR_APPROVE_L1") return "The selected Head needs MR_APPROVE_L1 in this branch.";
   if (error.reason === "HEAD_MISSING_MR_APPROVE_FALLBACK") return "The selected Head needs MR_APPROVE_FALLBACK for this warehouse department.";

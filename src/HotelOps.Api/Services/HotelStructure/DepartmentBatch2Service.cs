@@ -21,7 +21,7 @@ public sealed partial class RoomTypeCreationService
     private async Task<bool> EligibleDepartmentManager(long branch, long? manager, CancellationToken ct)
     {
         if (manager == null) return true;
-        var now = clock.GetUtcNow().UtcDateTime;
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         // Branch DH designation is not an RBAC grant. Both role assignment and branch
         // membership must remain effective, including the final commit-time reread.
         return await db.Users.AsNoTracking().AnyAsync(u => u.UserId == manager && u.DeletedAt == null
@@ -41,6 +41,10 @@ public sealed partial class RoomTypeCreationService
             if (await db.Departments.AsNoTracking().AnyAsync(x => x.BranchId == branch && x.DepartmentCode.Trim().ToUpper() == code, token)) return new(RoomTypeBatchStatus.Duplicate);
             var row = new Department { BranchId = branch, DepartmentCode = code, DepartmentName = name, ScopeDescription = description, ManagerUserId = input.ManagerUserId, IsActive = true };
             db.Add(row); await db.SaveChangesAsync(token);
+            // Creation must not bypass the head authority/membership contract used by UC025.
+            // A new department can be created without a Head, then receive explicit membership and designation.
+            if (input.ManagerUserId != null)
+                await TransferDepartmentHeadAsync(actor, branch, row.DepartmentId, null, input.ManagerUserId, token);
             var value = DepartmentDto(row);
             await BatchAuditAsync(actor, branch, "departments", row.DepartmentId, null, value, ["code", "name", "description", "managerUserId", "isActive"], token);
             return new(RoomTypeBatchStatus.Success, value, await DepartmentTag(value, token));

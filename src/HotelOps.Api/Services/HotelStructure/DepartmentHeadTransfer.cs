@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.HotelStructure;
@@ -38,7 +39,9 @@ public sealed partial class RoomTypeCreationService
         {
             if (!await EligibleDepartmentManager(branch, user, ct))
                 throw new DepartmentHeadTransferException("HEAD_ROLE_OR_ACCESS_REQUIRED");
-            if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user && u.DepartmentId == department, ct))
+            if (!await WorkdayMembershipStore.InstalledAsync(db, ct))
+                throw new DepartmentHeadTransferException("HEAD_SCHEMA_REQUIRED");
+            if (!(await WorkdayMembershipStore.ReadAsync(db, user, branch, now, ct)).Any(m => m.DepartmentId == department))
                 throw new DepartmentHeadTransferException("HEAD_DEPARTMENT_REQUIRED");
             var required = new List<string> { "IR_PROCESS", "MR_APPROVE_L1" };
             if (await db.Warehouses.AsNoTracking().AnyAsync(w => w.DepartmentId == department && w.BranchId == branch && w.IsActive, ct))

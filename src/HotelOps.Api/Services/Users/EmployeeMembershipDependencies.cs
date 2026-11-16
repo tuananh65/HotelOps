@@ -13,6 +13,8 @@ internal static class EmployeeMembershipDependencies
     {
         if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Retained membership transaction required.");
         var result=new List<EmployeeMembershipDependency>();
+        await Add("DEPARTMENT_HEAD_TRANSFER_REQUIRED",db.Departments.Where(d=>d.DepartmentId==department&&d.BranchId==branch
+            &&d.ManagerUserId==user).Select(d=>d.DepartmentId));
         await Add("WORKDAY",db.Workdays.Where(w=>w.UserId==user&&w.BranchId==branch&&w.DepartmentId==department
             &&(w.Status!="ENDED"||w.EndedAt==null||w.EndedAt<w.StartedAt)).Select(w=>w.WorkdayId));
         await Add("OPEN_INTERVAL",db.WorkIntervals.Where(i=>i.UserId==user&&i.BranchId==branch&&i.ClosedAt==null
