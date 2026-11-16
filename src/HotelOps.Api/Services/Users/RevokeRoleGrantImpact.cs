@@ -52,7 +52,8 @@ public static class RevokeRoleGrantImpact
         .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     public static RevokeCapabilityImpact InternalRequestHandler(string? state,
-        IReadOnlyList<RevokeGrant> before,IReadOnlyList<RevokeGrant> after,long? branch,DateTime nowUtc)
+        IReadOnlyList<RevokeGrant> before,IReadOnlyList<RevokeGrant> after,long? branch,DateTime nowUtc,
+        bool currentHandlerMembershipVerified = false)
     {
         if(state!="IN_PROGRESS")return RevokeCapabilityImpact.Unknown;
         // Current handler mutation independently requires both permissions. Losing
@@ -66,6 +67,7 @@ public static class RevokeRoleGrantImpact
             return RevokeCapabilityImpact.Unknown;
         // Match UC123 actor-aware read scope. A global IR_VIEW grant on an
         // ineligible role does not replace the current handler's scoped read access.
+        var readPreserved = false;
         if (!before.Concat(after).Any(g => g.Path.PermissionCode == "IR_VIEW" && g.RoleCode is null))
         {
             bool CanRead(IReadOnlyList<RevokeGrant> grants)
@@ -76,6 +78,7 @@ public static class RevokeRoleGrantImpact
                 return scope.Global || scope.Branches.Contains(branch.Value) || scope.RelatedBranches.Contains(branch.Value);
             }
             if (CanRead(before) && !CanRead(after)) return RevokeCapabilityImpact.Lost;
+            readPreserved = CanRead(before) && CanRead(after);
         }
         // A permission on an ineligible actor role cannot replace a handler's role.
         // Missing role provenance cannot establish loss; keep legacy callers fail-closed.
@@ -84,6 +87,11 @@ public static class RevokeRoleGrantImpact
         bool Eligible(RevokeGrant grant) => grant.RoleCode is {} role
             && InternalRequestProgressAuthority.EligibleHandler(role, grant.Path, branch.Value, nowUtc);
         if (before.Any(Eligible) && !after.Any(Eligible)) return RevokeCapabilityImpact.Lost;
+        // Handler membership is independent of managed-department authority. Only
+        // the SQL responsibility reader can establish current active membership.
+        if (currentHandlerMembershipVerified && readPreserved && before.Any(Eligible) && after.Any(Eligible)
+            && process == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved)
+            return RevokeCapabilityImpact.Preserved;
         return RevokeCapabilityImpact.Unknown;
     }
 }

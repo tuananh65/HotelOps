@@ -93,4 +93,20 @@ public sealed class InternalRequestRoleImpactTests
         Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
             [process, read, unknown], [process, unknown], 1, Now));
     }
+
+    [Theory]
+    [InlineData("HK_STAFF")]
+    [InlineData("DEPT_MANAGER")]
+    public void VerifiedHandlerMembershipAndEligibleSurvivingPathsPreserveOnlyHandlerCapability(string role)
+    {
+        var removed = Grant(1, "IR_PROCESS") with { RoleCode = "HK_STAFF" };
+        var process = Grant(2, "IR_PROCESS") with { RoleCode = role };
+        var read = Grant(2, "IR_VIEW") with { RoleCode = role };
+        Assert.Equal(RevokeCapabilityImpact.Preserved, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [removed, process, read], [process, read], 1, Now, true));
+        Assert.Equal(RevokeCapabilityImpact.Unknown, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [removed, process, read], [process, read], 1, Now, false));
+        Assert.Equal(RevokeCapabilityImpact.Lost, RevokeRoleGrantImpact.InternalRequestHandler("IN_PROGRESS",
+            [removed, process, read], [read], 1, Now, true));
+    }
 }

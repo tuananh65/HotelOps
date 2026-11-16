@@ -87,6 +87,8 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
             .Select(a=>new {a.InternalRequestId,a.AssignedAt,a.EndedAt,a.InternalRequest.Status,a.InternalRequest.BranchId,
                 DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId
                     && a.InternalRequest.ReceivingDepartment.IsActive && a.InternalRequest.Branch.IsActive,
+                HandlerMembership=a.Assignee.DepartmentId==a.InternalRequest.ReceivingDepartmentId
+                    && a.Assignee.AccountStatus=="ACTIVE"&&a.Assignee.EmploymentStatus=="ACTIVE"&&a.Assignee.DeletedAt==null,
                 Owners=a.InternalRequest.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
             .ToArrayAsync(ct);
         foreach(var request in internalAssignments)
@@ -94,7 +96,7 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
             var fact=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
             if(request.EndedAt!=null||request.AssignedAt>now||request.Owners!=1||!request.DepartmentValid)
             {unresolved.Add(fact+"_INCONSISTENT");continue;}
-            Record(RevokeRoleGrantImpact.InternalRequestHandler(request.Status,before,after,request.BranchId,now),fact);
+            Record(RevokeRoleGrantImpact.InternalRequestHandler(request.Status,before,after,request.BranchId,now,request.HandlerMembership),fact);
         }
         // Other designated FE11 roles and all writer coordination remain explicit gates;
         // an empty target assignment set is not complete role-dependency acceptance.

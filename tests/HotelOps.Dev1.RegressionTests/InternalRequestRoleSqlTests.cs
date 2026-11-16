@@ -92,7 +92,22 @@ public sealed class InternalRequestRoleSqlTests
             await db.UserRoles.Where(r => r.UserRoleId == alternate.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, executorRole.RoleId), ct);
             var eligibleAlternative = await Read();
             Assert.DoesNotContain(label, eligibleAlternative.Blockers);
-            Assert.Contains(label + "_UNKNOWN", eligibleAlternative.Unresolved);
+            Assert.DoesNotContain(label + "_UNKNOWN", eligibleAlternative.Unresolved);
+            Assert.NotEmpty(eligibleAlternative.Unresolved); // Global release gates remain.
+            var progressAuthority=new InternalRequestProgressAuthority(db,new InternalRequestProcessAuthority(db));
+            Assert.True((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.Users.Where(u=>u.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,(long?)null),ct);
+            Assert.Contains(label + "_UNKNOWN", (await Read()).Unresolved);
+            Assert.False((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.Users.Where(u=>u.UserId==user.UserId).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,department.DepartmentId),ct);
+            var surviving = new RevokeRoleResponsibilities(db, TimeProvider.System);
+            Assert.DoesNotContain(label + "_UNKNOWN", (await surviving.ReadAsync(user.UserId,selected.UserRoleId,false,ct)).Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
+            var survivingAfter=await surviving.ReadAsync(user.UserId,selected.UserRoleId,true,ct);
+            Assert.DoesNotContain(label,survivingAfter.Blockers);
+            Assert.DoesNotContain(label + "_UNKNOWN",survivingAfter.Unresolved);
+            Assert.True((await progressAuthority.ResolveAsync(user.UserId,request.InternalRequestId,ct)).CanUpdate);
+            await db.UserRoles.Where(r=>r.UserRoleId==selected.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
             await db.UserRoles.Where(r => r.UserRoleId == alternate.UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, alternate.RoleId), ct);
             await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,now),ct);
             Assert.Contains(label,(await Read()).Blockers);
