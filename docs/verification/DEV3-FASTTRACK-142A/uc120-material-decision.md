@@ -470,3 +470,13 @@ Each open line displays remaining approved and fulfillable quantities in request
 
 Backend build --no-restore PASS, zero warnings/errors. No database/schema changes. Business/API/SQL/browser tests NOT RUN per code-first instruction. Replenishment creation remains a separate UC100 integration dependency; UI currently suggests replenishment without claiming that workflow is complete. No new COMPLETE_VERIFIED UC.
 Final frontend typecheck and production build PASS; existing React Router use-client warning and >500 kB bundle warning remain (919.53 kB JS). git diff --check PASS apart from line-ending normalization notices.
+
+### UC099 business history presentation — 2026-11-16
+
+Scoped request list now includes latest assigned approver and active line requested/approved/issued quantities. Enrichment is limited to IDs in the already-authorized page and preserves newest-first ordering/filter scope. Quantities remain separated by item/UOM.
+
+MaterialHistoryView renders creation, submission cycles, decisions with cycle quantity snapshots, fulfillment receipt links, remainder closure, current quantities and linked return document metadata from the existing authorized detail response. Missing cancellation/return event timestamps are not fabricated from UpdatedAt. Raw audit endpoint remains unadmitted; no new permissions or broad audit payload disclosure. Linked incident ID remains metadata and does not confer incident access. Other linked-work navigation and full return/cancellation chronological evidence remain gaps, so UC099 is still PARTIAL.
+
+Direct verification: dotnet build HotelOps.slnx --no-restore PASS (0 warnings/errors); npm run typecheck PASS; npm run build PASS. Existing Vite warnings: ignored React Router use-client directive and bundle >500 kB (922.99 kB JS). git diff --check PASS. Business/API/SQL/browser tests NOT RUN per code-first instruction; projected nested list query requires SQL QA. No database mutation. No new COMPLETE_VERIFIED UC.
+
+UC100/101 decision requested: production replenishment permissions and role/scope contract. Existing catalog uses DEV2_DEMO_REPLENISHMENT_*; production mutations remain closed while awaiting decision. Independent UC099 work proceeded.

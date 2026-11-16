@@ -25,7 +25,18 @@ public sealed partial class MaterialRequestService
         var total = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.RequestId).Skip((p.Page - 1) * p.PageSize).Take(p.PageSize)
             .Select(x => new MaterialSummaryDto(x.RequestId, x.RequestNo, x.Status, x.BranchId, x.DepartmentId, x.RequesterId, x.CreatedAt, x.NeededAt)).ToListAsync(ct);
-        return new(p.Page, p.PageSize, total, rows.Select(x => x with { CreatedAt = Utc(x.CreatedAt), NeededAt = Utc(x.NeededAt) }).ToArray());
+        var ids = rows.Select(x => x.RequestId).ToArray();
+        // Enrich only the already scoped page. Never aggregate quantities across
+        // different materials/UOMs, and never infer a missing legacy approver.
+        var details = await q.Where(r => ids.Contains(r.RequestId)).Select(r => new {
+            r.RequestId,
+            Approver = r.MaterialRequestApprovalCycles.OrderByDescending(c => c.RevisionNo).Select(c => (long?)c.AssignedApproverId).FirstOrDefault(),
+            Lines = r.MaterialRequestLines.Where(l => l.IsActive).OrderBy(l => l.LineNo)
+                .Select(l => new MaterialSummaryLineDto(l.LineId, l.Item.ItemName, l.Uom.UomName, l.RequestedQty, l.ApprovedQty, l.FulfilledQty)).ToArray()
+        }).ToArrayAsync(ct);
+        return new(p.Page, p.PageSize, total, rows.Select(x => x with { CreatedAt = Utc(x.CreatedAt), NeededAt = Utc(x.NeededAt),
+            AssignedApproverUserId = details.Single(d => d.RequestId == x.RequestId).Approver,
+            Quantities = details.Single(d => d.RequestId == x.RequestId).Lines }).ToArray());
     }
     public async Task<MaterialRequestDto?> Get(long id, CancellationToken ct)
     {

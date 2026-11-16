@@ -35,7 +35,10 @@ public sealed record MaterialRequestDto(long RequestId, string RequestNo, string
 public sealed record MaterialAuditDto(long AuditId, string EntityType, string EntityId, string Action, long? ActorUserId,
     DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record MaterialHistoryDto(MaterialRequestDto Request, IReadOnlyList<MaterialAuditDto> Audit);
-public sealed record MaterialSummaryDto(long RequestId, string RequestNo, string RawStatus, long BranchId, long DepartmentId, long RequesterId, DateTime CreatedAt, DateTime? NeededAt);
+public sealed record MaterialSummaryDto(long RequestId, string RequestNo, string RawStatus, long BranchId, long DepartmentId, long RequesterId, DateTime CreatedAt, DateTime? NeededAt,
+    long? AssignedApproverUserId = null, IReadOnlyList<MaterialSummaryLineDto>? Quantities = null);
+public sealed record MaterialSummaryLineDto(long RequestLineId, string ItemName, string UnitName,
+    decimal RequestedQty, decimal? ApprovedQty, decimal IssuedQty);
 public sealed record MaterialPageDto(int Page, int PageSize, int Total, IReadOnlyList<MaterialSummaryDto> Items);
 public sealed record MaterialAvailabilityLineDto(long RequestLineId, long ItemId, long UomId, decimal RequestedQty,
     decimal? ApprovedQty, decimal FulfilledQty, decimal? RemainingApprovedQty);
