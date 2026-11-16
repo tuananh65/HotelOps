@@ -17,10 +17,10 @@ export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incide
   const [message, setMessage] = useState(""), [busy, setBusy] = useState(false), [review, setReview] = useState(false), [attempted, setAttempted] = useState(false);
   const [saved, setSaved] = useState<number | null>(null);
   useEffect(() => { setContext(null); setSaved(null); setMessage(""); setReview(false); return () => abort.current?.abort(); }, [owner, incidentId]);
-  const data = context?.owner === owner ? context.value : null;
+  const data = context?.owner === owner && context.value.incidentId === incidentId ? context.value : null;
   async function load() {
     if (!owner || sending.current || attempted) return;
-    sending.current = true; setBusy(true); setMessage("");
+    sending.current = true; setBusy(true); setMessage(""); setContext(null);
     const controller = new AbortController(); abort.current = controller;
     try {
       const response = await fetch(`/api/incidents/${incidentId}/assignment`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: controller.signal });
@@ -56,10 +56,15 @@ export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incide
       if (!response.ok) {
         if (response.status === 400) {
           const problem: unknown = await response.json();
-          if (isObject(problem) && problem.title === "Invalid assignment" && typeof problem.detail === "string")
-            throw Error(problem.detail + " Reload before correcting and retrying.");
+          if (isObject(problem) && problem.title === "Invalid assignment" && typeof problem.detail === "string") {
+            if (!controller.signal.aborted && current.current === owner) setAttempted(false);
+            throw Error(problem.detail + " Correct the assignment and review again.");
+          }
         }
-        throw Error(response.status === 412 ? "Assignment changed. Reload before retrying." : "Assignment was not confirmed. Reload and check eligibility.");
+        if (response.status === 412 && !controller.signal.aborted && current.current === owner) {
+          setContext(null); setSelected(""); setAttempted(false);
+        }
+        throw Error(response.status === 412 ? "Assignment changed. Load current eligible technicians before retrying." : "Assignment was not confirmed. Reload and check eligibility.");
       }
       const result: unknown = await response.json();
       if (!isObject(result) || !positive(result.workId) || !positive(result.auditId) || result.workflow !== "ASSIGNED" || data.workId !== null && data.workId !== result.workId)
