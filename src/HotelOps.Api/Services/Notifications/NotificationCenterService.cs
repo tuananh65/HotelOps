@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 namespace HotelOps.Api.Services.Notifications;
 public sealed class NotificationCenterOptions { public int RetentionDays {get;set;}=365; }
-public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserAccessor caller,TimeProvider clock,IOptions<NotificationCenterOptions> options)
+public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurrentUserAccessor caller,TimeProvider clock,IOptions<NotificationCenterOptions> options)
 {
     private async Task<long> UserAsync(DateTime now,CancellationToken ct)
     {
@@ -118,6 +118,13 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"CLEANING_TASK_CANCELLED",SourceType:"CLEANING_TASK",SourceId:>0})
+        {
+            await CancellationReceiptAsync(id,user,now,ct);
+            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await tx.CommitAsync(ct);
+            return new($"/notifications/{id}/cleaning-cancellation");
+        }
         if(source is {NotificationType:"CLEANING_TASK_COMPLETED" or "CLEANING_BLOCKER_REPORTED",SourceType:"CLEANING_TASK",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

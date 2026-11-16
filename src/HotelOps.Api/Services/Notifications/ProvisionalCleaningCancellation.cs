@@ -24,6 +24,10 @@ public sealed partial class ProvisionalCleaningNotification
     {
         if (db.Database.CurrentTransaction == null || !await CancellationAvailableAsync(ct))
             throw new InvalidOperationException("CANCELLATION_STAGING_UNAVAILABLE");
+        if (actor <= 0 || r.Id <= 0 || r.BranchId <= 0 || r.OperationId == Guid.Empty
+            || fingerprint is not { Length: 32 }
+            || !HotelOps.Api.Services.Housekeeping.CleaningCancellationRules.ValidReceipt(r,r.BranchId,r.Id,r.OperationId))
+            throw new InvalidOperationException("INVALID_CANCELLATION_SOURCE");
         var json = JsonSerializer.Serialize(r, Json);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at)
@@ -47,6 +51,13 @@ public sealed partial class ProvisionalCleaningNotification
 
     public async Task VerifyCancellationAsync(long actor, CleaningCancellationResult r, CancellationToken ct)
     {
+        if (!await VerifyCancellationSourceAsync(db, actor, r, ct))
+            throw new InvalidOperationException("MANDATORY_CANCELLATION_PROOF_INCOMPLETE");
+    }
+
+    internal static async Task<bool> VerifyCancellationSourceAsync(HotelOps.Api.Data.HotelOpsDbContext db,
+        long actor, CleaningCancellationResult r, CancellationToken ct)
+    {
         if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("CALLER_TRANSACTION_REQUIRED");
         var proof = await db.Database.SqlQuery<int>($"""
             SELECT COUNT(*) AS [Value] FROM dbo.notification_operation_reservations o
@@ -54,7 +65,7 @@ public sealed partial class ProvisionalCleaningNotification
             AND EXISTS(SELECT 1 FROM dbo.cleaning_tasks t WHERE t.cleaning_task_id={r.Id} AND t.room_id={r.RoomId} AND t.workflow_status='CANCELLED' AND t.status='CANCELLED')
             AND EXISTS(SELECT 1 FROM dbo.rooms room WHERE room.room_id={r.RoomId} AND room.branch_id={r.BranchId})
             AND EXISTS(SELECT 1 FROM dbo.room_readiness_events e WHERE e.event_id={r.ReadinessEventId} AND e.room_id={r.RoomId} AND e.cleaning_task_id={r.Id} AND e.readiness='PENDING_CLEANING' AND e.has_effective_block=0 AND e.actor_user_id={actor} AND e.occurred_at={r.OccurredAtUtc})
-            AND EXISTS(SELECT 1 FROM dbo.audit_logs a WHERE a.actor_user_id={actor} AND a.entity_type='cleaning_tasks' AND a.entity_id=CONVERT(varchar(30),{r.Id}) AND a.branch_id={r.BranchId} AND JSON_VALUE(a.new_values,'$.action')='CANCEL_CLEANING' AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(a.new_values,'$.operationId'))={r.OperationId})
+            AND EXISTS(SELECT 1 FROM dbo.audit_logs a WHERE a.actor_user_id={actor} AND a.entity_type='cleaning_tasks' AND a.entity_id=CONVERT(varchar(30),{r.Id}) AND a.branch_id={r.BranchId} AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.action')='CANCEL_CLEANING' AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.operationId'))={r.OperationId})
             AND (({r.AssignmentId} IS NULL AND {r.PublicationId} IS NULL AND NOT EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.actor_user_id={actor} AND p.operation_key={r.OperationId}))
               OR EXISTS(SELECT 1 FROM dbo.notification_publications p JOIN dbo.cleaning_assignments s ON s.assignment_id=p.assignment_id
                 WHERE p.publication_id={r.PublicationId} AND p.actor_user_id={actor} AND p.operation_key={r.OperationId}
@@ -67,6 +78,6 @@ public sealed partial class ProvisionalCleaningNotification
                 AND (SELECT COUNT(*) FROM dbo.notification_delivery_intents i WHERE i.publication_id=p.publication_id)=1
                 AND EXISTS(SELECT 1 FROM dbo.notification_delivery_intents i WHERE i.publication_id=p.publication_id AND i.user_id={r.AssigneeId} AND i.delivery_channel='IN_APP')))
             """).SingleAsync(ct);
-        if (proof != 1) throw new InvalidOperationException("MANDATORY_CANCELLATION_PROOF_INCOMPLETE");
+        return proof == 1;
     }
 }

@@ -5,6 +5,7 @@ namespace HotelOps.Api.Services.Notifications;
 internal sealed class CleaningClosureNotificationOptions
 {
     public bool Enabled { get; set; }
+    public bool CancellationEnabled { get; set; }
     public int PollSeconds { get; set; } = 30;
 }
 
@@ -16,7 +17,7 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        if (!options.Value.Enabled) return;
+        if (!options.Value.Enabled && !options.Value.CancellationEnabled) return;
         while (!ct.IsCancellationRequested)
         {
             try { await DrainAsync(ct); }
@@ -32,13 +33,20 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
 
     internal async Task DrainAsync(CancellationToken ct)
     {
+        if (options.Value.Enabled) await DrainKindAsync(false, ct);
+        if (options.Value.CancellationEnabled) await DrainKindAsync(true, ct);
+    }
+
+    private async Task DrainKindAsync(bool cancellation, CancellationToken ct)
+    {
         for (var attempt = 0; attempt < 100; attempt++)
         {
             ct.ThrowIfCancellationRequested();
             // A failed command/ambiguous commit must not poison the next intent's context.
             await using var scope = scopes.CreateAsyncScope();
-            var result = await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>()
-                .DeliverClosureOnlyAsync(ct);
+            var delivery = scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>();
+            var result = cancellation ? await delivery.DeliverCancellationOnlyAsync(ct)
+                : await delivery.DeliverClosureOnlyAsync(ct);
             if (result is "EMPTY" or "DISABLED") break;
         }
     }

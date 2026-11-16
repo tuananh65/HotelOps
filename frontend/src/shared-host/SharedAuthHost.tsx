@@ -6,6 +6,7 @@ import { ReinspectionAssignmentPage } from "../features/inspectionExecution/Rein
 import { ReinspectionExecutionPage } from "../features/inspectionExecution/ReinspectionExecutionPage";
 import { ReinspectionOriginalPage } from "../features/inspectionExecution/ReinspectionOriginalPage";
 import { NotificationCenter } from "../notifications/NotificationCenter";
+import { CleaningCancellationReceipt } from "../notifications/CleaningCancellationReceipt";
 import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
 import { UserDirectoryPage } from "../users/UserDirectoryPage";
@@ -222,6 +223,8 @@ export function SharedAuthHost({
           }
         />
       )}
+      {notificationsEnabled && <Route path="/notifications/:id/cleaning-cancellation"
+        element={<Protected><CleaningCancellationReceipt /></Protected>} />}
       <Route path="/login" element={<LoginRoute />} />
       <Route
         path="/profile"

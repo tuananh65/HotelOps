@@ -24,8 +24,10 @@ public sealed class CleaningClosureWorkerTests
         await worker.StopAsync(default);
     }
 
-    [Fact]
-    public async Task Missing_closure_capability_stops_drain_without_assignment_fallback_or_sql()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Missing_capability_stops_drain_without_assignment_fallback_or_sql(bool cancellation)
     {
         var attempts = 0;
         var registrations = new ServiceCollection();
@@ -41,7 +43,7 @@ public sealed class CleaningClosureWorkerTests
         });
         await using var services = registrations.BuildServiceProvider();
         using var worker = new CleaningClosureNotificationWorker(services.GetRequiredService<IServiceScopeFactory>(),
-            Options.Create(new CleaningClosureNotificationOptions { Enabled = true }), TimeProvider.System,
+            Options.Create(new CleaningClosureNotificationOptions { Enabled = !cancellation, CancellationEnabled = cancellation }), TimeProvider.System,
             NullLogger<CleaningClosureNotificationWorker>.Instance);
         await worker.DrainAsync(default);
         Assert.Equal(1, attempts);
