@@ -1,0 +1,30 @@
+[
+    {
+        "marker":  null,
+        "path":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+        "sha256":  "F5AF3EA6E41048EC83748A473875B04A0E4991F3F579DD515BC5A5F423E9AEA7",
+        "id":  "room-types-v1",
+        "start":  "IF OBJECT_ID(N\u0027dbo.room_types\u0027,N\u0027U\u0027)"
+    },
+    {
+        "marker":  "HotelOps.Checklists.V1",
+        "path":  "scripts/database/release/checklists/01_Checklists.sql",
+        "sha256":  "2E9FD953D1BA3D8B7479CF2713934DA61A21C73546A3C18138B33B3895D1F534",
+        "id":  "checklists-v1",
+        "start":  "IF COL_LENGTH(N\u0027dbo.room_types\u0027,N\u0027branch_id\u0027)"
+    },
+    {
+        "marker":  "HotelOps.Housekeeping.V1",
+        "path":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+        "sha256":  "89A04F356E2DC65B17FAB408B775F49DE484BC4AE6A582FE95690B6E7365D50C",
+        "id":  "housekeeping-v1",
+        "start":  "IF COL_LENGTH(N\u0027dbo.inspection_checklists\u0027,N\u0027branch_id\u0027)"
+    },
+    {
+        "marker":  "HotelOps.Progress.V1",
+        "path":  "scripts/database/release/progress/01_Progress.sql",
+        "sha256":  "8E404EF3C3404F5F50CEA444426BEAF681AB8B33DF8EEB1FC16589065273FBFB",
+        "id":  "progress-v1",
+        "start":  "IF EXISTS(SELECT 1 FROM sys.tables"
+    }
+]

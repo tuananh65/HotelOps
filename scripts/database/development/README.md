@@ -1,0 +1,16 @@
+# Development database foundation
+
+Authorized by FASTTRACK-142A Maximum Development Acceleration and the subsequent development-only confirmation. These scripts target the verified local development instance only; they are not production deployment tools.
+
+1. `scripts/verification/Backup-Dev3DevelopmentDatabase.ps1 -DevelopmentOwnershipConfirmed` checks exact instance/database/GUID, records schema inventory, creates a full COPY_ONLY/CHECKSUM backup, restores to a fresh recovery database and runs CHECKDB. It retains both backup and clone. Backup, inventory and receipts stay under ignored `artifacts/`; never commit them or use the recovery data as synthetic fixtures.
+2. `Install-Fe04Foundation.ps1 -RecoveryReceipt <receipt.json> -Target Recovery -RollbackTrial` checks backup and baseline hashes, applies the entire batch in a transaction, validates definitions/constraints/row counts and rolls back. Verify that new columns and migration ledger are absent afterward.
+3. Run the same installer with `-Target Recovery` to commit and rerun it to check idempotency.
+4. `-Target Development` requires the matching successful recovery receipt and rechecks target identity. It applies the same batch to HotelOpsDB. Retain the original backup as the recovery point.
+
+The versioned manifest pins the original Room Type, Checklist, Housekeeping and Progress source packages. Only their historical disposable-target admission prefixes are replaced by this runner's exact development/recovery identity and backup guards. Business/schema prerequisite checks, CHECK/FK constraints, indexes and trigger bodies are preserved. Original verifier files are independently pinned. No old trial-owner markers are fabricated.
+
+Changes: users rowversion; branch-scoped room type/checklist support; nullable cleaning/inspection/rework workflow columns and versions; inspection defect/evidence bridges; cleaning/task progress snapshots and evidence links; append-only-by-runner migration receipt row. Room Type's original global code constraint is replaced atomically by the existing package's scoped/legacy uniqueness rules. No existing row is deleted or assigned a guessed branch/workflow, and no roles, permissions, passwords or synthetic business records are seeded.
+
+Schema apply does not certify UC completion or activate missing Start/work-time/outbox contracts. Legacy NULL workflow/ownership remains unclassified and requires explicit reconciliation. Do not fill these fields from physical status alone. Later migration batches must preserve the same backup/identity/transaction discipline. Do not restore over HotelOpsDB or perform destructive rollback without separate impact review and approval; automatic failure rollback is transactional, and the retained restore clone is separate.
+
+Current successful recovery run: `2b221f40a1ee4693af3f34ab90cada30`; migration `FE04_FOUNDATION_V1`; manifest SHA256 `81F98F6EF5C63CC5D845007CB70240DF2AA6D2AFC922BFBFB1260C22106043FB`. The first backup run was superseded because scalar FOR JSON inventory truncated its multi-row output; the corrected runner validates complete JSON before backup. Both backups/clones are retained; use the successful run above for subsequent batches.

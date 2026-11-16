@@ -1,0 +1,14 @@
+[
+    {
+        "sha256":  "9381D3CB2C3D4F9DD93BA51930A074E639CAA629DA1A6D8DB2F2CD3E723A6A14",
+        "path":  "scripts/database/release/checklists/02_Verify.sql"
+    },
+    {
+        "sha256":  "4891917946C5BB8545188F0C64EB486ABFADBF44AFED4152B8C5BDB4562E25FB",
+        "path":  "scripts/database/release/housekeeping/02_Verify.sql"
+    },
+    {
+        "sha256":  "30C4CACE6F3911492196D93E10041AFE61BAE399A91521E00D063D161C5A7855",
+        "path":  "scripts/database/release/progress/02_Verify.sql"
+    }
+]
