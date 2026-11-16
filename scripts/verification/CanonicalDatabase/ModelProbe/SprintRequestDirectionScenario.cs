@@ -14,6 +14,25 @@ internal static class SprintRequestDirectionScenario
         var other=await db.Users.Where(u=>u.UserId!=actor).Select(u=>u.UserId).SingleAsync(ct);
         async Task<long[]> Read(string direction){using var response=await http.GetAsync("/api/internal-requests?direction="+direction,ct);Check((int)response.StatusCode==200,"direction "+direction+" read");var data=await response.Content.ReadFromJsonAsync<JsonElement>(ct);Check(data.GetProperty("totalCount").GetInt32()==data.GetProperty("items").GetArrayLength(),"filtered count agrees with scoped list");return data.GetProperty("items").EnumerateArray().Select(x=>x.GetProperty("id").GetInt64()).ToArray();}
         Check((await Read("SENT")).SequenceEqual(new[]{request})&&(await Read("RECEIVED")).SequenceEqual(new[]{request}),"requester and mapped manager appears once in both; foreign branch excluded");
+        // Disposable legacy-data fixture: both branches are readable, but the manager's
+        // department mapping must never classify a request from another branch as Received.
+        var foreignBranch=await db.Branches.Where(b=>b.BranchId!=row.BranchId).Select(b=>b.BranchId).SingleAsync(ct);
+        var managerRole=await db.Roles.Where(r=>r.RoleCode=="DEPT_MANAGER").Select(r=>r.RoleId).SingleAsync(ct);
+        var foreignRole=new UserRole{UserId=actor,RoleId=managerRole,BranchId=foreignBranch,IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-1)};
+        var foreignAccess=new UserBranchAccess{UserId=actor,BranchId=foreignBranch,AccessLevel="STANDARD",GrantedBy=actor,GrantedAt=DateTime.UtcNow.AddMinutes(-1)};
+        db.AddRange(foreignRole,foreignAccess);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        try
+        {
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.BranchId,foreignBranch),ct);
+            Check((await Read("SENT")).Contains(request),"cross-branch legacy fixture remains independently readable to its requester");
+            Check(!(await Read("RECEIVED")).Contains(request),"mapped department in another branch cannot confer Received responsibility");
+        }
+        finally
+        {
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.BranchId,row.BranchId),CancellationToken.None);
+            await db.UserRoles.Where(r=>r.UserRoleId==foreignRole.UserRoleId).ExecuteDeleteAsync(CancellationToken.None);
+            await db.UserBranchAccesses.Where(a=>a.AccessId==foreignAccess.AccessId).ExecuteDeleteAsync(CancellationToken.None);
+        }
         using(var invalid=await http.GetAsync("/api/internal-requests?direction=OTHER",ct))Check((int)invalid.StatusCode==400,"invalid direction rejected");
         await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReceivingDepartmentId,department),ct);
         Check((await Read("RECEIVED")).Length==0&&(await Read("SENT")).SequenceEqual(new[]{request}),"routing removes previous receiving manager but preserves Sent");

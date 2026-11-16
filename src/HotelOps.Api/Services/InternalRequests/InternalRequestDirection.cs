@@ -15,7 +15,8 @@ internal sealed class InternalRequestDirection(HotelOpsDbContext db)
         {
             null or "" => query,
             "SENT" => query.Where(r=>r.RequesterId==User),
-            "RECEIVED" => query.Where(r=>r.ReceivingDepartmentId!=null&&ManagedDepartments.Contains(r.ReceivingDepartmentId.Value)
+            "RECEIVED" => query.Where(r=>r.ReceivingDepartmentId!=null&&r.ReceivingDepartment!=null
+                &&r.ReceivingDepartment.BranchId==r.BranchId&&ManagedDepartments.Contains(r.ReceivingDepartmentId.Value)
                 || r.InternalRequestAssignments.Count(a=>a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now)==1
                 && r.InternalRequestAssignments.Any(a=>a.AssigneeId==User&&a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now)),
             _ => throw new ValidationException("Direction must be SENT or RECEIVED.")
