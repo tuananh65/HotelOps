@@ -67,6 +67,9 @@ internal static class RecoveryReplenishmentScenario
             var list = await Call(HttpMethod.Get, $"/api/replenishments?branchId={branch.BranchId}", 200);
             if (list.GetProperty("total").GetInt32() != 1) throw new InvalidOperationException("Scoped list count incorrect.");
             await RecoveryReplenishmentNotice.RunAsync(db, http, id, branch.BranchId, actor, checks, ct);
+            version = await RecoveryReplenishmentPost.RunAsync(db, http, id,
+                created.GetProperty("lines")[0].GetProperty("replenishmentLineId").GetInt64(), version!,
+                warehouse.WarehouseId, item.ItemId, unit.UomId, actor, role.RoleId, csrf, checks, ct);
             await Call(HttpMethod.Post, $"/api/replenishments/{id}/close", 200, new { actorUserId = actor, expectedRowVersion = version, reason = "Synthetic delivery cancelled" });
             if (!await db.MaterialReplenishments.AnyAsync(r => r.ReplenishmentId == id && r.Status == "CLOSED" && r.ClosedBy == actor, ct)
                 || await db.MaterialReplenishmentLines.AnyAsync(l => l.ReplenishmentId == id && l.IsOpenCoverage, ct))
@@ -89,9 +92,19 @@ internal static class RecoveryReplenishmentScenario
                     && roots.Any(r => r.ReplenishmentId == n.SourceId) && n.CreatedBy == actor);
                 await db.NotificationRecipients.Where(r => notices.Any(n => n.NotificationId == r.NotificationId)).ExecuteDeleteAsync(clean);
                 await notices.ExecuteDeleteAsync(clean);
+                var documents = db.StockDocuments.Where(d => d.DestinationWarehouseId == warehouse.WarehouseId && d.CreatedBy == actor
+                    && d.DocumentNo.StartsWith("D3POST"));
+                var documentLines = db.StockDocumentLines.Where(l => documents.Any(d => d.DocumentId == l.DocumentId));
+                await db.MaterialReplenishmentReceiptLines.Where(l => roots.Any(r => r.ReplenishmentId == l.ReplenishmentLine.ReplenishmentId)).ExecuteDeleteAsync(clean);
+                if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.stock_receipt_line_details','U') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(clean) == 1)
+                    await db.StockReceiptLineDetails.Where(d => documentLines.Any(l => l.LineId == d.StockDocumentLineId)).ExecuteDeleteAsync(clean);
+                await db.StockMovements.Where(m => documentLines.Any(l => l.LineId == m.DocumentLineId)).ExecuteDeleteAsync(clean);
+                await documentLines.ExecuteDeleteAsync(clean);
+                await documents.ExecuteDeleteAsync(clean);
                 await db.MaterialReplenishmentLines.Where(l => roots.Any(r => r.ReplenishmentId == l.ReplenishmentId)).ExecuteDeleteAsync(clean);
                 await roots.ExecuteDeleteAsync(clean);
-                await db.AuditLogs.Where(a => a.ActorUserId == actor && a.BranchId == branch.BranchId && a.EntityType == "material_replenishments").ExecuteDeleteAsync(clean);
+                await db.AuditLogs.Where(a => a.ActorUserId == actor && a.BranchId == branch.BranchId
+                    && (a.EntityType == "material_replenishments" || a.EntityType == "stock_documents")).ExecuteDeleteAsync(clean);
                 await db.StockThresholds.Where(t => t.ThresholdId == threshold.ThresholdId).ExecuteDeleteAsync(clean);
                 await db.InventoryItems.Where(i => i.ItemId == item.ItemId && i.ItemCode == prefix).ExecuteDeleteAsync(clean);
                 await db.Warehouses.Where(w => w.WarehouseId == warehouse.WarehouseId && w.WarehouseCode == prefix).ExecuteDeleteAsync(clean);

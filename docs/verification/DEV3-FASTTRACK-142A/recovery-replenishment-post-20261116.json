@@ -1,0 +1,92 @@
+{
+  "database": "HotelOps_DEV3_142A_Recovery_2b221f40",
+  "fixtureUserId": 37,
+  "checks": [
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/auth/csrf",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "path": "/api/auth/session",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/material-requests?branchId=1",
+      "method": "GET",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "path": "/api/replenishments?branchId=1",
+      "method": "GET",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "replenishment": "/api/replenishment-shortages/low-stock?branchId=9\u0026warehouseId=17",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "replenishment": "/api/replenishments",
+      "method": "POST",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "replenishment": "/api/replenishments",
+      "method": "POST",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "replenishment": "/api/replenishments",
+      "method": "POST",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "replenishment": "/api/replenishments/5",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "replenishment": "/api/replenishments?branchId=9",
+      "method": "GET",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "replenishmentCreatedNotice": "PASS",
+      "storekeeperDenied": true,
+      "managerDeliveredOnce": true,
+      "httpsSource": 200,
+      "revokedManagerSource": 404
+    }
+  ],
+  "failure": "Invalid object name \u0027stock_receipt_line_details\u0027. Cleanup: The DELETE statement conflicted with the REFERENCE constraint \u0022FK_notification_recipients_user_id\u0022. The conflict occurred in database \u0022HotelOps_DEV3_142A_Recovery_2b221f40\u0022, table \u0022dbo.notification_recipients\u0022, column \u0027user_id\u0027.\r\nThe statement has been terminated.",
+  "cleanup": false,
+  "success": false,
+  "scope": "Synthetic HTTPS Create/read/Close replenishment with isolated grants and fixture cleanup; not complete UC acceptance"
+}
