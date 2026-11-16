@@ -21,7 +21,7 @@ public sealed record WorkCategoryPage(IReadOnlyList<WorkCategoryView> Items,IRea
 public sealed class WorkCategoryAdministrationService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
     private static InternalRequestReadException Error(int status,string code)=>new(status,code);
-    private async Task Gate(SessionReference ticket,long sid,long? branch,CancellationToken ct)
+    internal async Task Gate(SessionReference ticket,long sid,long? branch,CancellationToken ct)
     {
         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
             throw Error(401,"SESSION_INVALID");

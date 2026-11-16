@@ -1,3 +1,4 @@
+import { PrioritySlaPage } from "../operationalTasks/PrioritySlaPage";
 import { WorkCategoriesPage } from "../operationalTasks/WorkCategoriesPage";
 import { WorkdayRoute } from "../workday/WorkdayRoute";
 import { MyTimeLogPage } from "../workTime/MyTimeLogPage";
@@ -202,6 +203,7 @@ export function SharedAuthHost({
           <Route path="/structure/areas/:id" element={<StructureManagementRoute kind="areas" />} />
           <Route path="/structure/departments" element={<StructureManagementRoute kind="departments" />} />
           <Route path="/structure/departments/:id" element={<StructureManagementRoute kind="departments" />} />
+          <Route path="/structure/priority-sla" element={<Protected><PrioritySlaPage /></Protected>} />
           <Route path="/structure/work-categories" element={<Protected><WorkCategoriesPage /></Protected>} />
           <Route path="/structure/room-types" element={<StructureManagementRoute kind="roomTypes" />} />
           <Route path="/structure/room-types/:id" element={<StructureManagementRoute kind="roomTypes" />} />
@@ -342,7 +344,7 @@ export function SharedAuthHost({
             {checklistEnabled && <Link to="/inspections/checklists">Inspection checklists</Link>}
             {usersReadEnabled && <Link to="/users">Users</Link>}
             {roleAssignmentEnabled && <Link to="/roles">Roles and permissions</Link>}
-            {structureReadEnabled && <><Link to="/hotel">Structure</Link><Link to="/structure/work-categories">Work categories</Link></>}
+            {structureReadEnabled && <><Link to="/hotel">Structure</Link><Link to="/structure/work-categories">Work categories</Link><Link to="/structure/priority-sla">Priority SLA</Link></>}
             {structureReadEnabled && <Link to="/room-directory">Room directory</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
