@@ -32,12 +32,17 @@ using var provider = services.BuildServiceProvider();
 var actions = provider.GetRequiredService<IActionDescriptorCollectionProvider>().ActionDescriptors.Items
     .OfType<ControllerActionDescriptor>().ToArray();
 var reads = actions.Where(a => a.ControllerTypeInfo.AsType() == typeof(WorkdayReadsController)).ToArray();
-Check(reads.Length == 2, "MVC discovers exactly two Workday read actions");
-Check(!actions.Any(a => a.ControllerTypeInfo.AsType() == typeof(WorkdaysController)), "legacy WorkdaysController including Start/End remains undiscovered");
+Check(reads.Length == 3, "MVC discovers current, own-shifts and own-time-log read actions");
+var writes = actions.Where(a => a.ControllerTypeInfo.AsType() == typeof(WorkdaysController)).ToArray();
+Check(writes.Length == 2 && writes.All(a => a.ActionConstraints!.OfType<HttpMethodActionConstraint>().Single().HttpMethods.SequenceEqual(["POST"])), "exact scheduled Start/End POST actions");
+foreach (var write in writes)
+{
+ Check(write.EndpointMetadata.OfType<IAuthorizeData>().Any(a => a.AuthenticationSchemes == HotelOpsCookieTicket.Scheme) && !write.EndpointMetadata.OfType<IAllowAnonymous>().Any(), "scheduled write retains cookie authentication");
+}
 foreach (var action in reads)
 {
     var template = action.AttributeRouteInfo!.Template!;
-    var expected = action.ActionName == "Current" ? "current" : "own-shifts";
+    var expected = action.ActionName switch { "Current" => "current", "OwnShifts" => "own-shifts", "OwnTimeLog" => "own-time-log", _ => throw new InvalidOperationException("Unexpected read action") };
     Check(template == "api/branches/{branchId:long}/workdays/" + expected, "exact route " + expected);
     Check(action.ActionConstraints!.OfType<HttpMethodActionConstraint>().Single().HttpMethods.SequenceEqual(["GET"]), "GET only " + expected);
     Check(action.EndpointMetadata.OfType<IAuthorizeData>().Any(a => a.AuthenticationSchemes == HotelOpsCookieTicket.Scheme), "cookie authentication metadata " + expected);
@@ -45,13 +50,13 @@ foreach (var action in reads)
     var route = Microsoft.AspNetCore.Routing.Template.TemplateParser.Parse(template);
     var parameter = route.Parameters.Single();
     Check(parameter.Name == "branchId" && parameter.InlineConstraints.Single().Constraint == "long", "branch long route constraint " + expected);
-    Check(action.MethodInfo.GetParameters().Select(p => p.ParameterType).SequenceEqual([typeof(long), typeof(CancellationToken)]), "no caller user ID and cancellation propagated " + expected);
+    Check(action.MethodInfo.GetParameters().Any(p => p.ParameterType == typeof(CancellationToken)) && !action.MethodInfo.GetParameters().Any(p => p.Name == "userId"), "no caller user ID and cancellation propagated " + expected);
 }
 var workdayActions = actions.Where(a => a.AttributeRouteInfo?.Template?.Contains("workdays", StringComparison.OrdinalIgnoreCase) == true).ToArray();
-Check(workdayActions.Length == 2 && workdayActions.All(reads.Contains), "no other Workday endpoint or mutation exposed");
+Check(workdayActions.Length == 5 && workdayActions.All(a => reads.Contains(a) || writes.Contains(a)), "exact three-read/two-write Workday inventory");
 var collisions = actions.SelectMany(a => a.ActionConstraints?.OfType<HttpMethodActionConstraint>()
     .SelectMany(c => c.HttpMethods.Select(method => (Action: a, Method: method))) ?? [])
-    .Where(x => reads.Contains(x.Action))
+    .Where(x => reads.Contains(x.Action) || writes.Contains(x.Action))
     .All(x => actions.Count(a => string.Equals(a.AttributeRouteInfo?.Template, x.Action.AttributeRouteInfo?.Template, StringComparison.OrdinalIgnoreCase)
         && a.ActionConstraints!.OfType<HttpMethodActionConstraint>().Any(c => c.HttpMethods.Contains(x.Method))) == 1);
 Check(collisions, "no exact read method/route collisions in MVC inventory");

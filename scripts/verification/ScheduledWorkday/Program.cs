@@ -11,7 +11,7 @@ using HotelOps.Api.Services.WorkTime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 var count = 0; void Check(bool v, string name) { if (!v) throw new Exception("FAIL: " + name); count++; Console.WriteLine("PASS: " + name); }
-Check(typeof(WorkdaysController).IsDefined(typeof(NonControllerAttribute)), "mutation controller remains inactive");
+Check(!typeof(WorkdaysController).IsDefined(typeof(NonControllerAttribute)), "authorized scheduled mutation controller discoverable");
 Check(typeof(WorkdaysController).GetMethod("Start")!.GetCustomAttribute<HttpPostAttribute>()?.Template == null, "scheduled start POST template");
 Check(typeof(WorkdaysController).GetMethod("End")!.GetCustomAttribute<HttpPostAttribute>()?.Template == "{workdayId:long}/end", "end POST route");
 foreach (var restricted in new[] { false, true })
@@ -36,7 +36,7 @@ var participant = File.ReadAllText("src/HotelOps.Api/Services/WorkTime/SqlWorkTi
 foreach (var token in new[] { "IsolationLevel.Serializable", "participant.LockUsersAsync([actor.UserId]", "sessions.ValidateSessionAsync(ticket", "ticket.UserId != actor.UserId", "Authorize(\"ATTENDANCE_RECORD\"", "a.UserId == actor.UserId && a.Shift.BranchId == branchId", "TIME_STALE", "MSG31_PAUSE_ALL_REQUIRED", "UNSCHEDULED_NOTIFICATION_UNAVAILABLE", "PAUSE_ALL_UNAVAILABLE" }) Check(serviceSource.Contains(token), "service boundary source: " + token);
 foreach (var token in new[] { "new UserEligibilityLock(db).LockAsync", "sp_getapplock", "RequireLocks(actorUserId)", "Working(actorUserId).AnyAsync", "assignment.UserId != actorUserId", "assignment.AssignmentStatus != \"ASSIGNED\"", "shift.BranchId != branchId", "x.IsActive", "day.RowVersion.AsSpan().SequenceEqual(expectedRowVersion)", "Open(actorUserId).AnyAsync", "x.RowVersion == expectedRowVersion", "SetProperty(x => x.Status, \"ENDED\")", "\"CREATE\"", "\"UPDATE\"", "db.SaveChangesAsync" }) Check(participant.Contains(token), "participant invariant source: " + token);
 Check(serviceSource.IndexOf("participant.LockUsersAsync", StringComparison.Ordinal) < serviceSource.IndexOf("sessions.ValidateSessionAsync", StringComparison.Ordinal), "user-first source ordering");
-Check(serviceSource.Contains("await using var tx") && serviceSource.Contains("if (result.Status is >= 200 and < 300) await tx.CommitAsync(ct)"), "transaction disposal/commit boundary source");
+Check(serviceSource.Contains("await using var tx") && serviceSource.Contains("if (result.Status is >= 200 and < 300)") && serviceSource.Contains("var finalSession = await sessions.ValidateSessionAsync(ticket, ct)") && serviceSource.IndexOf("var finalSession", StringComparison.Ordinal) < serviceSource.IndexOf("await tx.CommitAsync(ct)", StringComparison.Ordinal), "transaction disposal/commit boundary source");
 
 // Executed business query over mutable history, not source-string assertions.
 var assignments = new[] { new ShiftAssignment { ShiftAssignmentId = 10, UserId = 7 }, new ShiftAssignment { ShiftAssignmentId = 11, UserId = 7 }, new ShiftAssignment { ShiftAssignmentId = 12, UserId = 8 } }.AsQueryable();

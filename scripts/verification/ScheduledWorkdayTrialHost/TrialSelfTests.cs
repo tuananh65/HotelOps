@@ -62,8 +62,8 @@ public static class TrialSelfTests
         Check(actions.All(a => Methods(a) is "GET" or "POST"), "no PUT/PATCH/DELETE endpoints");
         Check(actions.Count(a => Methods(a) == "GET") == 4 && actions.Count(a => Methods(a) == "POST") == 4, "exact four GET/four POST trial inventory");
         Check(actions.Select(a => a.AttributeRouteInfo!.Template + "|" + Methods(a)).Distinct().Count() == actions.Length, "no duplicate method/route templates");
-        Check(actions.All(a => a.ControllerTypeInfo.AsType() != typeof(WorkdaysController)), "production NonController remains absent");
-        Check(typeof(WorkdaysController).IsDefined(typeof(NonControllerAttribute), true), "production NonController preserved");
+        Check(actions.All(a => a.ControllerTypeInfo.AsType() != typeof(WorkdaysController)), "canonical writes excluded from dedicated trial inventory");
+        Check(!actions.Any(a => a.ActionName == "OwnTimeLog"), "unneeded own-time-log excluded from bounded trial");
         Check(actions.Count(a => a.ControllerTypeInfo.AsType() == typeof(TrialScheduledController)) == 2, "exactly two dedicated scheduled trial actions");
         Check(!actions.Any(a => a.ActionName == "ChangePassword"), "unneeded Auth write excluded");
         foreach (var action in actions.Where(a => a.ControllerTypeInfo.AsType() == typeof(TrialScheduledController)))

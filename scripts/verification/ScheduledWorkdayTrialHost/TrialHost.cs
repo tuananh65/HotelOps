@@ -98,7 +98,7 @@ public static class TrialHost
     sealed class ExplicitControllers : IApplicationFeatureProvider<ControllerFeature>
     { public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature) { foreach (var type in Controllers) feature.Controllers.Add(type.GetTypeInfo()); } }
     sealed class AuthActionsOnly : IApplicationModelConvention
-    { public void Apply(ApplicationModel model) { foreach (var controller in model.Controllers.Where(c => c.ControllerType.AsType() == typeof(AuthController))) foreach (var action in controller.Actions.Where(a => a.ActionName is not ("Login" or "Logout" or "Session")).ToArray()) controller.Actions.Remove(action); } }
+    { public void Apply(ApplicationModel model) { foreach (var controller in model.Controllers.Where(c => c.ControllerType.AsType() == typeof(WorkdayReadsController))) foreach (var action in controller.Actions.Where(a => a.ActionName == "OwnTimeLog").ToArray()) controller.Actions.Remove(action); foreach (var controller in model.Controllers.Where(c => c.ControllerType.AsType() == typeof(AuthController))) foreach (var action in controller.Actions.Where(a => a.ActionName is not ("Login" or "Logout" or "Session")).ToArray()) controller.Actions.Remove(action); } }
     sealed class DedicatedLogin(string username) : IAsyncActionFilter
     {
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
