@@ -223,6 +223,7 @@ public sealed class IncidentService : IIncidentService
 
         // Serialize allocation across application instances until this transaction ends.
         var requestLink = await IncidentRequestCreation.PrepareAsync(_dbContext, TrustedActorId, request, cancellationToken);
+        await IncidentOccurrenceCreation.PrepareAsync(_dbContext, TrustedActorId, request, cancellationToken);
         await IncidentCategoryStore.ValidateAsync(_dbContext, request.CategoryId, cancellationToken);
         // Asset -> Incident number allocation. Retirement and handover writers also
         // lock Asset first; never allocate an Incident number while waiting for Asset.
@@ -317,6 +318,7 @@ public sealed class IncidentService : IIncidentService
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         if (requestLink is not null)
             await IncidentRequestCreation.WriteAsync(_dbContext, requestLink, incident.IncidentId, cancellationToken);
+        await IncidentOccurrenceCreation.WriteAsync(_dbContext, TrustedActorId, request, incident.IncidentId, cancellationToken);
         var result = await GetIncidentAsync(incident.IncidentId, cancellationToken)
             ?? throw new InvalidOperationException("Created incident could not be read.");
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);

@@ -27,9 +27,11 @@ public sealed class CreateIncidentRequest
     public long? CategoryId { get; init; }
     public long? InternalRequestId { get; init; }
     public IncidentRequestLink? RequestLink { get; init; }
+    public IncidentOccurrenceLink? OccurrenceLink { get; init; }
     [MaxLength(4096)]
     public string? SimilarReviewToken { get; init; }
     public IReadOnlyList<HotelOps.Api.DTOs.Housekeeping.EvidenceUpload>? Files { get; init; }
 }
 
 public sealed record IncidentRequestLink(string Version, [property: JsonRequired] bool Mandatory);
+public sealed record IncidentOccurrenceLink(long RunId,string Version,string FailedCheckKey);

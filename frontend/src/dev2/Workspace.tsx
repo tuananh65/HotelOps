@@ -126,6 +126,11 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
     "sourceWarehouseId",
     "warehouseId",
     "assetId",
+    "roomId",
+    "areaId",
+    "occurrenceId",
+    "occurrenceVersion",
+    "occurrenceCheckKey",
     "handoverId",
     "fulfillmentId",
     "conversionId",
@@ -271,6 +276,13 @@ function Screen({
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
       if (target.id === "A004A-021") {
+        if (context.occurrenceId != null) {
+          if (!Number.isSafeInteger(Number(context.occurrenceId)) || Number(context.occurrenceId) <= 0
+            || typeof context.occurrenceVersion !== "string" || !/^"[0-9A-F]{16}"$/.test(context.occurrenceVersion)
+            || typeof context.occurrenceCheckKey !== "string" || !context.occurrenceCheckKey || context.occurrenceCheckKey.length > 64)
+            throw Error("Reload the source occurrence before reporting this problem.");
+          commandInput = { ...commandInput, occurrenceLink: { runId: Number(context.occurrenceId), version: context.occurrenceVersion, failedCheckKey: context.occurrenceCheckKey } };
+        }
         if (!reviewedIncidentLocation || reviewedIncidentLocation.key !== incidentLocationKey(commandInput))
           throw Error("Review similar incidents for the current location before creating a new incident.");
         commandInput = { ...commandInput, similarReviewToken: reviewedIncidentLocation.token };
@@ -499,6 +511,7 @@ function Screen({
         <Link to="/profile">Profile</Link>
         <Link to="/dashboard">Workspace home</Link>
       </header>
+      {context.occurrenceId != null && <p role="status">Reporting a failed check from occurrence #{String(context.occurrenceId)}. Keep the original target. After saving, reload the occurrence before continuing.</p>}
       {context.internalRequestId != null && actionId === config.create && !available.some(op => op.id === actionId) && <p role="status">
         Creating this linked work is unavailable with the current access. No linked work has been created.{" "}
         <Link to={`/internal-requests?requestId=${encodeURIComponent(String(context.internalRequestId))}`}>Return to source</Link>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
+import { Link } from "react-router-dom";
 
 type Occurrence = { runId: number; scheduleId: number; title: string; instruction: string; status: string;
   dueAt: string; performedAt: string | null; result: string | null; note: string | null; assigneeId: number | null;
@@ -31,6 +32,13 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
   const [uncertain,setUncertain] = useState(false);
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
+  function incidentUrl(row: Occurrence, key: string) {
+    const query = new URLSearchParams({action:"A004A-021",branchId:String(branchId),occurrenceId:String(row.runId),occurrenceVersion:row.version,occurrenceCheckKey:key});
+    if(row.roomId)query.set("roomId",String(row.roomId));
+    if(row.areaId)query.set("areaId",String(row.areaId));
+    if(row.assetId)query.set("assetId",String(row.assetId));
+    return `/operations/incidents?${query.toString()}`;
+  }
   async function change(row: Occurrence, cancel: boolean, start = false, complete = false) {
     if (!owner || owner !== mounted || sending.current || uncertain) return;
     const assigneeId = Number(assignees[row.runId]), reason = reasons[row.runId]?.trim() ?? "";
@@ -81,7 +89,8 @@ export function PreventiveOccurrencesPanel({ branchId }: { branchId: number }) {
       {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>Start occurrence</button>}
       {r.canComplete && <fieldset disabled={busy || uncertain}><legend>Record check results</legend>
         {r.checkItems.map(c => <div key={c.key}><label>{c.description}{c.required ? " (required)" : ""}<select value={outcomes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setOutcomes({...outcomes,[`${r.runId}:${c.key}`]:e.target.value})}><option value="">Select result</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select></label>
-          <label>Check note<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label></div>)}
+          <label>Check note<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label>
+          {outcomes[`${r.runId}:${c.key}`] === "FAIL" && !busy && !uncertain && <Link to={incidentUrl(r,c.key)}>Report Incident for this failed check</Link>}</div>)}
         <label>Completion note<textarea maxLength={4000} value={notes[r.runId] ?? ""} onChange={e => setNotes({...notes,[r.runId]:e.target.value})} /></label>
         <button onClick={() => void change(r,false,false,true)}>Complete occurrence</button>
       </fieldset>}

@@ -83,6 +83,13 @@ export function createDev2Api(
         if (typeof values.similarReviewToken !== "string" || !values.similarReviewToken || values.similarReviewToken.length > 4096)
           throw Error("Review similar incidents before creating a new incident.");
         data.similarReviewToken = values.similarReviewToken;
+        if (values.occurrenceLink != null) {
+          if (!isObject(values.occurrenceLink) || typeof values.occurrenceLink.version !== "string"
+            || !/^"[0-9A-F]{16}"$/.test(values.occurrenceLink.version) || typeof values.occurrenceLink.failedCheckKey !== "string"
+            || !values.occurrenceLink.failedCheckKey || values.occurrenceLink.failedCheckKey.length > 64)
+            throw Error("Invalid occurrence link.");
+          data.occurrenceLink = { runId: positiveId(values.occurrenceLink.runId), version: values.occurrenceLink.version, failedCheckKey: values.occurrenceLink.failedCheckKey };
+        }
         if (values.files != null) {
           if (!Array.isArray(values.files) || values.files.length > 5 || values.files.some(f => !isObject(f)
             || typeof f.name !== "string" || typeof f.mimeType !== "string" || typeof f.base64 !== "string"))
