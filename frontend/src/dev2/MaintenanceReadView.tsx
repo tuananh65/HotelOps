@@ -1,3 +1,4 @@
+import { MaintenanceReturnPanel } from "./MaintenanceReturnPanel";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
@@ -15,7 +16,7 @@ const time = (v: unknown) => {
   return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
 };
 
-export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean }) {
+export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
     return <section aria-label="Maintenance work results">
@@ -32,6 +33,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
+    {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} />}
     {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}

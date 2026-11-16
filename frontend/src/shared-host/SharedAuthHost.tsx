@@ -99,7 +99,7 @@ export function SharedAuthHost({
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace
         enabledModules={[...(incidentReadEnabled ? ["incidents", "maintenance"] : []), ...(materialReadEnabled ? ["material-requests", "replenishments"] : [])]}
-        enabledActions={["A004A-022", "A004A-023", "A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030", "A004A-034", "A004A-035", "A004A-036", "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042", "A004A-043", "A004A-044", "A004A-045", "A004A-046", "A004A-047", "A004A-048", "A004A-049", "A004A-050", "A004A-051", "A004A-052", "A004A-053", "A004A-055", "A004A-056", "A004A-057", "A004A-058", "A004A-059"]} /></Protected>} />}
+        enabledActions={["A004A-022", "A004A-023", "A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030", "A004A-032", "A004A-034", "A004A-035", "A004A-036", "A004A-037", "A004A-038", "A004A-040", "A004A-041", "A004A-042", "A004A-043", "A004A-044", "A004A-045", "A004A-046", "A004A-047", "A004A-048", "A004A-049", "A004A-050", "A004A-051", "A004A-052", "A004A-053", "A004A-055", "A004A-056", "A004A-057", "A004A-058", "A004A-059"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests/new" element={<Protected><InternalRequestIntakePage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}

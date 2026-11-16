@@ -59,18 +59,6 @@ internal static class MaintenanceSubmissionSource
     internal static async Task<bool> CanReviewAsync(HotelOpsDbContext db, long user, Source source, CancellationToken ct)
     {
         if (user == source.ActorId || await MaintenanceReviewSeparation.PerformedAsync(db, user, source.WorkId, ct)) return false;
-        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        var paths = await (from role in db.UserRoles.AsNoTracking()
-            join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
-            where role.UserId == user && role.BranchId == source.BranchId && role.Role.RoleCode == "MAINTENANCE_LEAD"
-                && grant.Permission.PermissionCode == "MAINTENANCE_REVIEW" && role.User.AccountStatus == "ACTIVE"
-                && role.User.EmploymentStatus == "ACTIVE" && role.User.DeletedAt == null
-            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, role.BranchId,
-                role.IsActive, role.Role.IsActive, role.AssignedAt, role.ExpiresAt, role.Branch != null && role.Branch.IsActive,
-                db.UserBranchAccesses.Any(b => b.UserId == user && b.BranchId == source.BranchId && b.RevokedAt == null && b.GrantedAt <= now)))
-            .ToArrayAsync(ct);
-        if (!paths.Any(p => PermissionGrantRules.IsEligible(p, now) && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "GLOBAL")) return false;
-        var read = await MaintenanceReadAccess.ReadAsync(db, user, source.BranchId, ct);
-        return await read.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == source.WorkId, ct);
+        return await MaintenanceReviewAccess.AllowsAsync(db, user, source.BranchId, source.WorkId, ct);
     }
 }
