@@ -2,8 +2,10 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkListDto
 {
+    public long? OccurrenceId { get; init; }
+    public long? BranchId { get; init; }
     public HotelOps.Api.Services.Maintenance.MaintenanceDeadlineView? Deadline { get; set; }
-    public long MaintenanceWorkId { get; init; }
+    public long? MaintenanceWorkId { get; init; }
     public string? Source { get; init; }
     public string? AssigneeName { get; init; }
     public string? PriorityName { get; init; }
@@ -24,6 +26,6 @@ public sealed class MaintenanceWorkListDto
     public DateTime? ResolvedAt { get; init; }
     public long? ReviewedBy { get; init; }
     public DateTime? ReviewedAt { get; init; }
-    public long CreatedBy { get; init; }
-    public DateTime CreatedAt { get; init; }
+    public long? CreatedBy { get; init; }
+    public DateTime? CreatedAt { get; init; }
 }

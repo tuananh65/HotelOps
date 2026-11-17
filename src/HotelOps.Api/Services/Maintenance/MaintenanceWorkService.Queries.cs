@@ -22,7 +22,7 @@ public sealed partial class MaintenanceWorkService
         if (offset > int.MaxValue)
             throw new ValidationException("Pagination offset exceeds the supported range.");
         var status = request.Status?.Trim().ToUpperInvariant();
-        if (!string.IsNullOrEmpty(status) && !IsWorkStatus(status))
+        if (!string.IsNullOrEmpty(status) && !IsWorkStatus(status) && status is not ("PENDING_ASSIGNMENT" or "ASSIGNED"))
             throw new ValidationException("Unknown maintenance status.");
 
         var keyword = request.Keyword?.Trim();

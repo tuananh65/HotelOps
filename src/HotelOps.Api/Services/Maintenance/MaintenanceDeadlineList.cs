@@ -13,7 +13,8 @@ internal static class MaintenanceDeadlineList
         DateTime EvaluatedAt, IReadOnlyDictionary<long, MaintenanceDeadlineView> Deadlines);
 
     internal static async Task<Snapshot> ReadAsync(HotelOpsDbContext db, long user, long branch,
-        IQueryable<MaintenanceWork> scoped, MaintenanceQueryRequest input, CancellationToken ct)
+        IQueryable<MaintenanceWork> scoped, MaintenanceQueryRequest input, CancellationToken ct,
+        Func<DateTime, CancellationToken, Task<IReadOnlyList<MaintenanceWorkListDto>>>? occurrences = null)
     {
         if (db.Database.CurrentTransaction == null)
             throw new InvalidOperationException("Deadline list requires an owning read transaction.");
@@ -44,19 +45,30 @@ internal static class MaintenanceDeadlineList
             after = ids[^1];
         }
         // Null deadlines sort last. Unknown overdue is not the same as false.
-        var selected = matches.OrderBy(m => m.Deadline.DueAt == null).ThenBy(m => m.Deadline.DueAt)
-            .ThenBy(m => m.Id).Skip(checked((input.Page - 1) * input.PageSize)).Take(input.PageSize).ToArray();
-        var selectedIds = selected.Select(m => m.Id).ToArray();
+        var occurrenceRows = occurrences == null ? [] : await occurrences(now, ct);
+        var occurrenceMap = occurrenceRows.ToDictionary(r => r.OccurrenceId!.Value);
+        var combined = matches.Select(m => (m.Id, Occurrence: false, m.Deadline))
+            .Concat(occurrenceRows.Select(r => (Id: r.OccurrenceId!.Value, Occurrence: true, Deadline: r.Deadline!)));
+        var total = checked(matches.Count + occurrenceRows.Count);
+        var selected = combined.OrderBy(m => m.Deadline.DueAt == null).ThenBy(m => m.Deadline.DueAt)
+            .ThenBy(m => m.Id).ThenBy(m => m.Occurrence)
+            .Skip(checked((input.Page - 1) * input.PageSize)).Take(input.PageSize).ToArray();
+        var selectedIds = selected.Where(m => !m.Occurrence).Select(m => m.Id).ToArray();
         var page = await MaintenanceWorkService.ListAsync(scoped.Where(w => selectedIds.Contains(w.MaintenanceWorkId)),
             new MaintenanceQueryRequest { Page = 1, PageSize = input.PageSize }, ct);
-        var rows = page.Items.ToDictionary(w => w.MaintenanceWorkId);
+        var rows = page.Items.ToDictionary(w => w.MaintenanceWorkId!.Value);
         if (rows.Count != selectedIds.Length) throw new InvalidOperationException("Maintenance list scope changed.");
-        var ordered = selected.Select(m => { var row = rows[m.Id]; row.Deadline = m.Deadline; return row; }).ToArray();
+        var ordered = selected.Select(m =>
+        {
+            var row = m.Occurrence ? occurrenceMap[m.Id] : rows[m.Id];
+            row.Deadline = m.Deadline;
+            return row;
+        }).ToArray();
         return new(new MaintenancePagedResponse
         {
-            Items = ordered, Page = input.Page, PageSize = input.PageSize, TotalCount = matches.Count,
-            TotalPages = (int)(((long)matches.Count + input.PageSize - 1) / input.PageSize)
-        }, incidentScope, now, selected.ToDictionary(m => m.Id, m => m.Deadline));
+            Items = ordered, Page = input.Page, PageSize = input.PageSize, TotalCount = total,
+            TotalPages = (int)(((long)total + input.PageSize - 1) / input.PageSize)
+        }, incidentScope, now, selected.Where(m => !m.Occurrence).ToDictionary(m => m.Id, m => m.Deadline));
     }
 
     internal static async Task<bool> CanDiscloseAsync(HotelOpsDbContext db, long user, long branch,

@@ -15,7 +15,8 @@ type History = { previousOccurrences: Occurrence[]; incidents: LinkedIncident[] 
 type Evidence = { id: number; name: string; mimeType: string; size: number };
 function valid(v: unknown): v is Occurrence {
   return isObject(v) && positive(v.runId) && positive(v.scheduleId) && typeof v.title === "string" && typeof v.instruction === "string"
-    && typeof v.status === "string" && typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt))
+    && typeof v.status === "string" && ["PENDING_ASSIGNMENT","ASSIGNED","IN_PROGRESS","COMPLETED","CANCELLED"].includes(v.status)
+    && typeof v.isOverdue === "boolean" && typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt))
     && (v.performedAt === null || typeof v.performedAt === "string" && Number.isFinite(Date.parse(v.performedAt)))
     && [v.result,v.note].every(x => x === null || typeof x === "string")
     && [v.assigneeId,v.assetId,v.roomId,v.areaId].every(x => x === null || positive(x))
@@ -37,7 +38,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [hasMore,setHasMore] = useState(false);
   const [filterAssignee,setFilterAssignee] = useState(""), [keyword,setKeyword] = useState("");
   const [dueFrom,setDueFrom] = useState(""), [dueTo,setDueTo] = useState(""), [overdue,setOverdue] = useState("");
-  const clearResults = () => { setRows([]); setHistory({}); setEvidence({}); };
+  const clearResults = () => { setRows([]); setHistory({}); setEvidence({}); setHasMore(false); };
   const [mine,setMine] = useState(true), [status,setStatus] = useState("OPEN");
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
@@ -106,12 +107,19 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       if (!response.ok) throw Error(response.status === 412 ? "Occurrence changed." : `Change not confirmed (${response.status}).`);
       const raw: unknown = await response.json();
       if (!valid(raw) || raw.runId !== row.runId) throw Error("Change response could not be confirmed.");
-      if (!abort.signal.aborted && current.current === owner) { setRows(old => old.map(r => r.runId === raw.runId ? raw : r)); setMessage(complete ? "Occurrence completed; work interval closed." : start ? "Occurrence started; work interval opened." : cancel ? "Occurrence cancelled." : "Technician assigned."); }
+      if (!abort.signal.aborted && current.current === owner) {
+        // Assignment/status changes can remove the row from the current filter or
+        // scope. Discard list pagination; detail may use the authorized response.
+        setRows(runId != null ? [raw] : []); setHasMore(false); setHistory({}); setEvidence({});
+        setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
+        setMessage((complete ? "Occurrence completed; work interval closed." : start ? "Occurrence started; work interval opened." : cancel ? "Occurrence cancelled." : "Technician assigned.")
+          + (runId == null ? " Reload occurrences to refresh your filtered work list." : ""));
+      }
     } catch(e) { if (!abort.signal.aborted && current.current === owner) { setMessage(String(e)+(submitted ? " Reload before another change." : "")); if(submitted)setUncertain(true); } }
     finally { sending.current=false; if(!abort.signal.aborted && current.current===owner)setBusy(false); }
   }
   async function load(more = false) {
-    if (!owner || owner !== mounted || sending.current) return;
+    if (!owner || owner !== mounted || sending.current || more && uncertain) return;
     const abort = new AbortController(); controller.current = abort;
     sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
@@ -130,7 +138,13 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       const payload: unknown = await response.json();
       const raw = runId != null ? [payload] : payload;
       if (!Array.isArray(raw) || !raw.every(valid)) throw Error("Occurrence details could not be confirmed.");
-      if (!abort.signal.aborted && current.current === owner) { setRows(more ? [...rows,...raw] : raw); setHasMore(runId == null && raw.length === 50); if (!raw.length) setMessage("No further occurrences in your current scope."); }
+      if (!abort.signal.aborted && current.current === owner) {
+        setRows(more ? [...rows,...raw] : raw); setHasMore(runId == null && raw.length === 50);
+        if (!more) {
+          setUncertain(false); setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
+        }
+        if (!raw.length) setMessage("No further occurrences in your current scope.");
+      }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) { setRows([]); setMessage(String(e)); } }
     finally { sending.current = false; if (!abort.signal.aborted && current.current === owner) setBusy(false); }
   }
@@ -150,7 +164,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       <p>Earliest due occurrences first. Branch results remain limited by your current permissions.</p>
     </fieldset>}
     <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
-    {runId == null && hasMore && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
+    {runId == null && hasMore && !!rows.length && <button disabled={busy || uncertain} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
     {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
       <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeName ?? r.assigneeId ?? "Pending assignment"}.</p>
