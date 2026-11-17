@@ -19,7 +19,7 @@ export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incide
   useEffect(() => { setContext(null); setSaved(null); setMessage(""); setReview(false); return () => abort.current?.abort(); }, [owner, incidentId]);
   const data = context?.owner === owner && context.value.incidentId === incidentId ? context.value : null;
   async function load() {
-    if (!owner || sending.current || attempted) return;
+    if (!owner || sending.current) return;
     sending.current = true; setBusy(true); setMessage(""); setContext(null);
     const controller = new AbortController(); abort.current = controller;
     try {
@@ -33,7 +33,10 @@ export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incide
         || !Array.isArray(r.technicians) || !r.technicians.every(t => isObject(t) && positive(t.userId) && typeof t.name === "string"
           && (t.openIncidents === null || typeof t.openIncidents === "number" && Number.isSafeInteger(t.openIncidents) && t.openIncidents >= 0)
           && (t.openOccurrences === null || typeof t.openOccurrences === "number" && Number.isSafeInteger(t.openOccurrences) && t.openOccurrences >= 0))) throw Error("Invalid assignment context.");
-      if (!controller.signal.aborted && current.current === owner) { setContext({ owner, value: r as Context }); setDepartment(r.departmentId === null ? "" : String(r.departmentId)); }
+      if (!controller.signal.aborted && current.current === owner) {
+        setContext({ owner, value: r as Context }); setDepartment(r.departmentId === null ? "" : String(r.departmentId));
+        setSelected(""); setInstructions(""); setEnd(""); setReview(false); setSaved(null); setAttempted(false);
+      }
     } catch (e) { if (!controller.signal.aborted && current.current === owner) setMessage(e instanceof Error ? e.message : "Assignment unavailable."); }
     finally { if (!controller.signal.aborted) { sending.current = false; setBusy(false); } }
   }
@@ -69,13 +72,14 @@ export function MaintenanceAssignmentPanel({ incidentId, onCommitted }: { incide
       const result: unknown = await response.json();
       if (!isObject(result) || !positive(result.workId) || !positive(result.auditId) || result.workflow !== "ASSIGNED" || data.workId !== null && data.workId !== result.workId)
         throw Error("Assignment response could not be confirmed. Reload.");
-      if (!controller.signal.aborted && current.current === owner) { setSaved(result.workId); setMessage("Assignment saved. Notifications are queued for eligible recipients."); onCommitted?.("Assignment saved. Notifications are queued for eligible recipients."); }
+      if (!controller.signal.aborted && current.current === owner) { setSaved(result.workId); setMessage("MSG08: Assignment saved. Notifications are queued for eligible recipients."); onCommitted?.("MSG08: Assignment saved. Notifications are queued for eligible recipients."); }
     } catch (e) { if (!controller.signal.aborted && current.current === owner) setMessage(e instanceof Error ? e.message : "Assignment not confirmed."); }
     finally { if (!controller.signal.aborted) { sending.current = false; setBusy(false); setReview(false); } }
   }
   if (!owner || !positive(incidentId)) return null;
   return <section aria-label="Assign maintenance"><h3>Assign or reassign technician</h3>
     {message && <p role="status">{message}</p>}
+    {data && <button disabled={busy} onClick={() => void load()}>Reload current assignment and technicians</button>}
     {!data ? <button disabled={busy} onClick={() => void load()}>Load eligible technicians</button> : <>
       {data.technicians.length === 0 && <p>No eligible technician. Check grants and independent reviewer availability.</p>}
       <label>Work department<select aria-label="Work department" disabled={busy || review || attempted} value={department} onChange={e => setDepartment(e.target.value)}>

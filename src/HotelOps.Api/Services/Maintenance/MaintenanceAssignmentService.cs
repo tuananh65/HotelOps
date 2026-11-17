@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Services.Incidents;
 using HotelOps.Api.Services.InternalRequests;
 using HotelOps.Api.Services.Users;
@@ -16,13 +17,13 @@ namespace HotelOps.Api.Services.Maintenance;
 public sealed record MaintenanceAssignmentInput(long AssigneeId, string? WorkVersion, string? Instruction, DateTime PlannedEndAt, long DepartmentId);
 public sealed record MaintenanceAssignmentSaved(long WorkId, long AuditId, string Workflow);
 
-public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
+public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, TimeProvider clock, ICurrentUserAccessor current)
 {
     internal async Task SessionAsync(SessionReference ticket, long sid, CancellationToken ct)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sid || actor.IsRestricted || ticket.IsRestricted)
             throw new InternalRequestReadException(401,"SESSION_INVALID");
-        var result=await sessions.ValidateSessionAsync(ticket,ct);
+        var result=await Dev2SessionValidation.ValidateAsync(db,ticket,clock,ct);
         if(!result.IsValid || result.Session?.SessionId!=sid || result.Session.IsRestricted) throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
 
