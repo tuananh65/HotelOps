@@ -38,7 +38,12 @@ public sealed class InternalRequestEscalationDelivery(HotelOpsDbContext db,TimeP
         JOIN dbo.internal_requests r ON r.internal_request_id=e.internal_request_id
         JOIN dbo.audit_logs l ON l.audit_id=a.audit_id AND l.actor_user_id=e.actor_id AND l.branch_id=r.branch_id
          AND l.entity_type='internal_requests' AND l.entity_id=CONVERT(nvarchar(30),r.internal_request_id) AND l.action='UPDATE' AND l.occurred_at=e.occurred_at
-        WHERE e.event_type='ESCALATE' AND e.old_status=e.new_status AND e.event_note=a.reason AND o.created_at=e.occurred_at
+        WHERE e.event_type='ESCALATE' AND e.event_note=a.reason AND o.created_at=e.occurred_at
+          AND (e.old_status=e.new_status OR (e.old_status='ACCEPTED' AND e.new_status='PENDING_ACCEPTANCE'
+            AND JSON_VALUE(l.old_values,'$.status')='ACCEPTED' AND JSON_VALUE(l.new_values,'$.status')='PENDING_ACCEPTANCE'
+            AND TRY_CONVERT(bigint,JSON_VALUE(l.new_values,'$.receivingDepartmentId'))=a.department_id
+            AND TRY_CONVERT(bigint,JSON_VALUE(l.old_values,'$.receivingDepartmentId'))<>a.department_id
+            AND a.handler_id IS NULL))
         """);
 
     internal static async Task<bool> CanReadAsync(HotelOpsDbContext db,InternalRequestEscalationNotice row,DateTime now,CancellationToken ct)
