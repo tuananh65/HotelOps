@@ -43,6 +43,12 @@ function Editor({ roleId, revalidate }: { roleId: number; revalidate: () => void
     if (saved.ok) {
       setResult(saved);
       setMessage("Permissions saved. Affected users must sign in again; scope and workflow authorization still apply.");
+    } else if (!saved.unknown && saved.lastAdministrator) {
+      // The transaction was rejected by the durable-admin guard. Return to
+      // selection and require a fresh confirmation; never replay automatically.
+      attempted.current = false;
+      setLocked(false);
+      setMessage("MSG03: The last administrator must retain permission administration. Correct the selection and review again.");
     } else setMessage(saved.unknown ? "Outcome unknown. Do not replay this save; review the server record with an authorized administrator."
       : saved.status === 412 ? "The role or grants changed. This selection was not saved. Reopen the editor to review current data."
       : saved.status === 409 ? "Change rejected: role inactive or last administrator protection."

@@ -3,7 +3,7 @@ import { id, obj, role, permission, type RoleDto, type PermissionDto } from "./c
 export interface ConfiguredGrant { permissionId: number; dataScope: string }
 export interface PermissionConfiguration { role: RoleDto; grants: ConfiguredGrant[]; catalog: PermissionDto[] }
 export type ConfigurationResult = { ok: true; data: PermissionConfiguration; etag: string }
-  | { ok: false; status?: number; unknown: boolean };
+  | { ok: false; status?: number; unknown: boolean; lastAdministrator?: boolean };
 function decode(value: unknown, roleId: number): PermissionConfiguration | undefined {
   if (!obj(value) || !Array.isArray(value.grants) || !Array.isArray(value.catalog)
     || value.grants.length > 2000 || value.catalog.length > 2000) return;
@@ -31,6 +31,7 @@ export function createRolePermissionConfigurationApi(fetcher: typeof fetch = glo
     let csrfToken: string | undefined;
     let status: number | undefined;
     let tag: string | null = null;
+    let lastAdministrator = false;
     if (writing) {
       const bootstrap = createHttpClient(async (url, init) => {
         const response = await fetcher(url, init); status = response.status; return response;
@@ -47,7 +48,14 @@ export function createRolePermissionConfigurationApi(fetcher: typeof fetch = glo
       const headers = new Headers(init?.headers);
       if (writing) headers.set("If-Match", expected!);
       const response = await fetcher(url, { ...init, headers });
-      status = response.status; tag = response.headers.get("ETag"); return response;
+      status = response.status; tag = response.headers.get("ETag");
+      if (writing && status === 409) {
+        try {
+          const problem: unknown = await response.clone().json();
+          lastAdministrator = obj(problem) && problem.title === "LAST_DURABLE_ADMIN";
+        } catch { /* Unknown responses never authorize another save. */ }
+      }
+      return response;
     });
     const result = await client({ method: writing ? "PUT" : "GET", url: `/api/roles/${roleId}/permission-configuration`,
       expectedStatus: 200, signal, csrfToken, body: writing ? { grants: desired } : undefined,
@@ -59,7 +67,7 @@ export function createRolePermissionConfigurationApi(fetcher: typeof fetch = glo
       } });
     if (!current() || signal.aborted) return { ok: false, unknown: writing };
     return result.ok ? { ok: true, ...result.data }
-      : { ok: false, status, unknown: writing && !(status && [400,401,403,404,409,412,428].includes(status)) };
+      : { ok: false, status, lastAdministrator, unknown: writing && !(status && [400,401,403,404,409,412,428].includes(status)) };
   }
   return { read: (id: number, signal: AbortSignal) => request(id, signal),
     save: (id: number, grants: ConfiguredGrant[], etag: string, signal: AbortSignal, current: () => boolean) => request(id,signal,grants,etag,current) };
