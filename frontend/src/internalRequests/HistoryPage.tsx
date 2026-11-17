@@ -10,6 +10,7 @@ import { InternalRequestMaterialLinksPanel } from "./MaterialLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import { InternalRequestIntakeLink } from "./IntakePage";
 import { InternalRequestCompletionPanel } from "./CompletionPanel";
+import { InternalRequestReopenPanel } from "./ReopenPanel";
 import { InternalRequestEscalationPanel } from "./EscalationPanel";
 import { InternalRequestHandoverPanel } from "./HandoverPanel";
 import {
@@ -351,6 +352,7 @@ export function InternalRequestHistoryPage() {
       {visible?.timeline && (
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
+          <InternalRequestReopenPanel id={visible.timeline.requestId} onReopened={() => { setCompletionNotice(null); refreshWork(visible.timeline!.requestId, "MSG08: Request reopened with its last handler."); }} />
           {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} onChanged={message => refreshWork(visible.timeline!.requestId, message)} />

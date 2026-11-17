@@ -41,6 +41,7 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
     {
         if(!options.Value.Enabled)return;
         long cursor=0;
+        long reopenCursor=0;
         long assignmentCursor=0;
         long routeCursor=0;
         long progressCursor=0;
@@ -53,6 +54,21 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
         {
             try
             {
+                try
+                {
+                    long[] reopens;
+                    await using(var scope=scopes.CreateAsyncScope())reopens=await scope.ServiceProvider.GetRequiredService<InternalRequestReopenDelivery>().PendingAsync(reopenCursor,ct);
+                    foreach(var id in reopens)
+                    {
+                        await using var scope=scopes.CreateAsyncScope();
+                        try{await scope.ServiceProvider.GetRequiredService<InternalRequestReopenDelivery>().DeliverAsync(id,ct);}
+                        catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                        catch(Exception error){logger.LogWarning("Reopen notification {EventId} retained after {ErrorType}",id,error.GetType().Name);}
+                    }
+                    reopenCursor=reopens.Length==100?reopens[^1]:0;
+                }
+                catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                catch(Exception error){logger.LogWarning("Reopen notification discovery retained after {ErrorType}",error.GetType().Name);reopenCursor=0;}
                 try
                 {
                     long[] pending;

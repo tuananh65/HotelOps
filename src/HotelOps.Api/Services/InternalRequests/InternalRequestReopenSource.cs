@@ -15,7 +15,14 @@ public static class InternalRequestReopenSource
         windowDays > 0 && closedAt <= now && (now - closedAt).TotalDays <= windowDays;
 
     // windowDays must come from the caller's resolved SYS-PAR-18 policy.
-    public static async Task<Closure> ReadAsync(HotelOpsDbContext db, long requestId, int windowDays, CancellationToken ct)
+    public static Task<Closure> ReadAsync(HotelOpsDbContext db, long requestId, int windowDays, CancellationToken ct)
+        => ReadCoreAsync(db, requestId, windowDays, true, ct);
+
+    // A denied/expired preview still shows the proven prior result and configured window.
+    internal static Task<Closure> PreviewAsync(HotelOpsDbContext db, long requestId, int windowDays, CancellationToken ct)
+        => ReadCoreAsync(db, requestId, windowDays, false, ct);
+
+    private static async Task<Closure> ReadCoreAsync(HotelOpsDbContext db, long requestId, int windowDays, bool enforceWindow, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
             throw new InvalidOperationException("Reopen source requires the caller's serializable transaction.");
@@ -28,7 +35,7 @@ public static class InternalRequestReopenSource
             throw new InternalRequestReadException(409, "IR_CLOSURE_INCONSISTENT");
         if (windowDays <= 0) throw new InternalRequestReadException(503, "IR_REOPEN_WINDOW_UNAVAILABLE");
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        if (!WithinWindow(request.ClosedAt.Value, now, windowDays))
+        if (enforceWindow && !WithinWindow(request.ClosedAt.Value, now, windowDays))
             throw new InternalRequestReadException(409, "IR_REOPEN_WINDOW_EXPIRED");
         // Bind to the current closure, not MAX(assignment_id) or a mutable handler field.
         // A legacy closed row without its receipt needs reconciliation, never guessing.

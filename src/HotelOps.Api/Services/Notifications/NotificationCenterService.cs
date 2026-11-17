@@ -394,6 +394,16 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/internal-requests?requestId={assignment.RequestId}");
         }
+        if(source is {NotificationType:"IR_REOPENED",SourceType:"INTERNAL_REQUEST_REOPEN",SourceId:>0})
+        {
+            await new Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestReopenService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Reopen source unavailable.");
+            var reopened=await InternalRequests.InternalRequestReopenDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId,ct);
+            if(reopened==null||reopened.ActorId!=source.CreatedBy||reopened.At!=source.CreatedAt
+                ||!await InternalRequests.InternalRequestReopenDelivery.CanReadAsync(db,reopened,user,clock.GetUtcNow().UtcDateTime,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Reopen source unavailable.");
+            await RevalidateSessionAsync(user,ct);await tx.CommitAsync(ct);return new($"/internal-requests?requestId={reopened.RequestId}");
+        }
         if(source is {NotificationType:"IR_CLOSED",SourceType:"INTERNAL_REQUEST_COMPLETION",SourceId:>0})
         {
             if(!await InternalRequests.InternalRequestCompletionService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

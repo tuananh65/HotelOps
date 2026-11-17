@@ -55,6 +55,8 @@ public sealed class InternalRequestReadErrorsAttribute : ExceptionFilterAttribut
         var (status, code) = context.Exception switch
         {
             InternalRequestReadException e => (e.Status, e.Code),
+            ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor reopen
+                && reopen.ControllerTypeInfo.AsType()==typeof(InternalRequestReopenController) => (400,"INVALID_REOPEN_INPUT"),
             ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor escalation
                 && escalation.ControllerTypeInfo.AsType()==typeof(InternalRequestEscalationController) => (400,"INVALID_ESCALATION_INPUT"),
             ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor completion

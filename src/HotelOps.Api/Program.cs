@@ -113,6 +113,9 @@ builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalReques
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestMaterialLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProgressDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestCompletionService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestReopenService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestReopenDelivery>();
+builder.Services.AddOptions<HotelOps.Api.Services.InternalRequests.InternalRequestReopenOptions>().BindConfiguration("InternalRequestReopen").Validate(o => o.WindowDays > 0).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestCompletionDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestEscalationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestEscalationService>();
