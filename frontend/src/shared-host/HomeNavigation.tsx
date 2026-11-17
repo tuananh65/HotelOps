@@ -4,9 +4,16 @@ import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
 const labels: Record<string, string> = {
+  "/structure/priority-sla": "Priority SLA", "/operations/material-requests": "Material requests", "/operations/replenishments": "Replenishments",
+  "/inspection-history": "Inspection history", "/inspections/checklists": "Inspection checklists",
+  "/cleaning/tasks": "Cleaning tasks", "/cleaning/assignment": "Cleaning assignment",
+  "/rework": "Rework", "/rooms/turnover": "Turnover history", "/workday/shift-plans": "Shift planning",
   "/profile": "Profile", "/notifications": "Notifications", "/users": "Users",
   "/hotel": "Structure", "/room-directory": "Room directory", "/dashboard": "Dashboard", "/audit": "Audit history",
   "/rooms/status": "Room status board",
+  "/roles": "Roles and permissions", "/structure/work-categories": "Work categories",
+  "/structure/reference-data": "Reference data", "/operations/incidents": "Incidents",
+  "/operational-tasks": "Operational tasks", "/workday": "Workday", "/my-time-log": "My Time Log",
 };
 export function HomeNavigation({ enabled }: { enabled?: readonly string[] }) {
   const { state, actions } = useAuth();

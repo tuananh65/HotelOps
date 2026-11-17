@@ -119,6 +119,7 @@ export function approvedReturnDestination(
   }
   // Other candidate routes remain excluded; their flags are OFF.
   return [
+    "/home",
     "/rooms/status",
     "/rooms/turnover",
     "/cleaning/tasks",

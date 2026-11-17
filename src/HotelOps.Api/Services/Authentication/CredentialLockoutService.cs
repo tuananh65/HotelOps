@@ -84,8 +84,10 @@ public sealed class CredentialLockoutService(
         // after the eligibility callback so a deadline crossed during it fails closed.
         if (snapshotTemporaryExpiry.HasValue && snapshotTemporaryExpiry.Value <= utcNow)
             eligible = false;
+        // UC001 counts a rejected attempt for an existing inactive account even when its password matches.
+        // The public result remains generic; only an eligible account may disclose its lock deadline.
         var transition = CredentialLockoutPolicy.Evaluate(
-            snapshotCount, snapshotLock, verified, eligible, utcNow);
+            snapshotCount, snapshotLock, verified && SqlSessionPolicy.IsUserActive(user), eligible, utcNow);
 
         // Update ONLY these two columns. All credential writers must follow user-first
         // locking and the caller must retain this transaction through login commit.

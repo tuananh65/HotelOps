@@ -1,3 +1,4 @@
+import { HomeNavigation } from "./HomeNavigation";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import CleaningTaskListScreen from "../screens/housekeeping/CleaningTaskListScreen";
 import CreateCleaningTaskScreen from "../screens/housekeeping/CreateCleaningTaskScreen";
@@ -13,12 +14,7 @@ export function OperationsRoutes() {
   return (
     <>
       <nav aria-label="Hotel operations">
-        <Link to="/operations/incidents">DEV2 Operations</Link> ·{" "}
-        <Link to="/rooms/status">Room Status</Link> ·{" "}
-        <Link to="/cleaning/tasks">Cleaning Tasks</Link> ·{" "}
-        <Link to="/cleaning/assignment">Assignment</Link> ·{" "}
-        <Link to="/rework">Rework</Link> ·{" "}
-        <Link to="/rooms/turnover">Turnover History</Link>
+        <HomeNavigation enabled={["/operations/incidents", "/rooms/status", "/cleaning/tasks", "/cleaning/assignment", "/rework", "/rooms/turnover"]} />
       </nav>
       <main>
         <Routes>

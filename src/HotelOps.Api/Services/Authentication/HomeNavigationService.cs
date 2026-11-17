@@ -2,6 +2,8 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Insights;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.Incidents;
+using HotelOps.Api.Services.Rbac;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Authentication;
@@ -33,6 +35,70 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
         if (await AnyBranch("ROOM_VIEW")) { links.Add("/room-directory"); links.Add("/rooms/status"); }
         if (links.Contains("/room-directory") || await AnyBranch("MASTER_DATA_MANAGE")) links.Add("/hotel");
         if (await AnyBranch("DASHBOARD_VIEW")) links.Add("/dashboard");
+        if (await AnyBranch("INSPECTION_VIEW")) links.Add("/inspection-history");
+        if (await AnyBranch("CHECKLIST_MANAGE")) links.Add("/inspections/checklists");
+        if (await AnyBranch("CLEANING_VIEW")) links.Add("/rooms/turnover");
+        foreach (var branch in branches)
+            if (Granted(await permissions.EvaluateBranchAsync("CLEANING_VIEW", branch, ct))
+                && Granted(await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, ct)))
+            { links.Add("/cleaning/assignment"); break; }
+        if (Granted(await RoleCatalogAuthority.EvaluateAsync(permissions, ct))) links.Add("/roles");
+        if (!current.TryGetCurrentUser(out var actor)) return [];
+        var now = clock.GetUtcNow().UtcDateTime;
+        var data = new EfPermissionDataSource(db);
+        async Task<bool> AnyOwnOrBranch(string code)
+        {
+            var paths = await data.ReadPathsAsync(actor.UserId, code, now, ct);
+            return paths.Any(p => p.PermissionCode == code && PermissionGrantRules.IsEligible(p, now)
+                && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL"
+                    || p.BranchId is { } branch && branches.Contains(branch)
+                        && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN"));
+        }
+        if (await AnyOwnOrBranch("TASK_VIEW")) links.Add("/operational-tasks");
+        if (await AnyOwnOrBranch("MR_VIEW")) links.Add("/operations/material-requests");
+        if (await AnyOwnOrBranch("CLEANING_VIEW")) { links.Add("/cleaning/tasks"); links.Add("/rework"); }
+        foreach (var branch in branches)
+            if (Granted(await permissions.EvaluateResourceAsync("ATTENDANCE_RECORD", new("workday_self_branch", branch), ct)))
+            { links.Add("/workday"); links.Add("/my-time-log"); break; }
+        var masterPaths = await (from assignment in db.UserRoles.AsNoTracking()
+            join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+            where assignment.UserId == actor.UserId && assignment.Role.RoleCode == "SYS_ADMIN"
+                && grant.Permission.PermissionCode == "MASTER_DATA_MANAGE"
+            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, assignment.BranchId,
+                assignment.IsActive, assignment.Role.IsActive, assignment.AssignedAt, assignment.ExpiresAt,
+                assignment.Branch != null && assignment.Branch.IsActive,
+                db.UserBranchAccesses.Any(b => b.UserId == actor.UserId && b.BranchId == assignment.BranchId
+                    && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
+        if (masterPaths.Any(p => PermissionGrantRules.IsEligible(p, now)
+            && PermissionGrantRules.EffectiveScope(p) is "GLOBAL" or "BRANCH"))
+        {
+            links.Add("/structure/work-categories");
+        }
+        if (masterPaths.Any(p => PermissionGrantRules.IsEligible(p, now)
+            && PermissionGrantRules.EffectiveScope(p) == "GLOBAL"))
+        { links.Add("/structure/priority-sla"); links.Add("/structure/reference-data"); }
+        var replenishmentPaths = await (from assignment in db.UserRoles.AsNoTracking()
+            join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+            where assignment.UserId == actor.UserId && (assignment.Role.RoleCode == "STOREKEEPER" || assignment.Role.RoleCode == "OPERATIONS_MANAGER")
+                && grant.Permission.PermissionCode == "REPLENISHMENT_VIEW"
+            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, assignment.BranchId,
+                assignment.IsActive, assignment.Role.IsActive, assignment.AssignedAt, assignment.ExpiresAt,
+                assignment.Branch != null && assignment.Branch.IsActive,
+                db.UserBranchAccesses.Any(b => b.UserId == actor.UserId && b.BranchId == assignment.BranchId
+                    && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
+        if (replenishmentPaths.Any(p => PermissionGrantRules.IsEligible(p, now)
+            && PermissionGrantRules.EffectiveScope(p) is "GLOBAL" or "BRANCH")) links.Add("/operations/replenishments");
+        foreach (var branch in branches)
+        {
+            var scope = await IncidentReadAccess.ReadAsync(db, actor.UserId, branch, ct);
+            if (scope.Lead || scope.Staff) { links.Add("/operations/incidents"); break; }
+        }
+        var departments = await db.Departments.AsNoTracking().Where(d => d.IsActive && d.Branch.IsActive)
+            .Select(d => new { d.DepartmentId, d.BranchId }).ToArrayAsync(ct);
+        var shiftScope = new HotelOps.Api.Services.WorkTime.SqlShiftPreviewScopeData(db, clock);
+        foreach (var department in departments)
+            if (await shiftScope.ActorScopeAsync(actor.UserId, department.BranchId, department.DepartmentId, ct))
+            { links.Add("/workday/shift-plans"); break; }
         try { await audit.BranchesAsync(null, ct); links.Add("/audit"); }
         catch (InsightException error) when (error.Status == 403) { }
         return links.ToArray();

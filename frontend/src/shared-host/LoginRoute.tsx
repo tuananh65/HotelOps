@@ -73,7 +73,7 @@ function LoginNavigation({
           path: result.data.mustChangePassword
             ? "/change-password"
             : (approvedReturnDestination(requested.current, true) ??
-              "/dashboard"),
+              "/home"),
           session: result.data,
         });
       })

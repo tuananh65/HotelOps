@@ -112,6 +112,11 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      <Route path="/home" element={<Protected><main><h1>HotelOps</h1>
+        <HomeNavigation />
+        {dashboardEnabled && <ReportAccessLink />}
+        {internalRequestsEnabled && <><InternalRequestAccessLink /><InternalRequestIntakeLink /></>}
+      </main></Protected>} />
       {accountManagementEnabled && <Route path="/users/new" element={<CreateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}
@@ -352,27 +357,21 @@ export function SharedAuthHost({
               "/profile", ...(usersReadEnabled ? ["/users"] : []),
               ...(structureReadEnabled ? ["/hotel", "/room-directory"] : []),
               ...(auditReadEnabled ? ["/audit"] : []), ...(dashboardEnabled ? ["/dashboard"] : []),
-              ...(notificationsEnabled ? ["/notifications"] : [])]} />
-            {(inspectionExecutionEnabled || notificationsEnabled) && <Link to="/inspection-history">Inspection history</Link>}
-            {checklistEnabled && <Link to="/inspections/checklists">Inspection checklists</Link>}
+              ...(notificationsEnabled ? ["/notifications"] : []),
+              ...(roleAssignmentEnabled ? ["/roles"] : []),
+              ...(structureReadEnabled ? ["/structure/work-categories", "/structure/reference-data", "/structure/priority-sla"] : []),
+              ...(incidentReadEnabled ? ["/operations/incidents"] : []),
+              ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments"] : []),
+              ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
+              ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),
+              ...(checklistEnabled ? ["/inspections/checklists"] : []),
+              ...(operationalTasksEnabled ? ["/operational-tasks", "/my-time-log"] : [])]} />
 
-            {roleAssignmentEnabled && <Link to="/roles">Roles and permissions</Link>}
-            {structureReadEnabled && <><Link to="/structure/work-categories">Work categories</Link><Link to="/structure/priority-sla">Priority SLA</Link><Link to="/structure/reference-data">Reference data</Link></>}
-
-
-
-            {dashboardEnabled && <ReportAccessLink />}
+{dashboardEnabled && <ReportAccessLink />}
             {internalRequestsEnabled && <InternalRequestAccessLink />}
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
-            {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
-            {materialReadEnabled && <><Link to="/operations/material-requests">Material requests</Link><Link to="/operations/replenishments">Replenishments</Link></>}
-            {workdayReadEnabled && <><Link to="/workday">Workday</Link><Link to="/workday/shift-plans">Shift planning</Link></>}
-            {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
-            {operationalTasksEnabled && (
-              <Link to="/operational-tasks">Operational tasks</Link>
-            )}
 
-            <OperationsRoutes />
+<OperationsRoutes />
           </Protected>
         }
       />

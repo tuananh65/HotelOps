@@ -50,7 +50,7 @@ export function AuthFormRoute({ kind }: { kind: FormKind }) {
     return (
       <Navigate
         replace
-        to={state.status === "RESTRICTED" ? "/change-password" : "/dashboard"}
+        to={state.status === "RESTRICTED" ? "/change-password" : "/home"}
       />
     );
   if (kind !== "login" && anonymous) return <Navigate replace to="/login" />;
