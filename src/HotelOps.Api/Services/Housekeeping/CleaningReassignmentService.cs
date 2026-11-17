@@ -99,7 +99,7 @@ public sealed partial class RoomTypeCreationService
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{roomState.Readiness},{roomState.Readiness == "BLOCKED"},{actor},{now})", token);
             }
             return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
-        }, ct, additionalUsers: users, permissionCode: "CLEANING_ASSIGN", requireRoomTypeSchema: false, preserveCommitErrors: true,
+        }, ct, additionalUsers: users, permissionCode: "CLEANING_ASSIGN", featurePermission: token => CleaningSourceAuthority(ticket.UserId, branch, null, token), requireRoomTypeSchema: false, preserveCommitErrors: true,
             afterUserLocks: token => time.LockUsersAsync(users, token), beforeCommit: async token =>
             {
                 if (mutation && !await DueHousekeeper(request.AssigneeId, branch, request.DueAt, token)) throw new ValidationException("New assignee eligibility changed.");

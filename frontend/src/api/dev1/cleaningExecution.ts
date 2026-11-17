@@ -8,6 +8,7 @@ export interface CleaningExecution {
   state: string | null;
   assignmentId: number | null;
   assigneeId: number | null;
+  assigneeName?: string | null;
   actualStartAtUtc: string | null;
   sourceETag: string;
   startCapability: string;
@@ -60,6 +61,7 @@ export async function readCleaningExecution(
         /Z$/.test(d.actualStartAtUtc) &&
         Number.isFinite(Date.parse(d.actualStartAtUtc)))
     ) ||
+    !(d.assigneeName == null || typeof d.assigneeName === "string") ||
     !tag(d.sourceETag) ||
     r.etag !== d.sourceETag ||
     ![

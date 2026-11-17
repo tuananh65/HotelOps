@@ -84,6 +84,7 @@ function CleaningExecutionContent({
   }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
+      if (e.status === 400) return "MSG03: Check a different eligible assignee on shift, a future UTC deadline, and a reason of 10-500 characters. The task must be Assigned, In Progress or On Hold.";
       if (e.status === 401) return "Phiên đăng nhập đã hết hạn.";
       if (e.status === 403)
         return "Không có quyền hoặc bạn không còn là người phụ trách.";
@@ -143,7 +144,7 @@ function CleaningExecutionContent({
       );
       if (alive.current) {
         setPending(null);
-        setNotice("Đã phân công lại và ghi nhận thông báo cho hai nhân viên.");
+        setNotice("MSG08: Reassignment saved. Notifications queued for both employees; previous effort remains attributed to the previous assignee.");
         setRefresh((n) => n + 1);
       }
     } catch (e) {
@@ -272,7 +273,7 @@ function CleaningExecutionContent({
         <>
           <h2>{data.taskNumber}</h2>
           <p>
-            {data.state} · Nhân viên {data.assigneeId ?? "—"}
+            {data.state} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
           <button
             disabled={
@@ -488,6 +489,7 @@ function CleaningExecutionContent({
                 Hạn UTC
                 <input
                   name="dueAt"
+                  defaultValue={plan.task.dueAt ?? ""}
                   required
                   placeholder="YYYY-MM-DDTHH:mm:ssZ"
                   disabled={busy || !!pending}

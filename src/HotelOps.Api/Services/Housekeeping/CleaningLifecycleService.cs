@@ -39,13 +39,14 @@ public sealed partial class RoomTypeCreationService
             var state = await CleaningState(task, token);
             var assignments = await db.CleaningAssignments.AsNoTracking().Where(x => x.CleaningTaskId == task && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null).Take(2).ToArrayAsync(token);
             var active = assignments.Length == 1 ? assignments[0] : null;
+            var assigneeName = active == null ? null : await db.Users.AsNoTracking().Where(u => u.UserId == active.AssigneeUserId).Select(u => u.FullName).SingleOrDefaultAsync(token);
             var installed = await CleaningExecutionInstalled(token);
             var startInstalled = installed || await HotelOps.Api.Data.CleaningStartSchema.InstalledAsync(db, token);
             var start = startInstalled && active?.AssigneeUserId == ticket.UserId && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 ? state.State == "ASSIGNED" ? "AVAILABLE" : state.State == "ON_HOLD" ? "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" : "STATE_CONFLICT" : "UNAVAILABLE";
             var reassign = (installed || await HotelOps.Api.Data.CleaningReassignmentSchema.InstalledAsync(db, token))
                 && candidateNotification != null && await candidateNotification.AvailableAsync(token)
-                && (await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, token)).IsGranted ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE";
+                && (await CleaningSourceAuthority(ticket.UserId, branch, null, token)).IsGranted ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE";
             var resume = startInstalled && state.State == "ON_HOLD" && active?.AssigneeUserId == ticket.UserId
                 && (await CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token)).IsGranted
                 && await ResumeTrialInstalled(token) ? "PROVISIONAL_V1" : "UNAVAILABLE";
@@ -63,7 +64,7 @@ public sealed partial class RoomTypeCreationService
                 active?.AssigneeUserId, row.ActualStartAt is { } time ? DateTime.SpecifyKind(time, DateTimeKind.Utc) : null,
                 WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", complete ? "PROVISIONAL_V1" : "UNAVAILABLE",
                 resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision),
-                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null), WorkflowTag(state.Revision));
+                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null, assigneeName), WorkflowTag(state.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_VIEW", token));
     }
     public async Task<RoomTypeBatchResult> StartCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, StartCleaningRequest input, CancellationToken ct)
