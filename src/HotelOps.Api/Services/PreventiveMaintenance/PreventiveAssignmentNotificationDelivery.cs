@@ -20,7 +20,9 @@ internal sealed class PreventiveAssignmentNotificationDelivery(HotelOpsDbContext
         public long TechnicianId { get; init; }
         public DateTime At { get; init; }
     }
-    private static IQueryable<Source> Sources(HotelOpsDbContext db) => db.Database.SqlQueryRaw<Source>("""
+    private static IQueryable<Source> Sources(HotelOpsDbContext db, bool historical)
+    {
+        const string query = """
         SELECT a.audit_id AS EventId,d.run_id AS RunId,d.branch_id AS BranchId,
           a.actor_user_id AS ActorId,TRY_CONVERT(bigint,JSON_VALUE(j.payload,'$.assigneeId')) AS TechnicianId,a.occurred_at AS At
         FROM dbo.audit_logs a
@@ -37,19 +39,24 @@ internal sealed class PreventiveAssignmentNotificationDelivery(HotelOpsDbContext
                 AND a.actor_user_id IS NULL AND JSON_VALUE(j.payload,'$.eventType')='PREVENTIVE_OCCURRENCE_GENERATED')
             OR (a.action='UPDATE' AND a.actor_user_id IS NOT NULL AND JSON_VALUE(j.payload,'$.eventType')='PREVENTIVE_OCCURRENCE_ASSIGNED'))
           AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
-                AND EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id=d.branch_id))
+                AND (EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id=d.branch_id) OR /*HISTORICAL_SCOPE*/))
             OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
                 AND EXISTS(SELECT 1 FROM dbo.rooms t WHERE t.room_id=s.room_id AND t.branch_id=d.branch_id))
             OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL
                 AND EXISTS(SELECT 1 FROM dbo.areas t WHERE t.area_id=s.area_id AND t.branch_id=d.branch_id)))
-        """);
+        """;
+        // Only server-owned SQL fragments are substituted; all values remain bound by EF.
+        return db.Database.SqlQueryRaw<Source>(query.Replace("/*HISTORICAL_SCOPE*/", historical
+            ? "EXISTS(SELECT 1 FROM dbo.asset_work_source_scopes p WHERE p.run_id=r.run_id AND p.asset_id=s.asset_id AND p.branch_id=d.branch_id)"
+            : "1=0", StringComparison.Ordinal));
+    }
 
     internal async Task<long[]> PendingAsync(long after, CancellationToken ct)
     {
         if (!await PreventiveOccurrenceGeneration.InstalledAsync(db, ct)) return [];
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var cutoff = NotificationRetention.At(now, retention.Value).Cutoff;
-        return await Sources(db).Where(s => s.EventId > after && s.At >= cutoff && s.At <= now)
+        return await Sources(db, await Assets.AssetTransferStorage.InstalledAsync(db, ct)).Where(s => s.EventId > after && s.At >= cutoff && s.At <= now)
             .OrderBy(s => s.EventId).Select(s => s.EventId).Take(100).ToArrayAsync(ct);
     }
 
@@ -57,7 +64,7 @@ internal sealed class PreventiveAssignmentNotificationDelivery(HotelOpsDbContext
     {
         await new UserEligibilityLock(db).LockAsync([user], ct);
         if (!await PreventiveOccurrenceGeneration.InstalledAsync(db, ct)) return null;
-        var source = await Sources(db).SingleOrDefaultAsync(s => s.EventId == id, ct);
+        var source = await Sources(db, await Assets.AssetTransferStorage.InstalledAsync(db, ct)).SingleOrDefaultAsync(s => s.EventId == id, ct);
         if (source == null || source.TechnicianId != user || source.ActorId != actor || source.At != at) return null;
         var read = await Maintenance.MaintenanceReadAccess.ReadAsync(db, user, source.BranchId, ct);
         return read.Lead || read.Staff ? source : null;
@@ -67,7 +74,7 @@ internal sealed class PreventiveAssignmentNotificationDelivery(HotelOpsDbContext
     {
         if (db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Clean notification context required.");
         if (!await PreventiveOccurrenceGeneration.InstalledAsync(db, ct)) return;
-        var hint = await Sources(db).SingleOrDefaultAsync(s => s.EventId == id, ct);
+        var hint = await Sources(db, await Assets.AssetTransferStorage.InstalledAsync(db, ct)).SingleOrDefaultAsync(s => s.EventId == id, ct);
         if (hint == null) return;
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([hint.TechnicianId], ct);

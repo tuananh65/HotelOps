@@ -25,8 +25,9 @@ internal static class EmployeeMembershipDependencies
         await Add("WAREHOUSE_MANAGER",db.Warehouses.Where(w=>w.BranchId==branch&&w.DepartmentId==department&&w.ManagerUserId==user&&w.IsActive).Select(w=>w.WarehouseId));
         await Add("ASSET_CUSTODIAN",db.Assets.Where(a=>a.BranchId==branch&&(a.CurrentDepartmentId==department||a.CurrentDepartmentId==null)&&a.CustodianUserId==user
             &&(a.LifecycleStatus=="IN_USE"||a.LifecycleStatus=="UNDER_REPAIR")).Select(a=>a.AssetId));
-        await Add("ASSET_HANDOVER",db.AssetHandovers.Where(h=>h.Asset.BranchId==branch&&h.HandoverStatus=="PENDING"
-            &&(h.ToUserId==user&&(h.ToDepartmentId==department||h.ToDepartmentId==null)||h.FromUserId==user&&(h.FromDepartmentId==department||h.FromDepartmentId==null))).Select(h=>h.HandoverId));
+        await Add("ASSET_HANDOVER",db.AssetHandovers.Where(h=>h.HandoverStatus=="PENDING"
+            &&(h.ToUserId==user&&(h.ToDepartmentId==department&&h.ToDepartment!.BranchId==branch||h.ToDepartmentId==null&&h.Asset.BranchId==branch)
+                ||h.FromUserId==user&&(h.FromDepartmentId==department&&h.FromDepartment!.BranchId==branch||h.FromDepartmentId==null&&h.Asset.BranchId==branch))).Select(h=>h.HandoverId));
         await Add("MATERIAL_REQUEST",db.MaterialRequests.Where(r=>r.BranchId==branch&&r.DepartmentId==department&&r.RequesterId==user
             &&(r.Status=="DRAFT"||r.Status=="NEEDS_INFORMATION")).Select(r=>r.RequestId));
         await Add("MATERIAL_APPROVAL",db.MaterialRequestApprovalCycles.Where(c=>c.Request.BranchId==branch&&c.AssignedApproverId==user&&c.Status=="PENDING"&&c.Request.Status=="PENDING_APPROVAL"

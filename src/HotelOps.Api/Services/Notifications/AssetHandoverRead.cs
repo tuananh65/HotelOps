@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Notifications;
 
 public sealed record AssetHandoverNoticeDto(long HandoverId, string Number, long AssetId, string AssetCode,
-    string State, string? ConditionNote, DateTime SubmittedAtUtc);
+    string State, string? ConditionNote, DateTime SubmittedAtUtc, bool CrossBranch = false);
 
 public sealed partial class NotificationCenterService
 {
@@ -24,7 +24,7 @@ public sealed partial class NotificationCenterService
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var result = await db.AssetHandovers.AsNoTracking().Where(h => h.HandoverId == source.HandoverId)
             .Select(h => new AssetHandoverNoticeDto(h.HandoverId,h.HandoverNo,h.AssetId,h.Asset.AssetCode,
-                h.HandoverStatus,h.ConditionNote,DateTime.SpecifyKind(h.CreatedAt,DateTimeKind.Utc))).SingleAsync(ct);
+                source.Cancelled ? "CANCELLED" : h.HandoverStatus,h.ConditionNote,DateTime.SpecifyKind(h.CreatedAt,DateTimeKind.Utc),source.CrossBranch)).SingleAsync(ct);
         await RevalidateSessionAsync(user, ct);
         if (!await AssetHandoverSource.CanReadAsync(db,user,source,ct)
             || await AssetHandoverSource.ReadAsync(db,source.AuditId,ct) != source)

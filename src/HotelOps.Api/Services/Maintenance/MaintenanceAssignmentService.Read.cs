@@ -37,6 +37,7 @@ public sealed partial class MaintenanceAssignmentService
         var scope=await MaintenanceReadAccess.ReadAsync(db,ticket.UserId,incident.BranchId,ct);
         var population=scope.Apply(db.MaintenanceWorks.AsNoTracking()).Where(w=>w.Status!="CLOSED" && w.Status!="CANCELLED");
         var occurrenceStorage=await PreventiveMaintenance.PreventiveOccurrenceGeneration.InstalledAsync(db,ct);
+        var historical = await Assets.AssetTransferStorage.OccurrenceScopesAsync(db, incident.BranchId, ct);
         var options=new List<MaintenanceTechnicianOption>();
         foreach(var candidate in candidates)
         {
@@ -56,7 +57,9 @@ public sealed partial class MaintenanceAssignmentService
                       AND d.workflow_status IN('ASSIGNED','IN_PROGRESS') AND r.performed_at IS NULL
                       AND r.maintenance_work_id IS NULL
                       AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
-                            AND EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id={incident.BranchId}))
+                            AND (EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id={incident.BranchId})
+                              OR EXISTS(SELECT 1 FROM OPENJSON({historical}) WITH(run_id bigint '$.run',asset_id bigint '$.asset') p
+                                WHERE p.run_id=r.run_id AND p.asset_id=s.asset_id)))
                         OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
                             AND EXISTS(SELECT 1 FROM dbo.rooms t WHERE t.room_id=s.room_id AND t.branch_id={incident.BranchId}))
                         OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL

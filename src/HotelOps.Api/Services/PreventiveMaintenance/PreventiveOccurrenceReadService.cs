@@ -96,6 +96,7 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
             afterDue=cursor.DueAt;
         }
         var evaluatedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        var historical = await Assets.AssetTransferStorage.OccurrenceScopesAsync(db, branch, ct);
         var rows=await db.Database.SqlQuery<Row>($"""
             SELECT TOP(50) r.run_id AS RunId,r.schedule_id AS ScheduleId,d.definition_json AS Definition,
               d.assignee_id AS AssigneeId,d.workflow_status AS Status,r.planned_at AS DueAt,r.performed_at AS PerformedAt,
@@ -123,7 +124,9 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
               AND ({status} IS NULL OR d.workflow_status={status}
                 OR ({status}='OPEN' AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS','ON_HOLD')))
               AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
-                    AND EXISTS(SELECT 1 FROM dbo.assets a WHERE a.asset_id=s.asset_id AND a.branch_id={branch}))
+                    AND (EXISTS(SELECT 1 FROM dbo.assets a WHERE a.asset_id=s.asset_id AND a.branch_id={branch})
+                      OR EXISTS(SELECT 1 FROM OPENJSON({historical}) WITH(run_id bigint '$.run',asset_id bigint '$.asset') p
+                        WHERE p.run_id=r.run_id AND p.asset_id=s.asset_id)))
                 OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
                     AND EXISTS(SELECT 1 FROM dbo.rooms a WHERE a.room_id=s.room_id AND a.branch_id={branch}))
                 OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL

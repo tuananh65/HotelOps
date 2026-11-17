@@ -90,6 +90,8 @@ export function AssetProfilePage() {
     {profile && <>
       <h3>{profile.profile.assetCode} — {profile.profile.assetName}</h3><p>Snapshot: {time(profile.snapshot)}</p>
       <p><Link to={`/assets/${id}/condition`}>Update condition</Link></p>
+      <p><Link to={`/assets/${id}/transfer`}>Transfer location</Link></p>
+      <p><Link to={`/assets/${id}/transfer/cross-branch`}>Cross-branch handover</Link></p>
       <p><Link to={`/assets/${id}/custody`}>Custody handover</Link></p>
       {profile.canEdit && <p><Link to={`/assets/${id}/placement`}>Assign first location</Link></p>}
       {profile.canEdit && <p><Link to={`/assets/${id}/edit`}>Chỉnh sửa thông tin</Link></p>}

@@ -40,11 +40,11 @@ internal static class MaintenanceReadContract
     private static async Task<long> BranchAsync(Dev2BoundAction a, CancellationToken ct)
     {
         if (IsList(a)) return Input(a).BranchId is > 0 and var branch ? branch : throw new Dev2AccessDenied(400);
-        return await Db(a).MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == Id(a))
-            .Select(w => w.Incident != null ? (long?)w.Incident.BranchId : w.PreventiveMaintenanceRuns
-                .Select(r => r.Schedule.Asset != null ? (long?)r.Schedule.Asset.BranchId
-                    : r.Schedule.Room != null ? (long?)r.Schedule.Room.BranchId
-                    : r.Schedule.Area != null ? (long?)r.Schedule.Area.BranchId : null).FirstOrDefault())
+        var db = Db(a);
+        return await HotelOps.Api.Services.Insights.MaintenanceWorkSources.Project(
+                db.MaintenanceWorks.AsNoTracking().Where(w => w.MaintenanceWorkId == Id(a)),
+                await Assets.AssetTransferStorage.InstalledAsync(db, ct) ? db.AssetWorkSourceScopes.AsNoTracking() : null)
+            .Select(w => w.BranchId)
             .SingleOrDefaultAsync(ct) ?? throw new Dev2AccessDenied(404);
     }
     private static readonly object ScopeKey = new();
@@ -154,7 +154,7 @@ internal static class MaintenanceReadContract
                 a.Http.Items[DeadlineListKey] = snapshot;
                 return new OkObjectResult(snapshot.Page);
             }
-            var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
+            var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct, branch: scope.Branch);
             if (detail == null) return new NotFoundResult();
             var evaluatedAt = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct), DateTimeKind.Utc);
             detail.Deadline = await MaintenanceDeadlineRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), evaluatedAt, ct);

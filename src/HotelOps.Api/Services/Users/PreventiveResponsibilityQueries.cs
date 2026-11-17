@@ -24,6 +24,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
         var unresolved=new SortedSet<string>(StringComparer.Ordinal);
         if(!await PreventiveOccurrenceGeneration.InstalledAsync(db,ct))
             return new([], ["PREVENTIVE_RESPONSIBILITY_STORAGE_UNAVAILABLE"]);
+        var historical = await Assets.AssetTransferStorage.OccurrenceScopesAsync(db, null, ct);
         var rows=await db.Database.SqlQuery<Row>($"""
             SELECT d.run_id AS RunId,d.branch_id AS BranchId,d.workflow_status AS State,r.performed_at AS PerformedAt,r.performed_by AS PerformedBy,
               r.maintenance_work_id AS WorkId,
@@ -31,7 +32,9 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
                 AND i.work_item_id=d.run_id AND i.closed_at IS NULL) AS OpenIntervals,
               CONVERT(bit,CASE WHEN
                 (s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
-                  AND EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id=d.branch_id))
+                  AND (EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id=d.branch_id)
+                    OR EXISTS(SELECT 1 FROM OPENJSON({historical}) WITH(run_id bigint '$.run',asset_id bigint '$.asset',branch_id bigint '$.branch') p
+                      WHERE p.run_id=r.run_id AND p.asset_id=s.asset_id AND p.branch_id=d.branch_id)))
                 OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
                   AND EXISTS(SELECT 1 FROM dbo.rooms t WHERE t.room_id=s.room_id AND t.branch_id=d.branch_id))
                 OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL

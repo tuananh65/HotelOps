@@ -8,14 +8,17 @@ namespace HotelOps.Api.Services.Incidents;
 internal static class IncidentReadAccess
 {
     internal sealed record Grant(string Role, PermissionGrantPath Path);
-    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false)
+    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false, bool HistoricalAssets = false)
     {
         internal IQueryable<Incident> Apply(IQueryable<Incident> query)
         {
             var scoped=query.Where(i=>i.BranchId==Branch && i.Branch.IsActive
                 && (i.Room==null || i.Room.BranchId==Branch)
-                && (i.Area==null || i.Area.BranchId==Branch)
-                && (i.Asset==null || i.Asset.BranchId==Branch));
+                && (i.Area==null || i.Area.BranchId==Branch));
+            scoped = HistoricalAssets
+                ? scoped.Where(i => i.Asset == null || i.Asset.BranchId == Branch
+                    || i.AssetSourceScopes.Any(s => s.AssetId == i.AssetId && s.BranchId == i.BranchId))
+                : scoped.Where(i => i.Asset == null || i.Asset.BranchId == Branch);
             if(Lead) return scoped;
             if(!Staff) return scoped.Where(i=>false);
             var assigned=IncidentCurrentAssignment.AssignedTo(scoped,User,CurrentAssignmentsOnly).Select(i=>i.IncidentId);
@@ -50,6 +53,7 @@ internal static class IncidentReadAccess
                 assignment.Branch != null && assignment.Branch.IsActive,
                 db.UserBranchAccesses.Any(a => a.UserId == user && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now))))
             .ToArrayAsync(ct);
-        return sourceRecord ? ResolveSource(user, branch, grants, now) : Resolve(user, branch, grants, now);
+        var scope = sourceRecord ? ResolveSource(user, branch, grants, now) : Resolve(user, branch, grants, now);
+        return scope with { HistoricalAssets = await HotelOps.Api.Services.Assets.AssetTransferStorage.InstalledAsync(db, ct) };
     }
 }

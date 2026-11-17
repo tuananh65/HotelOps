@@ -19,9 +19,16 @@ public static class Dev2DependencyQueries
     public static IQueryable<MaterialRequestApprovalCycle> PendingApprovals(IQueryable<MaterialRequestApprovalCycle> rows,long user,long branch) =>
         rows.Where(c=>c.AssignedApproverId==user && c.Request.BranchId==branch && c.Status=="PENDING" && c.Request.Status=="PENDING_APPROVAL"
             && !rows.Any(n=>n.RequestId==c.RequestId && n.RevisionNo>c.RevisionNo));
-    public static IQueryable<PreventiveMaintenanceSchedule> Schedules(IQueryable<PreventiveMaintenanceSchedule> rows,long branch) =>
-        rows.Where(s=>(s.AssetId!=null?1:0)+(s.RoomId!=null?1:0)+(s.AreaId!=null?1:0)==1 &&
+    public static IQueryable<PreventiveMaintenanceSchedule> Schedules(IQueryable<PreventiveMaintenanceSchedule> rows,long branch,
+        IQueryable<AssetScheduleSourceScope>? history = null)
+    {
+        if (history != null) return rows.Where(s => (s.AssetId!=null?1:0)+(s.RoomId!=null?1:0)+(s.AreaId!=null?1:0)==1
+            && (s.AssetId != null && (history.Any(p => p.ScheduleId == s.ScheduleId && p.AssetId == s.AssetId && p.BranchId == branch)
+                || !history.Any(p => p.ScheduleId == s.ScheduleId) && s.Asset!.BranchId == branch)
+                || s.RoomId != null && s.Room!.BranchId == branch || s.AreaId != null && s.Area!.BranchId == branch));
+        return rows.Where(s=>(s.AssetId!=null?1:0)+(s.RoomId!=null?1:0)+(s.AreaId!=null?1:0)==1 &&
             (s.AssetId!=null && s.Asset!.BranchId==branch || s.RoomId!=null && s.Room!.BranchId==branch || s.AreaId!=null && s.Area!.BranchId==branch));
+    }
     public static IQueryable<Incident> RoomIncidents(HotelOpsDbContext db,long branch,long room) =>
         db.Incidents.AsNoTracking().Where(i=>i.BranchId==branch && (i.RoomId==room || i.Asset!=null && i.Asset.BranchId==branch && i.Asset.CurrentRoomId==room));
     public static IQueryable<MaterialRequest> RoomRequests(HotelOpsDbContext db,long branch,long room) =>

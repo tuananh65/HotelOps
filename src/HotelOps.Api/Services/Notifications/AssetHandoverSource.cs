@@ -11,15 +11,18 @@ namespace HotelOps.Api.Services.Notifications;
 
 // Event provenance only. Reading this event is not authorization to disclose
 // either the handover receipt or the asset to its intended recipient.
-internal static class AssetHandoverSource
+internal static partial class AssetHandoverSource
 {
     internal const string Kind = "ASSET_HANDOVER_SUBMITTED";
     internal const string DecisionKind = "ASSET_HANDOVER_DECIDED";
     internal const string SourceType = "ASSET_HANDOVER";
     internal sealed record Source(long AuditId, long HandoverId, long AssetId,
         long BranchId, long DepartmentId, long ReceiverId, long ActorId, DateTime At,
-        string EventKind = Kind, long? SenderId = null, string? Decision = null)
-    { internal long RecipientId => EventKind == DecisionKind ? SenderId!.Value : ReceiverId; }
+        string EventKind = Kind, long? SenderId = null, string? Decision = null, long? DestinationBranchId = null, bool Cancelled = false)
+    {
+        internal long RecipientId => EventKind == DecisionKind && !Cancelled ? SenderId!.Value : ReceiverId;
+        internal bool CrossBranch => DestinationBranchId is > 0 && DestinationBranchId != BranchId;
+    }
 
     internal static Source? Parse(AuditLog audit)
     {
@@ -46,8 +49,10 @@ internal static class AssetHandoverSource
                 || value.GetProperty("handover_status").GetString() != "PENDING"
                 || value.GetProperty("accepted_at").ValueKind != JsonValueKind.Null)
                 return null;
+            var destination = value.TryGetProperty("to_branch_id", out var target) ? target.GetInt64() : audit.BranchId.Value;
+            if (destination <= 0 || value.GetProperty("from_branch_id").GetInt64() != audit.BranchId) return null;
             return new(audit.AuditId, id, asset, audit.BranchId.Value, department,
-                receiver, audit.ActorUserId.Value, audit.OccurredAt);
+                receiver, audit.ActorUserId.Value, audit.OccurredAt, DestinationBranchId: destination);
         }
         catch (Exception error) when (error is JsonException or InvalidOperationException
             or KeyNotFoundException or FormatException or OverflowException)
@@ -66,15 +71,19 @@ internal static class AssetHandoverSource
             using var after=JsonDocument.Parse(audit.NewValues??"null");var v=after.RootElement;
             var state=v.GetProperty("handover_status").GetString();var asset=v.GetProperty("asset_id").GetInt64();
             var department=v.GetProperty("to_department_id").GetInt64();var sender=v.GetProperty("sender_id").GetInt64();
+            var receiver=v.GetProperty("to_user_id").GetInt64();
+            var cancelled=v.TryGetProperty("decision",out var action)&&action.GetString()=="CANCEL";
+            var destination=v.TryGetProperty("to_branch_id",out var target)?target.GetInt64():audit.BranchId.Value;
             if(before.RootElement.GetProperty("handover_status").GetString()!="PENDING"||state is not("ACCEPTED" or "REJECTED")
                 ||v.GetProperty("notification_kind").GetString()!=DecisionKind||v.GetProperty("notification_version").GetInt32()!=1
                 ||v.GetProperty("handover_id").GetInt64()!=id||v.GetProperty("branch_id").GetInt64()!=audit.BranchId
-                ||v.GetProperty("to_user_id").GetInt64()!=audit.ActorUserId||v.GetProperty("decided_at").GetDateTime()!=audit.OccurredAt
-                ||asset<=0||department<=0||sender<=0
+                ||(cancelled?sender:receiver)!=audit.ActorUserId||v.GetProperty("decided_at").GetDateTime()!=audit.OccurredAt
+                ||asset<=0||department<=0||sender<=0||receiver<=0||destination<=0||cancelled&&state!="REJECTED"
+                ||v.GetProperty("from_branch_id").GetInt64()!=audit.BranchId
                 ||state=="ACCEPTED"&&v.GetProperty("accepted_at").GetDateTime()!=audit.OccurredAt
                 ||state=="REJECTED"&&(v.GetProperty("accepted_at").ValueKind!=JsonValueKind.Null||v.GetProperty("reason").GetString()?.Trim().Length is not >=10))return null;
-            return new(audit.AuditId,id,asset,audit.BranchId.Value,department,audit.ActorUserId.Value,audit.ActorUserId.Value,
-                audit.OccurredAt,DecisionKind,sender,state);
+            return new(audit.AuditId,id,asset,audit.BranchId.Value,department,receiver,audit.ActorUserId.Value,
+                audit.OccurredAt,DecisionKind,sender,state,destination,cancelled);
         }
         catch(Exception e)when(e is JsonException or InvalidOperationException or KeyNotFoundException or FormatException or OverflowException){return null;}
     }
@@ -86,6 +95,7 @@ internal static class AssetHandoverSource
         var audit = await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(a => a.AuditId == auditId, ct);
         var source = audit == null ? null : Parse(audit);
         if (source == null) return null;
+        if (source.CrossBranch) return await ReadCrossBranchAsync(db, source, ct);
         if(source.EventKind==DecisionKind)
             return await db.AssetHandovers.AsNoTracking().AnyAsync(h=>h.HandoverId==source.HandoverId
                 &&h.AssetId==source.AssetId&&h.Asset.BranchId==source.BranchId&&h.ToUserId==source.ReceiverId
@@ -105,6 +115,7 @@ internal static class AssetHandoverSource
     internal static async Task<bool> CanReadAsync(HotelOpsDbContext db, long user, Source source, CancellationToken ct)
     {
         if (user != source.RecipientId) return false;
+        if (source.CrossBranch) return await CanReadCrossBranchAsync(db, user, source, ct);
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var permissions = new EfPermissionDataSource(db);
         if(source.EventKind==Kind)

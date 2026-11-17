@@ -64,6 +64,10 @@ internal sealed class PreventiveOccurrenceGeneration(HotelOpsDbContext db,IOptio
             : row.RoomId is {} room ? await db.Rooms.Where(r=>r.RoomId==room && r.IsActive).Select(r=>(long?)r.BranchId).SingleOrDefaultAsync(ct)
             : await db.Areas.Where(a=>a.AreaId==row.AreaId && a.IsActive).Select(a=>(long?)a.BranchId).SingleOrDefaultAsync(ct);
         if(branch==null || !await db.Branches.AnyAsync(b=>b.BranchId==branch && b.IsActive,ct))throw new ValidationException("Schedule target unavailable.");
+        if (await Assets.AssetTransferStorage.InstalledAsync(db, ct)
+            && await db.AssetScheduleSourceScopes.AnyAsync(s => s.ScheduleId == id
+                && (s.AssetId != row.AssetId || s.BranchId != branch), ct))
+            throw new ValidationException("Asset transferred: the existing schedule remains at its source branch; new occurrence generation requires an authorized destination schedule.");
         // Never assign work to a revoked/inactive default technician. Retain this schedule for correction/retry.
         if(definition.Assignee is {} assignee && !await PreventiveTechnicians.EligibleAsync(db,assignee,branch.Value,ct))
             throw new ValidationException("Default assignee no longer eligible.");

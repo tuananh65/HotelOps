@@ -99,9 +99,19 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         catch (ArgumentOutOfRangeException) { throw new ValidationException("Next scheduled date is outside the supported range."); }
     }
 
-    private async Task TargetAsync(long branch,long? asset,long? room,long? area,CancellationToken ct,bool requireActive=true)
+    private async Task TargetAsync(long branch,long? asset,long? room,long? area,CancellationToken ct,bool requireActive=true,long? scheduleId=null)
     {
         if (new[]{asset,room,area}.Count(x=>x!=null)!=1) throw new InternalRequestReadException(409,"SCHEDULE_TARGET_AMBIGUOUS");
+        if (scheduleId != null && await Assets.AssetTransferStorage.InstalledAsync(db, ct))
+        {
+            var original = await db.AssetScheduleSourceScopes.AsNoTracking().SingleOrDefaultAsync(s => s.ScheduleId == scheduleId, ct);
+            if (original != null)
+            {
+                if (original.BranchId != branch || original.AssetId != asset)
+                    throw new InternalRequestReadException(404, "SCHEDULE_TARGET_UNAVAILABLE");
+                if (!requireActive) return; // Historical read/deactivate only; never grants asset detail access.
+            }
+        }
         var valid = asset != null ? await db.Assets.AsNoTracking().AnyAsync(a=>a.AssetId==asset && a.BranchId==branch && (!requireActive || (a.LifecycleStatus == "IN_USE" || a.LifecycleStatus == "UNDER_REPAIR")),ct)
             : room != null ? await db.Rooms.AsNoTracking().AnyAsync(r=>r.RoomId==room && r.BranchId==branch && (!requireActive || r.IsActive),ct)
             : await db.Areas.AsNoTracking().AnyAsync(a=>a.AreaId==area && a.BranchId==branch && (!requireActive || a.IsActive),ct);
@@ -171,9 +181,15 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
         await AuthorizeAsync(ticket,sid,branch,ct);
-        var rows=await db.PreventiveMaintenanceSchedules.AsNoTracking()
+        var schedules=db.PreventiveMaintenanceSchedules.AsNoTracking();
+        if (await Assets.AssetTransferStorage.InstalledAsync(db, ct))
+            schedules=schedules.Where(s => !db.AssetScheduleSourceScopes.Any(p => p.ScheduleId == s.ScheduleId)
+                || db.AssetScheduleSourceScopes.Any(p => p.ScheduleId == s.ScheduleId && p.BranchId == branch && p.AssetId == s.AssetId));
+        var historical = await Assets.AssetTransferStorage.InstalledAsync(db, ct)
+            ? await db.AssetScheduleSourceScopes.Where(s => s.BranchId == branch).Select(s => s.ScheduleId).ToArrayAsync(ct) : [];
+        var rows=await schedules
             .Where(s=>s.ScheduleId>afterId &&
-                ((s.AssetId!=null && s.RoomId==null && s.AreaId==null && db.Assets.Any(a=>a.AssetId==s.AssetId && a.BranchId==branch)) ||
+                ((s.AssetId!=null && s.RoomId==null && s.AreaId==null && (historical.Contains(s.ScheduleId) || db.Assets.Any(a=>a.AssetId==s.AssetId && a.BranchId==branch))) ||
                  (s.RoomId!=null && s.AssetId==null && s.AreaId==null && db.Rooms.Any(r=>r.RoomId==s.RoomId && r.BranchId==branch)) ||
                  (s.AreaId!=null && s.AssetId==null && s.RoomId==null && db.Areas.Any(a=>a.AreaId==s.AreaId && a.BranchId==branch))))
             .OrderBy(s=>s.ScheduleId).Take(limit).ToArrayAsync(ct);
@@ -190,7 +206,7 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
         await AuthorizeAsync(ticket,sid,branch,ct);
         var row=await LockAsync(id,ct);
-        await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false);
+        await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false,scheduleId:row.ScheduleId);
         var result=await ViewAsync(row,ct);
         await AuthorizeAsync(ticket,sid,branch,ct);
         await tx.CommitAsync(ct);return result;
@@ -216,7 +232,7 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         if(id is {} key)
         {
             row=await LockAsync(key,ct);
-            await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false);
+            await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false,scheduleId:row.ScheduleId);
             before=await ViewAsync(row,ct);
             if(tag!=before.Version)throw new InternalRequestReadException(412,"SCHEDULE_CHANGED");
             if(!row.IsActive || before.Title==null || before.CheckItems==null)throw new InternalRequestReadException(409,"ACTIVE_SCHEDULE_DEFINITION_REQUIRED");
@@ -256,7 +272,7 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
         await AuthorizeAsync(ticket,sid,branch,ct);
-        var row=await LockAsync(id,ct);await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false);
+        var row=await LockAsync(id,ct);await TargetAsync(branch,row.AssetId,row.RoomId,row.AreaId,ct,requireActive:false,scheduleId:row.ScheduleId);
         var before=await ViewAsync(row,ct);
         if(before.Version!=tag)throw new InternalRequestReadException(412,"SCHEDULE_CHANGED");
         if(!row.IsActive)throw new InternalRequestReadException(409,"SCHEDULE_INACTIVE");

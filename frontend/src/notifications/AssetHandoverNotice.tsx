@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { ApiError, getJson } from "../api/dev1/client";
 
 type Receipt = { handoverId: number; number: string; assetId: number; assetCode: string;
-  state: string; conditionNote: string | null; submittedAtUtc: string };
+  state: string; conditionNote: string | null; submittedAtUtc: string; crossBranch?: boolean };
 export function AssetHandoverNotice() {
   const { id = "" } = useParams();
   const { state, actions } = useAuth();
@@ -19,7 +19,7 @@ export function AssetHandoverNotice() {
       const r = value as Receipt;
       if (!r || ![r.handoverId, r.assetId].every(n => Number.isSafeInteger(n) && n > 0)
         || typeof r.number !== "string" || typeof r.assetCode !== "string"
-        || !["PENDING", "ACCEPTED", "REJECTED"].includes(r.state)
+        || !["PENDING", "ACCEPTED", "REJECTED", "CANCELLED"].includes(r.state)
         || (r.conditionNote !== null && typeof r.conditionNote !== "string")
         || typeof r.submittedAtUtc !== "string" || !r.submittedAtUtc.endsWith("Z")
         || !Number.isFinite(Date.parse(r.submittedAtUtc))) throw Error("INVALID_HANDOVER");
@@ -38,7 +38,7 @@ export function AssetHandoverNotice() {
         <dt>Asset</dt><dd>{visible.data.assetCode}</dd><dt>Status</dt><dd>{visible.data.state}</dd>
         <dt>Condition at handover</dt><dd>{visible.data.conditionNote ?? "No condition note"}</dd>
         <dt>Submitted</dt><dd>{new Date(visible.data.submittedAtUtc).toLocaleString()}</dd></dl>
-        <Link to={`/assets/${visible.data.assetId}/custody`}>Open custody workflow</Link>
+        <Link to={`/assets/${visible.data.assetId}/${visible.data.crossBranch ? "transfer/cross-branch" : "custody"}`}>Open custody workflow</Link>
         <p>Reading this handover does not acknowledge it or change asset custody.</p></>}
   </main>;
 }

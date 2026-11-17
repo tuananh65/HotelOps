@@ -11,7 +11,23 @@ internal sealed class MaintenanceWorkSource
 
 internal static class MaintenanceWorkSources
 {
-    public static IQueryable<MaintenanceWorkSource> Project(IQueryable<MaintenanceWork> works) =>
+    public static IQueryable<MaintenanceWorkSource> Project(IQueryable<MaintenanceWork> works,
+        IQueryable<AssetWorkSourceScope>? history = null)
+    {
+        var current = CurrentProject(works);
+        if (history == null) return current;
+        return from source in current
+               from scope in history.Where(s => s.Run != null
+                   && s.Run.MaintenanceWorkId == source.Work.MaintenanceWorkId
+                   && s.Run.Schedule.AssetId == s.AssetId).DefaultIfEmpty()
+               select new MaintenanceWorkSource
+               {
+                   Work = source.Work,
+                   BranchId = source.BranchId == null ? null : scope == null ? source.BranchId : scope.BranchId
+               };
+    }
+
+    private static IQueryable<MaintenanceWorkSource> CurrentProject(IQueryable<MaintenanceWork> works) =>
         works.Select(w => new MaintenanceWorkSource
         {
             Work = w,

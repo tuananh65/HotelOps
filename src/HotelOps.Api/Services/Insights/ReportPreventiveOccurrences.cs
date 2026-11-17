@@ -23,15 +23,23 @@ internal static class ReportPreventiveOccurrences
     internal static async Task<Row[]> ReadAsync(HotelOpsDbContext db, InsightFilters filters, DateTime now, CancellationToken ct, long? assetId = null)
     {
         var start = InsightAccess.Start(filters); var end = InsightAccess.End(filters);
-        var runs = await db.PreventiveMaintenanceRuns.AsNoTracking()
+        var population = db.PreventiveMaintenanceRuns.AsNoTracking()
             .Where(r => r.PlannedAt >= start && r.PlannedAt < end && (assetId == null || r.Schedule.AssetId == assetId)
                 && (filters.DepartmentId == null || r.Schedule.AssignedDepartmentId == filters.DepartmentId))
-            .Select(r => new { r.RunId, r.ScheduleId, r.MaintenanceWorkId, r.PlannedAt, r.PerformedAt, r.PerformedBy, r.Result,
-                r.Schedule.AssignedDepartmentId, r.Schedule.AssetId, r.Schedule.RoomId, r.Schedule.AreaId,
-                DepartmentBranch = r.Schedule.AssignedDepartment == null ? (long?)null : r.Schedule.AssignedDepartment.BranchId,
+            .Select(r => new { Run = r,
                 BranchId = r.Schedule.AssetId != null && r.Schedule.RoomId == null && r.Schedule.AreaId == null ? (long?)r.Schedule.Asset!.BranchId
                     : r.Schedule.AssetId == null && r.Schedule.RoomId != null && r.Schedule.AreaId == null ? r.Schedule.Room!.BranchId
-                    : r.Schedule.AssetId == null && r.Schedule.RoomId == null && r.Schedule.AreaId != null ? r.Schedule.Area!.BranchId : null })
+                    : r.Schedule.AssetId == null && r.Schedule.RoomId == null && r.Schedule.AreaId != null ? r.Schedule.Area!.BranchId : null });
+        if (await Assets.AssetTransferStorage.InstalledAsync(db, ct))
+            population = from source in population
+                         from scope in db.AssetWorkSourceScopes.Where(p => p.RunId == source.Run.RunId
+                             && p.AssetId == source.Run.Schedule.AssetId).DefaultIfEmpty()
+                         select new { source.Run, BranchId = source.BranchId == null ? null : scope == null ? source.BranchId : scope.BranchId };
+        var runs = await population.Select(s => new { s.Run.RunId, s.Run.ScheduleId, s.Run.MaintenanceWorkId,
+                s.Run.PlannedAt, s.Run.PerformedAt, s.Run.PerformedBy, s.Run.Result,
+                s.Run.Schedule.AssignedDepartmentId, s.Run.Schedule.AssetId, s.Run.Schedule.RoomId, s.Run.Schedule.AreaId,
+                DepartmentBranch = s.Run.Schedule.AssignedDepartment == null ? (long?)null : s.Run.Schedule.AssignedDepartment.BranchId,
+                s.BranchId })
             .Where(r => r.BranchId != null && filters.BranchIds.Contains(r.BranchId.Value)
                 && (r.AssignedDepartmentId == null || r.DepartmentBranch == r.BranchId))
             .OrderBy(r => r.PlannedAt).ThenBy(r => r.RunId).Take(50001).ToArrayAsync(ct);

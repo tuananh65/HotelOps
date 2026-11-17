@@ -197,7 +197,8 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     missing.Add("Incident category is N/A where no valid official category was recorded; historical values are not inferred.");
                 }
                 else missing.Add("Incident category unavailable: approved additive storage is not installed.");
-                var works = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking())
+                var works = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking(),
+                    await Assets.AssetTransferStorage.InstalledAsync(db, ct) ? db.AssetWorkSourceScopes.AsNoTracking() : null)
                     .Where(s => s.BranchId != null && branches.Contains(s.BranchId.Value) && s.Work.IncidentId != null
                         && (s.Work.DepartmentId == null || s.Work.Department!.BranchId == s.BranchId)
                         && incidentIds.Contains(s.Work.IncidentId.Value)).Select(s => s.Work);
@@ -318,7 +319,8 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                         l.UomId
                     }), "documentLineId", "warehouseId", "itemId", "baseUomId", "returnedBaseQty", "occurredAt", "status", "originalIssueLineId", "damagedQty", "uomId");
                 var issueLines = periodMovements.Where(m => m.DocumentLine.Document.DocumentType == "ISSUE").Select(m => m.DocumentLineId);
-                var scopedWorks = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking())
+                var scopedWorks = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking(),
+                    await Assets.AssetTransferStorage.InstalledAsync(db, ct) ? db.AssetWorkSourceScopes.AsNoTracking() : null)
                     .Where(w => w.BranchId != null && branches.Contains(w.BranchId.Value)
                         && (w.Work.DepartmentId == null || w.Work.Department!.BranchId == w.BranchId)).Select(w => w.Work.MaintenanceWorkId);
                 await Add("material_usage_by_work", db.MaintenanceMaterialUsages.AsNoTracking()

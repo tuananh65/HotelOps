@@ -64,10 +64,10 @@ public sealed partial class MaintenanceWorkService
                     : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Room != null ? r.Schedule.Room.RoomNumber : null).FirstOrDefault(),
                 AreaName = work.Incident != null ? (work.Incident.Area != null ? work.Incident.Area.AreaName : null)
                     : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Area != null ? r.Schedule.Area.AreaName : null).FirstOrDefault(),
-                AssetCode = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetCode : null)
-                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
-                AssetName = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetName : null)
-                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
+                AssetCode = work.Incident != null ? (work.Incident.Asset != null && work.Incident.Asset.BranchId == work.Incident.BranchId ? work.Incident.Asset.AssetCode : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null && (request.BranchId == null || r.Schedule.Asset.BranchId == request.BranchId) ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
+                AssetName = work.Incident != null ? (work.Incident.Asset != null && work.Incident.Asset.BranchId == work.Incident.BranchId ? work.Incident.Asset.AssetName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null && (request.BranchId == null || r.Schedule.Asset.BranchId == request.BranchId) ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
 
                 Source = work.IncidentId != null ? "INCIDENT" : work.PreventiveMaintenanceRuns.Any() ? "PREVENTIVE" : null,
                 IncidentId = work.IncidentId,
@@ -108,7 +108,7 @@ public sealed partial class MaintenanceWorkService
     }
 
     internal static async Task<MaintenanceWorkDetailDto?> DetailAsync(IQueryable<MaintenanceWork> query, long id,
-        CancellationToken cancellationToken, bool includeMaterialReferences = false)
+        CancellationToken cancellationToken, bool includeMaterialReferences = false, long? branch = null)
     {
         return await query
             .Where(work => work.MaintenanceWorkId == id)
@@ -124,10 +124,10 @@ public sealed partial class MaintenanceWorkService
                     : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Room != null ? r.Schedule.Room.RoomNumber : null).FirstOrDefault(),
                 AreaName = work.Incident != null ? (work.Incident.Area != null ? work.Incident.Area.AreaName : null)
                     : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Area != null ? r.Schedule.Area.AreaName : null).FirstOrDefault(),
-                AssetCode = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetCode : null)
-                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
-                AssetName = work.Incident != null ? (work.Incident.Asset != null ? work.Incident.Asset.AssetName : null)
-                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
+                AssetCode = work.Incident != null ? (work.Incident.Asset != null && work.Incident.Asset.BranchId == work.Incident.BranchId ? work.Incident.Asset.AssetCode : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null && branch != null && r.Schedule.Asset.BranchId == branch ? r.Schedule.Asset.AssetCode : null).FirstOrDefault(),
+                AssetName = work.Incident != null ? (work.Incident.Asset != null && work.Incident.Asset.BranchId == work.Incident.BranchId ? work.Incident.Asset.AssetName : null)
+                    : work.PreventiveMaintenanceRuns.Select(r => r.Schedule.Asset != null && branch != null && r.Schedule.Asset.BranchId == branch ? r.Schedule.Asset.AssetName : null).FirstOrDefault(),
 
                 IncidentId = work.IncidentId,
                 AssigneeId = work.AssigneeId,

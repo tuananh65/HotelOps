@@ -112,6 +112,9 @@ public sealed class AssetProfileReader(HotelOpsDbContext db, AssetProfileAccess 
         var canSchedules = await CanReadSchedulesAsync(branch, ct);
         var schedules = db.PreventiveMaintenanceSchedules.AsNoTracking().Where(s => canSchedules && s.AssetId == id && s.RoomId == null && s.AreaId == null
             && (s.AssignedDepartment == null || s.AssignedDepartment.BranchId == branch));
+        if (await AssetTransferStorage.InstalledAsync(db, ct))
+            schedules = schedules.Where(s => !db.AssetScheduleSourceScopes.Any(p => p.ScheduleId == s.ScheduleId)
+                || db.AssetScheduleSourceScopes.Any(p => p.ScheduleId == s.ScheduleId && p.AssetId == s.AssetId && p.BranchId == branch));
         var scheduleRows = await schedules.OrderBy(s => s.ScheduleCode).ThenBy(s => s.ScheduleId).Skip(skip).Take(size)
             .Select(s => new { s.ScheduleId, s.ScheduleCode, s.Frequency, s.FrequencyInterval, s.NextDueAt, s.IsActive }).ToArrayAsync(ct);
         var files = db.Attachments.AsNoTracking().Where(a => a.EntityType == "ASSET" && a.EntityId == id && a.DeletedAt == null);

@@ -236,7 +236,8 @@ public sealed class Dev2DependencyReader(HotelOpsDbContext db,ICurrentUserAccess
             .Select(i=>new{Id=i.IncidentId,i.Status,i.RoomId,i.AreaId,i.AssetId,i.ResolvedAt,i.ClosedAt}).ToArrayAsync(ct))Add("INCIDENT",i.Id,i.Status,version:i);
         if(kind!="USER")
         {
-            var schedules=Dev2DependencyQueries.Schedules(db.PreventiveMaintenanceSchedules.AsNoTracking(),branch);
+            var schedules=Dev2DependencyQueries.Schedules(db.PreventiveMaintenanceSchedules.AsNoTracking(),branch,
+                await Assets.AssetTransferStorage.InstalledAsync(db, ct) ? db.AssetScheduleSourceScopes.AsNoTracking() : null);
             if(kind=="ROOM")schedules=schedules.Where(s=>s.RoomId==id||s.Asset!=null&&s.Asset.CurrentRoomId==id);
             if(kind=="DEPARTMENT")schedules=schedules.Where(s=>s.AssignedDepartmentId==id);
             if(kind=="DEPARTMENT")foreach(var s in await db.PreventiveMaintenanceSchedules.AsNoTracking()

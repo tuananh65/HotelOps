@@ -1,6 +1,7 @@
 import { AssetCustodyPage } from "../assets/AssetCustodyPage";
 import { AssetRegistrationPage } from "../assets/AssetRegistrationPage";
 import { AssetPlacementPage } from "../assets/AssetPlacementPage";
+import { AssetCrossBranchPage } from "../assets/AssetCrossBranchPage";
 import { AssetConditionPage } from "../assets/AssetConditionPage";
 import { HomeNavigation } from "./HomeNavigation";
 import { AssetMaintenanceHistoryPage } from "../assets/AssetMaintenanceHistoryPage";
@@ -44,6 +45,8 @@ export function OperationsRoutes() {
           <Route path="/assets" element={<AssetProfilePage />} />
           <Route path="/assets/new" element={<AssetRegistrationPage />} />
           <Route path="/assets/:id/placement" element={<AssetPlacementPage />} />
+          <Route path="/assets/:id/transfer" element={<AssetPlacementPage transfer />} />
+          <Route path="/assets/:id/transfer/cross-branch" element={<AssetCrossBranchPage />} />
           <Route path="/assets/:id/condition" element={<AssetConditionPage />} />
           <Route path="/assets/:id" element={<AssetProfilePage />} />
           <Route path="/assets/:id/custody" element={<AssetCustodyPage />} />

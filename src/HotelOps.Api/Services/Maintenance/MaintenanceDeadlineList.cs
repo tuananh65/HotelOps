@@ -55,7 +55,7 @@ internal static class MaintenanceDeadlineList
             .Skip(checked((input.Page - 1) * input.PageSize)).Take(input.PageSize).ToArray();
         var selectedIds = selected.Where(m => !m.Occurrence).Select(m => m.Id).ToArray();
         var page = await MaintenanceWorkService.ListAsync(scoped.Where(w => selectedIds.Contains(w.MaintenanceWorkId)),
-            new MaintenanceQueryRequest { Page = 1, PageSize = input.PageSize }, ct);
+            new MaintenanceQueryRequest { BranchId = branch, Page = 1, PageSize = input.PageSize }, ct);
         var rows = page.Items.ToDictionary(w => w.MaintenanceWorkId!.Value);
         if (rows.Count != selectedIds.Length) throw new InvalidOperationException("Maintenance list scope changed.");
         var ordered = selected.Select(m =>
