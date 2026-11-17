@@ -13,19 +13,30 @@ public sealed class UserBranchAssignmentAccess(HotelOpsDbContext db, ICurrentUse
     public async Task<bool> CanAddAsync(long targetId, long destinationId, long? insertedAccessId, CancellationToken ct)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted || actor.UserId == targetId) return false;
-        if ((await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted) return true;
+        var now = clock.GetUtcNow().UtcDateTime;
+        var administratorBranches = await db.UserRoles.AsNoTracking().Where(r => r.UserId == actor.UserId
+            && r.Role.RoleCode == "SYS_ADMIN" && r.IsActive && r.Role.IsActive && r.AssignedAt <= now
+            && (r.ExpiresAt == null || r.ExpiresAt > now)
+            && (r.BranchId == null || r.Branch != null && r.Branch.IsActive
+                && db.UserBranchAccesses.Any(b => b.UserId == actor.UserId && b.BranchId == r.BranchId
+                    && b.RevokedAt == null && b.GrantedAt <= now)))
+            .Select(r => r.BranchId).Distinct().ToArrayAsync(ct);
+        var globalAdministrator = administratorBranches.Contains(null);
+        if (!globalAdministrator && !administratorBranches.Contains(destinationId)) return false;
+        var globalPermission = (await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted;
+        if (globalAdministrator && globalPermission) return true;
         var branchOnly = new PermissionService(current, new BranchPaths(data), new UnresolvedPermissionResourceResolver(), clock);
         // Destination authority and pre-existing target visibility are independently required.
-        if (!(await branchOnly.EvaluateBranchAsync("USER_MANAGE", destinationId, ct)).IsGranted) return false;
-        var now = clock.GetUtcNow().UtcDateTime;
+        if (!globalPermission && !(await branchOnly.EvaluateBranchAsync("USER_MANAGE", destinationId, ct)).IsGranted) return false;
         var common = await db.UserBranchAccesses.AsNoTracking()
             .Where(a => a.UserId == actor.UserId && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive
                 && db.UserBranchAccesses.Any(t => t.UserId == targetId && t.BranchId == a.BranchId
                     && t.RevokedAt == null && t.GrantedAt <= now && t.User.DeletedAt == null
                     && (!insertedAccessId.HasValue || t.AccessId != insertedAccessId.Value)))
+            .Where(a => globalAdministrator || administratorBranches.Contains(a.BranchId))
             .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);
         foreach (var branchId in common)
-            if ((await branchOnly.EvaluateBranchAsync("USER_MANAGE", branchId, ct)).IsGranted) return true;
+            if (globalPermission || (await branchOnly.EvaluateBranchAsync("USER_MANAGE", branchId, ct)).IsGranted) return true;
         return false;
     }
 

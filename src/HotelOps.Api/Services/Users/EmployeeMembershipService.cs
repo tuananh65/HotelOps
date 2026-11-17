@@ -28,7 +28,7 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         if(!permission.IsGranted)throw new InternalRequestReadException(permission.Decision==PermissionDecision.Unavailable?503:403,"GLOBAL_USER_MANAGE_REQUIRED");
         var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
         if(!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==actor.UserId&&r.Role.RoleCode=="SYS_ADMIN"&&r.IsActive&&r.Role.IsActive&&r.AssignedAt<=now
-            &&(r.ExpiresAt==null||r.ExpiresAt>now)&&(r.BranchId==null||r.Branch!=null&&r.Branch.IsActive&&db.UserBranchAccesses.Any(b=>b.UserId==actor.UserId&&b.BranchId==r.BranchId&&b.RevokedAt==null&&b.GrantedAt<=now)),ct))
+            &&(r.ExpiresAt==null||r.ExpiresAt>now)&&(r.BranchId==null||(branch==null||r.BranchId==branch)&&r.Branch!=null&&r.Branch.IsActive&&db.UserBranchAccesses.Any(b=>b.UserId==actor.UserId&&b.BranchId==r.BranchId&&b.RevokedAt==null&&b.GrantedAt<=now)),ct))
             throw new InternalRequestReadException(403,"ADMINISTRATOR_REQUIRED");
         if(branch!=null&&!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==target&&a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now&&a.Branch.IsActive
             &&a.User.DeletedAt==null&&a.User.AccountStatus=="ACTIVE"&&a.User.EmploymentStatus=="ACTIVE",ct))throw new InternalRequestReadException(409,"ACTIVE_TARGET_BRANCH_ACCESS_REQUIRED");
@@ -46,6 +46,9 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var rows=await db.UserBranchAccesses.AsNoTracking().Where(a=>a.UserId==target&&a.RevokedAt==null&&a.GrantedAt<=now
             &&a.Branch.IsActive&&a.User.DeletedAt==null&&a.User.AccountStatus=="ACTIVE"&&a.User.EmploymentStatus=="ACTIVE")
+            .Where(a=>db.UserRoles.Any(r=>r.UserId==ticket.UserId&&r.Role.RoleCode=="SYS_ADMIN"&&r.IsActive&&r.Role.IsActive
+                &&r.AssignedAt<=now&&(r.ExpiresAt==null||r.ExpiresAt>now)
+                &&(r.BranchId==null||r.BranchId==a.BranchId&&db.UserBranchAccesses.Any(b=>b.UserId==ticket.UserId&&b.BranchId==a.BranchId&&b.RevokedAt==null&&b.GrantedAt<=now))))
             .OrderByDescending(a=>a.IsPrimary).ThenBy(a=>a.Branch.BranchName)
             .Select(a=>new EmployeeMembershipBranch(a.BranchId,a.Branch.BranchName,a.IsPrimary)).ToArrayAsync(ct);
         await Gate(ticket,sid,target,null,ct);await tx.CommitAsync(ct);return rows;
