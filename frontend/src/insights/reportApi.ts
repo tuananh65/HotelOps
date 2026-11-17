@@ -16,6 +16,15 @@ export interface ReportOptions {
   exportRowLimit: number;
 }
 export interface ReportQuery {
+  floorId?: number;
+  roomTypeId?: number;
+  roomId?: number;
+  areaId?: number;
+  categoryId?: number;
+  severityId?: number;
+  warehouseId?: number;
+  itemId?: number;
+  condition?: string;
   branchId?: number;
   departmentId?: number;
   housekeeperId?: number;
@@ -164,7 +173,7 @@ export function decodeSnapshot(
         )))
   )
     throw new Error("Invalid report rows");
-  for (const field of ["housekeeperId", "inspectorId", "employeeId", "type"] as const) {
+  for (const field of ["housekeeperId", "inspectorId", "employeeId", "type", "floorId", "roomTypeId", "roomId", "areaId", "categoryId", "severityId", "warehouseId", "itemId", "condition"] as const) {
     if (query[field] !== undefined && result.appliedFilters?.[field] !== String(query[field]))
       throw new Error("Unconfirmed report filter");
   }

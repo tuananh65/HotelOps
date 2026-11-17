@@ -50,6 +50,8 @@ public sealed partial class InventoryService
                 NewValues = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     businessEvent,
+                    sourceBranchId = source?.BranchId,
+                    destinationBranchId = destination?.BranchId,
                     scopeRole = role,
                     document = Scalars(d),
                     lines = d.StockDocumentLines.Select(Scalars).ToList(),

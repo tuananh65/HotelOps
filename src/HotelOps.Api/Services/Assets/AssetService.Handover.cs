@@ -56,6 +56,9 @@ public sealed partial class AssetService
         RequireOperational(asset);
         await RequireActorAsync(TrustedActorId, cancellationToken);
         await ValidateHandoverTargetAsync(asset, request.ToDepartmentId, request.ToUserId, cancellationToken);
+        if (asset.CurrentDepartmentId != null && !await _dbContext.Departments.AsNoTracking()
+            .AnyAsync(d => d.DepartmentId == asset.CurrentDepartmentId && d.BranchId == asset.BranchId, cancellationToken))
+            throw new ValidationException("Source custody department branch is inconsistent.");
         if (asset.CurrentDepartmentId == request.ToDepartmentId && asset.CustodianUserId == request.ToUserId)
             throw new ValidationException("Target custody must differ from current custody.");
         if (await _dbContext.AssetHandovers.AsNoTracking().AnyAsync(
@@ -76,6 +79,8 @@ public sealed partial class AssetService
         submitted["notification_kind"] = HotelOps.Api.Services.Notifications.AssetHandoverSource.Kind;
         submitted["notification_version"] = 1;
         submitted["branch_id"] = asset.BranchId;
+        submitted["from_branch_id"] = asset.BranchId;
+        submitted["to_branch_id"] = asset.BranchId;
         // Persist the delivery intent with the handover. A rollback must leave
         // neither a handover nor a discoverable notification event.
         Audit("asset_handovers", handover.HandoverId, asset, TrustedActorId, now, null, submitted);

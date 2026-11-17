@@ -34,6 +34,10 @@ public sealed partial class AssetService
         var currentId = asset.CurrentRoomId ?? asset.CurrentAreaId;
         if (asset.CurrentRoomId.HasValue && asset.CurrentAreaId.HasValue)
             throw new ValidationException("The legacy physical location is ambiguous; no automatic repair is performed.");
+        if (currentId != null && !(currentType == "ROOM"
+            ? await _dbContext.Rooms.AsNoTracking().AnyAsync(r => r.RoomId == currentId && r.BranchId == asset.BranchId, cancellationToken)
+            : await _dbContext.Areas.AsNoTracking().AnyAsync(a => a.AreaId == currentId && a.BranchId == asset.BranchId, cancellationToken)))
+            throw new ValidationException("Source location branch is inconsistent; movement is blocked.");
         if (expectedType is null)
         {
             if (currentType is not null)
@@ -80,6 +84,7 @@ public sealed partial class AssetService
         Audit("asset_location_history", history.LocationHistoryId, asset, actor, now, null, new()
         {
             ["asset_id"] = id, ["from_location_type"] = currentType, ["from_location_id"] = currentId,
+            ["from_branch_id"] = asset.BranchId, ["to_branch_id"] = asset.BranchId,
             ["to_location_type"] = targetType, ["to_location_id"] = targetId,
             ["effective_at"] = now, ["moved_by"] = actor, ["reason"] = history.Reason
         });

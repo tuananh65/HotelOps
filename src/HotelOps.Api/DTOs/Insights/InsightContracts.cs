@@ -13,6 +13,8 @@ public class InsightQuery
 
 public sealed class ReportQuery : InsightQuery
 {
+    [Range(1, long.MaxValue)] public long? RoomId { get; set; }
+    [Range(1, long.MaxValue)] public long? AreaId { get; set; }
     [Range(1, long.MaxValue)] public long? FloorId { get; set; }
     [Range(1, long.MaxValue)] public long? RoomTypeId { get; set; }
     [Range(1, long.MaxValue)] public long? EmployeeId { get; set; }
@@ -53,7 +55,7 @@ public sealed record ReportSection(string Key, string[] Columns, IReadOnlyList<D
 public sealed record ReportResult(string SnapshotId, string Key, DateTimeOffset Snapshot, InsightFilters Filters,
     string[] Columns, IReadOnlyList<Dictionary<string, object?>> Rows, int TotalCount,
     IReadOnlyList<ReportSection> Sections, IReadOnlyList<string> MissingSources, string[] ExportFormats,
-    IReadOnlyDictionary<string, string?>? AppliedFilters = null);
+    IReadOnlyDictionary<string, string?>? AppliedFilters = null, long[]? RequiredBranchIds = null);
 public sealed class ExportRequest
 {
     public ExportRequest() { }

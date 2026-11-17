@@ -29,6 +29,8 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct);
         await SessionAsync(ticket, sid, ct);
         var filters = await access.FiltersAsync(new(), clock.GetUtcNow(), ct);
+        var periodDays = await ReportLimits.PeriodAsync(db, ct);
+        var rowLimit = await ReportLimits.RowsAsync(db, ct);
         var branches = await db.Branches.AsNoTracking().Where(b => filters.BranchIds.Contains(b.BranchId))
             .OrderBy(b => b.BranchId).Select(b => new InsightBranch(b.BranchId, b.BranchCode, b.BranchName)).ToArrayAsync(ct);
         var departments = await db.Departments.AsNoTracking().Where(d => filters.BranchIds.Contains(d.BranchId))
@@ -38,7 +40,7 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         if (!filters.BranchIds.SequenceEqual(finalScope.BranchIds))
             throw new InsightException(403, "REPORT_SCOPE_CHANGED", "Report scope changed.");
         await tx.CommitAsync(ct);
-        return new(branches, departments, "UTC", 30, 50000);
+        return new(branches, departments, "UTC", periodDays, rowLimit);
     }
 
     public async Task<ReportResult> PreviewAsync(SessionReference ticket, long sid, string key, ReportQuery query, CancellationToken ct)
@@ -48,12 +50,15 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         await SessionAsync(ticket, sid, ct);
         var now = clock.GetUtcNow();
         var filters = await access.FiltersAsync(query, now, ct);
-        var report = await new ReportSnapshotQueries(db).MaterializeAsync(key, query, filters, now, ct);
+        var authority = await access.FiltersAsync(new() { From = query.From, To = query.To }, now, ct);
+        var report = await new ReportSnapshotQueries(db).MaterializeAsync(key, query, filters, now, ct, authority.BranchIds);
         report = report with { ExportFormats = ["csv", "xlsx", "pdf"] };
         await SessionAsync(ticket, sid, ct);
         var finalScope = await access.FiltersAsync(query, clock.GetUtcNow(), ct);
         if (!filters.BranchIds.SequenceEqual(finalScope.BranchIds))
             throw new InsightException(403, "REPORT_SCOPE_CHANGED", "Report scope changed.");
+        foreach (var branch in report.RequiredBranchIds ?? filters.BranchIds)
+            await access.FiltersAsync(new() { BranchId = branch }, clock.GetUtcNow(), ct);
         await tx.CommitAsync(ct);
         store.Put(access.UserId, report);
         return report;
@@ -67,8 +72,11 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
         await SessionAsync(ticket, sid, ct);
         await access.FiltersAsync(new(), clock.GetUtcNow(), ct);
         var report = store.Get(access.UserId, snapshotId);
+        if (report.TotalCount > await ReportLimits.RowsAsync(db, ct))
+            throw new InsightException(422, "REPORT_ROW_LIMIT", "Snapshot exceeds the current export limit; narrow the report filters.");
         // Reauthorize every original branch; never silently export a narrowed snapshot.
-        foreach (var branch in report.Filters.BranchIds)
+        var requiredBranches = report.Filters.BranchIds.Concat(report.RequiredBranchIds ?? []).Distinct().ToArray();
+        foreach (var branch in requiredBranches)
             await access.FiltersAsync(new() { BranchId = branch,
                 From = report.Filters.From, To = report.Filters.To }, clock.GetUtcNow(), ct);
         if (report.Filters.BranchIds.Length == 0)
@@ -81,12 +89,12 @@ public sealed class ReportService(HotelOpsDbContext db, ReportAccess access, Rep
             Action = "CREATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
             BranchId = report.Filters.BranchIds.Length == 1 ? report.Filters.BranchIds[0] : null,
             NewValues = JsonSerializer.Serialize(new { report.Key, report.SnapshotId, report.Snapshot, report.Filters,
-                report.AppliedFilters, report.TotalCount, operation = "EXPORT", format = request.Format }) };
+                report.AppliedFilters, report.RequiredBranchIds, report.TotalCount, operation = "EXPORT", format = request.Format }) };
         db.AuditLogs.Add(audit);
         try { await db.SaveChangesAsync(ct); }
         finally { db.Entry(audit).State = EntityState.Detached; }
         await SessionAsync(ticket, sid, ct);
-        foreach (var branch in report.Filters.BranchIds)
+        foreach (var branch in requiredBranches)
             await access.FiltersAsync(new() { BranchId = branch }, clock.GetUtcNow(), ct);
         if (report.Filters.BranchIds.Length == 0) await access.FiltersAsync(new(), clock.GetUtcNow(), ct);
         await tx.CommitAsync(ct);

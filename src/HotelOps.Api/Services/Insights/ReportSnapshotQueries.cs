@@ -16,7 +16,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
     public static IReadOnlyList<string> Keys { get; } = Array.AsReadOnly(new[] { "rooms", "inspections", "incidents", "assets", "items", "tasks", "requests" });
 
     public async Task<ReportResult> MaterializeAsync(string key, ReportQuery query,
-        InsightFilters filters, DateTimeOffset now, CancellationToken ct)
+        InsightFilters filters, DateTimeOffset now, CancellationToken ct, long[]? authorizedBranches = null)
     {
         if (!Keys.Contains(key)) throw new InsightException(404, "REPORT_NOT_FOUND", "Unknown report type.");
         ValidateFilters(key, query);
@@ -29,24 +29,27 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
             || query.From is {} from && from != filters.From || query.To is {} to && to != filters.To)
             throw new InsightException(400, "INVALID_FILTER_SCOPE", "Resolved filters do not match the authorized query.");
         var branches = filters.BranchIds;
+        authorizedBranches ??= branches;
+        var requiredBranches = new HashSet<long>(branches);
         var start = InsightAccess.Start(filters);
         var end = InsightAccess.End(filters);
         var department = filters.DepartmentId;
         var sections = new List<ReportSection>();
-        var missing = new List<string> { "Partial report: detailed RPT indicators remain unavailable; see per-report limitations" };
+        var missing = new List<string>();
         var rowCount = 0;
+        var rowLimit = await ReportLimits.RowsAsync(db, ct);
         var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         jsonOptions.Converters.Add(new InsightUtcJson());
         jsonOptions.Converters.Add(new InsightDecimalJson());
         async Task Add<T>(string source, IQueryable<T> rows, params string[] columns)
         {
-            var data = await rows.Take(50001 - rowCount).ToArrayAsync(ct);
+            var data = await rows.Take(rowLimit + 1 - rowCount).ToArrayAsync(ct);
             AddMaterialized(source, data, columns);
         }
         void AddMaterialized<T>(string source, T[] data, params string[] columns)
         {
             rowCount += data.Length;
-            if (rowCount > 50000) throw new InsightException(422, "REPORT_ROW_LIMIT", "Report exceeds 50,000 rows. Narrow the filters; no data was truncated.");
+            if (rowCount > rowLimit) throw new InsightException(422, "REPORT_ROW_LIMIT", $"Report exceeds {rowLimit} rows. Narrow the filters; no data was truncated.");
             var values = data.Select(row =>
             {
                 var json = JsonSerializer.SerializeToElement(row, jsonOptions);
@@ -55,11 +58,22 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
             sections.Add(new(source, columns, values));
         }
 
+        async Task AddHousekeepingState(bool rework)
+        {
+            var section = sections[^1];
+            var states = await ReportHousekeepingStates.ReadAsync(db, rework,
+                section.Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).ToArray(), ct);
+            foreach (var row in section.Rows)
+                row["workflowState"] = JsonSerializer.SerializeToElement(states.GetValueOrDefault(((JsonElement)row["id"]!).GetInt64()));
+            sections[^1] = section with { Columns = [.. section.Columns, "workflowState"] };
+            if (states.Values.Any(v => v == null)) missing.Add("Some housekeeping workflow states are unavailable or inconsistent; physical status is not substituted.");
+        }
+
         switch (key)
         {
             case "rooms":
             {
-                if (department is not null) throw new InsightException(400, "ROOM_DEPARTMENT_UNAVAILABLE", "Rooms have no approved department relationship.");
+                if (department is not null) throw new InsightException(400, "ROOM_DEPARTMENT_UNAVAILABLE", "Department is not a filter for the room report; use the room dashboard for mapped department scope.");
                 var rooms = db.Rooms.AsNoTracking().Where(r => branches.Contains(r.BranchId)
                     && r.Floor.BranchId == r.BranchId && (r.AreaId == null || r.Area!.BranchId == r.BranchId)
                     && (query.FloorId == null || r.FloorId == query.FloorId) && (query.RoomTypeId == null || r.RoomTypeId == query.RoomTypeId));
@@ -82,12 +96,17 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                 var ids = rooms.Select(r => r.RoomId);
                 await Add("cleaning_tasks", db.CleaningTasks.AsNoTracking().Where(t => ids.Contains(t.RoomId)
                     && t.CreatedAt >= start && t.CreatedAt < end).OrderBy(t => t.CleaningTaskId)
-                    .Select(t => new { Id = t.CleaningTaskId, t.TaskNo, t.RoomId, t.Status, t.CreatedAt, t.ActualStartAt, t.ActualEndAt, t.DueAt }),
-                    "id", "taskNo", "roomId", "status", "createdAt", "actualStartAt", "actualEndAt", "dueAt");
+                    .Select(t => new { Id = t.CleaningTaskId, t.TaskNo, t.RoomId, t.Status, t.CreatedAt, t.ActualStartAt, t.ActualEndAt, t.DueAt,
+                        DurationSeconds = t.ActualStartAt != null && t.ActualEndAt >= t.ActualStartAt
+                            ? (long?)EF.Functions.DateDiffSecond(t.ActualStartAt, t.ActualEndAt) : null }),
+                    "id", "taskNo", "roomId", "status", "createdAt", "actualStartAt", "actualEndAt", "dueAt", "durationSeconds");
+                await AddHousekeepingState(false);
                 await Add("room_blocks", db.RoomBlocks.AsNoTracking().Where(b => ids.Contains(b.RoomId)
                     && b.BlockedAt < end && (b.ReleasedAt == null || b.ReleasedAt >= start)).OrderBy(b => b.BlockId)
-                    .Select(b => new { Id = b.BlockId, b.RoomId, b.BlockedAt, b.ReleasedAt }), "id", "roomId", "blockedAt", "releasedAt");
-                missing.Add("stored status distribution is not translated to pending/rework SRS lifecycle states");
+                    .Select(b => new { Id = b.BlockId, b.RoomId, b.BlockedAt, b.ReleasedAt, b.Reason, b.ExpectedReleaseAt }), "id", "roomId", "blockedAt", "releasedAt", "reason", "expectedReleaseAt");
+                AddMaterialized("room_readiness_distribution", roomSection.Rows.GroupBy(r => ((JsonElement)r["effectiveReadiness"]!).GetString())
+                    .OrderBy(g => g.Key).Select(g => new { EffectiveReadiness = g.Key, RoomCount = g.Count() }).ToArray(),
+                    "effectiveReadiness", "roomCount");
                 missing.Add("Room usability uses effectiveReadiness at the snapshot; UNKNOWN is not usable and exports do not authorize later room use");
                 break;
             }
@@ -125,6 +144,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Select(w => new { Id = w.ReworkId, w.InspectionId, w.CleaningTaskId, w.AssigneeUserId,
                         StoredStatus = w.Status, w.RequestedAt, w.CompletedAt }),
                     "id", "inspectionId", "cleaningTaskId", "assigneeUserId", "storedStatus", "requestedAt", "completedAt");
+                await AddHousekeepingState(true);
                 await Add("inspection_outcomes", inspections.GroupBy(i => new { i.Status, i.Result })
                     .OrderBy(g => g.Key.Status).ThenBy(g => g.Key.Result)
                     .Select(g => new { StoredStatus = g.Key.Status, g.Key.Result, InspectionCount = g.LongCount() }),
@@ -134,10 +154,18 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .OrderBy(g => g.Key.ChecklistItemId).ThenBy(g => g.Key.SeverityId).ThenBy(g => g.Key.Status)
                     .Select(g => new { g.Key.ChecklistItemId, g.Key.SeverityId, StoredStatus = g.Key.Status, DefectCount = g.LongCount() }),
                     "checklistItemId", "severityId", "storedStatus", "defectCount");
-                missing.Add("first inspection/cycle and rework-round aggregation unavailable; outcome counts are inspections, not cleaning-cycle pass rates");
+                await Add("rework_rounds", db.CleaningReworks.AsNoTracking()
+                    .Where(w => ids.Contains(w.InspectionId) && w.Inspection.CleaningTaskId == w.CleaningTaskId
+                        && w.CleaningTask.RoomId == w.Inspection.RoomId)
+                    .GroupBy(w => w.CleaningTaskId).OrderBy(g => g.Key)
+                    .Select(g => new { CleaningTaskId = g.Key, ReworkRounds = g.Count() }), "cleaningTaskId", "reworkRounds");
+                if (await HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.CleanerAttributionInstalled(db, ct))
+                    await Add("inspection_cleaners", HotelOps.Api.Services.HotelStructure.RoomTypeCreationService.HistoricalInspectionCleaners(db)
+                        .Where(p => ids.Contains(p.InspectionId)).OrderBy(p => p.InspectionId),
+                        "inspectionId", "userId", "name", "assignmentId", "completedAt");
                 missing.Add("Related rework rows follow the selected inspection period; storedStatus is not the rework workflow state");
                 if (query.HousekeeperId is null)
-                    missing.Add("historical housekeeper coverage has not been verified for this unfiltered report");
+                    missing.Add("Inspections without an official inspection_cleaners row have N/A cleaner attribution; current assignees are not substituted");
                 break;
             }
             case "incidents":
@@ -181,8 +209,25 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     .Where(u => workIds.Contains(u.MaintenanceWorkId)).OrderBy(u => u.UsageId)
                     .Select(u => new { Id = u.UsageId, u.MaintenanceWorkId, u.ItemId, u.BaseUomId, u.UsedBaseQty }),
                     "id", "maintenanceWorkId", "itemId", "baseUomId", "usedBaseQty");
-                missing.Add("Incident SLA unavailable: approved priority SLA durations and persisted processing-cycle deadlines are required; maintenance planned times are not SLA evidence.");
-                missing.Add("PM occurrence lifecycle and complete incident processing-cycle evidence remain unavailable.");
+                var cycles = await ReportIncidentCycles.ReadAsync(db, incidents, now.UtcDateTime, ct);
+                AddMaterialized("incident_processing_cycles", cycles, "incidentId", "workId", "reopenEventId", "discoveredAt",
+                    "acceptedAt", "resolvedAt", "responseDeadlineAt", "resolutionDeadlineAt", "responseSeconds", "resolutionSeconds",
+                    "withinResolutionSla", "missingReason");
+                if (cycles.Any(c => c.MissingReason != null))
+                    missing.Add("Some Incident cycles lack proven timestamps/SLA; see missingReason per cycle. No planned dates or inferred durations are substituted.");
+                if (query.CategoryId == null && query.SeverityId == null)
+                {
+                    var occurrences = await ReportPreventiveOccurrences.ReadAsync(db, filters, now.UtcDateTime, ct);
+                    AddMaterialized("preventive_occurrences", occurrences, "runId", "scheduleId", "branchId", "departmentId", "workId",
+                        "assetId", "roomId", "areaId", "assigneeId", "workflowStatus", "dueAt", "performedAt", "result", "overdue", "missingReason");
+                    if (occurrences.Any(o => o.MissingReason != null)) missing.Add("Some preventive occurrence lifecycle evidence is unavailable; see per-row missingReason.");
+                    var preventiveWork = occurrences.Where(o => o.WorkId != null).Select(o => o.WorkId!.Value).Distinct().ToArray();
+                    await Add("preventive_material_usages", db.MaintenanceMaterialUsages.AsNoTracking()
+                        .Where(u => preventiveWork.Contains(u.MaintenanceWorkId) && u.MaintenanceWork.IncidentId == null)
+                        .OrderBy(u => u.UsageId).Select(u => new { Id = u.UsageId, u.MaintenanceWorkId, u.ItemId, u.BaseUomId, u.UsedBaseQty }),
+                        "id", "maintenanceWorkId", "itemId", "baseUomId", "usedBaseQty");
+                }
+                else missing.Add("Preventive occurrence totals are not applicable to Incident category/severity filters; no category relationship is inferred.");
                 break;
             }
             case "assets":
@@ -192,13 +237,25 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && (a.CurrentAreaId == null || a.CurrentArea!.BranchId == a.BranchId)
                     && (a.CurrentDepartmentId == null || a.CurrentDepartment!.BranchId == a.BranchId)
                     && (department == null || a.CurrentDepartmentId == department)
+                    && (query.RoomId == null || a.CurrentRoomId == query.RoomId)
+                    && (query.AreaId == null || a.CurrentAreaId == query.AreaId)
                     && (query.CategoryId == null || a.AssetTypeId == query.CategoryId)
                     && (query.Condition == null || a.ConditionStatus == query.Condition));
                 await Add("assets", assets.OrderBy(a => a.AssetId).Select(a => new { Id = a.AssetId, a.AssetCode,
                     a.AssetName, a.BranchId, a.AssetTypeId, a.CurrentRoomId, a.CurrentAreaId, a.CurrentDepartmentId,
                     a.CustodianUserId, a.ConditionStatus, a.LifecycleStatus }),
                     "id", "assetCode", "assetName", "branchId", "assetTypeId", "currentRoomId", "currentAreaId", "currentDepartmentId", "custodianUserId", "conditionStatus", "lifecycleStatus");
-                missing.Add("Historical movement/handover branch provenance is not recorded on those rows; cross-branch history withheld pending approved access contract");
+                var history = await ReportAssetHistory.ReadAsync(db, assets, authorizedBranches, start, end, ct);
+                AddMaterialized("asset_history", history.Rows, "auditId", "assetId", "eventType", "recordId",
+                    "sourceBranchId", "destinationBranchId", "occurredAt", "fromLocationType", "fromLocationId",
+                    "toLocationType", "toLocationId", "fromDepartmentId", "toDepartmentId", "fromUserId", "toUserId", "status");
+                foreach (var entry in history.Rows)
+                {
+                    requiredBranches.Add(entry.SourceBranchId);
+                    requiredBranches.Add(entry.DestinationBranchId);
+                }
+                if (history.MissingEvidence) missing.Add("Some asset history is unavailable: event-time branch evidence or REPORT_VIEW at both ends is missing. Current ownership is never substituted.");
+                missing.Add("Asset history follows the current asset filters and the event period; HANDOVER_SUBMITTED is submission evidence, not acceptance.");
                 break;
             }
             case "items":
@@ -222,7 +279,53 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                         .Sum(m => (decimal?)m.SignedBaseQty) ?? 0) < t.MinimumQty).OrderBy(t => t.WarehouseId).ThenBy(t => t.ItemId)
                     .Select(t => new { t.WarehouseId, t.ItemId, t.MinimumQty, Available = db.StockMovements.Where(m => m.WarehouseId == t.WarehouseId && m.ItemId == t.ItemId).Sum(m => (decimal?)m.SignedBaseQty) ?? 0 }),
                     "warehouseId", "itemId", "minimumQty", "available");
-                missing.Add("Department/work attribution of issues/returns and cross-branch transfer-loss export contract pending");
+                var transfers = await ReportTransferLosses.ReadAsync(db, query, filters, authorizedBranches, ct);
+                AddMaterialized("transfer_receipts_and_losses", transfers.Rows, "receiptLineId", "receiptId", "documentId",
+                    "itemId", "uomId", "sourceWarehouseId", "destinationWarehouseId", "sourceBranchId", "destinationBranchId",
+                    "receivedAt", "receivedQty", "damagedQty", "missingQty");
+                foreach (var entry in transfers.Rows)
+                {
+                    requiredBranches.Add(entry.SourceBranchId);
+                    requiredBranches.Add(entry.DestinationBranchId);
+                }
+                if (transfers.MissingEvidence) missing.Add("Some transfer history is unavailable: event-time branch/receipt evidence or REPORT_VIEW at both ends is missing.");
+                missing.Add("Transfer quantities retain the recorded line UOM; receipt lines are counted once, not once per branch audit.");
+                var periodMovements = movements.Where(m => m.OccurredAt >= start && m.OccurredAt < end);
+                await Add("material_issues", periodMovements.Where(m => m.DocumentLine.Document.DocumentType == "ISSUE"
+                    && m.SignedBaseQty < 0).OrderBy(m => m.MovementId).Select(m => new
+                    {
+                        Id = m.MovementId, m.DocumentLineId, m.WarehouseId, m.ItemId, m.Item.BaseUomId,
+                        IssuedBaseQty = -m.SignedBaseQty, m.OccurredAt,
+                        DepartmentId = m.DocumentLine.MaterialFulfillmentLine != null
+                            && m.DocumentLine.MaterialFulfillmentLine.RequestLine.Request.BranchId == m.Warehouse.BranchId
+                            && m.DocumentLine.MaterialFulfillmentLine.RequestLine.Request.Department.BranchId == m.Warehouse.BranchId
+                            ? (long?)m.DocumentLine.MaterialFulfillmentLine.RequestLine.Request.DepartmentId : null
+                    }), "id", "documentLineId", "warehouseId", "itemId", "baseUomId", "issuedBaseQty", "occurredAt", "departmentId");
+                await Add("material_returns", db.StockDocumentLines.AsNoTracking()
+                    .Where(l => l.Document.DocumentType == "RETURN" && l.Document.PostedAt >= start && l.Document.PostedAt < end
+                        && l.Document.DestinationWarehouseId != null && branches.Contains(l.Document.DestinationWarehouse!.BranchId)
+                        && (query.WarehouseId == null || l.Document.DestinationWarehouseId == query.WarehouseId)
+                        && (query.ItemId == null || l.ItemId == query.ItemId)
+                        && (department == null || l.Document.DestinationWarehouse!.DepartmentId == department))
+                    .OrderBy(l => l.LineId).Select(l => new
+                    {
+                        DocumentLineId = l.LineId, WarehouseId = l.Document.DestinationWarehouseId, l.ItemId, l.Item.BaseUomId,
+                        ReturnedBaseQty = l.BaseQty, OccurredAt = l.Document.PostedAt, l.Document.Status,
+                        OriginalIssueLineId = l.StockReturnLineDetailStockDocumentLine == null ? (long?)null
+                            : l.StockReturnLineDetailStockDocumentLine.OriginalIssueLineId,
+                        DamagedQty = l.StockReturnLineDetailStockDocumentLine == null ? (decimal?)null
+                            : l.StockReturnLineDetailStockDocumentLine.DamagedQty,
+                        l.UomId
+                    }), "documentLineId", "warehouseId", "itemId", "baseUomId", "returnedBaseQty", "occurredAt", "status", "originalIssueLineId", "damagedQty", "uomId");
+                var issueLines = periodMovements.Where(m => m.DocumentLine.Document.DocumentType == "ISSUE").Select(m => m.DocumentLineId);
+                var scopedWorks = MaintenanceWorkSources.Project(db.MaintenanceWorks.AsNoTracking())
+                    .Where(w => w.BranchId != null && branches.Contains(w.BranchId.Value)
+                        && (w.Work.DepartmentId == null || w.Work.Department!.BranchId == w.BranchId)).Select(w => w.Work.MaintenanceWorkId);
+                await Add("material_usage_by_work", db.MaintenanceMaterialUsages.AsNoTracking()
+                    .Where(u => issueLines.Contains(u.StockDocumentLineId) && scopedWorks.Contains(u.MaintenanceWorkId))
+                    .OrderBy(u => u.UsageId).Select(u => new { Id = u.UsageId, u.StockDocumentLineId, u.MaintenanceWorkId,
+                        u.ItemId, u.BaseUomId, u.UsedBaseQty }), "id", "stockDocumentLineId", "maintenanceWorkId", "itemId", "baseUomId", "usedBaseQty");
+                missing.Add("Issue department and work attribution use recorded fulfillment/usage links. Missing links are N/A; warehouse department and current employee membership are never substituted.");
                 break;
             }
             case "tasks":
@@ -341,7 +444,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
         appliedFilters["from"] = filters.From.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         appliedFilters["to"] = filters.To.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         var report = new ReportResult(Guid.NewGuid().ToString("N"), key, now, filters, first.Columns, first.Rows,
-            rowCount, sections, missing, [], appliedFilters);
+            rowCount, sections, missing, [], appliedFilters, requiredBranches.Order().ToArray());
         return report;
     }
 
@@ -353,6 +456,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
             throw new InsightException(400, "INVALID_FILTER", "Filter contains control characters.");
         var filters = new Dictionary<string, bool>
         {
+            ["room"] = query.RoomId != null, ["area"] = query.AreaId != null,
             ["floor"] = query.FloorId != null, ["roomType"] = query.RoomTypeId != null,
             ["inspector"] = query.InspectorId != null, ["housekeeper"] = query.HousekeeperId != null,
             ["employee"] = query.EmployeeId != null, ["warehouse"] = query.WarehouseId != null,
@@ -362,10 +466,12 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
         string[] allowed = key switch
         {
             "rooms" => ["floor", "roomType"], "inspections" => ["inspector", "housekeeper"],
-            "incidents" => ["severity", "category"], "assets" => ["category", "condition"],
+            "incidents" => ["severity", "category"], "assets" => ["category", "condition", "room", "area"],
             "items" => ["warehouse", "item"], "tasks" => ["employee"], "requests" => ["type"], _ => []
         };
         if (filters.Any(f => f.Value && !allowed.Contains(f.Key)))
             throw new InsightException(400, "UNSUPPORTED_FILTER", "Filter is not supported for this report type.");
+        if (query.RoomId != null && query.AreaId != null)
+            throw new InsightException(400, "INVALID_LOCATION", "Select either a room or an area.");
     }
 }

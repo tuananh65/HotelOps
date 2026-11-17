@@ -64,6 +64,11 @@ export function ReportsPage() {
   const [inspector, setInspector] = useState("");
   const [employee, setEmployee] = useState("");
   const [requestType, setRequestType] = useState("");
+  const [specific, setSpecific] = useState<Record<string, string>>({});
+  const numericFilters: [string, string][] = kind === "rooms" ? [["floorId", "Floor ID"], ["roomTypeId", "Room type ID"]]
+    : kind === "incidents" ? [["categoryId", "Incident category ID"], ["severityId", "Severity ID"]]
+    : kind === "assets" ? [["categoryId", "Asset category ID"], ["roomId", "Room ID"], ["areaId", "Area ID"]]
+    : kind === "items" ? [["warehouseId", "Warehouse ID"], ["itemId", "Item ID"]] : [];
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -93,6 +98,7 @@ export function ReportsPage() {
         setDepartment("");
         setEmployee("");
         setRequestType("");
+        setSpecific({});
         setAdmission({ owner, options });
       })
       .catch((e: unknown) => {
@@ -147,6 +153,8 @@ export function ReportsPage() {
         const data = await api.preview(kind, {
           from,
           to,
+          ...Object.fromEntries(numericFilters.filter(([key]) => specific[key]).map(([key]) => [key, Number(specific[key])])),
+          ...(kind === "assets" && specific.condition ? { condition: specific.condition } : {}),
           ...(branch ? { branchId: Number(branch) } : {}),
           ...(department ? { departmentId: Number(department) } : {}),
           ...(kind === "tasks" && employee ? { employeeId: Number(employee) } : {}),
@@ -191,7 +199,7 @@ export function ReportsPage() {
         <>
           <p>
             Periods use UTC. Export limit: {options.exportRowLimit} rows. CSV
-            and XLSX are available.
+            , XLSX and PDF are available.
           </p>
           <form
             onSubmit={(e) => {
@@ -212,6 +220,7 @@ export function ReportsPage() {
                   setEmployee("");
                   setRequestType("");
                   setInspector("");
+                  setSpecific({});
                 }}
               >
                 {reportTypes.map((k) => (
@@ -221,6 +230,12 @@ export function ReportsPage() {
                 ))}
               </select>
             </label>
+            {numericFilters.map(([key, label]) => <label key={key}>{label}
+              <input type="number" min="1" step="1" value={specific[key] ?? ""}
+                onChange={e => { changed(); setSpecific(s => ({ ...s, [key]: e.target.value })); }} />
+            </label>)}
+            {kind === "assets" && <label>Condition code<input maxLength={40} value={specific.condition ?? ""}
+              onChange={e => { changed(); setSpecific(s => ({ ...s, condition: e.target.value })); }} /></label>}
             <label>
               Branch
               <select
@@ -319,7 +334,7 @@ export function ReportsPage() {
               )}
               {snapshot.missingSources.length > 0 && (
                 <aside aria-label="Report limitations">
-                  <strong>Partial report — unavailable indicators:</strong>
+                  <strong>Report scope, evidence and unavailable values:</strong>
                   <ul>
                     {snapshot.missingSources.map((s, i) => (
                       <li key={i}>{s}</li>
