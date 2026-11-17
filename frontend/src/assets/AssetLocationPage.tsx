@@ -72,7 +72,6 @@ export function AssetLocationPage() {
     </fieldset>}
     {result && <>
       <p>Snapshot: {result.snapshot}. Thống kê theo vị trí hiện tại; không cộng thêm các lần di chuyển lịch sử.</p>
-      {result.missingSources.includes("ACTIVE_LIFECYCLE_MAPPING_PENDING") && <p role="status">Active: N/A — chờ xác nhận ánh xạ lifecycle. Số lượng theo trạng thái đang lưu và Retired được trình bày riêng.</p>}
       {result.missingSources.includes("LOCATION_SCOPE_INCOMPLETE") && <p role="status">Một số vị trí không có quan hệ phạm vi hợp lệ; không đưa vào kết quả. Thống kê này chưa đầy đủ.</p>}
       {group !== null ? <>
         <button onClick={() => { setResult(null); setGroup(null); setPage(1); }}>Quay lại các nhóm</button>

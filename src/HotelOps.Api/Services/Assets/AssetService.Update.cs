@@ -14,7 +14,7 @@ public sealed partial class AssetService
         var asset = await LockAssetAsync(id, cancellationToken);
         if (asset is null) return null;
         RequireOperational(asset);
-        await ValidateMasterAsync(request, cancellationToken);
+        await ValidateMasterAsync(request, cancellationToken, id);
         var before = Snapshot(asset);
         ApplyMaster(asset, request);
         if (Snapshot(asset).All(pair => Equals(before[pair.Key], pair.Value)))

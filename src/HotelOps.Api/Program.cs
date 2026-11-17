@@ -186,12 +186,17 @@ builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.RequestTypeAdm
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEvidenceWrite>();
 builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<AssetRegistrationAuthority>();
+builder.Services.AddScoped<AssetRegistrationCatalog>();
+builder.Services.AddScoped<AssetRegistrationWriter>();
 builder.Services.AddScoped<AssetMaintenanceHistoryReader>();
 builder.Services.AddScoped<AssetLocationReview>();
 builder.Services.AddScoped<AssetProfileAccess>();
 builder.Services.AddScoped<AssetProfileReader>();
 builder.Services.AddScoped<AssetEditService>();
 builder.Services.AddScoped<AssetCustodyWorkflow>();
+builder.Services.AddScoped<AssetPlacementCatalog>();
+builder.Services.AddScoped<AssetPlacementWriter>();
 builder.Services.AddScoped<AssetRetirementService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();

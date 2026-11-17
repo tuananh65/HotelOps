@@ -54,7 +54,7 @@ public sealed class AssetEditService(HotelOpsDbContext db, AssetProfileAccess pr
         return new { Asset = detail, Version = version, Categories = categories };
     }
     private static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    private static AssetEditInput Normalize(AssetEditInput input)
+    internal static AssetEditInput Normalize(AssetEditInput input)
     {
         var normalized = input with { AssetCode = input.AssetCode?.Trim() ?? "", AssetName = input.AssetName?.Trim() ?? "",
             SerialNumber = Optional(input.SerialNumber), Brand = Optional(input.Brand), Model = Optional(input.Model), Description = Optional(input.Description) };
@@ -65,7 +65,7 @@ public sealed class AssetEditService(HotelOpsDbContext db, AssetProfileAccess pr
         return normalized;
     }
     private static AssetEditInput Fields(Asset a) => new(a.AssetCode, a.AssetName, a.AssetTypeId, a.SerialNumber, a.Brand, a.Model, a.PurchaseDate, a.WarrantyExpiryDate, a.Description);
-    private static Dictionary<string, object?> Snapshot(Asset a) => new()
+    internal static Dictionary<string, object?> Snapshot(Asset a) => new()
     {
         ["asset_id"] = a.AssetId, ["branch_id"] = a.BranchId, ["asset_code"] = a.AssetCode, ["asset_name"] = a.AssetName,
         ["asset_type_id"] = a.AssetTypeId, ["serial_number"] = a.SerialNumber, ["brand"] = a.Brand, ["model"] = a.Model,

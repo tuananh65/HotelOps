@@ -74,6 +74,7 @@ export function AssetProfilePage() {
   const total = profile ? Math.max(profile.historyTotal, profile.incidentTotal, profile.scheduleTotal, profile.documentTotal) : list?.total ?? 0;
   const size = profile?.pageSize ?? list?.pageSize ?? 20;
   return <section><h2>{id ? "Hồ sơ tài sản" : "Tài sản"}</h2><p><Link to="/">Trang chủ</Link>{" · "}<Link to="/assets">Danh sách tài sản</Link></p>
+    {!id && <p><Link to="/assets/new">Register asset</Link></p>}
     {error && <p role="alert">{error}</p>}
     {typeof location.state?.message === "string" && <p role="status">{location.state.message}</p>}
     {!id && catalog && <fieldset><legend>Bộ lọc</legend>
@@ -89,6 +90,7 @@ export function AssetProfilePage() {
     {profile && <>
       <h3>{profile.profile.assetCode} — {profile.profile.assetName}</h3><p>Snapshot: {time(profile.snapshot)}</p>
       <p><Link to={`/assets/${id}/custody`}>Custody handover</Link></p>
+      {profile.canEdit && <p><Link to={`/assets/${id}/placement`}>Assign first location</Link></p>}
       {profile.canEdit && <p><Link to={`/assets/${id}/edit`}>Chỉnh sửa thông tin</Link></p>}
       {profile.canRetire && <p><Link to={`/assets/${id}/retire`}>Kiểm tra điều kiện Retire</Link></p>}
       <dl>{Object.entries({ "Chi nhánh": "branchName", "Loại tài sản": "assetTypeName", "Phòng": "roomNumber", "Khu vực": "areaName", "Bộ phận giữ": "departmentName", "Người giữ": "custodianName", "Tình trạng": "conditionStatus", "Lifecycle": "lifecycleStatus", "Serial": "serialNumber", "Hãng": "brand", "Model": "model", "Ngày mua": "purchaseDate", "Hết bảo hành": "warrantyExpiryDate", "Mô tả": "description" }).map(([label, key]) => <div key={key}><dt>{label}</dt><dd>{profile.profile[key] ?? "N/A"}</dd></div>)}</dl>

@@ -33,9 +33,12 @@ public sealed partial class AssetService
             throw new ValidationException("ActorUserId does not exist.");
     }
 
-    private async Task ValidateMasterAsync(AssetMasterRequest request, CancellationToken cancellationToken)
+    private async Task ValidateMasterAsync(AssetMasterRequest request, CancellationToken cancellationToken, long? exceptAsset = null)
     {
-        Required(request.AssetCode, "AssetCode", 50);
+        var code = Required(request.AssetCode, "AssetCode", 50);
+        if (await _dbContext.Assets.AsNoTracking().AnyAsync(a => a.AssetId != exceptAsset
+            && EF.Functions.Collate(a.AssetCode, "Latin1_General_100_CI_AS") == code, cancellationToken))
+            throw new ValidationException("MSG35: AssetCode already exists.");
         Required(request.AssetName, "AssetName", 200);
         CheckLength(request.SerialNumber, "SerialNumber", 100);
         CheckLength(request.Brand, "Brand", 100);
@@ -92,11 +95,11 @@ public sealed partial class AssetService
         asset.AssetCode = request.AssetCode.Trim();
         asset.AssetName = request.AssetName.Trim();
         asset.AssetTypeId = request.AssetTypeId;
-        asset.SerialNumber = request.SerialNumber;
-        asset.Brand = request.Brand;
-        asset.Model = request.Model;
+        asset.SerialNumber = OptionalNote(request.SerialNumber);
+        asset.Brand = OptionalNote(request.Brand);
+        asset.Model = OptionalNote(request.Model);
         asset.PurchaseDate = request.PurchaseDate;
         asset.WarrantyExpiryDate = request.WarrantyExpiryDate;
-        asset.Description = request.Description;
+        asset.Description = OptionalNote(request.Description);
     }
 }

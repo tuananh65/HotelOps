@@ -135,7 +135,7 @@ public sealed class AssetLocationReview(HotelOpsDbContext db, InsightAccess acce
         };
         var groups = rows.GroupBy(Group).OrderBy(g => g.Key.Key, StringComparer.Ordinal).Select(g => new
         {
-            g.Key.Key, g.Key.Name, RegisteredCount = g.Count(), ActiveCount = (int?)null,
+            g.Key.Key, g.Key.Name, RegisteredCount = g.Count(), ActiveCount = g.Count(a => a.Lifecycle is "IN_USE" or "UNDER_REPAIR"),
             RetiredCount = g.Count(a => a.Lifecycle == "RETIRED"),
             States = g.GroupBy(a => new { a.Lifecycle, a.Condition }).OrderBy(s => s.Key.Lifecycle).ThenBy(s => s.Key.Condition)
                 .Select(s => new { s.Key.Lifecycle, s.Key.Condition, Count = s.Count() }).ToArray()
@@ -145,7 +145,7 @@ public sealed class AssetLocationReview(HotelOpsDbContext db, InsightAccess acce
         return new { Snapshot = DateTime.SpecifyKind(now, DateTimeKind.Utc), Filters = filter, PageSize = size,
             GroupCount = groups.Length, Groups = groups.Skip((filter.Page - 1) * size).Take(size),
             AssetCount = selected.Length, Assets = selected.Skip((filter.Page - 1) * size).Take(size),
-            MissingSources = incomplete ? new[] { "ACTIVE_LIFECYCLE_MAPPING_PENDING", "LOCATION_SCOPE_INCOMPLETE" } : ["ACTIVE_LIFECYCLE_MAPPING_PENDING"] };
+            MissingSources = incomplete ? new[] { "LOCATION_SCOPE_INCOMPLETE" } : [] };
     }
 
     private sealed record LocationAsset(long Id, string Code, string Name, long BranchId, string BranchName, long CategoryId, string CategoryName,
