@@ -13,6 +13,14 @@ function valid(v: unknown): v is Category {
 }
 export function WorkCategoriesPage() {
   const { state } = useAuth();
+  const generation = useRef({ authority: state.authorityGeneration, key: 0 });
+  if (generation.current.authority !== state.authorityGeneration)
+    generation.current = { authority: state.authorityGeneration, key: generation.current.key + 1 };
+  if (state.status !== "AUTHENTICATED" || state.pending || state.session?.mustChangePassword) return null;
+  return <BoundWorkCategoriesPage key={generation.current.key} />;
+}
+function BoundWorkCategoriesPage() {
+  const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const current = useRef(owner); current.current = owner;
   const abort = useRef<AbortController | null>(null), sending = useRef(false);
@@ -28,7 +36,7 @@ export function WorkCategoriesPage() {
     return "/api/work-categories" + (id ? "/" + id : "") + (branch ? "?branchId=" + Number(branch) : "");
   }
   async function load(more = false) {
-    if(!owner || sending.current) return;
+    if(!owner || sending.current || more && uncertain) return;
     const controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setMessage("");
     try {
       const url=endpoint() + (branch ? "&" : "?") + "afterId=" + (more ? rows.at(-1)?.id ?? 0 : 0);
@@ -84,7 +92,7 @@ export function WorkCategoriesPage() {
     {message&&<p role="status">{message}</p>}
     {loaded&&<><button disabled={busy||uncertain} onClick={()=>edit(null)}>Create category</button>
       {!rows.length?<p>No categories in this scope.</p>:<table><thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Usage</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.name}</td><td>{r.isActive?"Active":"Inactive"}</td><td>{r.usageCount}</td><td><button disabled={busy||uncertain} onClick={()=>edit(r)}>Edit</button></td></tr>)}</tbody></table>}
-      {hasMore&&<button disabled={busy} onClick={()=>void load(true)}>Load more</button>}
+      {hasMore&&<button disabled={busy||uncertain} onClick={()=>void load(true)}>Load more</button>}
     </>}
     {editing&&<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy||uncertain}><legend>{selected?"Edit category":"Create category"}</legend>
       {selected&&selected.usageCount>0&&<p>Used categories retain their code, name and description. You can change their active status.</p>}

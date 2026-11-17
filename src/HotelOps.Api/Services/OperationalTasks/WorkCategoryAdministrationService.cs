@@ -73,7 +73,10 @@ public sealed class WorkCategoryAdministrationService(HotelOpsDbContext db,ISqlS
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await Gate(ticket,sid,branch,ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:WorkCategories:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000; IF @r<0 THROW 51880,'Category catalog busy.',1;",ct);
-        if(input.DepartmentId is {} department&&!await db.Departments.AsNoTracking().AnyAsync(d=>d.DepartmentId==department&&d.BranchId==branch&&d.IsActive,ct))
+        // An inactive department cannot receive a new/active category, but must
+        // not prevent retiring its existing catalog entry while preserving tasks.
+        if(input.DepartmentId is {} department&&!await db.Departments.AsNoTracking().AnyAsync(d=>d.DepartmentId==department&&d.BranchId==branch
+            && (d.IsActive || id!=null&&!input.IsActive),ct))
             throw Error(400,"ACTIVE_DEPARTMENT_REQUIRED");
         WorkCategoryView? before=null;WorkCategory row;
         if(id!=null)
