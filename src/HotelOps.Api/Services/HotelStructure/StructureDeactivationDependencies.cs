@@ -30,6 +30,15 @@ internal static class StructureDeactivationDependencies
             ((x.RoomId != null && roomIds.Contains(x.RoomId.Value)) ||
              (x.AreaId != null && areaIds.Contains(x.AreaId.Value)) ||
              (x.AssetId != null && assetIds.Contains(x.AssetId.Value)))).Select(x => x.IncidentId);
+        if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.incident_affected_rooms','U') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(ct) == 1)
+        {
+            var mapped = db.Database.SqlQuery<long>($"""
+                SELECT m.incident_id AS Value FROM dbo.incident_affected_rooms m
+                JOIN dbo.rooms r ON r.room_id=m.room_id
+                WHERE r.branch_id={branchId} AND (({area}=1 AND r.area_id={id}) OR ({area}=0 AND r.floor_id={id}))
+                """);
+            incidentIds = incidentIds.Union(mapped);
+        }
         await Add("OPEN_INCIDENT", db.Incidents.AsNoTracking().Where(x => incidentIds.Contains(x.IncidentId)
             && x.Status != "CLOSED" && x.Status != "CANCELLED").Select(x => x.IncidentId));
         // Completed history is nonblocking only with current immutable verification proof.
@@ -47,6 +56,12 @@ internal static class StructureDeactivationDependencies
         await Add("TASK_COMPLETION_CONTRACT_UNRESOLVED",completed.Select(x=>x.TaskId));
         await Add("OPEN_MAINTENANCE_WORK", db.MaintenanceWorks.AsNoTracking().Where(x => x.IncidentId != null
             && incidentIds.Contains(x.IncidentId.Value) && x.Status != "CLOSED" && x.Status != "CANCELLED").Select(x => x.MaintenanceWorkId));
+        await Add("OPEN_PREVENTIVE_OCCURRENCE", db.PreventiveMaintenanceRuns.AsNoTracking().Where(x =>
+            (x.MaintenanceWorkId == null && x.PerformedAt == null || x.MaintenanceWork != null
+                && x.MaintenanceWork.Status != "CLOSED" && x.MaintenanceWork.Status != "CANCELLED")
+            && (x.Schedule.RoomId != null && roomIds.Contains(x.Schedule.RoomId.Value)
+                || x.Schedule.AreaId != null && areaIds.Contains(x.Schedule.AreaId.Value)
+                || x.Schedule.AssetId != null && assetIds.Contains(x.Schedule.AssetId.Value))).Select(x => x.RunId));
         return result;
 
         async Task Add(string kind, IQueryable<long> query)

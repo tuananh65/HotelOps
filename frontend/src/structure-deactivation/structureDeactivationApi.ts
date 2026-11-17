@@ -32,6 +32,7 @@ const kinds = new Set([
   "OPEN_OPERATIONAL_TASK",
   "TASK_COMPLETION_CONTRACT_UNRESOLVED",
   "OPEN_MAINTENANCE_WORK",
+  "OPEN_PREVENTIVE_OCCURRENCE",
 ]);
 /** Default is physically fail-closed before CSRF or POST. No production router enables dispatch. */
 export function createStructureDeactivationApi(
@@ -88,7 +89,7 @@ export function createStructureDeactivationApi(
     if (
       error.code === "STRUCTURE_DEPENDENCIES_EXIST" &&
       Array.isArray(x.dependencies) &&
-      x.dependencies.length <= 7
+      x.dependencies.length <= 8
     ) {
       const ds = x.dependencies;
       if (

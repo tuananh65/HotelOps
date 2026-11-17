@@ -22,12 +22,8 @@ public sealed record StructureUpdateResult(StructureUpdateStatus Status, Editabl
 public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
 {
-    public static IReadOnlyList<string> DeactivationReleaseGates { get; } = Array.AsReadOnly(new[]
-    {
-        "OPERATIONAL_TASK_COMPLETION_AND_CHILD_LOCATION_CONTRACT",
-        "ALL_REFERENCE_WRITER_PARTICIPATION",
-        "SQL_DEACTIVATION_RACE_AUDIT_ROLLBACK_ACCEPTANCE"
-    });
+    // Runtime capability replaces the historical static handoff gate.
+    public static IReadOnlyList<string> DeactivationReleaseGates { get; } = Array.AsReadOnly(new[] { "LOCATION_GUARD_SCHEMA_REQUIRED" });
 
     public Task<StructureUpdateResult> DeactivateAsync(SessionReference ticket, long sessionId, long branchId,
         long id, bool area, string etag, DeactivateStructureRequest request, CancellationToken ct)
@@ -100,10 +96,11 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
             if (preview)
             {
                 var dependencies = await StructureDeactivationDependencies.ReadAsync(db, branchId, id, area, ct);
+                var coordinated = await LocationGuardSchema.ReadyAsync(db, ct);
                 if (await Gate() is { } finalPreviewGate) return new(finalPreviewGate);
                 await tx.CommitAsync(ct);
                 return new(StructureUpdateStatus.Success, ETag: tag,
-                    Preview: new(before, dependencies, WriterCoordinationRequired: true));
+                    Preview: new(before, dependencies, WriterCoordinationRequired: !coordinated));
             }
             if (deactivate)
             {
@@ -112,9 +109,8 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
                 if (await Gate() is { } finalCheck) return new(finalCheck);
                 if (dependencies.Count > 0)
                     return new(StructureUpdateStatus.DependenciesExist, ETag: tag, Dependencies: dependencies);
-                // Placement guards alone do not certify OperationalTask terminal semantics or ALL
-                // reference writers. Empty diagnostics must never enable this writer by themselves.
-                if (DeactivationReleaseGates.Count != 0)
+                // Every location writer is protected by retained parent locks in SQL.
+                if (!await LocationGuardSchema.ReadyAsync(db, ct))
                     return new(StructureUpdateStatus.WriterCoordinationRequired, ETag: tag, Dependencies: dependencies);
 
                 if (!current.TryGetCurrentUser(out var finalActor) || finalActor != actor)
@@ -200,6 +196,20 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
             if (!access.IsGranted && access.Decision != PermissionDecision.Unavailable)
                 access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branchId, ct);
             ct.ThrowIfCancellationRequested();
+            if (access.IsGranted && (deactivate || preview))
+            {
+                var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+                if (!await (from role in db.UserRoles.AsNoTracking()
+                    join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
+                    where role.UserId == actor.UserId && role.IsActive && role.Role.IsActive && role.Role.RoleCode == "SYS_ADMIN"
+                        && role.AssignedAt <= now && (role.ExpiresAt == null || role.ExpiresAt > now)
+                        && grant.Permission.PermissionCode == "MASTER_DATA_MANAGE"
+                        && (role.BranchId == null && grant.DataScope == "ALL"
+                            || role.BranchId == branchId && (grant.DataScope == "ALL" || grant.DataScope == "BRANCH")
+                                && db.UserBranchAccesses.Any(a => a.UserId == actor.UserId && a.BranchId == branchId
+                                    && a.RevokedAt == null && a.GrantedAt <= now))
+                    select role.UserRoleId).AnyAsync(ct)) return StructureUpdateStatus.Forbidden;
+            }
             return access.IsGranted ? null : access.Decision == PermissionDecision.Unavailable ? StructureUpdateStatus.Unavailable : StructureUpdateStatus.Forbidden;
         }
     }

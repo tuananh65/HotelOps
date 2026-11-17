@@ -1,3 +1,4 @@
+import { StructureDeactivationPanel } from "../structure-deactivation/StructureDeactivationPanel";
 import { DepartmentDeactivationPanel } from "./DepartmentDeactivationPanel";
 import { RoomTypeDirectoryResults } from "./RoomTypeDirectoryResults";
 import { RoomDirectoryResults } from "./RoomDirectoryResults";
@@ -684,6 +685,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=edit`}>Update room type</Link>
           <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=deactivate`}>Review deactivation</Link>
         </nav>}
+      {canonicalStructure && (screen === "floors" || screen === "areas") && action === "detail" && context?.id && snapshot &&
+        <StructureDeactivationPanel key={`${screen}:${context.branchId}:${context.id}`} kind={screen === "floors" ? "floor" : "area"}
+          branchId={context.branchId} id={context.id} dispatchEnabled />}
       {canonicalStructure && screen === "departments" && action === "detail" && context?.id && snapshot && <DepartmentDeactivationPanel key={`${context.branchId}:${context.id}`} branchId={context.branchId} departmentId={context.id} onSaved={() => void flow.load(readKind, context, filters)} />}
       {!canonicalStructure && snapshot &&
         context?.id &&

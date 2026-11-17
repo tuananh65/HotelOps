@@ -71,7 +71,7 @@ function keyFor(x: object) {
   if (!keys.has(x)) keys.set(x, ++next);
   return keys.get(x)!;
 }
-/** Standalone preparation only; production router does not mount or enable this panel. */
+/** Canonical UC016 action; the server rechecks dependencies and schema at commit. */
 export function StructureDeactivationPanel({
   kind,
   branchId,
@@ -207,7 +207,7 @@ function Bound({
       attempted.current ||
       !current() ||
       !mounted.current ||
-      !dispatchEnabled
+      !dispatchEnabled || data.writerCoordinationRequired || data.dependencies.length !== 0
     )
       return;
     const reserved = reserve(principal, resource);
@@ -237,7 +237,7 @@ function Bound({
       setData({
         ...result.data,
         dependencies: [],
-        writerCoordinationRequired: true,
+        writerCoordinationRequired: false,
       });
       setMessage("Deactivation confirmed by server.");
     } else {
@@ -287,13 +287,12 @@ function Bound({
           </dl>
           <p>
             Dependency preview is a current snapshot, not permission or a
-            reservation. Writer coordination remains unaccepted.
+            reservation. The server checks dependencies again before saving.
           </p>
           <section aria-label="Dependency preview">
             {data.dependencies.length === 0 ? (
               <p>
-                No blockers observed in this snapshot. Deactivation remains
-                disabled.
+                No blockers observed in this snapshot.
               </p>
             ) : (
               data.dependencies.map((d) => (
@@ -303,7 +302,8 @@ function Bound({
               ))
             )}
           </section>
-          {!locked && data.record.isActive && (
+          {data.writerCoordinationRequired && <p role="alert">Location protection migration is required before deactivation.</p>}
+          {!locked && data.record.isActive && !data.writerCoordinationRequired && data.dependencies.length === 0 && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -340,7 +340,7 @@ function Bound({
                 Cancel review
               </button>
               <button
-                disabled={!dispatchEnabled || pending}
+                disabled={!dispatchEnabled || pending || data.writerCoordinationRequired || data.dependencies.length !== 0}
                 onClick={() => void confirm()}
               >
                 Confirm deactivation

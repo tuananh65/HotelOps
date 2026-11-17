@@ -8,7 +8,7 @@ import {
 } from "./contracts";
 export interface DependencyPreview extends Snapshot {
   dependencies: readonly { kind: string; count: number }[];
-  writerCoordinationRequired: true;
+  writerCoordinationRequired: boolean;
 }
 const known = new Set([
   "ACTIVE_ROOM",
@@ -18,6 +18,7 @@ const known = new Set([
   "OPEN_OPERATIONAL_TASK",
   "TASK_COMPLETION_CONTRACT_UNRESOLVED",
   "OPEN_MAINTENANCE_WORK",
+  "OPEN_PREVENTIVE_OCCURRENCE",
 ]);
 /** Preview is not authority to mutate; dependencies may change after this read transaction. */
 export function createDeactivationPreviewApi(
@@ -80,9 +81,9 @@ export function createDeactivationPreviewApi(
         if (
           !record ||
           !strongTag(etag) ||
-          x.writerCoordinationRequired !== true ||
+          typeof x.writerCoordinationRequired !== "boolean" ||
           !Array.isArray(x.dependencies) ||
-          x.dependencies.length > 7
+          x.dependencies.length > 8
         )
           return { ok: false, error: { reason: "INVALID_RESPONSE" } };
         const ds = x.dependencies;
@@ -105,7 +106,7 @@ export function createDeactivationPreviewApi(
           data: {
             record,
             etag,
-            writerCoordinationRequired: true,
+            writerCoordinationRequired: x.writerCoordinationRequired,
             dependencies: ds.map((d) => ({ kind: d.kind, count: d.count })),
           },
         };

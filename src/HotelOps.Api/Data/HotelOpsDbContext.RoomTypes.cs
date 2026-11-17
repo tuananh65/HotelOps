@@ -17,6 +17,13 @@ public partial class HotelOpsDbContext
         // SQL triggers enforce scoped assignments after deployment. This also works
         // before deployment and prevents SQL334 from EF's bare OUTPUT on rooms.
         modelBuilder.Entity<Room>().ToTable("rooms", table => table.UseSqlOutputClause(false));
+        // UC016 parent-location SQL guards also cover non-EF/legacy writers.
+        modelBuilder.Entity<Area>().ToTable("areas", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<Asset>().ToTable("assets", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<Incident>().ToTable("incidents", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<MaintenanceWork>().ToTable("maintenance_works", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<PreventiveMaintenanceSchedule>().ToTable("preventive_maintenance_schedules", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<PreventiveMaintenanceRun>().ToTable("preventive_maintenance_runs", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<RoomType>().ToTable("room_types", table => table.UseSqlOutputClause(false));
         var legacy = modelBuilder.Entity<RoomType>();
         legacy.Metadata.RemoveIndex(legacy.Metadata.FindIndex("UQ__room_typ__2CB4DBF5CD9B49E6")!);
