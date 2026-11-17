@@ -77,6 +77,9 @@ builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.LowStockWo
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.TransferNotificationOptions>().BindConfiguration("TransferNotifications");
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TransferNotifications>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TransferNotificationWorker>();
+builder.Services.AddOptions<HotelOps.Api.Services.Notifications.StocktakeNotificationOptions>().BindConfiguration("StocktakeNotifications");
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.StocktakeNotifications>();
+builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.StocktakeNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationOptions>()
     .BindConfiguration("MaterialApprovalNotifications").Validate(o => o.PollSeconds is >= 1 and <= 3600).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery>();

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 type Line = { stocktakeLineId: number; itemId: number; itemName: string; uomName: string; systemQty: string;
-  countedQty: string | null; varianceQty: string | null; discrepancyReason: string | null; countedBy: number | null; countedAt: string | null };
+  countedQty: string | null; varianceQty: string | null; previewVariance: string | null; discrepancyReason: string | null; countedBy: number | null; countedAt: string | null };
 type Detail = { stocktakeId: number; stocktakeNo: string; status: string; warehouseId: number; snapshotAt: string;
   rowVersion: string; note: string | null; canPerform: boolean; lines: Line[] };
 type Catalogue = { warehouses: { id: number; name: string; isActive: boolean; canPerform: boolean }[];
@@ -49,14 +49,15 @@ export function StocktakePage() {
   const dirty = !!detail && counts.some(c => { const saved = detail.lines.find(l => l.stocktakeLineId === c.stocktakeLineId); return c.countedQty !== (saved?.countedQty ?? "") || c.discrepancyReason !== (saved?.discrepancyReason ?? ""); });
   const missing = detail?.lines.filter(l => l.countedQty == null) ?? [];
 
-  async function write(action: "start" | "counts" | "submit" | "cancel") {
+  async function write(action: "start" | "counts" | "submit" | "cancel" | "reconcile") {
     if (!owner || !data || busy || uncertain || writer.current) return;
     if (action === "start" && !catalogue?.warehouses.some(w => String(w.id) === warehouse && w.isActive && w.canPerform)) { setMessage("Select an authorized active warehouse."); return; }
     if (action !== "start" && !detail?.canPerform) return;
     if (action === "counts" && counts.some(c => c.countedQty !== "" && !/^\d+(\.\d{1,3})?$/.test(c.countedQty))) { setMessage("Counts must be nonnegative quantities with at most three decimal places."); return; }
     if (action === "submit" && (dirty || missing.length)) { setMessage("Save counts first and enter a quantity (including zero) for every item."); return; }
+    if (action === "reconcile" && (dirty || missing.length || detail?.lines.some(l => l.previewVariance != null && /[1-9]/.test(l.previewVariance) && (l.discrepancyReason?.trim().length ?? 0) < 3))) { setMessage("Save counts and a cause for every non-zero discrepancy before reconciliation."); return; }
     if (action === "cancel" && reason.trim().length < 10) { setMessage("Cancellation requires a reason of at least 10 characters."); return; }
-    if ((action === "submit" || action === "cancel") && !window.confirm(`Confirm ${action} for this stocktake?`)) return;
+    if ((action === "submit" || action === "cancel" || action === "reconcile") && !window.confirm(`Confirm ${action} for this stocktake?`)) return;
     const abort = new AbortController(); writer.current = abort; setBusy(true); let sent = false;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
@@ -72,7 +73,7 @@ export function StocktakePage() {
       const value = await response.json();
       if (!response.ok) { if (response.status < 500) sent = false; if ([401, 403].includes(response.status)) setLoaded(undefined); throw new Error(value.detail ?? `Operation failed (${response.status}).`); }
       if (!abort.signal.aborted && current.current === owner) {
-        setMessage("MSG08: Stocktake saved."); setLoaded(undefined); setRevision(v => v + 1);
+        setMessage(action === "reconcile" ? (value.status === "RECONCILED" ? "MSG08: No discrepancy; reconciled without adjustment." : "MSG09: Reconciliation submitted for Operations Manager review.") : "MSG08: Stocktake saved."); setLoaded(undefined); setRevision(v => v + 1);
         if (action === "start") navigate(`/inventory/stocktakes/${value.stocktakeId}`);
       }
     } catch (e) { if (sent) setUncertain(true); if (!abort.signal.aborted) setMessage(`${e instanceof Error ? e.message : "Operation failed."}${sent ? " Outcome unknown. Reopen and inspect before another mutation." : ""}`); }
@@ -87,11 +88,12 @@ export function StocktakePage() {
         {catalogue.warehouses.filter(w => w.isActive && w.canPerform).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label><label>Note<textarea value={note} onChange={e => setNote(e.target.value)} /></label><button>Start stocktake</button></fieldset></form></>}
     {detail && <><h2>{detail.stocktakeNo}: {detail.status}</h2><p>Cutoff (UTC): {detail.snapshotAt}. Quantities use each material's base unit.</p>{detail.note && <p>{detail.note}</p>}
       {missing.length > 0 && <p role="status">Not yet counted: {missing.map(l => l.itemName).join(", ")}. Enter zero for an empty count.</p>}
-      <fieldset disabled={busy || uncertain || !detail.canPerform || !["IN_PROGRESS", "COUNTED"].includes(detail.status)}><table><thead><tr><th>Material</th><th>Base unit</th><th>Cutoff quantity</th><th>Counted</th><th>Cause</th></tr></thead><tbody>
+      <fieldset disabled={busy || uncertain || !detail.canPerform || !["IN_PROGRESS", "COUNTED"].includes(detail.status)}><table><thead><tr><th>Material</th><th>Base unit</th><th>Cutoff quantity</th><th>Counted</th><th>Saved discrepancy</th><th>Cause</th></tr></thead><tbody>
         {detail.lines.map(l => { const entry = counts.find(c => c.stocktakeLineId === l.stocktakeLineId); return <tr key={l.stocktakeLineId}><td>{l.itemName}</td><td>{l.uomName}</td><td>{l.systemQty}</td>
           <td><input aria-label={`Count ${l.itemName}`} inputMode="decimal" pattern="[0-9]+([.][0-9]{1,3})?" value={entry?.countedQty ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, countedQty: e.target.value } : c))} /></td>
-          <td><input aria-label={`Cause ${l.itemName}`} value={entry?.discrepancyReason ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, discrepancyReason: e.target.value } : c))} /></td></tr>; })}</tbody></table>
+          <td>{l.previewVariance ?? "Not counted"}</td><td><input aria-label={`Cause ${l.itemName}`} value={entry?.discrepancyReason ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, discrepancyReason: e.target.value } : c))} /></td></tr>; })}</tbody></table>
         <button disabled={!dirty || !counts.length} onClick={() => void write("counts")}>Save counts</button>
+        {detail.status === "COUNTED" && <button disabled={dirty || missing.length > 0} onClick={() => void write("reconcile")}>Submit reconciliation</button>}
         {detail.status === "IN_PROGRESS" && <><button disabled={dirty || missing.length > 0} onClick={() => void write("submit")}>Submit count</button><label>Cancellation reason<input value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void write("cancel")}>Cancel stocktake</button></>}
       </fieldset></>}
   </main>;

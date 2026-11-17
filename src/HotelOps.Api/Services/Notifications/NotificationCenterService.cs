@@ -125,6 +125,21 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {SourceType:StocktakeNotifications.Source,NotificationType:StocktakeNotifications.Kind,SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            var reconciliation=await StocktakeNotifications.Events(db).SingleOrDefaultAsync(e=>e.Id==source.SourceId,ct);
+            var checkedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            if(reconciliation==null||reconciliation.Actor!=source.CreatedBy||reconciliation.At!=source.CreatedAt
+                ||!await StocktakeNotifications.CanReadAsync(db,user,reconciliation,checkedAt,ct))
+                throw new InsightException(403,"ACCESS_DENIED","MSG02: Stocktake source access denied.");
+            await RevalidateSessionAsync(user,ct);
+            checkedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            if(!await StocktakeNotifications.CanReadAsync(db,user,reconciliation,checkedAt,ct))
+                throw new InsightException(403,"ACCESS_DENIED","MSG02: Stocktake source access denied.");
+            await tx.CommitAsync(ct);
+            return new($"/inventory/stocktakes/{reconciliation.StocktakeId}");
+        }
         if(source is {SourceType:TransferNotifications.Source,SourceId:>0}
             && source.NotificationType is TransferNotifications.Dispatched or TransferNotifications.Received)
         {

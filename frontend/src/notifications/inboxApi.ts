@@ -152,6 +152,7 @@ export async function resolveInboxSource(
   }
   const ids =
     /^\/inventory\/transfers\/([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/inventory\/stocktakes\/([1-9][0-9]*)$/.exec(data.path) ??
     /^\/inventory\/stock\?warehouseId=([1-9][0-9]*)&itemId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/workday\/handovers\/([1-9][0-9]*)$/.exec(data.path) ??
     /^\/time-corrections\?branchId=([1-9][0-9]*)&correctionId=([1-9][0-9]*)$/.exec(data.path) ??

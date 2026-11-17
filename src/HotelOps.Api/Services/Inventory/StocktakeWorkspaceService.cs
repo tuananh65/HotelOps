@@ -58,7 +58,7 @@ public sealed class StocktakeWorkspaceService(HotelOpsDbContext db, StocktakeAut
             snapshotAt = DateTime.SpecifyKind(detail.SnapshotAt, DateTimeKind.Utc), detail.Note, canPerform,
             lines = detail.Lines.Select(l => new { l.StocktakeLineId, l.ItemId, names[l.StocktakeLineId].ItemName, names[l.StocktakeLineId].UomName,
                 systemQty = l.SystemQty.ToString(CultureInfo.InvariantCulture), countedQty = l.CountedQty?.ToString(CultureInfo.InvariantCulture),
-                varianceQty = l.VarianceQty?.ToString(CultureInfo.InvariantCulture), l.DiscrepancyReason, l.CountedBy,
+                varianceQty = l.VarianceQty?.ToString(CultureInfo.InvariantCulture), previewVariance = (l.CountedQty - l.SystemQty)?.ToString(CultureInfo.InvariantCulture), l.DiscrepancyReason, l.CountedBy,
                 countedAt = l.CountedAt.HasValue ? (DateTime?)DateTime.SpecifyKind(l.CountedAt.Value, DateTimeKind.Utc) : null }) };
     }
 }

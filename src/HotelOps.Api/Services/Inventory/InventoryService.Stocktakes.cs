@@ -82,7 +82,15 @@ public sealed partial class InventoryService
                 x.Status = "COUNTED"; x.CountedBy = actorUserId; x.CompletedAt = now; break;
             case "reconcile":
                 if (x.Status != "COUNTED" || x.StocktakeLines.Any(l => l.CountedQty is null)) throw Invalid("A fully counted COUNTED stocktake is required.");
-                foreach (var l in x.StocktakeLines) { l.VarianceQty = l.CountedQty - l.SystemQty; if (l.VarianceQty != 0) Reason(l.DiscrepancyReason); }
+                var cutoff = await StockBalanceReadService.Posted(db).Where(m => m.WarehouseId == x.WarehouseId && m.OccurredAt <= x.SnapshotAt)
+                    .GroupBy(m => m.ItemId).Select(g => new { ItemId = g.Key, Quantity = g.Sum(m => m.SignedBaseQty) })
+                    .ToDictionaryAsync(g => g.ItemId, g => g.Quantity, ct);
+                foreach (var l in x.StocktakeLines)
+                {
+                    if (cutoff.GetValueOrDefault(l.ItemId) != l.SystemQty) throw Invalid("MSG03: Cutoff ledger differs from the stored snapshot; reconcile provenance before proceeding.");
+                    l.VarianceQty = l.CountedQty - l.SystemQty;
+                    if (l.VarianceQty != 0) Reason(l.DiscrepancyReason);
+                }
                 x.Status = x.StocktakeLines.All(l => l.VarianceQty == 0) ? "RECONCILED" : "PENDING_ADJUSTMENT"; break;
             case "approve-adjustment":
                 if (x.Status != "PENDING_ADJUSTMENT" || x.AdjustmentDocumentId.HasValue) throw Invalid("Stocktake is not awaiting its first adjustment.");
@@ -102,6 +110,16 @@ public sealed partial class InventoryService
         var lineChanges = db.ChangeTracker.Entries<StocktakeLine>().Any(e => e.Entity.StocktakeId == id &&
             e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)));
         await Audit(x, "stocktakes", id, actorUserId, action == "cancel" ? "CANCEL" : "UPDATE", action, before, [warehouse.BranchId], now, ct, lineChanges ? ["lines"] : null);
+        if (action == "reconcile" && x.Status == "PENDING_ADJUSTMENT")
+        {
+            var intent = db.AuditLogs.Local.Single(a => a.EntityType == "stocktakes" && a.EntityId == id.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                && a.ActorUserId == actorUserId && a.OccurredAt == now && a.Action == "UPDATE" && a.BranchId == warehouse.BranchId);
+            db.Notifications.Add(new Notification { NotificationType = HotelOps.Api.Services.Notifications.StocktakeNotifications.Kind,
+                SourceType = HotelOps.Api.Services.Notifications.StocktakeNotifications.Source, SourceId = intent.AuditId,
+                CreatedBy = actorUserId, CreatedAt = now, Priority = "NORMAL", Title = "Stocktake awaiting adjustment review",
+                Message = "A counted stocktake has explained discrepancies. Open the authorized stocktake to review." });
+            await Save(ct);
+        }
         await stocktakeAuthority!.RequireAsync(actorUserId, x.WarehouseId, action, ct);
         await tx.CommitAsync(ct); return await GetStocktake(id, ct);
     }
