@@ -1,3 +1,4 @@
+import { DepartmentDeactivationPanel } from "./DepartmentDeactivationPanel";
 import { RoomTypeDirectoryResults } from "./RoomTypeDirectoryResults";
 import { RoomDirectoryResults } from "./RoomDirectoryResults";
 import { useRef, useState } from "react";
@@ -678,6 +679,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           )}
         </section>
       )}
+      {canonicalStructure && screen === "departments" && action === "detail" && context?.id && snapshot && <DepartmentDeactivationPanel key={`${context.branchId}:${context.id}`} branchId={context.branchId} departmentId={context.id} onSaved={() => void flow.load(readKind, context, filters)} />}
       {!canonicalStructure && snapshot &&
         context?.id &&
         (screen === "floors" || screen === "areas") &&

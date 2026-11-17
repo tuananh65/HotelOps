@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum AccountActivationStatus { Success, Forbidden, SessionInvalid, NotFound, Stale, Conflict, DeactivationBlocked }
+public enum AccountActivationStatus { Success, Forbidden, SessionInvalid, NotFound, Stale, Conflict, DepartmentUnavailable, DeactivationBlocked }
 public sealed record AccountActivationResult(AccountActivationStatus Status, byte[]? Version = null);
 
 /// <summary>
@@ -54,6 +54,22 @@ public sealed class UserAccountActivationService(HotelOpsDbContext db, UserAccou
         if (target is null) return new(AccountActivationStatus.NotFound);
         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AccountActivationStatus.Stale);
         if (!change.IsTransitionFrom(target.AccountStatus)) return new(AccountActivationStatus.Conflict);
+        // UC026: reactivation must not recreate an active employee binding to a
+        // department already deactivated. Retain membership/department read locks
+        // until this transaction commits, including under ReadCommitted.
+        if (await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.employee_department_memberships','U') IS NULL THEN 0 ELSE 1 END AS Value").SingleAsync(ct) != 1)
+            return new(AccountActivationStatus.DepartmentUnavailable);
+        var invalidDepartments = await db.Database.SqlQuery<int>($"""
+            SELECT 1 AS Value FROM (
+              SELECT department_id,primary_branch_id AS branch_id FROM dbo.users WITH(HOLDLOCK)
+                WHERE user_id={targetId} AND department_id IS NOT NULL
+              UNION SELECT department_id,branch_id FROM dbo.employee_department_memberships WITH(HOLDLOCK)
+                WHERE user_id={targetId} AND revoked_at IS NULL
+            ) binding LEFT JOIN dbo.departments d WITH(HOLDLOCK)
+              ON d.department_id=binding.department_id AND d.branch_id=binding.branch_id
+            WHERE d.department_id IS NULL OR d.is_active=0
+            """).AnyAsync(ct);
+        if (invalidDepartments) return new(AccountActivationStatus.DepartmentUnavailable);
         var now = clock.GetUtcNow().UtcDateTime;
         var count = await db.Users.Where(u => u.UserId == targetId && u.DeletedAt == null
                 && u.AccountStatus == "INACTIVE" && u.RowVersion == expected)

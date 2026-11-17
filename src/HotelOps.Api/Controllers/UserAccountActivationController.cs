@@ -40,6 +40,7 @@ public sealed class UserAccountActivationController(UserAccountActivationService
             case AccountActivationStatus.Forbidden: return Failure(403, "ACTIVATION_NOT_ALLOWED");
             case AccountActivationStatus.NotFound: return Failure(404, "USER_NOT_FOUND");
             case AccountActivationStatus.Stale: return Failure(412, "STALE_USER_VERSION");
+            case AccountActivationStatus.DepartmentUnavailable: return Failure(409, "ACTIVE_DEPARTMENT_REQUIRED");
             case AccountActivationStatus.Conflict: return Failure(409, "INVALID_STATUS_TRANSITION");
             default: throw new InvalidOperationException("Unexpected activation result.");
         }

@@ -20,7 +20,7 @@ export type DepartmentDeactivationResult =
         | "INVALID_RESPONSE";
       status?: number;
     };
-/** Technical candidate. No production route imports or flag can enable server release. */
+/** Explicit opt-in client; server always revalidates current authority and dependencies. */
 export function createDepartmentDeactivationApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,

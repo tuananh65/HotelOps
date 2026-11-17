@@ -24,7 +24,7 @@ public sealed partial class MaintenanceWorkService
         await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
         if (request.DepartmentId is long departmentId && !await _dbContext.Departments.AsNoTracking()
             .AnyAsync(department => department.DepartmentId == departmentId &&
-                department.BranchId == incident.BranchId, cancellationToken))
+                department.BranchId == incident.BranchId && department.IsActive, cancellationToken))
             throw new ValidationException("DepartmentId must identify a department in the incident branch.");
         if (request.PriorityId is long priorityId && !await _dbContext.ReferenceValues.AsNoTracking()
             .AnyAsync(value => value.ReferenceId == priorityId && value.GroupCode == "PRIORITY" &&

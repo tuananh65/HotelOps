@@ -86,7 +86,7 @@ public sealed partial class InventoryService
         var before = id.HasValue ? Scalars(x) : null;
         if ((!id.HasValue || x.BranchId != r.BranchId) && !await db.Branches.AnyAsync(b => b.BranchId == r.BranchId && b.IsActive, ct)) throw Invalid("A new warehouse or branch change requires an active branch.");
         if ((!id.HasValue || r.DepartmentId != x.DepartmentId) && !r.DepartmentId.HasValue) throw Invalid("DepartmentId is required for a new warehouse or department change.");
-        if (r.DepartmentId.HasValue && !await db.Departments.AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
+        if (r.DepartmentId.HasValue && !await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={r.DepartmentId}").AsNoTracking().AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
         if (id.HasValue && x.BranchId != r.BranchId && await WarehouseHistory(id.Value, ct)) throw Invalid("Warehouse branch is immutable after dependent history.");
         if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && w.WarehouseCode == code && w.WarehouseId != id, ct)) throw Invalid("WarehouseCode already exists in this branch.");
         if (id.HasValue && x.IsActive && !r.IsActive)
