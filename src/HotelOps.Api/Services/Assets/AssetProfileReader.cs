@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Assets;
 
 public sealed class AssetProfileReader(HotelOpsDbContext db, AssetProfileAccess authority, InsightAccess access,
-    DashboardSessionGuard session, IAssetService assets, AssetEditService editor)
+    DashboardSessionGuard session, IAssetService assets, AssetEditService editor, AssetRetirementService retirement)
 {
     private async Task<bool> CanReadSchedulesAsync(long branch, CancellationToken ct)
     {
@@ -117,7 +117,7 @@ public sealed class AssetProfileReader(HotelOpsDbContext db, AssetProfileAccess 
         var files = db.Attachments.AsNoTracking().Where(a => a.EntityType == "ASSET" && a.EntityId == id && a.DeletedAt == null);
         var documents = await files.OrderByDescending(a => a.UploadedAt).ThenByDescending(a => a.AttachmentId).Skip(skip).Take(size)
             .Select(a => new { a.AttachmentId, Name = a.OriginalFileName ?? a.FileName, a.MimeType, a.FileSizeBytes, a.UploadedAt }).ToArrayAsync(ct);
-        var result = new { Profile = profile, CanEdit = await editor.CanEditAsync(id, ct), Snapshot = DateTime.SpecifyKind(now, DateTimeKind.Utc), TimeZone = zone, Page = page, PageSize = size,
+        var result = new { Profile = profile, CanEdit = await editor.CanEditAsync(id, ct), CanRetire = await retirement.CanOpenAsync(id, ct), Snapshot = DateTime.SpecifyKind(now, DateTimeKind.Utc), TimeZone = zone, Page = page, PageSize = size,
             History = history.Rows.OrderByDescending(h => h.OccurredAt).ThenByDescending(h => h.AuditId).Skip(skip).Take(size), HistoryTotal = history.Rows.Length,
             HistoryIncomplete = history.MissingEvidence, Incidents = incidentRows, IncidentTotal = await incidents.CountAsync(ct),
             IncidentAccess = incidentScope.Lead || incidentScope.Staff ? "ALLOWED" : "ACCESS_DENIED",

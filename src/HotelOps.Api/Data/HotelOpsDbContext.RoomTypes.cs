@@ -21,6 +21,8 @@ public partial class HotelOpsDbContext
         // UC016 parent-location SQL guards also cover non-EF/legacy writers.
         modelBuilder.Entity<Area>().ToTable("areas", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<Asset>().ToTable("assets", table => table.UseSqlOutputClause(false));
+        // UC074 retirement guards also coordinate pending handover writers.
+        modelBuilder.Entity<AssetHandover>().ToTable("asset_handovers", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<Incident>().ToTable("incidents", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<MaintenanceWork>().ToTable("maintenance_works", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<PreventiveMaintenanceSchedule>().ToTable("preventive_maintenance_schedules", table => table.UseSqlOutputClause(false));

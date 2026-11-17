@@ -191,6 +191,7 @@ builder.Services.AddScoped<AssetLocationReview>();
 builder.Services.AddScoped<AssetProfileAccess>();
 builder.Services.AddScoped<AssetProfileReader>();
 builder.Services.AddScoped<AssetEditService>();
+builder.Services.AddScoped<AssetRetirementService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<InventoryAccess>();
