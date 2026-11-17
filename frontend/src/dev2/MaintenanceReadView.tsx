@@ -25,11 +25,11 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
     return <section aria-label="Maintenance work results">
       <p>{show(data.totalCount)} matching records; page {show(data.page)} of {show(data.totalPages)}.</p>
       {rows.length === 0 ? <p>No maintenance work matches your filters and access scope.</p> :
-        <table><thead><tr><th>Reference</th><th>Title</th><th>Source</th><th>Location / asset</th><th>Priority</th><th>Assignee</th><th>Status</th><th>Planned end</th></tr></thead>
+        <table><thead><tr><th>Reference</th><th>Title</th><th>Source</th><th>Location / asset</th><th>Priority</th><th>Assignee</th><th>Status</th><th>Due date</th><th>Overdue</th></tr></thead>
           <tbody>{rows.map((row, index) => <tr key={show(row.maintenanceWorkId) + ":" + index}>
             <td>{canDetail && typeof row.maintenanceWorkId === "number" && Number.isSafeInteger(row.maintenanceWorkId) && row.maintenanceWorkId > 0
               ? <Link to={`/operations/maintenance/${row.maintenanceWorkId}?action=A004A-036`}>{show(row.workNo)}</Link> : show(row.workNo)}</td>
-            <td>{show(row.title)}</td><td>{show(row.source)}</td><td>{target(row)}</td><td>{show(row.priorityName)}</td><td>{show(row.assigneeName ?? row.assigneeId)}</td><td>{show(row.status)}</td><td>{time(row.plannedEndAt)}</td>
+            <td>{show(row.title)}</td><td>{show(row.source)}</td><td>{target(row)}</td><td>{show(row.priorityName)}</td><td>{show(row.assigneeName ?? row.assigneeId)}</td><td>{show(row.status)}</td><td>{isObject(row.deadline) && typeof row.deadline.dueAt === "string" ? time(row.deadline.dueAt) : "N/A"}{isObject(row.deadline) && typeof row.deadline.unavailableReason === "string" && <small> ({row.deadline.unavailableReason})</small>}</td><td>{isObject(row.deadline) && row.deadline.isOverdue === true ? "Yes" : isObject(row.deadline) && row.deadline.isOverdue === false ? "No" : "N/A"}</td>
           </tr>)}</tbody></table>}
     </section>;
   }

@@ -1238,6 +1238,9 @@ export const operations: Operation[] = [
         type: "long?",
         optional: true,
       },
+      { name: "dueFrom", type: "DateTimeOffset?", optional: true },
+      { name: "dueTo", type: "DateTimeOffset?", optional: true },
+      { name: "overdue", type: "bool?", optional: true },
       {
         name: "page",
         type: "int",

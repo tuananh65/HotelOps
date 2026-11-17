@@ -10,6 +10,9 @@ public sealed class MaintenanceQueryRequest
     public string? Source { get; init; }
     public string? Status { get; init; }
     public long? PriorityId { get; init; }
+    public DateTimeOffset? DueFrom { get; init; }
+    public DateTimeOffset? DueTo { get; init; }
+    public bool? Overdue { get; init; }
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;
 }

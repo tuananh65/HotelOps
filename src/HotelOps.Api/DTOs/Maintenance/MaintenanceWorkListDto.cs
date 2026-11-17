@@ -2,6 +2,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 
 public sealed class MaintenanceWorkListDto
 {
+    public HotelOps.Api.Services.Maintenance.MaintenanceDeadlineView? Deadline { get; set; }
     public long MaintenanceWorkId { get; init; }
     public string? Source { get; init; }
     public string? AssigneeName { get; init; }

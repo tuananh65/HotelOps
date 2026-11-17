@@ -12,7 +12,7 @@ public sealed partial class MaintenanceWorkService
         return await ListAsync(_dbContext.MaintenanceWorks.AsNoTracking(), request, cancellationToken);
     }
 
-    internal static async Task<MaintenancePagedResponse> ListAsync(IQueryable<MaintenanceWork> query, MaintenanceQueryRequest request, CancellationToken cancellationToken)
+    internal static IQueryable<MaintenanceWork> Filter(IQueryable<MaintenanceWork> query, MaintenanceQueryRequest request)
     {
         if (request.Page <= 0)
             throw new ValidationException("Page must be greater than zero.");
@@ -43,6 +43,13 @@ public sealed partial class MaintenanceWorkService
         if (!string.IsNullOrEmpty(status))
             query = query.Where(work => work.Status == status);
 
+        return query;
+    }
+
+    internal static async Task<MaintenancePagedResponse> ListAsync(IQueryable<MaintenanceWork> query, MaintenanceQueryRequest request, CancellationToken cancellationToken)
+    {
+        query = Filter(query, request);
+        var offset = ((long)request.Page - 1) * request.PageSize;
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(work => work.CreatedAt)
             .ThenByDescending(work => work.MaintenanceWorkId)
