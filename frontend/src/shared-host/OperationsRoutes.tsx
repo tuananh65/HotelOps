@@ -15,6 +15,7 @@ import { MinimumStockPage } from "../inventory/MinimumStockPage";
 import { UnitManagementPage } from "../inventory/UnitManagementPage";
 import { ItemManagementPage } from "../inventory/ItemManagementPage";
 import { WarehouseManagementPage } from "../inventory/WarehouseManagementPage";
+import { ReceiptWorkspacePage } from "../inventory/ReceiptWorkspacePage";
 export function OperationsRoutes() {
   return (
     <>
@@ -25,6 +26,7 @@ export function OperationsRoutes() {
         <Routes>
           <Route path="/operations/*" element={<Dev2Workspace />} />
           <Route path="/inventory/items" element={<InventoryRoute mode="list" />} />
+          <Route path="/inventory/receipts" element={<ReceiptWorkspacePage />} />
           <Route path="/inventory/stock" element={<StockBalancePage />} />
           <Route path="/inventory/minimums" element={<MinimumStockPage />} />
           <Route path="/inventory/units" element={<UnitManagementPage />} />

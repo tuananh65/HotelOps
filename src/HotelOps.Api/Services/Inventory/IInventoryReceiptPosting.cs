@@ -2,7 +2,7 @@ using HotelOps.Api.DTOs.Inventory;
 
 namespace HotelOps.Api.Services.Inventory;
 
-public sealed record InventoryReceiptPostRequest(long ActorUserId, string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines);
+public sealed record InventoryReceiptPostRequest(long ActorUserId, string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines, long? ReplenishmentId = null);
 public sealed record InventoryBaseQuantity(long BaseUomId, decimal BaseQty);
 public sealed record InventoryReceiptPostedLine(long StockDocumentLineId, long ItemId, long UomId, long BaseUomId, decimal ActualQty, decimal BaseQty);
 public sealed record InventoryReceiptPosted(long DocumentId, long WarehouseId, IReadOnlyList<InventoryReceiptPostedLine> Lines);

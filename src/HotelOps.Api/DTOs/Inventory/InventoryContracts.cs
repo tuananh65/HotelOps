@@ -3,10 +3,10 @@ namespace HotelOps.Api.DTOs.Inventory;
 public record InventoryPage(int Page = 1, int PageSize = 50);
 public record InventoryPaged<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
 public record InventoryCommand(string ExpectedRowVersion, string? Reason = null);
-public record InventoryDraftLine(long ItemId, long UomId, decimal ExpectedQty, long? OriginalIssueLineId = null);
+public record InventoryDraftLine(long ItemId, long UomId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal ExpectedQty, long? OriginalIssueLineId = null);
 public record InventoryDraft(long? SourceWarehouseId, long? DestinationWarehouseId,
     DateOnly DocumentDate, IReadOnlyList<InventoryDraftLine> Lines, string? Reason = null, string? Note = null,
-    string? ExpectedRowVersion = null);
+    string? ExpectedRowVersion = null, string? SourceLabel = null, string? ReferenceNumber = null, long? ReplenishmentId = null);
 public record InventoryAcceptedLine(long LineId, decimal AcceptedQty, decimal RejectedQty = 0,
     decimal DamagedQty = 0, string? DiscrepancyReason = null);
 public record InventoryPost(string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines);

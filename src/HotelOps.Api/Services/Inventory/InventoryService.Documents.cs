@@ -81,7 +81,12 @@ public sealed partial class InventoryService
         if (request.DocumentDate == default) throw Invalid("DocumentDate is required.");
         if (type is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Unsupported draft type.");
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0) throw Invalid("At least one line is required.");
-        await using var tx = await Begin(actorUserId, ct);
+        var receipt = type == "RECEIPT" ? receiptAuthority ?? throw Invalid("Receipt authority unavailable.") : null;
+        await using var tx = await Begin(actorUserId, ct, receipt == null ? null : async token =>
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token);
+        }, receipt == null ? System.Data.IsolationLevel.ReadCommitted : System.Data.IsolationLevel.Serializable);
+        if (receipt != null) await receipt.ValidateAsync(actorUserId, request, ct);
         StockDocument d;
         object? before = null;
         if (id.HasValue)
@@ -89,6 +94,7 @@ public sealed partial class InventoryService
             var existing = await Document(id.Value, ct); if (existing is null) return null; d = existing;
             Version(d.RowVersion, request.ExpectedRowVersion);
             if (d.DocumentType != type || d.Status != "DRAFT") throw Invalid("Only the matching DRAFT document can be edited.");
+            if (receipt != null) await receipt.RequireExistingLinkAsync(d.DocumentId, d.DestinationWarehouseId ?? 0, ct);
             before = new { document = Scalars(d), lines = d.StockDocumentLines.Select(Scalars).ToList() };
         }
         else d = new StockDocument { DocumentType = type, Status = "DRAFT", CreatedBy = actorUserId };
@@ -98,6 +104,7 @@ public sealed partial class InventoryService
             throw Invalid("Receipt/return requires only a destination warehouse.");
         var warehouseIds = new[] { request.SourceWarehouseId, request.DestinationWarehouseId }.Where(x => x.HasValue).Select(x => x!.Value).Concat(WarehouseIds(d));
         var warehouses = await Warehouses(warehouseIds, true, ct);
+        if (receipt != null) foreach (var warehouse in warehouses) await receipt.RequireAsync(actorUserId, warehouse.WarehouseId, ct);
         var now = DateTime.UtcNow;
         var lines = new List<StockDocumentLine>();
         foreach (var input in request.Lines)
@@ -135,7 +142,7 @@ public sealed partial class InventoryService
                 await db.Entry(d).Collection(x => x.StockDocumentLines).Query().Include(x => x.StockReturnLineDetailStockDocumentLine).LoadAsync(ct);
                 same &= d.StockDocumentLines.OrderBy(x => x.LineNo).Select(x => x.StockReturnLineDetailStockDocumentLine?.OriginalIssueLineId).SequenceEqual(lines.Select(x => (long?)x.StockReturnLineDetailStockDocumentLine!.OriginalIssueLineId));
             }
-            if (same) { await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct); }
+            if (same && receipt == null) { await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct); }
             foreach (var old in d.StockDocumentLines.ToList())
             {
                 if (old.StockReturnLineDetailStockDocumentLine is { } detail) db.StockReturnLineDetails.Remove(detail);
@@ -149,19 +156,29 @@ public sealed partial class InventoryService
         if (!id.HasValue) { d.CreatedAt = now; d.DocumentNo = await Number(type == "RECEIPT" ? "GRN" : type == "RETURN" ? "RTN" : "TRF", now, false, ct); db.StockDocuments.Add(d); }
         else db.Entry(d).Property(x => x.Status).IsModified = true;
         await DocumentAudit(d, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "DRAFT_SAVED", before, warehouses, now, ct);
+        if (receipt != null) { await receipt.SaveSourceAsync(d, actorUserId, request, ct); await receipt.ValidateAsync(actorUserId, request, ct); foreach (var warehouse in warehouses) await receipt.RequireAsync(actorUserId, warehouse.WarehouseId, ct); }
         await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct);
     }
     public async Task<InventoryDocumentDto?> Post(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct, type != "RECEIPT" ? null : async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, type == "RECEIPT" ? System.Data.IsolationLevel.Serializable : System.Data.IsolationLevel.ReadCommitted);
         var document = await PostCore(type, id, actorUserId, request, ct);
         if (document is null) return null;
+        if (type == "RECEIPT") await receiptAuthority!.RequireAsync(actorUserId, document.DestinationWarehouseId ?? 0, ct);
         await tx.CommitAsync(ct);
         return await GetDocument(id, ct);
     }
-    private async Task<StockDocument?> PostCore(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
+    private async Task<StockDocument?> PostCore(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct, long? linkedReplenishmentId = null)
     {
         var d = await Document(id, ct); if (d is null) return null;
+        if (type == "RECEIPT")
+        {
+            var authority = receiptAuthority ?? throw Invalid("Receipt authority unavailable.");
+            await authority.RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
+            await authority.InstalledAsync(ct);
+            var source = await authority.SourceAsync(id, ct);
+            if (source?.ReplenishmentId is {} linked && linked != linkedReplenishmentId) throw Invalid("Linked receipt must be posted atomically through its replenishment workflow.");
+        }
         Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType != type || type is not ("RECEIPT" or "RETURN")) throw Invalid("Only the matching DRAFT receipt/return may be posted.");
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count != d.StockDocumentLines.Count || request.Lines.Select(x => x.LineId).Distinct().Count() != request.Lines.Count ||
@@ -197,12 +214,14 @@ public sealed partial class InventoryService
     }
     public async Task<InventoryDocumentDto?> CancelDocument(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
     {
-        var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct);
+        var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
         var d = await Document(id, ct); if (d is null) return null; Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Only an eligible DRAFT may be cancelled.");
+        if (d.DocumentType == "RECEIPT") await (receiptAuthority ?? throw Invalid("Receipt authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
         var warehouses = await Warehouses(WarehouseIds(d), false, ct); var before = Scalars(d); var now = DateTime.UtcNow;
         d.Status = "CANCELLED"; d.CancelledAt = now; d.Reason = reason;
         await DocumentAudit(d, actorUserId, "CANCEL", "CANCELLED", before, warehouses, now, ct);
+        if (d.DocumentType == "RECEIPT") await receiptAuthority!.RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
         await tx.CommitAsync(ct); return await GetDocument(id, ct);
     }
     public async Task<InventoryDocumentDto?> Dispatch(long id, long actorUserId, InventoryCommand request, CancellationToken ct)

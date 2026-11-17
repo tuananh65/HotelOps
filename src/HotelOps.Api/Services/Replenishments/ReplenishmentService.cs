@@ -152,7 +152,7 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
             {
                 if (documents.Any(x => x != post.ReceiptDocumentId)) throw Invalid("Coordinated mappings must belong to ReceiptDocumentId.");
                 await Dev2ServiceAuthority.RevalidateAsync(db, _authorityHttp, Dev2AuthorizationPhase.BeforeStockPosting, ct);
-                await posting.PostReceipt(post.ReceiptDocumentId, new(TrustedActorId, post.ReceiptExpectedRowVersion, post.ReceiptLines), ct);
+                await posting.PostReceipt(post.ReceiptDocumentId, new(TrustedActorId, post.ReceiptExpectedRowVersion, post.ReceiptLines, id), ct);
             }
             await Warehouse(r.WarehouseId, true, ct);
             var linked = new List<object>();
