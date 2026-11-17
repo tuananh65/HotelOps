@@ -15,7 +15,7 @@ namespace HotelOps.Api.Services.Maintenance;
 public sealed record MaintenanceDeclineInput(string? Reason);
 public sealed record MaintenanceDeclineSaved(long MaintenanceWorkId, long AuditId, string Workflow, DateTime DeclinedAt);
 
-public sealed class MaintenanceDeclineService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
+public sealed class MaintenanceDeclineService(HotelOpsDbContext db, TimeProvider clock, ICurrentUserAccessor current)
 {
     internal static string ValidateReason(string? input)
     {
@@ -30,7 +30,7 @@ public sealed class MaintenanceDeclineService(HotelOpsDbContext db, ISqlSessionS
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sid
             || actor.IsRestricted || ticket.IsRestricted) throw new InternalRequestReadException(401, "SESSION_INVALID");
-        var result = await sessions.ValidateSessionAsync(ticket, ct);
+        var result = await HotelOps.Api.Services.Dev2Authorization.Dev2SessionValidation.ValidateAsync(db, ticket, clock, ct);
         if (!result.IsValid || result.Session?.SessionId != sid || result.Session.IsRestricted)
             throw new InternalRequestReadException(401, "SESSION_INVALID");
     }
