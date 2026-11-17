@@ -47,10 +47,19 @@ public sealed record InsightFilters(long[] BranchIds, long? DepartmentId, DateOn
 public sealed record MetricRow(string Key, string Label, decimal? Value, string Unit, string Source, string? DrillDown = null);
 public sealed record DistributionRow(string Source, string Status, long Count, string? Severity = null);
 public sealed record QuantityRow(string Kind, long ItemId, long UomId, long? WarehouseId,
-    [property: JsonNumberHandling(JsonNumberHandling.WriteAsString)] decimal Quantity);
+    [property: JsonNumberHandling(JsonNumberHandling.WriteAsString)] decimal Quantity)
+{
+    public long? CategoryId { get; init; }
+}
 public sealed record DashboardResult(DateTimeOffset Snapshot, InsightFilters Filters,
     IReadOnlyList<MetricRow> Metrics, IReadOnlyList<DistributionRow> Distributions,
-    IReadOnlyList<QuantityRow> Quantities, IReadOnlyList<string> MissingSources);
+    IReadOnlyList<QuantityRow> Quantities, IReadOnlyList<string> MissingSources)
+{
+    public IReadOnlyList<CategoryQuantityRow> CategoryQuantities { get; init; } = [];
+}
+public sealed record CategoryQuantityRow(long CategoryId, long UomId, long WarehouseId,
+    [property: JsonNumberHandling(JsonNumberHandling.WriteAsString)] decimal Received,
+    [property: JsonNumberHandling(JsonNumberHandling.WriteAsString)] decimal Issued);
 public sealed record ReportSection(string Key, string[] Columns, IReadOnlyList<Dictionary<string, object?>> Rows);
 public sealed record ReportResult(string SnapshotId, string Key, DateTimeOffset Snapshot, InsightFilters Filters,
     string[] Columns, IReadOnlyList<Dictionary<string, object?>> Rows, int TotalCount,

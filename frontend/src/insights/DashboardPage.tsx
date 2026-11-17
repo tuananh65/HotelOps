@@ -1,3 +1,4 @@
+import { DashboardSourceRecords } from "./DashboardSourceRecords";
 import { HomeNavigation } from "../shared-host/HomeNavigation";
 import { DashboardFilters } from "./DashboardFilters";
 import { dashboardWorkloadLink } from "./dashboardWorkloadLink";
@@ -22,9 +23,12 @@ const sources: Record<string, string> = {
   "incidents.status/severity_id": "Open incidents / severity",
   "maintenance_works.status": "Maintenance work",
   "low_stock.warehouse_id": "Low stock by warehouse",
+  "preventive_occurrences.workflow_status": "Preventive occurrences",
+  "stock_movements.category": "Stock movements by item category / base unit",
 };
 const quantities: Record<string, string> = {
   netStockMovement: "Net stock movement",
+  stockReceived: "Stock received", stockIssued: "Stock issued", transferLosses: "Transfer losses",
   outstandingApproved: "Outstanding approved materials",
   openReplenishment: "Open replenishment",
 };
@@ -46,6 +50,9 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
       ? state.authorityGeneration
       : null;
   const [query, setQuery] = useState("");
+  const [source, setSource] = useState<string | null>(null);
+  const [metric, setMetric] = useState<string | undefined>();
+  const metricSources: Record<string, string> = { openIncidents: "incidents", responseHours: "incidents", resolutionHours: "incidents", slaCompliance: "incidents", reopenedIncidents: "incidents", incidentBlockedRooms: "incidents", preventiveDue: "occurrences", preventiveOverdue: "occurrences", lowStockItems: "stock", transferLosses: "transfers" };
   const [retry, setRetry] = useState(0);
   const key = `${roomsOnly}:${query}:${retry}`;
   const [result, setResult] = useState<{
@@ -136,6 +143,11 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
                 </ul>
                 </>
               )}
+              {!roomsOnly && <nav aria-label="Dashboard drill-down">
+                {["incidents", "occurrences", "stock", "requests", "replenishment", "transfers"].map(kind =>
+                  <button key={kind} onClick={() => { setMetric(undefined); setSource(kind); }}>View {kind} records</button>)}
+              </nav>}
+              {!roomsOnly && source && <DashboardSourceRecords key={source + key + metric} source={source} metric={metric} filters={data.filters} close={() => setSource(null)} />}
               <section aria-label="Dashboard indicators">
                 <dl>
                   {data.metrics.map((m) => (
@@ -145,6 +157,7 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
                         <span>{m.value === null
                           ? "N/A"
                           : `${m.value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${m.unit}`}</span>
+                        {!roomsOnly && m.value !== null && metricSources[m.key] && <button onClick={() => { setSource(metricSources[m.key]); setMetric(m.key); }}>View source records</button>}
                         {m.value !== null && ["activeRooms", "readyRooms", "readyRatio"].includes(m.key) && <RoomLinks filters={data.filters} status={m.key === "activeRooms" ? undefined : "READY"} />}
                         {m.value !== null && dashboardWorkloadLink(data.filters, m.key) && (
                           <> <Link to={dashboardWorkloadLink(data.filters, m.key)!}>Review workload</Link></>
@@ -184,6 +197,11 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
               </section>
               {!roomsOnly && <section aria-label="Material quantities">
                 <h2>Material quantities</h2>
+                {!!data.categoryQuantities?.length && <table aria-label="Received and issued by item category"><thead><tr>
+                  <th>Item category</th><th>Warehouse</th><th>Base unit</th><th>Received</th><th>Issued</th>
+                </tr></thead><tbody>{data.categoryQuantities.map((q, i) => <tr key={i}>
+                  <td>{q.categoryId}</td><td>{q.warehouseId}</td><td>{q.uomId}</td><td>{q.received}</td><td>{q.issued}</td>
+                </tr>)}</tbody></table>}
                 <p>Quantities stay separate by item, unit and warehouse.</p>
                 {data.quantities.length === 0 ? (
                   <p>No matching material quantities.</p>
@@ -192,7 +210,7 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
                     <thead>
                       <tr>
                         <th>Category</th>
-                        <th>Item ID</th>
+                        <th>Item category</th><th>Item ID</th>
                         <th>Unit ID</th>
                         <th>Warehouse ID</th>
                         <th>Quantity</th>
@@ -201,8 +219,8 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
                     <tbody>
                       {data.quantities.map((q, i) => (
                         <tr key={i}>
-                          <td>{quantities[q.kind] ?? "Other quantity"}</td>
-                          <td>{q.itemId}</td>
+                          <td>{quantities[q.kind] ?? "Other quantity"} <button onClick={() => { setSource(q.kind === "outstandingApproved" ? "requests" : q.kind === "openReplenishment" ? "replenishment" : q.kind === "transferLosses" ? "transfers" : "stock"); setMetric(q.kind); }}>View source</button></td>
+                          <td>{q.categoryId ?? "N/A"}</td><td>{q.itemId}</td>
                           <td>{q.uomId}</td>
                           <td>{q.warehouseId ?? "—"}</td>
                           <td>{q.quantity}</td>

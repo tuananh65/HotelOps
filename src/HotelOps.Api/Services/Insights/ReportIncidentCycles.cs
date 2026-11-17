@@ -104,6 +104,16 @@ internal static class ReportIncidentCycles
                     resolved != null && sla?.ResolutionDeadlineAt != null ? resolved < sla.ResolutionDeadlineAt : null,
                     errors.Count == 0 ? null : string.Join(";", errors.Distinct())));
             }
+            // A newly reopened cycle can legitimately have no maintenance work
+            // until triage/assignment. Do not mistake the previous closed cycle
+            // for the current cycle or lose its proven reopen event.
+            if (cycleError == null && cycles.LastOrDefault() is {} latest
+                && !works.Any(w => w.CreatedAt >= latest.ReopenedAt))
+            {
+                var sla = await IncidentSlaRead.ReadAsync(db, incident.IncidentId, ct);
+                result.Add(new(incident.IncidentId, null, latest.EventId, latest.DiscoveredAt, null, null,
+                    sla?.ResponseDeadlineAt, sla?.ResolutionDeadlineAt, null, null, null, "CURRENT_CYCLE_NOT_STARTED"));
+            }
         }
         return result.ToArray();
     }

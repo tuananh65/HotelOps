@@ -28,10 +28,12 @@ internal static class ReportPreventiveOccurrences
                 && (filters.DepartmentId == null || r.Schedule.AssignedDepartmentId == filters.DepartmentId))
             .Select(r => new { r.RunId, r.ScheduleId, r.MaintenanceWorkId, r.PlannedAt, r.PerformedAt, r.PerformedBy, r.Result,
                 r.Schedule.AssignedDepartmentId, r.Schedule.AssetId, r.Schedule.RoomId, r.Schedule.AreaId,
+                DepartmentBranch = r.Schedule.AssignedDepartment == null ? (long?)null : r.Schedule.AssignedDepartment.BranchId,
                 BranchId = r.Schedule.AssetId != null && r.Schedule.RoomId == null && r.Schedule.AreaId == null ? (long?)r.Schedule.Asset!.BranchId
                     : r.Schedule.AssetId == null && r.Schedule.RoomId != null && r.Schedule.AreaId == null ? r.Schedule.Room!.BranchId
                     : r.Schedule.AssetId == null && r.Schedule.RoomId == null && r.Schedule.AreaId != null ? r.Schedule.Area!.BranchId : null })
-            .Where(r => r.BranchId != null && filters.BranchIds.Contains(r.BranchId.Value))
+            .Where(r => r.BranchId != null && filters.BranchIds.Contains(r.BranchId.Value)
+                && (r.AssignedDepartmentId == null || r.DepartmentBranch == r.BranchId))
             .OrderBy(r => r.PlannedAt).ThenBy(r => r.RunId).Take(50001).ToArrayAsync(ct);
         if (runs.Length > 50000) throw new InsightException(422, "REPORT_ROW_LIMIT", "Narrow the occurrence period.");
         var ids = runs.Select(r => r.RunId).ToArray();

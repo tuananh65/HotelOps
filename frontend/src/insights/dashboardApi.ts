@@ -20,8 +20,10 @@ export interface Dashboard {
     uomId: number;
     warehouseId: number | null;
     quantity: string;
+    categoryId?: number | null;
   }[];
   missingSources: string[];
+  categoryQuantities?: { categoryId: number; uomId: number; warehouseId: number; received: string; issued: string }[];
 }
 const object = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === "object" && !Array.isArray(v);
@@ -100,6 +102,10 @@ export async function readDashboard(
     !text(v.filters.from) ||
     !text(v.filters.to) ||
     v.filters.calendar !== "UTC" ||
+    (v.categoryQuantities !== undefined && (!Array.isArray(v.categoryQuantities) || !v.categoryQuantities.every(q =>
+      object(q) && id(q.categoryId) && id(q.uomId) && id(q.warehouseId)
+        && typeof q.received === "string" && /^-?\d+(?:\.\d+)?$/.test(q.received)
+        && typeof q.issued === "string" && /^-?\d+(?:\.\d+)?$/.test(q.issued)))) ||
     !Array.isArray(v.metrics) ||
     !v.metrics.every(
       (m) =>
