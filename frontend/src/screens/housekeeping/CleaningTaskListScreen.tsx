@@ -149,6 +149,9 @@ function CleaningMonitorScreen({
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
+      <p aria-label="Applied monitor filters">Applied filters: {Array.from(effectiveParams.entries())
+        .filter(([name]) => !["page", "pageSize", "view"].includes(name))
+        .map(([name, value]) => name + "=" + value).join("; ") || "Default"}</p>
       {data && (
         <>
           <p>
@@ -156,7 +159,7 @@ function CleaningMonitorScreen({
             {data.timezone} · Chi nhánh {branch}
           </p>
           {data.items.length === 0 ? (
-            <p>Không có công việc phù hợp bộ lọc.</p>
+            <p>MSG10: Không có công việc phù hợp bộ lọc.</p>
           ) : (
             <div className="table-wrap">
               <table>

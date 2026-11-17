@@ -45,11 +45,11 @@ export function cancellationCommand(
     options.capability !== "PROVISIONAL_V1" ||
     !tag(options.sourceETag) ||
     !confirmed ||
-    !text ||
+    text.length < 10 ||
     text.length > 500 ||
     /[\u0000-\u001f\u007f]/.test(text)
   )
-    throw new Error("Confirmation and reason required");
+    throw new Error("Confirmation and a reason of 10-500 characters required");
   return { confirmed: true, reason: text };
 }
 export async function cancelCleaning(

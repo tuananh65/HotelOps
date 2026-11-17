@@ -47,7 +47,7 @@ export default function CleaningMonitorDetail({
   return (
     <>
       <h1>Cleaning Task Detail</h1>
-      {cancelled && <p role="status">Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.</p>}
+      {cancelled && <p role="status">MSG08: Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.</p>}
       {kind === "cleaning" && (
         <Link to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}>
           Start / Reassign

@@ -12,7 +12,7 @@ public static class CleaningCancellationRules
         if (branch <= 0 || task <= 0 || !CleaningLifecycleRules.StrongTag(tag) || !input.Confirmed)
             throw new ValidationException("Positive branch/task, confirmation and a strong task ETag are required.");
         CleaningLifecycleRules.Operation(key);
-        return CleaningLifecycleRules.Reason(input.Reason, 1);
+        return CleaningLifecycleRules.Reason(input.Reason);
     }
 
     public static bool CanCancel(string? state, string status, DateTime? started, DateTime? ended, int assignments)

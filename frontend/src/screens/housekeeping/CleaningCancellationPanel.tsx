@@ -24,6 +24,7 @@ export default function CleaningCancellationPanel({
   const [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false);
+  const [reload, setReload] = useState(0);
   const pending = useRef<{
     key: string;
     reason: string;
@@ -47,7 +48,7 @@ export default function CleaningCancellationPanel({
           setMessage("Chưa thể xác minh quyền hoặc điều kiện hủy.");
       });
     return () => { mounted.current = false; abort.abort(); };
-  }, [branch, task]);
+  }, [branch, task, reload]);
   if (!options && !message) return null;
   const retry = pending.current;
   let valid = false;
@@ -98,10 +99,12 @@ export default function CleaningCancellationPanel({
     <section aria-label="Hủy công việc vệ sinh">
       <h2>Hủy công việc vệ sinh</h2>
       {message && <p role="status">{message}</p>}
+      {!options && message && !busy && !pending.current && (
+        <button type="button" onClick={() => setReload(v => v + 1)}>Reload cancellation conditions</button>
+      )}
       {options?.capability === "UNAVAILABLE" && (
         options.blocker === "TASK_ALREADY_STARTED" || options.blocker === "TASK_HAS_EXECUTION_HISTORY" ? (
-          <p role="status">
-            Công việc đã bắt đầu hoặc có lịch sử thực hiện nên không thể hủy. Bạn có thể xem phương án phân công lại.{" "}
+          <p role="status">MSG24: Công việc đã bắt đầu hoặc có lịch sử thực hiện nên không thể hủy. Bạn có thể xem phương án phân công lại.{" "}
             <Link to={`/cleaning/tasks/${encodeURIComponent(task)}?branchId=${encodeURIComponent(branch)}&execution=1`}>
               Phân công lại
             </Link>
@@ -114,12 +117,16 @@ export default function CleaningCancellationPanel({
             Lý do hủy
             <textarea
               aria-label="Lý do hủy"
+              minLength={10}
               maxLength={500}
+              aria-describedby="cleaning-cancellation-reason-policy"
               value={reason}
               disabled={busy || !!retry}
               onChange={(e) => setReason(e.target.value)}
             />
           </label>
+          <p id="cleaning-cancellation-reason-policy">Reason: 10-500 characters after trimming.</p>
+          <p>MSG33: Confirm cancellation of this cleaning task?</p>
           <label>
             <input
               type="checkbox"
