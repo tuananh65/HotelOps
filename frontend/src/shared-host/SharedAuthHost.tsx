@@ -1,3 +1,4 @@
+import { HomeNavigation } from "./HomeNavigation";
 import { EmployeeMembershipPage } from "../users/EmployeeMembershipPage";
 import { SecureShiftPlanWorkspace } from "../workday/SecureShiftPlanWorkspace";
 import { ReferenceCatalogPage } from "../operationalTasks/ReferenceCatalogPage";
@@ -347,15 +348,19 @@ export function SharedAuthHost({
         path="*"
         element={
           <Protected>
-            <Link to="/profile">Profile</Link>
+            <HomeNavigation enabled={[
+              "/profile", ...(usersReadEnabled ? ["/users"] : []),
+              ...(structureReadEnabled ? ["/hotel", "/room-directory"] : []),
+              ...(auditReadEnabled ? ["/audit"] : []), ...(dashboardEnabled ? ["/dashboard"] : []),
+              ...(notificationsEnabled ? ["/notifications"] : [])]} />
             {(inspectionExecutionEnabled || notificationsEnabled) && <Link to="/inspection-history">Inspection history</Link>}
             {checklistEnabled && <Link to="/inspections/checklists">Inspection checklists</Link>}
-            {usersReadEnabled && <Link to="/users">Users</Link>}
+
             {roleAssignmentEnabled && <Link to="/roles">Roles and permissions</Link>}
-            {structureReadEnabled && <><Link to="/hotel">Structure</Link><Link to="/structure/work-categories">Work categories</Link><Link to="/structure/priority-sla">Priority SLA</Link><Link to="/structure/reference-data">Reference data</Link></>}
-            {structureReadEnabled && <Link to="/room-directory">Room directory</Link>}
-            {auditReadEnabled && <Link to="/audit">Audit history</Link>}
-            {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
+            {structureReadEnabled && <><Link to="/structure/work-categories">Work categories</Link><Link to="/structure/priority-sla">Priority SLA</Link><Link to="/structure/reference-data">Reference data</Link></>}
+
+
+
             {dashboardEnabled && <ReportAccessLink />}
             {internalRequestsEnabled && <InternalRequestAccessLink />}
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
@@ -366,9 +371,7 @@ export function SharedAuthHost({
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>
             )}
-            {notificationsEnabled && (
-              <Link to="/notifications">Notifications</Link>
-            )}
+
             <OperationsRoutes />
           </Protected>
         }

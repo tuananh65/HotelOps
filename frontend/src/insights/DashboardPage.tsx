@@ -1,3 +1,4 @@
+import { HomeNavigation } from "../shared-host/HomeNavigation";
 import { DashboardFilters } from "./DashboardFilters";
 import { dashboardWorkloadLink } from "./dashboardWorkloadLink";
 import { ReportAccessLink } from "./ReportsPage";
@@ -78,11 +79,7 @@ export function DashboardPage() {
       <nav>
         <ReportAccessLink />{" "}
         <InternalRequestAccessLink />{" "}
-        <Link to="/users">Users</Link> <Link to="/hotel">Structure</Link>{" "}
-        <Link to="/rooms/status">Room status board</Link>{" "}
-        <Link to="/notifications">Notifications</Link>{" "}
-        <Link to="/audit">Audit history</Link>{" "}
-        <Link to="/profile">Profile</Link>
+        <HomeNavigation />
       </nav>
       {!owner ? (
         <p role="status">

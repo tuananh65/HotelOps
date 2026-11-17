@@ -24,6 +24,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
 builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Authentication.HomeNavigationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.InsightAccess>();
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.NotificationCenterOptions>().BindConfiguration("NotificationCenter").Validate(o => o.RetentionDays is >= 1 and <= 3650).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.NotificationCenterService>();
