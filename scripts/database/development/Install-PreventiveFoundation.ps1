@@ -1,4 +1,4 @@
-param([switch]$Apply)
+param([switch]$Apply, [switch]$Execution)
 $ErrorActionPreference = 'Stop'
 $server = 'meita\MSSQLSERVER01'
 $database = 'HotelOpsDB'
@@ -7,6 +7,11 @@ $workspace = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $packages = [ordered]@{
     'PreventiveSchedule.sql' = 'A2A6D6EE058C07115F32BA0EC3A35E81137B535293541CE7FC5A1B97914C4904'
     'PreventiveOccurrence.sql' = '049CF603D389025480B138990D368A9FD0B34CDC80BBED3787D791D752D066E9'
+}
+if ($Execution) {
+    $packages['PreventiveCompletion.sql'] = '2F0835B86AE14078B262456CCFA0FB468201F5B5030829E2E8191445F64C380E'
+    $packages['PreventiveEvidence.sql'] = '90849C4789A95EB130561CAE055EC68916B67B26CE467262D1F3835BD8593D77'
+    $packages['PreventiveIncident.sql'] = '60BC4E641D4462BB3F0B1BA959D4711F3045E430E4BEF82DED830BD26F3634DD'
 }
 $commands = @()
 foreach ($entry in $packages.GetEnumerator()) {
@@ -48,7 +53,7 @@ SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))=@server
         try { [void]$command.ExecuteNonQuery() } finally { $command.Dispose() }
     }
     $transaction.Commit()
-    Write-Output 'APPLIED: UC061 schedule metadata and immutable occurrence provenance. No grants, business rows or worker activation.'
+    Write-Output ('APPLIED: UC061 schedule/occurrence storage; UC062 execution storage=' + $Execution + '. No grants, business rows or worker activation.')
 } catch {
     if ($transaction) { try { $transaction.Rollback() } catch {} }
     throw

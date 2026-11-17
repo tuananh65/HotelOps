@@ -522,6 +522,9 @@ function Screen({
       {maintenanceCommitNotice && <p role="status">{maintenanceCommitNotice}</p>}
       {incidentCommitNotice && <p role="status">{incidentCommitNotice}</p>}
       {context.occurrenceId != null && <p role="status">Reporting a failed check from occurrence #{String(context.occurrenceId)}. Keep the original target. After saving, reload the occurrence before continuing.</p>}
+      {Number.isSafeInteger(Number(context.occurrenceId)) && Number(context.occurrenceId) > 0
+        && Number.isSafeInteger(Number(branch)) && Number(branch) > 0 &&
+        <Link to={`/operations/maintenance?branchId=${Number(branch)}&runId=${Number(context.occurrenceId)}`}>Return to maintenance occurrence</Link>}
       {context.internalRequestId != null && actionId === config.create && !available.some(op => op.id === actionId) && <p role="status">
         Creating this linked work is unavailable with the current access. No linked work has been created.{" "}
         <Link to={`/internal-requests?requestId=${encodeURIComponent(String(context.internalRequestId))}`}>Return to source</Link>

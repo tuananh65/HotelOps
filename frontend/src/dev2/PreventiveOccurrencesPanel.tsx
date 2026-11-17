@@ -35,6 +35,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [busy,setBusy] = useState(false), sending = useRef(false);
   const [assignees,setAssignees] = useState<Record<number,string>>({}), [reasons,setReasons] = useState<Record<number,string>>({});
   const [uncertain,setUncertain] = useState(false);
+  const [workdayRequired,setWorkdayRequired] = useState(false);
   const [hasMore,setHasMore] = useState(false);
   const [filterAssignee,setFilterAssignee] = useState(""), [keyword,setKeyword] = useState("");
   const [dueFrom,setDueFrom] = useState(""), [dueTo,setDueTo] = useState(""), [overdue,setOverdue] = useState("");
@@ -104,7 +105,25 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
         method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":row.version},
         body:JSON.stringify(complete ? {results,note:notes[row.runId] ?? null,files} : start ? {} : cancel ? {reason} : {assigneeId}) });
-      if (!response.ok) throw Error(response.status === 412 ? "Occurrence changed." : `Change not confirmed (${response.status}).`);
+      if (!response.ok) {
+        const problem: unknown = await response.json().catch(() => null);
+        const code = isObject(problem) && typeof problem.code === "string" ? problem.code : null;
+        const rejected = response.status === 400 && code !== null && ["INVALID_CHECK_RESULTS", "MANDATORY_CHECK_RESULTS_REQUIRED", "MSG23",
+          "CANCELLATION_REASON_REQUIRED", "ASSIGNEE_REQUIRED", "TECHNICIAN_EXECUTION_AUTHORITY_REQUIRED", "TECHNICIAN_READ_AUTHORITY_REQUIRED"].includes(code);
+        const workday = response.status === 409 && code === "TIME_WORKDAY_REQUIRED";
+        const busyWork = response.status === 409 && code === "TIME_INTERVAL_ALREADY_OPEN";
+        if (rejected || workday || busyWork) {
+          if (!abort.signal.aborted && current.current === owner) {
+            setWorkdayRequired(workday);
+            setMessage(workday ? "MSG30: Start a Working workday in this branch before starting the occurrence."
+              : busyWork ? "MSG31: Another work interval is open. Complete or pause that work before starting this occurrence."
+              : code === "MSG23" ? "Evidence was rejected. Check file content, type and size, then submit again."
+              : "Input was rejected. Check results, assignee and reason; your draft is retained for correction.");
+          }
+          return;
+        }
+        throw Error(response.status === 412 ? "Occurrence changed." : `Change not confirmed (${response.status}).`);
+      }
       const raw: unknown = await response.json();
       if (!valid(raw) || raw.runId !== row.runId) throw Error("Change response could not be confirmed.");
       if (!abort.signal.aborted && current.current === owner) {
@@ -141,7 +160,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       if (!abort.signal.aborted && current.current === owner) {
         setRows(more ? [...rows,...raw] : raw); setHasMore(runId == null && raw.length === 50);
         if (!more) {
-          setUncertain(false); setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
+          setUncertain(false); setWorkdayRequired(false); setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
         }
         if (!raw.length) setMessage("No further occurrences in your current scope.");
       }
@@ -166,6 +185,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
     {runId == null && hasMore && !!rows.length && <button disabled={busy || uncertain} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
+    {workdayRequired && <Link to={`/workday?branchId=${branchId}`}>Open my workday</Link>}
     {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
       <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeName ?? r.assigneeId ?? "Pending assignment"}.</p>
       <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
