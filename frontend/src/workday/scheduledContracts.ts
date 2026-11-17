@@ -107,7 +107,7 @@ export function scheduledMessage(
     case 403:
       return "Server denied this operation.";
     case 409:
-      return "Workday conflict or open interval. Refresh and review; Pause All is not supported.";
+      return "MSG03 / MSG31: Workday state changed or work is still running. Refresh; review open work and use Pause All when available.";
     case 412:
       return "Workday version changed. Refresh and review; no replay.";
     case 503:

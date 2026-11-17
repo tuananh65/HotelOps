@@ -20,6 +20,18 @@ public sealed partial class SqlWorkTimeTransactionParticipant
         var memberships = await WorkdayMembershipStore.ReadAsync(db, actor, branch, now, ct);
         var selected = WorkdayMembershipStore.Select(memberships, department);
         now = await NowAsync(ct);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now,
+            TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")));
+        var departmentIds = memberships.Select(d => d.DepartmentId).ToArray();
+        // Use the same eligible, unclaimed population offered by OwnShifts; a client
+        // cannot turn an available scheduled assignment into an unscheduled workday.
+        if (await ScheduledWorkdayClaims.Unclaimed(db.ShiftAssignments.AsNoTracking(), db.Workdays.AsNoTracking())
+            .AnyAsync(a => a.UserId == actor && a.AssignmentStatus == "ASSIGNED" && a.AssignedAt <= now
+                && a.Shift.BranchId == branch && a.Shift.Status == "PLANNED" && a.Shift.ShiftDate == today
+                && a.Shift.ScheduledEndAt > a.Shift.ScheduledStartAt && departmentIds.Contains(a.Shift.DepartmentId)
+                && a.Shift.ShiftTemplate.BranchId == branch && a.Shift.ShiftTemplate.IsActive
+                && a.Shift.Department.BranchId == branch && a.Shift.Department.IsActive, ct))
+            throw Failure("TIME_SCHEDULED_ASSIGNMENT_AVAILABLE");
         var day = new Workday
         {
             UserId = actor, BranchId = branch, DepartmentId = selected,

@@ -78,7 +78,7 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         if(dueFrom>dueTo)throw new InternalRequestReadException(400,"INVALID_DUE_RANGE");
         var fromUtc=dueFrom?.UtcDateTime;var toUtc=dueTo?.UtcDateTime;
         if(branch<=0||id is <=0||afterId<0)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
-        if(status is not (null or "OPEN" or "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED"))
+        if(status is not (null or "OPEN" or "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD" or "COMPLETED" or "CANCELLED"))
             throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_STATUS");
         await using var tx=db.Database.CurrentTransaction==null
             ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct) : null;
@@ -118,10 +118,10 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
                 OR CONVERT(varchar(30),r.run_id)={keyword} OR CONVERT(varchar(30),r.schedule_id)={keyword})
               AND ({fromUtc} IS NULL OR r.planned_at>={fromUtc}) AND ({toUtc} IS NULL OR r.planned_at<={toUtc})
               AND ({overdue} IS NULL
-                OR ({overdue}=1 AND r.planned_at<{evaluatedAt} AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS'))
+                OR ({overdue}=1 AND r.planned_at<{evaluatedAt} AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS','ON_HOLD'))
                 OR ({overdue}=0 AND (r.planned_at>={evaluatedAt} OR d.workflow_status IN('COMPLETED','CANCELLED'))))
               AND ({status} IS NULL OR d.workflow_status={status}
-                OR ({status}='OPEN' AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS')))
+                OR ({status}='OPEN' AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS','ON_HOLD')))
               AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
                     AND EXISTS(SELECT 1 FROM dbo.assets a WHERE a.asset_id=s.asset_id AND a.branch_id={branch}))
                 OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
@@ -134,6 +134,7 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         var canAssign=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"MAINTENANCE_ASSIGN",ct);
         var canCancel=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"PM_MANAGE",ct);
         var canExecute=await MaintenanceExecutionAccess.GrantsAsync(db,ticket.UserId,branch,ct);
+        var holdInstalled=await PreventiveOccurrenceEndOfShift.InstalledAsync(db,ct);
         var completionInstalled=await PreventiveOccurrenceExecutionService.CompletionInstalledAsync(db,ct);
         foreach(var row in rows)
         {
@@ -174,9 +175,9 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
                 snapshot.AssetId,snapshot.RoomId,snapshot.AreaId,row.AssigneeId,row.Status,
                 DateTime.SpecifyKind(row.DueAt,DateTimeKind.Utc),row.PerformedAt is {} performed?DateTime.SpecifyKind(performed,DateTimeKind.Utc):null,
                 row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
-                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED",
+                canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&(row.Status=="ASSIGNED"||(holdInstalled&&row.Status=="ON_HOLD")),
                 completionInstalled&&canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="IN_PROGRESS",savedResults,
-                row.DueAt<evaluatedAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS")
+                row.DueAt<evaluatedAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD")
                 {AssigneeName=row.AssigneeName,RoomNumber=row.RoomNumber,AreaName=row.AreaName,AssetCode=row.AssetCode,AssetName=row.AssetName});
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);

@@ -15,7 +15,7 @@ type History = { previousOccurrences: Occurrence[]; incidents: LinkedIncident[] 
 type Evidence = { id: number; name: string; mimeType: string; size: number };
 function valid(v: unknown): v is Occurrence {
   return isObject(v) && positive(v.runId) && positive(v.scheduleId) && typeof v.title === "string" && typeof v.instruction === "string"
-    && typeof v.status === "string" && ["PENDING_ASSIGNMENT","ASSIGNED","IN_PROGRESS","COMPLETED","CANCELLED"].includes(v.status)
+    && typeof v.status === "string" && ["PENDING_ASSIGNMENT","ASSIGNED","IN_PROGRESS","ON_HOLD","COMPLETED","CANCELLED"].includes(v.status)
     && typeof v.isOverdue === "boolean" && typeof v.dueAt === "string" && Number.isFinite(Date.parse(v.dueAt))
     && (v.performedAt === null || typeof v.performedAt === "string" && Number.isFinite(Date.parse(v.performedAt)))
     && [v.result,v.note].every(x => x === null || typeof x === "string")
@@ -131,7 +131,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
         // scope. Discard list pagination; detail may use the authorized response.
         setRows(runId != null ? [raw] : []); setHasMore(false); setHistory({}); setEvidence({});
         setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
-        setMessage((complete ? "Occurrence completed; work interval closed." : start ? "Occurrence started; work interval opened." : cancel ? "Occurrence cancelled." : "Technician assigned.")
+        setMessage((complete ? "Occurrence completed; work interval closed." : start ? (row.status === "ON_HOLD" ? "Occurrence resumed; new work interval opened." : "Occurrence started; work interval opened.") : cancel ? "Occurrence cancelled." : "Technician assigned.")
           + (runId == null ? " Reload occurrences to refresh your filtered work list." : ""));
       }
     } catch(e) { if (!abort.signal.aborted && current.current === owner) { setMessage(String(e)+(submitted ? " Reload before another change." : "")); if(submitted)setUncertain(true); } }
@@ -173,7 +173,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setFilterAssignee("");setRows([]);setHistory({});setEvidence({});}} />Assigned to me</label>
       <label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
         <option value="OPEN">Open work</option><option value="">All statuses</option><option value="PENDING_ASSIGNMENT">Pending assignment</option>
-        <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
+        <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="ON_HOLD">On hold</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
       </select></label>
       <label>Search title, occurrence or schedule ID<input maxLength={200} value={keyword} onChange={e=>{setKeyword(e.target.value);clearResults();}} /></label>
       <label>Assignee user ID<input type="number" min="1" step="1" disabled={mine} value={filterAssignee} onChange={e=>{setFilterAssignee(e.target.value);clearResults();}} /></label>
@@ -200,7 +200,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
         {!history[r.runId].incidents.length && <p>No linked incidents available in your scope.</p>}
         <ul>{history[r.runId].incidents.map(i => <li key={i.incidentId}><Link to={`/operations/incidents/${i.incidentId}?branchId=${branchId}`}>{i.number}: {i.title}</Link> — {i.status} — check {r.checkItems.find(c=>c.key===i.checkKey)?.description ?? i.checkKey}</li>)}</ul>
       </section>}
-      {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>Start occurrence</button>}
+      {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>{r.status === "ON_HOLD" ? "Resume occurrence" : "Start occurrence"}</button>}
       {r.canComplete && <fieldset disabled={busy || uncertain}><legend>Record check results</legend>
         {r.checkItems.map(c => <div key={c.key}><label>{c.description}{c.required ? " (required)" : ""}<select value={outcomes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setOutcomes({...outcomes,[`${r.runId}:${c.key}`]:e.target.value})}><option value="">Select result</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select></label>
           <label>Check note<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label>

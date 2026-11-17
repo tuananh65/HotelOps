@@ -28,15 +28,19 @@ public sealed partial class PreventiveOccurrenceExecutionService(HotelOpsDbConte
             var before=(await reader.ReadAsync(ticket,sid,branch,id,0,ct)).Single();
             if(before.Version!=version)throw new InternalRequestReadException(412,"OCCURRENCE_CHANGED");
             if(before.AssigneeId!=ticket.UserId)throw new InternalRequestReadException(403,"CURRENT_ASSIGNEE_REQUIRED");
-            if(before.Status!="ASSIGNED")throw new InternalRequestReadException(409,"ASSIGNED_OCCURRENCE_REQUIRED");
+            var resume=before.Status=="ON_HOLD";
+            if(resume && (!await PreventiveOccurrenceEndOfShift.InstalledAsync(db,ct)
+                || !await PreventiveOccurrenceEndOfShift.HasResumeEvidenceAsync(db,ticket.UserId,branch,id,ct)))
+                throw new InternalRequestReadException(409,"OCCURRENCE_RESUME_EVIDENCE_REQUIRED");
+            if(before.Status!="ASSIGNED"&&!resume)throw new InternalRequestReadException(409,"ASSIGNED_OCCURRENCE_REQUIRED");
             var run=await db.PreventiveMaintenanceRuns.FromSqlInterpolated($"SELECT * FROM dbo.preventive_maintenance_runs WITH(UPDLOCK,HOLDLOCK) WHERE run_id={id}")
                 .AsNoTracking().SingleAsync(ct);
             if(run.PerformedAt!=null||run.PerformedBy!=null||run.Result!=null||run.MaintenanceWorkId!=null
-                ||await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="OCCURRENCE"&&i.WorkItemId==id,ct))
+                ||await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="OCCURRENCE"&&i.WorkItemId==id&&(!resume||i.ClosedAt==null),ct))
                 throw new InternalRequestReadException(409,"OCCURRENCE_EXECUTION_CONFLICT");
             var affected=await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.preventive_occurrence_details SET workflow_status='IN_PROGRESS'
-                WHERE run_id={id} AND branch_id={branch} AND assignee_id={ticket.UserId} AND workflow_status='ASSIGNED'
+                WHERE run_id={id} AND branch_id={branch} AND assignee_id={ticket.UserId} AND workflow_status={before.Status}
                   AND CONVERT(varchar(16),row_version,2)={version[1..^1]}
                 """,ct);
             if(affected!=1)throw new InternalRequestReadException(412,"OCCURRENCE_CHANGED");
@@ -44,7 +48,7 @@ public sealed partial class PreventiveOccurrenceExecutionService(HotelOpsDbConte
             db.AuditLogs.Add(new AuditLog{BranchId=branch,ActorUserId=ticket.UserId,EntityType="preventive_maintenance_runs",
                 EntityId=id.ToString(CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=interval.OpenedAtUtc,
                 OldValues=JsonSerializer.Serialize(new{status=before.Status,version=before.Version}),
-                NewValues=JsonSerializer.Serialize(new{eventType="PREVENTIVE_OCCURRENCE_STARTED",runId=id,status="IN_PROGRESS",
+                NewValues=JsonSerializer.Serialize(new{eventType=resume?"PREVENTIVE_OCCURRENCE_RESUMED":"PREVENTIVE_OCCURRENCE_STARTED",runId=id,status="IN_PROGRESS",
                     intervalId=interval.IntervalId,workdayId=interval.WorkdayId,startedAt=interval.OpenedAtUtc})});
             await db.SaveChangesAsync(ct);
             if(!await MaintenanceExecutionAccess.GrantsAsync(db,ticket.UserId,branch,ct))

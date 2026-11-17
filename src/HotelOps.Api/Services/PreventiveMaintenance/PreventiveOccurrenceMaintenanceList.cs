@@ -18,7 +18,7 @@ public sealed partial class PreventiveOccurrenceReadService
         var source = input.Source?.Trim().ToUpperInvariant();
         var status = input.Status?.Trim().ToUpperInvariant();
         if (source == "INCIDENT" || input.IncidentId != null || input.PriorityId != null
-            || status is "PENDING" or "ON_HOLD" or "CLOSED") return [];
+            || status is "PENDING" or "CLOSED") return [];
         if (string.IsNullOrEmpty(status)) status = null;
         var result = new List<MaintenanceWorkListDto>();
         long after = 0;
@@ -37,7 +37,7 @@ public sealed partial class PreventiveOccurrenceReadService
             foreach (var row in page)
             {
                 if (!standalone.TryGetValue(row.RunId, out var run)) continue;
-                var overdue = evaluatedAt > row.DueAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS";
+                var overdue = evaluatedAt > row.DueAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD";
                 if (input.Overdue != null && input.Overdue != overdue) continue;
                 result.Add(new MaintenanceWorkListDto
                 {

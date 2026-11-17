@@ -84,6 +84,13 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                 {
                     if (interval.WorkdayId != workdayId || interval.BranchId != branchId)
                         return new(409, Code: "TIME_STATE_CONFLICT");
+                    if (interval.WorkItemKind == "OCCURRENCE")
+                    {
+                        var held = await HotelOps.Api.Services.PreventiveMaintenance.PreventiveOccurrenceEndOfShift.HoldAsync(
+                            db, participant, actor.UserId, branchId, interval.WorkItemId, ct);
+                        if (held.Status != 200) return held;
+                        continue;
+                    }
                     if (interval.WorkItemKind == "MAINTENANCE")
                     {
                         var held = await HotelOps.Api.Services.Maintenance.MaintenanceEndOfShift.HoldAsync(

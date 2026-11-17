@@ -183,7 +183,7 @@ function Bound({
     !!day &&
     day.branchId === branchId &&
     (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
-    (day.openInterval === null || ["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind)) &&
+    (day.openInterval === null || ["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind)) &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
     if (
@@ -248,7 +248,7 @@ function Bound({
       setReceipt(result.data);
       setDay(undefined);
       setMessage(
-        `${operation === "start" ? "Start" : "End"} confirmed. Refreshing authoritative snapshot.`,
+        `MSG08: ${operation === "start" ? "Start" : "End"} confirmed. Refreshing authoritative snapshot.`,
       );
       setRefresh((n) => n + 1);
     } else {
@@ -303,10 +303,10 @@ function Bound({
         </section>
       )}
       {dispatchEnabled && <UnscheduledStartForm branchId={branchId} current={current}
-        disabled={day!==null||pending||locked} invalidate={invalidateSession}
+        disabled={day!==null||pending||locked||!!shifts?.length} invalidate={invalidateSession}
         onBusy={value=>{busy.current=value;setPending(value);}}
         onUnknown={()=>{uncertain.current=true;setLocked(true);}}
-        onStarted={value=>{setReceipt(value);setDay(undefined);setPending(false);setRefresh(n=>n+1);}}
+        onStarted={value=>{setMessage("MSG08: Unscheduled workday started.");setReceipt(value);setDay(undefined);setPending(false);setRefresh(n=>n+1);}}
       />}
       <section aria-label="Assigned shifts">
         <h2>Assigned shifts</h2>
@@ -349,11 +349,12 @@ function Bound({
         ) : (
           <>
             <p>Working day {day.workdayId}</p>
+            <p>Before ending, review open items and arrange a shift handover when responsibility must pass to another employee.</p>
             {day.openInterval && (
               <p role="alert">
-                {["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind)
-                  ? "Work is running. Pause All will pause or hold it with End of Shift, close its interval and end this workday together."
-                  : "End blocked: complete the preventive occurrence through Scheduled maintenance before ending this workday."}
+                {["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind)
+                  ? "MSG31: Work is running. Review any required handover before ending. Pause All will pause or hold it with End of Shift, close its interval and end this workday together."
+                  : "MSG31: End blocked: this work item has no supported Pause/Hold transition."}
               </p>
             )}
             {day.openInterval?.workItemKind === "OCCURRENCE" && <p><Link to={`/operations/maintenance?branchId=${branchId}&runId=${day.openInterval.workItemId}`}>Open running preventive occurrence</Link></p>}
@@ -373,7 +374,7 @@ function Bound({
         disabled={!dispatchEnabled || !endAllowed || pending || locked}
         onClick={() => prepare("end")}
       >
-        {day?.openInterval && ["TASK", "CLEANING", "REWORK", "MAINTENANCE"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
+        {day?.openInterval && ["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
       </button>
       {review && (
         <section aria-label="Review scheduled workday">
