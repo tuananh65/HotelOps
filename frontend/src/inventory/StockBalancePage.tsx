@@ -8,6 +8,7 @@ type Row = { warehouseId: number; itemId: number; item: string; unit: string; av
   outboundInTransit: number; inboundInTransit: number; minimum: number | null; belowMinimum: boolean };
 type Movement = { movementId: number; documentId: number; document: string; type: string; at: string; quantity: number; runningBalance: number };
 type Result = { snapshot: string; warehouses: Option[]; categories: Option[]; items: Row[]; totalCount: number;
+  ledgerPage: number; ledgerPageSize: number; ledgerTotalCount: number;
   openingBalance: number | null; closingBalance: number | null; ledger: Movement[];
   filters: { page: number; pageSize: number; warehouseId: number | null; itemId: number | null; from: string; to: string } };
 
@@ -47,11 +48,11 @@ export function StockBalancePage() {
   }, [owner, query, refresh, actions, params]);
   const change = (name: string, value: string) => {
     const next = new URLSearchParams(params); value ? next.set(name, value) : next.delete(name);
-    if (name !== "page") next.delete("page");
+    if (name !== "page" && name !== "ledgerPage") { next.delete("page"); next.delete("ledgerPage"); }
     setParams(next);
   };
   const ledger = (row: Row) => {
-    const next = new URLSearchParams(params); next.set("warehouseId", String(row.warehouseId)); next.set("itemId", String(row.itemId)); next.delete("page"); setParams(next);
+    const next = new URLSearchParams(params); next.set("warehouseId", String(row.warehouseId)); next.set("itemId", String(row.itemId)); next.delete("page"); next.delete("ledgerPage"); setParams(next);
   };
   return <section aria-label="Stock balance and movement ledger">
     <h1>Stock balance and movement ledger</h1>
@@ -87,10 +88,13 @@ export function StockBalancePage() {
         <button disabled={data.filters.page * data.filters.pageSize >= data.totalCount} onClick={() => change("page", String(data.filters.page + 1))}>Next</button>
         {data.openingBalance !== null && <>
           <h2>Posted movement ledger</h2><p>{data.filters.from} – {data.filters.to} UTC. Opening {data.openingBalance}; closing {data.closingBalance}.</p>
-          {data.ledger.length === 0 && <p>MSG10: No movements in this period. Opening balance is retained.</p>}
+          {data.ledgerTotalCount === 0 && <p>MSG10: No movements in this period. Opening balance is retained.</p>}
           <table><thead><tr><th>At (UTC)</th><th>Document</th><th>Type</th><th>Quantity</th><th>Running balance</th></tr></thead>
             <tbody>{data.ledger.map(m => <tr key={m.movementId}><td>{m.at}</td><td><Link to={`/inventory/documents/${m.documentId}`}>{m.document}</Link></td>
               <td>{m.type}</td><td>{m.quantity}</td><td>{m.runningBalance}</td></tr>)}</tbody></table>
+          <p>{data.ledgerTotalCount} movements in this period; page {data.ledgerPage}. Opening and closing balances cover the full period.</p>
+          <button disabled={data.ledgerPage <= 1} onClick={() => change("ledgerPage", String(data.ledgerPage - 1))}>Previous movements</button>
+          <button disabled={data.ledgerPage * data.ledgerPageSize >= data.ledgerTotalCount} onClick={() => change("ledgerPage", String(data.ledgerPage + 1))}>Next movements</button>
           <p>Opening a document or reversing it requires the document's current permissions independently.</p>
         </>}
       </>}

@@ -16,6 +16,8 @@ public sealed class StockBalanceQuery
     public DateOnly? To { get; set; }
     [Range(1, 1000000)] public int Page { get; set; } = 1;
     [Range(1, 100)] public int PageSize { get; set; } = 25;
+    [Range(1, 1000000)] public int LedgerPage { get; set; } = 1;
+    [Range(1, 100)] public int LedgerPageSize { get; set; } = 50;
 }
 public sealed record StockReadOption(long Id, string Name)
 {
@@ -29,7 +31,12 @@ public sealed record StockLedgerRow(long MovementId, long DocumentId, string Doc
     DateTimeOffset At, decimal Quantity, decimal RunningBalance);
 public sealed record StockBalanceResult(DateTimeOffset Snapshot, StockBalanceQuery Filters,
     StockReadOption[] Warehouses, StockReadOption[] Categories, StockBalanceRow[] Items, int TotalCount,
-    decimal? OpeningBalance, decimal? ClosingBalance, StockLedgerRow[] Ledger);
+    decimal? OpeningBalance, decimal? ClosingBalance, StockLedgerRow[] Ledger)
+{
+    public int LedgerPage { get; init; }
+    public int LedgerPageSize { get; init; }
+    public int LedgerTotalCount { get; init; }
+}
 
 // UC089 is a read-only projection. Source movements and immutable transfer
 // conversion factors remain authoritative; this service never posts stock.
@@ -148,6 +155,7 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
         }
         decimal? opening = null, closing = null;
         var ledger = new List<StockLedgerRow>();
+        var ledgerCount = 0;
         if (query.WarehouseId != null && query.ItemId != null)
         {
             var start = query.From.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
@@ -155,19 +163,24 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
             var source = movements.Where(m => m.ItemId == query.ItemId);
             opening = await source.Where(m => m.OccurredAt < start).SumAsync(m => (decimal?)m.SignedBaseQty, ct) ?? 0;
             var period = source.Where(m => m.OccurredAt >= start && m.OccurredAt < end);
-            if (await period.CountAsync(ct) > 50000) throw new InsightException(400, "LEDGER_LIMIT", "Narrow the period to at most 50000 movements.");
+            ledgerCount = await period.CountAsync(ct);
+            closing = opening + (await period.SumAsync(m => (decimal?)m.SignedBaseQty, ct) ?? 0);
+            var ledgerOffset = checked((query.LedgerPage - 1) * query.LedgerPageSize);
+            var running = opening.Value + (ledgerOffset == 0 ? 0 : await period.OrderBy(m => m.OccurredAt).ThenBy(m => m.MovementId)
+                .Take(ledgerOffset).SumAsync(m => (decimal?)m.SignedBaseQty, ct) ?? 0);
             var raw = await period.OrderBy(m => m.OccurredAt).ThenBy(m => m.MovementId)
+                .Skip(ledgerOffset).Take(query.LedgerPageSize)
                 .Select(m => new { m.MovementId, m.DocumentLine.DocumentId, m.DocumentLine.Document.DocumentNo,
                     m.DocumentLine.Document.DocumentType, m.OccurredAt, m.SignedBaseQty }).ToArrayAsync(ct);
-            closing = opening;
-            foreach (var m in raw) { closing += m.SignedBaseQty; ledger.Add(new(m.MovementId, m.DocumentId, m.DocumentNo,
-                m.DocumentType, InsightAccess.Utc(m.OccurredAt), m.SignedBaseQty, closing.Value)); }
+            foreach (var m in raw) { running += m.SignedBaseQty; ledger.Add(new(m.MovementId, m.DocumentId, m.DocumentNo,
+                m.DocumentType, InsightAccess.Utc(m.OccurredAt), m.SignedBaseQty, running)); }
         }
         var categories = await db.ItemCategories.AsNoTracking().OrderBy(c => c.ItemCategoryId)
             .Select(c => new StockReadOption(c.ItemCategoryId, c.CategoryName)).ToArrayAsync(ct);
         if (branches.Except(await Branches(ct)).Any()) throw new InsightException(403, "ACCESS_DENIED", "Inventory authority changed.");
         await session.RequireAsync(ct);
         await tx.CommitAsync(ct);
-        return new(InsightAccess.Utc(now), query, warehouses, categories, rows.ToArray(), count, opening, closing, ledger.ToArray());
+        return new(InsightAccess.Utc(now), query, warehouses, categories, rows.ToArray(), count, opening, closing, ledger.ToArray())
+            { LedgerPage = query.LedgerPage, LedgerPageSize = query.LedgerPageSize, LedgerTotalCount = ledgerCount };
     }
 }

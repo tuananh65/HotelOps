@@ -12,7 +12,7 @@ namespace HotelOps.Api.Controllers;
 [InsightErrors]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [Route("api/inventory")]
-public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current, MinimumStockService minimums) : ControllerBase
+public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current, MinimumStockService minimums, UnitManagementService units) : ControllerBase
 {
     private async Task<IActionResult> Execute<T>(Func<long, Task<T>> operation, Func<T, string>? location = null, object? input = null)
     {
@@ -47,17 +47,17 @@ public sealed class InventoryController(InventoryService service, InventoryAcces
     [HttpGet("units/{id:long}")]
     public Task<IActionResult> Unit(long id, CancellationToken ct) => Execute(actor => service.GetUnit(id, ct));
     [HttpPost("units")]
-    public Task<IActionResult> CreateUnit(InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(null, actor, request, ct), x => $"/api/inventory/units/{x!.UomId}", input: request);
+    public Task<IActionResult> CreateUnit(InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(null, actor, request, units.RequireAsync, ct), x => $"/api/inventory/units/{x!.UomId}", input: request);
     [HttpPut("units/{id:long}")]
-    public Task<IActionResult> UpdateUnit(long id, InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(id, actor, request, ct), input: request);
+    public Task<IActionResult> UpdateUnit(long id, InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(id, actor, request, units.RequireAsync, ct), input: request);
     [HttpGet("items/{id:long}/conversions")]
     public Task<IActionResult> Conversions(long id, CancellationToken ct) => Execute(actor => service.GetConversions(id, ct));
     [HttpGet("items/{id:long}/conversions/{conversionId:long}")]
     public Task<IActionResult> Conversion(long id, long conversionId, CancellationToken ct) => Execute(actor => service.GetConversion(id, conversionId, ct));
     [HttpPost("items/{id:long}/conversions")]
-    public Task<IActionResult> CreateConversion(long id, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, null, actor, request, ct), x => $"/api/inventory/items/{id}/conversions/{x!.ConversionId}", input: request);
+    public Task<IActionResult> CreateConversion(long id, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, null, actor, request, units.RequireAsync, ct), x => $"/api/inventory/items/{id}/conversions/{x!.ConversionId}", input: request);
     [HttpPut("items/{id:long}/conversions/{conversionId:long}")]
-    public Task<IActionResult> UpdateConversion(long id, long conversionId, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, conversionId, actor, request, ct), input: request);
+    public Task<IActionResult> UpdateConversion(long id, long conversionId, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, conversionId, actor, request, units.RequireAsync, ct), input: request);
     [HttpGet("warehouses")]
     public Task<IActionResult> Warehouses([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetWarehouses(page, ct));
     [HttpGet("warehouses/{id:long}")]

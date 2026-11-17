@@ -31,30 +31,34 @@ public sealed partial class InventoryService
         }
         await tx.CommitAsync(ct); return Dto(x);
     }
-    public async Task<InventoryUnitDto?> SaveUnit(long? id, long actorUserId, InventoryUnitWrite r, CancellationToken ct)
+    public async Task<InventoryUnitDto?> SaveUnit(long? id, long actorUserId, InventoryUnitWrite r, Func<CancellationToken, Task> authorize, CancellationToken ct)
     {
         var code = Required(r.UomCode, "UomCode", 30); var name = Required(r.UomName, "UomName", 100);
-        await using var tx = await Begin(actorUserId, ct);
+        await using var tx = await BeginUnitWrite(actorUserId, authorize, ct);
         var x = id.HasValue ? await db.UnitsOfMeasures.FromSqlInterpolated($"SELECT * FROM dbo.units_of_measure WITH (UPDLOCK,HOLDLOCK) WHERE uom_id={id}").SingleOrDefaultAsync(ct) : new UnitsOfMeasure();
         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion); var before = id.HasValue ? Scalars(x) : null;
-        if (await db.UnitsOfMeasures.AnyAsync(u => u.UomCode == code && u.UomId != id, ct)) throw Invalid("UomCode already exists.");
+        if (await db.UnitsOfMeasures.AnyAsync(u => EF.Functions.Collate(u.UomCode, "Latin1_General_100_CI_AS") == code && u.UomId != id, ct)) throw Invalid("UomCode already exists.");
         x.UomCode = code; x.UomName = name; x.IsActive = r.IsActive; x.Description = r.Description; if (!id.HasValue) db.UnitsOfMeasures.Add(x);
         if (Changed(x)) await Audit(x, "units_of_measure", x.UomId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "UNIT_SAVED", before, [null], DateTime.UtcNow, ct);
-        await tx.CommitAsync(ct); return Dto(x);
+        await authorize(ct); await tx.CommitAsync(ct); return Dto(x);
     }
-    public async Task<InventoryConversionDto?> SaveConversion(long item, long? id, long actorUserId, InventoryConversionWrite r, CancellationToken ct)
+    public async Task<InventoryConversionDto?> SaveConversion(long item, long? id, long actorUserId, InventoryConversionWrite r, Func<CancellationToken, Task> authorize, CancellationToken ct)
     {
         if (r.ConversionFactor <= 0 || r.ConversionFactor > 999999999999.999999m || decimal.Round(r.ConversionFactor, 6) != r.ConversionFactor) throw Invalid("ConversionFactor must be positive decimal(18,6).");
-        await using var tx = await Begin(actorUserId, ct); var catalog = await Item(item, ct);
-        if (r.FromUomId == catalog.BaseUomId || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.FromUomId && u.IsActive, ct)) throw Invalid("Conversion requires a different active source UOM.");
+        await using var tx = await BeginUnitWrite(actorUserId, authorize, ct);
+        var catalog = r.IsActive || !id.HasValue ? await Item(item, ct)
+            : await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(i => i.ItemId == item, ct) ?? throw Invalid("Item not found.");
+        if ((r.IsActive || !id.HasValue) && r.FromUomId == catalog.BaseUomId
+            || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.FromUomId && (!r.IsActive || u.IsActive), ct)) throw Invalid("Active conversion requires a different active source UOM.");
         var x = id.HasValue ? await db.UomConversions.FromSqlInterpolated($"SELECT * FROM dbo.uom_conversions WITH (UPDLOCK,HOLDLOCK) WHERE conversion_id={id}").SingleOrDefaultAsync(ct) : new UomConversion();
         if (x is null) return null; if (id.HasValue) { Version(x.RowVersion, r.ExpectedRowVersion); if (x.ItemId != item) throw Invalid("Conversion does not belong to this item."); }
         var before = id.HasValue ? Scalars(x) : null;
-        if (await db.UomConversions.AnyAsync(c => c.ItemId == item && c.FromUomId == r.FromUomId && c.ToUomId == catalog.BaseUomId && c.ConversionId != id, ct)) throw Invalid("Conversion already exists.");
-        x.ItemId = item; x.FromUomId = r.FromUomId; x.ToUomId = catalog.BaseUomId; x.ConversionFactor = r.ConversionFactor; x.IsActive = r.IsActive;
+        var target = id.HasValue && !r.IsActive ? x.ToUomId : catalog.BaseUomId;
+        if (await db.UomConversions.AnyAsync(c => c.ItemId == item && c.FromUomId == r.FromUomId && c.ToUomId == target && c.ConversionId != id, ct)) throw Invalid("Conversion already exists.");
+        x.ItemId = item; x.FromUomId = r.FromUomId; x.ToUomId = target; x.ConversionFactor = r.ConversionFactor; x.IsActive = r.IsActive;
         if (!id.HasValue) db.UomConversions.Add(x);
         if (Changed(x)) await Audit(x, "uom_conversions", x.ConversionId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "CONVERSION_SAVED", before, [null], DateTime.UtcNow, ct);
-        await tx.CommitAsync(ct); return Dto(x);
+        await authorize(ct); await tx.CommitAsync(ct); return Dto(x);
     }
     private async Task<bool> WarehouseHistory(long id, CancellationToken ct) =>
         await db.StockDocuments.AnyAsync(d => d.SourceWarehouseId == id || d.DestinationWarehouseId == id, ct) ||

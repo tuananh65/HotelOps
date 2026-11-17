@@ -22,7 +22,7 @@ public record InventoryItemWrite(string ItemCode, string ItemName, long Category
     string? Specification = null, string? ExpectedRowVersion = null);
 public record InventoryUnitWrite(string UomCode, string UomName, bool IsActive = true,
     string? Description = null, string? ExpectedRowVersion = null);
-public record InventoryConversionWrite(long FromUomId, decimal ConversionFactor,
+public record InventoryConversionWrite(long FromUomId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal ConversionFactor,
     bool IsActive = true, string? ExpectedRowVersion = null);
 public record InventoryWarehouseWrite(long BranchId, long? DepartmentId,
     string WarehouseCode, string WarehouseName, bool IsActive = true, long? ManagerUserId = null,
