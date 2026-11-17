@@ -125,6 +125,42 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:InternalRequestAlertDelivery.Kind,SourceType:InternalRequestAlertDelivery.Source,SourceId:>0})
+        {
+            if(!await WorkAlertEpisodeStore.InstalledAsync(db,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Alert source unavailable.");
+            var episode=await WorkAlertEpisodeStore.SourcesQuery(db).SingleOrDefaultAsync(e=>e.Id==source.SourceId,ct);
+            if(episode==null||source.CreatedBy!=null||source.CreatedAt!=episode.OpenedAt
+                ||!await WorkAlertSourceAccess.CanReadAsync(db,user,episode,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Alert source unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await WorkAlertSourceAccess.CanReadAsync(db,user,episode,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Alert source unavailable.");
+            var path=episode.SourceType switch
+            {
+                "TASK"=>$"/operational-tasks?branchId={episode.BranchId}&taskId={episode.SourceId}",
+                "MAINTENANCE_OCCURRENCE"=>$"/operations/maintenance?branchId={episode.BranchId}&runId={episode.SourceId}",
+                "INCIDENT"=>$"/operations/incidents/{episode.SourceId}?action=A004A-023",
+                "CLEANING"=>$"/cleaning/tasks/{episode.SourceId}?branchId={episode.BranchId}&monitor=1",
+                "REWORK"=>$"/cleaning/reworks/{episode.SourceId}?branchId={episode.BranchId}",
+                "INTERNAL_REQUEST"=>$"/internal-requests?requestId={episode.SourceId}",
+                _=>throw new InsightException(404,"SOURCE_UNAVAILABLE","Alert source unavailable.")
+            };
+            if(episode.SourceType=="CLEANING")
+            {
+                var assignment=await db.CleaningAssignments.AsNoTracking().Where(a=>a.CleaningTaskId==episode.SourceId
+                    &&a.AssigneeUserId==user&&a.AssignmentStatus=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now)
+                    .Select(a=>(long?)a.AssignmentId).SingleOrDefaultAsync(ct);
+                if(assignment is {} own)path=$"/cleaning/tasks/{episode.SourceId}?branchId={episode.BranchId}&assignmentId={own}";
+            }
+            if(episode.SourceType=="REWORK"&&!await db.CleaningReworks.AsNoTracking()
+                .AnyAsync(r=>r.ReworkId==episode.SourceId&&r.AssigneeUserId==user,ct))
+                path=$"/cleaning/tasks/{episode.SourceId}?branchId={episode.BranchId}&monitor=1&kind=rework";
+            await RevalidateSessionAsync(user,ct);
+            if(!await WorkAlertSourceAccess.CanReadAsync(db,user,episode,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Alert source unavailable.");
+            await tx.CommitAsync(ct);return new(path);
+        }
         if(source is {NotificationType:"TIME_CORRECTION_REQUESTED" or "TIME_CORRECTION_DECIDED",SourceType:"TIME_CORRECTION",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
