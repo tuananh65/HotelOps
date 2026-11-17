@@ -14,8 +14,9 @@ export type RoomLifecycleResult =
         | "NETWORK"
         | "INVALID_RESPONSE";
       status?: number;
+      dependencies?: { kind: string; count: number }[];
     };
-/** Technical candidate. No production route imports or flag can enable server release. */
+/** Scoped lifecycle mutation; admission is checked independently by the server. */
 export function createRoomLifecycleApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,
@@ -144,6 +145,9 @@ export function createRoomLifecycleApi(
           try {
             p = await r.json();
           } catch {}
+          if (p && typeof p === "object" && "title" in p && p.title === "MSG34" && "dependencies" in p && Array.isArray(p.dependencies)
+            && p.dependencies.every(d => d && typeof d.kind === "string" && Number.isSafeInteger(d.count) && d.count > 0))
+            return { outcome: "REJECTED", reason: "HTTP", status: 409, dependencies: p.dependencies };
           if (
             p &&
             typeof p === "object" &&

@@ -92,6 +92,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_inspections p WITH(HOLDLOCK)
                 JOIN dbo.cleaning_tasks pc WITH(HOLDLOCK) ON pc.cleaning_task_id=p.cleaning_task_id AND pc.room_id=p.room_id
                 WHERE p.room_id=r.room_id AND p.workflow_status='PASSED' AND p.status='COMPLETED' AND p.result='PASS'
+                AND (activation.OccurredAt IS NULL OR pc.created_at>=activation.OccurredAt)
                 AND pc.status<>'CANCELLED' AND pc.workflow_status<>'CANCELLED') THEN 1 ELSE 0 END) AS EverPassed,
             CONVERT(bit,CASE WHEN c.workflow_status='REWORK_REQUIRED' AND EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
                 WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status IN('PENDING_ACCEPTANCE','ACCEPTED','IN_PROGRESS','ON_HOLD')) THEN 1 ELSE 0 END) AS ReworkOutstanding,
@@ -99,8 +100,16 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
                 WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status='PENDING_REINSPECTION') THEN 1 ELSE 0 END) AS ReworkSubmitted,
             CONVERT(bit,CASE WHEN c.cleaning_task_id IS NULL OR c.workflow_status IS NOT NULL THEN 1 ELSE 0 END) AS SourceAvailable
             FROM dbo.rooms r WITH(HOLDLOCK)
+            OUTER APPLY(SELECT MAX(a.occurred_at) AS OccurredAt FROM dbo.audit_logs a WITH(HOLDLOCK)
+                WHERE a.entity_type='rooms' AND a.entity_id=CONVERT(varchar(30),r.room_id)
+                  AND a.branch_id=r.branch_id AND a.action='UPDATE' AND a.actor_user_id IS NOT NULL
+                  AND a.occurred_at<={now}
+                  AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE '[]' END,'$.operation')='REACTIVATE_ROOM'
+                  AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE '[]' END,'$.record.isActive')='true'
+                  AND JSON_VALUE(CASE WHEN ISJSON(a.old_values)=1 THEN a.old_values ELSE '[]' END,'$.isActive')='false') activation
             OUTER APPLY(SELECT TOP(1) t.cleaning_task_id,t.workflow_status,t.status FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
                 WHERE t.room_id=r.room_id AND t.status<>'CANCELLED' AND (t.workflow_status IS NULL OR t.workflow_status<>'CANCELLED')
+                  AND (activation.OccurredAt IS NULL OR t.created_at>=activation.OccurredAt)
                 ORDER BY t.created_at DESC,t.cleaning_task_id DESC) c
             OUTER APPLY(SELECT TOP(1) p.inspection_id,p.workflow_status,p.status,p.result FROM dbo.room_inspections p WITH(HOLDLOCK)
                 WHERE p.room_id=r.room_id AND p.cleaning_task_id=c.cleaning_task_id AND p.status<>'CANCELLED'

@@ -658,6 +658,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         <p>MSG34: Active rooms use this room type. Change those rooms' type before deactivation.</p>
         <ul>{(snapshot.data as ReadTypes["roomType"]).activeRoomReferences?.map(r => <li key={r.id}>{r.roomNumber} (#{r.id})</li>)}</ul>
       </section>}
+      {snapshot && screen === "rooms" && context?.id && <Link to={`/structure/rooms/${context.id}/lifecycle?branchId=${context.branchId}`}>Deactivate / Reactivate room</Link>}
       {snapshot && screen === "rooms" && context?.id && <Link to={`/rooms/${context.id}/departments?branchId=${context.branchId}`}>Manage explicit room departments</Link>}
       {snapshot && (
         <section aria-label="Server hotel data">

@@ -26,6 +26,7 @@ public partial class HotelOpsDbContext
         // SQL triggers enforce scoped assignments after deployment. This also works
         // before deployment and prevents SQL334 from EF's bare OUTPUT on rooms.
         modelBuilder.Entity<Room>().ToTable("rooms", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<RoomBlock>().ToTable("room_blocks", table => table.UseSqlOutputClause(false));
         // UC016 parent-location SQL guards also cover non-EF/legacy writers.
         modelBuilder.Entity<Area>().ToTable("areas", table => table.UseSqlOutputClause(false));
         modelBuilder.Entity<Asset>().ToTable("assets", table => table.UseSqlOutputClause(false));

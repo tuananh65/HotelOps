@@ -1,3 +1,4 @@
+import { RoomLifecycleRoute } from "../hotel/RoomLifecycleCandidate";
 import { RoomDepartmentsPanel } from "../hotel/RoomDepartmentsPanel";
 import { BranchMaintenanceRoute } from "../branch-maintenance/BranchMaintenanceRoute";
 import { CreateBranchRoute } from "../branch-maintenance/CreateBranchRoute";
@@ -240,6 +241,7 @@ export function SharedAuthHost({
           <Route path="/structure/room-types" element={<StructureManagementRoute kind="roomTypes" />} />
           <Route path="/structure/room-types/:id" element={<StructureManagementRoute kind="roomTypes" />} />
           <Route path="/structure/rooms" element={<StructureManagementRoute kind="rooms" />} />
+          <Route path="/structure/rooms/:id/lifecycle" element={<RoomLifecycleRoute />} />
           <Route path="/structure/rooms/:id" element={<StructureManagementRoute kind="rooms" />} />
         </>
       )}
