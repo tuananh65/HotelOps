@@ -15,6 +15,7 @@ public sealed class SqlInitialRolePermissionsTransactions(HotelOpsDbContext db, 
 {
     private TimeProvider Clock => clock;
     private IPermissionService Permissions => permissions;
+    private ICurrentUserAccessor Current => current;
     private int Identity(out CurrentUserInfo actor)
     {
         if (!current.TryGetCurrentUser(out actor) || !HotelOpsCookieTicket.TryRead(http.HttpContext?.User, out var ticket, out var sid) || ticket!.UserId != actor.UserId || sid != actor.SessionId) return 401;
@@ -40,7 +41,7 @@ public sealed class SqlInitialRolePermissionsTransactions(HotelOpsDbContext db, 
             var status = owner.Identity(out var fresh);
             if (status != 200 || fresh.UserId != actor.UserId || fresh.SessionId != actor.SessionId) return status == 403 ? 403 : 401;
             if (!await AccountWriterSessionGate.IsValidAsync(db, actor, owner.Clock, ct)) return 401;
-            var authority = await RoleCatalogAuthority.EvaluateAsync(owner.Permissions, ct);
+            var authority = await RoleCatalogAuthority.EvaluateAsync(db, owner.Current, owner.Permissions, owner.Clock, ct);
             return authority.IsGranted ? 200 : authority.Decision == PermissionDecision.Unavailable ? 503 : authority.Decision == PermissionDecision.Unauthenticated ? 401 : 403;
         }
         public async Task<InitialRoleState?> ReadAsync(long roleId, CancellationToken ct)

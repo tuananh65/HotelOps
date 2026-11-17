@@ -128,14 +128,22 @@ export function createCustomRoleApi(
         });
         if (!current() || signal?.aborted)
           return { outcome: "OUTCOME_UNKNOWN", reason: "STALE" };
-        if (r.status !== 201)
+        if (r.status !== 201) {
+          let reason = "HTTP";
+          try {
+            const problem: unknown = await r.json();
+            if (problem && typeof problem === "object" && "title" in problem
+              && (problem.title === "ROLE_CODE_EXISTS" || problem.title === "ROLE_VALIDATION_FAILED"
+                || problem.title === "ROLE_CODE_STORAGE_INVALID")) reason = problem.title;
+          } catch { /* No raw error body is exposed. */ }
           return {
             outcome: [400, 401, 403, 409, 412].includes(r.status)
               ? "REJECTED"
               : "OUTCOME_UNKNOWN",
-            reason: "HTTP",
+            reason,
             status: r.status,
           };
+        }
         if (
           r.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !==
           "application/json"
@@ -219,6 +227,8 @@ export function customRoleMessage(
 ) {
   return r.outcome === "OUTCOME_UNKNOWN"
     ? "Outcome unknown. Do not replay; verify with an authorized owner."
+    : r.reason === "ROLE_CODE_EXISTS"
+      ? "MSG35: Role code already exists. Choose another code."
     : r.status === 409
       ? "Role code conflict or administrator protection."
       : r.status === 401

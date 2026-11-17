@@ -101,6 +101,7 @@ function Bound({
     [pending, setPending] = useState(false),
     [message, setMessage] = useState(""),
     [locked, setLocked] = useState(false),
+    [duplicateCode, setDuplicateCode] = useState(false),
     [readError, setReadError] = useState(false);
   const mounted = useRef(false),
     attempted = useRef(false),
@@ -167,6 +168,13 @@ function Bound({
         return;
       }
       setMessage(customRoleMessage(result));
+      // A confirmed rejection permits a corrected explicit submission. Uncertain outcomes stay locked.
+      if (result.outcome === "REJECTED" && (result.reason === "ROLE_CODE_EXISTS"
+        || result.status === 400)) {
+        attempted.current = false;
+        setLocked(false);
+        setDuplicateCode(result.reason === "ROLE_CODE_EXISTS");
+      }
       return;
     }
     if (deactivate) {
@@ -236,12 +244,16 @@ function Bound({
                 Role code
                 <input
                   value={input.roleCode}
+                  aria-invalid={duplicateCode || undefined}
+                  aria-describedby={duplicateCode ? "role-code-conflict" : undefined}
                   disabled={pending || locked}
                   onChange={(e) => {
                     setInput({ ...input, roleCode: e.target.value });
                     setReview(null);
+                    setDuplicateCode(false);
                   }}
                 />
+                {duplicateCode && <span id="role-code-conflict">MSG35: Role code already exists.</span>}
               </label>
             )}
             <label>

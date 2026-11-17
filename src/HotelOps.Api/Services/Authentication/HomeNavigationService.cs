@@ -42,7 +42,7 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
             if (Granted(await permissions.EvaluateBranchAsync("CLEANING_VIEW", branch, ct))
                 && Granted(await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, ct)))
             { links.Add("/cleaning/assignment"); break; }
-        if (Granted(await RoleCatalogAuthority.EvaluateAsync(permissions, ct))) links.Add("/roles");
+        if (Granted(await RoleCatalogAuthority.EvaluateAsync(db, current, permissions, clock, ct))) links.Add("/roles");
         if (!current.TryGetCurrentUser(out var actor)) return [];
         var now = clock.GetUtcNow().UtcDateTime;
         var data = new EfPermissionDataSource(db);

@@ -22,7 +22,7 @@ public sealed class RoleCatalogReadFilter(HotelOpsDbContext db,ICurrentUserAcces
  if(actor.IsRestricted||ticket.IsRestricted){context.Result=Error(403,"PASSWORD_CHANGE_REQUIRED");return;}
  ActionExecutedContext? executed=null;
  void Set(IActionResult result){if(executed==null)context.Result=result;else executed.Result=result;}
- Task<PermissionEvaluation> Authorize(CancellationToken ct)=>RoleCatalogAuthority.EvaluateAsync(permissions,ct);
+ Task<PermissionEvaluation> Authorize(CancellationToken ct)=>RoleCatalogAuthority.EvaluateAsync(db, current, permissions, clock, ct);
  try{var guarded=await new UserDirectoryReadGuard(db,current,permissions,clock).RunAuthorizedAsync(ticket!,Authorize,async()=>{executed=await next();if(executed.Exception is {} e&&!executed.ExceptionHandled)ExceptionDispatchInfo.Capture(e).Throw();return executed;},context.HttpContext.RequestAborted);
  Set(guarded.Status switch {UserDirectoryReadStatus.Success=>guarded.Value!.Result!,UserDirectoryReadStatus.SessionInvalid=>Error(401,"SESSION_INVALID"),UserDirectoryReadStatus.Forbidden=>Error(403,"PERMISSION_DENIED"),_=>Error(503,"CATALOG_UNAVAILABLE")});
  }catch(Exception e)when(!context.HttpContext.RequestAborted.IsCancellationRequested&&e is DbException or SessionStoreUnavailableException or CatalogLimitException){if(executed!=null)executed.ExceptionHandled=true;Set(Error(503,"CATALOG_UNAVAILABLE"));}
