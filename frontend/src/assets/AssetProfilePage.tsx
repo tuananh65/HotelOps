@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 type Option = { id: number; name: string };
 type Catalog = { branches: Option[]; branch: number; rooms: Option[]; areas: Option[]; departments: Option[]; categories: Option[] };
 type Asset = { assetId: number; assetCode: string; assetName: string; category: string; room: string | null; area: string | null; department: string | null; custodian: string | null; conditionStatus: string; lifecycleStatus: string };
 type List = { items: Asset[]; total: number; pageSize: number };
-type Profile = { profile: { assetId: number; assetCode: string; assetName: string; [key: string]: string | number | null }; snapshot: string; timeZone: string; pageSize: number;
+type Profile = { profile: { assetId: number; assetCode: string; assetName: string; [key: string]: string | number | null }; canEdit: boolean; snapshot: string; timeZone: string; pageSize: number;
   history: { auditId: number; eventType: string; occurredAt: string; fromLocationType: string | null; fromLocationId: number | null; toLocationType: string | null; toLocationId: number | null; fromDepartmentId: number | null; toDepartmentId: number | null; fromUserId: number | null; toUserId: number | null; status: string | null }[]; historyTotal: number; historyIncomplete: boolean;
   incidents: { incidentId: number; incidentNo: string; incidentTitle: string; status: string }[]; incidentTotal: number; incidentAccess: string;
   schedules: { scheduleId: number; scheduleCode: string; frequency: string; frequencyInterval: number; nextDueAt: string; isActive: boolean }[]; scheduleTotal: number; scheduleAccess: string;
@@ -15,6 +15,7 @@ const initial = { branchId: "", assetTypeId: "", roomId: "", areaId: "", departm
 
 export function AssetProfilePage() {
   const { id } = useParams();
+  const location = useLocation();
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null ? state.authorityGeneration : null;
   const [filters, setFilters] = useState(initial);
@@ -74,6 +75,7 @@ export function AssetProfilePage() {
   const size = profile?.pageSize ?? list?.pageSize ?? 20;
   return <section><h2>{id ? "Hồ sơ tài sản" : "Tài sản"}</h2><p><Link to="/">Trang chủ</Link>{" · "}<Link to="/assets">Danh sách tài sản</Link></p>
     {error && <p role="alert">{error}</p>}
+    {typeof location.state?.message === "string" && <p role="status">{location.state.message}</p>}
     {!id && catalog && <fieldset><legend>Bộ lọc</legend>
       {select("Chi nhánh", "branchId", catalog.branches)}{select("Loại", "assetTypeId", catalog.categories)}{select("Phòng", "roomId", catalog.rooms)}
       {select("Khu vực", "areaId", catalog.areas)}{select("Bộ phận giữ tài sản", "departmentId", catalog.departments)}
@@ -86,6 +88,7 @@ export function AssetProfilePage() {
     </tr>)}</tbody></table>{list.items.length === 0 && <p>MSG10 — Không có tài sản phù hợp bộ lọc.</p>}</>}
     {profile && <>
       <h3>{profile.profile.assetCode} — {profile.profile.assetName}</h3><p>Snapshot: {time(profile.snapshot)}</p>
+      {profile.canEdit && <p><Link to={`/assets/${id}/edit`}>Chỉnh sửa thông tin</Link></p>}
       <dl>{Object.entries({ "Chi nhánh": "branchName", "Loại tài sản": "assetTypeName", "Phòng": "roomNumber", "Khu vực": "areaName", "Bộ phận giữ": "departmentName", "Người giữ": "custodianName", "Tình trạng": "conditionStatus", "Lifecycle": "lifecycleStatus", "Serial": "serialNumber", "Hãng": "brand", "Model": "model", "Ngày mua": "purchaseDate", "Hết bảo hành": "warrantyExpiryDate", "Mô tả": "description" }).map(([label, key]) => <div key={key}><dt>{label}</dt><dd>{profile.profile[key] ?? "N/A"}</dd></div>)}</dl>
       <h4>Di chuyển / Bàn giao</h4>{profile.historyIncomplete && <p>N/A: có lịch sử thiếu bằng chứng hoặc không đủ quyền ở hai đầu giao dịch.</p>}
       {profile.history.map(h => <p key={h.auditId}>{time(h.occurredAt)} · {h.eventType} · {h.status} · {h.fromLocationType} {h.fromLocationId} → {h.toLocationType} {h.toLocationId}; bộ phận {h.fromDepartmentId ?? "N/A"} → {h.toDepartmentId ?? "N/A"}; người giữ {h.fromUserId ?? "N/A"} → {h.toUserId ?? "N/A"}</p>)}
