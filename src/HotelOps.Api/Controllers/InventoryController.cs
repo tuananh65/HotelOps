@@ -12,7 +12,7 @@ namespace HotelOps.Api.Controllers;
 [InsightErrors]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [Route("api/inventory")]
-public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current, MinimumStockService minimums, UnitManagementService units) : ControllerBase
+public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current, MinimumStockService minimums, UnitManagementService units, WarehouseManagementService warehouses) : ControllerBase
 {
     private async Task<IActionResult> Execute<T>(Func<long, Task<T>> operation, Func<T, string>? location = null, object? input = null)
     {
@@ -63,9 +63,9 @@ public sealed class InventoryController(InventoryService service, InventoryAcces
     [HttpGet("warehouses/{id:long}")]
     public Task<IActionResult> Warehouse(long id, CancellationToken ct) => Execute(actor => service.GetWarehouse(id, ct));
     [HttpPost("warehouses")]
-    public Task<IActionResult> CreateWarehouse(InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(null, actor, request, ct), x => $"/api/inventory/warehouses/{x!.WarehouseId}", input: request);
+    public Task<IActionResult> CreateWarehouse(InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(null, actor, request, warehouses.RequireAsync, ct), x => $"/api/inventory/warehouses/{x!.WarehouseId}", input: request);
     [HttpPut("warehouses/{id:long}")]
-    public Task<IActionResult> UpdateWarehouse(long id, InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(id, actor, request, ct), input: request);
+    public Task<IActionResult> UpdateWarehouse(long id, InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(id, actor, request, warehouses.RequireAsync, ct), input: request);
     [HttpGet("warehouses/{warehouseId:long}/thresholds")]
     public Task<IActionResult> Thresholds(long warehouseId, CancellationToken ct) => Execute(actor => service.GetThresholds(warehouseId, ct));
     [HttpPut("warehouses/{warehouseId:long}/items/{itemId:long}/threshold")]

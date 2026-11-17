@@ -186,6 +186,7 @@ builder.Services.AddScoped<InventoryAccess>();
 builder.Services.AddScoped<StockBalanceReadService>();
 builder.Services.AddScoped<MinimumStockService>();
 builder.Services.AddScoped<UnitManagementService>();
+builder.Services.AddScoped<WarehouseManagementService>();
 builder.Services.AddScoped<IInventoryIssueCapacity>(services => services.GetRequiredService<InventoryService>());
 builder.Services.AddScoped<HotelOps.Api.Services.Replenishments.ReplenishmentService>();
 builder.Services.AddScoped<IInventoryReceiptPosting>(services => services.GetRequiredService<InventoryService>());

@@ -72,7 +72,7 @@ public sealed partial class InventoryService
         await db.StockMovements.AnyAsync(m => m.WarehouseId == id, ct) || await db.Stocktakes.AnyAsync(s => s.WarehouseId == id, ct) ||
         await db.StockThresholds.AnyAsync(t => t.WarehouseId == id, ct) || await db.MaterialRequests.AnyAsync(m => m.SourceWarehouseId == id, ct) ||
         await db.MaterialFulfillments.AnyAsync(m => m.WarehouseId == id, ct) || await db.MaterialReplenishments.AnyAsync(r => r.WarehouseId == id, ct);
-    public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, long actorUserId, InventoryWarehouseWrite r, CancellationToken ct)
+    public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, long actorUserId, InventoryWarehouseWrite r, Func<long, CancellationToken, Task> authorize, CancellationToken ct)
     {
         var code = Required(r.WarehouseCode, "WarehouseCode", 40); var name = Required(r.WarehouseName, "WarehouseName", 150);
         // Discovery establishes User lock order only; reread under the Warehouse lock.
@@ -80,11 +80,13 @@ public sealed partial class InventoryService
             .Select(w => new { w.ManagerUserId }).SingleOrDefaultAsync(ct) : null;
         await using var tx = await Begin(actorUserId, ct, async token =>
         {
-            var ids = new[] { discovered?.ManagerUserId, r.ManagerUserId }.Where(x => x.HasValue).Select(x => x!.Value);
+            var ids = new[] { (long?)actorUserId, discovered?.ManagerUserId, r.ManagerUserId }.Where(x => x.HasValue).Select(x => x!.Value);
             var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync(ids, token);
             // The old manager may be inactive when removing responsibility.
-            if (r.ManagerUserId is long proposed) HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(proposed, locked);
-        });
+            if (r.ManagerUserId is long proposed && (!id.HasValue || r.IsActive || proposed != discovered?.ManagerUserId))
+                HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(proposed, locked);
+            await authorize(r.BranchId, token);
+        }, System.Data.IsolationLevel.Serializable);
         if (id.HasValue && !await db.Warehouses.AnyAsync(w => w.WarehouseId == id, ct)) return null;
         var x = id.HasValue ? (await Warehouses([id.Value], false, ct)).Single() : new Warehouse();
         if (id.HasValue)
@@ -94,22 +96,25 @@ public sealed partial class InventoryService
                 throw Invalid("Warehouse manager changed after discovery. Reload before retrying.");
             Version(x.RowVersion, r.ExpectedRowVersion);
         }
+        if (id.HasValue) await authorize(x.BranchId, ct);
+        var previousBranch = id.HasValue ? x.BranchId : r.BranchId;
         var before = id.HasValue ? Scalars(x) : null;
-        if ((!id.HasValue || x.BranchId != r.BranchId) && !await db.Branches.AnyAsync(b => b.BranchId == r.BranchId && b.IsActive, ct)) throw Invalid("A new warehouse or branch change requires an active branch.");
-        if ((!id.HasValue || r.DepartmentId != x.DepartmentId) && !r.DepartmentId.HasValue) throw Invalid("DepartmentId is required for a new warehouse or department change.");
-        if (r.DepartmentId.HasValue && !await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={r.DepartmentId}").AsNoTracking().AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
+        if ((!id.HasValue || r.IsActive || x.BranchId != r.BranchId) && !await db.Branches.AnyAsync(b => b.BranchId == r.BranchId && b.IsActive, ct)) throw Invalid("A new warehouse or branch change requires an active branch.");
+        if ((!id.HasValue || r.IsActive || r.DepartmentId != x.DepartmentId) && !r.DepartmentId.HasValue) throw Invalid("DepartmentId is required for a new warehouse or department change.");
+        if (r.DepartmentId.HasValue && (!id.HasValue || r.IsActive || r.DepartmentId != x.DepartmentId || r.BranchId != x.BranchId) && !await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={r.DepartmentId}").AsNoTracking().AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
         if (id.HasValue && x.BranchId != r.BranchId && await WarehouseHistory(id.Value, ct)) throw Invalid("Warehouse branch is immutable after dependent history.");
-        if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && w.WarehouseCode == code && w.WarehouseId != id, ct)) throw Invalid("WarehouseCode already exists in this branch.");
+        if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && EF.Functions.Collate(w.WarehouseCode, "Latin1_General_100_CI_AS") == code && w.WarehouseId != id, ct)) throw Invalid("MSG35: WarehouseCode already exists in this branch.");
         if (id.HasValue && x.IsActive && !r.IsActive)
         {
-            if (await db.MaterialReplenishments.AnyAsync(p => p.WarehouseId == id && (p.Status == "REQUESTED" || p.Status == "PARTIALLY_RECEIVED"), ct)) throw Invalid("Warehouse has open replenishments.");
-            if (await db.StockMovements.Where(m => m.WarehouseId == id).GroupBy(m => m.ItemId).AnyAsync(g => g.Sum(m => m.SignedBaseQty) != 0, ct) ||
-                await db.StockDocuments.AnyAsync(d => (d.SourceWarehouseId == id || d.DestinationWarehouseId == id) && !TerminalDocuments.Contains(d.Status), ct) ||
-                await db.Stocktakes.AnyAsync(s => s.WarehouseId == id && !TerminalStocktakes.Contains(s.Status), ct)) throw Invalid("Warehouse has nonzero stock or documents/stocktakes whose closure cannot be confirmed.");
+            if ((await WarehouseManagementService.BlockersAsync(db, id.Value, ct)).Length != 0)
+                throw Invalid("MSG34: Warehouse has blocking balances or open work. Reload the deactivation blockers before retrying.");
+
         }
         x.BranchId = r.BranchId; x.DepartmentId = r.DepartmentId; x.WarehouseCode = code; x.WarehouseName = name; x.ManagerUserId = r.ManagerUserId; x.LocationDescription = r.LocationDescription; x.IsActive = r.IsActive;
         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.Warehouses.Add(x); }
         if (Changed(x)) await Audit(x, "warehouses", x.WarehouseId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "WAREHOUSE_SAVED", before, [x.BranchId], now, ct);
+        await authorize(previousBranch, ct);
+        await authorize(r.BranchId, ct);
         await tx.CommitAsync(ct); return Dto(x);
     }
     public async Task<InventoryThresholdDto> SaveThreshold(long warehouse, long item, long actorUserId, InventoryThresholdWrite r, CancellationToken ct)
