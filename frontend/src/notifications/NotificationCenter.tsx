@@ -330,55 +330,12 @@ export function NotificationCenter() {
                         Select notification {row.id}
                       </label>
                       <h2>{row.title}</h2>
-                      {[
-                        "REWORK_ASSIGNED",
-                        "REWORK_SUBMITTED",
-                        "REINSPECTION_PASSED",
-                        "INSPECTION_FAILED",
-                        "REINSPECTION_ASSIGNED",
-                        "INSPECTION_ASSIGNED",
-                        "TASK_SUBMITTED",
-                        "TASK_VERIFIED",
-                        "TASK_RETURNED",
-                        "TASK_DECLINED",
-                        "TASK_ASSIGNED",
-                        "TASK_PLANNED",
-                        "TASK_CANCELLED",
-                        "TASK_SERIES_STOPPED",
-                        "TASK_REOPENED",
-                        "IR_CREATED",
-                        "IR_CLOSED",
-                        "IR_HANDOVER",
-                        "IR_ESCALATED",
-                      ].includes(row.type) && (
-                        <button
-                          disabled={!!operation?.busy}
-                          onClick={() => void openSource(row.id)}
-                        >
-                          {[
-                            "TASK_SUBMITTED",
-                            "TASK_VERIFIED",
-                            "TASK_RETURNED",
-                            "TASK_DECLINED",
-                            "TASK_ASSIGNED",
-                            "TASK_PLANNED",
-                            "TASK_CANCELLED",
-                            "TASK_SERIES_STOPPED",
-                            "TASK_REOPENED",
-                          ].includes(row.type)
-                            ? "Open task"
-                            : ["IR_CREATED", "IR_CLOSED", "IR_HANDOVER", "IR_ESCALATED"].includes(row.type) ? "Open request"
-                            : row.type === "REWORK_SUBMITTED"
-                              ? "Assign reinspection"
-                              : [
-                                    "INSPECTION_FAILED",
-                                    "REINSPECTION_ASSIGNED",
-                                    "INSPECTION_ASSIGNED",
-                                  ].includes(row.type)
-                                ? "Open inspection"
-                                : "Open rework"}
-                        </button>
-                      )}
+                      <button
+                        disabled={!!operation?.busy}
+                        onClick={() => void openSource(row.id)}
+                      >
+                        Open source
+                      </button>
                       <p>{row.message}</p>
                       {data.acknowledgmentAvailable && row.requiresAcknowledgment && !row.acknowledgedAt && (
                         <button disabled={!!operation?.busy} onClick={() => void mark([row.id], true)}>

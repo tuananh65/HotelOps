@@ -145,12 +145,16 @@ export async function resolveInboxSource(
   ).json();
   if (typeof data?.path !== "string")
     throw new Error("Invalid notification source");
-    const cancellation = /^\/notifications\/([1-9][0-9]*)\/(?:cleaning-cancellation|asset-condition)$/.exec(data.path);
+  const cancellation = /^\/notifications\/([1-9][0-9]*)\/(?:cleaning-cancellation|asset-condition)$/.exec(data.path);
   if (cancellation) {
     if (Number(cancellation[1]) !== id) throw new Error("Invalid notification source");
     return data.path;
   }
   const ids =
+    /^\/maintenance-assignment-receipts\/([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/operations\/(?:material-requests|replenishments)\/([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/operations\/incidents\/([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/workday\?branchId=([1-9][0-9]*)&shiftAssignmentId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/operations\/maintenance\?branchId=([1-9][0-9]*)&runId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/rooms\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/operations\/maintenance\/([1-9][0-9]*)\?action=A004A-036$/.exec(data.path) ??
