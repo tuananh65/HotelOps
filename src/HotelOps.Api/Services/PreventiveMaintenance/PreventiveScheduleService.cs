@@ -102,7 +102,7 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
     private async Task TargetAsync(long branch,long? asset,long? room,long? area,CancellationToken ct,bool requireActive=true)
     {
         if (new[]{asset,room,area}.Count(x=>x!=null)!=1) throw new InternalRequestReadException(409,"SCHEDULE_TARGET_AMBIGUOUS");
-        var valid = asset != null ? await db.Assets.AsNoTracking().AnyAsync(a=>a.AssetId==asset && a.BranchId==branch && (!requireActive || a.LifecycleStatus!="RETIRED"),ct)
+        var valid = asset != null ? await db.Assets.AsNoTracking().AnyAsync(a=>a.AssetId==asset && a.BranchId==branch && (!requireActive || (a.LifecycleStatus == "IN_USE" || a.LifecycleStatus == "UNDER_REPAIR")),ct)
             : room != null ? await db.Rooms.AsNoTracking().AnyAsync(r=>r.RoomId==room && r.BranchId==branch && (!requireActive || r.IsActive),ct)
             : await db.Areas.AsNoTracking().AnyAsync(a=>a.AreaId==area && a.BranchId==branch && (!requireActive || a.IsActive),ct);
         if (!valid) throw new InternalRequestReadException(404,"SCHEDULE_TARGET_UNAVAILABLE");
@@ -153,7 +153,7 @@ public sealed class PreventiveScheduleService(HotelOpsDbContext db, ISqlSessionS
         await AuthorizeAsync(ticket,sid,branch,ct);
         PreventiveTargetOption[] result;
         if(kind=="ASSET")result=await db.Assets.AsNoTracking()
-            .Where(a=>a.BranchId==branch && a.AssetId>afterId && a.LifecycleStatus!="RETIRED")
+            .Where(a=>a.BranchId==branch && a.AssetId>afterId && (a.LifecycleStatus == "IN_USE" || a.LifecycleStatus == "UNDER_REPAIR"))
             .OrderBy(a=>a.AssetId).Take(100).Select(a=>new PreventiveTargetOption(a.AssetId,"ASSET",a.AssetCode+" - "+a.AssetName)).ToArrayAsync(ct);
         else if(kind=="ROOM")result=await db.Rooms.AsNoTracking()
             .Where(r=>r.BranchId==branch && r.RoomId>afterId && r.IsActive)

@@ -84,7 +84,7 @@ internal static class IncidentCreateContract
             && (input.AreaId == null || r.AreaId == input.AreaId), ct)) return false;
         if (input.AreaId is long area && !await db.Areas.AsNoTracking().AnyAsync(r => r.AreaId == area && r.IsActive && r.BranchId == input.BranchId, ct)) return false;
         if (input.AssetId is long asset && !await db.Assets.AsNoTracking().AnyAsync(r => r.AssetId == asset
-            && r.BranchId == input.BranchId && r.LifecycleStatus != "RETIRED"
+            && r.BranchId == input.BranchId && (r.LifecycleStatus == "IN_USE" || r.LifecycleStatus == "UNDER_REPAIR")
             && (input.RoomId == null || r.CurrentRoomId == input.RoomId)
             && (input.AreaId == null || r.CurrentAreaId == input.AreaId), ct)) return false;
         return true;

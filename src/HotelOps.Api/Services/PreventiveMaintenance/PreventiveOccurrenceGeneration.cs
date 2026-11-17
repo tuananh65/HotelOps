@@ -60,7 +60,7 @@ internal sealed class PreventiveOccurrenceGeneration(HotelOpsDbContext db,IOptio
             || checks.Select(c=>c.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=checks.Length)
             throw new ValidationException("Checklist invalid.");
         if(new[]{row.AssetId,row.RoomId,row.AreaId}.Count(v=>v!=null)!=1)throw new ValidationException("Ambiguous schedule target.");
-        long? branch=row.AssetId is {} asset ? await db.Assets.Where(a=>a.AssetId==asset && a.LifecycleStatus!="RETIRED").Select(a=>(long?)a.BranchId).SingleOrDefaultAsync(ct)
+        long? branch=row.AssetId is {} asset ? await db.Assets.Where(a=>a.AssetId==asset && (a.LifecycleStatus == "IN_USE" || a.LifecycleStatus == "UNDER_REPAIR")).Select(a=>(long?)a.BranchId).SingleOrDefaultAsync(ct)
             : row.RoomId is {} room ? await db.Rooms.Where(r=>r.RoomId==room && r.IsActive).Select(r=>(long?)r.BranchId).SingleOrDefaultAsync(ct)
             : await db.Areas.Where(a=>a.AreaId==row.AreaId && a.IsActive).Select(a=>(long?)a.BranchId).SingleOrDefaultAsync(ct);
         if(branch==null || !await db.Branches.AnyAsync(b=>b.BranchId==branch && b.IsActive,ct))throw new ValidationException("Schedule target unavailable.");

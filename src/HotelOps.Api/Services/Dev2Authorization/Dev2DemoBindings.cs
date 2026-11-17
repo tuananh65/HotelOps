@@ -111,7 +111,7 @@ public static partial class Dev2DemoBindings
             && (areaId == null || x.AreaId == areaId), ct)) return false;
         if (areaId is long area && !await db.Areas.AsNoTracking().AnyAsync(x => x.AreaId == area && x.IsActive && x.BranchId == branch, ct)) return false;
         if (Number(input, "AssetId") is long asset && !await db.Assets.AsNoTracking().AnyAsync(x => x.AssetId == asset && x.BranchId == branch
-            && x.LifecycleStatus != "RETIRED" && (roomId == null || x.CurrentRoomId == roomId) && (areaId == null || x.CurrentAreaId == areaId), ct)) return false;
+            && (x.LifecycleStatus == "IN_USE" || x.LifecycleStatus == "UNDER_REPAIR") && (roomId == null || x.CurrentRoomId == roomId) && (areaId == null || x.CurrentAreaId == areaId), ct)) return false;
         return true; // Existing service retains physical-source/state/concurrency validation.
     }
 

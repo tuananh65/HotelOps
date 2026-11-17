@@ -81,7 +81,7 @@ export function AssetProfilePage() {
       {select("Chi nhánh", "branchId", catalog.branches)}{select("Loại", "assetTypeId", catalog.categories)}{select("Phòng", "roomId", catalog.rooms)}
       {select("Khu vực", "areaId", catalog.areas)}{select("Bộ phận giữ tài sản", "departmentId", catalog.departments)}
       <label>Tình trạng <select value={filters.conditionStatus} onChange={e => change("conditionStatus", e.target.value)}><option value="">Tất cả</option>{["GOOD", "FAIR", "POOR", "FAULTY"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
-      <label>Lifecycle <select value={filters.lifecycleStatus} onChange={e => change("lifecycleStatus", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "RETIRED"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
+      <label>Lifecycle <select value={filters.lifecycleStatus} onChange={e => change("lifecycleStatus", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "LOST", "RETIRED"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
       <label>Tìm kiếm <input maxLength={200} value={filters.search} onChange={e => change("search", e.target.value)} /></label>
     </fieldset>}
     {list && <><table><thead><tr><th>Mã / Tên</th><th>Vị trí</th><th>Bộ phận / Người giữ</th><th>Tình trạng</th><th>Lifecycle</th></tr></thead><tbody>{list.items.map(a => <tr key={a.assetId}>
@@ -89,6 +89,7 @@ export function AssetProfilePage() {
     </tr>)}</tbody></table>{list.items.length === 0 && <p>MSG10 — Không có tài sản phù hợp bộ lọc.</p>}</>}
     {profile && <>
       <h3>{profile.profile.assetCode} — {profile.profile.assetName}</h3><p>Snapshot: {time(profile.snapshot)}</p>
+      <p><Link to={`/assets/${id}/condition`}>Update condition</Link></p>
       <p><Link to={`/assets/${id}/custody`}>Custody handover</Link></p>
       {profile.canEdit && <p><Link to={`/assets/${id}/placement`}>Assign first location</Link></p>}
       {profile.canEdit && <p><Link to={`/assets/${id}/edit`}>Chỉnh sửa thông tin</Link></p>}

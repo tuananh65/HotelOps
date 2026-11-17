@@ -48,7 +48,7 @@ internal static class ReportAssetHistory
         {
             var proof = audits.Where(a => a.EntityType == "asset_location_history"
                 && a.EntityId == move.LocationHistoryId.ToString(CultureInfo.InvariantCulture)
-                && a.OccurredAt == move.EffectiveAt && a.ActorUserId == move.MovedBy).ToArray();
+                && a.Action == "CREATE" && a.ActorUserId == move.MovedBy).ToArray();
             if (proof.Length != 1) { missing = true; continue; }
             using var json = Parse(proof[0].NewValues);
             if (json == null) { missing = true; continue; }
@@ -57,7 +57,8 @@ internal static class ReportAssetHistory
                 || Number(p, "asset_id") != move.AssetId
                 || Text(p, "from_location_type") != move.FromLocationType || Number(p, "from_location_id") != move.FromLocationId
                 || Text(p, "to_location_type") != move.ToLocationType || Number(p, "to_location_id") != move.ToLocationId
-                || Number(p, "moved_by") != move.MovedBy || Timestamp(p, "effective_at") != move.EffectiveAt)
+                || Number(p, "moved_by") != move.MovedBy || Timestamp(p, "effective_at") != move.EffectiveAt
+                || (Timestamp(p, "recorded_at") is { } recorded ? recorded != proof[0].OccurredAt || recorded < move.EffectiveAt : proof[0].OccurredAt != move.EffectiveAt))
             { missing = true; continue; }
             rows.Add(new(proof[0].AuditId, move.AssetId, "LOCATION_CHANGED", move.LocationHistoryId,
                 source, destination, move.EffectiveAt, move.FromLocationType, move.FromLocationId,

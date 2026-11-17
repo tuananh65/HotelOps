@@ -78,7 +78,7 @@ public static partial class Dev2DemoBindings
         foreach (var name in new[] { "WarehouseId", "SourceWarehouseId" })
             if (Field(input, name) is long warehouse && !await db.Warehouses.AsNoTracking().AnyAsync(x => x.WarehouseId == warehouse && x.BranchId == branch && x.IsActive, ct)) return false;
         if (Field(input, "IncidentId") is long incident && !await db.Incidents.AsNoTracking().AnyAsync(x => x.IncidentId == incident && x.BranchId == branch, ct)) return false;
-        if (Field(input, "AssetId") is long asset && !await db.Assets.AsNoTracking().AnyAsync(x => x.AssetId == asset && x.BranchId == branch && x.LifecycleStatus != "RETIRED"
+        if (Field(input, "AssetId") is long asset && !await db.Assets.AsNoTracking().AnyAsync(x => x.AssetId == asset && x.BranchId == branch && (x.LifecycleStatus == "IN_USE" || x.LifecycleStatus == "UNDER_REPAIR")
             && (Field(input, "RoomId") == null || x.CurrentRoomId == Field(input, "RoomId")) && (Field(input, "AreaId") == null || x.CurrentAreaId == Field(input, "AreaId")), ct)) return false;
         if (p.Method != "GET")
             foreach (var name in new[] { "AssigneeId", "AssignedApproverUserId", "ToUserId", "CustodianUserId" })

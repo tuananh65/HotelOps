@@ -234,8 +234,8 @@ public sealed class IncidentService : IIncidentService
                 .AsTracking().SingleOrDefaultAsync(cancellationToken);
             if (asset is null || asset.BranchId != request.BranchId)
                 throw new ValidationException("AssetId must identify an asset in the specified branch.");
-            if (asset.LifecycleStatus == "RETIRED")
-                throw new ValidationException("A retired Asset cannot receive a new Incident.");
+            if (asset.LifecycleStatus is not ("IN_USE" or "UNDER_REPAIR"))
+                throw new ValidationException("Only an active Asset (In Use or Under Repair) can receive a new Incident.");
         }
 
         // Range locks also protect allocation against writers that do not take the application lock.

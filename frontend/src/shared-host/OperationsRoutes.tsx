@@ -1,6 +1,7 @@
 import { AssetCustodyPage } from "../assets/AssetCustodyPage";
 import { AssetRegistrationPage } from "../assets/AssetRegistrationPage";
 import { AssetPlacementPage } from "../assets/AssetPlacementPage";
+import { AssetConditionPage } from "../assets/AssetConditionPage";
 import { HomeNavigation } from "./HomeNavigation";
 import { AssetMaintenanceHistoryPage } from "../assets/AssetMaintenanceHistoryPage";
 import { AssetLocationPage } from "../assets/AssetLocationPage";
@@ -43,6 +44,7 @@ export function OperationsRoutes() {
           <Route path="/assets" element={<AssetProfilePage />} />
           <Route path="/assets/new" element={<AssetRegistrationPage />} />
           <Route path="/assets/:id/placement" element={<AssetPlacementPage />} />
+          <Route path="/assets/:id/condition" element={<AssetConditionPage />} />
           <Route path="/assets/:id" element={<AssetProfilePage />} />
           <Route path="/assets/:id/custody" element={<AssetCustodyPage />} />
           <Route path="/assets/:id/edit" element={<AssetEditPage />} />

@@ -197,6 +197,8 @@ builder.Services.AddScoped<AssetEditService>();
 builder.Services.AddScoped<AssetCustodyWorkflow>();
 builder.Services.AddScoped<AssetPlacementCatalog>();
 builder.Services.AddScoped<AssetPlacementWriter>();
+builder.Services.AddScoped<AssetConditionAuthority>();
+builder.Services.AddScoped<AssetConditionWorkflow>();
 builder.Services.AddScoped<AssetRetirementService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();

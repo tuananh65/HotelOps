@@ -67,7 +67,7 @@ export function AssetLocationPage() {
       {select("Chi nhánh", "branch", options.branches)}{select("Tầng", "floor", options.floors)}{select("Khu vực", "area", options.areas)}
       {select("Phòng", "room", options.rooms)}{select("Bộ phận giữ tài sản", "department", options.departments)}{select("Loại tài sản", "category", options.categories)}
       <label>Tình trạng <select value={filters.condition} onChange={e => change("condition", e.target.value)}><option value="">Tất cả</option>{["GOOD", "FAIR", "POOR", "FAULTY"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
-      <label>Lifecycle <select value={filters.lifecycle} onChange={e => change("lifecycle", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "RETIRED"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
+      <label>Lifecycle <select value={filters.lifecycle} onChange={e => change("lifecycle", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "LOST", "RETIRED"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
       <label>Nhóm theo <select value={filters.groupBy} onChange={e => change("groupBy", e.target.value)}>{Object.entries({ LOCATION: "Vị trí", BRANCH: "Chi nhánh", FLOOR: "Tầng", AREA: "Khu vực", ROOM: "Phòng", DEPARTMENT: "Bộ phận", CATEGORY: "Loại tài sản", CONDITION: "Tình trạng" }).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
     </fieldset>}
     {result && <>

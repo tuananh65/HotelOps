@@ -86,7 +86,7 @@ public sealed class AssetLocationReview(HotelOpsDbContext db, InsightAccess acce
             || new[] { filter.Floor, filter.Area, filter.Room, filter.Department, filter.Category }.Any(id => id is <= 0)
             || filter.GroupBy is not ("LOCATION" or "BRANCH" or "FLOOR" or "AREA" or "ROOM" or "DEPARTMENT" or "CATEGORY" or "CONDITION")
             || filter.Condition is not (null or "GOOD" or "FAIR" or "POOR" or "FAULTY")
-            || filter.Lifecycle is not (null or "IN_USE" or "UNDER_REPAIR" or "RETIRED"))
+            || filter.Lifecycle is not (null or "IN_USE" or "UNDER_REPAIR" or "LOST" or "RETIRED"))
             throw new InsightException(400, "INVALID_FILTER", "Invalid asset location filter.");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([access.UserId], ct);
