@@ -41,6 +41,27 @@ export function BranchStructureTree() {
   );
   const [active, setActive] = useState("");
   const [request, setRequest] = useState<Request | null>(null);
+  const [branchOptions, setBranchOptions] = useState<{ owner: PublicSession; items: { id: number; code: string; name: string; isActive: boolean }[] } | null>(null);
+  const [branchError, setBranchError] = useState("");
+  const [optionsReload, setOptionsReload] = useState(0);
+  useEffect(() => {
+    setBranchOptions(null); setBranchError("");
+    if (!owner || owner.mustChangePassword) return;
+    const abort = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch("/api/branches/structure-options", { credentials: "include", cache: "no-store", redirect: "error",
+          signal: abort.signal, headers: { Accept: "application/json" } });
+        if (!response.ok || response.headers.get("Content-Type")?.split(";")[0] !== "application/json") throw new Error();
+        const items: unknown = await response.json();
+        if (!Array.isArray(items) || !items.every(item => item && typeof item === "object" && Number.isSafeInteger(item.id)
+          && item.id > 0 && typeof item.code === "string" && typeof item.name === "string" && typeof item.isActive === "boolean")
+          || new Set(items.map(item => item.id)).size !== items.length) throw new Error();
+        if (!abort.signal.aborted) setBranchOptions({ owner, items });
+      } catch { if (!abort.signal.aborted) setBranchError("Authorized branches could not be loaded. Refresh or check your session."); }
+    })();
+    return () => abort.abort();
+  }, [owner, optionsReload]);
   const key = JSON.stringify([branch, active, request?.query]);
   const flow = useHotelFlow(key);
   const load = useRef(flow.load);
@@ -172,21 +193,21 @@ export function BranchStructureTree() {
         }}
       >
         <label>
-          Branch ID
-          <input
-            name="branchId"
-            inputMode="numeric"
-            value={branch}
-            onChange={(event) => {
-              setBranch(event.target.value);
-              setRequest(null);
-            }}
-          />
+          Branch
+          <select name="branchId" value={branch} disabled={branchOptions?.owner !== owner}
+            onChange={event => { setBranch(event.target.value); setRequest(null); }}>
+            <option value="">Choose an authorized branch</option>
+            {branchOptions?.owner === owner && branchOptions.items.map(item => <option key={item.id} value={item.id}>
+              {item.code} ? {item.name}{item.isActive ? "" : " (Inactive)"}
+            </option>)}
+          </select>
         </label>
-        <button disabled={!decimalId(branch) || flow.phase === "reading"}>
+        <button disabled={!decimalId(branch) || branchOptions?.owner !== owner || !branchOptions.items.some(item => String(item.id) === branch) || flow.phase === "reading"}>
           Load from server
         </button>
       </form>
+      {branchError && <p role="alert">{branchError}</p>}
+      <button type="button" onClick={() => setOptionsReload(value => value + 1)}>Refresh authorized branches</button>
       <label>
         Active filter
         <select
@@ -220,6 +241,7 @@ export function BranchStructureTree() {
       )}
       {data && selected && (
         <section aria-label="Progressive branch structure">
+          <p aria-label="Applied structure filters">Branch: {data.branch.code}; status: {selected.query.isActive === "" ? "All" : selected.query.isActive === "true" ? "Active" : "Inactive"}; collection: {data.collection ?? "Selected node"}.</p>
           <nav aria-label="Structure path">
             <button onClick={() => ancestor(-1)}>
               Branch: {data.branch.name}
@@ -230,6 +252,11 @@ export function BranchStructureTree() {
               </button>
             ))}
           </nav>
+          {data.visibility === "management" && <nav aria-label="Selected node management">
+            {data.nodeType === "branch" && <Link to={`/structure/branches/${data.branch.id}/edit`}>Update branch information</Link>}
+            {(data.nodeType === "floor" || data.nodeType === "area") && selected.query.nodeId &&
+              <Link to={`/structure/${data.nodeType}s/${selected.query.nodeId}?branchId=${data.branch.id}`}>Manage selected {data.nodeType}</Link>}
+          </nav>}
           <section aria-label="Selected node details">
             <h2>Selected {data.nodeType}</h2>
             <dl>
@@ -272,7 +299,7 @@ export function BranchStructureTree() {
                 size {page.pageSize}.
               </p>
               {page.items.length === 0 ? (
-                <p>No records on this page.</p>
+                <p>MSG10: No records match the applied filters on this page.</p>
               ) : (
                 <ul aria-label="Structure nodes">
                   {page.items.map((item) => {

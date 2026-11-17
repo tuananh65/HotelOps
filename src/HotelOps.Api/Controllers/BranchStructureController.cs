@@ -13,10 +13,20 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class BranchStructureController(BranchStructureService structures) : ControllerBase
 {
+    [HttpGet("~/api/branches/structure-options")]
+    public async Task<IActionResult> Options(CancellationToken ct)
+    {
+        if (!Request.IsHttps) return Error(400, "HTTPS_REQUIRED");
+        if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out _)) return Error(401, "SESSION_INVALID");
+        var options = await structures.BranchOptionsAsync(ticket!, ct);
+        return options == null ? Error(401, "SESSION_INVALID") : Ok(options);
+    }
+
     [HttpGet]
     public async Task<IActionResult> Get([FromRoute, Range(1, long.MaxValue)] long branchId,
         [FromQuery] BranchStructureQuery query, CancellationToken ct)
     {
+        if (!Request.IsHttps) return Error(400, "HTTPS_REQUIRED");
         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out _)) return Error(401, "SESSION_INVALID");
         try
         {

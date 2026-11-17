@@ -17,6 +17,39 @@ public sealed record BranchStructureResult(BranchStructureStatus Status, BranchS
 public sealed class BranchStructureService(HotelOpsDbContext db, ICurrentUserAccessor current,
     ISqlSessionService sessions, IPermissionService permissions)
 {
+    public async Task<IReadOnlyList<StructureBranchDto>?> BranchOptionsAsync(SessionReference ticket, CancellationToken ct)
+    {
+        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.IsRestricted || ticket.IsRestricted)
+            return null;
+        if (db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Clean structure read context required.");
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        if (!await Valid()) return null;
+        var items = new List<StructureBranchDto>();
+        // Use exactly the approved management/basic read policies, not Dashboard visibility.
+        foreach (var branch in await db.Branches.AsNoTracking().OrderBy(b => b.BranchCode).ThenBy(b => b.BranchId)
+            .Select(b => new StructureBranchDto(b.BranchId, b.BranchCode, b.BranchName, b.IsActive)).ToArrayAsync(ct))
+        {
+            var decision = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", ct);
+            if (!decision.IsGranted && decision.Decision != PermissionDecision.Unavailable)
+                decision = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branch.Id, ct);
+            if (!decision.IsGranted && decision.Decision != PermissionDecision.Unavailable)
+                decision = await permissions.EvaluateBranchAsync("ROOM_VIEW", branch.Id, ct);
+            if (decision.Decision == PermissionDecision.Unavailable)
+                throw new InvalidOperationException("Structure authorization unavailable.");
+            if (decision.IsGranted) items.Add(branch);
+        }
+        if (!await Valid()) return null;
+        await tx.CommitAsync(ct);
+        return items;
+
+        async Task<bool> Valid()
+        {
+            var valid = await sessions.ValidateSessionAsync(ticket, ct);
+            return valid.IsValid && valid.Session?.SessionId == actor.SessionId && valid.Session.IsRestricted == false;
+        }
+    }
+
     public async Task<BranchStructureResult> ReadAsync(SessionReference ticket, long branchId,
         BranchStructureQuery query, CancellationToken ct)
     {
