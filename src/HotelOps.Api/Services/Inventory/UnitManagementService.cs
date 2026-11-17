@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace HotelOps.Api.Services.Inventory;
 
 public sealed record ManagedConversion(long ConversionId, long ItemId, long FromUomId, long ToUomId, string Factor, bool IsActive, string RowVersion);
+public sealed record ItemManagementSnapshot(InventoryPaged<InventoryItemDto> Items, InventoryLookup[] Categories, InventoryLookup[] Units);
 public sealed record UnitManagementSnapshot(InventoryPaged<InventoryUnitDto> Units, InventoryUnitDto[] Choices, InventoryItemDto? Item, ManagedConversion[] Conversions)
 {
     public int ConversionPage { get; init; }
@@ -21,6 +22,19 @@ public sealed record UnitManagementSnapshot(InventoryPaged<InventoryUnitDto> Uni
 public sealed class UnitManagementService(HotelOpsDbContext db, InsightAccess access, DashboardSessionGuard session,
     IPermissionService permissions, InventoryService inventory)
 {
+    public async Task<ItemManagementSnapshot> ReadItemsAsync(int page, int size, CancellationToken ct)
+    {
+        if (page is < 1 or > 1000000 || size is < 1 or > 100) throw new InsightException(400, "INVALID_FILTER", "Invalid catalogue page.");
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await new UserEligibilityLock(db).LockAsync([access.UserId], ct);
+        await RequireAsync(ct);
+        var items = await inventory.GetItems(new(page, size), ct);
+        var categories = (await inventory.GetCategories(ct)).ToArray();
+        var units = await db.UnitsOfMeasures.AsNoTracking().OrderBy(u => u.UomId)
+            .Select(u => new InventoryLookup(u.UomId, u.UomCode, u.UomName, u.IsActive)).ToArrayAsync(ct);
+        await RequireAsync(ct); await tx.CommitAsync(ct);
+        return new(items, categories, units);
+    }
     public async Task RequireAsync(CancellationToken ct)
     {
         await session.RequireAsync(ct);

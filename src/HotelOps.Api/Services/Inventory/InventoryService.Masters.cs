@@ -11,17 +11,24 @@ public sealed partial class InventoryService
         db.ChangeTracker.DetectChanges();
         return db.Entry(entity).State is EntityState.Added or EntityState.Modified;
     }
-    public async Task<InventoryItemDto?> SaveItem(long? id, long actorUserId, InventoryItemWrite r, CancellationToken ct)
+    public async Task<InventoryItemDto?> SaveItem(long? id, long actorUserId, InventoryItemWrite r, Func<CancellationToken, Task> authorize, CancellationToken ct)
     {
         var code = Required(r.ItemCode, "ItemCode", 50); var name = Required(r.ItemName, "ItemName", 200);
-        await using var tx = await Begin(actorUserId, ct);
+        await using var tx = await BeginUnitWrite(actorUserId, authorize, ct);
         var x = id.HasValue ? await db.InventoryItems.FromSqlInterpolated($"SELECT * FROM dbo.inventory_items WITH (UPDLOCK,HOLDLOCK) WHERE item_id={id}").SingleOrDefaultAsync(ct) : new InventoryItem();
         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion);
         var before = id.HasValue ? Scalars(x) : null;
-        if (await db.InventoryItems.AnyAsync(i => i.ItemCode == code && i.ItemId != id, ct)) throw Invalid("ItemCode already exists.");
-        if (!await db.ItemCategories.AnyAsync(c => c.ItemCategoryId == r.CategoryId && c.IsActive, ct) || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.BaseUomId && u.IsActive, ct)) throw Invalid("Active Category and BaseUOM are required.");
+        if (await db.InventoryItems.AnyAsync(i => EF.Functions.Collate(i.ItemCode, "Latin1_General_100_CI_AS") == code && i.ItemId != id, ct)) throw Invalid("MSG35: ItemCode already exists.");
+        if ((!id.HasValue || r.IsActive || x.CategoryId != r.CategoryId) && !await db.ItemCategories.AnyAsync(c => c.ItemCategoryId == r.CategoryId && c.IsActive, ct)
+            || (!id.HasValue || r.IsActive || x.BaseUomId != r.BaseUomId) && !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.BaseUomId && u.IsActive, ct)) throw Invalid("Active Category and BaseUOM are required for new or active items and changed references.");
         if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.StockMovements.AnyAsync(m => m.ItemId == id, ct)) throw Invalid("Base UOM is immutable after the first stock effect.");
         if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.MaterialReplenishmentLines.AnyAsync(l => l.ItemId == id, ct)) throw Invalid("Base UOM is immutable after replenishment history.");
+        if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.StockDocumentLines.AnyAsync(l => l.ItemId == id
+            && (l.Document.Status == "POSTED" || l.Document.Status == "REVERSED" || l.Document.DocumentType == "TRANSFER"
+                && (l.Document.Status == "IN_TRANSIT" || l.Document.Status == "PARTIALLY_RECEIVED" || l.Document.Status == "RECEIVED")), ct))
+            throw Invalid("MSG03: Base UOM is immutable after a stock transaction, including a posted document with zero usable quantity.");
+        if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.UomConversions.AnyAsync(c => c.ItemId == id && c.IsActive, ct))
+            throw Invalid("Deactivate existing item conversions before changing its base unit; factors cannot be inferred for the new unit.");
         x.ItemCode = code; x.ItemName = name; x.CategoryId = r.CategoryId; x.BaseUomId = r.BaseUomId; x.IsConsumable = r.IsConsumable; x.IsActive = r.IsActive; x.Description = r.Description; x.Specification = r.Specification;
         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.InventoryItems.Add(x); }
         if (Changed(x))
@@ -29,7 +36,7 @@ public sealed partial class InventoryService
             if (id.HasValue) x.UpdatedAt = now;
             await Audit(x, "inventory_items", x.ItemId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "ITEM_SAVED", before, [null], now, ct);
         }
-        await tx.CommitAsync(ct); return Dto(x);
+        await authorize(ct); await tx.CommitAsync(ct); return Dto(x);
     }
     public async Task<InventoryUnitDto?> SaveUnit(long? id, long actorUserId, InventoryUnitWrite r, Func<CancellationToken, Task> authorize, CancellationToken ct)
     {

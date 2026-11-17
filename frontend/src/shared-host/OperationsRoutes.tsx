@@ -13,6 +13,7 @@ import { InventoryRoute } from "../inventory/InventoryRoute";
 import { StockBalancePage, StockDocumentPage } from "../inventory/StockBalancePage";
 import { MinimumStockPage } from "../inventory/MinimumStockPage";
 import { UnitManagementPage } from "../inventory/UnitManagementPage";
+import { ItemManagementPage } from "../inventory/ItemManagementPage";
 export function OperationsRoutes() {
   return (
     <>
@@ -26,6 +27,7 @@ export function OperationsRoutes() {
           <Route path="/inventory/stock" element={<StockBalancePage />} />
           <Route path="/inventory/minimums" element={<MinimumStockPage />} />
           <Route path="/inventory/units" element={<UnitManagementPage />} />
+          <Route path="/inventory/catalog" element={<ItemManagementPage />} />
           <Route path="/inventory/documents/:id" element={<StockDocumentPage />} />
           <Route path="/inventory/items/:id" element={<InventoryRoute mode="detail" />} />
           <Route path="/" element={<Navigate to="/cleaning/tasks" replace />} />

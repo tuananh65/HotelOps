@@ -37,9 +37,9 @@ public sealed class InventoryController(InventoryService service, InventoryAcces
     [HttpGet("items/{id:long}")]
     public Task<IActionResult> Item(long id, CancellationToken ct) => Execute(actor => service.GetItem(id, ct));
     [HttpPost("items")]
-    public Task<IActionResult> CreateItem(InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(null, actor, request, ct), x => $"/api/inventory/items/{x!.ItemId}", input: request);
+    public Task<IActionResult> CreateItem(InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(null, actor, request, units.RequireAsync, ct), x => $"/api/inventory/items/{x!.ItemId}", input: request);
     [HttpPut("items/{id:long}")]
-    public Task<IActionResult> UpdateItem(long id, InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(id, actor, request, ct), input: request);
+    public Task<IActionResult> UpdateItem(long id, InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(id, actor, request, units.RequireAsync, ct), input: request);
     [HttpGet("item-categories")]
     public Task<IActionResult> Categories(CancellationToken ct) => Execute(actor => service.GetCategories(ct));
     [HttpGet("units")]
