@@ -1,5 +1,7 @@
 -- Disposable trial only. No shared/production installation or new business schema.
 SET XACT_ABORT ON;
+IF OBJECT_ID('dbo.TR_audit_append_only_v1','TR') IS NOT NULL
+ THROW 51999,'Historical disposable V1 writer is incompatible with append-only audit preservation; do not install.',1;
 IF @@TRANCOUNT<>1 OR DB_NAME()<>'HotelOps_DEV3_142A_20261114_cc78c13f'
  OR CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))<>'meita'
  OR NOT EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid='1D5A9B53-7D19-435A-96AB-9FDFF447B6E0')

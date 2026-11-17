@@ -13,18 +13,22 @@ export function recordHistoryQuery(entry: AuditRow, current: string): string {
   return params.toString();
 }
 type Scalar = string | number | boolean | null;
-function fields(value: unknown): Record<string, Scalar> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      ([key, v]) =>
-        key !== "withheld" &&
-        (v === null ||
-          typeof v === "string" ||
-          typeof v === "boolean" ||
-          (typeof v === "number" && Number.isFinite(v))),
-    ),
-  );
+function fields(value: unknown, prefix = "", depth = 0): Record<string, Scalar> {
+  if (!value || typeof value !== "object" || depth > 32) return {};
+  const result: Record<string, Scalar> = Object.create(null);
+  for (const [key, v] of Object.entries(value)) {
+    if (key === "withheld") continue;
+    const normalized = key.replaceAll("_", "").toLowerCase();
+    // Writers wrap the new business snapshot while often writing the old one
+    // directly. Compare those fields, not a fictitious removal/addition of State.
+    const envelope = depth === 0 && ["state", "entity", "value"].includes(normalized)
+      && v !== null && typeof v === "object" && !Array.isArray(v);
+    const path = envelope ? prefix : prefix ? `${prefix}.${normalized}` : normalized;
+    if (v === null || typeof v === "string" || typeof v === "boolean" ||
+        (typeof v === "number" && Number.isFinite(v))) result[path] = v;
+    else Object.assign(result, fields(v, path, depth + 1));
+  }
+  return result;
 }
 export function auditChanges(before: unknown, after: unknown) {
   const old = fields(before),

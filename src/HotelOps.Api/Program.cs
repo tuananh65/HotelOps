@@ -104,6 +104,7 @@ builder.Services.AddHostedService<HotelOps.Api.Services.OperationalTasks.TaskSer
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
+builder.Services.AddHostedService<HotelOps.Api.Services.Insights.AuditArchiveWorker>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.RoomDashboardService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();

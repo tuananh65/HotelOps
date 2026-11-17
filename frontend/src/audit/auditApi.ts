@@ -18,6 +18,25 @@ export interface AuditDetail {
   before: unknown;
   after: unknown;
   redacted: boolean;
+  provenance: string;
+  retention: AuditRetention | null;
+}
+export interface AuditRetention {
+  archiveStatus: string;
+  archivedAt: string | null;
+  retentionUntil: string | null;
+  archivedBy: string | null;
+  legalHold: boolean;
+  legalHoldUntil: string | null;
+  purgeEligibility: string;
+  reason: string;
+}
+function retention(v: unknown): AuditRetention | null {
+  if (v == null) return null;
+  if (!object(v) || ![v.archiveStatus, v.purgeEligibility, v.reason].every(x => typeof x === "string") ||
+      ![v.archivedAt, v.retentionUntil, v.archivedBy, v.legalHoldUntil].every(x => x === null || typeof x === "string") ||
+      typeof v.legalHold !== "boolean") throw new Error("Invalid audit retention response");
+  return v as unknown as AuditRetention;
 }
 const object = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === "object" && !Array.isArray(v);
@@ -68,9 +87,10 @@ export async function readAudit(
   if (!object(v)) throw new Error("Invalid audit response");
   if (id !== null) {
     const entry = row(v.entry);
-    if (entry.id !== id || v.redacted !== true)
+    if (entry.id !== id || v.redacted !== true || typeof v.provenance !== "string")
       throw new Error("Invalid audit detail");
-    return { entry, before: v.before, after: v.after, redacted: true };
+    return { entry, before: v.before, after: v.after, redacted: true,
+      provenance: v.provenance, retention: retention(v.retention) };
   }
   if (
     !Array.isArray(v.items) ||

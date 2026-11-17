@@ -65,4 +65,6 @@ public sealed record AuditListRow(long Id, long? BranchId, long? ActorId, string
     string EntityType, string EntityId, DateTimeOffset OccurredAt, IReadOnlyList<string>? ChangedFields = null);
 public sealed record AuditPage(IReadOnlyList<AuditListRow> Items, int TotalCount, int Page, int PageSize);
 public sealed record AuditDetail(AuditListRow Entry, string? RequestId, object? Before, object? After,
-    string Provenance, bool Redacted);
+    string Provenance, bool Redacted, AuditRetentionView? Retention = null);
+public sealed record AuditRetentionView(string ArchiveStatus, DateTime? ArchivedAt, DateTime? RetentionUntil,
+    string? ArchivedBy, bool LegalHold, DateTime? LegalHoldUntil, string PurgeEligibility, string Reason);

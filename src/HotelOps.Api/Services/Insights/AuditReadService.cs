@@ -70,7 +70,8 @@ public sealed class AuditReadService(HotelOpsDbContext db, AuditAccess access)
         var entry = new AuditListRow(row.AuditId, row.BranchId, row.ActorUserId, row.Actor, row.Action, row.EntityType,
             row.EntityId, InsightAccess.Utc(row.OccurredAt), AuditRedaction.Fields(row.ChangedFields));
         var detail = new AuditDetail(entry, row.RequestId, AuditRedaction.Read(row.OldValues), AuditRedaction.Read(row.NewValues),
-            "dbo.audit_logs / audit_id; persisted source event; unrecorded changes are unavailable", true);
+            "dbo.audit_logs / audit_id; original append-only evidence retained in place; audit and receipt purge disabled", true,
+            await AuditPreservation.ReadAsync(db, id, ct));
         await tx.CommitAsync(ct);
         return detail;
     }

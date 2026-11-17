@@ -1,3 +1,27 @@
+# JOB06: approved preservation policy (2026-11-17)
+
+This section supersedes the historical proposal below. Project Leader decision: ARCHIVE_RETENTION=365_DAYS from ArchivedAt; LEGAL_HOLD=BLOCK_PURGE; AUDIT_LOG_PURGE=DISABLED; RECEIPT_PURGE=DISABLED_BY_DEFAULT.
+
+## Implemented audit storage
+
+AuditPreservationV1.sql classifies audit records ARCHIVED_IN_PLACE in audit_archive_state. Original audit IDs, payloads, branch, actor and receipt foreign keys remain unchanged. ArchivedAt, system actor, reason, policy version and RetentionUntil (at least ArchivedAt + 365 days) form an immutable archive record. A transaction, exclusive job lease, source/key-range locks and primary key provide bounded idempotent batches. Old records stay readable through the same SYS_ADMIN + AUDIT_VIEW scope and redaction; no raw archive endpoint or new grant is introduced.
+
+Audit update/delete and archive metadata update/delete are rejected by database triggers. New JSON audit payloads are checked recursively for credential properties. EF audit insertion uses trigger-compatible SQL. Original existing payloads are not rewritten. Historical SQL fixture writer fe05_reassign_reinspection V1 is incompatible with append-only audit; installer guards prevent combining them. Read-only sys.sql_modules inspection found no installed audit UPDATE/DELETE writer in the confirmed development DB. Upgrading that obsolete fixture is not an authorization to weaken audit preservation.
+
+JOB06 ArchiveAuditEnabled defaults false. When explicitly enabled by deployment configuration, a daily worker classifies bounded batches older than the 365-day hot period; it never deletes business records, audit, notifications or receipts. The archive record itself is the per-record history. Job diagnostics contain counts only, no payloads. The audit UI displays archive dates, minimum retention, hold and PURGE_BLOCKED reason.
+
+## Holds and deletion
+
+Every audit row is PURGE_BLOCKED / AUDIT_LOG_PURGE_DISABLED, including after RetentionUntil. Expiring a dated hold never overrides that stronger prohibition. Indefinite holds cannot expire automatically. No public hold-release or purge endpoint exists, and AUDIT_VIEW grants no mutation authority. No approved purge policy exists for other business entities: this implementation never archives/deletes their active or historical records, incident history, SLA history, assignment/handover receipts or notification audit. Their future policies must recheck current state, unclosed dependencies, holds, retention and concurrency before deletion, and preserve evidence. No CASCADE DELETE, disabled FK/trigger, relocated audit identity or receipt purge is used.
+
+Development installer applied only to the identity-verified HotelOpsDB (GUID BF470FF1-E41C-4E8A-A98D-51E6FAF96D3E). Readback: all three guards enabled, archive FK trusted/NO_ACTION, archive row count zero. Worker not enabled; no archive backfill or purge executed. Existing preflight copy-only backup remains available. Installer supports transaction rollback via ApplyChanges=0; do not roll back preservation by dropping guards over a live audit store.
+
+Validation: compilation and TypeScript checks only. Unit/integration/browser tests NOT_RUN by explicit instruction. No QA_VERIFIED or RUNTIME_VERIFIED claim. Legacy data is preserved, not retroactively certified secret-free.
+
+---
+
+## Historical design (superseded; not execution instructions)
+
 # JOB06 — Archive before purge
 
 Status: design only. User approved OPTION 2 and skipping referenced rows when safe archival is unavailable. No archive schema, worker, migration or reader was installed in checkpoint84. No shared/production mutation.

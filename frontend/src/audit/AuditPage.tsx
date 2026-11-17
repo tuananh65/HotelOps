@@ -234,6 +234,21 @@ export function AuditPage() {
                 {detail.entry.occurredAt} — {detail.entry.actor ?? "System"}
               </p>
               <p>Sensitive and unsupported fields are withheld.</p>
+              <p>{detail.provenance}</p>
+              {detail.retention && <section aria-label="Evidence retention">
+                <h3>Evidence retention</h3>
+                <dl>
+                  <dt>Archive status</dt><dd>{detail.retention.archiveStatus}</dd>
+                  <dt>Archived at (UTC)</dt><dd>{detail.retention.archivedAt ?? "Not archived"}</dd>
+                  <dt>Minimum retention until (UTC)</dt><dd>{detail.retention.retentionUntil ?? "Not applicable"}</dd>
+                  <dt>Archived by</dt><dd>{detail.retention.archivedBy ?? "Not applicable"}</dd>
+                  <dt>Legal hold</dt><dd>{detail.retention.legalHold
+                    ? detail.retention.legalHoldUntil ? `Until ${detail.retention.legalHoldUntil} (UTC)` : "Indefinite"
+                    : "No additional hold recorded"}</dd>
+                  <dt>Purge eligibility</dt><dd>{detail.retention.purgeEligibility}: {detail.retention.reason}</dd>
+                </dl>
+                <p>Reaching the retention date does not authorize deletion. Audit logs and receipts remain preserved.</p>
+              </section>}
               <button onClick={() => history(detail.entry)}>
                 View this record's history
               </button>
