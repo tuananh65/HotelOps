@@ -34,6 +34,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
     </section>;
   }
   const logs = Array.isArray(data.maintenanceWorkLogs) ? data.maintenanceWorkLogs.filter(isObject) : [];
+  const deadline = isObject(data.deadline) ? data.deadline : null;
   const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
@@ -72,6 +73,12 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
       <dt>Instruction</dt><dd>{show(data.instruction)}</dd><dt>Planned start</dt><dd>{time(data.plannedStartAt)}</dd>
       <dt>Planned end</dt><dd>{time(data.plannedEndAt)}</dd><dt>Actual start</dt><dd>{time(data.actualStartAt)}</dd>
       <dt>Resolution</dt><dd>{show(data.resolutionNote)}</dd><dt>Resolved at</dt><dd>{time(data.resolvedAt)}</dd></dl>
+    <section aria-label="Maintenance deadline">
+      <h4>Due date</h4>
+      <p>{deadline?.dueAt ? time(deadline.dueAt) : "N/A"} {deadline?.source === "INCIDENT_RESOLUTION_SLA" ? "(Incident resolution SLA)" : deadline?.source === "PREVENTIVE_OCCURRENCE" ? "(Preventive occurrence)" : ""}</p>
+      <p>Overdue: {deadline?.isOverdue === true ? "Yes" : deadline?.isOverdue === false ? "No" : "N/A"}</p>
+      {deadline?.unavailableReason != null && <p role="status">Deadline information unavailable: {show(deadline.unavailableReason)}.</p>}
+    </section>
     <h4>Work history</h4>
     {data.assignmentWorkflow != null && <p>Assignment workflow: {show(data.assignmentWorkflow)}.
       {data.assignmentWorkflow === "UNVERIFIED" && " Triage and assignment evidence must be reconciled before accepting this work."}</p>}

@@ -19,8 +19,8 @@ namespace HotelOps.Api.Services.Dev2Authorization;
 // Scoped list/detail; material usage and mutations retain independent admission gates.
 internal static class MaintenanceReadContract
 {
-    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V9";
-    private const string Policy = "Pending Verification projection requires unique submission, matching transition and closed interval with no running interval; List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; material availability requires independent INVENTORY_VIEW and MR_VIEW with request-scope filtering before counts/paging, catalog lock before user/source and final grant revalidation; submitted snapshot requires MAINTENANCE_REVIEW, performer separation, unique current submission and closed interval, independent Incident read for evidence IDs, final snapshot disclosure revalidation; Verify availability requires closure storage and independent usage read authority; optional per-log percentage history without inferring absent values; Incident SLA requires independent current Incident read and final snapshot revalidation; immutable Decline history under current work read scope; Decline availability requires current execution authority, proven unstarted assignment and installed receipt storage; no mutation admission";
+    internal const string Reference = "DEV3_142A_MAINTENANCE_READ_V10";
+    private const string Policy = "Pending Verification projection requires unique submission, matching transition and closed interval with no running interval; List explicit branch, detail SQL-derived branch; current HTTPS SQL session; same-role MAINTENANCE_VIEW and active branch access; GBR165 Lead scoped branch, Staff assigned work only; unique coherent incident or preventive-run source; serializable read and final scope revalidation; detail usage requires independent MR_VIEW and INVENTORY_VIEW, coherent issuance lineage and final disclosure revalidation; material availability requires independent INVENTORY_VIEW and MR_VIEW with request-scope filtering before counts/paging, catalog lock before user/source and final grant revalidation; submitted snapshot requires MAINTENANCE_REVIEW, performer separation, unique current submission and closed interval, independent Incident read for evidence IDs, final snapshot disclosure revalidation; Verify availability requires closure storage and independent usage read authority; optional per-log percentage history without inferring absent values; Incident SLA requires independent current Incident read and final snapshot revalidation; detail deadline uses authorized Incident cycle resolution SLA or unique preventive occurrence scheduled due, SQL evaluation time, explicit unavailable reasons and final deadline revalidation; immutable Decline history under current work read scope; Decline availability requires current execution authority, proven unstarted assignment and installed receipt storage; no mutation admission";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-034", "A004A-035", "A004A-036" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("MAINTENANCE_VIEW", new(Dev2PermissionTargetKind.Resource, Resource: new(IsList(a) ? "maintenance_list" : "maintenance_work", IsList(a) ? await BranchAsync(a, ct) : Id(a))))],
@@ -32,6 +32,7 @@ internal static class MaintenanceReadContract
         ?? throw new Dev2AccessDenied(403);
     private static bool IsAvailability(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-034";
     private static readonly object SlaKey = new();
+    private static readonly object DeadlineKey = new();
     private static readonly object AvailabilityScopeKey = new();
     private static bool IsList(Dev2BoundAction a) => a.Identity.DecisionId == "A004A-035";
     private static long Id(Dev2BoundAction a) => a.Arguments.GetValueOrDefault("id") is long id && id > 0 ? id : throw new Dev2AccessDenied(404);
@@ -117,6 +118,8 @@ internal static class MaintenanceReadContract
         }
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[SlaKey] is IncidentSlaDto shownSla
             && await IncidentSlaRead.ForWorkAsync(db, a.Actor.UserId, branch, Id(a), ct) != shownSla) return false;
+        if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[DeadlineKey] is MaintenanceDeadlineView deadline
+            && await MaintenanceDeadlineRead.ReadAsync(db, a.Actor.UserId, branch, Id(a), deadline.EvaluatedAt, ct) != deadline) return false;
         return true;
     }
 
@@ -141,6 +144,9 @@ internal static class MaintenanceReadContract
             if (IsList(a)) return new OkObjectResult(await MaintenanceWorkService.ListAsync(query, Input(a), ct));
             var detail = await MaintenanceWorkService.DetailAsync(query, Id(a), ct);
             if (detail == null) return new NotFoundResult();
+            var evaluatedAt = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct), DateTimeKind.Utc);
+            detail.Deadline = await MaintenanceDeadlineRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), evaluatedAt, ct);
+            a.Http.Items[DeadlineKey] = detail.Deadline;
             detail.SubmissionWorkflow = await MaintenanceSubmissionWorkflow.ReadAsync(db,Id(a),ct);
             detail.IncidentSla = await IncidentSlaRead.ForWorkAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             a.Http.Items[SlaKey] = detail.IncidentSla;
