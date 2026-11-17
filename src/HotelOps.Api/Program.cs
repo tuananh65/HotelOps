@@ -21,6 +21,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionPa
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();
 builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftHandoverService>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.ShiftHandoverDelivery>();
 builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();

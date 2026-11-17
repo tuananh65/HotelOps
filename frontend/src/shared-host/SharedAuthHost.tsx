@@ -1,3 +1,4 @@
+import { ShiftHandoverPage } from "../workday/ShiftHandoverPage";
 import { HomeNavigation } from "./HomeNavigation";
 import { EmployeeMembershipPage } from "../users/EmployeeMembershipPage";
 import { SecureShiftPlanWorkspace } from "../workday/SecureShiftPlanWorkspace";
@@ -132,6 +133,8 @@ export function SharedAuthHost({
       {roleAssignmentEnabled && <Route path="/roles/:roleId/permissions/edit" element={<RolePermissionEditor />} />}
       {roleAssignmentEnabled && <Route path="/permissions" element={<RoleCatalogRoute mode="catalog" />} />}
       {incidentReadEnabled && <Route path="/maintenance-assignment-receipts/:id" element={<Protected><MaintenanceAssignmentReceipt /></Protected>} />}
+      {workdayReadEnabled && <Route path="/workday/handovers" element={<Protected><ShiftHandoverPage /></Protected>} />}
+      {workdayReadEnabled && <Route path="/workday/handovers/:id" element={<Protected><ShiftHandoverPage /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/shift-plans" element={<Protected><SecureShiftPlanWorkspace saveEnabled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}

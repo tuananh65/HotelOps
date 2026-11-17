@@ -13,12 +13,42 @@ internal sealed class TaskNotificationWorker(IServiceScopeFactory scopes,IOption
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if(!options.Value.Enabled)return;
-        long correctionCursor=0,shiftCursor=0,cursor=0,verificationCursor=0,declineCursor=0,assignmentCursor=0,planCursor=0,seriesCursor=0,reopenCursor=0,workdayCursor=0,maintenanceCursor=0,maintenanceAssignmentCursor=0,maintenanceDeclineCursor=0,maintenanceReturnCursor=0,maintenanceClosureCursor=0,roomReleaseCursor=0,roomBlockCursor=0,assetFollowupCursor=0;
+        long handoverHeadCursor=0,handoverCursor=0,correctionCursor=0,shiftCursor=0,cursor=0,verificationCursor=0,declineCursor=0,assignmentCursor=0,planCursor=0,seriesCursor=0,reopenCursor=0,workdayCursor=0,maintenanceCursor=0,maintenanceAssignmentCursor=0,maintenanceDeclineCursor=0,maintenanceReturnCursor=0,maintenanceClosureCursor=0,roomReleaseCursor=0,roomBlockCursor=0,assetFollowupCursor=0;
         while(!ct.IsCancellationRequested)
         {
             try
             {
                 long[] pending;
+                try
+                {
+                    await using(var scope=scopes.CreateAsyncScope())pending=await scope.ServiceProvider.GetRequiredService<WorkTime.ShiftHandoverDelivery>().PendingHeadsAsync(handoverHeadCursor,ct);
+                    foreach(var id in pending)
+                    {
+                        await using var scope=scopes.CreateAsyncScope();
+                        try{await scope.ServiceProvider.GetRequiredService<WorkTime.ShiftHandoverDelivery>().ExpandHeadAsync(id,ct);}
+                        catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                        catch(Exception error){logger.LogWarning("Shift handover Head intent {HandoverId} retained after {ErrorType}",id,error.GetType().Name);}
+                    }
+                    handoverHeadCursor=pending.Length==100?pending[^1]:0;
+                }
+                catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                catch(Exception error){logger.LogWarning("Shift handover Head discovery retained after {ErrorType}",error.GetType().Name);handoverHeadCursor=0;}
+
+                try
+                {
+                    await using(var scope=scopes.CreateAsyncScope())pending=await scope.ServiceProvider.GetRequiredService<WorkTime.ShiftHandoverDelivery>().PendingAsync(handoverCursor,ct);
+                    foreach(var id in pending)
+                    {
+                        await using var scope=scopes.CreateAsyncScope();
+                        try{await scope.ServiceProvider.GetRequiredService<WorkTime.ShiftHandoverDelivery>().DeliverAsync(id,ct);}
+                        catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                        catch(Exception error){logger.LogWarning("Shift handover notification {EventId} retained after {ErrorType}",id,error.GetType().Name);}
+                    }
+                    handoverCursor=pending.Length==100?pending[^1]:0;
+                }
+                catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                catch(Exception error){logger.LogWarning("Shift handover notification discovery retained after {ErrorType}",error.GetType().Name);handoverCursor=0;}
+
                 try
                 {
                     await using(var scope=scopes.CreateAsyncScope())pending=await scope.ServiceProvider.GetRequiredService<TimeCorrectionDelivery>().PendingAsync(correctionCursor,ct);

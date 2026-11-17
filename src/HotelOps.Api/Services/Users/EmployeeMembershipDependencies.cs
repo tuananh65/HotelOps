@@ -62,6 +62,9 @@ internal static class EmployeeMembershipDependencies
                 """).SingleAsync(ct);
             if(count>0)result.Add(new("PREVENTIVE_DEPARTMENT_SCOPE_UNRESOLVED",count));
         }
+        if(!await HotelOps.Api.Services.WorkTime.ShiftHandoverStore.InstalledAsync(db,ct))result.Add(new("SHIFT_HANDOVER_STORAGE_REQUIRED",1));
+        else await Add("PENDING_SHIFT_HANDOVER",HotelOps.Api.Services.WorkTime.ShiftHandoverStore.Rows(db)
+            .Where(h=>h.BranchId==branch&&h.DepartmentId==department&&h.State=="PENDING_ACKNOWLEDGMENT"&&(h.SenderId==user||h.ReceiverId==user)).Select(h=>h.Id));
         return result;
 
         async Task Add(string kind,IQueryable<long> query)

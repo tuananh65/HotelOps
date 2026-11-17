@@ -168,6 +168,7 @@ export function WorkdayReadPanel({
             <p>Không có workday đang làm.</p>
           ) : (
             <p>
+              <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>Prepare shift handover</Link>{" "}
               Workday {data.workdayId}, ngày {data.workDate}, bắt đầu{" "}
               {data.startedAtUtc}
             </p>

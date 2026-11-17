@@ -345,6 +345,16 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/internal-requests?requestId={intake.RequestId}");
         }
+        if(source is {NotificationType:"SHIFT_HANDOVER",SourceType:"SHIFT_HANDOVER",SourceId:>0})
+        {
+            if(!await WorkTime.ShiftHandoverStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Handover source unavailable.");
+            var receipt=await WorkTime.ShiftHandoverDelivery.Query(db).SingleOrDefaultAsync(n=>n.EventId==source.SourceId&&n.NotificationId==id&&n.RecipientId==user,ct);
+            if(receipt==null||receipt.ActorId!=source.CreatedBy||receipt.At!=source.CreatedAt
+                ||!await WorkTime.ShiftHandoverDelivery.CanReadAsync(db,receipt,now,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Handover source unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await WorkTime.ShiftHandoverDelivery.CanReadAsync(db,receipt,clock.GetUtcNow().UtcDateTime,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Handover source unavailable.");
+            await tx.CommitAsync(ct);return new($"/workday/handovers/{receipt.HandoverId}");
+        }
         if(source is {NotificationType:"IR_HANDOVER",SourceType:"INTERNAL_REQUEST_HANDOVER",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

@@ -58,6 +58,7 @@ function BranchSelection({ scheduled }: { scheduled: boolean }) {
         scheduled ? <ScheduledWorkdayPanel branchId={branch} dispatchEnabled /> : <WorkdayReadPanel branchId={branch} />
       )}
       <Link to={scheduled ? "/workday" : "/workday/scheduled"}>{scheduled ? "View workday" : "Start or end scheduled workday"}</Link>
+      <Link to="/workday/handovers">Shift handover history</Link>
       <Link to="/dashboard">Dashboard</Link>
     </main>
   );
