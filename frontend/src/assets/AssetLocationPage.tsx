@@ -78,7 +78,7 @@ export function AssetLocationPage() {
         <button onClick={() => { setResult(null); setGroup(null); setPage(1); }}>Quay lại các nhóm</button>
         <h3>Nhóm: {group}</h3>
         <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Vị trí</th><th>Bộ phận</th><th>Loại</th><th>Tình trạng</th><th>Lifecycle</th></tr></thead>
-          <tbody>{result.assets.map(a => <tr key={a.id}><td>{a.code}</td><td>{a.name}</td><td>{a.roomName ?? a.areaName ?? "Unassigned"}</td><td>{a.departmentName ?? "N/A"}</td><td>{a.categoryName}</td><td>{a.condition}</td><td>{a.lifecycle}</td></tr>)}</tbody></table>
+          <tbody>{result.assets.map(a => <tr key={a.id}><td><Link to={`/assets/${a.id}`}>{a.code}</Link></td><td>{a.name}</td><td>{a.roomName ?? a.areaName ?? "Unassigned"}</td><td>{a.departmentName ?? "N/A"}</td><td>{a.categoryName}</td><td>{a.condition}</td><td>{a.lifecycle}</td></tr>)}</tbody></table>
         {result.assets.length === 0 && <p>MSG10 — Không có tài sản phù hợp.</p>}
       </> : <>
         <table><thead><tr><th>Nhóm</th><th>Tổng bản ghi</th><th>Active</th><th>Retired</th><th>Lifecycle / Tình trạng</th></tr></thead><tbody>

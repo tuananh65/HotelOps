@@ -7,6 +7,7 @@ import type { AuthorityGeneration } from "../auth/authStore";
 const labels: Record<string, string> = {
   "/assets/maintenance-history": "Asset maintenance history",
   "/assets/locations": "Assets by location",
+  "/assets": "Assets",
   "/structure/priority-sla": "Priority SLA", "/operations/material-requests": "Material requests", "/operations/replenishments": "Replenishments",
   "/inspection-history": "Inspection history", "/inspections/checklists": "Inspection checklists",
   "/cleaning/tasks": "Cleaning tasks", "/cleaning/assignment": "Cleaning assignment",

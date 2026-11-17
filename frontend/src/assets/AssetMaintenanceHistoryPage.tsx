@@ -92,7 +92,7 @@ export function AssetMaintenanceHistoryPage() {
       <label>Loại <select value={type} onChange={e => { setType(e.target.value); setPage(1); setHistory(null); }}><option value="">Tất cả</option><option value="INCIDENT">Sự cố / sửa chữa</option><option value="PREVENTIVE">Bảo trì định kỳ</option></select></label>
     </fieldset>
     {history && <>
-      <h3>{history.asset.assetCode} — {history.asset.assetName}</h3>
+      <h3><Link to={`/assets/${history.asset.assetId}`}>{history.asset.assetCode} — {history.asset.assetName}</Link></h3>
       <p>Snapshot: {date(history.snapshot)}. Kỳ: {history.filters.from} → {history.filters.to} UTC.</p>
       <dl><dt>Số sự cố</dt><dd>{history.totals.incidentCount ?? "N/A"}</dd><dt>Số lần tái mở</dt><dd>{history.totals.recurrences ?? "N/A"}</dd>
         <dt>Thời gian giải quyết trung bình (giờ)</dt><dd>{history.totals.averageResolutionHours ?? "N/A"}</dd>
