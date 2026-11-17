@@ -11,6 +11,7 @@ public sealed class IncidentDetailDto
     public IncidentSlaDto? Sla { get; set; }
     public string? TriageETag { get; set; }
     public bool CanTriage { get; set; }
+    public string? TriageUnavailableReason { get; set; }
     public IReadOnlyList<IncidentTriageOptionDto> TriageOptions { get; set; } = [];
     public long IncidentId { get; init; }
     public string IncidentNo { get; init; } = string.Empty;

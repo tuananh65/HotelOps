@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Services.InternalRequests;
 using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ namespace HotelOps.Api.Services.Incidents;
 public sealed record IncidentCancellationInput(string Kind, string Reason, long? OriginalIncidentId);
 public sealed record IncidentCancellationSaved(long IncidentId, long EventId, string Status);
 
-public sealed partial class IncidentCancellationService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
+public sealed partial class IncidentCancellationService(HotelOpsDbContext db, TimeProvider clock, ICurrentUserAccessor current)
 {
     internal static IncidentCancellationInput Validate(long id, IncidentCancellationInput input)
     {
@@ -30,7 +31,7 @@ public sealed partial class IncidentCancellationService(HotelOpsDbContext db, IS
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sid || actor.IsRestricted || ticket.IsRestricted)
             throw new InternalRequestReadException(401,"SESSION_INVALID");
-        var result = await sessions.ValidateSessionAsync(ticket,ct);
+        var result = await Dev2SessionValidation.ValidateAsync(db,ticket,clock,ct);
         if (!result.IsValid || result.Session?.SessionId != sid || result.Session.IsRestricted) throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
     public async Task<IncidentCancellationSaved> CancelAsync(SessionReference ticket,long sid,long id,string tag,IncidentCancellationInput input,CancellationToken ct)
@@ -56,6 +57,11 @@ public sealed partial class IncidentCancellationService(HotelOpsDbContext db, IS
         var version=await IncidentTriageStore.TagAsync(db,id,ct) ?? throw new InternalRequestReadException(503,"INCIDENT_VERSION_UNAVAILABLE");
         if(version!=tag) throw new InternalRequestReadException(412,"INCIDENT_CHANGED");
         if(await IncidentAssignmentWorkflow.ReadAsync(db,incident,ct)!="PENDING_TRIAGE") throw new InternalRequestReadException(409,"PENDING_TRIAGE_REQUIRED");
+        if (!await IncidentCategoryStore.InstalledAsync(db, ct)) throw new InternalRequestReadException(503, "INCIDENT_CATEGORY_STORAGE_UNAVAILABLE");
+        if (incident.SeverityId is not > 0
+            || !await db.ReferenceValues.AsNoTracking().AnyAsync(r => r.ReferenceId == incident.SeverityId && r.GroupCode == "SEVERITY" && r.IsActive, ct)
+            || !await IncidentCategoryStore.Rows(db).AnyAsync(r => r.IncidentId == id && r.CategoryId != null, ct))
+            throw new ValidationException("MSG03: Classify the Incident before Triage: category and active severity are required.");
         if(input.OriginalIncidentId is {} originalId)
         {
             var original=rows.Single(i=>i.IncidentId==originalId);
@@ -82,6 +88,13 @@ public sealed partial class IncidentCancellationService(HotelOpsDbContext db, IS
         await db.SaveChangesAsync(ct);
         await SessionAsync(ticket,sid,ct);
         if(!await IncidentTriageAccess.AllowsAsync(db,ticket.UserId,incident.BranchId,id,ct)) throw new InternalRequestReadException(403,"SCOPED_TRIAGE_REQUIRED");
+        if (input.OriginalIncidentId is {} finalOriginalId)
+        {
+            var original = rows.Single(i => i.IncidentId == finalOriginalId);
+            var scope = await IncidentReadAccess.ReadAsync(db, ticket.UserId, original.BranchId, ct, sourceRecord: true);
+            if (!await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == finalOriginalId, ct))
+                throw new InternalRequestReadException(404, "ORIGINAL_INCIDENT_UNAVAILABLE");
+        }
         await tx.CommitAsync(ct);
         return new(id,ev.EventId,"CANCELLED");
     }

@@ -173,6 +173,7 @@ internal static class IncidentReadContract
                     && await IncidentRoomBlockAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
                 if(result.CanManageRoomBlocks) a.Http.Items[RoomBlocksKey]=true;
                 result.CanCancelTriage = result.TriageETag != null && result.AssignmentWorkflow == "PENDING_TRIAGE"
+                    && result.CategoryId != null && result.SeverityId is > 0
                     && await IncidentEscalationClosure.InstalledAsync(db,ct)
                     && await IncidentTriageAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
                 if(result.CanCancelTriage) a.Http.Items[TriageOptionsKey]=true;
@@ -188,6 +189,7 @@ internal static class IncidentReadContract
                     var cycle = await IncidentReopenStore.ReadAsync(db, result.IncidentId, ct);
                     result.TriageOptions = await IncidentTriageStore.OptionsAsync(db, cycle?.DiscoveredAt ?? result.DiscoveredAt, ct);
                     result.CanTriage = result.TriageOptions.Count > 0;
+                    if (!result.CanTriage) result.TriageUnavailableReason = "APPROVED_SLA_TARGETS_REQUIRED";
                     a.Http.Items[TriageOptionsKey] = true;
                 }
             }

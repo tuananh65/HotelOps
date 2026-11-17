@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function IncidentCancellationPanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
+export function IncidentCancellationPanel({ data, onCommitted, onReload }: { data: Values; onCommitted?: (notice: string) => void; onReload?: () => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const [kind, setKind] = useState("INVALID"), [reason, setReason] = useState(""), [original, setOriginal] = useState("");
@@ -28,6 +28,14 @@ export function IncidentCancellationPanel({ data, onCommitted }: { data: Values;
       const response = await fetch(`/api/incidents/${id}/cancel-triage`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag },
         body: JSON.stringify({ kind, reason: reason.trim(), originalIncidentId: kind === "DUPLICATE" ? originalId : null }) });
+      if (response.status === 400) {
+        const problem: unknown = await response.json();
+        if (isObject(problem) && problem.title === "Invalid cancellation" && !abort.signal.aborted && current.current === owner) {
+          setAttempted(false);
+          setMessage({ owner, text: typeof problem.detail === "string" ? problem.detail : "Check cancellation type, original incident and reason." });
+          return;
+        }
+      }
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload before retrying." : "Cancellation was not confirmed. Check current permissions, original incident and Pending Triage status, then reload.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || result.status !== "CANCELLED" || typeof result.eventId !== "number" || !Number.isSafeInteger(result.eventId) || result.eventId <= 0)
@@ -47,7 +55,8 @@ export function IncidentCancellationPanel({ data, onCommitted }: { data: Values;
       <label>Reason (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>
     </fieldset>
     {message?.owner === owner && <p role="status">{message.text}</p>}
-    {review ? <><p>Cancel this incident as {kind.toLowerCase()}{originalId ? `, referencing original incident ${originalId}` : ""}? Only its effective room blocks will be removed. Other blocks and cleaning requirements remain.</p>
+    {attempted && onReload && <button disabled={busy} onClick={onReload}>Reload incident</button>}
+    {review ? <><p>MSG33: Cancel this incident as {kind.toLowerCase()}{originalId ? `, referencing original incident ${originalId}` : ""}? Only its effective room blocks will be removed. Other blocks and cleaning requirements remain.</p>
       <button disabled={busy} onClick={() => void submit()}>Confirm incident cancellation</button><button disabled={busy} onClick={() => setReview(false)}>Keep incident</button></>
       : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Review cancellation</button>}
   </section>;

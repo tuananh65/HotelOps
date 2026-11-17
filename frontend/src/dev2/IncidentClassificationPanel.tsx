@@ -86,7 +86,7 @@ export function IncidentClassificationPanel({ data, onCommitted }: { data: Value
   if (!owner || owner !== mountedOwner || !positive(id)) return null;
   if (!context) return message ? <section aria-label="Classify incident"><p role="status">{message}</p>
     <button disabled={busy || loading} onClick={() => setRevision(v => v + 1)}>Reload classification</button></section> : null;
-  return <section aria-label="Classify incident"><h3>Classify incident</h3>
+  return <section id="incident-classification" aria-label="Classify incident"><h3>Classify incident</h3>
     <fieldset disabled={busy || attempted}>
       <label>Category<select value={category} onChange={e => setCategory(e.target.value)}><option value="">Select category</option>
         {context.categories.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>

@@ -11,7 +11,7 @@ const option = (v: unknown): v is Option => isObject(v) && positive(v.priorityId
   && instant(v.responseDeadlineAt) && instant(v.resolutionDeadlineAt) && typeof v.targetVersion === "string" && /^[0-9A-F]{16}$/.test(v.targetVersion);
 const utc = (v: string) => v && Number.isFinite(Date.parse(v + "+07:00")) ? new Date(v + "+07:00").toISOString() : undefined;
 const displayTime = (v: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(v));
-export function IncidentTriagePanel({ data, onCommitted }: { data: Values; onCommitted?: (notice: string) => void }) {
+export function IncidentTriagePanel({ data, onCommitted, onReload }: { data: Values; onCommitted?: (notice: string) => void; onReload?: () => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const actor = state.session ? Number(state.session.user.id) : 0;
@@ -26,6 +26,11 @@ export function IncidentTriagePanel({ data, onCommitted }: { data: Values; onCom
   const choices = Array.isArray(data.triageOptions) ? data.triageOptions.filter(option) : [];
   const chosen = choices.find(o => String(o.priorityId) === priority);
   const id = data.incidentId, tag = data.triageETag;
+  if (owner && positive(id) && data.triageUnavailableReason === "APPROVED_SLA_TARGETS_REQUIRED")
+    return <section aria-label="Triage incident"><p role="status">Triage is unavailable until approved response and resolution SLA targets are configured for an active priority.</p>
+      {onReload && <button onClick={onReload}>Reload incident and SLA options</button>}</section>;
+  if (owner && positive(id) && data.assignmentWorkflow === "PENDING_TRIAGE" && (!positive(data.categoryId) || !positive(data.severityId)))
+    return <p role="status">MSG03: Category and severity are required before triage. <a href="#incident-classification">Open Classify incident</a>.</p>;
   if (!owner || !positive(actor) || !positive(id) || !positive(data.severityId) || data.canTriage !== true
     || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
   const changed = !!chosen && ((response !== "" && Date.parse(utc(response) ?? "") !== Date.parse(chosen.responseDeadlineAt))
@@ -47,6 +52,15 @@ export function IncidentTriagePanel({ data, onCommitted }: { data: Values; onCom
         body: JSON.stringify({ actorUserId: actor, severityId: data.severityId, priorityId: chosen.priorityId,
           expectedSlaTargetVersion: chosen.targetVersion, initialActionPlan: plan.trim(), responseDeadlineAt: utc(response), resolutionDeadlineAt: utc(resolution),
           deadlineChangeReason: changed ? reason.trim() : null }) });
+      if (res.status === 400) {
+        const problem: unknown = await res.json();
+        if (isObject(problem) && problem.title === "Incident triage validation failed"
+          && !abort.signal.aborted && current.current === session) {
+          setAttempted(false);
+          setMessage(typeof problem.detail === "string" ? problem.detail : "Check priority, deadlines and initial action plan.");
+          return;
+        }
+      }
       if (!res.ok) throw Error(res.status === 412 ? "Incident or SLA targets changed. Reload before trying again." : "Triage was not confirmed. Reload and check current access and classification.");
       const result: unknown = await res.json();
       if (!isObject(result) || result.incidentId !== id || result.priorityId !== chosen.priorityId || result.severityId !== data.severityId
@@ -71,6 +85,7 @@ export function IncidentTriagePanel({ data, onCommitted }: { data: Values; onCom
       {changed && <label>Reason for changing deadlines (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>}
     </fieldset>
     {message && <p role="status">{message}</p>}
+    {attempted && !saved && onReload && <button disabled={busy} onClick={onReload}>Reload incident and SLA options</button>}
     {saved ? <Link to={`/operations/incidents/${id}?action=A004A-023`}>Reload incident to assign</Link>
       : review ? <><p>Confirm priority, deadlines and initial action plan?</p><button disabled={busy} onClick={() => void save()}>Confirm triage</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
       : <button disabled={!valid || attempted || busy} onClick={() => setReview(true)}>Review triage</button>}

@@ -717,9 +717,9 @@ function Screen({
       {operation.id === "A004A-023" && isObject(data) && !denied && !sessionLost && available.some(op => op.id === "A004A-023")
         && (!enabledActions || enabledActions.includes("A004A-036")) && <IncidentMaintenanceLinks data={data} />}
       {operation.id === "A004A-023" && !readOnly && (!enabledActions || enabledActions.includes("A004A-020")) && data !== undefined && !denied && !sessionLost && isObject(data)
-        && <IncidentTriagePanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentTriagePanel onCommitted={incidentCommitted} onReload={() => incidentCommitted("")} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data)
-        && <IncidentCancellationPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
+        && <IncidentCancellationPanel onCommitted={incidentCommitted} onReload={() => incidentCommitted("")} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.status === "CLOSED"
         && <IncidentReopenPanel onCommitted={incidentCommitted} key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {operation.id === "A004A-023" && !readOnly && !denied && !sessionLost && isObject(data) && data.status !== "CLOSED" && data.status !== "CANCELLED"
