@@ -16,7 +16,7 @@ export function MaterialHistoryView({ record }: { record: Values }) {
     lines: rows(cycles.find(c => c.approvalCycleId === decision.approvalCycleId)?.lines) });
   for (const batch of rows(record.fulfillments)) events.push({ key: `issue-${batch.fulfillmentId}`,
     title: `Issue ${batch.fulfillmentNo} (${batch.status})`, at: batch.fulfilledAt, actor: batch.fulfilledBy,
-    fulfillment: batch.fulfillmentId, lines: rows(batch.lines) });
+    fulfillment: batch.fulfillmentId, lines: rows(batch.lines), note: batch.receiverName == null ? "Receiver name: N/A (not recorded)" : `Receiver name: ${batch.receiverName}` });
   const returns = new Map<unknown, Values[]>();
   for (const line of rows(record.returns)) returns.set(line.documentId, [...(returns.get(line.documentId) ?? []), line]);
   for (const [id, lines] of returns) {

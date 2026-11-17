@@ -12,7 +12,7 @@ public sealed record MaterialCommand(long ActorUserId, string ExpectedRowVersion
 public sealed record MaterialApprovalLine(long RequestLineId, decimal ApprovedQty);
 public sealed record MaterialApproval(long ActorUserId, string ExpectedRowVersion, IReadOnlyList<MaterialApprovalLine> Lines, string? Reason = null);
 public sealed record MaterialIssueLine(long RequestLineId, decimal Quantity);
-public sealed record MaterialIssue(long ActorUserId, string ExpectedRowVersion, string Mode, DateOnly DocumentDate, IReadOnlyList<MaterialIssueLine>? Lines = null);
+public sealed record MaterialIssue(long ActorUserId, string ExpectedRowVersion, string Mode, DateOnly DocumentDate, IReadOnlyList<MaterialIssueLine>? Lines = null, string? ReceiverName = null, long? WarehouseId = null);
 public sealed record MaterialLineDto(long RequestLineId, int LineNo, long ItemId, long UomId, decimal RequestedQty,
     decimal? ApprovedQty, decimal FulfilledQty, decimal? HistoricalRemainingQty, decimal OpenFulfillableQty, bool IsActive, string? Note,
     string? ItemName = null, string? UnitName = null);
@@ -23,7 +23,7 @@ public sealed record MaterialCycleDto(long ApprovalCycleId, int RevisionNo, long
 public sealed record MaterialFulfillmentLineDto(long FulfillmentLineId, long RequestLineId, long ItemId, long UomId, decimal IssuedQty, decimal? ReceivedQty, long? StockDocumentLineId);
 public sealed record MaterialFulfillmentDto(long FulfillmentId, string FulfillmentNo, long RequestId, long WarehouseId,
     long FulfilledBy, long? ReceivedBy, string Status, DateTime? FulfilledAt, DateTime? ReceivedAt, long? StockDocumentId,
-    string? StockDocumentNo, IReadOnlyList<MaterialFulfillmentLineDto> Lines);
+    string? StockDocumentNo, IReadOnlyList<MaterialFulfillmentLineDto> Lines, string? ReceiverName = null);
 public sealed record MaterialReturnDto(long DocumentId, string DocumentNo, string Status, long OriginalIssueLineId,
     long? ReturnLineId = null, long? ItemId = null, string? ItemName = null, string? UnitName = null,
     decimal? ActualQty = null, decimal? DamagedQty = null, DateTime? CreatedAt = null,

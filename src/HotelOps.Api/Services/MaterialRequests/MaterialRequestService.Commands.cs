@@ -190,6 +190,11 @@ public sealed partial class MaterialRequestService
             await new UserEligibilityLock(db).RequireEligibleAsync(TrustedActorId, ct);
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
             State(r, "APPROVED", "PARTIALLY_ISSUED"); await Participant(TrustedActorId, r.BranchId, ct);
+            var receiverName = input.ReceiverName?.Trim();
+            if (string.IsNullOrWhiteSpace(receiverName) || receiverName.Length > 200 || receiverName.Any(char.IsControl))
+                throw Invalid("MSG03: Enter the receiver name (1-200 characters, no control characters).");
+            if (input.WarehouseId != r.SourceWarehouseId || input.WarehouseId is null)
+                throw Invalid("MSG03: Select the approved request warehouse; warehouse changes require request reapproval.");
             var cycle = await Latest(id, ct);
             if (cycle.Status != "APPROVED" || cycle.AssignedApproverId == TrustedActorId || r.RequesterId == TrustedActorId)
                 throw Invalid("Issuer must differ from requester and approving actor of approved cycle.");
@@ -216,7 +221,7 @@ public sealed partial class MaterialRequestService
             r.Status = active.All(x => x.FulfilledQty == x.ApprovedQty) ? "FULLY_ISSUED" : "PARTIALLY_ISSUED"; r.UpdatedAt = f.FulfilledAt; if (r.Status == "FULLY_ISSUED") r.CompletedAt = f.FulfilledAt;
             var extra = new { f.FulfillmentId, f.FulfillmentNo, result.DocumentId, CycleId = cycle.ApprovalCycleId, Lines = result.Lines };
             Audit(r, TrustedActorId, "CREATE", "FULFILLMENT_ISSUED", null, extra, "material_fulfillments", f.FulfillmentId,
-                new { f.FulfillmentId, f.FulfillmentNo, f.RequestId, f.WarehouseId, f.FulfilledBy, f.Status, f.CreatedAt, f.FulfilledAt, f.StockDocumentId,
+                new { f.FulfillmentId, f.FulfillmentNo, f.RequestId, f.WarehouseId, f.FulfilledBy, f.Status, f.CreatedAt, f.FulfilledAt, f.StockDocumentId, ReceiverName = receiverName,
                     Lines = f.MaterialFulfillmentLines.Select(x => new { x.FulfillmentLineId, x.RequestLineId, x.ItemId, x.UomId, x.IssuedQty, x.StockDocumentLineId }).ToArray() });
             Audit(r, TrustedActorId, "UPDATE", r.Status == "FULLY_ISSUED" ? "MATERIALS_FULLY_ISSUED" : "MATERIALS_PARTIALLY_ISSUED", before, extra);
             await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Fulfillment(id, f.FulfillmentId, ct);

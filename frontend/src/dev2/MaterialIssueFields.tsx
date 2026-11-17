@@ -50,13 +50,23 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
   const entered = Array.isArray(values.lines) ? values.lines.filter(isObject) : [];
   return <section aria-label="Issue approved materials">
     <p>Only the remaining approved quantities can be issued. Availability is not a reservation; stock is checked again when saving.</p>
+    <label>Issuing warehouse
+      <select required value={String(values.warehouseId ?? "")} onChange={event => onChange({ ...values, warehouseId: event.target.value })}>
+        <option value="">Select approved warehouse</option>
+        <option value={warehouse}>Approved request warehouse {warehouse}</option>
+      </select>
+    </label>
+    <p>Changing the approved warehouse requires updating and reapproving the request.</p>
+    <label>Receiver name
+      <input required maxLength={200} value={String(values.receiverName ?? "")} onChange={event => onChange({ ...values, receiverName: event.target.value })} />
+    </label>
     <button type="button" onClick={() => setRevision(v => v + 1)}>Refresh issuing warehouse availability</button>
     <p role="status">{current?.message ?? "Loading current availability…"}</p>
     {lines.map(line => {
       const available = preview.find(p => String(p.requestLineId) === String(line.requestLineId));
       const maximum = typeof available?.fulfillableQty === "number" ? Math.min(Number(line.openFulfillableQty), available.fulfillableQty) : 0;
       return <div key={String(line.requestLineId)}>
-      <p>{String(line.itemName ?? `Material ${line.itemId}`)}: {String(line.openFulfillableQty)} {String(line.unitName ?? "")} remaining.</p>
+      <p>{String(line.itemName ?? `Material ${line.itemId}`)}: approved {String(line.approvedQty)}, issued {String(line.fulfilledQty)}, remaining {String(line.openFulfillableQty)} {String(line.unitName ?? "")}.</p>
       <p>Fulfillable now: {available?.fulfillableQty == null ? "N/A" : `${maximum} ${line.unitName ?? ""}`}.</p>
       {available?.unavailableReason != null && <p>{String(available.unavailableReason)}</p>}
       {available?.sharedItemStock === true && <p>Stock is shared with other lines of this material. Combined quantities are checked when posting.</p>}

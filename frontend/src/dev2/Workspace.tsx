@@ -297,7 +297,11 @@ function Screen({
           throw Error("Issue quantities must be valid nonnegative numbers.");
         const issueLines = enteredLines.filter(l => Number(l.quantity) > 0);
         if (input.mode === "Partial" && issueLines.length === 0) throw Error("Enter at least one positive issue quantity.");
-        commandInput = { ...input, lines: input.mode === "FullRemaining" ? [] : issueLines };
+        const receiverName = String(input.receiverName ?? "").trim();
+        if (!receiverName || receiverName.length > 200 || /[\u0000-\u001f\u007f-\u009f]/.test(receiverName))
+          throw Error("MSG03: Enter the receiver name (1-200 characters, no control characters).");
+        if (String(input.warehouseId) !== String(record.sourceWarehouseId)) throw Error("Select the approved request warehouse.");
+        commandInput = { ...input, receiverName, warehouseId: Number(input.warehouseId), lines: input.mode === "FullRemaining" ? [] : issueLines };
       }
       if (["A004A-021", "A004A-043"].includes(target.id) && (context.internalRequestId != null || context.sourceVersion != null)) {
         if (!sourceReady || !Number.isSafeInteger(Number(context.internalRequestId)) || Number(context.internalRequestId) <= 0

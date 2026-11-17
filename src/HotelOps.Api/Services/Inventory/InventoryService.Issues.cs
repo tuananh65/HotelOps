@@ -36,7 +36,7 @@ public sealed partial class InventoryService : IInventoryIssuePosting
             d.StockDocumentLines.Add(new() { LineNo = d.StockDocumentLines.Count + 1, ItemId = input.ItemId, UomId = input.UomId, ActualQty = input.Quantity, RequestedQty = input.Quantity, ConversionFactor = factor, BaseQty = Base(input.Quantity, factor) });
         }
         await StockGates(d.StockDocumentLines.Select(x => (r.WarehouseId, x.ItemId)), ct);
-        foreach (var g in d.StockDocumentLines.GroupBy(x => x.ItemId)) if (await Balance(r.WarehouseId, g.Key, ct) < g.Sum(x => x.BaseQty)) throw Invalid("Insufficient stock.");
+        foreach (var g in d.StockDocumentLines.GroupBy(x => x.ItemId)) if (await Balance(r.WarehouseId, g.Key, ct) < g.Sum(x => x.BaseQty)) throw Invalid("MSG16: Insufficient stock. Reduce the issue quantities or request replenishment.");
         var now = DateTime.UtcNow; d.CreatedAt = now; d.PostedAt = now; d.DocumentNo = await Number("ISS", now, false, ct);
         db.StockDocuments.Add(d);
         foreach (var line in d.StockDocumentLines) db.StockMovements.Add(new() { DocumentLine = line, WarehouseId = r.WarehouseId, ItemId = line.ItemId, SignedBaseQty = -line.BaseQty, CreatedBy = r.ActorUserId, OccurredAt = now });

@@ -1876,6 +1876,8 @@ export const operations: Operation[] = [
     expectedStatus: 201,
     dto: "MaterialIssue",
     fields: [
+      { name: "receiverName", type: "string", optional: false },
+      { name: "warehouseId", type: "long", optional: false },
       {
         name: "actorUserId",
         type: "long",
