@@ -11,7 +11,7 @@ public sealed partial class IncidentRoomBlockService
     {
         var blocks=await db.RoomBlocks.FromSqlInterpolated($"SELECT * FROM dbo.room_blocks WITH(UPDLOCK,HOLDLOCK) WHERE room_id={room.RoomId}").AsTracking().ToArrayAsync(ct);
         var effective=blocks.Where(b=>b.IncidentId==incident.IncidentId && b.BlockedAt<=now && (b.ReleasedAt==null || b.ReleasedAt>now)).ToArray();
-        if(action=="BLOCK" && effective.Length>0) throw new ValidationException("Incident already blocks this room.");
+        if(action=="BLOCK" && effective.Length>0) throw new ValidationException("MSG03: Incident already blocks this room.");
         if(action=="REMOVE" && effective.Length!=1) throw new ValidationException("Exactly one effective Incident block is required for removal.");
         var readiness=new EffectiveRoomReadiness(db);
         var before=(await readiness.ReadAsync([room.RoomId],now,ct))[room.RoomId];

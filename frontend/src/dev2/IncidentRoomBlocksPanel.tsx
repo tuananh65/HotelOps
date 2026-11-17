@@ -39,11 +39,19 @@ export function IncidentRoomBlocksPanel({ incidentId, onCommitted }: { incidentI
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || current.current !== owner || abort.signal.aborted) throw Error("Session changed. Reload.");
       const response = await fetch(`/api/incidents/${incidentId}/room-blocks`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": data.version }, body: JSON.stringify({ action, roomIds: selected, reason: reason.trim() }) });
+      if (response.status === 400) {
+        const problem: unknown = await response.json();
+        if (isObject(problem) && problem.title === "Invalid room block change" && !abort.signal.aborted && current.current === owner) {
+          setAttempted(false);
+          setMessage({ owner, text: typeof problem.detail === "string" ? problem.detail : "MSG03: Check selected rooms, existing blocks and reason." });
+          return;
+        }
+      }
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload rooms before retrying." : "Room change not confirmed. Reload rooms and check scope, reason and existing blocks.");
       const saved: unknown = await response.json();
       if (!isObject(saved) || saved.incidentId !== incidentId || saved.action !== action || typeof saved.version !== "string" || !/^"[0-9A-F]{16}"$/.test(saved.version)) throw Error("Response could not be confirmed. Reload rooms.");
       if (!abort.signal.aborted && current.current === owner) {
-        const notice = action === "MAP" ? "Affected-room scope saved. Reload rooms to block them." : "Room blocks updated and readiness recalculated. Notifications queued for eligible supervisors.";
+        const notice = action === "MAP" ? "MSG08: Affected-room scope saved. Reload rooms to block them." : "MSG08: Room blocks updated and readiness recalculated. Notifications queued for eligible supervisors.";
         setResult(null); setSelected([]); setMessage({ owner, text: notice }); onCommitted?.(notice);
       }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: e instanceof Error ? e.message : "Change not confirmed. Reload rooms." }); }
@@ -59,8 +67,8 @@ export function IncidentRoomBlocksPanel({ incidentId, onCommitted }: { incidentI
       {data.rooms.map(r => <label key={r.roomId}><input type="checkbox" disabled={!eligible(r)} checked={selected.includes(r.roomId)} onChange={e => setSelected(e.target.checked ? [...selected, r.roomId] : selected.filter(id => id !== r.roomId))} />
         Room {r.number}: {r.readiness}; {r.inScope ? "in affected scope" : "outside affected scope"}; {r.blockedByIncident ? "blocked by this Incident" : "no block from this Incident"}</label>)}
       <label>Reason (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label></fieldset>
-      <button disabled={busy || review || data.page <= 1} onClick={() => void load(data.page - 1)}>Previous rooms</button><button disabled={busy || review || !data.hasMore} onClick={() => void load(data.page + 1)}>Next rooms</button>
-      {review ? <><p>Confirm {action.toLowerCase()} for {selected.length} selected room(s)?</p><button disabled={busy} onClick={() => void save()}>Confirm room change</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
+      <button disabled={busy || review || attempted || data.page <= 1} onClick={() => void load(data.page - 1)}>Previous rooms</button><button disabled={busy || review || attempted || !data.hasMore} onClick={() => void load(data.page + 1)}>Next rooms</button>
+      {review ? <><p>{action === "REMOVE" ? "MSG33: " : ""}Confirm {action.toLowerCase()} for {selected.length} selected room(s)?</p><button disabled={busy} onClick={() => void save()}>Confirm room change</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
         : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Review room change</button>}</>}
   </section>;
 }

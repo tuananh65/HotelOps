@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Services.InternalRequests;
 using HotelOps.Api.Services.Rooms;
 using HotelOps.Api.Services.Users;
@@ -18,7 +19,7 @@ public sealed record IncidentRoomBlockSaved(long IncidentId,string Version,strin
 public sealed record IncidentBlockRoom(long RoomId,string Number,string Readiness,bool InScope,bool BlockedByIncident);
 public sealed record IncidentRoomBlockContext(long IncidentId,string Version,int Page,bool HasMore,IReadOnlyList<IncidentBlockRoom> Rooms);
 
-public sealed partial class IncidentRoomBlockService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
+public sealed partial class IncidentRoomBlockService(HotelOpsDbContext db,TimeProvider clock,ICurrentUserAccessor current)
 {
     internal static async Task<bool> InstalledAsync(HotelOpsDbContext db,CancellationToken ct)
         => await db.Database.SqlQuery<int>($"""
@@ -32,7 +33,7 @@ public sealed partial class IncidentRoomBlockService(HotelOpsDbContext db,ISqlSe
     {
         if(!current.TryGetCurrentUser(out var actor) || actor.UserId!=ticket.UserId || actor.SessionId!=sid || actor.IsRestricted || ticket.IsRestricted)
             throw new InternalRequestReadException(401,"SESSION_INVALID");
-        var valid=await sessions.ValidateSessionAsync(ticket,ct);
+        var valid=await Dev2SessionValidation.ValidateAsync(db,ticket,clock,ct);
         if(!valid.IsValid || valid.Session?.SessionId!=sid || valid.Session.IsRestricted) throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
     private async Task AuthorizeAsync(long actor,Incident incident,CancellationToken ct)
