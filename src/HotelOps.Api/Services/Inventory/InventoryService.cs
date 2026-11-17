@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.Inventory;
 
-public sealed partial class InventoryService(HotelOpsDbContext db, ReceiptDraftAuthority? receiptAuthority = null, ReturnPostingAuthority? returnAuthority = null, TransferAuthority? transferAuthority = null)
+public sealed partial class InventoryService(HotelOpsDbContext db, ReceiptDraftAuthority? receiptAuthority = null, ReturnPostingAuthority? returnAuthority = null, TransferAuthority? transferAuthority = null, StocktakeAuthority? stocktakeAuthority = null)
 {
     private const decimal QuantityMax = 999999999999999.999m;
     private static readonly string[] TerminalDocuments = ["POSTED", "REVERSED", "CANCELLED", "RECEIVED"];

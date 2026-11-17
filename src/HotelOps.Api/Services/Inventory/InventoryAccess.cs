@@ -93,7 +93,7 @@ public sealed class InventoryAccess(HotelOpsDbContext db, IPermissionService per
             var stocktakeId = Id();
             var stocktakeWarehouse = await db.Stocktakes.AsNoTracking().Where(x => x.StocktakeId == stocktakeId).Select(x => (long?)x.WarehouseId).SingleOrDefaultAsync(ct);
             if (stocktakeWarehouse is null) return false;
-            return await Warehouse(stocktakeWarehouse, action == "Stocktake" ? "INVENTORY_VIEW" : action == "ApproveAdjustment" ? "STOCK_ADJUST_POST" : "STOCKTAKE_PERFORM", ct);
+            return await Warehouse(stocktakeWarehouse, action == "Stocktake" ? "INVENTORY_VIEW" : action is "ApproveAdjustment" or "ReturnStocktake" ? "STOCK_ADJUST_POST" : "STOCKTAKE_PERFORM", ct);
         }
         if (action == "PostReversal")
         {

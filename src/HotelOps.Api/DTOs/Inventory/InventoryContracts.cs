@@ -62,7 +62,7 @@ public record InventoryDocumentDto(long DocumentId, string DocumentNo, string Do
 public record InventoryHistoryDto(long AuditId, long? BranchId, long? ActorUserId, string Action,
     DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public record InventoryStocktakeCreate(long WarehouseId, string? Note = null);
-public record InventoryCount(long StocktakeLineId, decimal? CountedQty, string? DiscrepancyReason = null);
+public record InventoryCount(long StocktakeLineId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal? CountedQty, string? DiscrepancyReason = null);
 public record InventoryCounts(string ExpectedRowVersion, IReadOnlyList<InventoryCount> Lines);
 public record InventoryStocktakeLineDto(long StocktakeLineId, long ItemId, decimal SystemQty,
     decimal? CountedQty, decimal? VarianceQty, string? DiscrepancyReason, long? CountedBy, DateTime? CountedAt);

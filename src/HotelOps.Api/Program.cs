@@ -193,6 +193,8 @@ builder.Services.AddScoped<WarehouseManagementService>();
 builder.Services.AddScoped<ReceiptDraftAuthority>();
 builder.Services.AddScoped<ReturnPostingAuthority>();
 builder.Services.AddScoped<TransferAuthority>();
+builder.Services.AddScoped<StocktakeAuthority>();
+builder.Services.AddScoped<StocktakeWorkspaceService>();
 builder.Services.AddScoped<TransferWorkspaceService>();
 builder.Services.AddScoped<ReturnWorkspaceService>();
 builder.Services.AddScoped<ReceiptWorkspaceService>();

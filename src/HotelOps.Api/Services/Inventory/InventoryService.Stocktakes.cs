@@ -9,15 +9,18 @@ public sealed partial class InventoryService
     private async Task<Stocktake?> Stocktake(long id, CancellationToken ct)
     {
         await Gate($"HotelOps:Inventory:Stocktake:{id}", ct);
+        var tracked = db.Stocktakes.Local.Any(s => s.StocktakeId == id);
+        var oldLines = db.StocktakeLines.Local.Where(l => l.StocktakeId == id).ToArray();
         var x = await db.Stocktakes.FromSqlInterpolated($"SELECT * FROM dbo.stocktakes WITH (UPDLOCK,HOLDLOCK) WHERE stocktake_id={id}").SingleOrDefaultAsync(ct);
-        if (x is not null) await db.Entry(x).Collection(x => x.StocktakeLines).LoadAsync(ct); return x;
+        if (x is not null) { if (tracked) await db.Entry(x).ReloadAsync(ct); foreach (var line in oldLines) await db.Entry(line).ReloadAsync(ct); await db.Entry(x).Collection(x => x.StocktakeLines).LoadAsync(ct); } return x;
     }
     public async Task<InventoryStocktakeDto> CreateStocktake(long actorUserId, InventoryStocktakeCreate r, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct); var warehouse = (await Warehouses([r.WarehouseId], true, ct)).Single();
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable); var warehouse = (await Warehouses([r.WarehouseId], true, ct)).Single();
+        await (stocktakeAuthority ?? throw Invalid("Stocktake authority unavailable.")).RequireAsync(actorUserId, r.WarehouseId, "perform", ct);
         if (await db.Stocktakes.AnyAsync(x => x.WarehouseId == r.WarehouseId && OpenStocktakes.Contains(x.Status), ct)) throw Invalid("A canonical open stocktake already exists.");
-        var now = DateTime.UtcNow;
-        var balances = await db.StockMovements.Where(x => x.WarehouseId == r.WarehouseId && x.OccurredAt <= now)
+        var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        var balances = await StockBalanceReadService.Posted(db).Where(x => x.WarehouseId == r.WarehouseId && x.OccurredAt <= now)
             .GroupBy(x => x.ItemId).Select(g => new { ItemId = g.Key, Qty = g.Sum(x => x.SignedBaseQty) }).ToDictionaryAsync(x => x.ItemId, x => x.Qty, ct);
         var thresholds = await db.StockThresholds.Where(x => x.WarehouseId == r.WarehouseId).Select(x => x.ItemId).ToListAsync(ct);
         var x = new Stocktake
@@ -33,11 +36,13 @@ public sealed partial class InventoryService
         foreach (var item in balances.Where(b => b.Value != 0).Select(b => b.Key).Union(thresholds).Order())
             x.StocktakeLines.Add(new() { ItemId = item, SystemQty = balances.GetValueOrDefault(item) });
         db.Stocktakes.Add(x); await Audit(x, "stocktakes", 0, actorUserId, "CREATE", "STOCKTAKE_STARTED", null, [warehouse.BranchId], now, ct, ["lines"]);
+        await stocktakeAuthority!.RequireAsync(actorUserId, x.WarehouseId, "perform", ct);
         await tx.CommitAsync(ct); return (await GetStocktake(x.StocktakeId, ct))!;
     }
     public async Task<InventoryStocktakeDto?> SaveCounts(long id, long actorUserId, InventoryCounts r, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct); var x = await Stocktake(id, ct); if (x is null) return null;
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable); var x = await Stocktake(id, ct); if (x is null) return null;
+        await (stocktakeAuthority ?? throw Invalid("Stocktake authority unavailable.")).RequireAsync(actorUserId, x.WarehouseId, "perform", ct);
         Version(x.RowVersion, r.ExpectedRowVersion); if (x.Status is not ("IN_PROGRESS" or "COUNTED")) throw Invalid("Stocktake is not open for counts.");
         var warehouse = (await Warehouses([x.WarehouseId], true, ct)).Single();
         if (r.Lines is null || r.Lines.Any(x => x is null) || r.Lines.Count == 0 || r.Lines.Select(l => l.StocktakeLineId).Distinct().Count() != r.Lines.Count) throw Invalid("Supply distinct count lines.");
@@ -58,17 +63,22 @@ public sealed partial class InventoryService
             db.Entry(x).Property(s => s.Status).IsModified = true;
             await Audit(x, "stocktakes", id, actorUserId, "UPDATE", "COUNTS_SAVED", before, [warehouse.BranchId], now, ct, ["lines"]);
         }
+        await stocktakeAuthority!.RequireAsync(actorUserId, x.WarehouseId, "perform", ct);
         await tx.CommitAsync(ct); return await GetStocktake(id, ct);
     }
     public async Task<InventoryStocktakeDto?> StocktakeAction(long id, string action, long actorUserId, InventoryCommand r, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct); var x = await Stocktake(id, ct); if (x is null) return null;
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable); var x = await Stocktake(id, ct); if (x is null) return null;
+        await (stocktakeAuthority ?? throw Invalid("Stocktake authority unavailable.")).RequireAsync(actorUserId, x.WarehouseId, action, ct);
+        if (action is "cancel" or "return" && (r.Reason?.Trim().Length ?? 0) < 10) throw Invalid("Reason requires at least 10 characters (GBR-012).");
         Version(x.RowVersion, r.ExpectedRowVersion); var warehouse = (await Warehouses([x.WarehouseId], true, ct)).Single();
         var before = new { stocktake = Scalars(x), lines = x.StocktakeLines.Select(Scalars).ToList() }; var now = DateTime.UtcNow;
         switch (action)
         {
             case "submit":
-                if (x.Status != "IN_PROGRESS" || x.StocktakeLines.Any(l => l.CountedQty is null)) throw Invalid("IN_PROGRESS stocktake must have every line counted.");
+                if (x.Status != "IN_PROGRESS") throw Invalid("Only IN_PROGRESS stocktakes can be submitted.");
+                var missing = x.StocktakeLines.Where(l => l.CountedQty is null).Select(l => l.ItemId).ToArray();
+                if (missing.Length > 0) throw Invalid("MSG03: Count every item, entering 0 where appropriate. Missing item IDs: " + string.Join(", ", missing));
                 x.Status = "COUNTED"; x.CountedBy = actorUserId; x.CompletedAt = now; break;
             case "reconcile":
                 if (x.Status != "COUNTED" || x.StocktakeLines.Any(l => l.CountedQty is null)) throw Invalid("A fully counted COUNTED stocktake is required.");
@@ -92,6 +102,7 @@ public sealed partial class InventoryService
         var lineChanges = db.ChangeTracker.Entries<StocktakeLine>().Any(e => e.Entity.StocktakeId == id &&
             e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)));
         await Audit(x, "stocktakes", id, actorUserId, action == "cancel" ? "CANCEL" : "UPDATE", action, before, [warehouse.BranchId], now, ct, lineChanges ? ["lines"] : null);
+        await stocktakeAuthority!.RequireAsync(actorUserId, x.WarehouseId, action, ct);
         await tx.CommitAsync(ct); return await GetStocktake(id, ct);
     }
 }
