@@ -21,6 +21,7 @@ public sealed record StockReadOption(long Id, string Name)
 {
     public long? BranchId { get; init; }
     public bool CanReplenish { get; init; }
+    public bool CanConfigureMinimum { get; init; }
 }
 public sealed record StockBalanceRow(long WarehouseId, long ItemId, string Item, string Unit,
     decimal Available, decimal OutboundInTransit, decimal InboundInTransit, decimal? Minimum, bool BelowMinimum);
@@ -95,13 +96,14 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
             .Select(w => new StockReadOption(w.WarehouseId, w.WarehouseName) { BranchId = w.BranchId }).ToArrayAsync(ct);
         foreach (var branch in branches)
         {
-            var canCreate = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == access.UserId && r.IsActive && r.Role.IsActive
+            var storekeeper = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == access.UserId && r.IsActive && r.Role.IsActive
                 && r.Role.RoleCode == "STOREKEEPER" && (r.BranchId == null || r.BranchId == branch) && r.AssignedAt <= now
-                && (r.ExpiresAt == null || r.ExpiresAt > now), ct)
-                && (await permissions.EvaluateBranchAsync("REPLENISHMENT_VIEW", branch, ct)).IsGranted
+                && (r.ExpiresAt == null || r.ExpiresAt > now), ct);
+            var canCreate = storekeeper && (await permissions.EvaluateBranchAsync("REPLENISHMENT_VIEW", branch, ct)).IsGranted
                 && (await permissions.EvaluateBranchAsync("REPLENISHMENT_CREATE", branch, ct)).IsGranted;
-            if (canCreate) for (var index = 0; index < warehouses.Length; index++)
-                if (warehouses[index].BranchId == branch) warehouses[index] = warehouses[index] with { CanReplenish = true };
+            var canConfigure = storekeeper && (await permissions.EvaluateBranchAsync("ITEM_MASTER_MANAGE", branch, ct)).IsGranted;
+            for (var index = 0; index < warehouses.Length; index++)
+                if (warehouses[index].BranchId == branch) warehouses[index] = warehouses[index] with { CanReplenish = canCreate, CanConfigureMinimum = canConfigure };
         }
         var ids = warehouses.Select(w => w.Id).ToArray();
         if (query.WarehouseId is {} warehouse && !ids.Contains(warehouse))

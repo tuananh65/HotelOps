@@ -11,6 +11,7 @@ import RoomStatusBoardScreen from "../screens/rooms/RoomStatusBoardScreen";
 import { Dev2Workspace } from "../dev2/Workspace";
 import { InventoryRoute } from "../inventory/InventoryRoute";
 import { StockBalancePage, StockDocumentPage } from "../inventory/StockBalancePage";
+import { MinimumStockPage } from "../inventory/MinimumStockPage";
 export function OperationsRoutes() {
   return (
     <>
@@ -22,6 +23,7 @@ export function OperationsRoutes() {
           <Route path="/operations/*" element={<Dev2Workspace />} />
           <Route path="/inventory/items" element={<InventoryRoute mode="list" />} />
           <Route path="/inventory/stock" element={<StockBalancePage />} />
+          <Route path="/inventory/minimums" element={<MinimumStockPage />} />
           <Route path="/inventory/documents/:id" element={<StockDocumentPage />} />
           <Route path="/inventory/items/:id" element={<InventoryRoute mode="detail" />} />
           <Route path="/" element={<Navigate to="/cleaning/tasks" replace />} />

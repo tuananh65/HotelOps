@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
-type Option = { id: number; name: string; branchId?: number; canReplenish?: boolean };
+type Option = { id: number; name: string; branchId?: number; canReplenish?: boolean; canConfigureMinimum?: boolean };
 type Row = { warehouseId: number; itemId: number; item: string; unit: string; available: number;
   outboundInTransit: number; inboundInTransit: number; minimum: number | null; belowMinimum: boolean };
 type Movement = { movementId: number; documentId: number; document: string; type: string; at: string; quantity: number; runningBalance: number };
@@ -72,6 +72,7 @@ export function StockBalancePage() {
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p role="status">Loading current authorized stock…</p>}
       {data && <>
+        {data.warehouses.some(w => w.canConfigureMinimum) && <Link to={`/inventory/minimums${data.filters.warehouseId ? `?warehouseId=${data.filters.warehouseId}` : ""}`}>Configure minimum stock levels</Link>}
         <p>Snapshot {data.snapshot}; {data.totalCount} matching stock pairs.</p>
         {data.items.length === 0 && <p>MSG10: No stock pairs match the applied filters.</p>}
         <table><thead><tr><th>Warehouse</th><th>Item / unit</th><th>Available</th><th>Outbound transit</th><th>Inbound transit</th><th>Minimum</th><th>Ledger</th></tr></thead>

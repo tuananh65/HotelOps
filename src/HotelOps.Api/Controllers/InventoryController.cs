@@ -9,9 +9,10 @@ using HotelOps.Api.Security.Authorization;
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[InsightErrors]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [Route("api/inventory")]
-public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current) : ControllerBase
+public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current, MinimumStockService minimums) : ControllerBase
 {
     private async Task<IActionResult> Execute<T>(Func<long, Task<T>> operation, Func<T, string>? location = null, object? input = null)
     {
@@ -68,7 +69,7 @@ public sealed class InventoryController(InventoryService service, InventoryAcces
     [HttpGet("warehouses/{warehouseId:long}/thresholds")]
     public Task<IActionResult> Thresholds(long warehouseId, CancellationToken ct) => Execute(actor => service.GetThresholds(warehouseId, ct));
     [HttpPut("warehouses/{warehouseId:long}/items/{itemId:long}/threshold")]
-    public Task<IActionResult> Threshold(long warehouseId, long itemId, InventoryThresholdWrite request, CancellationToken ct) => Execute(actor => service.SaveThreshold(warehouseId, itemId, actor, request, ct), input: request);
+    public Task<IActionResult> Threshold(long warehouseId, long itemId, InventoryThresholdWrite request, CancellationToken ct) => Execute(async actor => (await minimums.SaveAsync(warehouseId, [new(itemId, request.MinimumQty, request.ExpectedRowVersion)], ct)).Single(), input: request);
     [HttpGet("stock")]
     public Task<IActionResult> Stock([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetStock(page, false, ct));
     [HttpGet("low-stock")]
