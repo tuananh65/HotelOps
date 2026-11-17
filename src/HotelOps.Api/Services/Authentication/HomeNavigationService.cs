@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Authentication;
 
 public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAccessor current,
-    IPermissionService permissions, TimeProvider clock, AuditAccess audit)
+    IPermissionService permissions, TimeProvider clock, AuditAccess audit, HotelOps.Api.Services.Assets.AssetMaintenanceHistoryReader assetHistory)
 {
     public Task<UserDirectoryReadResult<string[]>> ReadAsync(SessionReference ticket, CancellationToken ct)
         => new UserDirectoryReadGuard(db, current, permissions, clock).RunAuthorizedAsync(ticket,
@@ -45,6 +45,8 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
         if (Granted(await RoleCatalogAuthority.EvaluateAsync(db, current, permissions, clock, ct))) links.Add("/roles");
         if (!current.TryGetCurrentUser(out var actor)) return [];
         var now = clock.GetUtcNow().UtcDateTime;
+        foreach (var branch in branches)
+            if (await assetHistory.AllowedAsync(branch, ct)) { links.Add("/assets/maintenance-history"); break; }
         var data = new EfPermissionDataSource(db);
         async Task<bool> AnyOwnOrBranch(string code)
         {

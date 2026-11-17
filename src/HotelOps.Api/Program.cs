@@ -186,6 +186,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.RequestTypeAdm
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Incidents.IncidentEvidenceWrite>();
 builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<AssetMaintenanceHistoryReader>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<InventoryAccess>();

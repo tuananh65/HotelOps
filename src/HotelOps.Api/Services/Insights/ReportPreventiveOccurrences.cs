@@ -20,11 +20,11 @@ internal static class ReportPreventiveOccurrences
         public string Definition { get; set; } = "";
     }
     private sealed record Definition(int SchemaVersion, long ScheduleId, long? AssetId, long? RoomId, long? AreaId, DateTime ScheduledDueAt);
-    internal static async Task<Row[]> ReadAsync(HotelOpsDbContext db, InsightFilters filters, DateTime now, CancellationToken ct)
+    internal static async Task<Row[]> ReadAsync(HotelOpsDbContext db, InsightFilters filters, DateTime now, CancellationToken ct, long? assetId = null)
     {
         var start = InsightAccess.Start(filters); var end = InsightAccess.End(filters);
         var runs = await db.PreventiveMaintenanceRuns.AsNoTracking()
-            .Where(r => r.PlannedAt >= start && r.PlannedAt < end
+            .Where(r => r.PlannedAt >= start && r.PlannedAt < end && (assetId == null || r.Schedule.AssetId == assetId)
                 && (filters.DepartmentId == null || r.Schedule.AssignedDepartmentId == filters.DepartmentId))
             .Select(r => new { r.RunId, r.ScheduleId, r.MaintenanceWorkId, r.PlannedAt, r.PerformedAt, r.PerformedBy, r.Result,
                 r.Schedule.AssignedDepartmentId, r.Schedule.AssetId, r.Schedule.RoomId, r.Schedule.AreaId,

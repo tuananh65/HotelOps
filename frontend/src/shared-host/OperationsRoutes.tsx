@@ -1,4 +1,5 @@
 import { HomeNavigation } from "./HomeNavigation";
+import { AssetMaintenanceHistoryPage } from "../assets/AssetMaintenanceHistoryPage";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import CleaningTaskListScreen from "../screens/housekeeping/CleaningTaskListScreen";
 import CreateCleaningTaskScreen from "../screens/housekeeping/CreateCleaningTaskScreen";
@@ -30,6 +31,7 @@ export function OperationsRoutes() {
       </nav>
       <main>
         <Routes>
+          <Route path="/assets/maintenance-history" element={<AssetMaintenanceHistoryPage />} />
           <Route path="/operations/*" element={<Dev2Workspace />} />
           <Route path="/inventory/items" element={<InventoryRoute mode="list" />} />
           <Route path="/inventory/documents/:id/reverse" element={<ReversalPage />} />
