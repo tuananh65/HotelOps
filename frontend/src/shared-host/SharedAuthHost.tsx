@@ -18,6 +18,7 @@ import { NotificationCenter } from "../notifications/NotificationCenter";
 import { CleaningCancellationReceipt } from "../notifications/CleaningCancellationReceipt";
 import { MaintenanceAssignmentReceipt } from "../notifications/MaintenanceAssignmentReceipt";
 import { AssetConditionFollowup } from "../notifications/AssetConditionFollowup";
+import { AssetHandoverNotice } from "../notifications/AssetHandoverNotice";
 import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
 import { UserDirectoryPage } from "../users/UserDirectoryPage";
@@ -304,6 +305,8 @@ export function SharedAuthHost({
         element={<Protected><CleaningCancellationReceipt /></Protected>} />}
       {notificationsEnabled && <Route path="/notifications/:id/asset-condition"
         element={<Protected><AssetConditionFollowup /></Protected>} />}
+      {notificationsEnabled && <Route path="/notifications/:id/asset-handover"
+        element={<Protected><AssetHandoverNotice /></Protected>} />}
       <Route path="/login" element={<LoginRoute />} />
       <Route
         path="/profile"

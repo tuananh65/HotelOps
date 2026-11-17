@@ -10,6 +10,12 @@ public sealed class NotificationsController(NotificationCenterService service):C
 {
     [HttpGet] public Task<NotificationPage> List([FromQuery] NotificationQuery query,CancellationToken ct)=>service.ListAsync(query,ct);
     [HttpGet("{id:long}/source")] public Task<NotificationSource> Source(long id,CancellationToken ct)=>service.ResolveSourceAsync(id,ct);
+    [HttpGet("{id:long}/asset-handover")]
+    public async Task<ActionResult<AssetHandoverNoticeDto>> AssetHandover(long id,CancellationToken ct)
+    {
+        if(!Request.IsHttps)return BadRequest(new {code="HTTPS_REQUIRED"});
+        return await service.ReadAssetHandoverAsync(id,ct);
+    }
     [HttpGet("{id:long}/asset-condition")]
     public async Task<ActionResult<AssetConditionFollowupDto>> AssetCondition(long id,CancellationToken ct)
     {

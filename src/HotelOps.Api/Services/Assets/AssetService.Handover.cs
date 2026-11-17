@@ -72,7 +72,13 @@ public sealed partial class AssetService
         };
         _dbContext.AssetHandovers.Add(handover);
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
-        Audit("asset_handovers", handover.HandoverId, asset, TrustedActorId, now, null, HandoverSnapshot(handover));
+        var submitted = HandoverSnapshot(handover);
+        submitted["notification_kind"] = HotelOps.Api.Services.Notifications.AssetHandoverSource.Kind;
+        submitted["notification_version"] = 1;
+        submitted["branch_id"] = asset.BranchId;
+        // Persist the delivery intent with the handover. A rollback must leave
+        // neither a handover nor a discoverable notification event.
+        Audit("asset_handovers", handover.HandoverId, asset, TrustedActorId, now, null, submitted);
         await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await GetHandoverAsync(handover.HandoverId, cancellationToken);
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
