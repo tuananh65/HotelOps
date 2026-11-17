@@ -28,6 +28,7 @@ export interface AuthError {
   readonly kind: ApiFailure["kind"];
   readonly status?: number;
   readonly code?: string;
+  readonly lockedUntil?: string;
 }
 
 export type AuthResult<T> =
@@ -87,10 +88,17 @@ const knownCodes = new Set([
 function publicError(error: ApiFailure): AuthError {
   if (error.kind !== "http") return Object.freeze({ kind: error.kind });
   const code = error.problem?.code;
+  const deadline = error.problem?.parameters?.lockedUntil;
+  const lockedUntil = error.status === 423 && code === "ACCOUNT_LOCKED"
+    && typeof deadline === "string"
+    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?Z$/.test(deadline)
+    && Number.isFinite(Date.parse(deadline))
+    ? new Date(deadline).toISOString() : undefined;
   return Object.freeze({
     kind: "http",
     status: error.status,
     ...(code && knownCodes.has(code) ? { code } : {}),
+    ...(lockedUntil ? { lockedUntil } : {}),
   });
 }
 

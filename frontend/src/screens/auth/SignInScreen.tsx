@@ -12,7 +12,9 @@ function loginMessage(error: AuthError): string {
     if (error.status === 401 && error.code === "INVALID_CREDENTIALS")
       return "Invalid username or password.";
     if (error.status === 423 && error.code === "ACCOUNT_LOCKED")
-      return "Your account is locked. Please contact your Administrator.";
+      return error.lockedUntil
+        ? `Your account is temporarily locked until ${new Date(error.lockedUntil).toLocaleString()} (local time).`
+        : "Your account is locked. Please contact your Administrator.";
     if (error.status === 403 && error.code === "TEMPORARY_PASSWORD_EXPIRED")
       return "Your temporary password has expired. Please contact your Administrator.";
     if (error.status === 409 && error.code === "AUTHENTICATED_SESSION_EXISTS")
@@ -30,6 +32,7 @@ export default function SignInScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [missing, setMissing] = useState({ username: false, password: false });
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   const mounted = useRef(false);
@@ -43,7 +46,9 @@ export default function SignInScreen() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current || state.pending !== null) return;
-    if (!username.trim() || password.length === 0) {
+    const required = { username: !username.trim(), password: !password.trim() };
+    setMissing(required);
+    if (required.username || required.password) {
       setError("Username and password are required.");
       return;
     }
@@ -103,11 +108,14 @@ export default function SignInScreen() {
                 name="username"
                 autoComplete="username"
                 aria-describedby={error ? "login-error" : undefined}
+                aria-invalid={missing.username || undefined}
+                maxLength={150}
                 required
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                onChange={(event) => { setUsername(event.target.value); setMissing(value => ({ ...value, username: false })); }}
                 disabled={pending}
               />
+              {missing.username && <span>Username or email is required.</span>}
             </label>
             <label htmlFor="login-password">
               Password
@@ -117,11 +125,14 @@ export default function SignInScreen() {
                 type="password"
                 autoComplete="current-password"
                 aria-describedby={error ? "login-error" : undefined}
+                aria-invalid={missing.password || undefined}
+                maxLength={256}
                 required
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => { setPassword(event.target.value); setMissing(value => ({ ...value, password: false })); }}
                 disabled={pending}
               />
+              {missing.password && <span>Password is required.</span>}
             </label>
           </div>
           {error && (
