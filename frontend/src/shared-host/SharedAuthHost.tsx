@@ -5,6 +5,7 @@ import { ReferenceCatalogPage } from "../operationalTasks/ReferenceCatalogPage";
 import { PrioritySlaPage } from "../operationalTasks/PrioritySlaPage";
 import { WorkCategoriesPage } from "../operationalTasks/WorkCategoriesPage";
 import { WorkdayRoute } from "../workday/WorkdayRoute";
+import { TimeCorrectionsPage } from "../workTime/TimeCorrectionsPage";
 import { MyTimeLogPage } from "../workTime/MyTimeLogPage";
 import { InitialInspectionAssignmentPage } from "../features/inspectionExecution/InitialInspectionAssignmentPage";
 import { PendingInspectionsPage } from "../features/inspectionExecution/PendingInspectionsPage";
@@ -134,6 +135,7 @@ export function SharedAuthHost({
       {workdayReadEnabled && <Route path="/workday/shift-plans" element={<Protected><SecureShiftPlanWorkspace saveEnabled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday/scheduled" element={<Protected><WorkdayRoute scheduled /></Protected>} />}
       {workdayReadEnabled && <Route path="/workday" element={<Protected><WorkdayRoute /></Protected>} />}
+      {operationalTasksEnabled && <Route path="/time-corrections" element={<Protected><TimeCorrectionsPage /></Protected>} />}
       {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {(incidentReadEnabled || materialReadEnabled) && <Route path="/operations/*" element={<Protected><Dev2Workspace
         enabledModules={[...(incidentReadEnabled ? ["incidents", "maintenance"] : []), ...(materialReadEnabled ? ["material-requests", "replenishments"] : [])]}
@@ -365,7 +367,7 @@ export function SharedAuthHost({
               ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
               ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),
               ...(checklistEnabled ? ["/inspections/checklists"] : []),
-              ...(operationalTasksEnabled ? ["/operational-tasks", "/my-time-log"] : [])]} />
+              ...(operationalTasksEnabled ? ["/operational-tasks", "/my-time-log", "/time-corrections"] : [])]} />
 
 {dashboardEnabled && <ReportAccessLink />}
             {internalRequestsEnabled && <InternalRequestAccessLink />}

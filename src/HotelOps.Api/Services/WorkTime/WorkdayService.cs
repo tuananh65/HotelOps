@@ -14,7 +14,7 @@ namespace HotelOps.Api.Services.WorkTime;
 public sealed record WorkdayResult(int Status, object? Value = null, string? Code = null);
 
 /// <summary>B1.1 scheduled own-workday boundary; caller identity is never model-bound.</summary>
-public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor current,
+public sealed partial class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IHttpContextAccessor http, ISqlSessionService sessions, IPermissionService permissions,
     SqlWorkTimeTransactionParticipant participant, OwnWorkdaySnapshotReader reader,
     RoomTypeCreationService? workflows = null, IConfiguration? configuration = null, IHostEnvironment? environment = null)
@@ -203,7 +203,7 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
 
     private async Task<WorkdayResult> Execute(long branchId, string permission,
         Func<CurrentUserInfo, Task<WorkdayResult>> action, CancellationToken ct,
-        Func<CurrentUserInfo, Task<WorkdayResult?>>? featureAuthorization = null)
+        Func<CurrentUserInfo, Task<WorkdayResult?>>? featureAuthorization = null, long? timeOwner = null)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.SessionId <= 0)
             return new(401, Code: "SESSION_INVALID");
@@ -218,7 +218,7 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             // Serializable retains session/grant/source reads until commit. User/time locks first;
             // stale middleware identity cannot survive a revocation committed during a lock wait.
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-            await participant.LockUsersAsync([actor.UserId], ct);
+            await participant.LockUsersAsync(timeOwner is > 0 ? [actor.UserId, timeOwner.Value] : [actor.UserId], ct);
             var validated = await sessions.ValidateSessionAsync(ticket, ct);
             if (!validated.IsValid || validated.Session?.SessionId != actor.SessionId
                 || validated.Session.UserId != actor.UserId || validated.Session.IsRestricted)
@@ -261,6 +261,7 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
         }
         catch (SessionStoreUnavailableException) { return new(503, Code: "SESSION_STORE_UNAVAILABLE"); }
         catch (SqlException) when (!ct.IsCancellationRequested) { return new(503, Code: "WORKDAY_STORE_UNAVAILABLE"); }
+        catch (DbUpdateConcurrencyException) when (!ct.IsCancellationRequested) { return new(412, Code: "TIME_STALE"); }
         catch (DbUpdateException) when (!ct.IsCancellationRequested) { return new(503, Code: "WORKDAY_STORE_UNAVAILABLE"); }
     }
 
