@@ -41,6 +41,13 @@ internal sealed partial class MaterialApprovalNotificationDelivery
                 && prior.StockDocumentLine.DocumentId == c.StockDocumentLine.DocumentId
                 && prior.ReplenishmentLine.SourceMaterialRequestLine != null
                 && prior.ReplenishmentLine.SourceMaterialRequestLine.RequestId == c.ReplenishmentLine.SourceMaterialRequestLine.RequestId))
+        // UC080 already covers this posting event once per waiting requester.
+        // Keep legacy credit notifications only when that receipt had no such intent.
+        .Where(c => !db.AuditLogs.Any(a => a.EntityType == "stock_receipt_waiting_requests"
+            && a.Action == "CREATE" && a.ActorUserId == c.StockDocumentLine.Document.PostedBy
+            && a.OccurredAt == c.StockDocumentLine.Document.PostedAt && a.NewValues != null
+            && a.NewValues.Contains("\"documentId\":" + c.StockDocumentLine.DocumentId.ToString() + ",")
+            && a.NewValues.Contains("\"requesterId\":" + c.ReplenishmentLine.SourceMaterialRequestLine!.Request.RequesterId.ToString() + ",")))
         .Select(c => new NoticeEvent { Id = c.ReplenishmentReceiptLineId,
             RequestId = c.ReplenishmentLine.SourceMaterialRequestLine!.RequestId,
             RequesterId = c.ReplenishmentLine.SourceMaterialRequestLine.Request.RequesterId,

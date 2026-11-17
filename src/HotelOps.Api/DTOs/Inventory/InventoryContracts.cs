@@ -7,8 +7,8 @@ public record InventoryDraftLine(long ItemId, long UomId, [property: System.Text
 public record InventoryDraft(long? SourceWarehouseId, long? DestinationWarehouseId,
     DateOnly DocumentDate, IReadOnlyList<InventoryDraftLine> Lines, string? Reason = null, string? Note = null,
     string? ExpectedRowVersion = null, string? SourceLabel = null, string? ReferenceNumber = null, long? ReplenishmentId = null);
-public record InventoryAcceptedLine(long LineId, decimal AcceptedQty, decimal RejectedQty = 0,
-    decimal DamagedQty = 0, string? DiscrepancyReason = null);
+public record InventoryAcceptedLine(long LineId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal AcceptedQty, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal RejectedQty = 0,
+    [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal DamagedQty = 0, string? DiscrepancyReason = null);
 public record InventoryPost(string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines);
 public record InventoryReceiveLine(long TransferLineId, decimal ReceivedQty, decimal DamagedQty,
     decimal MissingQty, string? Note = null);

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
+import { ReceiptPostPanel } from "./ReceiptPostPanel";
+
 type Lookup = { id: number; code: string; name: string; isActive: boolean };
 type Line = { itemId: number; uomId: number; expectedQty: string };
 type Document = { documentId: number; documentNo: string; destinationWarehouseId: number; documentDate: string; status: string; rowVersion: string; note: string | null;
@@ -16,11 +18,12 @@ export function ReceiptWorkspacePage() {
   const current = useRef(owner); current.current = owner;
   const [page, setPage] = useState(1), [revision, setRevision] = useState(0);
   const [snapshot, setSnapshot] = useState<{ owner: typeof owner; page: number; value: Snapshot } | null>(null);
+  const [postId, setPostId] = useState<number | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null), [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false);
   const writer = useRef<AbortController | null>(null);
   const data = snapshot?.owner === owner && snapshot.page === page ? snapshot.value : null;
-  useEffect(() => { writer.current?.abort(); setDraft(null); setSnapshot(null); setMessage(""); setBusy(false); }, [owner, page]);
+  useEffect(() => { writer.current?.abort(); setPostId(null); setDraft(null); setSnapshot(null); setMessage(""); setBusy(false); }, [owner, page]);
   useEffect(() => {
     setSnapshot(null); if (!owner) return;
     const abort = new AbortController();
@@ -28,6 +31,7 @@ export function ReceiptWorkspacePage() {
       try {
         const response = await fetch(`/api/receipt-workspace?page=${page}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
         if (response.status === 401) actions.invalidateSession(owner);
+        if (response.status === 403) setPostId(null);
         if (!response.ok) throw new Error((await response.json()).detail ?? `Receipt workspace unavailable (${response.status}).`);
         const value = await response.json() as Snapshot;
         if (!Array.isArray(value.documents?.items) || !Array.isArray(value.warehouses)) throw new Error("Invalid receipt response.");
@@ -92,10 +96,11 @@ export function ReceiptWorkspacePage() {
     {message && <p role="status">{message}</p>}
     <button disabled={busy} onClick={() => { setDraft(null); setRevision(v => v + 1); }}>Reload receipts</button>
     {uncertain && <button disabled={busy} onClick={() => { if (window.confirm("Have you inspected current receipts and confirmed the previous outcome?")) { setDraft(null); setUncertain(false); } }}>Confirm outcome reviewed</button>}
+    {postId != null && <ReceiptPostPanel key={postId} id={postId} items={data?.items ?? []} units={data?.units ?? []} onSaved={() => setRevision(v => v + 1)} />}
     {data && <><button disabled={busy || uncertain} onClick={() => setDraft({ documentId: 0, warehouseId: 0, date: "", sourceLabel: "", referenceNumber: "", replenishmentId: "", note: "", version: "", lines: [{ itemId: 0, uomId: 0, expectedQty: "" }] })}>Create receipt</button>
       <table><thead><tr><th>Receipt</th><th>Date</th><th>Warehouse</th><th>Status</th><th>Actions</th></tr></thead><tbody>{data.documents.items.map(d => <tr key={d.documentId}>
         <td><Link to={`/inventory/documents/${d.documentId}`}>{d.documentNo}</Link></td><td>{d.documentDate}</td><td>{data.warehouses.find(w => w.id === d.destinationWarehouseId)?.name}</td><td>{d.status}</td>
-        <td>{d.status === "DRAFT" && <><button disabled={busy || uncertain} onClick={() => void edit(d)}>Edit</button><button disabled={busy || uncertain} onClick={() => void mutate(d)}>Cancel</button></>}</td></tr>)}</tbody></table>
+        <td><button disabled={busy} onClick={() => { setDraft(null); setPostId(d.documentId); }}>Verify / posting status</button>{d.status === "DRAFT" && <><button disabled={busy || uncertain} onClick={() => void edit(d)}>Edit</button><button disabled={busy || uncertain} onClick={() => void mutate(d)}>Cancel</button></>}</td></tr>)}</tbody></table>
       <button disabled={busy || !!draft || page === 1} onClick={() => setPage(p => p - 1)}>Previous</button><button disabled={busy || !!draft || page * 25 >= data.documents.totalCount} onClick={() => setPage(p => p + 1)}>Next</button>
       {draft && <form onSubmit={e => { e.preventDefault(); void mutate(); }}><fieldset disabled={busy || uncertain}>
         <label>Receiving warehouse <select required value={draft.warehouseId || ""} onChange={e => field({ warehouseId: Number(e.target.value), replenishmentId: "" })}><option value="">Select warehouse</option>{data.warehouses.filter(w => w.isActive).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>

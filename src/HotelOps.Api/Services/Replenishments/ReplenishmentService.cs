@@ -145,6 +145,13 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
                 await Gate(db, $"HotelOps:Inventory:Document:{doc}", ct);
                 await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={doc}").SingleAsync(ct);
             }
+            if (post != null && await db.StockDocuments.AsNoTracking().AnyAsync(d => d.DocumentId == post.ReceiptDocumentId && d.Status == "POSTED", ct))
+            {
+                await HotelOps.Api.Services.Inventory.ReceiptPostingProof.RequireAsync(db, post.ReceiptDocumentId, ct);
+                await Dev2ServiceAuthority.RevalidateAsync(db, _authorityHttp, Dev2AuthorizationPhase.BeforeStockPosting, ct);
+                await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct);
+                return await Get(id, ct); // MSG28: no credit or ledger/audit replay.
+            }
             var r = (await Owner(db, id, ct))!; Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, TrustedActorId, r.Warehouse.BranchId, ct);
             await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
             var before = Snapshot(r);

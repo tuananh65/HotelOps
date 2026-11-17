@@ -9,7 +9,7 @@ namespace HotelOps.Api.Services.MaterialRequests;
 
 internal sealed partial class MaterialApprovalNotificationDelivery
 {
-    internal enum NoticeType { Decision, Remainder, Fulfillment, ReplenishmentReceipt }
+    internal enum NoticeType { Decision, Remainder, Fulfillment, ReplenishmentReceipt, ReceiptWaiting }
     internal const string DecisionKind = "MATERIAL_REQUEST_DECIDED";
     internal const string DecisionSource = "MATERIAL_APPROVAL_DECISION";
     internal const string RemainderKind = "MATERIAL_REMAINDER_CLOSED";
@@ -18,6 +18,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery
     internal const string FulfillmentSource = "MATERIAL_ISSUE_FULFILLMENT";
     private static (string Source, string Kind) Identity(NoticeType type) => type switch
     {
+        NoticeType.ReceiptWaiting => (ReceiptWaitingSource, ReceiptWaitingKind),
         NoticeType.Decision => (DecisionSource, DecisionKind),
         NoticeType.Remainder => (RemainderSource, RemainderKind),
         NoticeType.Fulfillment => (FulfillmentSource, FulfillmentKind),
@@ -41,7 +42,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery
             && d.ApprovalCycle.ResolvedAt == d.DecidedAt
             && (d.Decision == "RETURNED" || d.Decision == "APPROVED" || d.Decision == "REJECTED"));
 
-    private static IQueryable<NoticeEvent> Events(HotelOpsDbContext db, NoticeType type) => type == NoticeType.ReplenishmentReceipt
+    private static IQueryable<NoticeEvent> Events(HotelOpsDbContext db, NoticeType type) => type == NoticeType.ReceiptWaiting ? ReceiptWaitingEvents(db) : type == NoticeType.ReplenishmentReceipt
         ? ReplenishmentReceiptEvents(db)
         : type == NoticeType.Fulfillment
         ? db.MaterialFulfillments.AsNoTracking().Where(f => f.Status == "ISSUED" && f.FulfilledAt != null
@@ -139,10 +140,12 @@ internal sealed partial class MaterialApprovalNotificationDelivery
                         $"Line {l.LineNo} {l.ItemName}: issued in this batch {l.Issued} {l.UomName}; remaining {(l.ApprovedQty.HasValue ? (l.ApprovedQty.Value - l.FulfilledQty).ToString(System.Globalization.CultureInfo.InvariantCulture) : "N/A")} {l.UomName}")));
             }
             notice = new Notification { NotificationType = kind, SourceType = source, SourceId = decisionId,
-                Title = type == NoticeType.ReplenishmentReceipt ? "Replenishment receipt recorded"
+                Title = type == NoticeType.ReceiptWaiting ? "Materials received at warehouse"
+                    : type == NoticeType.ReplenishmentReceipt ? "Replenishment receipt recorded"
                     : type == NoticeType.Fulfillment ? "Materials ready for pickup"
                     : type == NoticeType.Remainder ? "Material request remainder closed" : "Material request review updated",
-                Message = type == NoticeType.ReplenishmentReceipt ? "A posted warehouse receipt was linked to replenishment for your material request. Open your request to review its current fulfillment status. This notice does not reserve or issue stock."
+                Message = type == NoticeType.ReceiptWaiting ? "A receipt was posted for items your request was waiting for. Open your request to review fulfillment. This notice does not reserve or issue stock."
+                    : type == NoticeType.ReplenishmentReceipt ? "A posted warehouse receipt was linked to replenishment for your material request. Open your request to review its current fulfillment status. This notice does not reserve or issue stock."
                     : type == NoticeType.Fulfillment ? fulfillmentMessage!
                     : type == NoticeType.Remainder ? "The unissued remainder of your material request was closed. Open the request to review its history."
                     : "A review decision was recorded for your material request. Open it to see the decision and current status.",

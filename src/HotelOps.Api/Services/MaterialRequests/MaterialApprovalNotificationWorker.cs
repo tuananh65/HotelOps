@@ -17,6 +17,7 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
         if (!options.Value.Enabled) return;
         long cursor = 0, cancellationCursor = 0, decisionCursor = 0, remainderCursor = 0, fulfillmentCursor = 0;
         long[] storeCursors = [0, 0];
+        long receiptWaitingCursor = 0;
         long replenishmentCursor = 0, replenishmentCreatedCursor = 0;
         while (!ct.IsCancellationRequested)
         {
@@ -91,6 +92,19 @@ internal sealed class MaterialApprovalNotificationWorker(IServiceScopeFactory sc
                     catch (Exception error) { logger.LogWarning("Material replenishment notice {CreditId} retained after {ErrorType}", id, error.GetType().Name); }
                 }
                 replenishmentCursor = replenishments.Length == 100 ? replenishments[^1] : 0;
+                long[] waitingReceipts;
+                await using (var scope = scopes.CreateAsyncScope())
+                    waitingReceipts = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>()
+                        .PendingDecisionsAsync(receiptWaitingCursor, ct, MaterialApprovalNotificationDelivery.NoticeType.ReceiptWaiting);
+                foreach (var id in waitingReceipts)
+                {
+                    await using var scope = scopes.CreateAsyncScope();
+                    try { await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>()
+                        .DeliverDecisionAsync(id, ct, MaterialApprovalNotificationDelivery.NoticeType.ReceiptWaiting); }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                    catch (Exception error) { logger.LogWarning("Receipt availability notice {EventId} retained after {ErrorType}", id, error.GetType().Name); }
+                }
+                receiptWaitingCursor = waitingReceipts.Length == 100 ? waitingReceipts[^1] : 0;
                 long[] createdReplenishments;
                 await using (var scope = scopes.CreateAsyncScope())
                     createdReplenishments = await scope.ServiceProvider.GetRequiredService<MaterialApprovalNotificationDelivery>()

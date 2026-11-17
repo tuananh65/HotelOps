@@ -177,7 +177,12 @@ public sealed partial class InventoryService
             await authority.RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
             await authority.InstalledAsync(ct);
             var source = await authority.SourceAsync(id, ct);
-            if (source?.ReplenishmentId is {} linked && linked != linkedReplenishmentId) throw Invalid("Linked receipt must be posted atomically through its replenishment workflow.");
+            if (source?.ReplenishmentId is {} linked && linked != linkedReplenishmentId && d.Status != "POSTED") throw Invalid("Linked receipt must be posted atomically through its replenishment workflow.");
+        }
+        if (type == "RECEIPT" && d.DocumentType == "RECEIPT" && d.Status == "POSTED")
+        {
+            await ReceiptPostingProof.RequireAsync(db, id, ct);
+            return d; // MSG28: authorized replay returns the existing posted receipt.
         }
         Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType != type || type is not ("RECEIPT" or "RETURN")) throw Invalid("Only the matching DRAFT receipt/return may be posted.");
@@ -185,6 +190,7 @@ public sealed partial class InventoryService
             request.Lines.Any(x => !d.StockDocumentLines.Any(l => l.LineId == x.LineId))) throw Invalid("Supply every document line exactly once.");
         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
         await StockGates(d.StockDocumentLines.Select(x => (d.DestinationWarehouseId!.Value, x.ItemId)), ct);
+        var waiting = type == "RECEIPT" ? await ReceiptWaitingAsync(d, request.Lines.Where(l => l.AcceptedQty > 0).Select(l => d.StockDocumentLines.Single(s => s.LineId == l.LineId).ItemId).Distinct().ToArray(), ct) : [];
         var now = DateTime.UtcNow; var before = new { document = Scalars(d), lines = d.StockDocumentLines.Select(Scalars).ToList() };
         foreach (var input in request.Lines)
         {
@@ -210,6 +216,7 @@ public sealed partial class InventoryService
             await ReturnCap(g.Key, g.Sum(x => Base(x.ActualQty + x.StockReturnLineDetailStockDocumentLine!.DamagedQty, x.ConversionFactor)), id, ct);
         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now;
         await DocumentAudit(d, actorUserId, "UPDATE", "POSTED", before, warehouses, now, ct);
+        if (type == "RECEIPT") await ReceiptWaitingIntentsAsync(d, waiting, ct);
         return d;
     }
     public async Task<InventoryDocumentDto?> CancelDocument(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
@@ -217,6 +224,7 @@ public sealed partial class InventoryService
         var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
         var d = await Document(id, ct); if (d is null) return null; Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Only an eligible DRAFT may be cancelled.");
+        if (d.DocumentType == "RECEIPT" && reason.Length < 10) throw Invalid("Cancellation reason requires at least 10 characters (GBR-012).");
         if (d.DocumentType == "RECEIPT") await (receiptAuthority ?? throw Invalid("Receipt authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
         var warehouses = await Warehouses(WarehouseIds(d), false, ct); var before = Scalars(d); var now = DateTime.UtcNow;
         d.Status = "CANCELLED"; d.CancelledAt = now; d.Reason = reason;
