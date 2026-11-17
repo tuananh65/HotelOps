@@ -14,6 +14,14 @@ public partial class HotelOpsDbContext
         modelBuilder.Entity<AuditLog>().ToTable("audit_logs", table => table.UseSqlOutputClause(false));
         ConfigureChecklists(modelBuilder);
         ConfigureWorkTime(modelBuilder);
+        // UC012 branch admission triggers coordinate these writers with deactivation.
+        modelBuilder.Entity<InternalRequest>().ToTable("internal_requests", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<MaterialRequest>().ToTable("material_requests", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<MaterialReplenishment>().ToTable("material_replenishments", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<StockMovement>().ToTable("stock_movements", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<WorkInterval>().ToTable("work_intervals", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<Warehouse>().ToTable("warehouses", t => t.UseSqlOutputClause(false));
+        modelBuilder.Entity<CleaningRework>().ToTable("cleaning_reworks", t => t.UseSqlOutputClause(false));
         ConfigureNotificationCandidate(modelBuilder);
         // SQL triggers enforce scoped assignments after deployment. This also works
         // before deployment and prevents SQL334 from EF's bare OUTPUT on rooms.

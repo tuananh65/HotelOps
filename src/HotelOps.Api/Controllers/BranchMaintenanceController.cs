@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
+[NonController] // UC012 uses the native-rowversion BranchAdministrationController.
 [ApiController]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]

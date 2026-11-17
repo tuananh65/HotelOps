@@ -83,7 +83,7 @@ export function createdBranch(
     !branch ||
     branch.code !== code ||
     !branch.isActive ||
-    branch.timezone !== "Asia/Ho_Chi_Minh" ||
+    !branch.timezone?.trim() ||
     !branch.address?.trim()
   )
     return;

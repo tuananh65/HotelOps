@@ -8,9 +8,7 @@ import {
   type BranchWriteResult,
   type BranchUpdate,
 } from "./contracts";
-/** UC012 normal flow only. Targets the active BranchMaintenanceController / MaintainBranchAsync contract.
- * No backend activation is performed by this client.
- */
+/** UC012 native SQL rowversion contract; source authorization remains server-owned. */
 export function createBranchMaintenanceApi(
   fetchImplementation: typeof fetch = globalThis.fetch.bind(globalThis),
 ) {

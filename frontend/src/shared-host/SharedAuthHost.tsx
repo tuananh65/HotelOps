@@ -1,5 +1,7 @@
 import { RoomDepartmentsPanel } from "../hotel/RoomDepartmentsPanel";
 import { BranchMaintenanceRoute } from "../branch-maintenance/BranchMaintenanceRoute";
+import { CreateBranchRoute } from "../branch-maintenance/CreateBranchRoute";
+import { BranchManagementPage } from "../branch-maintenance/BranchManagementPage";
 import { ShiftHandoverPage } from "../workday/ShiftHandoverPage";
 import { HomeNavigation } from "./HomeNavigation";
 import { EmployeeMembershipPage } from "../users/EmployeeMembershipPage";
@@ -221,6 +223,9 @@ export function SharedAuthHost({
         <>
           <Route path="/hotel" element={<BranchStructureTree />} />
           <Route path="/structure/branches/:branchId/edit" element={<BranchMaintenanceRoute />} />
+          <Route path="/branches" element={<BranchManagementPage />} />
+          <Route path="/branches/new" element={<CreateBranchRoute />} />
+          <Route path="/branches/:branchId/edit" element={<BranchMaintenanceRoute />} />
           <Route path="/room-directory" element={<RoomDirectoryRoute />} />
           <Route path="/room-directory/:id" element={<RoomDirectoryRoute />} />
           <Route path="/structure/floors" element={<StructureManagementRoute kind="floors" />} />

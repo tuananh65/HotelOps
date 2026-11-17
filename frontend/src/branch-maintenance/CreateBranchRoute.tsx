@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createBranchApi } from "./createBranchApi";
+import { useBranchManagementOptions } from "./BranchManagementPage";
 import {
   createRequest,
   type CreateBranchRequest,
@@ -250,6 +251,7 @@ function CreateForm({
 }
 export function CreateBranchRoute() {
   const { state } = useAuth();
+  const options = useBranchManagementOptions();
   const locked = useRef(false);
   if (
     state.status !== "AUTHENTICATED" ||
@@ -265,5 +267,8 @@ export function CreateBranchRoute() {
         <Link to="/change-password">Change password</Link>
       </section>
     );
-  return <CreateForm session={state.session} locked={locked} />;
+  if (!options) return <p>Đang kiểm tra quyền và SYS-PAR-10…</p>;
+  if (options.error || !options.data) return <p role="alert">{options.error ?? "Danh mục chưa sẵn sàng."}</p>;
+  return <><p>Múi giờ cố định theo SYS-PAR-10: {options.data.timezone}</p>
+    <CreateForm session={state.authorityGeneration} locked={locked} /></>;
 }

@@ -11,7 +11,7 @@ public sealed record BranchDependencySnapshot(long BranchId,long ActiveRooms,lon
     bool CanDeactivate=false,string Coordination="DEACTIVATION_CONCURRENCY_BLOCKED",bool ScopeResolutionComplete=false);
 
 /// <summary>Read facts only; an empty snapshot never authorizes a deactivation.</summary>
-public sealed class BranchDeactivationDependencyReader(HotelOpsDbContext db)
+public sealed partial class BranchDeactivationDependencyReader(HotelOpsDbContext db)
 {
     public async Task<BranchDependencySnapshot> ReadAsync(long branch,CancellationToken ct)
     {
@@ -25,11 +25,8 @@ public sealed class BranchDeactivationDependencyReader(HotelOpsDbContext db)
             .GroupBy(x=>new{x.WarehouseId,x.ItemId}).Where(g=>g.Sum(x=>x.SignedBaseQty)!=0)
             .Select(g=>g.Key.WarehouseId).Distinct().LongCountAsync(ct);
         var facts=new List<BranchDependencyState>();
-        await Add("operational_tasks",db.OperationalTasks.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
-        await Add("cleaning_tasks",db.CleaningTasks.AsNoTracking().Where(x=>x.Room.BranchId==branch).Select(x=>x.Status));
-        await Add("cleaning_reworks",db.CleaningReworks.AsNoTracking().Where(x=>x.CleaningTask.Room.BranchId==branch).Select(x=>x.Status));
-        await Add("room_inspections",db.RoomInspections.AsNoTracking().Where(x=>x.Room.BranchId==branch
-            && (x.CleaningTask==null || x.CleaningTask.Room.BranchId==branch)).Select(x=>x.Status));
+        facts.AddRange(await TaskFacts(branch,ct));
+        facts.AddRange(await HousekeepingFacts(branch,ct));
         await Add("inspection_scope_mismatch",db.RoomInspections.AsNoTracking().Where(x=>x.CleaningTask!=null
             && x.CleaningTask.Room.BranchId!=x.Room.BranchId
             && (x.Room.BranchId==branch || x.CleaningTask.Room.BranchId==branch)).Select(x=>x.Status));
@@ -40,11 +37,20 @@ public sealed class BranchDeactivationDependencyReader(HotelOpsDbContext db)
             && x.Incident.BranchId!=x.Department.BranchId && (x.Incident.BranchId==branch || x.Department.BranchId==branch)).Select(x=>x.Status));
         await Add("incidents",db.Incidents.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
         await Add("internal_requests",db.InternalRequests.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
-        await Add("material_requests",db.MaterialRequests.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
+        facts.AddRange(await MaterialFacts(branch,ct));
+        facts.AddRange(await PreventiveFacts(branch,ct));
+        var intervals=await db.WorkIntervals.AsNoTracking().LongCountAsync(w=>w.BranchId==branch&&w.ClosedAt==null,ct);
+        if(intervals>0)facts.Add(new("work_intervals","OPEN",intervals,"OPEN"));
+        var orphanWorks=await db.MaintenanceWorks.AsNoTracking().LongCountAsync(w=>w.IncidentId==null&&w.DepartmentId==null
+            &&w.Status!="CLOSED"&&w.Status!="CANCELLED"
+            &&!db.PreventiveMaintenanceRuns.Any(r=>r.MaintenanceWorkId==w.MaintenanceWorkId),ct);
+        if(orphanWorks>0)facts.Add(new("unscoped_maintenance","BRANCH_PROVENANCE_MISSING",orphanWorks,"UNRESOLVED"));
         await Add("replenishments",db.MaterialReplenishments.AsNoTracking().Where(x=>x.Warehouse.BranchId==branch).Select(x=>x.Status));
-        // PM/orphan-work ownership and ambiguous terminal-state binding still need joint review.
-        // ScopeResolutionComplete/CanDeactivate remain false even when every observed count is zero.
-        return new(branch,rooms,stocked,facts,rooms>0||stocked>0||facts.Any(x=>x.Classification=="OPEN"),true);
+        var blockers=rooms>0||stocked>0||facts.Any(x=>x.Classification=="OPEN");
+        var unresolved=facts.Any(x=>x.Classification=="UNRESOLVED");
+        var coordinated=await BranchDeactivationCoordination.ReadyAsync(db,ct);
+        return new(branch,rooms,stocked,facts,blockers,unresolved,!blockers&&!unresolved&&coordinated,
+            !coordinated?"BRANCH_WRITER_GUARDS_REQUIRED":unresolved?"DEPENDENCY_PROVENANCE_UNRESOLVED":blockers?"DEPENDENCIES_EXIST":"READY",!unresolved);
 
         async Task Add(string kind,IQueryable<string> source)
         {

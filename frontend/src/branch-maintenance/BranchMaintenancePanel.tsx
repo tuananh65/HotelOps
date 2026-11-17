@@ -19,7 +19,7 @@ const empty: BranchUpdate = {
 type ReadState =
   { key: object; data: BranchSnapshot } | { key: object; error: string };
 type Review = { key: object; input: BranchUpdate; etag: string };
-/** UC012 normal flow, source-only. Uses the active BranchMaintenanceController contract under accepted AuthProvider.
+/** UC012 normal flow. Uses the native-rowversion BranchAdministrationController under AuthProvider.
  * No role inference.
  */
 export function BranchMaintenancePanel({ branchId }: { branchId: number }) {

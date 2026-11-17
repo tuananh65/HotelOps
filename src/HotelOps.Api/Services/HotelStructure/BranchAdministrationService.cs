@@ -16,10 +16,40 @@ namespace HotelOps.Api.Services.HotelStructure;
 
 public sealed record BranchAdministrationResult(int Status, object? Value = null, string? Code = null, string? ETag = null);
 
-/// <summary>UC012 SQL-rowversion boundary. No branch deactivation until consumer coordination is proven.</summary>
+/// <summary>UC012 SQL-rowversion boundary; deactivation requires installed writer coordination and current dependency proof.</summary>
 public sealed class BranchAdministrationService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions)
 {
+    public Task<BranchAdministrationResult> OptionsAsync(SessionReference ticket, long sid, CancellationToken ct)
+        => Execute(ticket, sid, async _ => new(200, new {
+            Timezone = await SystemTimezone(ct),
+            PageSize = await ManagementPageSize(ct),
+            Branches = await db.Branches.AsNoTracking().OrderBy(b=>b.BranchCode)
+                .Select(b=>new { Id=b.BranchId, Code=b.BranchCode, Name=b.BranchName, b.IsActive }).ToArrayAsync(ct)
+        }), ct);
+
+    private async Task<int> ManagementPageSize(CancellationToken ct)
+    {
+        var values=await db.SystemSettings.AsNoTracking().Where(s=>s.BranchId==null&&s.SettingKey=="SYS-PAR-11")
+            .Select(s=>s.SettingValue).ToArrayAsync(ct);
+        if(values.Length==0)return 20;
+        if(values.Length!=1||!int.TryParse(values[0],out var size)||size is <1 or >100)
+            throw new ValidationException("Invalid SYS-PAR-11 configuration.");
+        return size;
+    }
+
+    private async Task<string> SystemTimezone(CancellationToken ct)
+    {
+        var settings = await db.SystemSettings.AsNoTracking().Where(s=>s.BranchId==null && s.SettingKey=="SYS-PAR-10")
+            .Select(s=>s.SettingValue).ToArrayAsync(ct);
+        if(settings.Length>1)throw new ValidationException("Ambiguous SYS-PAR-10 configuration.");
+        var zone=settings.Length==0 ? "Asia/Ho_Chi_Minh" : settings[0];
+        if(string.IsNullOrWhiteSpace(zone)||zone.Length>100)throw new ValidationException("Invalid SYS-PAR-10 configuration.");
+        try { _=TimeZoneInfo.FindSystemTimeZoneById(zone); }
+        catch(Exception e) when(e is TimeZoneNotFoundException or InvalidTimeZoneException)
+        { throw new ValidationException("Invalid SYS-PAR-10 configuration."); }
+        return zone;
+    }
     public Task<BranchAdministrationResult> CreateAsync(SessionReference ticket, long sid, CreateBranchRequest input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -39,7 +69,7 @@ public sealed class BranchAdministrationService(HotelOpsDbContext db, ICurrentUs
                 return new(409, Code: "DUPLICATE_BRANCH_CODE");
             var now = await Now(ct);
             var row = new Branch { BranchCode=code, BranchName=fields.Name, Address=fields.Address,
-                Phone=fields.Phone, Email=fields.Email, Timezone="Asia/Ho_Chi_Minh", IsActive=true, CreatedAt=now };
+                Phone=fields.Phone, Email=fields.Email, Timezone=await SystemTimezone(ct), IsActive=true, CreatedAt=now };
             db.Branches.Add(row);
             try { await db.SaveChangesAsync(ct); }
             catch (DbUpdateException e) when (Number(e) is 2601 or 2627) { return new(409, Code:"DUPLICATE_BRANCH_CODE"); }
@@ -87,24 +117,30 @@ public sealed class BranchAdministrationService(HotelOpsDbContext db, ICurrentUs
     public Task<BranchAdministrationResult> DependenciesAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
     {
         Id(id);
-        return Execute(ticket,sid,async _ => await Row(id,ct) is null ? new(404,Code:"BRANCH_NOT_FOUND")
-            : new(200,await new BranchDeactivationDependencyReader(db).ReadAsync(id,ct)),ct);
+        return Execute(ticket,sid,async _ => await Row(id,ct) is not {} row ? new(404,Code:"BRANCH_NOT_FOUND")
+            : new(200,await new BranchDeactivationDependencyReader(db).ReadAsync(id,ct),ETag:'"'+Convert.ToBase64String(row.Version)+'"'),ct);
     }
 
     public Task<BranchAdministrationResult> DeactivateAsync(SessionReference ticket,long sid,long id,byte[] expected,
         DeactivateStructureRequest input,CancellationToken ct)
     {
         Id(id);Version(expected);ArgumentNullException.ThrowIfNull(input);
-        if(!input.Confirmation || Text(input.Reason,1000,true)!.Length<10)throw new ValidationException("Confirmation and reason are required.");
-        return Execute(ticket,sid,async _ =>
+        var reason=Text(input.Reason,1000,true)!;
+        if(!input.Confirmation || reason.Length<10)throw new ValidationException("Confirmation and reason are required.");
+        return Execute(ticket,sid,async actor =>
         {
             var row=await Row(id,ct);
             if(row is null)return new(404,Code:"BRANCH_NOT_FOUND");
             if(!row.Version.AsSpan().SequenceEqual(expected))return new(412,Code:"BRANCH_STALE");
             if(!row.IsActive)return Success(row); // Already inactive: no mutation/audit.
             var facts=await new BranchDeactivationDependencyReader(db).ReadAsync(id,ct);
-            return new(facts.HasConfirmedBlockers?409:503,facts,
-                facts.HasConfirmedBlockers?"BRANCH_DEPENDENCIES_EXIST":"DEACTIVATION_CONCURRENCY_BLOCKED");
+            if(!facts.CanDeactivate)return new(facts.HasConfirmedBlockers?409:503,facts,facts.Coordination);
+            var now=await Now(ct);
+            if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.branches SET is_active=0,updated_at={now} WHERE branch_id={id} AND is_active=1 AND row_version={expected}",ct)!=1)
+                return new(412,Code:"BRANCH_STALE");
+            var after=await Row(id,ct)??throw new InvalidOperationException("Branch disappeared during deactivation.");
+            await Audit(actor,id,"UPDATE",View(row),new{reason,entity=View(after)},["isActive"],now,ct);
+            return Success(after);
         },ct);
     }
 
@@ -142,6 +178,10 @@ public sealed class BranchAdministrationService(HotelOpsDbContext db, ICurrentUs
             if(!valid.IsValid||valid.Session?.SessionId!=sid||valid.Session.UserId!=actor.UserId||valid.Session.IsRestricted)
                 return new(401,Code:"SESSION_INVALID");
             // Historical UC012 binding: effective GLOBAL MASTER_DATA_MANAGE, never a role-name bypass.
+            var now=await Now(ct);
+            if(!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==actor.UserId && r.IsActive && r.Role.IsActive
+                && r.Role.RoleCode=="SYS_ADMIN" && r.BranchId==null && r.AssignedAt<=now && (r.ExpiresAt==null||r.ExpiresAt>now),ct))
+                return new(403,Code:"BRANCH_ADMINISTRATOR_REQUIRED");
             var access=await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct);
             return access.IsGranted?null:new(access.Decision==PermissionDecision.Unavailable?503:403,Code:"BRANCH_FORBIDDEN");
         }

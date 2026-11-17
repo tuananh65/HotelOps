@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
-[NonController] // FS-001: imported source; route/security activation awaits DEV1/DEV3 review.
 [ApiController]
 [Authorize(AuthenticationSchemes=HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
@@ -15,6 +14,8 @@ namespace HotelOps.Api.Controllers;
 [RequestSizeLimit(32*1024)]
 public sealed class BranchAdministrationController(BranchAdministrationService service):ControllerBase
 {
+    [HttpGet("api/branches/management-options")]
+    public Task<IActionResult> Options(CancellationToken ct)=>Run((t,s)=>service.OptionsAsync(t,s,ct),false);
     [HttpPost("api/branches")]
     public Task<IActionResult> Create(CreateBranchRequest input,CancellationToken ct)=>Run((t,s)=>service.CreateAsync(t,s,input,ct),false);
     [HttpGet("api/branches/{id:long}/edit")]
