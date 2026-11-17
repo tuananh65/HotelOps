@@ -143,14 +143,18 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         {
             var incidentId = await Incidents.IncidentCriticalNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
             if (incidentId == null) throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
-            await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
+            await RevalidateSessionAsync(user, ct);
+            if (await Incidents.IncidentCriticalNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct) != incidentId)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}?action=A004A-023");
         }
         if(source is {NotificationType:Incidents.IncidentEscalatedNotificationDelivery.Kind,SourceType:Incidents.IncidentEscalatedNotificationDelivery.Kind,SourceId:>0})
         {
             var incidentId = await Incidents.IncidentEscalatedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
             if (incidentId == null) throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
-            await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
+            await RevalidateSessionAsync(user, ct);
+            if (await Incidents.IncidentEscalatedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct) != incidentId)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}?action=A004A-023");
         }
         if(source is {NotificationType:PreventiveMaintenance.PreventiveAssignmentNotificationDelivery.Kind,SourceType:PreventiveMaintenance.PreventiveAssignmentNotificationDelivery.Kind,SourceId:>0})
@@ -180,7 +184,9 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         {
             var incidentId = await Incidents.IncidentReportedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct);
             if (incidentId == null) throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
-            await UserAsync(clock.GetUtcNow().UtcDateTime, ct);
+            await RevalidateSessionAsync(user, ct);
+            if (await Incidents.IncidentReportedNotificationDelivery.TargetAsync(db, source.SourceId.Value, user, source.CreatedBy, source.CreatedAt, ct) != incidentId)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct); return new($"/operations/incidents/{incidentId}");
         }
         if(source is {NotificationType:MaterialRequests.MaterialApprovalNotificationDelivery.Kind,SourceType:MaterialRequests.MaterialApprovalNotificationDelivery.Source,SourceId:>0})
@@ -309,7 +315,10 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
             var path=await CleaningClosureNotificationSource.ResolveAsync(db,id,user,source.NotificationType,
                 source.SourceId.Value,source.CreatedBy ?? 0,now,ct);
             if(path==null)throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
-            await UserAsync(clock.GetUtcNow().UtcDateTime,ct);
+            await RevalidateSessionAsync(user,ct);
+            if (await CleaningClosureNotificationSource.ResolveAsync(db,id,user,source.NotificationType,
+                source.SourceId.Value,source.CreatedBy ?? 0,clock.GetUtcNow().UtcDateTime,ct) != path)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);
             return new(path);
         }
@@ -606,6 +615,12 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 ||!await InspectionRecipientReadAccess.CanReadAsync(db,user,proof.BranchId,now,ct)
                 ||(user!=proof.Intent.OriginalCleaner.CleanerUserId
                     &&!(await InspectionFailureRecipients.SupervisorsAsync(db,proof.BranchId,now,ct)).Contains(user)))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            var finalNow=clock.GetUtcNow().UtcDateTime;
+            if(!await InspectionRecipientReadAccess.CanReadAsync(db,user,proof.BranchId,finalNow,ct)
+                ||(user!=proof.Intent.OriginalCleaner.CleanerUserId
+                    &&!(await InspectionFailureRecipients.SupervisorsAsync(db,proof.BranchId,finalNow,ct)).Contains(user)))
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);
             return new($"/inspection-history/{proof.InspectionId}?branchId={proof.BranchId}");

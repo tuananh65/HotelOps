@@ -97,7 +97,9 @@ export function NotificationCenter() {
         setWrite({
           owner,
           busy: false,
-          message: "Source or read confirmation is unavailable. Refresh to check current access.",
+          message: error instanceof InboxFailure && [403, 404].includes(error.status)
+            ? "MSG02: The source is unavailable or your current permissions no longer allow access. The notification text remains visible."
+            : "Source or read confirmation is unavailable. Refresh to check current access.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);
@@ -306,7 +308,10 @@ export function NotificationCenter() {
               ) : (
                 <ul>
                   {data.items.map((row) => (
-                    <li key={row.id}>
+                    <li key={row.id}
+                      data-awaiting-acknowledgment={!!row.requiresAcknowledgment && !row.acknowledgedAt}
+                      style={row.requiresAcknowledgment && !row.acknowledgedAt
+                        ? { borderInlineStart: "4px solid currentColor", paddingInlineStart: "1rem" } : undefined}>
                       <label>
                         <input
                           type="checkbox"
