@@ -26,26 +26,32 @@ internal static class IncidentReadContract
     private static readonly object AssignmentKey = new();
     private static readonly object RoomBlocksKey = new();
     private static readonly object TriageOptionsKey = new();
-    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V13";
+    internal const string Reference = "DEV3_142A_INCIDENT_BRANCH_READ_V14";
     private const string Policy = "Assigned incident visibility requires a unique corrective work in the current reopen cycle; historical assignments never grant current incident authority; Related maintenance links require independent current MAINTENANCE_VIEW resource scope and final revalidation; detail endpoints independently authorize progress/history disclosure; Pending Verification projection requires unique current-cycle corrective work and proven committed submission/closed interval; reopened cycles require immutable closure/event/audit provenance and confirmed recurrence discovery for SLA options; prior cycles remain historical; Pending Triage cancellation availability requires escalation storage and native version and current scoped Lead INCIDENT_TRIAGE with final revalidation; Assignment availability requires independently scoped Lead MAINTENANCE_ASSIGN and MAINTENANCE_VIEW, installed receipt/version and final authority revalidation; Initial workflow derives from matching Created/Triage audit/SLA and current eligible assignment, inconsistent history is UNVERIFIED; GET api/incidents requires explicit branch; GET api/incidents/{id} derives branch from SQL; "
         + "Room block availability requires installed explicit scope, open source, native version, current Lead ROOM_BLOCK_MANAGE and independent ROOM_VIEW/INCIDENT_VIEW; current HTTPS session, active user/branch access and same-role INCIDENT_VIEW branch grant; GBR165 lead branch/staff reported or assigned; coherent location/asset branch; "
         + "serializable scoped reads and identical current read scope before disclosure including empty pages and totals; current-cycle assignee may read completed/closed source history while mutations retain independent active-work guards; active INCIDENT_CATEGORY lookup requires the same branch read authority; "
-        + "similar-location review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
+        + "similar-location review and category lookup support eligible reporters with OWN/BRANCH INCIDENT_VIEW, intersecting incident results with current source visibility; ordinary UC143 list scope unchanged; review issues a protected user/session/location receipt valid for ten minutes after scoped query; "
         + "evidence metadata and private download require current source visibility and exact attachment ownership; "
         + "UC051 source detail supports current eligible reporter/assignee or branch Lead/OM with independent INCIDENT_VIEW; UC143 list scope unchanged; recorded SLA only, missing or invalid deadlines remain unavailable without planned-time inference; triage options require independent current scoped Lead INCIDENT_TRIAGE with final revalidation; no mutation authority";
     internal static IEnumerable<Dev2ActionContract> Contracts => new[] { "A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ", "INCIDENT-EVIDENCE-LIST", "INCIDENT-EVIDENCE-DOWNLOAD" }.Select(id =>
         new Dev2ActionContract(id, Reference, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),
             async (a, ct) => [new("INCIDENT_VIEW", IsSource(a)
                 ? new(Dev2PermissionTargetKind.Resource, Resource: new("incident_source", Id(a)))
+                : IsCreationLookup(a) ? new(Dev2PermissionTargetKind.Resource, Resource: new("incident_creation_lookup", await BranchAsync(a, ct)))
                 : new(Dev2PermissionTargetKind.Branch, await BranchAsync(a, ct)))],
             Dev2PermissionCombination.All, ValidateAsync, (_, _) => false, (a, _) => new SourceResolver(a), ReadAsync,
             (_, _, _) => Task.FromResult(false), RequiresReadTransaction: true));
 
     private static bool IsSource(Dev2BoundAction a) => a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD";
+    private static bool IsCreationLookup(Dev2BoundAction a) => a.Identity.DecisionId == "INCIDENT-CATEGORIES-READ"
+        || a.Identity.DecisionId == "A004A-022" && Input(a).SimilarOpenOnly;
     private sealed class SourceResolver(Dev2BoundAction a) : IPermissionResourceResolver
     {
         public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource, long currentUserId, CancellationToken ct)
         {
+            if (IsCreationLookup(a) && permissionCode == "INCIDENT_VIEW" && resource.ResourceType == "incident_creation_lookup"
+                && currentUserId == a.Actor.UserId && resource.ResourceId == await BranchAsync(a, ct))
+                return new(resource.ResourceId, true); // Result rows are independently intersected with Scope.Apply.
             if (!IsSource(a) || permissionCode != "INCIDENT_VIEW" || resource.ResourceType != "incident_source"
                 || resource.ResourceId != Id(a) || currentUserId != a.Actor.UserId) return null;
             // Read the current cycle even after completion/closure. Reopen or
@@ -96,7 +102,7 @@ internal static class IncidentReadContract
         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(b => b.UserId == a.Actor.UserId && b.BranchId == branch
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
         var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct,
-            sourceRecord: a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD");
+            sourceRecord: IsSource(a) || IsCreationLookup(a));
         if (!scope.Lead && !scope.Staff) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure
             && a.Http.Items[ReadScopeKey] is IncidentReadAccess.Scope disclosed && disclosed != scope)
@@ -125,7 +131,7 @@ internal static class IncidentReadContract
         if (Db(a).Database.CurrentTransaction == null) throw new Dev2AccessDenied(503);
         var db = Db(a);
         var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, await BranchAsync(a, ct), ct,
-            sourceRecord: a.Identity.DecisionId is "A004A-023" or "INCIDENT-EVIDENCE-LIST" or "INCIDENT-EVIDENCE-DOWNLOAD");
+            sourceRecord: IsSource(a) || IsCreationLookup(a));
         var query = scope.Apply(db.Incidents.AsNoTracking());
         a.Http.Items[ReadScopeKey] = scope;
         try

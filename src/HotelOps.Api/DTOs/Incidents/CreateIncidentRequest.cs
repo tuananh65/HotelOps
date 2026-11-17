@@ -5,8 +5,8 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class CreateIncidentRequest
 {
-    // TODO: Replace integration-supplied branch/reporter with trusted user context.
-    // ReportedBy is not proof of caller identity.
+    // Branch is checked against current authority; ReportedBy must match the
+    // authenticated principal and is never used as proof of caller identity.
     public long BranchId { get; init; }
     public long ReportedBy { get; init; }
 

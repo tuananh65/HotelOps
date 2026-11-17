@@ -58,6 +58,7 @@ export function IncidentDuplicateReview({ values, onReviewed }: { values: Values
         {!current.data.totalCount && <p>No visible matching incidents.</p>}
         <ul>{current.data.items.map(item => <li key={item.incidentId}>
           <Link to={`/operations/incidents/${item.incidentId}`}>{item.incidentNo}: {item.incidentTitle}</Link> — {item.status}
+          <span> MSG32: Open this incident to add evidence if you have evidence permission; no new incident will be created.</span>
         </li>)}</ul>
         <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous similar incidents</button>
         <span> Page {page} </span>

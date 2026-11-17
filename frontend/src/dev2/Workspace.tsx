@@ -281,6 +281,8 @@ function Screen({
           requestLink: { version: context.sourceVersion, mandatory: input.materialRequirement === "required" } };
       }
       if (target.id === "A004A-021") {
+        if (!String(input.incidentTitle ?? "").trim() || !String(input.description ?? "").trim() || !input.discoveredAt)
+          throw Error("MSG03: Title, description and detected time are required.");
         if (context.occurrenceId != null) {
           if (!Number.isSafeInteger(Number(context.occurrenceId)) || Number(context.occurrenceId) <= 0
             || typeof context.occurrenceVersion !== "string" || !/^"[0-9A-F]{16}"$/.test(context.occurrenceVersion)
@@ -307,6 +309,7 @@ function Screen({
     controller.current = abort;
     try {
       if (target.id === "A004A-021") {
+        try {
         if (incidentFiles.length > 5 || incidentFiles.some(f => f.size < 1 || f.size > 10 * 1024 * 1024
           || !["image/jpeg", "image/png", "application/pdf"].includes(f.type)))
           throw Error("MSG23: Select up to five JPG, PNG or PDF files, at most 10 MiB each.");
@@ -318,6 +321,11 @@ function Screen({
         }));
         if (!mounted.current || abort.signal.aborted) return;
         commandInput = { ...commandInput, files };
+        } catch {
+          if (mounted.current && !abort.signal.aborted)
+            setMessage("MSG23: Files could not be prepared. Select up to five readable JPG, PNG or PDF files, at most 10 MiB each, then submit again.");
+          return; // No HTTP mutation was sent; keep the form and review available for correction.
+        }
       }
       const response = await api.current(
         target,
@@ -330,6 +338,7 @@ function Screen({
       if (!response.ok) {
         const error = response.error;
         if (error.kind === "http") {
+          if (target.id === "A004A-021" && error.status >= 500) setUncertain(true);
           if (
             error.status === 401 ||
             error.problem?.code === "PASSWORD_CHANGE_REQUIRED"
@@ -376,9 +385,10 @@ function Screen({
       const root = isObject(response.data) ? response.data : {};
       setRecord(root);
       if (target.method !== "GET") {
-        if (target.id === "A004A-021") setIncidentFiles([]);
+        if (target.id === "A004A-021") { setIncidentFiles([]); setReviewedIncidentLocation(null); }
         setMessage(
-          "Saved by the server. Related views will load current data when opened.",
+          target.id === "A004A-021" ? "MSG09: Incident reported. It is waiting for classification and triage."
+            : "Saved by the server. Related views will load current data when opened.",
         );
         // Read the current record after mutation so subsequent commands use its actual RowVersion.
         setValues(operationDefaults(operation, root));
