@@ -19,6 +19,14 @@ public sealed class StocktakeWorkspaceController(StocktakeWorkspaceService servi
         catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
     }
 
+    [HttpGet("reversal/{id:long}")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> Reversal(long id, CancellationToken ct)
+    {
+        try { var result = await service.ReversalAsync(id, ct); return result == null ? NotFound() : Ok(result); }
+        catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
+    }
+
     [HttpGet("adjustments")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Adjustments(int page = 1, CancellationToken ct = default)

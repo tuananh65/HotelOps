@@ -9,6 +9,8 @@ namespace HotelOps.Api.Services.Inventory;
 
 public sealed class StocktakeWorkspaceService(HotelOpsDbContext db, StocktakeAuthority authority, InsightAccess access, InventoryService inventory)
 {
+    public Task<object?> ReversalAsync(long id, CancellationToken ct) => inventory.ReversalPreview(id, access.UserId, ct);
+
     public async Task<object> ListAsync(int page, CancellationToken ct)
     {
         if (page is < 1 or > 1000000) throw new InsightException(400, "INVALID_PAGE", "Invalid stocktake page.");

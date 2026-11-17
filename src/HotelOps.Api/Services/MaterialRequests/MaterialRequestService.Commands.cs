@@ -232,6 +232,7 @@ public sealed partial class MaterialRequestService
     {
         var batches = await db.MaterialFulfillments.AsNoTracking().Include(x => x.StockDocument).ThenInclude(x => x!.StockDocumentLines)
             .Include(x => x.MaterialFulfillmentLines).Where(x => x.RequestId == r.RequestId).ToListAsync(ct);
+        batches = await MaterialReversalEvidence.EffectiveAsync(db, batches, ct);
         ValidateFulfillments(r, batches);
     }
     internal static void ValidateFulfillments(MaterialRequest r, IReadOnlyCollection<MaterialFulfillment> batches)

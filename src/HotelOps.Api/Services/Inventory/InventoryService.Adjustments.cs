@@ -99,22 +99,25 @@ public sealed partial class InventoryService
     }
     private async Task<List<StockMovement>> ReversalSource(StockDocument original, long? proposal, CancellationToken ct)
     {
-        if (original.Status != "POSTED" || original.DocumentType is not ("RECEIPT" or "RETURN" or "ADJUSTMENT")
+        if (original.Status != "POSTED" || original.DocumentType is not ("RECEIPT" or "ISSUE" or "RETURN" or "ADJUSTMENT")
             || original.ReversalOfDocumentId != null
             || await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == original.DocumentId && (proposal == null || x.DocumentId != proposal.Value), ct))
             throw Invalid("Document is not eligible for reversal, or another proposal already exists.");
         var movements = await db.StockMovements.AsNoTracking().Where(x => x.DocumentLine.DocumentId == original.DocumentId)
             .OrderBy(x => x.MovementId).ToListAsync(ct);
-        if (movements.Count == 0 || movements.Any(m => !original.StockDocumentLines.Any(l => l.LineId == m.DocumentLineId && l.ItemId == m.ItemId)))
+        if (movements.Any(m => !original.StockDocumentLines.Any(l => l.LineId == m.DocumentLineId && l.ItemId == m.ItemId)))
             throw Invalid("Original stock effect cannot be reconciled with its immutable lines.");
+        await ReversalDependencies(original, ct);
         return movements;
     }
     public async Task<InventoryDocumentDto?> Reverse(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
     {
         var reason = Reason(r.Reason);
-        await using var tx = await Begin(actorUserId, ct);
+        if (reason.Length < 10) throw Invalid("MSG03: Reversal reason requires at least 10 characters (GBR-012).");
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
         var original = await Document(id, ct);
         if (original is null) return null;
+        await RequireReversal(actorUserId, original, ct);
         Version(original.RowVersion, r.ExpectedRowVersion);
         var movements = await ReversalSource(original, null, ct);
         var warehouses = await Warehouses(movements.Select(x => x.WarehouseId).Concat(WarehouseIds(original)), true, ct);
@@ -126,7 +129,7 @@ public sealed partial class InventoryService
             DestinationWarehouseId = original.DestinationWarehouseId, CreatedBy = actorUserId, CreatedAt = now,
             DocumentDate = DateOnly.FromDateTime(now), Reason = reason
         };
-        foreach (var lineId in movements.Select(x => x.DocumentLineId).Distinct())
+        foreach (var lineId in original.StockDocumentLines.Select(x => x.LineId))
         {
             var old = original.StockDocumentLines.Single(x => x.LineId == lineId);
             // Preserve the original immutable line number, including gaps from
@@ -140,15 +143,21 @@ public sealed partial class InventoryService
         }
         db.StockDocuments.Add(d);
         await DocumentAudit(d, actorUserId, "CREATE", "REVERSAL_DRAFT_CREATED", null, warehouses, now, ct);
+        await PostReversalCore(d.DocumentId, actorUserId, new(Convert.ToBase64String(d.RowVersion), reason), ct);
         await tx.CommitAsync(ct);
         return (await GetDocument(d.DocumentId, ct))!;
     }
     public async Task<InventoryDocumentDto?> PostReversal(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
     {
-        // Discovery chooses owner locks only; authoritative state is read below.
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
+        var result = await PostReversalCore(id, actorUserId, r, ct);
+        await tx.CommitAsync(ct);
+        return result;
+    }
+    private async Task<InventoryDocumentDto?> PostReversalCore(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
+    {
         var sourceId = await db.StockDocuments.AsNoTracking().Where(x => x.DocumentId == id)
             .Select(x => x.ReversalOfDocumentId).SingleOrDefaultAsync(ct);
-        await using var tx = await Begin(actorUserId, ct);
         var owners = new Dictionary<long, StockDocument>();
         foreach (var key in new[] { (long?)id, sourceId }.Where(x => x.HasValue).Select(x => x!.Value).Distinct().Order())
         {
@@ -161,14 +170,16 @@ public sealed partial class InventoryService
             || sourceId is not long originalId || d.ReversalOfDocumentId != originalId
             || !owners.TryGetValue(originalId, out var original))
             throw Invalid("Only a current REVERSAL DRAFT with its original may be posted. Reload changed context.");
-        if (d.CreatedBy == actorUserId) throw Invalid("Reversal poster must differ from its proposer.");
+        await RequireReversal(actorUserId, original, ct);
+        if ((d.Reason?.Trim().Length ?? 0) < 10) throw Invalid("MSG03: Reversal reason requires at least 10 characters.");
         if (await db.StockMovements.AnyAsync(x => x.DocumentLine.DocumentId == id, ct))
             throw Invalid("Reversal DRAFT already has stock effects.");
         var movements = await ReversalSource(original, id, ct);
+        var issueRequest = await ReverseIssueRequest(original, actorUserId, ct);
         if (d.SourceWarehouseId != original.SourceWarehouseId || d.DestinationWarehouseId != original.DestinationWarehouseId
-            || d.StockDocumentLines.Count != movements.Select(x => x.DocumentLineId).Distinct().Count())
+            || d.StockDocumentLines.Count != original.StockDocumentLines.Count)
             throw Invalid("Reversal proposal no longer matches its original.");
-        foreach (var lineId in movements.Select(x => x.DocumentLineId).Distinct())
+        foreach (var lineId in original.StockDocumentLines.Select(x => x.LineId))
         {
             var old = original.StockDocumentLines.Single(x => x.LineId == lineId);
             var line = d.StockDocumentLines.SingleOrDefault(x => x.LineNo == old.LineNo);
@@ -184,7 +195,7 @@ public sealed partial class InventoryService
         await StockGates(movements.Select(x => (x.WarehouseId, x.ItemId)), ct);
         foreach (var group in movements.GroupBy(x => (x.WarehouseId, x.ItemId)))
             if (await Balance(group.Key.WarehouseId, group.Key.ItemId, ct) - group.Sum(x => x.SignedBaseQty) < 0)
-                throw Invalid("Reversal would make stock negative.");
+                throw Invalid("MSG16: Reversal would make stock negative.");
         var before = Scalars(d); var originalBefore = Scalars(original); var now = DateTime.UtcNow;
         foreach (var movement in movements)
         {
@@ -197,9 +208,10 @@ public sealed partial class InventoryService
             });
         }
         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now; original.Status = "REVERSED";
+        if (issueRequest != null) await RecordIssueReversal(issueRequest, original, d, actorUserId, now, ct);
         await DocumentAudit(original, actorUserId, "UPDATE", "REVERSED", originalBefore, warehouses, now, ct);
         await DocumentAudit(d, actorUserId, "UPDATE", "REVERSAL_POSTED", before, warehouses, now, ct);
-        await tx.CommitAsync(ct);
+        await RequireReversal(actorUserId, original, ct);
         return await GetDocument(id, ct);
     }
 }

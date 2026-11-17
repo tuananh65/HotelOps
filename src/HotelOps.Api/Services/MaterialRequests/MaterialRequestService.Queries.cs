@@ -76,7 +76,7 @@ public sealed partial class MaterialRequestService
         var receipts = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "material_fulfillments"
             && identities.Contains(x.EntityId) && x.Action == "CREATE" && x.BranchId == branch).ToListAsync(ct);
         var receiverNames = rows.ToDictionary(x => x.FulfillmentId, x => MaterialIssueReceiver.Read(x, receipts));
-        return rows.Select(x => new MaterialFulfillmentDto(x.FulfillmentId, x.FulfillmentNo, id, x.WarehouseId, x.FulfilledBy, x.ReceivedBy, x.Status, Utc(x.FulfilledAt), Utc(x.ReceivedAt), x.StockDocumentId, x.StockDocument?.DocumentNo,
+        return rows.Select(x => new MaterialFulfillmentDto(x.FulfillmentId, x.FulfillmentNo, id, x.WarehouseId, x.FulfilledBy, x.ReceivedBy, x.StockDocument?.Status == "REVERSED" ? "REVERSED" : x.Status, Utc(x.FulfilledAt), Utc(x.ReceivedAt), x.StockDocumentId, x.StockDocument?.DocumentNo,
             x.MaterialFulfillmentLines.OrderBy(l => l.FulfillmentLineId).Select(l => new MaterialFulfillmentLineDto(l.FulfillmentLineId, l.RequestLineId, l.ItemId, l.UomId, l.IssuedQty, l.ReceivedQty, l.StockDocumentLineId)).ToArray(), receiverNames[x.FulfillmentId])).ToArray();
     }
     public async Task<MaterialFulfillmentDto?> Fulfillment(long id, long fulfillmentId, CancellationToken ct) => (await Fulfillments(id, ct))?.SingleOrDefault(x => x.FulfillmentId == fulfillmentId);

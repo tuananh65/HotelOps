@@ -136,7 +136,7 @@ export function StockDocumentPage() {
     {error && <p role="alert">{error}</p>}
     {data && <><h2>{data.documentNo}</h2><p>{data.documentType} — {data.status}; document date {data.documentDate}; posted {data.postedAt ?? "Not posted"}.</p>
       <p>Source warehouse {data.sourceWarehouseId ?? "N/A"}; destination {data.destinationWarehouseId ?? "N/A"}.</p>
-      <p>Selected document ID: {data.documentId}. Reversal is a separate UC088 operation requiring current reversal authority.</p>
+      <p>Selected document ID: {data.documentId}. <Link to={`/inventory/documents/${data.documentId}/reverse`}>Check reversal eligibility / reverse</Link></p>
       <table><thead><tr><th>Item</th><th>Unit</th><th>Actual</th><th>Base quantity</th><th>Received</th><th>Damaged</th><th>Missing</th><th>In transit</th></tr></thead>
         <tbody>{data.lines.map(l => <tr key={l.lineId}><td>{l.itemId}</td><td>{l.uomId}</td><td>{l.actualQty}</td><td>{l.baseQty}</td><td>{l.receivedQty ?? "N/A"}</td><td>{l.damagedQty ?? "N/A"}</td><td>{l.missingQty ?? "N/A"}</td><td>{l.inTransitQty ?? "N/A"}</td></tr>)}</tbody></table>
     </>}

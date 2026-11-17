@@ -68,8 +68,9 @@ internal sealed record MaterialCompletionEvidence(string? Status, bool FullyIssu
             .Include(f => f.StockDocument).ThenInclude(d => d!.StockDocumentLines)
             .Include(f => f.MaterialFulfillmentLines).Where(f => f.RequestId == requestId).ToListAsync(ct);
         if (batches.Count == 0) return Missing("MATERIAL_ISSUE_EVIDENCE_MISSING");
-        try { MaterialRequestService.ValidateFulfillments(request, batches); }
+        try { batches = await MaterialReversalEvidence.EffectiveAsync(db, batches, ct); MaterialRequestService.ValidateFulfillments(request, batches); }
         catch (ValidationException) { return Missing("MATERIAL_ISSUE_EVIDENCE_INVALID"); }
+        if (batches.Count == 0) return Missing("MATERIAL_ISSUE_EVIDENCE_MISSING");
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         if (batches.Any(f => f.FulfilledAt is null || f.StockDocument!.PostedAt != f.FulfilledAt
             || f.FulfilledAt < cycle.ResolvedAt || f.FulfilledAt > now)) return Missing("MATERIAL_ISSUE_TIME_INVALID");
