@@ -42,9 +42,17 @@ export function ShiftDefinitionsPanel() {
       const result=await fetch(endpoint+(selected?"/"+selected.id:""),{method:selected?"PUT":"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,...(selected?{"If-Match":selected.version}:{})},
         body:JSON.stringify({code,name:label,start:response.length===5?response+":00":response,end:resolution.length===5?resolution+":00":resolution,crossesMidnight:overnight})});
-      if(!result.ok){const problem: unknown=await result.json();throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");}
+      if(!result.ok){
+        const problem: unknown=await result.json();
+        const detail=isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.";
+        if([400,409].includes(result.status)){
+          if(!controller.signal.aborted&&current.current===owner)setMessage("MSG03: "+detail+" Correct the definition and save again.");
+          return;
+        }
+        throw Error(detail);
+      }
       const data: unknown=await result.json();if(!valid(data)||(selected!==null&&data.id!==selected.id))throw Error("Save response could not be confirmed.");
-      if(!controller.signal.aborted&&current.current===owner){setRows([]);setLoaded(false);setSelected(null);setEditing(false);setMessage("Saved. Existing scheduled shift times are preserved. Reload definitions before continuing.");}
+      if(!controller.signal.aborted&&current.current===owner){setRows([]);setLoaded(false);setSelected(null);setEditing(false);setMessage("MSG08: Saved. Existing scheduled shift times are preserved. Reload definitions before continuing.");}
     }catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e)+" Reload before retrying.");if(submitted)setUncertain(true);}}
     finally{sending.current=false;if(!controller.signal.aborted&&current.current===owner)setBusy(false);}
   }

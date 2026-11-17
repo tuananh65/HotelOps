@@ -175,7 +175,7 @@ function Bound({
       setDrafts([]);
       if (result.ok) {
         setCanStartNew(true);
-        setMessage(`${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
+        setMessage(`MSG08: ${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
         onSaved?.();
       }
       else {
@@ -185,7 +185,7 @@ function Bound({
           result.outcome === "OUTCOME_UNKNOWN"
             ? "Save outcome unknown. Do not replay; verify with an authorized owner."
             : result.status === 409
-              ? "Assignment conflict. Reload the roster: an employee may already be assigned, a cancellation may exist, or the dated shift may differ from the current definition."
+              ? "MSG03: Assignment conflict. Reload the roster: an employee may already be assigned, a cancellation may exist, or the dated shift may differ from the current definition."
               : "Shift plan was not confirmed. No automatic retry.",
         );
       }
@@ -334,7 +334,7 @@ function Bound({
                 {r.issues.length ? (
                   <ul>
                     {r.issues.map((issue) => (
-                      <li key={issue}>{issueLabels[issue]}</li>
+                      <li key={issue}>MSG03: {issueLabels[issue]}</li>
                     ))}
                   </ul>
                 ) : (

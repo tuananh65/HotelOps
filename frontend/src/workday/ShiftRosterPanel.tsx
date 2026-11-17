@@ -55,7 +55,7 @@ export function ShiftRosterPanel({revision=0}:{revision?:number}) {
         method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":target.version},body:JSON.stringify({reason,confirmation:confirmed})});
       if(response.status!==204){const problem:unknown=await response.json();throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Cancellation was not confirmed.");}
-      if(!abort.signal.aborted&&current.current===owner){committed=true;setNotice({owner,branch:snapshot.branchId,department:snapshot.departmentId,text:"Assignment cancelled; notification queued."});}
+      if(!abort.signal.aborted&&current.current===owner){committed=true;setNotice({owner,branch:snapshot.branchId,department:snapshot.departmentId,text:"MSG08: Assignment cancelled; notification queued."});}
     } catch(e){if(!abort.signal.aborted&&current.current===owner)setError(String(e)+" Reload before retrying.");}
     finally {sending.current=false;if(current.current===owner){setBusy(false);if(submitted){setResult(null);setSelected(null);}}}
     if(committed&&!abort.signal.aborted&&current.current===owner)await load();
