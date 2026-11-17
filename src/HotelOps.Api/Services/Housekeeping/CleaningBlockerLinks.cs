@@ -14,8 +14,21 @@ public sealed partial class RoomTypeCreationService
         if (incident is {} incidentId)
         {
             var access = await IncidentReadAccess.ReadAsync(db, actor, branch, ct, sourceRecord: true);
-            if (!await access.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == incidentId
-                && i.RoomId == room && i.Status != "CANCELLED", ct)) return false;
+            var source = await access.Apply(db.Incidents.AsNoTracking()).Where(i => i.IncidentId == incidentId
+                && i.Status != "CANCELLED").Select(i => new { i.RoomId }).SingleOrDefaultAsync(ct);
+            if (source == null) return false;
+            if (source.RoomId != room)
+            {
+                // UC056 approved scope: direct RoomId or an explicit affected-room
+                // mapping. An area or the asset's current location is not evidence.
+                if (!await IncidentRoomBlockService.InstalledAsync(db, ct)) return false;
+                var at = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+                if (!await db.Database.SqlQuery<int>($"""
+                    SELECT 1 AS Value FROM dbo.incident_affected_rooms m WITH(HOLDLOCK)
+                    JOIN dbo.rooms r ON r.room_id=m.room_id AND r.branch_id={branch}
+                    WHERE m.incident_id={incidentId} AND m.room_id={room} AND m.added_at<={at}
+                    """).AnyAsync(ct)) return false;
+            }
         }
         if (material is {} materialId)
         {

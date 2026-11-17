@@ -172,7 +172,15 @@ public sealed partial class RoomTypeCreationService
                     WHERE p.cleaning_task_id={task} AND p.status='BLOCKED'
                     """).ToArrayAsync(inner);
                 if (blockers.Contains(2)) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_STATE_UNRECONCILED");
-                if (blockers.Contains(3)) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_SOURCE_CONFIRMATION_REQUIRED");
+                if (blockers.Contains(3))
+                {
+                    foreach(var blocker in await ReadCleaningBlockersAsync(task,inner))
+                    {
+                        var proof=await CleaningBlockerProofAsync(blocker,actor,branch,task,row.RoomId,inner);
+                        if(proof.Failure!=null)return LifecycleFailure(RoomTypeBatchStatus.Inactive,proof.Failure);
+                        if(blocker.ResolvedAt==null)return LifecycleFailure(RoomTypeBatchStatus.Inactive,"ACTIVE_BLOCKER");
+                    }
+                }
                 if (blockers.Contains(1)) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ACTIVE_BLOCKER");
                 // Verify the actual SQL writer before closing the interval or creating evidence.
                 // This does not grant database permission or replace actor authorization.

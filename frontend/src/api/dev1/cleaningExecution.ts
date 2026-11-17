@@ -21,6 +21,7 @@ export interface CleaningExecution {
   items?: CleaningProgressItem[];
   progressETag?: string | null;
   holdReason?: "END_OF_SHIFT" | null;
+  blockers?: { progressId: number; incidentId: number | null; materialRequestId: number | null; confirmed: boolean; sourceResolved: boolean; failure: string | null }[];
 }
 const tag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
@@ -115,6 +116,10 @@ export async function readCleaningExecution(
       ))
   )
     throw new ApiError(502, "INVALID_CLOSURE_METADATA");
+  if (!Array.isArray(d.blockers) || d.blockers.some((b: any) => !Number.isSafeInteger(b.progressId) || b.progressId <= 0
+    || ![b.incidentId,b.materialRequestId].every(id => id === null || Number.isSafeInteger(id) && id > 0)
+    || typeof b.confirmed !== "boolean" || typeof b.sourceResolved !== "boolean" || !(b.failure === null || typeof b.failure === "string")))
+    throw new ApiError(502, "INVALID_BLOCKER_METADATA");
   return {
     ...d,
     reportBlockerCapability: d.reportBlockerCapability ?? "UNAVAILABLE",

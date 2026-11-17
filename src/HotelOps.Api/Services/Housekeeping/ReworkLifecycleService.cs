@@ -167,9 +167,15 @@ public sealed partial class RoomTypeCreationService
                     ReworkLifecycleRules.ValidateRemediations(defects, input!.Remediations);
                     var unresolved = await db.Database.SqlQuery<int>($"""
                         SELECT COUNT(*) AS [Value] FROM dbo.cleaning_progress_logs p LEFT JOIN dbo.fs014_cleaning_blocker_resolutions b ON b.progress_id=p.progress_id
-                        WHERE p.cleaning_task_id={row.CleaningTaskId} AND p.status='BLOCKED' AND (b.progress_id IS NULL OR b.resolved_at IS NULL OR b.incident_id IS NOT NULL OR b.material_request_id IS NOT NULL)
+                        WHERE p.cleaning_task_id={row.CleaningTaskId} AND p.status='BLOCKED' AND (b.progress_id IS NULL OR b.resolved_at IS NULL)
                         """).SingleAsync(inner);
                     if (unresolved != 0) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ACTIVE_OR_UNCONFIRMED_BLOCKER");
+                    var cleaningRoom=await db.CleaningTasks.AsNoTracking().Where(t=>t.CleaningTaskId==row.CleaningTaskId).Select(t=>t.RoomId).SingleAsync(inner);
+                    foreach(var blocker in await ReadCleaningBlockersAsync(row.CleaningTaskId,inner))
+                    {
+                        var proof=await CleaningBlockerProofAsync(blocker,actor,branch,row.CleaningTaskId,cleaningRoom,inner);
+                        if(proof.Failure!=null)return LifecycleFailure(RoomTypeBatchStatus.Inactive,proof.Failure);
+                    }
                     if (recipients.Length == 0 || !(await candidateNotification.ClosureRecipientsAsync(branch, inner)).SequenceEqual(recipients))
                         return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "AUTHORIZED_SUPERVISOR_REQUIRED");
                     var open = await db.WorkIntervals.AsNoTracking().Where(w => w.WorkItemKind == "REWORK" && w.WorkItemId == id && w.ClosedAt == null).Take(2).ToArrayAsync(inner);

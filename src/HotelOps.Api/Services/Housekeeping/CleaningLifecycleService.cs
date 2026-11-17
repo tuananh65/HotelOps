@@ -74,7 +74,8 @@ public sealed partial class RoomTypeCreationService
                 active?.AssigneeUserId, row.ActualStartAt is { } time ? DateTime.SpecifyKind(time, DateTimeKind.Utc) : null,
                 WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", complete ? "PROVISIONAL_V1" : "UNAVAILABLE",
                 resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision),
-                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null, assigneeName, details), WorkflowTag(state.Revision));
+                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null, assigneeName, details,
+                await CleaningBlockerViewsAsync(ticket.UserId,branch,task,row.RoomId,token)), WorkflowTag(state.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_VIEW", token));
     }
     public async Task<RoomTypeBatchResult> StartCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, StartCleaningRequest input, CancellationToken ct)
@@ -109,10 +110,11 @@ public sealed partial class RoomTypeCreationService
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
                 var restart = state.State == "ASSIGNED" && row.ActualStartAt != null;
+                var restartBlockers = restart && await db.CleaningProgressLogs.AsNoTracking().AnyAsync(p=>p.CleaningTaskId==task&&p.Status=="BLOCKED",token);
                 var roomHistory = resume || restart ? await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, token) : null;
                 var endOfShift = resume && await IsCleaningEndOfShiftHold(task, token);
                 var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid, admission, admission, admission);
-                var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note, endOfShift)
+                var conflict = resume || restartBlockers ? CleaningLifecycleRules.ResumeConflict("ON_HOLD", actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note, endOfShift)
                     : CleaningLifecycleRules.StartConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker);
                 if (conflict != null) return LifecycleFailure(conflict == "CURRENT_ASSIGNEE_REQUIRED" ? RoomTypeBatchStatus.Forbidden
                     : conflict == "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Inactive, conflict);
@@ -133,7 +135,7 @@ public sealed partial class RoomTypeCreationService
                 if (!resume && !restart && await db.CleaningProgressLogs.AnyAsync(x => x.CleaningTaskId == task && x.Status == "BLOCKED", token))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_RESOLUTION_CONTRACT_REQUIRED");
                 var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(token), DateTimeKind.Utc);
-                if (resume)
+                if (resume || restartBlockers)
                 {
                     if (row.ActualStartAt == null) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ACTUAL_START_REQUIRED");
                     if (await db.WorkIntervals.AsNoTracking().AnyAsync(x => x.WorkItemKind == "CLEANING" && x.WorkItemId == task && x.ClosedAt == null, token))
@@ -146,7 +148,10 @@ public sealed partial class RoomTypeCreationService
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at=COALESCE(actual_start_at,{now}) WHERE cleaning_task_id={task}", token);
                 else if (restart)
                 {
-                    var affected = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS' WHERE cleaning_task_id={task} AND workflow_status='ASSIGNED' AND actual_start_at={row.ActualStartAt} AND row_version={state.Revision}", token);
+                    // Blocker resolution legitimately advances this row's version through
+                    // the existing trigger, under the same retained task/source locks.
+                    var revisionAfterConfirmation=(await CleaningState(task,token)).Revision;
+                    var affected = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS' WHERE cleaning_task_id={task} AND workflow_status='ASSIGNED' AND actual_start_at={row.ActualStartAt} AND row_version={revisionAfterConfirmation}", token);
                     if (affected != 1) return new(RoomTypeBatchStatus.Stale);
                 }
                 else

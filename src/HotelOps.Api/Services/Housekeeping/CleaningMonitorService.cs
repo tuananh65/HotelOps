@@ -174,8 +174,23 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         var effectiveReadiness = "CASE WHEN r.is_active=0 THEN 'INACTIVE' WHEN EXISTS(SELECT 1 FROM dbo.room_blocks rb WHERE rb.room_id=r.room_id AND rb.released_at IS NULL AND rb.blocked_at<=@now) THEN 'BLOCKED' ELSE re.readiness END";
         var reworkProgress = remediation == 1 ? "(SELECT CASE WHEN COUNT(*)=0 THEN NULL ELSE CONVERT(int,100*SUM(CASE WHEN LEN(LTRIM(RTRIM(rd.remediation_note)))>0 THEN 1 ELSE 0 END)/COUNT(*)) END FROM dbo.cleaning_rework_defects rd WHERE rd.rework_id=w.rework_id)" : "CAST(NULL AS int)";
         var cycleValue = cycle == 1 ? "CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_cleaning_cycle_state cs WHERE cs.room_id=r.room_id AND cs.cleaning_task_id=c.cleaning_task_id) THEN 1 ELSE 0 END)" : "CAST(NULL AS bit)";
-        // History is not active blocker state. Missing/linked state remains unresolved; never infer source closure.
-        var blockerPredicate = resolutions == 1 ? "AND (br.progress_id IS NULL OR br.resolved_at IS NULL OR br.incident_id IS NOT NULL OR br.material_request_id IS NOT NULL)" : "";
+        // A linked source's terminal status alone does not confirm a Cleaning blocker.
+        // Require the committed housekeeper confirmation before showing it resolved.
+        var blockerPredicate = resolutions == 1 ? """
+            AND (br.progress_id IS NULL OR br.resolved_at IS NULL
+              OR (br.incident_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.incidents ci WHERE ci.incident_id=br.incident_id AND ci.branch_id=r.branch_id AND ci.status='CLOSED'))
+              OR (br.material_request_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.material_requests cm WHERE cm.request_id=br.material_request_id AND cm.branch_id=r.branch_id AND cm.status IN('FULLY_ISSUED','REMAINDER_CLOSED')))
+              OR ((br.incident_id IS NOT NULL OR br.material_request_id IS NOT NULL) AND NOT EXISTS(
+                SELECT 1 FROM dbo.audit_logs ca
+                CROSS APPLY(SELECT CASE WHEN ISJSON(ca.new_values)=1 THEN ca.new_values ELSE N'{}' END AS payload) cj
+                WHERE ca.entity_type='cleaning_progress_logs' AND ca.entity_id=CONVERT(nvarchar(30),br.progress_id)
+                  AND ca.branch_id=r.branch_id AND ca.actor_user_id=br.resolved_by AND ca.occurred_at=br.resolved_at
+                  AND JSON_VALUE(cj.payload,'$.contract')='EXPLICIT_HOUSEKEEPER_CONFIRMATION'
+                  AND JSON_VALUE(cj.payload,'$.action')='RESOLVE_CLEANING_BLOCKER'
+                  AND JSON_VALUE(cj.payload,'$.resolutionNote')=br.resolution_note
+                  AND (br.incident_id IS NULL OR TRY_CONVERT(bigint,JSON_VALUE(cj.payload,'$.incidentId'))=br.incident_id)
+                  AND (br.material_request_id IS NULL OR TRY_CONVERT(bigint,JSON_VALUE(cj.payload,'$.materialRequestId'))=br.material_request_id))))
+            """ : "";
         var blockerJoin = resolutions == 1 ? "LEFT JOIN dbo.fs014_cleaning_blocker_resolutions br ON br.progress_id=bp.progress_id" : "";
         var blockerApply = $"OUTER APPLY(SELECT TOP(1) bp.progress_id,bp.blocker_type_id,bp.note FROM dbo.cleaning_progress_logs bp {blockerJoin} WHERE bp.cleaning_task_id=c.cleaning_task_id AND bp.status='BLOCKED' {blockerPredicate} ORDER BY bp.logged_at DESC,bp.progress_id DESC) ub";
         var blockedValue = resolutions == 1 ? "CONVERT(bit,CASE WHEN ub.progress_id IS NULL THEN 0 ELSE 1 END)" : "CASE WHEN ub.progress_id IS NULL THEN CONVERT(bit,0) ELSE CAST(NULL AS bit) END";

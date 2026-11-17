@@ -48,9 +48,14 @@ public sealed partial class RoomTypeCreationService
             JOIN dbo.cleaning_progress_logs p WITH(UPDLOCK,HOLDLOCK) ON p.progress_id=b.progress_id
             WHERE p.cleaning_task_id={task} AND p.status='BLOCKED'
             """).ToArrayAsync(ct);
-        // No accepted source confirmation reader exists yet; fail closed for linked blockers,
-        // including an imported resolved flag without source confirmation proof.
-        if (blockers.Any(x => x.IncidentId != null || x.MaterialRequestId != null)) return "BLOCKER_SOURCE_CONFIRMATION_REQUIRED";
+        var room=await db.CleaningTasks.AsNoTracking().Where(t=>t.CleaningTaskId==task).Select(t=>t.RoomId).SingleAsync(ct);
+        var proofs=new Dictionary<long,CleaningBlockerProof>();
+        foreach(var blocker in blockers)
+        {
+            var proof=await CleaningBlockerProofAsync(blocker,actor,branch,task,room,ct);
+            if(proof.Failure!=null)return proof.Failure;
+            proofs.Add(blocker.ProgressId,proof);
+        }
         var open = blockers.Where(x => x.ResolvedAt == null).ToArray();
         // Ending a shift never proves that an actual blocker has been resolved.
         if (endOfShift) return open.Length == 0 ? null : "ACTIVE_BLOCKER";
@@ -62,10 +67,20 @@ public sealed partial class RoomTypeCreationService
                 WHERE progress_id={blocker.ProgressId} AND resolved_at IS NULL
                 """, ct);
             if (affected != 1) return "BLOCKER_STATE_CHANGED";
-            await BatchAuditAsync(actor, branch, "cleaning_progress_logs", blocker.ProgressId,
-                new { resolvedAt = (DateTime?)null }, new { action = "RESOLVE_CLEANING_BLOCKER", task, resolutionNote = note,
-                    resolvedAt = now, resolvedBy = actor, contract = "PROVISIONAL_V1" }, ["blockerResolution"], ct);
+            db.AuditLogs.Add(new HotelOps.Api.Entities.AuditLog {
+                ActorUserId=actor,BranchId=branch,EntityType="cleaning_progress_logs",
+                EntityId=blocker.ProgressId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
+                OldValues="{\"resolvedAt\":null}",
+                NewValues=System.Text.Json.JsonSerializer.Serialize(new { action="RESOLVE_CLEANING_BLOCKER",task,resolutionNote=note,
+                    resolvedAt=now,resolvedBy=actor,incidentId=blocker.IncidentId,materialRequestId=blocker.MaterialRequestId,
+                    receipts=proofs[blocker.ProgressId].Receipt,contract="EXPLICIT_HOUSEKEEPER_CONFIRMATION" }),
+                ChangedFields="[\"blockerResolution\"]" });
+            await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         }
+        await BatchAuditAsync(actor,branch,"cleaning_tasks",task,null,
+            new {action="CONFIRM_CLEANING_BLOCKERS",confirmedBy=actor,confirmedAt=now,note,
+                blockers=blockers.Select(b=>new{b.ProgressId,b.IncidentId,b.MaterialRequestId,receipts=proofs[b.ProgressId].Receipt}).ToArray()},
+            ["blockerConfirmation"],ct);
         return null;
     }
 }

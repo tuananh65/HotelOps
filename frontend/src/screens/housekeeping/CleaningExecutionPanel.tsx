@@ -47,6 +47,7 @@ function CleaningExecutionContent({
     [refresh, setRefresh] = useState(0);
   const [candidatePage, setCandidatePage] = useState(1);
   const [resolutionNote, setResolutionNote] = useState("");
+  const [blockersConfirmed, setBlockersConfirmed] = useState(false);
   const [closurePending, setClosurePending] = useState<{
     branch: string;
     task: string;
@@ -72,6 +73,8 @@ function CleaningExecutionContent({
   useEffect(() => {
     const abort = new AbortController();
     setData(null);
+    setBlockersConfirmed(false);
+    setResolutionNote("");
     setPlan(null);
     setError("");
     readCleaningExecution(branch, task, abort.signal)
@@ -113,11 +116,14 @@ function CleaningExecutionContent({
     return "Không xác minh được kết quả. Tải lại nguồn; với Reassign hãy thử đúng lệnh cũ.";
   }
   async function start(resume = false) {
+    const confirmBlockers = !!data && (resume && data.holdReason !== "END_OF_SHIFT"
+      || data.state === "ASSIGNED" && data.actualStartAtUtc !== null && !!data.blockers?.length);
     if (
       !data ||
       busy ||
       pending ||
       closurePending ||
+      (confirmBlockers && (!blockersConfirmed || !resolutionNote.trim() || data?.blockers?.some(b => !b.sourceResolved))) ||
       (resume
         ? data.resumeCapability !== "PROVISIONAL_V1"
         : data.startCapability !== "AVAILABLE")
@@ -128,8 +134,8 @@ function CleaningExecutionContent({
     setNotice("");
     try {
       const result = await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
-        resolveBlocker: resume && data.holdReason !== "END_OF_SHIFT",
-        ...(resume && data.holdReason !== "END_OF_SHIFT" ? { note: resolutionNote.trim() } : {}),
+        resolveBlocker: confirmBlockers && blockersConfirmed,
+        ...(confirmBlockers ? { note: resolutionNote.trim() } : {}),
       });
       if (alive.current) {
         setNotice(result.hasEffectiveBlock
@@ -301,6 +307,18 @@ function CleaningExecutionContent({
             <ul>{data.startDetails.items.map(i => <li key={i.id}>{i.label}{i.isRequired ? " (required)" : ""}</li>)}</ul>
           </section>}
           {(error.startsWith("MSG30") || error.startsWith("MSG31")) && <Link to={"/workday?branchId=" + branch}>Open Workday</Link>}
+          {!!data.blockers?.length && <ul aria-label="Cleaning blockers">
+            {data.blockers.map(blocker => <li key={blocker.progressId}>
+              Blocker #{blocker.progressId}: {blocker.incidentId ? `Incident #${blocker.incidentId}` : blocker.materialRequestId ? `Material Request #${blocker.materialRequestId}` : "Cleaning blocker"}
+              {" — "}{blocker.sourceResolved ? (blocker.confirmed ? "Confirmed resolved" : "Ready for your confirmation") : blocker.failure}
+            </li>)}
+          </ul>}
+          {data.state === "ASSIGNED" && data.actualStartAtUtc && !!data.blockers?.length && <fieldset disabled={busy || !!pending || !!closurePending}>
+            <legend>Confirm blockers before restarting assigned work</legend>
+            <label><input type="checkbox" checked={blockersConfirmed} onChange={event => setBlockersConfirmed(event.target.checked)} />
+              I confirm that all listed blockers have been resolved.</label>
+            <label>Confirmation note<input value={resolutionNote} maxLength={500} onChange={event => setResolutionNote(event.target.value)} /></label>
+          </fieldset>}
           <p>
             {data.state} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
@@ -309,7 +327,9 @@ function CleaningExecutionContent({
               busy ||
               !!pending ||
               !!closurePending ||
-              data.startCapability !== "AVAILABLE"
+              data.startCapability !== "AVAILABLE" ||
+              (data.state === "ASSIGNED" && data.actualStartAtUtc !== null && !!data.blockers?.length &&
+                (!blockersConfirmed || !resolutionNote.trim() || data.blockers.some(blocker => !blocker.sourceResolved)))
             }
             onClick={() => void start()}
           >
@@ -326,6 +346,11 @@ function CleaningExecutionContent({
                     void start(true);
                   }}
                 >
+                  <label><input type="checkbox" required checked={blockersConfirmed}
+                    disabled={busy || !!pending || !!closurePending || data.blockers?.some(b => !b.sourceResolved)}
+                    onChange={event => setBlockersConfirmed(event.target.checked)} />
+                    I confirm that all listed blockers have been resolved.
+                  </label>
                   <label>
                     Ghi chú xử lý trở ngại
                     <input
@@ -340,7 +365,7 @@ function CleaningExecutionContent({
                   </label>
                   <p>Tiếp tục xác nhận rằng các trở ngại đã được xử lý.</p>
                   <button
-                    disabled={busy || !!pending || !resolutionNote.trim()}
+                    disabled={busy || !!pending || !!closurePending || !blockersConfirmed || !resolutionNote.trim() || data.blockers?.some(b => !b.sourceResolved)}
                   >
                     Tiếp tục dọn phòng
                   </button>
