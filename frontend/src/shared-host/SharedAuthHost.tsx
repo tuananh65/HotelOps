@@ -5,6 +5,7 @@ import { CreateBranchRoute } from "../branch-maintenance/CreateBranchRoute";
 import { BranchManagementPage } from "../branch-maintenance/BranchManagementPage";
 import { ShiftHandoverPage } from "../workday/ShiftHandoverPage";
 import { HomeNavigation } from "./HomeNavigation";
+import { HomePage } from "./HomePage";
 import { EmployeeMembershipPage } from "../users/EmployeeMembershipPage";
 import { SecureShiftPlanWorkspace } from "../workday/SecureShiftPlanWorkspace";
 import { ReferenceCatalogPage } from "../operationalTasks/ReferenceCatalogPage";
@@ -122,11 +123,10 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
-      <Route path="/home" element={<Protected><main><h1>HotelOps</h1>
-        <HomeNavigation />
+      <Route path="/home" element={<Protected><HomePage>
         {dashboardEnabled && <ReportAccessLink />}
         {internalRequestsEnabled && <><InternalRequestAccessLink /><InternalRequestIntakeLink /></>}
-      </main></Protected>} />
+      </HomePage></Protected>} />
       {accountManagementEnabled && <Route path="/users/new" element={<CreateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />}
       {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}

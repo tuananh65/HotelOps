@@ -2,6 +2,7 @@ import { StructureDeactivationPanel } from "../structure-deactivation/StructureD
 import { DepartmentDeactivationPanel } from "./DepartmentDeactivationPanel";
 import { RoomTypeDirectoryResults } from "./RoomTypeDirectoryResults";
 import { RoomDirectoryResults } from "./RoomDirectoryResults";
+import "./room-directory-layout.css";
 import { useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -337,8 +338,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
     (action === "create" || (snapshot && !typeReadOnly && !inactive));
   const pending = flow.phase === "pending";
   return (
-    <main className="hotel-workspace">
+    <main className={`hotel-workspace${readOnly && screen === "rooms" ? " room-directory-workspace" : ""}`}>
       <h1>Hotel structure — {titles[screen]}</h1>
+      {readOnly && screen === "rooms" && <p className="room-directory-intro">Tra cứu phòng theo chi nhánh, vị trí và trạng thái. Chọn phạm vi rồi tải danh sách để bắt đầu.</p>}
       <nav aria-label="Hotel structure navigation">
         <Link to="/profile">Profile</Link>
         {screen === "structure" && (
@@ -373,6 +375,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         slice.
       </p>}
       <section aria-label="Hotel structure selectors">
+        {readOnly && screen === "rooms" && <header className="room-directory-filter-heading"><h2>Bộ lọc danh mục phòng</h2><p>Phạm vi truy cập được kiểm tra theo tài khoản của bạn.</p></header>}
         <label>
           Branch ID
           <input
@@ -650,6 +653,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           </p>
         )}
       </section>
+      {readOnly && screen === "rooms" && !snapshot && !flow.message && !flow.unknown && flow.phase !== "reading" && <section className="room-directory-initial" aria-label="Hướng dẫn tải danh sách"><h2>Danh sách phòng</h2><p>Chưa tải dữ liệu. Nhập Branch ID hoặc chọn All branches, sau đó bấm Load from server.</p></section>}
       {flow.message && <p role="alert">{flow.message}</p>}
       {flow.phase === "reading" && <p role="status">Loading server data...</p>}
       {pending && <p role="status">Change pending...</p>}
