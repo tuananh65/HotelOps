@@ -44,7 +44,7 @@ function Table({
     <section>
       <h3>{label}</h3>
       {rows.length === 0 ? (
-        <p>No records returned.</p>
+        <p>MSG10: No records match the applied filters.</p>
       ) : (
         <table>
           <caption>{label}</caption>
@@ -160,6 +160,11 @@ function Report({ report }: { report: UserAccessReviewDto }) {
           String(grant.isEffective),
         ])}
       />
+      {report.departmentMembershipsAvailable ? <Table label="Department memberships"
+        columns={["Branch ID", "Department ID", "Department", "Active", "Granted UTC", "Revoked UTC"]}
+        rows={report.departmentMemberships.map(m => [m.branchId, m.departmentId, `${m.code} — ${m.name}`,
+          String(m.departmentActive), m.grantedAtUtc, m.revokedAtUtc ?? "None"])} />
+        : <p>Department membership storage is unavailable. A primary department is not proof of membership or management authority.</p>}
       <Table
         label="Effective permissions"
         columns={["Permission", "Feature", "Server sources"]}
@@ -277,6 +282,7 @@ function UserReads({
           </label>
           <button type="submit">Apply review filters</button>
         </form>
+        <p>Applied feature: {query.feature?.trim() || "All"}; permission: {query.permissionCode?.trim() || "All"}.</p>
         {review.result === null ? (
           <p role="status">Loading access review...</p>
         ) : review.result.ok ? (

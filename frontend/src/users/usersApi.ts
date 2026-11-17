@@ -130,6 +130,9 @@ const detail: Decoder<UserAccountDetailDto> = record({
   phone: nullable(text),
 });
 const review: Decoder<UserAccessReviewDto> = record({
+  departmentMembershipsAvailable: boolean,
+  departmentMemberships: array(record({ branchId: id, departmentId: id, code: text, name: text,
+    departmentActive: boolean, grantedAtUtc: utc, revokedAtUtc: nullable(utc) })),
   account: detail,
   evaluatedAtUtc: utc,
   reviewerScope: record({ isGlobal: boolean, branchIds: array(id) }),

@@ -19,8 +19,14 @@ public sealed record AccessReviewPermissionSourceDto(long AssignmentId, string R
 public sealed record AccessReviewPermissionDto(string Code, string Name, string? Feature,
     IReadOnlyList<AccessReviewPermissionSourceDto> Sources);
 public sealed record AccessReviewScopeDto(bool IsGlobal, IReadOnlyList<long> BranchIds);
+public sealed record AccessReviewDepartmentDto(long BranchId, long DepartmentId, string Code, string Name,
+    bool DepartmentActive, DateTime GrantedAtUtc, DateTime? RevokedAtUtc);
 public sealed record UserAccessReviewDto(UserAccountDetailDto Account, DateTime EvaluatedAtUtc,
     AccessReviewScopeDto ReviewerScope, IReadOnlyList<AccessReviewRoleDto> AssignedRoles,
     IReadOnlyList<AccessReviewMembershipDto> BranchMemberships,
     IReadOnlyList<AccessReviewGrantDto> ConfiguredGrants,
-    IReadOnlyList<AccessReviewPermissionDto> EffectivePermissions);
+    IReadOnlyList<AccessReviewPermissionDto> EffectivePermissions)
+{
+    public bool DepartmentMembershipsAvailable { get; init; }
+    public IReadOnlyList<AccessReviewDepartmentDto> DepartmentMemberships { get; init; } = [];
+}

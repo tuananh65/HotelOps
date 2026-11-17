@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -20,11 +21,21 @@ public sealed class UserAccessReviewService(HotelOpsDbContext db, ICurrentUserAc
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted || targetId <= 0) return null;
         var now = clock.GetUtcNow().UtcDateTime;
+        var administratorBranches = await db.UserRoles.AsNoTracking().Where(r => r.UserId == actor.UserId
+            && r.Role.RoleCode == "SYS_ADMIN" && r.IsActive && r.Role.IsActive && r.AssignedAt <= now
+            && (r.ExpiresAt == null || r.ExpiresAt > now)
+            && (r.BranchId == null || r.Branch != null && r.Branch.IsActive
+                && db.UserBranchAccesses.Any(b => b.UserId == actor.UserId && b.BranchId == r.BranchId && b.RevokedAt == null && b.GrantedAt <= now)))
+            .Select(r => r.BranchId).Distinct().ToArrayAsync(ct);
+        if (administratorBranches.Length == 0) return null;
+        var globalAdministrator = administratorBranches.Contains(null);
         var view = await Scopes("USER_VIEW");
         var manage = await Scopes("ROLE_MANAGE");
-        if (view.Global && manage.Global) return new(actor.UserId, targetId, true, []);
-        var permitted = view.Global ? manage.Branches : manage.Global ? view.Branches
+        if (globalAdministrator && view.Global && manage.Global) return new(actor.UserId, targetId, true, []);
+        var permitted = view.Global && manage.Global ? administratorBranches.Where(b => b.HasValue).Select(b => b!.Value).ToArray()
+            : view.Global ? manage.Branches : manage.Global ? view.Branches
             : view.Branches.Intersect(manage.Branches).ToArray();
+        if (!globalAdministrator) permitted = permitted.Where(b => administratorBranches.Contains(b)).ToArray();
         if (permitted.Length == 0) return null;
         var visible = await db.UserBranchAccesses.AsNoTracking()
             .Where(x => x.UserId == targetId && x.User.DeletedAt == null && permitted.Contains(x.BranchId)
@@ -52,6 +63,8 @@ public sealed class UserAccessReviewService(HotelOpsDbContext db, ICurrentUserAc
         var account = await users.GetAsync(scope.TargetId, ct);
         if (account is null) return null;
         var now = clock.GetUtcNow().UtcDateTime;
+        var activeTarget = await db.Users.AsNoTracking().AnyAsync(u => u.UserId == scope.TargetId
+            && u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE", ct);
         var branches = scope.BranchIds;
         var assignments = db.UserRoles.AsNoTracking().Where(x => x.UserId == scope.TargetId);
         if (!scope.IsGlobal) assignments = assignments.Where(x => x.BranchId != null && branches.Contains(x.BranchId.Value));
@@ -80,9 +93,9 @@ public sealed class UserAccessReviewService(HotelOpsDbContext db, ICurrentUserAc
         var raw = await grants.OrderBy(x => x.PermissionCode).ThenBy(x => x.UserRoleId)
             .TagWith("UC011:PermissionPaths").ToListAsync(ct);
         var configured = raw.Select(x => new AccessReviewGrantDto(x.PermissionCode, x.PermissionName, x.ModuleCode,
-            x.DataScope, x.UserRoleId, x.RoleCode, x.Path.BranchId, account.AccountStatus == "ACTIVE"
+            x.DataScope, x.UserRoleId, x.RoleCode, x.Path.BranchId, activeTarget
                 && PermissionGrantRules.IsEligible(x.Path, now) && PermissionGrantRules.EffectiveScope(x.Path) != null)).ToList();
-        var effective = raw.Where(x => account.AccountStatus == "ACTIVE"
+        var effective = raw.Where(x => activeTarget
                 && PermissionGrantRules.IsEligible(x.Path, now) && PermissionGrantRules.EffectiveScope(x.Path) != null)
             .GroupBy(x => x.PermissionCode, StringComparer.Ordinal).Select(g => new AccessReviewPermissionDto(g.Key,
                 g.First().PermissionName, g.First().ModuleCode, g.Select(x => new AccessReviewPermissionSourceDto(
@@ -106,7 +119,24 @@ public sealed class UserAccessReviewService(HotelOpsDbContext db, ICurrentUserAc
                 Department = departmentVisible ? account.Department : null
             };
         }
-        return new(account, now, new(scope.IsGlobal, branches), roles, memberships, configured, effective);
+        var departmentStorage = await WorkdayMembershipStore.InstalledAsync(db, ct);
+        AccessReviewDepartmentDto[] departments = [];
+        if (departmentStorage)
+        {
+            var departmentQuery = db.Database.SqlQuery<AccessReviewDepartmentDto>($"""
+                SELECT m.branch_id AS BranchId,m.department_id AS DepartmentId,d.department_code AS Code,
+                  d.department_name AS Name,d.is_active AS DepartmentActive,m.granted_at AS GrantedAtUtc,m.revoked_at AS RevokedAtUtc
+                FROM dbo.employee_department_memberships m JOIN dbo.departments d
+                  ON d.department_id=m.department_id AND d.branch_id=m.branch_id
+                WHERE m.user_id={scope.TargetId}
+                """);
+            if (!scope.IsGlobal) departmentQuery = departmentQuery.Where(d => branches.Contains(d.BranchId));
+            departments = await departmentQuery.OrderBy(d => d.BranchId).ThenBy(d => d.DepartmentId).ToArrayAsync(ct);
+            departments = departments.Select(d => d with { GrantedAtUtc = Utc(d.GrantedAtUtc),
+                RevokedAtUtc = d.RevokedAtUtc is {} revoked ? Utc(revoked) : null }).ToArray();
+        }
+        return new(account, Utc(now), new(scope.IsGlobal, branches), roles, memberships, configured, effective)
+        { DepartmentMembershipsAvailable = departmentStorage, DepartmentMemberships = departments };
     }
 
     private static DateTime Utc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);

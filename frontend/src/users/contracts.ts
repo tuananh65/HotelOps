@@ -121,6 +121,11 @@ export interface AccessReviewScopeDto {
 
 /** A server-evaluated report, not a frontend permission or CanExecute decision. */
 export interface UserAccessReviewDto {
+  readonly departmentMembershipsAvailable: boolean;
+  readonly departmentMemberships: readonly {
+    branchId: number; departmentId: number; code: string; name: string;
+    departmentActive: boolean; grantedAtUtc: string; revokedAtUtc: string | null;
+  }[];
   readonly account: UserAccountDetailDto;
   readonly evaluatedAtUtc: string;
   readonly reviewerScope: AccessReviewScopeDto;
