@@ -377,7 +377,7 @@ export function SharedAuthHost({
               ...(notificationsEnabled ? ["/notifications"] : []),
               ...(roleAssignmentEnabled ? ["/roles"] : []),
               ...(structureReadEnabled ? ["/structure/work-categories", "/structure/reference-data", "/structure/priority-sla"] : []),
-              ...(incidentReadEnabled ? ["/operations/incidents", "/assets/maintenance-history"] : []),
+              ...(incidentReadEnabled ? ["/operations/incidents", "/assets/maintenance-history", "/assets/locations"] : []),
               ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments"] : []),
               ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
               ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),
