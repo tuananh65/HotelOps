@@ -10,6 +10,13 @@ function valid(v: unknown): v is Priority {
     &&typeof v.order==="number"&&Number.isSafeInteger(v.order)&&typeof v.configured==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
 }
 export function PrioritySlaPage() {
+  const {state}=useAuth();
+  const generation=useRef({authority:state.authorityGeneration,key:0});
+  if(generation.current.authority!==state.authorityGeneration)generation.current={authority:state.authorityGeneration,key:generation.current.key+1};
+  if(state.status!=="AUTHENTICATED"||state.pending||state.session?.mustChangePassword)return null;
+  return <BoundPrioritySlaPage key={generation.current.key} />;
+}
+function BoundPrioritySlaPage() {
   const {state}=useAuth(),owner=state.status==="AUTHENTICATED"&&!state.pending?state.authorityGeneration:null;
   const current=useRef(owner);current.current=owner;
   const abort=useRef<AbortController|null>(null),sending=useRef(false);
@@ -40,7 +47,17 @@ export function PrioritySlaPage() {
       const result=await fetch("/api/reference-data/priority-sla/"+selected.id,{method:"PUT",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":selected.version},
         body:JSON.stringify({label,responseMinutes:Number(response),resolutionMinutes:Number(resolution)})});
-      if(!result.ok){const problem: unknown=await result.json();throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");}
+      if(!result.ok){
+        const problem: unknown=await result.json();
+        const code=isObject(problem)&&typeof problem.code==="string"?problem.code:null;
+        if(result.status===400&&code!==null&&["INVALID_PRIORITY_SLA"].includes(code)){
+          if(!controller.signal.aborted&&current.current===owner){
+            setMessage(code==="MSG35"?"MSG35: This code already exists. Correct it and save again.":"The input was rejected. Correct the required fields and save again.");
+          }
+          return;
+        }
+        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");
+      }
       const data: unknown=await result.json();if(!valid(data)||data.id!==selected.id)throw Error("Save response could not be confirmed.");
       if(!controller.signal.aborted&&current.current===owner){setRows(old=>old.map(r=>r.id===data.id?data:r));setSelected(null);setMessage("Saved. Future triage uses these targets; existing incident deadlines remain unchanged.");}
     }catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e)+" Reload before retrying.");if(submitted)setUncertain(true);}}

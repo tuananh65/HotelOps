@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
+import { PrioritySlaPage } from "./PrioritySlaPage";
 
 type CatalogValue = { id:number; code:string; label:string; description:string|null; order:number; materialNeed?:boolean|null; isActive:boolean; meaningLocked:boolean; version:string };
 const positive=(v: unknown): v is number=>typeof v==="number"&&Number.isSafeInteger(v)&&v>0;
@@ -8,6 +9,13 @@ function valid(v: unknown): v is CatalogValue {
  return isObject(v)&&positive(v.id)&&typeof v.code==="string"&&typeof v.label==="string"&&(v.description===null||typeof v.description==="string")&&(typeof v.order==="number"&&Number.isSafeInteger(v.order))&&(v.materialNeed===undefined||v.materialNeed===null||typeof v.materialNeed==="boolean")&&typeof v.isActive==="boolean"&&typeof v.meaningLocked==="boolean"&&typeof v.version==="string"&&/^"[A-F0-9]{64}"$/.test(v.version);
 }
 export function ReferenceCatalogPage() {
+  const {state}=useAuth();
+  const generation=useRef({authority:state.authorityGeneration,key:0});
+  if(generation.current.authority!==state.authorityGeneration)generation.current={authority:state.authorityGeneration,key:generation.current.key+1};
+  if(state.status!=="AUTHENTICATED"||state.pending||state.session?.mustChangePassword)return null;
+  return <BoundReferenceCatalogPage key={generation.current.key} />;
+}
+function BoundReferenceCatalogPage() {
   const {state}=useAuth(),owner=state.status==="AUTHENTICATED"&&!state.pending?state.authorityGeneration:null;
   const current=useRef(owner);current.current=owner;
   const abort=useRef<AbortController|null>(null),sending=useRef(false);
@@ -41,7 +49,17 @@ export function ReferenceCatalogPage() {
       const result=await fetch(endpoint+(selected?"/"+selected.id:""),{method:selected?"PUT":"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,...(selected?{"If-Match":selected.version}:{})},
         body:JSON.stringify({code,label,description:description||null,order:Number(order),materialNeed:material===""?null:material==="true",isActive:active,confirmation})});
-      if(!result.ok){const problem: unknown=await result.json();throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");}
+      if(!result.ok){
+        const problem: unknown=await result.json();
+        const code=isObject(problem)&&typeof problem.code==="string"?problem.code:null;
+        if(result.status===400&&code!==null&&["INVALID_REFERENCE_INPUT","INVALID_REQUEST_TYPE","DEACTIVATION_CONFIRMATION_REQUIRED","ACTIVE_CLASSIFIED_TYPE_REQUIRED","REQUEST_TYPE_CLASSIFICATION_REQUIRED"].includes(code)||result.status===409&&code==="MSG35"){
+          if(!controller.signal.aborted&&current.current===owner){
+            setMessage(code==="MSG35"?"MSG35: This code already exists. Correct it and save again.":"The input was rejected. Correct the required fields and save again.");
+          }
+          return;
+        }
+        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");
+      }
       const data: unknown=await result.json();if(!valid(data)||(selected!==null&&data.id!==selected.id))throw Error("Save response could not be confirmed.");
       if(!controller.signal.aborted&&current.current===owner){setRows([]);setLoaded(false);setSelected(null);setEditing(false);setMessage("Saved. Reload the catalog to continue.");}
     }catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e)+" Reload before retrying.");if(submitted)setUncertain(true);}}
@@ -51,8 +69,9 @@ export function ReferenceCatalogPage() {
   function edit(r:CatalogValue|null) {setSelected(r);setCode(r?.code??"");setLabel(r?.label??"");setDescription(r?.description??"");setOrder(String(r?.order??0));setActive(r?.isActive??true);setConfirmation(false);setMaterial(r?.materialNeed==null?"":String(r.materialNeed));setEditing(true);}
   return <section><h2>Operational reference data</h2>
     <label>Group<select disabled={busy} value={group} onChange={e=>{setGroup(e.target.value);setRows([]);setLoaded(false);setEditing(false);setSelected(null);setMessage("");setAfter(0);}}>
-      <option value="REQUEST_TYPE">Internal request types</option><option value="INCIDENT_CATEGORY">Incident categories</option><option value="CLEANING_TYPE">Cleaning types</option><option value="BLOCKER">Blocker reasons</option><option value="TASK_PAUSE_REASON">Task pause reasons</option>
+      <option value="PRIORITY">Priority labels and SLA targets</option><option value="REQUEST_TYPE">Internal request types</option><option value="INCIDENT_CATEGORY">Incident categories</option><option value="CLEANING_TYPE">Cleaning types</option><option value="BLOCKER">Blocker reasons</option><option value="TASK_PAUSE_REASON">Task pause reasons</option>
     </select></label>
+    {group==="PRIORITY"?<PrioritySlaPage />:<>
     <button disabled={busy} onClick={()=>void load()}>Load catalog</button>{message&&<p role="status">{message}</p>}
     {loaded&&<><button disabled={busy||uncertain||group==="TASK_PAUSE_REASON"} onClick={()=>edit(null)}>Create value</button>
       <table><thead><tr><th>Code</th><th>Label</th><th>Order</th>{group==="REQUEST_TYPE"&&<th>Intake classification</th>}<th>Status</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}>
@@ -72,5 +91,6 @@ export function ReferenceCatalogPage() {
       {!active&&<label><input required type="checkbox" checked={confirmation} onChange={e=>setConfirmation(e.target.checked)} />Confirm deactivation; historical references are retained.</label>}
       <button>Save</button><button type="button" onClick={()=>setEditing(false)}>Cancel</button>
     </fieldset></form>}
+    </>}
   </section>;
 }
