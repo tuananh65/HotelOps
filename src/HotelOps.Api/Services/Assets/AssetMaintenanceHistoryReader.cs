@@ -91,7 +91,7 @@ public sealed class AssetMaintenanceHistoryReader(HotelOpsDbContext db, InsightA
         var start = InsightAccess.Start(filters); var end = InsightAccess.End(filters);
         var zones = await db.SystemSettings.AsNoTracking().Where(s => s.BranchId == null && s.SettingKey == "SYS-PAR-10")
             .Select(s => s.SettingValue).ToArrayAsync(ct);
-        var timeZone = zones.Length == 0 ? "Asia/Ho_Chi_Minh" : zones.Length == 1 ? zones[0] : "";
+        var timeZone = zones.Length == 0 ? "Asia/Ho_Chi_Minh" : zones.Length == 1 ? zones[0] ?? "" : "";
         try { _ = TimeZoneInfo.FindSystemTimeZoneById(timeZone); }
         catch (Exception e) when (e is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
         { throw new InsightException(503, "TIMEZONE_CONFIGURATION", "Invalid SYS-PAR-10 configuration."); }
