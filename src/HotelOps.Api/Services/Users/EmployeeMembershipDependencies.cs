@@ -14,8 +14,24 @@ internal static class EmployeeMembershipDependencies
     {
         if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Retained membership transaction required.");
         var result=new List<EmployeeMembershipDependency>();
+        if(!await new InternalRequestProcessAuthority(db).InstalledAsync(ct))result.Add(new("DEPARTMENT_AUTHORITY_STORAGE_REQUIRED",1));
+        else
+        {
+            var mappings=await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.department_management_access WITH(UPDLOCK,HOLDLOCK) WHERE user_id={user} AND branch_id={branch} AND department_id={department} AND revoked_at IS NULL").SingleAsync(ct);
+            if(mappings>0)result.Add(new("DEPARTMENT_AUTHORITY_TRANSFER_REQUIRED",mappings));
+        }
         await Add("DEPARTMENT_HEAD_TRANSFER_REQUIRED",db.Departments.Where(d=>d.DepartmentId==department&&d.BranchId==branch
             &&d.ManagerUserId==user).Select(d=>d.DepartmentId));
+        await Add("WAREHOUSE_MANAGER",db.Warehouses.Where(w=>w.BranchId==branch&&w.DepartmentId==department&&w.ManagerUserId==user&&w.IsActive).Select(w=>w.WarehouseId));
+        await Add("ASSET_CUSTODIAN",db.Assets.Where(a=>a.BranchId==branch&&(a.CurrentDepartmentId==department||a.CurrentDepartmentId==null)&&a.CustodianUserId==user
+            &&(a.LifecycleStatus=="IN_USE"||a.LifecycleStatus=="UNDER_REPAIR")).Select(a=>a.AssetId));
+        await Add("ASSET_HANDOVER",db.AssetHandovers.Where(h=>h.Asset.BranchId==branch&&h.HandoverStatus=="PENDING"
+            &&(h.ToUserId==user&&(h.ToDepartmentId==department||h.ToDepartmentId==null)||h.FromUserId==user&&(h.FromDepartmentId==department||h.FromDepartmentId==null))).Select(h=>h.HandoverId));
+        await Add("MATERIAL_REQUEST",db.MaterialRequests.Where(r=>r.BranchId==branch&&r.DepartmentId==department&&r.RequesterId==user
+            &&(r.Status=="DRAFT"||r.Status=="NEEDS_INFORMATION")).Select(r=>r.RequestId));
+        await Add("MATERIAL_APPROVAL",db.MaterialRequestApprovalCycles.Where(c=>c.Request.BranchId==branch&&c.AssignedApproverId==user&&c.Status=="PENDING"&&c.Request.Status=="PENDING_APPROVAL"
+            &&(c.Request.DepartmentId==department||c.Request.SourceWarehouse!=null&&c.Request.SourceWarehouse.DepartmentId==department)
+            &&!db.MaterialRequestApprovalCycles.Any(n=>n.RequestId==c.RequestId&&n.RevisionNo>c.RevisionNo)).Select(c=>c.ApprovalCycleId));
         await Add("WORKDAY",db.Workdays.Where(w=>w.UserId==user&&w.BranchId==branch&&w.DepartmentId==department
             &&(w.Status!="ENDED"||w.EndedAt==null||w.EndedAt<w.StartedAt)).Select(w=>w.WorkdayId));
         await Add("OPEN_INTERVAL",db.WorkIntervals.Where(i=>i.UserId==user&&i.BranchId==branch&&i.ClosedAt==null
@@ -38,8 +54,21 @@ internal static class EmployeeMembershipDependencies
             &&w.Status!="CANCELLED"&&(w.Status!="CLOSED"||w.ReviewedAt==null)).Select(w=>w.MaintenanceWorkId));
         // Cleaning/inspection assignments have a room branch but no department key.
         // Keep an explicit unresolved scope dependency instead of guessing from the user's primary department.
-        await Add("CLEANING_DEPARTMENT_SCOPE_UNRESOLVED",db.CleaningAssignments.Where(a=>a.AssigneeUserId==user
-            &&a.CleaningTask.Room.BranchId==branch&&(a.AssignmentStatus=="ACTIVE"||a.EndedAt==null)).Select(a=>a.AssignmentId));
+        var cleaning=await db.Database.SqlQuery<int>($"""
+            SELECT COUNT(*) AS Value FROM dbo.cleaning_assignments a WITH(HOLDLOCK)
+            JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=a.cleaning_task_id
+            JOIN dbo.rooms r WITH(HOLDLOCK) ON r.room_id=t.room_id
+            WHERE a.assignee_user_id={user} AND r.branch_id={branch}
+              AND (a.assignment_status='ACTIVE' OR a.ended_at IS NULL)
+              AND NOT (a.assignment_status='ACTIVE' AND a.ended_at IS NULL AND t.status='COMPLETED' AND t.workflow_status='COMPLETED'
+                AND EXISTS(SELECT 1 FROM dbo.room_inspections i WITH(HOLDLOCK)
+                  WHERE i.cleaning_task_id=t.cleaning_task_id AND i.room_id=t.room_id AND i.workflow_status='PASSED'
+                    AND i.status='COMPLETED' AND i.result='PASS' AND i.inspected_at IS NOT NULL
+                    AND NOT EXISTS(SELECT 1 FROM dbo.room_inspections later WHERE later.cleaning_task_id=t.cleaning_task_id AND later.inspection_id>i.inspection_id))
+                AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WHERE w.cleaning_task_id=t.cleaning_task_id
+                  AND (w.workflow_status IS NULL OR w.workflow_status NOT IN('COMPLETED','FAILED','CANCELLED'))))
+            """).SingleAsync(ct);
+        if(cleaning>0)result.Add(new("CLEANING_DEPARTMENT_SCOPE_UNRESOLVED",cleaning));
         await Add("REWORK_DEPARTMENT_SCOPE_UNRESOLVED",db.CleaningReworks.Where(r=>r.AssigneeUserId==user
             &&r.CleaningTask.Room.BranchId==branch&&r.Status!="CANCELLED"&&(r.Status!="COMPLETED"||r.CompletedAt==null)).Select(r=>r.ReworkId));
         await Add("INSPECTION_DEPARTMENT_SCOPE_UNRESOLVED",db.RoomInspections.Where(i=>i.InspectorUserId==user

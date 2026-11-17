@@ -35,6 +35,14 @@ public sealed class EmployeeMembershipController(EmployeeMembershipService servi
     {
         var(t,s)=Identity();await service.AddAsync(t,s,userId,branchId,Version(),input,ct,restore:true);return NoContent();
     }
+    [HttpPost("/api/users/{userId:long}/branches/{branchId:long}/remove")]
+    public async Task<IActionResult> RemoveBranch(long userId,long branchId,EmployeeBranchRemovalInput input,CancellationToken ct)
+    {
+        var(t,s)=Identity();var dependencies=await service.RemoveBranchAsync(t,s,userId,branchId,Version(),input,ct);
+        if(dependencies.Count==0)return NoContent();
+        var problem=new ProblemDetails{Status=409,Title="MEMBERSHIP_DEPENDENCIES",Detail="MSG34: Resolve branch responsibilities and authority before removing access."};
+        problem.Extensions["dependencies"]=dependencies;return Conflict(problem);
+    }
     private byte[] Version()
     {
         var tags=Request.Headers.IfMatch;

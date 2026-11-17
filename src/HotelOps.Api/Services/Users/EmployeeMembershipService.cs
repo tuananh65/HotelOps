@@ -9,15 +9,15 @@ using HotelOps.Api.Services.InternalRequests;
 using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Users;
-public sealed record EmployeeMembershipInput(long DepartmentId,string Reason);
+public sealed record EmployeeMembershipInput(long DepartmentId,string Reason,long? ReplacementDepartmentId=null);
 public sealed record EmployeeMembershipOption(long Id,string Name);
 public sealed record EmployeeMembershipBranch(long Id,string Name,bool IsPrimary);
 public sealed record EmployeeMembershipRow(long DepartmentId,string Name,DateTime GrantedAt,DateTime? RevokedAt,string Provenance);
 public sealed record EmployeeMembershipPage(long UserId,long BranchId,string Version,IReadOnlyList<EmployeeMembershipRow> Memberships,IReadOnlyList<EmployeeMembershipOption> Departments)
-{public IReadOnlyList<EmployeeMembershipPeriod> History{get;init;}=[];}
-public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,ISqlSessionService sessions,UserCredentialResetAccess authority)
+{public IReadOnlyList<EmployeeMembershipPeriod> History{get;init;}=[];public long? PrimaryDepartmentId{get;init;}public IReadOnlyList<EmployeeMembershipOption> ReplacementDepartments{get;init;}=[];}
+public sealed partial class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserAccessor current,IPermissionService permissions,ISqlSessionService sessions,UserCredentialResetAccess authority)
 {
-    private async Task Gate(SessionReference ticket,long sid,long target,long? branch,CancellationToken ct)
+    private async Task Gate(SessionReference ticket,long sid,long target,long? branch,CancellationToken ct,bool requireTargetAccess=true)
     {
         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
             throw new InternalRequestReadException(401,"SESSION_INVALID");
@@ -30,7 +30,7 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         if(!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==actor.UserId&&r.Role.RoleCode=="SYS_ADMIN"&&r.IsActive&&r.Role.IsActive&&r.AssignedAt<=now
             &&(r.ExpiresAt==null||r.ExpiresAt>now)&&(r.BranchId==null||(branch==null||r.BranchId==branch)&&r.Branch!=null&&r.Branch.IsActive&&db.UserBranchAccesses.Any(b=>b.UserId==actor.UserId&&b.BranchId==r.BranchId&&b.RevokedAt==null&&b.GrantedAt<=now)),ct))
             throw new InternalRequestReadException(403,"ADMINISTRATOR_REQUIRED");
-        if(branch!=null&&!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==target&&a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now&&a.Branch.IsActive
+        if(requireTargetAccess&&branch!=null&&!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==target&&a.BranchId==branch&&a.RevokedAt==null&&a.GrantedAt<=now&&a.Branch.IsActive
             &&a.User.DeletedAt==null&&a.User.AccountStatus=="ACTIVE"&&a.User.EmploymentStatus=="ACTIVE",ct))throw new InternalRequestReadException(409,"ACTIVE_TARGET_BRANCH_ACCESS_REQUIRED");
         if(!await WorkdayMembershipStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"EMPLOYEE_MEMBERSHIP_STORAGE_REQUIRED");
         if(!await EmployeeMembershipHistory.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"EMPLOYEE_MEMBERSHIP_HISTORY_REQUIRED");
@@ -61,12 +61,15 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         var departments=await db.Departments.AsNoTracking().Where(d=>d.BranchId==branch&&d.IsActive).OrderBy(d=>d.DepartmentName).Select(d=>new EmployeeMembershipOption(d.DepartmentId,d.DepartmentName)).ToArrayAsync(ct);
         var version=await db.Users.AsNoTracking().Where(u=>u.UserId==target).Select(u=>u.RowVersion).SingleAsync(ct);
         var history=await EmployeeMembershipHistory.ReadAsync(db,target,branch,ct);
-        await Gate(ticket,sid,target,branch,ct);await tx.CommitAsync(ct);return new(target,branch,'"'+Convert.ToBase64String(version)+'"',rows,departments){History=history};
+        var primary=await db.Users.AsNoTracking().Where(u=>u.UserId==target).Select(u=>u.DepartmentId).SingleAsync(ct);
+        var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+        var replacements=(await WorkdayMembershipStore.ReadAsync(db,target,branch,now,ct)).Select(d=>new EmployeeMembershipOption(d.DepartmentId,d.Name)).ToArray();
+        await Gate(ticket,sid,target,branch,ct);await tx.CommitAsync(ct);return new(target,branch,'"'+Convert.ToBase64String(version)+'"',rows,departments){History=history,PrimaryDepartmentId=primary,ReplacementDepartments=replacements};
     }
     public async Task AddAsync(SessionReference ticket,long sid,long target,long branch,byte[] version,EmployeeMembershipInput input,CancellationToken ct,bool restore=false)
     {
         var reason=input.Reason?.Trim();
-        if(target<=0||branch<=0||input.DepartmentId<=0||version.Length!=8||string.IsNullOrWhiteSpace(reason)||reason.Length<10||reason.Length>250||reason.Any(char.IsControl))
+        if(target<=0||branch<=0||input.DepartmentId<=0||input.ReplacementDepartmentId!=null||version.Length!=8||string.IsNullOrWhiteSpace(reason)||reason.Length<10||reason.Length>250||reason.Any(char.IsControl))
             throw new InternalRequestReadException(400,"INVALID_MEMBERSHIP_INPUT");
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);await Begin(ticket,sid,target,branch,ct);
         var actual=await db.Users.AsNoTracking().Where(u=>u.UserId==target).Select(u=>u.RowVersion).SingleAsync(ct);
@@ -109,8 +112,7 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);await Begin(ticket,sid,target,branch,ct);
         var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==target,ct);
         if(!user.RowVersion.AsSpan().SequenceEqual(version))throw new InternalRequestReadException(412,"USER_CHANGED");
-        // Primary-department transfer has its own responsibility workflow; do not leave legacy consumers pointing at a removed membership.
-        if(user.DepartmentId==input.DepartmentId)return [new("PRIMARY_DEPARTMENT_TRANSFER_REQUIRED",1)];
+        var replacingPrimary=user.DepartmentId==input.DepartmentId;
         var membership=await db.Database.SqlQuery<EmployeeMembershipRow>($"""
             SELECT m.department_id AS DepartmentId,d.department_name AS Name,m.granted_at AS GrantedAt,
                 m.revoked_at AS RevokedAt,m.provenance AS Provenance
@@ -121,18 +123,28 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
         if(membership==null||membership.RevokedAt!=null)throw new InternalRequestReadException(409,"ACTIVE_MEMBERSHIP_REQUIRED");
         var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
         if(membership.GrantedAt>now)throw new InternalRequestReadException(409,"MEMBERSHIP_TIME_CONFLICT");
+        if(replacingPrimary)
+        {
+            if(user.PrimaryBranchId!=branch||input.ReplacementDepartmentId is not {} replacement||replacement==input.DepartmentId
+                ||!(await WorkdayMembershipStore.ReadAsync(db,target,branch,now,ct)).Any(d=>d.DepartmentId==replacement))
+                throw new InternalRequestReadException(409,"ACTIVE_PRIMARY_REPLACEMENT_MEMBERSHIP_REQUIRED");
+            if(await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==target&&r.BranchId==branch&&r.IsActive&&(r.ExpiresAt==null||r.ExpiresAt>now),ct))
+                return [new("PRIMARY_SCOPE_ROLES_REQUIRE_UC010",1)];
+        }
+        else if(input.ReplacementDepartmentId!=null)throw new InternalRequestReadException(400,"PRIMARY_REPLACEMENT_NOT_APPLICABLE");
         if(!(await WorkdayMembershipStore.ReadAsync(db,target,branch,now,ct)).Any(d=>d.DepartmentId!=input.DepartmentId))
             return [new("BRANCH_REQUIRES_DEPARTMENT_MEMBERSHIP",1)];
         var dependencies=await EmployeeMembershipDependencies.ReadAsync(db,target,branch,input.DepartmentId,now,ct);
         if(dependencies.Count!=0)return dependencies;
         if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.employee_department_memberships SET revoked_at={now} WHERE user_id={target} AND branch_id={branch} AND department_id={input.DepartmentId} AND revoked_at IS NULL AND granted_at<={now}",ct)!=1)
             throw new InternalRequestReadException(409,"MEMBERSHIP_CHANGED");
-        if(await db.Users.Where(u=>u.UserId==target&&u.RowVersion==version).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.UpdatedAt,now),ct)!=1)
+        var nextPrimary=replacingPrimary?input.ReplacementDepartmentId:user.DepartmentId;
+        if(await db.Users.Where(u=>u.UserId==target&&u.RowVersion==version).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,nextPrimary).SetProperty(u=>u.UpdatedAt,now),ct)!=1)
             throw new InternalRequestReadException(412,"USER_CHANGED");
         var revoked=await new SessionRevocationService(db).RevokeAllAsync(target,now,ct);
         db.AuditLogs.Add(new AuditLog{ActorUserId=ticket.UserId,BranchId=branch,EntityType="users",EntityId=target.ToString(CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
-            OldValues=JsonSerializer.Serialize(membership),NewValues=JsonSerializer.Serialize(new{operation="REMOVE_EMPLOYEE_DEPARTMENT",branchId=branch,
-                departmentId=input.DepartmentId,revokedAt=now,reason,revokedSessions=revoked}),ChangedFields="[\"employee_department_memberships.revoked_at\"]"});
+            OldValues=JsonSerializer.Serialize(new{membership,primaryDepartmentId=user.DepartmentId}),NewValues=JsonSerializer.Serialize(new{operation="REMOVE_EMPLOYEE_DEPARTMENT",branchId=branch,
+                departmentId=input.DepartmentId,primaryDepartmentId=nextPrimary,revokedAt=now,reason,revokedSessions=revoked}),ChangedFields="[\"employee_department_memberships.revoked_at\",\"department_id\"]"});
         await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();await Gate(ticket,sid,target,branch,ct);
         dependencies=await EmployeeMembershipDependencies.ReadAsync(db,target,branch,input.DepartmentId,now,ct);
         if(dependencies.Count!=0)return dependencies; // Disposing the uncommitted transaction restores membership, sessions and audit.
