@@ -85,7 +85,7 @@ public sealed partial class RoomTypeCreationService
             created = true;
             await candidateNotification.StageAsync(new(operation, publication, actor, branch, task, cycle, row.RoomId, assigned.AssignmentId, assigned.AssigneeUserId, assigned.AssignedAt, revision, input.DueAt), fingerprint, result, token);
             return new(RoomTypeBatchStatus.Success, result, revision);
-        }, ct, additionalUsers: [input.AssigneeId], permissionCode: "CLEANING_ASSIGN", preserveCommitErrors: true, beforeCommit: async token =>
+        }, ct, additionalUsers: [input.AssigneeId], permissionCode: "CLEANING_ASSIGN", featurePermission: token => CleaningSourceAuthority(ticket.UserId, branch, null, token), preserveCommitErrors: true, beforeCommit: async token =>
         {
             if (physical == null) throw new InvalidOperationException("TRANSACTION_NOT_CAPTURED");
             if (created && !await DueHousekeeper(input.AssigneeId, branch, input.DueAt, token)) throw new ValidationException("Assignee eligibility changed before commit.");

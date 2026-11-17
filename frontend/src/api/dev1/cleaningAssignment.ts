@@ -40,7 +40,7 @@ export interface AssignmentPlan {
   capturedAt: string;
   workflowStateVerified: boolean;
 }
-// Existing backend DTO only. No POST function until mandatory notification/lifecycle contracts are approved.
+// The command transport owns CSRF, ETag and durable idempotency.
 export interface AssignmentDraft {
   assigneeId: number;
   dueAt: string;
@@ -183,6 +183,14 @@ export function buildAssignmentDraft(
 }
 export function assignmentError(error: unknown): string {
   if (error instanceof ApiError) {
+    if (error.status === 400 && error.code === "INVALIDREFERENCE")
+      return "MSG03: Assignee must be active Housekeeping Staff in this branch and department, with a current planned shift. Select an eligible assignee and future UTC due time.";
+    if (error.status === 400 && error.code === "VALIDATION_FAILED")
+      return "MSG03: Check the selected assignee, future UTC due time and assignment reason, then submit the corrected values.";
+    if (error.status === 412)
+      return "The task changed. Current assignment data has been reloaded; review it before assigning again.";
+    if (error.status === 409)
+      return "The task is no longer available for this assignment or the operation conflicts. Review the refreshed task.";
     if (error.status === 401)
       return "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.";
     if (error.status === 403)

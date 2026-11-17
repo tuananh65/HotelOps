@@ -1,3 +1,4 @@
+import { ApiError } from "../../api/dev1/client";
 import { submitAssignment } from "../../api/dev1/cleaningAssignmentCommand";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
@@ -79,7 +80,15 @@ export default function CleaningAssignmentScreen() {
       setCommitted(r.assignmentId);
       setRetry((v) => v + 1);
     } catch (e) {
-      if (belongs()) setSaveError(assignmentError(e));
+      if (belongs()) {
+        setSaveError(assignmentError(e));
+        // A definitive validation rejection did not commit. Allow correction;
+        // retain the original command for unknown outcomes and durable replay.
+        if (e instanceof ApiError && [400, 409, 412].includes(e.status)) {
+          setCommand(null);
+          if (e.status !== 400) setRetry(v => v + 1);
+        }
+      }
     } finally {
       if (belongs()) setSaving(false);
     }
@@ -166,7 +175,7 @@ export default function CleaningAssignmentScreen() {
       {creation?.cleaningCreatedId === Number(task) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Cleaning task created. {creation.cleaningRoomBlocked === true ? "MSG17: Room remains Blocked." : "Room is Pending Cleaning."} Select an assignee to continue.</p>}
       {committed && (
         <p role="status">
-          Assignment {committed} committed. Notification pending delivery.
+          MSG08: Assignment {committed} saved. Notification queued for delivery.
         </p>
       )}
       {saveError && (

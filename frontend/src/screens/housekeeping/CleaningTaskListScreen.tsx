@@ -1,3 +1,4 @@
+import MyCleaningAssignments from "./MyCleaningAssignments";
 ﻿import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -7,7 +8,11 @@ import {
 } from "../../api/dev1/cleaningMonitor";
 import { useAuth } from "../../auth/AuthProvider";
 import { PageHeader } from "../../ui";
-export default function CleaningTaskListScreen({
+export default function CleaningTaskListScreen(props: { kindOnly?: "rework" }) {
+  const [params] = useSearchParams();
+  return !props.kindOnly && params.get("view") === "mine" ? <MyCleaningAssignments /> : <CleaningMonitorScreen {...props} />;
+}
+function CleaningMonitorScreen({
   kindOnly,
 }: { kindOnly?: "rework" } = {}) {
   const { state } = useAuth();
@@ -65,6 +70,7 @@ export default function CleaningTaskListScreen({
   return (
     <>
       <PageHeader id={kindOnly ? 28 : 24} />
+      {!kindOnly && <Link to={"/cleaning/tasks?view=mine&branchId=" + encodeURIComponent(branch)}>My cleaning assignments</Link>}
       {!kindOnly && (
         <Link to={`/cleaning/tasks/new?branchId=${encodeURIComponent(branch)}`}>
           Create Cleaning Task

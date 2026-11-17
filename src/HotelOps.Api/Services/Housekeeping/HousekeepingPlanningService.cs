@@ -27,7 +27,7 @@ public sealed partial class RoomTypeCreationService
             if (roomQuery == null) return new(RoomTypeBatchStatus.SchemaRequired);
             var roomIds = roomQuery.Where(r => r.BranchId == branch).Select(r => r.RoomId);
             var task = await db.CleaningTasks.AsNoTracking().Where(t => t.CleaningTaskId == taskId && roomIds.Contains(t.RoomId))
-                .Select(t => new PlanningTaskDto(t.CleaningTaskId, t.TaskNo, t.RoomId, t.Room.RoomNumber, t.Room.BranchId, t.Status, t.DueAt))
+                .Select(t => new PlanningTaskDto(t.CleaningTaskId, t.TaskNo, t.RoomId, t.Room.RoomNumber, t.Room.BranchId, t.Status, t.DueAt == null ? null : DateTime.SpecifyKind(t.DueAt.Value, DateTimeKind.Utc)))
                 .SingleOrDefaultAsync(token);
             if (task == null) return new(RoomTypeBatchStatus.NotFound);
             var active = await roomQuery.AnyAsync(r => r.RoomId == task.RoomId && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive), token);
@@ -84,6 +84,7 @@ public sealed partial class RoomTypeCreationService
             HousekeepingState? workflow = await HousekeepingSchema.InstalledAsync(db, token) ? await CleaningState(taskId, token) : null;
             if (workflow != null) task = task with { WorkflowState = workflow.State };
             return new(RoomTypeBatchStatus.Success, new HousekeepingPlanningDto(task, page, shifts, total, query, checklist, now, workflow?.State != null, !inspection && candidateNotification != null && await candidateNotification.AvailableAsync(token) ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE"), workflow == null ? null : WorkflowTag(workflow.Revision));
-        }, ct, requireRoomTypeSchema: false, permissionCode: permission);
+        }, ct, requireRoomTypeSchema: false, permissionCode: permission,
+            featurePermission: inspection ? null : token => CleaningSourceAuthority(ticket.UserId, branch, null, token));
     }
 }
