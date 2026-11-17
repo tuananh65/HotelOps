@@ -11,7 +11,8 @@ namespace HotelOps.Api.Controllers.Filters;
 
 // TypeFilter retains the same SQL read boundary for the directory and access review.
 public sealed class UserDirectoryReadFilter(HotelOpsDbContext db, ICurrentUserAccessor current,
-    IPermissionService permissions, TimeProvider clock, UserAccessReviewService reviews) : IAsyncActionFilter
+    IPermissionService permissions, TimeProvider clock, UserAccessReviewService reviews,
+    UserDirectoryScopeResolver directoryScopes, UserDirectoryScopeState directoryState) : IAsyncActionFilter
 {
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
@@ -25,14 +26,24 @@ public sealed class UserDirectoryReadFilter(HotelOpsDbContext db, ICurrentUserAc
         var review = metadata != null && (!metadata.WhenIncluded
             || context.ActionArguments.TryGetValue("includeAccess", out var include) && include is true);
         AuthorizedAccessReviewScope? original = null;
+        AuthorizedDirectoryScope? directoryOriginal = null;
         async Task<PermissionEvaluation> Authorize(CancellationToken ct)
         {
-            if (!review) return await permissions.EvaluateGlobalAsync("USER_VIEW", ct);
+            if (!review)
+            {
+                var directoryScope = await directoryScopes.ResolveAsync(ct);
+                if (directoryScope is null || directoryOriginal != null && !directoryScope.Covers(directoryOriginal))
+                    return new(PermissionDecision.Denied);
+                directoryOriginal ??= directoryScope;
+                directoryState.Current = directoryOriginal;
+                return new(PermissionDecision.Granted);
+            }
             if (!context.ActionArguments.TryGetValue("userId", out var value) || value is not long id)
                 return new(PermissionDecision.Denied);
             var scope = await reviews.ResolveScopeAsync(id, ct);
             if (scope is null || original != null && !scope.Covers(original)) return new(PermissionDecision.Denied);
             original ??= scope;
+            directoryState.Current = new(original.ReviewerId, original.IsGlobal, original.BranchIds);
             UserAccessReviewAttribute.Store(context.HttpContext, original);
             return new(PermissionDecision.Granted);
         }

@@ -45,6 +45,13 @@ export function UserDirectoryPage({ accountManagementEnabled = false }: { accoun
       pageSize: Number(draft.pageSize),
     });
   }
+  const appliedFilters = [
+    query.search?.trim() ? "Search: " + query.search.trim() : null,
+    query.branchId ? "Primary branch: " + query.branchId : null,
+    query.departmentId ? "Department: " + query.departmentId : null,
+    query.roleId ? "Role: " + query.roleId : null,
+    query.accountStatus ? "Status: " + query.accountStatus : null,
+  ].filter(Boolean).join("; ");
   return (
     <main>
       <header>
@@ -111,7 +118,12 @@ export function UserDirectoryPage({ accountManagementEnabled = false }: { accoun
           </select>
         </label>
         <button type="submit">Apply filters</button>
+        <button type="button" onClick={() => {
+          setDraft({ search: "", branchId: "", departmentId: "", roleId: "", accountStatus: "", pageSize: "20" });
+          setQuery({ page: 1, pageSize: 20 });
+        }}>Clear filters</button>
       </form>
+      <p aria-label="Applied filters">Applied filters: {appliedFilters || "None"}</p>
       {result === null ? (
         <p role="status">Loading accounts...</p>
       ) : !result.ok ? (
@@ -176,7 +188,7 @@ export function UserDirectoryPage({ accountManagementEnabled = false }: { accoun
               ))}
             </tbody>
           </table>
-          {result.data.items.length === 0 && <p>No matching accounts.</p>}
+          {result.data.items.length === 0 && <p role="status">MSG10: No records match the applied filters.</p>}
           <p>
             Page {result.data.page} of{" "}
             {Math.max(

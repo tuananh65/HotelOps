@@ -147,6 +147,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.TurnoverHistoryS
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ProvisionalCleaningNotification>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ProvisionalCleaningDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ProvisionalCleaningReassignmentDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserDirectoryScopeState>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserDirectoryScopeResolver>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccessReviewService>();
 builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.HotelStructureCreationService>();

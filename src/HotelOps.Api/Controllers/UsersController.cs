@@ -10,7 +10,7 @@ namespace HotelOps.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Policy = PermissionPolicy.Prefix + "Global:USER_VIEW")]
+[Authorize]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [TypeFilter(typeof(UserDirectoryReadFilter))]
 public sealed class UsersController(IUserDirectoryService users, UserAccessReviewService reviews) : ControllerBase
