@@ -41,6 +41,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
         var before = await guard.ReadSnapshotAsync(ct);
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
             || !await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
+            || !await IsAdministratorAsync(actor.UserId, request.BranchId, ct)
             || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
             return new(AccountCreationStatus.Forbidden);
@@ -115,6 +116,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             catch (GlobalAdministrationInvariantException) { return new(AccountCreationStatus.LastAdministrator); }
         }
         if (!await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
+            || !await IsAdministratorAsync(actor.UserId, request.BranchId, ct)
             || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
             return new(AccountCreationStatus.Forbidden);
@@ -122,5 +124,15 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
         var issued = pending.ReleaseAfterCommit();
         return new(AccountCreationStatus.Success, new(user.UserId, request.EmployeeCode, request.Username, request.FullName,
             request.Email, request.Phone, branch.BranchId, department.DepartmentId, role.RoleCode, "ACTIVE"), issued);
+    }
+    private Task<bool> IsAdministratorAsync(long userId, long branchId, CancellationToken ct)
+    {
+        var now = clock.GetUtcNow().UtcDateTime;
+        return db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == userId
+            && r.Role.RoleCode == "SYS_ADMIN" && r.IsActive && r.Role.IsActive
+            && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)
+            && (r.BranchId == null || r.BranchId == branchId && r.Branch != null && r.Branch.IsActive
+                && db.UserBranchAccesses.Any(b => b.UserId == userId && b.BranchId == branchId
+                    && b.RevokedAt == null && b.GrantedAt <= now)), ct);
     }
 }

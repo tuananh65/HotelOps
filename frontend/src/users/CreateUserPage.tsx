@@ -104,6 +104,12 @@ export function CreateUserPage({
                 {labels[key]}
                 <input
                   name={key}
+                  type={key === "email" ? "email" : "text"}
+                  aria-invalid={progress.phase === "rejected"
+                    && progress.error.duplicateFields?.some(field => field === key) || undefined}
+                  aria-describedby={progress.phase === "rejected"
+                    && progress.error.duplicateFields?.some(field => field === key)
+                    ? `create-${key}-duplicate` : undefined}
                   value={draft[key]}
                   required={key !== "phone"}
                   maxLength={
@@ -121,6 +127,8 @@ export function CreateUserPage({
                     setDraft({ ...draft, [key]: event.target.value })
                   }
                 />
+                {progress.phase === "rejected" && progress.error.duplicateFields?.some(field => field === key)
+                  && <span id={`create-${key}-duplicate`}>MSG35: {labels[key]} is already in use.</span>}
               </label>
             ))}
             <label>
