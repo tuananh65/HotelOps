@@ -41,7 +41,7 @@ public sealed partial class RoomTypeCreationService
             var after = before with { IsActive = false };
             await BatchAuditAsync(actor, branch, "room_types", id, before, new { record = after, reason }, ["isActive"], token);
             return new(RoomTypeBatchStatus.Success, after, await RoomTypeTagAsync(after, token));
-        }, ct);
+        }, ct, featurePermission: token => RoomTypeAdministrationAsync(branch, token));
     }
     public Task<RoomTypeBatchResult> ReadEditableRoomAsync(SessionReference ticket, long sid, long branch, long id, CancellationToken ct)
         => EditRoomAsync(ticket, sid, branch, id, null, null, ct);

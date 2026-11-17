@@ -74,7 +74,7 @@ public sealed partial class RoomTypeCreationService
             ct.ThrowIfCancellationRequested();
             if (access.IsGranted) return null;
             if (access.Decision == PermissionDecision.Unavailable) return RoomTypeBatchStatus.Unavailable;
-            if (branchId == null && allowScopedList)
+            if (featurePermission == null && branchId == null && allowScopedList)
                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
                 {
                     var scoped = await permissions.EvaluateBranchAsync(permissionCode, candidate, ct);
@@ -151,7 +151,7 @@ public sealed partial class RoomTypeCreationService
             await BatchAuditAsync(actor, branchId!.Value, "room_types", id, before, after,
                 code == before.Code ? ["name", "description", "standardCleaningMinutes", "defaultChecklistId"] : ["code", "name", "description", "standardCleaningMinutes", "defaultChecklistId"], token);
             return new(RoomTypeBatchStatus.Success, after, await RoomTypeTagAsync(after, token));
-        }, ct);
+        }, ct, featurePermission: token => RoomTypeAdministrationAsync(branchId, token));
     }
 
     public Task<RoomTypeBatchResult> ListRoomTypesAsync(SessionReference ticket, long sessionId, long? branchId,
@@ -165,13 +165,13 @@ public sealed partial class RoomTypeCreationService
         {
             var rows = db.BranchRoomTypes.AsNoTracking();
             var visible = new List<long>();
-            var global = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token);
+            var global = await RoomTypeAdministrationAsync(null, token);
             if (global.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
             if (branchId == null && !global.IsGranted)
             {
                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(token))
                 {
-                    var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", candidate, token);
+                    var access = await RoomTypeAdministrationAsync(candidate, token);
                     if (access.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
                     if (access.IsGranted) visible.Add(candidate);
                 }
@@ -194,13 +194,13 @@ public sealed partial class RoomTypeCreationService
                 && (row.BranchId == null || x.BranchId == row.BranchId), token), row.BranchId != null && row.IsActive));
             foreach (var branch in visible)
             {
-                var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branch, token);
+                var access = await RoomTypeAdministrationAsync(branch, token);
                 if (!access.IsGranted) return new(access.Decision == PermissionDecision.Unavailable ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Forbidden);
             }
-            if (branchId == null && global.IsGranted && !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token)).IsGranted)
+            if (branchId == null && global.IsGranted && !(await RoomTypeAdministrationAsync(null, token)).IsGranted)
                 return new(RoomTypeBatchStatus.Forbidden);
             return new(RoomTypeBatchStatus.Success, new RoomTypePage(items, total, page, pageSize, branchId, active, search, sort, descending));
-        }, ct, allowScopedList: true);
+        }, ct, featurePermission: token => RoomTypeListAccessAsync(branchId, token));
     }
 
     private async Task BatchAuditAsync(long actor, long branch, string entity, long id, object? before, object after, string[] fields, CancellationToken ct)

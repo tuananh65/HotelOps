@@ -679,6 +679,11 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           )}
         </section>
       )}
+      {canonicalStructure && screen === "roomTypes" && action === "detail" && context?.id && snapshot &&
+        (snapshot.data as ReadTypes["roomType"]).canUpdate && <nav aria-label="Room type actions">
+          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=edit`}>Update room type</Link>
+          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=deactivate`}>Review deactivation</Link>
+        </nav>}
       {canonicalStructure && screen === "departments" && action === "detail" && context?.id && snapshot && <DepartmentDeactivationPanel key={`${context.branchId}:${context.id}`} branchId={context.branchId} departmentId={context.id} onSaved={() => void flow.load(readKind, context, filters)} />}
       {!canonicalStructure && snapshot &&
         context?.id &&
