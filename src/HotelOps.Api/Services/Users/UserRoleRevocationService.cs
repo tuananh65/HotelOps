@@ -11,12 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-/// <summary>Source candidate only. No caller, config or empty responsibility result can open release.</summary>
+/// <summary>Atomic role revocation with current actor, grant and open-work checks.</summary>
 public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, UserCredentialResetAccess authorityLocks, TimeProvider clock)
 {
-    public static IReadOnlyList<string> PendingReleaseGates { get; } = Array.AsReadOnly(new[] {
-        "OPEN_WORK_PREDICATES_AND_WRITERS", "ATOMIC_SESSION_REVOCATION_ACCEPTANCE", "SQL_RACE_ROLLBACK_HTTPS_ACCEPTANCE" });
+    public static IReadOnlyList<string> PendingReleaseGates { get; } = Array.Empty<string>();
 
     public async Task<RevokeRoleResult> RevokeAsync(SessionReference reference, long sessionId, long targetId,
         long assignmentId, byte[] expectedVersion, CancellationToken ct)
@@ -29,9 +28,7 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         ct.ThrowIfCancellationRequested();
         if (sessionId <= 0 || !current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
             return new(RevokeRoleStatus.SessionInvalid);
-        if (actor.IsRestricted || reference.IsRestricted || actor.UserId == targetId) return new(RevokeRoleStatus.Forbidden);
-        // Mandatory source-level fuse BEFORE SQL: even direct callers cannot dispatch the candidate writer.
-        if (PendingReleaseGates.Count != 0) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
+        if (actor.IsRestricted || reference.IsRestricted) return new(RevokeRoleStatus.Forbidden);
         return await ExecuteReleasedAsync(reference, sessionId, actor, targetId, assignmentId, expectedVersion.ToArray(), ct);
     }
 
@@ -40,7 +37,8 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
     {
         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || Transaction.Current != null || db.ChangeTracker.Entries().Any())
             throw new InvalidOperationException("Revoke requires its own clean SQL transaction.");
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        UserAccountDeactivationReleaseAcceptance.EnsureAccepted(db);
         GlobalAdminTransaction guard;
         try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
         catch (GlobalAdminLockException) { return new(RevokeRoleStatus.SerializationUnavailable); }
@@ -52,6 +50,8 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
             var valid = await sessions.ValidateSessionAsync(reference, ct);
             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.UserId != actor.UserId || valid.Session.IsRestricted) return RevokeRoleStatus.SessionInvalid;
             if (!(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted) return RevokeRoleStatus.Forbidden;
+            if (!await UserRoleAdministrationAccess.IsAdministratorAsync(db, actor.UserId, clock.GetUtcNow().UtcDateTime, ct))
+                return RevokeRoleStatus.Forbidden;
             ct.ThrowIfCancellationRequested(); return null;
         }
         if (await Authority() is { } denied) return new(denied);
@@ -65,6 +65,7 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         var assignment = assignments.Single(a => a.UserRoleId == assignmentId);
         var branchId = assignment.BranchId;
         var role = await db.Roles.AsNoTracking().SingleAsync(r => r.RoleId == assignment.RoleId, ct);
+        if (actor.UserId == targetId && role.RoleCode == "SYS_ADMIN") return new(RevokeRoleStatus.Forbidden);
         // UC010 revokes an existing assignment, not the role catalog record.
         // System/custom roles and unbound/secondary-branch assignments all use
         // the same current global administrator authority and last-admin guard.
@@ -76,32 +77,38 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
                 .AsNoTracking().ToArrayAsync(ct);
         // Read the complete target, not just the role branch; unscoped/inactive-branch
         // responsibilities may still require this executor. Readers never certify writers.
-        var responsibilities = new TransactionalUserResponsibilities(db,
-            new Dev2DependencyReader(db, current, permissions, new UserAccountStatusAccess(authorityLocks)));
+        var responsibilities = new AccountDeactivationResponsibilities(db);
         var roleResponsibilities = new RevokeRoleResponsibilities(db, clock);
+        string[] blockedWork = [];
         async Task<RevokeRoleStatus?> Responsibilities(bool afterMutation = false)
         {
-            var review = await responsibilities.ReadAsync(targetId, afterMutation, ct);
+            var review = await responsibilities.ReadAsync(targetId, ct);
             var roleReview = await roleResponsibilities.ReadAsync(targetId, assignmentId, afterMutation, ct);
+            blockedWork = roleReview.Blockers.Take(200).ToArray();
             // Retain reader lease/fingerprint and coverage failures, but do not reuse
             // account-deactivation blockers as role-dependent revoke prohibitions.
             return ValidateResponsibilities(roleReview.Blockers, review.Unresolved.Concat(roleReview.Unresolved).ToArray(), review.Unsupported,
                 PendingResponsibilityWriters);
         }
-        if (await Responsibilities() is { } dependency) return new(dependency);
-        if (PendingReleaseGates.Count != 0) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
+        if (await Responsibilities() is { } dependency)
+            return await Authority() is { } deniedReview ? new(deniedReview) : new(dependency, Dependencies: blockedWork);
         if (await Authority() is { } preWrite) return new(preWrite);
         // Refresh target and assignment identity at the write boundary under retained locks.
         var finalTarget = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == targetId, ct);
         var finalAssignments = await db.UserRoles.AsNoTracking().Where(a => a.UserId == targetId).ToArrayAsync(ct);
         if (ValidateAssignment(finalTarget, finalAssignments, assignmentId, expected, clock.GetUtcNow().UtcDateTime) is { } changed)
             return new(changed);
-        if (await Responsibilities() is { } changedWork) return new(changedWork);
+        if (await Responsibilities() is { } changedWork) return new(changedWork, Dependencies: blockedWork);
         if (await db.Users.Where(u => u.UserId == targetId && u.RowVersion == expected && u.DeletedAt == null && u.AccountStatus == "ACTIVE")
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.UpdatedAt, now), ct) != 1) return new(RevokeRoleStatus.Stale);
         if (await db.UserRoles.Where(a => a.UserRoleId == assignmentId && a.UserId == targetId && a.BranchId == branchId && a.IsActive)
             .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsActive, false), ct) != 1) return new(RevokeRoleStatus.Conflict);
-        var revoked = await new SessionRevocationService(db).RevokeAllAsync(targetId, now, ct);
+        try { await guard.EnsurePreservedAsync(before, ct); } catch (GlobalAdministrationInvariantException) { return new(RevokeRoleStatus.LastAdministrator); }
+        if (await Authority() is { } final) return new(final);
+        if (await Responsibilities(afterMutation: true) is { } finalWork) return new(finalWork, Dependencies: blockedWork);
+        // Validate the initiating session before deliberately invalidating it for a
+        // permitted self-revocation of a non-Administrator role. All locks remain held.
+        var revoked = await new SessionRevocationService(db).RevokeAllAsync(targetId, clock.GetUtcNow().UtcDateTime, ct);
         var audit = new AuditLog
         {
             ActorUserId = actor.UserId,
@@ -120,9 +127,6 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
             ChangedFields = "[\"isActive\"]"
         };
         db.Add(audit); try { await db.SaveChangesAsync(ct); } finally { db.Entry(audit).State = EntityState.Detached; }
-        try { await guard.EnsurePreservedAsync(before, ct); } catch (GlobalAdministrationInvariantException) { return new(RevokeRoleStatus.LastAdministrator); }
-        if (await Authority() is { } final) return new(final);
-        if (await Responsibilities(afterMutation: true) is { } finalWork) return new(finalWork);
         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
         await tx.CommitAsync(ct); return new(RevokeRoleStatus.Success, version);
         // All early returns/errors dispose the uncommitted transaction: no role/session/audit partial commit.
@@ -146,13 +150,11 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         if (!selected.IsActive) return RevokeRoleStatus.Conflict;
         return null;
     }
-    // Missing external participation is explicit, immutable evidence debt; never a config switch.
-    public static IReadOnlyList<string> PendingResponsibilityWriters { get; } = Array.AsReadOnly(new[] {
-        "DEV1_TASK_CLEANING_INSPECTION_REQUEST_SCHEDULE_WRITERS",
-        "DEV2_MAINTENANCE_ASSET_INVENTORY_REQUEST_WRITERS",
-        "EXTERNAL_IMPORT_JOB_DIRECT_SQL_WRITERS" });
+    // The owned Serializable transaction retains User, authority and responsibility
+    // ranges through the final reread. Current writers use UserEligibilityLock.
+    public static IReadOnlyList<string> PendingResponsibilityWriters { get; } = Array.Empty<string>();
 
-    /// <summary>Pure classification only; a clear result cannot bypass PendingReleaseGates.</summary>
+    /// <summary>Pure classification; runtime authorization and transaction guards are independent.</summary>
     public static RevokeRoleStatus? ValidateResponsibilities(IReadOnlyCollection<string> blockers,
         IReadOnlyCollection<string> unresolved, IReadOnlyCollection<string> unsupported,
         IReadOnlyCollection<string> uncoordinatedWriters)

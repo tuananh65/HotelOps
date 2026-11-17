@@ -3,7 +3,8 @@ import { useAuth } from "../auth/AuthProvider";
 import { createUserProfileApi } from "./userProfileApi";
 import { createUsersApi } from "./usersApi";
 import { createRevokeUserRoleApi } from "./revokeUserRoleApi";
-/** Standalone candidate, intentionally not imported by production routes. Read access is not revoke authority. */
+import { Link } from "react-router-dom";
+/** Read access is not revoke authority. The server rechecks the selected assignment. */
 export function RevokeUserRoleCandidate({
   userId,
   assignmentId,
@@ -16,11 +17,11 @@ export function RevokeUserRoleCandidate({
   const { state, actions } = useAuth();
   const identity = useMemo(
     () => ({}),
-    [state.session, state.status, userId, assignmentId],
+    [state.session, state.status, state.pending, userId, assignmentId],
   );
   const latest = useRef(identity);
   latest.current = identity;
-  if (state.status !== "AUTHENTICATED" || !state.session)
+  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session)
     return (
       <p role="status">
         Confirm an unrestricted session before reviewing a role.
@@ -65,6 +66,7 @@ function Bound({
   const [phase, setPhase] = useState("loading");
   const [review, setReview] = useState(false);
   const [status, setStatus] = useState<number>();
+  const [dependencies, setDependencies] = useState<string[]>([]);
   const [api] = useState(() =>
     createRevokeUserRoleApi(globalThis.fetch.bind(globalThis), dispatchEnabled),
   );
@@ -151,6 +153,7 @@ function Bound({
     if (result.outcome === "CONFIRMED") setPhase("confirmed");
     else {
       setStatus(result.status);
+      setDependencies(result.dependencies ?? []);
       setPhase(
         result.reason === "OPEN_WORK"
           ? "blocked"
@@ -162,9 +165,9 @@ function Bound({
   }
   return (
     <main>
-      <h1>Revoke user role candidate</h1>
+      <h1>Revoke user role</h1>
       <p>
-        Business activation is blocked pending dependency and SQL acceptance.
+        Revocation changes effective access and signs the account out of all sessions.
       </p>
       {data && (
         <section aria-label="Role to revoke">
@@ -192,7 +195,7 @@ function Bound({
       {phase === "pending" && <p role="status">Revocation pending...</p>}
       {phase === "confirmed" && (
         <p role="status">
-          Role revoked. Target sessions must be invalidated by the server.
+          Role revoked and target sessions invalidated.
         </p>
       )}
       {["unavailable", "rejected", "unknown", "blocked"].includes(phase) && (
@@ -206,10 +209,17 @@ function Bound({
                 : status === 403
                   ? "Access denied by the server."
                   : status === 503
-                    ? "Revocation unavailable. Release gates remain closed."
+                    ? "Revocation unavailable. Responsibility checks could not be completed."
                     : "Could not confirm revocation. No automatic retry."}
         </p>
       )}
+      {phase === "blocked" && dependencies.length > 0 && <section aria-label="Work preventing revocation">
+        <h2>Open responsibilities</h2>
+        <ul>{dependencies.map(d => <li key={d}>{d.replaceAll("_", " ")}</li>)}</ul>
+        {dependencies.length === 200 && <p>First 200 dependencies shown. Resolve them before reviewing again.</p>}
+        <p>These identifiers do not grant access to the underlying records.</p>
+      </section>}
+      <Link to={`/users/${userId}`}>Return to account and review current access</Link>
       {status === 401 && <button onClick={recover}>Check session</button>}
     </main>
   );

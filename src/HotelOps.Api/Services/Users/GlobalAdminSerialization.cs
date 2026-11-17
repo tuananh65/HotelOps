@@ -130,6 +130,10 @@ public sealed class GlobalAdminTransaction
         _ = await db.RolePermissions.FromSqlRaw("SELECT * FROM dbo.role_permissions WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
         _ = await db.Permissions.FromSqlRaw("SELECT * FROM dbo.permissions WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
         var now = clock.GetUtcNow().UtcDateTime;
+        var administratorAssignments = await db.UserRoles.AsNoTracking()
+            .Where(a => a.IsActive && a.Role.IsActive && a.Role.RoleCode == "SYS_ADMIN"
+                && a.BranchId == null && a.AssignedAt <= now && (a.ExpiresAt == null || a.ExpiresAt > now))
+            .Select(a => new { a.UserId, a.ExpiresAt }).ToArrayAsync(ct);
         // Same SQL account/assignment/time predicates as the existing permission data source.
         // Scope/code comparisons remain ordinal in .NET, as in PermissionService.
         var paths = await (from assignment in db.UserRoles.AsNoTracking()
@@ -139,7 +143,7 @@ public sealed class GlobalAdminTransaction
                 && assignment.AssignedAt <= now && (assignment.ExpiresAt == null || assignment.ExpiresAt > now)
                 && (grant.Permission.PermissionCode == "USER_MANAGE" || grant.Permission.PermissionCode == "ROLE_MANAGE")
             select new { assignment.UserId, grant.DataScope, grant.Permission.PermissionCode, assignment.ExpiresAt }).ToListAsync(ct);
-        var ids = paths.Where(p => p.DataScope == "ALL").GroupBy(p => p.UserId)
+        var ids = paths.Where(p => p.DataScope == "ALL" && administratorAssignments.Any(a => a.UserId == p.UserId)).GroupBy(p => p.UserId)
             .Where(g => g.Any(p => p.PermissionCode == "USER_MANAGE") && g.Any(p => p.PermissionCode == "ROLE_MANAGE"))
             .Select(g => g.Key).Order().ToArray();
         var durable = new List<long>(); var immediate = new List<long>(); var horizons = new List<DateTime?>();
@@ -165,9 +169,13 @@ public sealed class GlobalAdminTransaction
                 return expiries.Any(v => v is null) ? null : expiries.Max();
             }
             var manage = LastPath("USER_MANAGE"); var roles = LastPath("ROLE_MANAGE");
-            horizons.Add(manage is null ? roles : roles is null ? manage : (manage < roles ? manage : roles));
+            var actorExpiries = administratorAssignments.Where(a => a.UserId == id).Select(a => a.ExpiresAt).ToArray();
+            DateTime? actorEnd = actorExpiries.Any(e => e is null) ? null : actorExpiries.Max();
+            var ends = new[] { manage, roles, actorEnd }.Where(e => e.HasValue).ToArray();
+            horizons.Add(ends.Length == 0 ? null : ends.Min());
         }
-        if (paths.Any(p => p.ExpiresAt > now && p.ExpiresAt <= clock.GetUtcNow().UtcDateTime))
+        if (paths.Any(p => p.ExpiresAt > now && p.ExpiresAt <= clock.GetUtcNow().UtcDateTime)
+            || administratorAssignments.Any(a => a.ExpiresAt > now && a.ExpiresAt <= clock.GetUtcNow().UtcDateTime))
             return await ReadSnapshotAsync(ct); // A slow read must not certify a path that expired during it.
         return new(scope, now, ids, durable.ToArray(), immediate.ToArray(), horizons.Any(v => v is null),
             horizons.Where(v => v.HasValue).Select(v => v!.Value).Cast<DateTime?>().Min());

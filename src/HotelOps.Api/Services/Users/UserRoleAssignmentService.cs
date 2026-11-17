@@ -27,7 +27,7 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
         if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
             return new(AssignRoleStatus.SessionInvalid);
-        if (actor.IsRestricted || actor.UserId == targetId || string.IsNullOrWhiteSpace(request.RoleCode)
+        if (actor.IsRestricted || reference.IsRestricted || string.IsNullOrWhiteSpace(request.RoleCode)
             || request.RoleCode.Length > 60 || request.RoleCode.Any(char.IsControl))
             return new(AssignRoleStatus.Forbidden);
         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null || Transaction.Current is not null
@@ -59,6 +59,8 @@ public sealed class UserRoleAssignmentService(HotelOpsDbContext db, ICurrentUser
             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return AssignRoleStatus.SessionInvalid;
             if (!(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
                 || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted) return AssignRoleStatus.Forbidden;
+            if (!await UserRoleAdministrationAccess.IsAdministratorAsync(db, actor.UserId, clock.GetUtcNow().UtcDateTime, ct))
+                return AssignRoleStatus.Forbidden;
             var target = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserId == targetId && u.DeletedAt == null, ct);
             if (target is null) return AssignRoleStatus.NotFound;
             if (target.AccountStatus != "ACTIVE" || target.EmploymentStatus != "ACTIVE") return AssignRoleStatus.Inactive;

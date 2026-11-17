@@ -15,11 +15,12 @@ export type RevokeResult =
         | "INVALID_RESPONSE"
         | "OPEN_WORK";
       status?: number;
+      dependencies?: string[];
     };
 export const userRoleTag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
 const id = (v: number) => Number.isSafeInteger(v) && v > 0;
-/** Candidate only: callers cannot enable the server release fuse. Never queued/retried. */
+/** Explicit confirmation only. Never queued or retried. Server authorization is independent. */
 export function createRevokeUserRoleApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   dispatchEnabled = false,
@@ -135,6 +136,10 @@ export function createRevokeUserRoleApi(
               outcome: "REJECTED",
               reason: p.code === "OPEN_RESPONSIBILITIES" ? "OPEN_WORK" : "HTTP",
               status: 409,
+              dependencies: p.code === "OPEN_RESPONSIBILITIES" && "dependencies" in p
+                && Array.isArray(p.dependencies) && p.dependencies.length <= 200
+                && p.dependencies.every(d => typeof d === "string" && /^[A-Z0-9_:]{1,160}$/.test(d))
+                ? p.dependencies : [],
             };
         }
         return { outcome: "OUTCOME_UNKNOWN", reason: "HTTP", status: r.status };

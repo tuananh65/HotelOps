@@ -10,7 +10,8 @@ public enum RevokeCapabilityImpact { Preserved, Lost, Unknown }
 public static class RevokeRoleGrantImpact
 {
     public static RevokeCapabilityImpact HousekeepingExecutor(string? workflowState, bool rework,
-        IReadOnlyList<RevokeGrant> before, IReadOnlyList<RevokeGrant> after, long? branch, DateTime nowUtc)
+        IReadOnlyList<RevokeGrant> before, IReadOnlyList<RevokeGrant> after, long? branch, DateTime nowUtc,
+        bool? actorBefore = null, bool? actorAfter = null)
     {
         if (branch is null or <= 0 || nowUtc.Kind != DateTimeKind.Utc) return RevokeCapabilityImpact.Unknown;
         var open = rework
@@ -24,8 +25,10 @@ public static class RevokeRoleGrantImpact
         // A grant on a different actor role does not preserve that eligibility.
         bool Staff(RevokeGrant g) => g.RoleCode == "HK_STAFF" && g.Path.BranchId == branch
             && PermissionGrantRules.IsEligible(g.Path, nowUtc);
-        if (before.Any(Staff) && !after.Any(Staff)) return RevokeCapabilityImpact.Lost;
-        return before.Any(Staff) && after.Any(Staff) && execute == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved
+        var wasStaff = actorBefore ?? before.Any(Staff);
+        var remainsStaff = actorAfter ?? after.Any(Staff);
+        if (wasStaff && !remainsStaff) return RevokeCapabilityImpact.Lost;
+        return wasStaff && remainsStaff && execute == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved
             ? RevokeCapabilityImpact.Preserved : RevokeCapabilityImpact.Unknown;
     }
     public static RevokeCapabilityImpact Evaluate(IReadOnlyList<RevokeGrant> before,
@@ -70,7 +73,7 @@ public static class RevokeRoleGrantImpact
     {
         if (!currentAssignee || state is "CLOSED" or "CANCELLED") return RevokeCapabilityImpact.Preserved;
         if (state is not ("PENDING" or "IN_PROGRESS" or "ON_HOLD" or "COMPLETED")) return RevokeCapabilityImpact.Unknown;
-        return Evaluate(before, after, "MAINTENANCE_EXECUTE", branch, true, nowUtc);
+        return branch is > 0 ? PreventiveExecutor(before, after, branch.Value, nowUtc) : RevokeCapabilityImpact.Unknown;
     }
 
     public static IReadOnlyList<RevokeGrant> Without(IReadOnlyList<RevokeGrant> paths, long assignmentId) =>
@@ -84,7 +87,11 @@ public static class RevokeRoleGrantImpact
         // not permission to clear a responsibility. Pending Verification remains open work.
         if (workflowState is not ("ASSIGNED" or "ACCEPTED" or "IN_PROGRESS" or "PAUSED" or "PENDING_VERIFICATION"))
             return RevokeCapabilityImpact.Unknown;
-        return Evaluate(before, after, "TASK_EXECUTE", branch, true, nowUtc);
+        var execute = Evaluate(before, after, "TASK_EXECUTE", branch, true, nowUtc);
+        var read = Evaluate(before, after, "TASK_VIEW", branch, true, nowUtc);
+        return execute == RevokeCapabilityImpact.Lost || read == RevokeCapabilityImpact.Lost ? RevokeCapabilityImpact.Lost
+            : execute == RevokeCapabilityImpact.Preserved && read == RevokeCapabilityImpact.Preserved
+                ? RevokeCapabilityImpact.Preserved : RevokeCapabilityImpact.Unknown;
     }
 
     public static string[] Effective(IReadOnlyList<RevokeGrant> paths, DateTime nowUtc) => paths

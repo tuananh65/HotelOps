@@ -210,6 +210,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountDeactivationSe
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserRoleAssignmentService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserRoleRevocationService>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
 builder.Services.AddHttpContextAccessor();

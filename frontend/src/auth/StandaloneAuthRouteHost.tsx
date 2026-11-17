@@ -16,6 +16,7 @@ import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { DeactivateUserFlowBoundary } from "../users/DeactivateUserFlowBoundary";
 import { AddUserBranchFlowBoundary } from "../users/AddUserBranchFlowBoundary";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
+import { RevokeUserRoleFlowBoundary } from "../users/RevokeUserRoleFlowBoundary";
 
 function Recovery() {
   const { state, actions } = useAuth();
@@ -159,6 +160,7 @@ export function StandaloneAuthRouteHost() {
         path="/users/:id/roles/assign"
         element={<AssignUserRoleFlowBoundary />}
       />
+      <Route path="/users/:id/roles/:assignmentId/revoke" element={<RevokeUserRoleFlowBoundary />} />
       <Route element={<UsersRouteBoundary />}>
         <Route path="/users" element={<UserDirectoryPage />} />
         <Route path="/users/:id" element={<UserAccessReviewPage />} />

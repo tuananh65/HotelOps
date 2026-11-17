@@ -1,7 +1,7 @@
 namespace HotelOps.Api.DTOs.Users;
 
 public enum RevokeRoleStatus { Success, SessionInvalid, Forbidden, NotFound, Conflict, Stale, LastAdministrator, SerializationUnavailable, ReleaseAcceptanceRequired, ResponsibilitiesBlocked, ResponsibilitiesUnresolved }
-public sealed record RevokeRoleResult(RevokeRoleStatus Status, byte[]? Version = null);
+public sealed record RevokeRoleResult(RevokeRoleStatus Status, byte[]? Version = null, IReadOnlyList<string>? Dependencies = null);
 public static class RevokeRoleVersion
 {
     public static bool TryParse(string? value, out byte[] version)

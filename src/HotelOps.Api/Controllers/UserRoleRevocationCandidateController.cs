@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace HotelOps.Api.Controllers;
 
-[NonController] // Source candidate; no MVC/DI/route activation before independent release acceptance.
 [ApiController, Route("api/users"), Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ValidateAntiForgeryToken, ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class UserRoleRevocationCandidateController(UserRoleRevocationService service) : ControllerBase
@@ -30,7 +29,8 @@ public sealed class UserRoleRevocationCandidateController(UserRoleRevocationServ
             RevokeRoleStatus.Stale => Failure(412, "STALE_USER_VERSION"),
             RevokeRoleStatus.Conflict => Failure(409, "ROLE_ASSIGNMENT_CONFLICT"),
             RevokeRoleStatus.LastAdministrator => Failure(409, "LAST_DURABLE_ADMIN"),
-            RevokeRoleStatus.ResponsibilitiesBlocked => Failure(409, "OPEN_RESPONSIBILITIES"),
+            RevokeRoleStatus.ResponsibilitiesBlocked => Problem(statusCode: 409, title: "OPEN_RESPONSIBILITIES",
+                extensions: new Dictionary<string, object?> { ["code"] = "OPEN_RESPONSIBILITIES", ["dependencies"] = result.Dependencies ?? [] }),
             RevokeRoleStatus.ResponsibilitiesUnresolved => Failure(503, "RESPONSIBILITY_COVERAGE_REQUIRED"),
             _ => Failure(503, "ROLE_REVOCATION_RELEASE_REQUIRED")
         };

@@ -102,7 +102,8 @@ function ConfirmationForm({
                   ? "Expired" : "Active"}</td>
               <td>{row.roleActive ? "Active" : "Inactive"}</td>
               <td>{row.assignedAtUtc}</td><td>{row.expiresAtUtc ?? "None"}</td>
-              <td>{!row.assignmentActive && row.roleActive &&
+              <td>{row.assignmentActive && <Link to={`/users/${profile.id}/roles/${row.assignmentId}/revoke`}>Revoke role</Link>}
+                {!row.assignmentActive && row.roleActive &&
                 <button type="button" disabled={!!catalogState} onClick={() => {
                   setRole(row.code); setBranch(row.branchId === null ? "" : String(row.branchId));
                   setGlobalScope(row.branchId === null); setReactivateExisting(true); invalidate();

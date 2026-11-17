@@ -14,6 +14,7 @@ public sealed class MaterialCreationAccess(HotelOpsDbContext db, ISqlSessionServ
 {
     private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
         "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
+    internal static bool IsCreatorRole(string? role) => role != null && CreatorRoles.Contains(role, StringComparer.Ordinal);
 
     // Creation owns its prospective request. OWN is applicable only in that
     // context; this list never grants access to another request or another user.

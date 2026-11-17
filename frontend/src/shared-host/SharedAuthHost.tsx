@@ -33,6 +33,7 @@ import { HandoverReceiptPage } from "../internalRequests/HandoverReceiptPage";
 import { InternalRequestIntakePage, InternalRequestIntakeLink } from "../internalRequests/IntakePage";
 import { Dev2Workspace } from "../dev2/Workspace";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
+import { RevokeUserRoleFlowBoundary } from "../users/RevokeUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { DeactivateUserFlowBoundary } from "../users/DeactivateUserFlowBoundary";
 import { CreateUserFlowBoundary } from "../users/CreateUserFlowBoundary";
@@ -187,6 +188,7 @@ export function SharedAuthHost({
           element={<AssignUserRoleFlowBoundary />}
         />
       )}
+      {roleAssignmentEnabled && <Route path="/users/:id/roles/:assignmentId/revoke" element={<RevokeUserRoleFlowBoundary />} />}
       {auditReadEnabled && (
         <Route
           path="/audit"
