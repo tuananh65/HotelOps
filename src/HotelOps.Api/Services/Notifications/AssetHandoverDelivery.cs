@@ -14,9 +14,9 @@ internal sealed class AssetHandoverDelivery(HotelOpsDbContext db, TimeProvider c
         var window = NotificationRetention.At(clock.GetUtcNow().UtcDateTime, retention.Value);
         return await db.Database.SqlQuery<long>($"""
             SELECT TOP(100) audit_id AS Value FROM dbo.audit_logs
-            WHERE entity_type='asset_handovers' AND action='CREATE' AND audit_id>{after}
+            WHERE entity_type='asset_handovers' AND action IN('CREATE','UPDATE') AND audit_id>{after}
               AND occurred_at>={window.Cutoff} AND occurred_at<={window.Now}
-              AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.notification_kind')='ASSET_HANDOVER_SUBMITTED'
+              AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.notification_kind') IN('ASSET_HANDOVER_SUBMITTED','ASSET_HANDOVER_DECIDED')
             ORDER BY audit_id
             """).ToArrayAsync(ct);
     }
@@ -28,7 +28,7 @@ internal sealed class AssetHandoverDelivery(HotelOpsDbContext db, TimeProvider c
         var hint = await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(a => a.AuditId == id, ct);
         var sourceHint = hint == null ? null : AssetHandoverSource.Parse(hint);
         if (sourceHint == null) return "SOURCE_DENIED";
-        var candidates = new[] { sourceHint.ReceiverId };
+        var candidates = new[] { sourceHint.RecipientId };
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync(candidates.Append(sourceHint.ActorId), ct);
         var resource = $"HotelOps:AssetHandover:{id}";
@@ -45,16 +45,16 @@ internal sealed class AssetHandoverDelivery(HotelOpsDbContext db, TimeProvider c
         foreach (var user in candidates)
             if (await AssetHandoverSource.CanReadAsync(db, user, source, ct)) eligible.Add(user);
         if (eligible.Count == 0) return "NO_ELIGIBLE_RECIPIENT"; // Intent remains discoverable for retry.
-        var notices = await db.Notifications.Where(n => n.NotificationType == AssetHandoverSource.Kind
+        var notices = await db.Notifications.Where(n => n.NotificationType == source.EventKind
             && n.SourceType == AssetHandoverSource.SourceType && n.SourceId == id).ToArrayAsync(ct);
         if (notices.Length > 1 || notices.Any(n => n.CreatedAt != source.At || n.CreatedBy != source.ActorId))
             throw new InvalidOperationException("Asset handover notification identity conflict.");
         var notice = notices.SingleOrDefault();
         if (notice == null)
         {
-            notice = new Notification { NotificationType = AssetHandoverSource.Kind, SourceType = AssetHandoverSource.SourceType,
-                SourceId = id, Title = "Asset handover submitted",
-                Message = "An asset handover was submitted to you. Open it with your current asset read permission.",
+            notice = new Notification { NotificationType = source.EventKind, SourceType = AssetHandoverSource.SourceType,
+                SourceId = id, Title = source.EventKind == AssetHandoverSource.Kind ? "Asset handover submitted" : "Asset handover decision",
+                Message = source.EventKind == AssetHandoverSource.Kind ? "An asset handover was submitted to you. Open it with your current asset read permission." : "Your asset handover has been decided. Open it with your current asset read permission.",
                 Priority = "NORMAL", CreatedBy = source.ActorId, CreatedAt = source.At };
             db.Notifications.Add(notice); await db.SaveChangesAsync(ct);
         }

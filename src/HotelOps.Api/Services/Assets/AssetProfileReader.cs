@@ -135,7 +135,9 @@ public sealed class AssetProfileReader(HotelOpsDbContext db, AssetProfileAccess 
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([access.UserId], ct); await AssetBranchAsync(id, ct);
         var row = await db.Attachments.AsNoTracking().SingleOrDefaultAsync(a => a.AttachmentId == file && a.EntityType == "ASSET" && a.EntityId == id && a.DeletedAt == null, ct);
-        var result = row == null ? null : await InternalRequestEvidence.ReadAsync(row, privateRoot, ct);
+        // Custody uploads have a bounded 72 MiB HTTP envelope; retain access to
+        // committed photos when the configured per-file policy exceeds the old 10 MiB default.
+        var result = row == null ? null : await InternalRequestEvidence.ReadAsync(row, privateRoot, ct,72*1024*1024);
         if (result == null) throw new InsightException(404, "FILE_UNAVAILABLE", "Private source file unavailable.");
         await AssetBranchAsync(id, ct); await tx.CommitAsync(ct); return result;
     }

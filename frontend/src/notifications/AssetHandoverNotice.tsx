@@ -38,6 +38,7 @@ export function AssetHandoverNotice() {
         <dt>Asset</dt><dd>{visible.data.assetCode}</dd><dt>Status</dt><dd>{visible.data.state}</dd>
         <dt>Condition at handover</dt><dd>{visible.data.conditionNote ?? "No condition note"}</dd>
         <dt>Submitted</dt><dd>{new Date(visible.data.submittedAtUtc).toLocaleString()}</dd></dl>
+        <Link to={`/assets/${visible.data.assetId}/custody`}>Open custody workflow</Link>
         <p>Reading this handover does not acknowledge it or change asset custody.</p></>}
   </main>;
 }

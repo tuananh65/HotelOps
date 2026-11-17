@@ -16,10 +16,10 @@ public sealed partial class NotificationCenterService
         var user = await UserAsync(now, ct);
         var notice = await Inbox(user, now).AsNoTracking().Where(r => r.NotificationId == id)
             .Select(r => r.Notification).SingleOrDefaultAsync(ct);
-        if (notice is not { NotificationType: AssetHandoverSource.Kind, SourceType: AssetHandoverSource.SourceType, SourceId: > 0 })
+        if (notice is not { NotificationType: AssetHandoverSource.Kind or AssetHandoverSource.DecisionKind, SourceType: AssetHandoverSource.SourceType, SourceId: > 0 })
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var source = await AssetHandoverSource.ReadAsync(db, notice.SourceId.Value, ct);
-        if (source == null || source.At != notice.CreatedAt || source.ActorId != notice.CreatedBy
+        if (source == null || source.EventKind != notice.NotificationType || source.At != notice.CreatedAt || source.ActorId != notice.CreatedBy
             || !await AssetHandoverSource.CanReadAsync(db, user, source, ct))
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var result = await db.AssetHandovers.AsNoTracking().Where(h => h.HandoverId == source.HandoverId)

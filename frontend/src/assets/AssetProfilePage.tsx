@@ -88,6 +88,7 @@ export function AssetProfilePage() {
     </tr>)}</tbody></table>{list.items.length === 0 && <p>MSG10 — Không có tài sản phù hợp bộ lọc.</p>}</>}
     {profile && <>
       <h3>{profile.profile.assetCode} — {profile.profile.assetName}</h3><p>Snapshot: {time(profile.snapshot)}</p>
+      <p><Link to={`/assets/${id}/custody`}>Custody handover</Link></p>
       {profile.canEdit && <p><Link to={`/assets/${id}/edit`}>Chỉnh sửa thông tin</Link></p>}
       {profile.canRetire && <p><Link to={`/assets/${id}/retire`}>Kiểm tra điều kiện Retire</Link></p>}
       <dl>{Object.entries({ "Chi nhánh": "branchName", "Loại tài sản": "assetTypeName", "Phòng": "roomNumber", "Khu vực": "areaName", "Bộ phận giữ": "departmentName", "Người giữ": "custodianName", "Tình trạng": "conditionStatus", "Lifecycle": "lifecycleStatus", "Serial": "serialNumber", "Hãng": "brand", "Model": "model", "Ngày mua": "purchaseDate", "Hết bảo hành": "warrantyExpiryDate", "Mô tả": "description" }).map(([label, key]) => <div key={key}><dt>{label}</dt><dd>{profile.profile[key] ?? "N/A"}</dd></div>)}</dl>

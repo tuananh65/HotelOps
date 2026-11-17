@@ -1,3 +1,4 @@
+import { AssetCustodyPage } from "../assets/AssetCustodyPage";
 import { HomeNavigation } from "./HomeNavigation";
 import { AssetMaintenanceHistoryPage } from "../assets/AssetMaintenanceHistoryPage";
 import { AssetLocationPage } from "../assets/AssetLocationPage";
@@ -39,6 +40,7 @@ export function OperationsRoutes() {
           <Route path="/assets/locations" element={<AssetLocationPage />} />
           <Route path="/assets" element={<AssetProfilePage />} />
           <Route path="/assets/:id" element={<AssetProfilePage />} />
+          <Route path="/assets/:id/custody" element={<AssetCustodyPage />} />
           <Route path="/assets/:id/edit" element={<AssetEditPage />} />
           <Route path="/assets/:id/retire" element={<AssetRetirementPage />} />
           <Route path="/operations/*" element={<Dev2Workspace />} />

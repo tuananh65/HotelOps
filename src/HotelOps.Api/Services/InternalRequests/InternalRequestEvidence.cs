@@ -61,7 +61,7 @@ internal static class InternalRequestEvidence
             &&db.InternalRequestEvents.Any(e=>e.EventId==a.EntityId&&e.InternalRequestId==request
                 &&(a.EntityType==EntityType&&e.EventType=="PROGRESS"||a.EntityType=="INTERNAL_REQUEST_INTAKE"&&e.EventType=="CREATE")));
 
-    internal static async Task<InternalRequestEvidenceFile?> ReadAsync(Attachment row,string root,CancellationToken ct)
+    internal static async Task<InternalRequestEvidenceFile?> ReadAsync(Attachment row,string root,CancellationToken ct,long maxBytes=10*1024*1024)
     {
         // This feature only writes flat generated keys; reject all alternative path formats.
         var key=row.StorageKey;
@@ -73,7 +73,7 @@ internal static class InternalRequestEvidence
             if(!Directory.Exists(directory)||!File.Exists(path)||(File.GetAttributes(directory)&FileAttributes.ReparsePoint)!=0
                 ||(File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)return null;
             await using var stream=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read,81920,FileOptions.Asynchronous);
-            if(stream.Length is <1 or >10*1024*1024||row.FileSizeBytes!=stream.Length)return null;
+            if(maxBytes<1||maxBytes>int.MaxValue||stream.Length<1||stream.Length>maxBytes||row.FileSizeBytes!=stream.Length)return null;
             var bytes=new byte[(int)stream.Length];await stream.ReadExactlyAsync(bytes,ct);
             var mime=Mime(bytes);if(mime==null||mime!=row.MimeType)return null;
             var name=Path.GetFileName(row.OriginalFileName??row.FileName);
