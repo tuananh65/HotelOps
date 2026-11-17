@@ -33,7 +33,7 @@ export function InternalRequestTaskCreationPanel({ id, branch, onCreated, onLink
     {!source && !created && <button onClick={() => setRevision(v => v + 1)}>Reload request prefill</button>}
     {source && <TaskCreatePanel key={`${owner}:${id}:${revision}`} branch={branch} owner={owner} source={source}
       onSourceInvalid={() => { setLoaded(null); setMessage("Request authority or version changed. Reload request prefill before trying again."); }}
-      onSeriesCreated={() => { throw new Error("Linked recurring creation is unavailable"); }}
+      onSeriesCreated={() => { setLoaded(null); setMessage("MSG08: Recurring series created. Generated mandatory tasks block completion; future unscheduled occurrences do not. Terminal requests stop generation; Reopen does not restart it."); onLinked?.(); navigate(`/operational-tasks?branchId=${branch}`); }}
       onCreated={(task, assign) => { setLoaded(null); setCreated({ owner, task }); onLinked?.(); if (onCreated) onCreated(task, assign); else if (assign) navigate(`/operational-tasks?branchId=${branch}&taskId=${task}`); }} />}
   </section>;
 }

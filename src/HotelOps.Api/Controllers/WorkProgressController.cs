@@ -35,7 +35,18 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
         => Execute((ticket, sid) => service.ReopenOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpPost("api/branches/{branch:long}/operational-task-series")]
     public Task<IActionResult> CreateSeries(long branch, CreateTaskSeriesRequest input, CancellationToken ct)
-        => Execute((ticket, sid) => service.CreateTaskSeriesAsync(ticket, sid, branch, input, ct), false, true);
+    {
+        if(input.Template?.InternalRequestId!=null)
+        {
+            if(!Request.Headers.ContainsKey("If-Match"))return Task.FromResult<IActionResult>(Problem(statusCode:428,title:"IF_MATCH_REQUIRED"));
+            if(input.Template.RequestLink==null||Request.Headers.IfMatch.Count!=1||Request.Headers.IfMatch[0]!='"'+input.Template.RequestLink.Version+'"')
+                return Task.FromResult<IActionResult>(Problem(statusCode:400,title:"SOURCE_VERSION_INVALID"));
+        }
+        return Execute((ticket,sid)=>service.CreateTaskSeriesAsync(ticket,sid,branch,input,ct),false,true);
+    }
+    [HttpPost("api/branches/{branch:long}/operational-task-series/{id:long}/reactivate")]
+    public Task<IActionResult> ReactivateSeries(long branch,long id,StopTaskSeriesRequest input,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.ReactivateTaskSeriesAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),input,ct),true);
     [HttpGet("api/branches/{branch:long}/operational-task-series")]
     public Task<IActionResult> ReadSeries(long branch, CancellationToken ct, int page = 1, long? series = null)
         => Execute((ticket, sid) => service.ReadTaskSeriesAsync(ticket, sid, branch, page, series, ct), false);

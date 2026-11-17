@@ -96,7 +96,7 @@ public sealed partial class RoomTypeCreationService
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
             var task = await WriteTaskCreationAsync(db, actor, branch, normalized, now, token);
             if (normalized.InternalRequestId is { } linkedRequest)
-                await WriteCreatedTaskRequestLink(actor, branch, linkedRequest, task.TaskId, normalized.RequestLink!, now, token);
+                await WriteCreatedTaskRequestLink(db,actor, branch, linkedRequest, task.TaskId, normalized.RequestLink!, now, token);
             return new(RoomTypeBatchStatus.Success, new TaskCreatedDto(task.TaskId, branch, task.TaskCode, "PENDING_ASSIGNMENT", "MSG08"), WorkflowTag((await ProgressRevision(false, task.TaskId, token))!.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => LinkedTaskCreationAuthority(ticket.UserId, branch, normalized.InternalRequestId, token));
     }

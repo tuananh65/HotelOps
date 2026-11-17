@@ -113,6 +113,7 @@ export async function createSeries(
     "POST",
     { template, recurrence },
     signal,
+    template.requestLink ? `"${template.requestLink.version}"` : undefined,
   );
   const body = await r.json();
   const series = validateSeries(body?.series, branch);
@@ -187,5 +188,16 @@ export async function stopSeries(
     r.headers.get("ETag") !== result.eTag
   )
     throw new Error("Invalid stop series receipt");
+  return result;
+}
+
+export async function reactivateSeries(branch: number, series: TaskSeries, reason: string | null, signal: AbortSignal) {
+  validateSeries(series, branch);
+  if(series.isActive || !reason?.trim() || reason.length > 4000) throw new Error("Reactivation reason required");
+  const response = await planningMutation(base(branch) + `/${series.seriesId}/reactivate`, "POST", {reason}, signal, series.eTag);
+  const body = await response.json();
+  const result = validateSeries(body?.series, branch);
+  if(body.messageCode !== "MSG08" || result.seriesId !== series.seriesId || !result.isActive || response.headers.get("ETag") !== result.eTag)
+    throw new Error("Invalid reactivation receipt");
   return result;
 }

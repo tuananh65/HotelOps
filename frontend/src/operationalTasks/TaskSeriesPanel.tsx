@@ -5,6 +5,7 @@ import { TaskProgressError } from "./progress";
 import {
   readSeries,
   stopSeries,
+  reactivateSeries,
   type SeriesPage,
   type TaskSeries,
 } from "./series";
@@ -71,7 +72,7 @@ export function TaskSeriesPanel({
     const controller = new AbortController();
     active.current = controller;
     try {
-      await stopSeries(
+      await (selected.isActive ? stopSeries : reactivateSeries)(
         branch,
         selected,
         reason.trim() || null,
@@ -80,7 +81,7 @@ export function TaskSeriesPanel({
       );
       if (!controller.signal.aborted) {
         setMessage(
-          "MSG08: Series stopped. Already generated tasks remain unchanged.",
+          selected.isActive ? "MSG08: Series stopped. Already generated tasks remain unchanged." : "MSG08: Series reactivated without backfilling skipped occurrences.",
         );
         setRevision((n) => n + 1);
       }
@@ -121,7 +122,7 @@ export function TaskSeriesPanel({
                   {series.nextDueAt ?? "Schedule exhausted"}; end date:{" "}
                   {series.endDate ?? "No end date"}.
                 </p>
-                {series.isActive && (
+                {(series.isActive || series.nextDueAt !== null) && (
                   <button
                     disabled={busy || uncertain}
                     onClick={() => {
@@ -130,7 +131,7 @@ export function TaskSeriesPanel({
                       setReason("");
                     }}
                   >
-                    Stop series: {series.title}
+                    {series.isActive ? "Stop" : "Reactivate"} series: {series.title}
                   </button>
                 )}
               </li>
@@ -161,13 +162,12 @@ export function TaskSeriesPanel({
           }}
         >
           <fieldset disabled={busy || uncertain}>
-            <legend>Stop {selected.title}</legend>
+            <legend>{selected.isActive ? "Stop" : "Reactivate"} {selected.title}</legend>
             <p>
-              This stops future occurrences only. Existing tasks, assignments,
-              deadlines and work intervals remain unchanged.
+              Existing tasks and history remain unchanged. Reactivation requires current source authority, an open linked request and an eligible executor; skipped periods are never backfilled.
             </p>
             <label>
-              Stop series reason
+              Change reason
               <textarea
                 maxLength={4000}
                 value={reason}
@@ -181,11 +181,11 @@ export function TaskSeriesPanel({
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              Confirm stop future occurrences
+              Confirm this change to future generation
             </label>
-            <button disabled={!confirmed}>Confirm stop series</button>
+            <button disabled={!confirmed || !selected.isActive && !reason.trim()}>Confirm {selected.isActive ? "stop" : "reactivation"}</button>
             <button type="button" onClick={() => setSelected(null)}>
-              Keep series active
+              Cancel change
             </button>
           </fieldset>
         </form>

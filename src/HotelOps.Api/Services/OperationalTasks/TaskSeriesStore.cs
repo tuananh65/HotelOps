@@ -65,7 +65,7 @@ internal static class TaskSeriesStore
             ?? throw new ValidationException("Recurring template is unavailable.");
         template = RoomTypeCreationService.NormalizeTaskCreation(template);
         if (template.DepartmentId != row.DepartmentId || template.DueAt?.UtcDateTime != row.FirstDueAt
-            || template.RequestKey != row.CreationKey || template.InternalRequestId != null
+            || template.RequestKey != row.CreationKey
             || row.CreationHash.Length != 32 || !CryptographicOperations.FixedTimeEquals(Hash(template, Rule(row)), row.CreationHash))
             throw new ValidationException("Recurring template provenance is inconsistent.");
         return template;

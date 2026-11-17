@@ -22,7 +22,6 @@ public sealed partial class RoomTypeCreationService
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
             if (!await TaskAssignmentEligibility.InstalledAsync(db, token) || !await TaskSeriesStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
-            if (template.InternalRequestId != null) return new(RoomTypeBatchStatus.SchemaRequired);
             var prior = await TaskSeriesStore.Query(db).SingleOrDefaultAsync(s => s.CreationKey == template.RequestKey, token);
             if (prior != null)
             {
@@ -32,6 +31,12 @@ public sealed partial class RoomTypeCreationService
                 return new(RoomTypeBatchStatus.Success, new { series = replay, messageCode = "MSG08" }, replay.ETag);
             }
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
+            if(template.InternalRequestId is {} source)
+            {
+                if(!await TaskSeriesRequestLink.AllowedAsync(db,actor,branch,source,now,token))return new(RoomTypeBatchStatus.Forbidden);
+                if(!(await HotelOps.Api.Services.InternalRequests.InternalRequestDecisionStore.RevisionAsync(db,source,token)).SequenceEqual(RequestCreationVersion(template.RequestLink!)))
+                    return new(RoomTypeBatchStatus.Stale);
+            }
             if (!await TaskCreationReferencesAsync(db, branch, template, token)
                 || !await TaskAssignmentEligibility.Candidates(db, branch, template.DepartmentId, now).AnyAsync(u => u.UserId == rule.DefaultAssigneeId, token))
                 return new(RoomTypeBatchStatus.InvalidReference);
@@ -60,7 +65,7 @@ public sealed partial class RoomTypeCreationService
             var dto = await TaskSeriesStore.DtoAsync(db, row, token);
             return new(RoomTypeBatchStatus.Success, new { series = dto, messageCode = "MSG08" }, dto.ETag);
         }, ct, additionalUsers: [rule.DefaultAssigneeId], requireRoomTypeSchema: false,
-            featurePermission: token => VerificationManager(ticket.UserId, branch, token), beforeCommit: async token =>
+            featurePermission: token => LinkedTaskCreationAuthority(ticket.UserId, branch, template.InternalRequestId, token), beforeCommit: async token =>
             {
                 if (newlyCreated && !await TaskAssignmentEligibility.Candidates(db, branch, template.DepartmentId, clock.GetUtcNow().UtcDateTime).AnyAsync(u => u.UserId == rule.DefaultAssigneeId, token))
                     throw new ValidationException("Default executor eligibility changed.");

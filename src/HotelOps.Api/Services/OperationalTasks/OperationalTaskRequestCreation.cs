@@ -58,7 +58,7 @@ public sealed partial class RoomTypeCreationService
               AND a.entity_type='internal_requests' AND a.entity_id=CONVERT(nvarchar(50),{request})
             """).SingleAsync(ct) == 1;
 
-    private async Task WriteCreatedTaskRequestLink(long actor, long branch, long request, long task, TaskRequestLink input, DateTime now, CancellationToken ct)
+    internal static async Task WriteCreatedTaskRequestLink(HotelOps.Api.Data.HotelOpsDbContext db,long actor, long branch, long request, long task, TaskRequestLink input, DateTime now, CancellationToken ct)
     {
         var version = RequestCreationVersion(input);
         if (await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET updated_at={now} WHERE internal_request_id={request} AND row_version={version} AND status IN('ACCEPTED','IN_PROGRESS')", ct) != 1)

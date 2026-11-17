@@ -396,7 +396,7 @@ export function TaskCreatePanel({
               onChange={setPlan}
               priorities={options.priorities}
             />
-            {!source && options.recurringAvailable && (
+            {options.recurringAvailable && (
               <label>
                 <input
                   type="checkbox"

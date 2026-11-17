@@ -109,6 +109,7 @@ public sealed class InternalRequestWithdrawalService(HotelOpsDbContext db, Inter
                 NewValues = JsonSerializer.Serialize(new { operation = "WITHDRAW", status = "CANCELLED", cancellationReason = reason }),
                 ChangedFields = "[\"status\",\"cancellation_reason\"]" });
             await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+            await HotelOps.Api.Services.OperationalTasks.TaskSeriesRequestLink.StopAsync(db,id,ticket.UserId,now,ct);
             foreach (var recipient in recipients)
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_withdrawal_outbox(event_id,recipient_id,branch_id,department_id,created_at) VALUES({entry.EventId},{recipient},{request.BranchId},{department},{now})", ct);
             await SessionAsync(ticket, sid, ct);

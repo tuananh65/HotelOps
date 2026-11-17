@@ -137,6 +137,7 @@ public sealed class InternalRequestCompletionService(HotelOpsDbContext db,Intern
             if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET status='CLOSED',completed_at={now},closed_at={now},updated_at={now} WHERE internal_request_id={id} AND row_version={version}",ct)!=1)
                 throw new InternalRequestReadException(412,"IR_VERSION_CHANGED");
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_completion_outbox(event_id,requester_id,created_at) VALUES({entry.EventId},{request.RequesterId},{now})",ct);
+            await HotelOps.Api.Services.OperationalTasks.TaskSeriesRequestLink.StopAsync(db,id,ticket.UserId,now,ct);
             await SessionAsync(ticket,sid,ct);
             if(!await authority.AllowsCurrentRequestAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
             var finalNow=DateTime.UtcNow;var finalScope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,finalNow,ct);

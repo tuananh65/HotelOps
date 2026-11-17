@@ -41,6 +41,8 @@ internal sealed class TaskSeriesGeneration(HotelOpsDbContext db, TimeProvider cl
             if (branch?.IsActive != true) throw new ValidationException("Recurring branch is unavailable.");
             var acquired = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource={RoomTypeCreationService.CatalogLock},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS Value;").ToArrayAsync(ct);
             if (acquired.Single() < 0) throw new TimeoutException("Recurring catalog lock unavailable.");
+            if(TaskSeriesStore.Template(hint).InternalRequestId is {} source)
+                await db.Database.SqlQuery<long>($"SELECT internal_request_id AS Value FROM dbo.internal_requests WITH(UPDLOCK,HOLDLOCK) WHERE internal_request_id={source}").ToArrayAsync(ct);
             await db.Database.SqlQuery<long>($"SELECT series_id AS Value FROM dbo.operational_task_series WITH(UPDLOCK,HOLDLOCK) WHERE series_id={id}").ToArrayAsync(ct);
             var row = await TaskSeriesStore.Query(db).SingleAsync(s => s.SeriesId == id, ct);
             if (row.CreatedBy != hint.CreatedBy || row.DefaultAssigneeId != hint.DefaultAssigneeId || row.BranchId != hint.BranchId)
@@ -64,11 +66,20 @@ internal sealed class TaskSeriesGeneration(HotelOpsDbContext db, TimeProvider cl
     {
         if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Recurring generation requires a transaction.");
         if (!row.IsActive || row.NextDueAt == null) return 0;
+        var template = TaskSeriesStore.Template(row);
+        if(template.InternalRequestId is {} source)
+        {
+            var status=await db.InternalRequests.FromSqlInterpolated($"SELECT * FROM dbo.internal_requests WITH(UPDLOCK,HOLDLOCK) WHERE internal_request_id={source}").AsNoTracking().Select(r=>r.Status).SingleAsync(ct);
+            if(status is "CLOSED" or "REJECTED" or "CANCELLED")
+            {
+                await TaskSeriesRequestLink.StopAsync(db,source,row.CreatedBy,now,ct);
+                return 0;
+            }
+        }
         // Clock injection controls only the scheduling horizon. Authorization and
         // persisted timestamps always use SQL time, including in trial simulations.
         var horizon = TaskRecurrenceSchedule.GenerationHorizon(generationAsOf ?? now);
         if (DateOnly.FromDateTime(TaskRecurrenceSchedule.Local(row.NextDueAt.Value)) > horizon) return 0;
-        var template = TaskSeriesStore.Template(row);
         var rule = TaskSeriesStore.Rule(row);
         await RequireCurrentAuthorityAsync(db, row, template, now, ct);
         var count = 0;
@@ -80,7 +91,11 @@ internal sealed class TaskSeriesGeneration(HotelOpsDbContext db, TimeProvider cl
             // evidence of inconsistent storage, not permission to rewrite history.
             if (existing.Length != 0) throw new ValidationException("Recurring occurrence cursor is inconsistent.");
             var request = Occurrence(template, row.SeriesId, due);
+            if(request.InternalRequestId is {} linked)
+                request=request with{RequestLink=request.RequestLink! with{Version=Convert.ToBase64String(await HotelOps.Api.Services.InternalRequests.InternalRequestDecisionStore.RevisionAsync(db,linked,ct))}};
             var task = await RoomTypeCreationService.WriteTaskCreationAsync(db, row.CreatedBy, row.BranchId, request, now, ct, row.SeriesId);
+            if(request.InternalRequestId is {} linkedRequest)
+                await RoomTypeCreationService.WriteCreatedTaskRequestLink(db,row.CreatedBy,row.BranchId,linkedRequest,task.TaskId,request.RequestLink!,now,ct);
             await AssignAsync(db, row, task, now, ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_series_occurrences(series_id,due_date,due_at,task_id,created_at) VALUES({row.SeriesId},{date},{due},{task.TaskId},{now})", ct);
             var next = TaskRecurrenceSchedule.Next(due, rule);
@@ -108,6 +123,8 @@ internal sealed class TaskSeriesGeneration(HotelOpsDbContext db, TimeProvider cl
 
     private static async Task RequireCurrentAuthorityAsync(HotelOpsDbContext db, StoredTaskSeries row, CreateOperationalTaskRequest template, DateTime now, CancellationToken ct)
     {
+        if(template.InternalRequestId is {} source&&!await TaskSeriesRequestLink.AllowedAsync(db,row.CreatedBy,row.BranchId,source,now,ct))
+            throw new ValidationException("Current Internal Request processing/read authority and open lifecycle required.");
         if (!await TaskAssignmentEligibility.InstalledAsync(db, ct)
             || !(await TaskSubmissionAccess.ManagersAsync(db, row.BranchId, now, ct)).Contains(row.CreatedBy)
             || !await TaskAssignmentEligibility.Candidates(db, row.BranchId, row.DepartmentId, now).AnyAsync(u => u.UserId == row.DefaultAssigneeId, ct)

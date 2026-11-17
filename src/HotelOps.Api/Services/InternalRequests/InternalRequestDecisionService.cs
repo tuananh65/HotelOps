@@ -103,6 +103,7 @@ public sealed class InternalRequestDecisionService(HotelOpsDbContext db,Internal
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_decision_outbox(event_id,requester_id,created_at) VALUES({decision.EventId},{request.RequesterId},{now})",ct);
+            if(!input.Accept)await HotelOps.Api.Services.OperationalTasks.TaskSeriesRequestLink.StopAsync(db,id,ticket.UserId,now,ct);
             await SessionAsync(ticket,sid,ct);
             if(!await authority.AllowsCurrentRequestAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
             var finalVersion=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
