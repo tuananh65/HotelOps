@@ -10,10 +10,12 @@ import {
 function ProfileForm({
   profile,
   disabled,
+  emailInUse,
   save,
 }: {
   profile: UserProfileDto;
   disabled: boolean;
+  emailInUse: boolean;
   save(patch: UserProfilePatch): Promise<void>;
 }) {
   const [draft, setDraft] = useState({
@@ -70,6 +72,9 @@ function ProfileForm({
           Email
           <input
             name="email"
+            type="email"
+            aria-invalid={emailInUse || undefined}
+            aria-describedby={emailInUse ? "profile-email-duplicate" : undefined}
             value={draft.email}
             maxLength={150}
             required
@@ -79,6 +84,7 @@ function ProfileForm({
             }
           />
         </label>
+        {emailInUse && <p id="profile-email-duplicate" role="alert">MSG35: Email is already in use.</p>}
         <label>
           Phone
           <input
@@ -114,6 +120,8 @@ export function UpdateUserPage({
     <main>
       <h1>Update user profile {target}</h1>
       <Link to="/profile">Profile</Link>
+      <p>MSG03: Role assignments and account activation are managed separately from personal information.</p>
+      <Link to={`/users/${target}/reset-credential`}>Reset forgotten password</Link>
       <p>
         The server checks authorization for each request. Loading a profile does
         not grant permission to save changes.
@@ -129,7 +137,7 @@ export function UpdateUserPage({
         </>
       )}
       {progress.phase === "updated" && (
-        <p role="status">Profile update confirmed by the server.</p>
+        <p role="status">MSG08: Profile update confirmed by the server.</p>
       )}
       {progress.phase === "saving" && <p role="status">Saving profile...</p>}
       {progress.error && (
@@ -152,6 +160,7 @@ export function UpdateUserPage({
             key={snapshot.revision}
             profile={snapshot.profile}
             disabled={locked}
+            emailInUse={progress.error?.reason === "EMAIL_IN_USE"}
             save={flow.save}
           />
         </section>

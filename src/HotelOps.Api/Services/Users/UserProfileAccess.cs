@@ -16,14 +16,26 @@ public sealed class UserProfileAccess(HotelOpsDbContext db, ICurrentUserAccessor
     public async Task<bool> CanManageAsync(long targetId, CancellationToken ct)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted) return false;
-        if ((await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted) return true;
         var now = clock.GetUtcNow().UtcDateTime;
+        var administratorBranches = await db.UserRoles.AsNoTracking().Where(r => r.UserId == actor.UserId
+            && r.Role.RoleCode == "SYS_ADMIN" && r.IsActive && r.Role.IsActive
+            && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)
+            && (r.BranchId == null || r.Branch != null && r.Branch.IsActive
+                && db.UserBranchAccesses.Any(b => b.UserId == actor.UserId && b.BranchId == r.BranchId
+                    && b.RevokedAt == null && b.GrantedAt <= now)))
+            .Select(r => r.BranchId).Distinct().ToArrayAsync(ct);
+        if (administratorBranches.Length == 0) return false;
+        var globalAdministrator = administratorBranches.Contains(null);
+        var globalPermission = (await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted;
+        if (globalAdministrator && globalPermission) return true;
         // Membership is authoritative for both users; PrimaryBranchId is never a substitute.
         var branches = await db.UserBranchAccesses.AsNoTracking()
             .Where(a => a.UserId == actor.UserId && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive
                 && db.UserBranchAccesses.Any(t => t.UserId == targetId && t.RevokedAt == null && t.GrantedAt <= now
                     && t.BranchId == a.BranchId && t.User.DeletedAt == null))
+            .Where(a => globalAdministrator || administratorBranches.Contains(a.BranchId))
             .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);
+        if (globalPermission && branches.Length > 0) return true;
         foreach (var branch in branches)
         foreach (var scope in actor.UserId == targetId ? new[] { "BRANCH", "OWN" } : new[] { "BRANCH" })
         {

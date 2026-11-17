@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum UserProfileStatus { Success, Forbidden, NotFound, Stale, EmailInUse, LastAdministrator, SerializationUnavailable }
+public enum UserProfileStatus { Success, Forbidden, NotFound, Stale, EmailInUse, LastAdministrator, SerializationUnavailable, InvalidStorageValue }
 public sealed record UserProfileResult(UserProfileStatus Status, UserProfileDto? Profile = null, byte[]? Version = null);
 
 public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess access,
@@ -18,8 +18,16 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
 {
     public async Task<UserProfileResult> ReadAsync(long id, CancellationToken ct)
     {
+        if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted) return new(UserProfileStatus.Forbidden);
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        // Retain users before session/authority locks, matching account writer ordering.
+        await db.Database.SqlQueryRaw<int>("SELECT TOP(1) 1 AS [Value] FROM dbo.users WITH (TABLOCK,HOLDLOCK)").ToArrayAsync(ct);
+        if (!await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)) return new(UserProfileStatus.Forbidden);
         if (!await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
         var row = await ReadRow(id, ct);
+        if (!await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
+            || !await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
+        await transaction.CommitAsync(ct);
         return row is null ? new(UserProfileStatus.NotFound) : Success(row);
     }
 
@@ -57,6 +65,15 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
         Changed("email", before.Profile.Email, after.Email);
         Changed("phone", before.Profile.Phone, after.Phone);
         if (oldValues.Count == 0) return Success(before);
+        // Email/phone are varchar in the existing schema; reject lossy conversion rather than corrupting identity data.
+        var lossy = await db.Database.SqlQueryRaw<int>("""
+            SELECT COUNT(*) AS [Value] FROM (VALUES
+              (CAST(@email AS nvarchar(max)),150),(CAST(@phone AS nvarchar(max)),20)) AS fields([value],[max_bytes])
+            WHERE DATALENGTH(CONVERT(varchar(max),[value])) > [max_bytes]
+               OR CONVERT(varbinary(max),CONVERT(nvarchar(max),CONVERT(varchar(max),[value]))) <> CONVERT(varbinary(max),[value])
+            """, new SqlParameter("@email", after.Email),
+            new SqlParameter("@phone", (object?)after.Phone ?? DBNull.Value)).SingleAsync(ct);
+        if (lossy != 0) return new(UserProfileStatus.InvalidStorageValue);
         var now = clock.GetUtcNow().UtcDateTime;
         int updated;
         try
