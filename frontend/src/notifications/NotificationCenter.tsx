@@ -291,7 +291,7 @@ export function NotificationCenter() {
           {!visible && <p role="status">Loading notifications…</p>}
           {data && (
             <>
-              <p>
+              <p role="status" aria-label="Notification counts">
                 Unread: {data.unreadCount}. Matching: {data.totalCount}.
                 Snapshot: {data.snapshot}
               </p>
@@ -380,6 +380,11 @@ export function NotificationCenter() {
                         </button>
                       )}
                       <p>{row.message}</p>
+                      {data.acknowledgmentAvailable && row.requiresAcknowledgment && !row.acknowledgedAt && (
+                        <button disabled={!!operation?.busy} onClick={() => void mark([row.id], true)}>
+                          Acknowledge notification {row.id}
+                        </button>
+                      )}
                       {row.requiresAcknowledgment && !row.acknowledgedAt && (
                         <strong>Awaiting acknowledgment</strong>
                       )}
