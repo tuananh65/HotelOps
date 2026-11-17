@@ -102,6 +102,8 @@ export async function listRoomBoard(
     signal,
     {
       effectiveReadiness: params.get("readiness") || undefined,
+      departmentId: params.get("departmentId") || undefined,
+      isActive: params.get("isActive") || undefined,
       floorId: params.get("floorId") || undefined,
       areaId: params.get("areaId") || undefined,
       roomTypeId: params.get("roomTypeId") || undefined,

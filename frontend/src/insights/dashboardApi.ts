@@ -34,8 +34,9 @@ export interface DashboardOptions {
 }
 export async function readDashboardOptions(
   signal: AbortSignal,
+  roomsOnly = false,
 ): Promise<DashboardOptions> {
-  const response = await fetch("/api/dashboards/options", {
+  const response = await fetch(roomsOnly ? "/api/dashboards/rooms/options" : "/api/dashboards/options", {
     method: "GET",
     credentials: "same-origin",
     cache: "no-store",
@@ -76,8 +77,9 @@ export class DashboardFailure extends Error {
 export async function readDashboard(
   query: string,
   signal: AbortSignal,
+  roomsOnly = false,
 ): Promise<Dashboard> {
-  const response = await fetch(`/api/dashboards/operations?${query}`, {
+  const response = await fetch(`/api/dashboards/${roomsOnly ? "rooms" : "operations"}?${query}`, {
     method: "GET",
     credentials: "same-origin",
     cache: "no-store",

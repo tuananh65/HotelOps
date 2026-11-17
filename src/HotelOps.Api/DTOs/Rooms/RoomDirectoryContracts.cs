@@ -14,6 +14,9 @@ public sealed class RoomDirectoryQuery : IValidatableObject
     public long? FloorId { get; init; }
 
     [Range(1, long.MaxValue)]
+    public long? DepartmentId { get; init; }
+
+    [Range(1, long.MaxValue)]
     public long? AreaId { get; init; }
 
     [Range(1, long.MaxValue)]

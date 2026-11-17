@@ -158,6 +158,7 @@ export default function RoomStatusBoardScreen() {
       <form key={query} className="filter-bar" onSubmit={submit}>
         {[
           ["branchId", "Chi nhánh (ID)"],
+          ["departmentId", "Department (explicit mapping ID)"],
           ["floorId", "Tầng (ID)"],
           ["areaId", "Khu vực (ID)"],
           ["roomTypeId", "Loại phòng (ID)"],
@@ -191,6 +192,7 @@ export default function RoomStatusBoardScreen() {
           />
         </label>
         <button>Lọc phòng</button>
+        <label>Active filter<select name="isActive" defaultValue={params.get("isActive") || ""}><option value="">All</option><option value="true">Active</option><option value="false">Inactive</option></select></label>
       </form>
       <p role="note">Readiness is calculated from active blocks and the cleaning cycle. UNKNOWN does not permit room use.</p>
       <button onClick={() => setRetry(v => v + 1)}>Refresh room status</button>

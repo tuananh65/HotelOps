@@ -27,38 +27,11 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
         var quantities = new List<QuantityRow>();
         var missing = new List<string>
         {
-            "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
-            "KPI-03: first-inspection cleaning-cycle contract unavailable",
             "KPI-08/09/10: accepted timestamp, current-cycle SLA deadlines and reopened source contract unavailable",
             "UC133: preventive occurrence lifecycle is not approved; no inferred due/overdue counts"
         };
 
-        if (department is null)
-        {
-            var rooms = db.Rooms.AsNoTracking().Where(r => branches.Contains(r.BranchId) && r.IsActive);
-            var roomGroups = await rooms.GroupBy(r => r.OperationalStatus)
-                .Select(g => new { Status = g.Key, Count = g.LongCount() }).OrderBy(g => g.Status).ToArrayAsync(ct);
-            groups.AddRange(roomGroups.Select(g => new DistributionRow("rooms.operational_status", g.Status, g.Count)));
-            var total = roomGroups.Sum(g => g.Count);
-            var effective = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
-                .ReadAsync(await rooms.Select(r => r.RoomId).ToArrayAsync(ct), now.UtcDateTime, ct);
-            var ready = effective.Values.LongCount(r => r.CanUse);
-            groups.AddRange(effective.Values.GroupBy(r => r.Readiness)
-                .Select(g => new DistributionRow("rooms.effective_readiness", g.Key, g.LongCount())));
-            metrics.Add(new("activeRooms", "Active rooms", total, "count", "rooms", "/room-readiness"));
-            metrics.Add(new("readyRooms", "Effectively ready rooms", ready, "count", "GBR-044 effective readiness"));
-            metrics.Add(new("readyRatio", "Effective ready ratio", total == 0 ? null : 100m * ready / total, "percent", "GBR-044; UNKNOWN never counts as ready"));
-            var cleaning = db.CleaningTasks.AsNoTracking().Where(t => branches.Contains(t.Room.BranchId));
-            groups.AddRange(await cleaning.GroupBy(t => t.Status)
-                .Select(g => new DistributionRow("cleaning_tasks.status", g.Key, g.LongCount(), null)).ToArrayAsync(ct));
-        }
-        else
-        {
-            metrics.Add(new("activeRooms", "Active rooms", null, "count", "rooms: no department relationship"));
-            metrics.Add(new("readyRooms", "Ready rooms", null, "count", "rooms: no department relationship"));
-            metrics.Add(new("readyRatio", "Ready rooms ratio", null, "percent", "rooms: no department relationship"));
-            missing.Add("UC131: rooms/cleaning have no approved department mapping; department-filtered figures withheld");
-        }
+        await new RoomDashboardService(db, access, clock).AppendAsync(filters, now.UtcDateTime, metrics, groups, missing, ct);
 
         var taskAccess = new TaskDashboardAccess(db, access, clock);
         var taskAllowed = true;
@@ -131,7 +104,6 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
                 g.Sum(l => l.RequestedBaseQty > l.ReceivedBaseQty ? l.RequestedBaseQty - l.ReceivedBaseQty : 0))).ToArrayAsync(ct));
         missing.Add("KPI-13: cross-branch transfer-loss visibility policy unresolved; losses withheld");
         foreach (var (key, label) in new[] {
-            ("firstInspectionPassRate", "First-time inspection pass rate"),
             ("responseHours", "Average response time"), ("resolutionHours", "Average resolution time"),
             ("slaCompliance", "SLA compliance"), ("reopenedIncidents", "Reopened incidents"), ("transferLosses", "Transfer losses") })
             metrics.Add(new(key, label, null, "unavailable", "See missingSources"));

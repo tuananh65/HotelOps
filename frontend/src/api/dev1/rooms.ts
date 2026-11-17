@@ -45,7 +45,7 @@ export async function listRooms(
   status: string,
   search: string,
   signal?: AbortSignal,
-  filters: { floorId?: string; areaId?: string; roomTypeId?: string; effectiveReadiness?: string } = {},
+  filters: { floorId?: string; areaId?: string; roomTypeId?: string; effectiveReadiness?: string; departmentId?: string; isActive?: string } = {},
 ): Promise<RoomDirectoryResponse> {
   const branchId = positiveId(branch);
   if (
@@ -62,8 +62,12 @@ export async function listRooms(
     pageSize: "20",
     sort: "floor",
   });
-  for (const key of ["floorId", "areaId", "roomTypeId"] as const) {
+  for (const key of ["floorId", "areaId", "roomTypeId", "departmentId"] as const) {
     if (filters[key]) query.set(key, String(positiveId(filters[key])));
+  }
+  if (filters.isActive) {
+    if (!["true", "false"].includes(filters.isActive)) throw new Error("Invalid active filter");
+    query.set("isActive", filters.isActive);
   }
   if (filters.effectiveReadiness) {
     if (!readinessCodes.includes(filters.effectiveReadiness as typeof readinessCodes[number])) throw new Error("Invalid readiness");

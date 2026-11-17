@@ -1,3 +1,4 @@
+import { RoomDepartmentsPanel } from "../hotel/RoomDepartmentsPanel";
 import { BranchMaintenanceRoute } from "../branch-maintenance/BranchMaintenanceRoute";
 import { ShiftHandoverPage } from "../workday/ShiftHandoverPage";
 import { HomeNavigation } from "./HomeNavigation";
@@ -319,6 +320,8 @@ export function SharedAuthHost({
         element={<AuthFormRoute key="changePassword" kind="changePassword" />}
       />
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+      <Route path="/rooms/:roomId/departments" element={<Protected><RoomDepartmentsPanel /></Protected>} />
+      <Route path="/dashboard/rooms" element={<Protected><DashboardPage roomsOnly /></Protected>} />
       <Route
         path="/dashboard"
         element={

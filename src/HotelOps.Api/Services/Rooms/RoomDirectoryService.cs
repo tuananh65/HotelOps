@@ -66,6 +66,14 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                 && r.Floor.BranchId == r.BranchId
                 && (r.Area == null || r.Area.BranchId == r.BranchId
                     && (r.Area.FloorId == null || r.Area.FloorId == r.FloorId)));
+            if (query.DepartmentId is { } department)
+            {
+                if (!await RoomDepartmentSchema.InstalledAsync(db, ct)) return new(RoomDirectoryStatus.AuthorizationUnavailable);
+                if (!await db.Departments.AsNoTracking().AnyAsync(d => d.DepartmentId == department
+                    && (query.AllBranches || d.BranchId == query.BranchId), ct)) return new(RoomDirectoryStatus.NotFound);
+                var mappedRooms = await db.Database.SqlQuery<long>($"SELECT room_id AS Value FROM dbo.room_department_mappings WITH(HOLDLOCK) WHERE department_id={department} AND is_active=1").ToArrayAsync(ct);
+                rooms = rooms.Where(r => mappedRooms.Contains(r.RoomId));
+            }
             if (roomId is { } requestedRoom)
             {
                 var selected = await rooms.Where(r => r.RoomId == requestedRoom)

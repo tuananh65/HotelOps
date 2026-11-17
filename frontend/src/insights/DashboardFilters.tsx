@@ -8,10 +8,12 @@ import {
 
 export function DashboardFilters({
   owner,
+  roomsOnly = false,
   invalidate,
   apply,
 }: {
   owner: AuthorityGeneration;
+  roomsOnly?: boolean;
   invalidate: (owner: AuthorityGeneration) => void;
   apply: (query: string) => void;
 }) {
@@ -31,7 +33,7 @@ export function DashboardFilters({
     const controller = new AbortController();
     setResult(null);
     setDraft({ branchId: "", departmentId: "", from: "", to: "" });
-    void readDashboardOptions(controller.signal)
+    void readDashboardOptions(controller.signal, roomsOnly)
       .then((options) => {
         if (!controller.signal.aborted) setResult({ owner, options });
       })
@@ -46,7 +48,7 @@ export function DashboardFilters({
           invalidate(owner);
       });
     return () => controller.abort();
-  }, [owner, retry, invalidate]);
+  }, [owner, retry, invalidate, roomsOnly]);
   const visible = result?.owner === owner ? result : null;
   const options = visible?.options;
   const departments =

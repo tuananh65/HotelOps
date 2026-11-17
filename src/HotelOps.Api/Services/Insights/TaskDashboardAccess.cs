@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Insights;
 
-// UC132 only. Keep the role and DASHBOARD_VIEW grant on the same assignment path.
+// UC131/UC132 share the approved Operations Manager / Owner actor contract. Keep the role and DASHBOARD_VIEW grant on the same assignment path.
 public sealed class TaskDashboardAccess(HotelOpsDbContext db, InsightAccess access, TimeProvider clock)
 {
     public long UserId => access.UserId;

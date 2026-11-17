@@ -14,6 +14,7 @@ import {
 } from "./dashboardApi";
 
 const sources: Record<string, string> = {
+  "rooms.effective_readiness": "Effective room readiness",
   "rooms.operational_status": "Recorded room status",
   "cleaning_tasks.status": "Cleaning tasks",
   "operational_tasks.status/priority_id": "Operational tasks / priority",
@@ -27,7 +28,15 @@ const quantities: Record<string, string> = {
   outstandingApproved: "Outstanding approved materials",
   openReplenishment: "Open replenishment",
 };
-export function DashboardPage() {
+function RoomLinks({ filters, status }: { filters: Dashboard["filters"]; status?: string }) {
+  return <>{filters.branchIds.map(branch => {
+    const params = new URLSearchParams({ branchId: String(branch), isActive: "true" });
+    if (filters.departmentId !== null) params.set("departmentId", String(filters.departmentId));
+    if (status) params.set("readiness", status);
+    return <span key={branch}> <Link to={"/rooms/status?" + params}>Rooms in branch {branch}</Link></span>;
+  })}</>;
+}
+export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
   const { state, actions } = useAuth();
   const owner =
     state.status === "AUTHENTICATED" &&
@@ -38,7 +47,7 @@ export function DashboardPage() {
       : null;
   const [query, setQuery] = useState("");
   const [retry, setRetry] = useState(0);
-  const key = `${query}:${retry}`;
+  const key = `${roomsOnly}:${query}:${retry}`;
   const [result, setResult] = useState<{
     owner: AuthorityGeneration;
     key: string;
@@ -49,7 +58,7 @@ export function DashboardPage() {
     if (!owner) return;
     const controller = new AbortController();
     setResult(null);
-    void readDashboard(query, controller.signal)
+    void readDashboard(query, controller.signal, roomsOnly)
       .then((data) => {
         if (!controller.signal.aborted) setResult({ owner, key, data });
       })
@@ -69,14 +78,15 @@ export function DashboardPage() {
         if (status === 401) actions.invalidateSession(owner);
       });
     return () => controller.abort();
-  }, [owner, key, query, actions]);
+  }, [owner, key, query, actions, roomsOnly]);
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
   const data = visible?.data;
   return (
     <main aria-label="Operations dashboard">
-      <h1>Operations dashboard</h1>
+      <h1>{roomsOnly ? "Room readiness dashboard" : "Operations dashboard"}</h1>
       <nav>
+        <Link to={roomsOnly ? "/dashboard" : "/dashboard/rooms"}>{roomsOnly ? "Operations dashboard" : "Room readiness dashboard"}</Link>{" "}
         <ReportAccessLink />{" "}
         <InternalRequestAccessLink />{" "}
         <HomeNavigation />
@@ -89,6 +99,7 @@ export function DashboardPage() {
         <>
           <DashboardFilters
             owner={owner}
+            roomsOnly={roomsOnly}
             invalidate={actions.invalidateSession}
             apply={(query) => {
               setQuery(query);
@@ -110,7 +121,7 @@ export function DashboardPage() {
               </p>
               <p>
                 Period (UTC): {data.filters.from} to {data.filters.to}. Applies
-                to stock movements, task effort and tasks closed in period. Open and overdue
+                to inspection cycles, stock movements, task effort and tasks closed in period. Room readiness and open or overdue
                 tasks show current status at the snapshot time.
               </p>
               {data.missingSources.length > 0 && (
@@ -134,6 +145,7 @@ export function DashboardPage() {
                         <span>{m.value === null
                           ? "N/A"
                           : `${m.value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${m.unit}`}</span>
+                        {m.value !== null && ["activeRooms", "readyRooms", "readyRatio"].includes(m.key) && <RoomLinks filters={data.filters} status={m.key === "activeRooms" ? undefined : "READY"} />}
                         {m.value !== null && dashboardWorkloadLink(data.filters, m.key) && (
                           <> <Link to={dashboardWorkloadLink(data.filters, m.key)!}>Review workload</Link></>
                         )}
@@ -153,7 +165,7 @@ export function DashboardPage() {
                         <th>Category</th>
                         <th>Recorded status / ID</th>
                         <th>Priority / severity ID</th>
-                        <th>Count</th>
+                        <th>Share of active rooms</th><th>Count</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -162,14 +174,15 @@ export function DashboardPage() {
                           <td>{sources[d.source] ?? "Other status records"}</td>
                           <td>{d.status}</td>
                           <td>{d.severity ?? "—"}</td>
-                          <td>{d.count}</td>
+                          <td>{d.source === "rooms.effective_readiness" && (data.metrics.find(m => m.key === "activeRooms")?.value ?? 0) > 0 ? ((100 * d.count) / data.metrics.find(m => m.key === "activeRooms")!.value!).toFixed(2) + "%" : "N/A"}</td>
+                          <td>{d.count}{d.source === "rooms.effective_readiness" && <RoomLinks filters={data.filters} status={d.status} />}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
               </section>
-              <section aria-label="Material quantities">
+              {!roomsOnly && <section aria-label="Material quantities">
                 <h2>Material quantities</h2>
                 <p>Quantities stay separate by item, unit and warehouse.</p>
                 {data.quantities.length === 0 ? (
@@ -198,7 +211,7 @@ export function DashboardPage() {
                     </tbody>
                   </table>
                 )}
-              </section>
+              </section>}
             </>
           )}
         </>

@@ -73,7 +73,8 @@ public sealed class InsightAccess(HotelOpsDbContext db, IPermissionService permi
                 .AnyAsync(d => d.DepartmentId == department && branches.Contains(d.BranchId), ct))
             throw new InsightException(403, "DEPARTMENT_SCOPE", "Department outside permitted branch scope.");
         var to = query.To ?? DateOnly.FromDateTime(now.UtcDateTime);
-        var from = query.From ?? (to.DayNumber >= 29 ? to.AddDays(-29) : DateOnly.MinValue);
+        var days = await DefaultPeriodDaysAsync(ct);
+        var from = query.From ?? (to.DayNumber >= days - 1 ? to.AddDays(1 - days) : DateOnly.MinValue);
         if (from > to || to == DateOnly.MaxValue)
             throw new InsightException(400, "INVALID_PERIOD", "Select a valid UTC calendar period.");
         return new(branches, query.DepartmentId, from, to);
@@ -86,7 +87,18 @@ public sealed class InsightAccess(HotelOpsDbContext db, IPermissionService permi
             .Select(b => new InsightBranch(b.BranchId, b.BranchCode, b.BranchName)).ToArrayAsync(ct);
         var departments = await db.Departments.AsNoTracking().Where(d => ids.Contains(d.BranchId)).OrderBy(d => d.DepartmentId)
             .Select(d => new InsightDepartment(d.DepartmentId, d.BranchId, d.DepartmentName)).ToArrayAsync(ct);
-        return new(branches, departments, "UTC", 30, 50000);
+        return new(branches, departments, "UTC", await DefaultPeriodDaysAsync(ct), 50000);
+    }
+
+    private async Task<int> DefaultPeriodDaysAsync(CancellationToken ct)
+    {
+        var values = await db.SystemSettings.AsNoTracking().Where(s => s.BranchId == null && s.SettingKey == "SYS-PAR-20")
+            .Select(s => s.SettingValue).ToArrayAsync(ct);
+        if (values.Length == 0) return 30; // Published SYS-PAR-20 default.
+        if (values.Length != 1 || !int.TryParse(values[0], System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out var days) || days < 1 || days > DateOnly.MaxValue.DayNumber)
+            throw new InsightException(503, "DASHBOARD_PERIOD_CONFIGURATION", "Invalid or ambiguous SYS-PAR-20 configuration.");
+        return days;
     }
 
     public static DateTime Start(InsightFilters filters) => filters.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
