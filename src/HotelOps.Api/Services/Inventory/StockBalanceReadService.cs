@@ -17,7 +17,11 @@ public sealed class StockBalanceQuery
     [Range(1, 1000000)] public int Page { get; set; } = 1;
     [Range(1, 100)] public int PageSize { get; set; } = 25;
 }
-public sealed record StockReadOption(long Id, string Name);
+public sealed record StockReadOption(long Id, string Name)
+{
+    public long? BranchId { get; init; }
+    public bool CanReplenish { get; init; }
+}
 public sealed record StockBalanceRow(long WarehouseId, long ItemId, string Item, string Unit,
     decimal Available, decimal OutboundInTransit, decimal InboundInTransit, decimal? Minimum, bool BelowMinimum);
 public sealed record StockLedgerRow(long MovementId, long DocumentId, string Document, string Type,
@@ -28,7 +32,8 @@ public sealed record StockBalanceResult(DateTimeOffset Snapshot, StockBalanceQue
 
 // UC089 is a read-only projection. Source movements and immutable transfer
 // conversion factors remain authoritative; this service never posts stock.
-public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess access, DashboardSessionGuard session)
+public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess access, DashboardSessionGuard session,
+    HotelOps.Api.Security.Authorization.IPermissionService permissions)
 {
     public async Task<HotelOps.Api.DTOs.Inventory.InventoryDocumentDto> DocumentAsync(long id, CancellationToken ct)
     {
@@ -51,7 +56,7 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
         return result;
     }
 
-    private IQueryable<StockMovement> Posted() => db.StockMovements.AsNoTracking().Where(m =>
+    internal static IQueryable<StockMovement> Posted(HotelOpsDbContext db) => db.StockMovements.AsNoTracking().Where(m =>
         m.ItemId == m.DocumentLine.ItemId &&
         (m.DocumentLine.Document.Status == "POSTED" || m.DocumentLine.Document.Status == "REVERSED"
          || m.DocumentLine.Document.DocumentType == "TRANSFER" &&
@@ -87,12 +92,22 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
             throw new InsightException(400, "INVALID_PERIOD", "Select a valid UTC period.");
         var warehouses = await db.Warehouses.AsNoTracking().Where(w => branches.Contains(w.BranchId)
             && (w.DepartmentId == null || w.Department!.BranchId == w.BranchId)).OrderBy(w => w.WarehouseId)
-            .Select(w => new StockReadOption(w.WarehouseId, w.WarehouseName)).ToArrayAsync(ct);
+            .Select(w => new StockReadOption(w.WarehouseId, w.WarehouseName) { BranchId = w.BranchId }).ToArrayAsync(ct);
+        foreach (var branch in branches)
+        {
+            var canCreate = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == access.UserId && r.IsActive && r.Role.IsActive
+                && r.Role.RoleCode == "STOREKEEPER" && (r.BranchId == null || r.BranchId == branch) && r.AssignedAt <= now
+                && (r.ExpiresAt == null || r.ExpiresAt > now), ct)
+                && (await permissions.EvaluateBranchAsync("REPLENISHMENT_VIEW", branch, ct)).IsGranted
+                && (await permissions.EvaluateBranchAsync("REPLENISHMENT_CREATE", branch, ct)).IsGranted;
+            if (canCreate) for (var index = 0; index < warehouses.Length; index++)
+                if (warehouses[index].BranchId == branch) warehouses[index] = warehouses[index] with { CanReplenish = true };
+        }
         var ids = warehouses.Select(w => w.Id).ToArray();
         if (query.WarehouseId is {} warehouse && !ids.Contains(warehouse))
             throw new InsightException(403, "ACCESS_DENIED", "Warehouse outside current inventory scope.");
         var selected = query.WarehouseId is {} one ? new[] { one } : ids;
-        var movements = Posted().Where(m => selected.Contains(m.WarehouseId) && m.OccurredAt <= now);
+        var movements = Posted(db).Where(m => selected.Contains(m.WarehouseId) && m.OccurredAt <= now);
         var transfers = db.StockDocumentLines.AsNoTracking().Where(l => l.Document.DocumentType == "TRANSFER"
             && (l.Document.Status == "IN_TRANSIT" || l.Document.Status == "PARTIALLY_RECEIVED")
             && l.Document.SourceWarehouseId != null && l.Document.DestinationWarehouseId != null);

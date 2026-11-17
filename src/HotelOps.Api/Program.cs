@@ -71,6 +71,9 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationN
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TaskNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.WorkAlertOptions>().BindConfiguration("WorkAlerts");
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.WorkAlertWorker>();
+builder.Services.AddOptions<HotelOps.Api.Services.Notifications.LowStockOptions>().BindConfiguration("LowStockAlerts");
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.LowStockAlerts>();
+builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.LowStockWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationOptions>()
     .BindConfiguration("MaterialApprovalNotifications").Validate(o => o.PollSeconds is >= 1 and <= 3600).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery>();

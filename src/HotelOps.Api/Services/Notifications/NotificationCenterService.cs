@@ -125,6 +125,20 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:LowStockAlerts.Kind,SourceType:LowStockAlerts.Source,SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await LowStockAlerts.InstalledAsync(db,ct)) throw new InsightException(404,"SOURCE_UNAVAILABLE","MSG02: Stock source unavailable.");
+            var episode=await LowStockAlerts.Query(db).SingleOrDefaultAsync(e=>e.Id==source.SourceId,ct);
+            var checkedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            if(episode==null||source.CreatedBy!=null||source.CreatedAt!=episode.OpenedAt||!await LowStockAlerts.CanReadAsync(db,user,episode,checkedAt,ct))
+                throw new InsightException(403,"ACCESS_DENIED","MSG02: Stock source access denied.");
+            await RevalidateSessionAsync(user,ct);
+            checkedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            if(!await LowStockAlerts.CanReadAsync(db,user,episode,checkedAt,ct)) throw new InsightException(403,"ACCESS_DENIED","MSG02: Stock source access denied.");
+            await tx.CommitAsync(ct);
+            return new($"/inventory/stock?warehouseId={episode.WarehouseId}&itemId={episode.ItemId}");
+        }
         if(source is {NotificationType:InternalRequestAlertDelivery.Kind,SourceType:InternalRequestAlertDelivery.Source,SourceId:>0})
         {
             if(!await WorkAlertEpisodeStore.InstalledAsync(db,ct))

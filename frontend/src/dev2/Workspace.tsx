@@ -59,7 +59,7 @@ function key(session: object) {
 }
 function operationDefaults(operation: Operation, source: Values = {}): Values {
   if (operation.id === "A004A-056") return { ...defaults(operation.fields, source), branchId: source.branchId,
-    sourceRequestId: source.sourceRequestId, shortageSource: source.shortageSource };
+    sourceRequestId: source.sourceRequestId, sourceItemId: source.itemId, shortageSource: source.shortageSource };
   if (operation.id === "A004A-051") return defaults(operation.fields, { ...source, mode: "FullRemaining", lines: [] });
   if (operation.id === "A004A-044" && Array.isArray(source.lines))
     return defaults(operation.fields, { ...source, lines: source.lines.filter(isObject).filter(l => l.isActive === true) });

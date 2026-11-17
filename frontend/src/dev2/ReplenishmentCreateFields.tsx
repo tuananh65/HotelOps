@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
@@ -23,21 +23,23 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const [source, setSource] = useState(values.shortageSource === "material-requests" ? "material-requests" : "low-stock"), [page, setPage] = useState(1), [revision, setRevision] = useState(0);
   const sourceRequestId = positive(values.sourceRequestId) ? String(values.sourceRequestId) : "";
+  const sourceItemId = positive(values.sourceItemId) ? String(values.sourceItemId) : "";
+  const prefilled = useRef("");
   const branch = String(values.branchId ?? ""), warehouse = String(values.warehouseId ?? "");
-  const key = `${branch}:${warehouse}:${source}:${sourceRequestId}:${page}:${revision}`;
+  const key = `${branch}:${warehouse}:${source}:${sourceRequestId}:${sourceItemId}:${page}:${revision}`;
   const [loaded, setLoaded] = useState<{ owner: typeof owner; key: string; data?: Page }>();
   useEffect(() => {
     setLoaded(undefined);
     if (owner === null || !positive(branch) || !positive(warehouse)) return;
     const abort = new AbortController();
-    void http({ method: "GET", url: `/api/replenishment-shortages/${source}?branchId=${branch}&warehouseId=${warehouse}&page=${page}&pageSize=20${source === "material-requests" && sourceRequestId ? `&sourceRequestId=${encodeURIComponent(sourceRequestId)}` : ""}`,
+    void http({ method: "GET", url: `/api/replenishment-shortages/${source}?branchId=${branch}&warehouseId=${warehouse}&page=${page}&pageSize=20${source === "material-requests" && sourceRequestId ? `&sourceRequestId=${encodeURIComponent(sourceRequestId)}` : ""}${source === "low-stock" && sourceItemId ? `&itemId=${encodeURIComponent(sourceItemId)}` : ""}`,
       expectedStatus: 200, decode, signal: abort.signal }).then(result => {
       if (abort.signal.aborted) return;
       setLoaded({ owner, key, data: result.ok ? result.data : undefined });
       if (!result.ok && (result.error.kind === "stale" || result.error.kind === "http" && result.error.status === 401)) void actions.revalidate();
     });
     return () => abort.abort();
-  }, [owner, branch, warehouse, source, sourceRequestId, page, key, actions]);
+  }, [owner, branch, warehouse, source, sourceRequestId, sourceItemId, page, key, actions]);
   const current = loaded?.owner === owner && loaded.key === key ? loaded : undefined;
   const lines = Array.isArray(values.lines) ? values.lines.filter(isObject) : [];
   function reset(next: Values) { onChange({ ...next, lines: [], shortageScope: "" }); setPage(1); }
@@ -55,6 +57,14 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
       units: c.units, inputUomId: c.baseUomId, inputQty: quantity, factorToBase: 1,
     }] });
   }
+  useEffect(() => {
+    // URL values select a candidate only. Quantity, unit and threshold are
+    // prefilled exclusively from the currently authorized server shortage.
+    if (source !== "low-stock" || !sourceItemId || !current?.data || prefilled.current === key) return;
+    prefilled.current = key;
+    const candidate = current.data.items.find(c => String(c.itemId) === sourceItemId);
+    if (candidate && lines.length === 0) select(candidate);
+  }, [current, key, source, sourceItemId, lines.length]);
   return <section aria-label="Create replenishment from shortages">
     <label>Branch ID<input required type="number" min="1" step="1" value={branch} onChange={e => reset({ ...values, branchId: e.target.value })} /></label>
     <label>Receiving warehouse ID<input required type="number" min="1" step="1" value={warehouse} onChange={e => reset({ ...values, warehouseId: e.target.value })} /></label>

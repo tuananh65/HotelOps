@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
-type Option = { id: number; name: string };
+type Option = { id: number; name: string; branchId?: number; canReplenish?: boolean };
 type Row = { warehouseId: number; itemId: number; item: string; unit: string; available: number;
   outboundInTransit: number; inboundInTransit: number; minimum: number | null; belowMinimum: boolean };
 type Movement = { movementId: number; documentId: number; document: string; type: string; at: string; quantity: number; runningBalance: number };
@@ -78,7 +78,10 @@ export function StockBalancePage() {
           <tbody>{data.items.map(r => <tr key={`${r.warehouseId}:${r.itemId}`}>
             <td>{data.warehouses.find(w => w.id === r.warehouseId)?.name}</td><td>{r.item} / {r.unit}</td>
             <td>{r.available}{r.belowMinimum && <strong> — Below minimum</strong>}</td><td>{r.outboundInTransit}</td><td>{r.inboundInTransit}</td><td>{r.minimum ?? "Not configured"}</td>
-            <td><button onClick={() => ledger(r)}>View ledger</button></td></tr>)}</tbody></table>
+            <td><button onClick={() => ledger(r)}>View ledger</button>
+              {r.belowMinimum && data.warehouses.find(w => w.id === r.warehouseId)?.canReplenish === true &&
+                <Link to={`/operations/replenishments?action=A004A-056&branchId=${data.warehouses.find(w => w.id === r.warehouseId)?.branchId}&warehouseId=${r.warehouseId}&itemId=${r.itemId}&shortageSource=low-stock`}>Create replenishment</Link>}
+            </td></tr>)}</tbody></table>
         <button disabled={data.filters.page <= 1} onClick={() => change("page", String(data.filters.page - 1))}>Previous</button>
         <button disabled={data.filters.page * data.filters.pageSize >= data.totalCount} onClick={() => change("page", String(data.filters.page + 1))}>Next</button>
         {data.openingBalance !== null && <>
