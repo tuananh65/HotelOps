@@ -24,17 +24,21 @@ internal sealed partial class MaterialApprovalNotificationDelivery(HotelOpsDbCon
               THEN 1 ELSE 0 END AS Value
             """).SingleAsync(ct) == 1;
 
-    private IQueryable<MaterialRequestApprovalCycle> Pending() => db.MaterialRequestApprovalCycles.AsNoTracking()
-        .Where(c => c.Status == "PENDING" && c.ResolvedAt == null && c.Request.Status == "PENDING_APPROVAL"
-            && c.AssignedApproverId != c.Request.RequesterId && c.AssignedApproverId != c.SubmittedBy
-            && !db.MaterialRequestApprovalCycles.Any(later => later.RequestId == c.RequestId && later.RevisionNo > c.RevisionNo));
+    private IQueryable<MaterialRequestApprovalCycle> SubmittedCycles() => db.MaterialRequestApprovalCycles.AsNoTracking()
+        // Submission is an event, not the current approval state. A decision or
+        // resubmission before the retry worker runs must not erase its notification.
+        .Where(c => c.AssignedApproverId != c.Request.RequesterId && c.AssignedApproverId != c.SubmittedBy
+            && c.MaterialRequestApprovalLineSnapshots.Any()
+            && (c.Status == "PENDING" && c.ResolvedAt == null
+                || (c.Status == "APPROVED" || c.Status == "REJECTED" || c.Status == "NEEDS_INFORMATION" || c.Status == "SUPERSEDED")
+                    && c.ResolvedAt >= c.SubmittedAt));
 
     internal async Task<long[]> PendingAsync(long after, CancellationToken ct)
     {
         if (!await InstalledAsync(ct)) return [];
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var cutoff = NotificationRetention.At(now, retention.Value).Cutoff;
-        return await Pending().Where(c => c.ApprovalCycleId > after && c.SubmittedAt >= cutoff && c.SubmittedAt <= now
+        return await SubmittedCycles().Where(c => c.ApprovalCycleId > after && c.SubmittedAt >= cutoff && c.SubmittedAt <= now
             && !db.NotificationRecipients.Any(r => r.Notification.SourceType == Source && r.Notification.SourceId == c.ApprovalCycleId
                 && r.Notification.NotificationType == Kind && r.UserId == c.AssignedApproverId
                 && r.DeliveryChannel == "IN_APP" && r.DeliveryStatus == "DELIVERED"))
@@ -46,7 +50,8 @@ internal sealed partial class MaterialApprovalNotificationDelivery(HotelOpsDbCon
         try { await MaterialApprovalAuthority.ValidateAsync(db, request, approver, ct); }
         catch (ValidationException) { return false; }
         var scope = await MaterialRequestReadAccess.ReadAsync(db, approver, request.BranchId, now, ct);
-        return await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == request.RequestId, ct);
+        return await scope.Apply(db.MaterialRequests.AsNoTracking()).AnyAsync(r => r.RequestId == request.RequestId, ct)
+            && await MaterialReadProvenance.ValidAsync(db, request.RequestId, request.BranchId, ct);
     }
 
     internal async Task<string> DeliverAsync(long cycleId, CancellationToken ct)
@@ -55,14 +60,14 @@ internal sealed partial class MaterialApprovalNotificationDelivery(HotelOpsDbCon
             || System.Transactions.Transaction.Current != null || db.Database.CreateExecutionStrategy().RetriesOnFailure)
             throw new InvalidOperationException("Independent clean delivery context required.");
         if (!await InstalledAsync(ct)) return "SCHEMA_REQUIRED";
-        var hint = await Pending().Where(c => c.ApprovalCycleId == cycleId)
+        var hint = await SubmittedCycles().Where(c => c.ApprovalCycleId == cycleId)
             .Select(c => new { c.RequestId, c.Request.RequesterId, c.AssignedApproverId, c.SubmittedBy, c.SubmittedAt }).SingleOrDefaultAsync(ct);
         if (hint == null) return "SOURCE_UNAVAILABLE";
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([hint.RequesterId, hint.AssignedApproverId, hint.SubmittedBy], ct);
         var request = await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH(UPDLOCK,HOLDLOCK) WHERE request_id={hint.RequestId}")
             .AsNoTracking().SingleOrDefaultAsync(ct);
-        var current = await Pending().SingleOrDefaultAsync(c => c.ApprovalCycleId == cycleId, ct);
+        var current = await SubmittedCycles().SingleOrDefaultAsync(c => c.ApprovalCycleId == cycleId, ct);
         if (request == null || request.RequesterId != hint.RequesterId || current == null || current.RequestId != hint.RequestId
             || current.AssignedApproverId != hint.AssignedApproverId || current.SubmittedBy != hint.SubmittedBy
             || current.SubmittedAt != hint.SubmittedAt) return "SOURCE_CHANGED";
@@ -77,7 +82,7 @@ internal sealed partial class MaterialApprovalNotificationDelivery(HotelOpsDbCon
         if (notice == null)
         {
             notice = new Notification { NotificationType = Kind, SourceType = Source, SourceId = cycleId,
-                Title = "Material request awaiting approval", Message = "A material request awaits your review. Current permission is required to open it.",
+                Title = "Material request submitted for approval", Message = "A material request was submitted to you for review. Open it to see its current status; this notification does not mean approval is still pending.",
                 Priority = "NORMAL", CreatedBy = current.SubmittedBy, CreatedAt = current.SubmittedAt };
             db.Notifications.Add(notice);
             await db.SaveChangesAsync(ct);

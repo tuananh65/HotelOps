@@ -1,3 +1,4 @@
+import { NotificationUnreadBadge } from "../notifications/NotificationUnreadBadge";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -47,5 +48,5 @@ export function HomeNavigation({ enabled }: { enabled?: readonly string[] }) {
   }, [owner, actions]);
   const visible = owner && result?.owner === owner ? result.paths : [];
   return <span aria-label="Authorized home navigation">{visible.filter(path => !enabled || enabled.includes(path))
-    .map(path => <span key={path}><Link to={path}>{labels[path]}</Link>{" "}</span>)}</span>;
+    .map(path => <span key={path}><Link to={path}>{labels[path]}{path === "/notifications" && <NotificationUnreadBadge />}</Link>{" "}</span>)}</span>;
 }
