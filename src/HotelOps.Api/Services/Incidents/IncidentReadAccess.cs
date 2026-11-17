@@ -36,7 +36,7 @@ internal static class IncidentReadAccess
             valid.Any(g => g.Role is "MAINTENANCE_LEAD" or "OPERATIONS_MANAGER" && PermissionGrantRules.EffectiveScope(g.Path) == "BRANCH"),
             valid.Any(g => g.Role is "SYS_ADMIN" or "OPERATIONS_MANAGER" or "HK_SUPERVISOR" or "HK_STAFF"
                 or "MAINTENANCE_LEAD" or "MAINTENANCE_STAFF" or "STOREKEEPER" or "DEPT_MANAGER"
-                && PermissionGrantRules.EffectiveScope(g.Path) is "OWN" or "BRANCH"), true);
+                && PermissionGrantRules.EffectiveScope(g.Path) is "OWN" or "BRANCH"));
     }
     internal static async Task<Scope> ReadAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct, bool sourceRecord = false)
     {
