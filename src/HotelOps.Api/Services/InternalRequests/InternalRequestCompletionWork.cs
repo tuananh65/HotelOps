@@ -44,8 +44,14 @@ public static class InternalRequestCompletionWork
             from state in workflow.DefaultIfEmpty()
             select new { link.Id, link.Mandatory, task.BranchId, State = state == null ? null : state.State }).ToArrayAsync(ct);
         foreach (var row in taskRows)
-            if (row.BranchId != request.BranchId || row.Mandatory && row.State != "CLOSED")
+        {
+            // Approved UC102: generated occurrences may be resolved by their valid
+            // cancellation workflow; neither future slots nor a bare status suffice.
+            var cancelledOccurrence=row.Mandatory&&row.State=="CANCELLED"&&row.BranchId==request.BranchId
+                &&await TaskSeriesRequestLink.CancelledOccurrenceProvenAsync(db,requestId,row.Id,request.BranchId,ct);
+            if (row.BranchId != request.BranchId || row.Mandatory && row.State != "CLOSED"&&!cancelledOccurrence)
                 blockers.Add(new("TASK", row.Id, row.BranchId != request.BranchId ? "LINK_BRANCH_MISMATCH" : "MANDATORY_WORK_NOT_CLOSED"));
+        }
         var explicitTaskIds = tasks.Select(l => l.Id);
         foreach (var id in await db.OperationalTasks.AsNoTracking()
             .Where(t => t.SourceType == "INTERNAL_REQUEST" && t.SourceId == requestId && !explicitTaskIds.Contains(t.TaskId))
