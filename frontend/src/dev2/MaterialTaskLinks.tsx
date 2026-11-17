@@ -6,7 +6,7 @@ import { createHttpClient, isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
 const http = createHttpClient(), auth = createAuthApi();
-type Row = { taskId: number; code: string; title: string; state: string | null };
+type Row = { taskId: number; code: string; title: string; state: string | null; workId?: number | null };
 type View = { requestId: number; branchId: number; version: string; canLink: boolean; candidates: boolean; page: number; total: number; items: Row[] };
 const id = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 function decode(v: unknown): View | undefined {
@@ -14,13 +14,14 @@ function decode(v: unknown): View | undefined {
     || typeof v.canLink !== "boolean" || typeof v.candidates !== "boolean" || !id(v.page)
     || typeof v.total !== "number" || !Number.isSafeInteger(v.total) || v.total < 0 || !Array.isArray(v.items)
     || v.items.some(r => !isObject(r) || !id(r.taskId) || typeof r.code !== "string" || typeof r.title !== "string"
-      || !(r.state === null || typeof r.state === "string"))) return undefined;
+      || !(r.state === null || typeof r.state === "string") || !(r.workId == null || id(r.workId)))) return undefined;
   return v as View;
 }
 
-export function MaterialTaskLinks({ record, kind = "operational" }: { record: Values; kind?: "operational" | "cleaning" }) {
-  const endpoint = kind === "cleaning" ? "linked-cleaning-tasks" : "linked-tasks";
-  const label = kind === "cleaning" ? "Cleaning" : "Operational";
+export function MaterialTaskLinks({ record, kind = "operational" }: { record: Values; kind?: "operational" | "cleaning" | "maintenance" | "incident" }) {
+  const endpoint = { operational: "linked-tasks", cleaning: "linked-cleaning-tasks", maintenance: "linked-maintenance-occurrences", incident: "linked-incidents" }[kind];
+  const label = { operational: "Operational task", cleaning: "Cleaning task", maintenance: "Maintenance occurrence", incident: "Incident" }[kind];
+  const permission = { operational: "TASK_VIEW", cleaning: "CLEANING_VIEW", maintenance: "MAINTENANCE_VIEW", incident: "INCIDENT_VIEW" }[kind];
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
   const user = state.session?.user.id;
@@ -36,7 +37,8 @@ export function MaterialTaskLinks({ record, kind = "operational" }: { record: Va
       expectedStatus: 200, decode, signal: abort.signal }).then(result => {
       if (abort.signal.aborted) return;
       const matching = result.ok && result.data.requestId === record.requestId && result.data.branchId === record.branchId
-        && result.data.candidates === candidates && result.data.page === page;
+        && result.data.candidates === candidates && result.data.page === page
+        && (kind !== "maintenance" || result.data.items.every(row => id(row.workId)));
       setLoaded({ owner, key, data: matching ? result.data : undefined, error: !result.ok && result.error.kind === "http" && result.error.status === 503
         ? "Task links require the installed, verified schema capability." : "Task links unavailable in your current scope." });
       if (!result.ok && (result.error.kind === "stale" || result.error.kind === "http" && result.error.status === 401)) void actions.revalidate();
@@ -58,7 +60,12 @@ export function MaterialTaskLinks({ record, kind = "operational" }: { record: Va
         csrfToken: session.data.csrfToken, signal: abort.signal, body: { taskId: task.taskId, expectedRowVersion: view.version },
         decode: v => isObject(v) && v.requestId === view.requestId && v.taskId === task.taskId && typeof v.version === "string" ? v : undefined });
       if (abort.signal.aborted) return;
-      setMessage(result.ok ? "Task linked. Reload the material request before making other changes."
+      const rejected = !result.ok && result.error.kind === "http" ? result.error.status : undefined;
+      setMessage(result.ok ? "MSG08: Work linked. Reload the material request before making other changes."
+        : rejected === 412 ? "The material request changed. Reload and review the selected work again."
+        : rejected === 404 ? "MSG03: The selected work is no longer open or readable in this branch. Choose another record."
+        : rejected === 409 ? "MSG03: Work is already linked, closed, or no longer eligible. Refresh the request and work list."
+        : rejected === 403 ? "Your current permission or requester relationship does not permit this link."
         : "Link not confirmed. Reload links to check the outcome before trying again.");
       // Clear the old version after every attempted mutation; never retry automatically.
       setLoaded(undefined); setCandidates(false); setPage(1); setRevision(v => v + 1);
@@ -68,21 +75,21 @@ export function MaterialTaskLinks({ record, kind = "operational" }: { record: Va
     }
   }
   return <section aria-label={`Linked ${label.toLowerCase()} tasks`}>
-    <h3>{label} task links</h3>
-    <p>Only tasks in your current {kind === "cleaning" ? "CLEANING_VIEW" : "TASK_VIEW"} scope are shown. Linking records work attribution; it does not issue materials or change task state.</p>
+    <h3>{label} links</h3>
+    <p>Only work in your current {permission} scope are shown. Linking records work attribution; it does not issue materials or change task state.</p>
     {message && <p role="status">{message}</p>}
     {!current ? <p role="status">Loading task links…</p> : !current.data ? <p role="alert">{current.error}</p> : <>
       {current.data.canLink && <button type="button" disabled={busy} onClick={() => { setCandidates(v => !v); setPage(1); }}>
-        {candidates ? "Show linked tasks" : "Select open task to link"}</button>}
+        {candidates ? "Show linked work" : "Select open work to link"}</button>}
       {current.data.items.length === 0 && <p>No {candidates ? "eligible open" : "linked"} tasks visible.</p>}
       <ul>{current.data.items.map(task => <li key={task.taskId}>
-        <Link to={kind === "cleaning" ? `/cleaning/tasks/${task.taskId}?branchId=${current.data!.branchId}&execution=1` : `/operational-tasks?branchId=${current.data!.branchId}&taskId=${task.taskId}`}>{task.code}</Link>
+        <Link to={kind === "incident" ? `/operations/incidents?action=A004A-023&id=${task.taskId}` : kind === "maintenance" ? `/operations/maintenance?action=A004A-036&id=${task.workId}` : kind === "cleaning" ? `/cleaning/tasks/${task.taskId}?branchId=${current.data!.branchId}&execution=1` : `/operational-tasks?branchId=${current.data!.branchId}&taskId=${task.taskId}`}>{task.code}{kind === "maintenance" ? ` / occurrence #${task.taskId}` : ""}</Link>
         {" "}{task.title} — {task.state ?? "Workflow state unavailable"}
-        {candidates && current.data!.canLink && <button type="button" disabled={busy} onClick={() => void link(task)}>Link task</button>}
+        {candidates && current.data!.canLink && <button type="button" disabled={busy} onClick={() => void link(task)}>Link work</button>}
       </li>)}</ul>
       <button type="button" disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
       <button type="button" disabled={busy || page * 25 >= current.data.total} onClick={() => setPage(p => p + 1)}>Next</button>
     </>}
-    <button type="button" disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload task links</button>
+    <button type="button" disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload work links</button>
   </section>;
 }

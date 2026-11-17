@@ -184,6 +184,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialReques
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialCreationAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialTaskLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialCleaningLinks>();
+builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialOccurrenceLinks>();
+builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialIncidentLinks>();
 builder.Services.AddScoped<IInventoryIssuePosting>(services => services.GetRequiredService<InventoryService>());
 
 builder.Services.Configure<PasswordHasherOptions>(options =>

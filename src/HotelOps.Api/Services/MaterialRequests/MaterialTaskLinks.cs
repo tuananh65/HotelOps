@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.MaterialRequests;
 
 public sealed record MaterialTaskLinkInput(long TaskId, string ExpectedRowVersion);
-public sealed record MaterialTaskLinkRow(long TaskId, string Code, string Title, string? State);
+public sealed record MaterialTaskLinkRow(long TaskId, string Code, string Title, string? State, long? WorkId = null);
 public sealed record MaterialTaskLinksView(long RequestId, long BranchId, string Version, bool CanLink,
     bool Candidates, int Page, int Total, MaterialTaskLinkRow[] Items);
 

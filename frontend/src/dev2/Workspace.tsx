@@ -777,7 +777,7 @@ function Screen({
       {operation.id === "A004A-023" && data !== undefined && !denied && !sessionLost && typeof record.incidentId === "number" && record.incidentId > 0
         && <IncidentEvidencePanel key={record.incidentId} incidentId={record.incidentId} />}
       {module === "material-requests" && operation.id === "A004A-038" && record.requestId != null
-        && <><MaterialTaskLinks record={record} /><MaterialTaskLinks record={record} kind="cleaning" /></>}
+        && <><MaterialTaskLinks record={record} /><MaterialTaskLinks record={record} kind="cleaning" /><MaterialTaskLinks record={record} kind="maintenance" /><MaterialTaskLinks record={record} kind="incident" /></>}
       {module === "material-requests" && materialApprovalReady(record, actor, "A004A-047")
         && <MaterialReviewHistory record={record} />}
       {module === "material-requests" && record.rawStatus === "PARTIALLY_ISSUED" && record.branchId != null
