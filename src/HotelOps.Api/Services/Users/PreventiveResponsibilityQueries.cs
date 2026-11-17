@@ -45,7 +45,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
         foreach(var row in rows)
         {
             var fact=$"PREVENTIVE_OCCURRENCE:{row.RunId}";
-            if(row.State is "ASSIGNED" or "IN_PROGRESS")
+            if(row.State is "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD")
             {
                 if(before==null && after==null)blockers.Add(fact);
                 else
@@ -56,7 +56,7 @@ internal sealed class PreventiveResponsibilityQueries(HotelOpsDbContext db)
                     if(impact==RevokeCapabilityImpact.Unknown)unresolved.Add(fact+"_AUTHORITY_UNRESOLVED");
                 }
             }
-            if(!row.TargetValid || row.WorkId!=null || row.State is not ("ASSIGNED" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED")
+            if(!row.TargetValid || row.WorkId!=null || row.State is not ("ASSIGNED" or "IN_PROGRESS" or "ON_HOLD" or "COMPLETED" or "CANCELLED")
                 || (row.State=="COMPLETED" ? row.PerformedAt==null || row.PerformedBy!=target : row.PerformedAt!=null || row.PerformedBy!=null)
                 || row.OpenIntervals!=(row.State=="IN_PROGRESS"?1:0))unresolved.Add(fact+"_INCONSISTENT");
         }

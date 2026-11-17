@@ -6,8 +6,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
-import { createUsersApi } from "./usersApi";
-import { createUserProfileApi } from "./userProfileApi";
+import { decodeUserDeactivationPreview, UserDeactivationReview } from "./UserDeactivationReview";
 import {
   createUserDeactivationCandidateApi,
   type DeactivationResult,
@@ -61,7 +60,7 @@ function settle(
   }
   notify();
 }
-/** Intentionally absent from production routes; read identity never authorizes deactivation. */
+/** A current dependency preview precedes confirmation; the server independently rechecks every mutation. */
 export function UserDeactivationCandidate({
   userId,
   dispatchEnabled = false,
@@ -132,6 +131,7 @@ function Bound({
     name: string;
     accountStatus: string;
     etag: string;
+    blocked: string | null;
   } | null>(null);
   const [reason, setReason] = useState(""),
     [review, setReview] = useState(false),
@@ -160,43 +160,48 @@ function Bound({
     const abort = new AbortController();
     let reading = true;
     void (async () => {
-      const profile = await createUserProfileApi().getProfile(
-        userId,
-        abort.signal,
-      );
-      if (!reading || !alive.current || !current()) return;
-      if (!profile.ok) {
-        setPhase("unavailable");
-        setStatus(profile.error.status);
+      let response: Response;
+      let preview;
+      try {
+        response = await fetch(`/api/users/${userId}/deactivation-preview`, {
+          credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
+        });
+        preview = response.ok ? decodeUserDeactivationPreview(await response.json(), userId) : null;
+      } catch {
+        if (reading && alive.current && current()) setPhase("unavailable");
         return;
       }
-      const account = await createUsersApi().getUser(userId, abort.signal);
       if (!reading || !alive.current || !current()) return;
-      if (!account.ok) {
+      if (!preview) {
         setPhase("unavailable");
-        setStatus(
-          account.error.kind === "http" ? account.error.status : undefined,
-        );
+        setStatus(response.status);
         return;
       }
+      const blocked = preview.accountStatus !== "ACTIVE" ? "Only an Active account can be deactivated."
+        : preview.lastDurableAdministrator ? "The last durable Administrator cannot be deactivated."
+        : preview.coverageIncomplete ? "Dependencies require review before this account can be deactivated."
+        : preview.hasOpenResponsibilities ? "Resolve the account's outstanding responsibilities before deactivation." : null;
       setData({
-        name: account.data.fullName,
-        accountStatus: account.data.accountStatus,
-        etag: profile.etag,
+        name: `User ${userId}`,
+        accountStatus: preview.accountStatus,
+        etag: `"${preview.version}"`,
+        blocked,
       });
-      setPhase("ready");
+      attempted.current = false;
+      setPhase(blocked ? "blocked" : "ready");
     })();
     return () => {
       reading = false;
       abort.abort();
     };
-  }, [principal, userId, reservation]);
+  }, [principal, userId, reservation, phase]);
   async function confirm() {
     if (
       !enabled ||
       busy.current ||
       attempted.current ||
       !data ||
+      data.blocked !== null ||
       !review ||
       reason.trim().length < 10 ||
       !current()
@@ -232,8 +237,7 @@ function Bound({
   }
   return (
     <main>
-      <h1>Deactivate user candidate</h1>
-      <p>Business activation is blocked. No production route is enabled.</p>
+      <h1>Deactivate user account</h1>
       {data && !reservation && (
         <section aria-label="Target account">
           <p>
@@ -272,6 +276,11 @@ function Bound({
           )}
         </>
       )}
+      {phase === "blocked" && !reservation && <>
+        <p role="alert">{data?.blocked}</p>
+        <UserDeactivationReview userId={userId} autoLoad />
+        <button type="button" onClick={() => { setData(null); setReview(false); setPhase("loading"); }}>Review account again</button>
+      </>}
       {phase === "loading" && !reservation && (
         <p role="status">Loading account...</p>
       )}

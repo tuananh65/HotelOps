@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
-// Technical HTTP proposal for source review, not a public/approved runtime endpoint.
-[NonController]
 [ApiController, Route("api/users"), Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ValidateAntiForgeryToken, ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [UserAccountActivationErrors]
@@ -26,9 +24,6 @@ public sealed class UserDeactivationCandidateController(UserAccountDeactivationS
         if (Request.Headers.IfMatch.Count != 1 || tag.Length != 18 || tag[0] != '"' || tag[^1] != '"'
             || !tag[1..^1].All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F')) return Failure(400, "INVALID_IF_MATCH");
         if (!UserAccountDeactivationRequest.TryParse(body, out var request)) return Failure(400, "VALIDATION_FAILED");
-        // Reuse the existing immutable release evidence; never create a new config bypass.
-        try { UserAccountDeactivationReleaseAcceptance.EnsureAccepted(); }
-        catch (DeactivationReleaseNotAcceptedException) { return Failure(503, "DEACTIVATION_RELEASE_REQUIRED"); }
         var result = await service.DeactivateAsync(ticket, sessionId, userId, Convert.FromHexString(tag[1..^1]), request!, ct);
         if (result.Status == AccountDeactivationStatus.Success)
         {
@@ -43,6 +38,7 @@ public sealed class UserDeactivationCandidateController(UserAccountDeactivationS
             AccountDeactivationStatus.Stale => Failure(412, "STALE_USER_VERSION"),
             AccountDeactivationStatus.Conflict => Failure(409, "INVALID_STATUS_TRANSITION"),
             AccountDeactivationStatus.ResponsibilitiesBlocked => Failure(409, "OPEN_RESPONSIBILITIES"),
+            AccountDeactivationStatus.ResponsibilitiesUnresolved => Failure(409, "RESPONSIBILITIES_REQUIRE_REVIEW"),
             AccountDeactivationStatus.LastAdministrator => Failure(409, "LAST_DURABLE_ADMIN"),
             _ => Failure(503, "DEACTIVATION_UNAVAILABLE")
         };

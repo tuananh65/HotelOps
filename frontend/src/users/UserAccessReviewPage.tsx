@@ -7,6 +7,7 @@ import type {
 } from "./contracts";
 import { useUsersContext } from "./UsersRouteBoundary";
 import { useUserRead, usersReadMessage } from "./useUserRead";
+import { UserDeactivationReview } from "./UserDeactivationReview";
 
 function Account({ account }: { account: UserAccountDetailDto }) {
   return (
@@ -232,6 +233,7 @@ function UserReads({
           <Link to={`/users/${userId}/reset-credential`}>Reset credential</Link>
           <Link to={`/users/${userId}/branches/add`}>Add branch membership</Link>
           <Link to={`/users/${userId}/departments`}>Department memberships</Link>
+          <Link to={`/users/${userId}/deactivate`}>Deactivate account</Link>
         </>}
         {roleAssignmentEnabled && (
           <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>
@@ -257,6 +259,7 @@ function UserReads({
           </>
         )}
       </section>
+      {accountManagementEnabled && <UserDeactivationReview userId={userId} />}
       <section aria-label="Access review">
         <h2>Access review</h2>
         <form onSubmit={filter} aria-label="Access review filters">

@@ -34,6 +34,7 @@ import { InternalRequestIntakePage, InternalRequestIntakeLink } from "../interna
 import { Dev2Workspace } from "../dev2/Workspace";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
+import { DeactivateUserFlowBoundary } from "../users/DeactivateUserFlowBoundary";
 import { CreateUserFlowBoundary } from "../users/CreateUserFlowBoundary";
 import { UpdateUserFlowBoundary } from "../users/UpdateUserFlowBoundary";
 import { CredentialResetRoute } from "../users/CredentialResetRoute";
@@ -124,6 +125,7 @@ export function SharedAuthHost({
       {accountManagementEnabled && <Route path="/users/:id/reset-credential" element={<CredentialResetRoute />} />}
       {accountManagementEnabled && <Route path="/users/:id/departments" element={<Protected><EmployeeMembershipPage /></Protected>} />}
       {accountManagementEnabled && <Route path="/users/:id/branches/add" element={<AddUserBranchFlowBoundary />} />}
+      {accountManagementEnabled && <Route path="/users/:id/deactivate" element={<DeactivateUserFlowBoundary />} />}
       {roleAssignmentEnabled && <Route path="/roles" element={<RoleCatalogRoute mode="list" creationEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/new" element={<CustomRoleForm dispatchEnabled />} />}
       {roleAssignmentEnabled && <Route path="/roles/:roleId" element={<RoleCatalogRoute mode="detail" creationEnabled />} />}

@@ -13,6 +13,7 @@ import { StandaloneUserAccessReviewPage as UserAccessReviewPage } from "../users
 import { CreateUserFlowBoundary } from "../users/CreateUserFlowBoundary";
 import { UpdateUserFlowBoundary } from "../users/UpdateUserFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
+import { DeactivateUserFlowBoundary } from "../users/DeactivateUserFlowBoundary";
 import { AddUserBranchFlowBoundary } from "../users/AddUserBranchFlowBoundary";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 
@@ -149,6 +150,7 @@ export function StandaloneAuthRouteHost() {
         path="/users/:id/activate"
         element={<ActivateUserFlowBoundary />}
       />
+      <Route path="/users/:id/deactivate" element={<DeactivateUserFlowBoundary />} />
       <Route
         path="/users/:id/branches/add"
         element={<AddUserBranchFlowBoundary />}

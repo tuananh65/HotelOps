@@ -22,9 +22,9 @@ public enum AccountDeactivationStatus
 public sealed record AccountDeactivationResult(AccountDeactivationStatus Status, byte[]? Version = null);
 
 /// <summary>
-/// Internal integration primitive: no HTTP endpoint or DI registration until acceptance passes.
+/// Integrated account lifecycle mutation with current SQL authority and responsibility checks.
 /// The concrete responsibility review cannot be replaced by an injected "clear" evaluator.
-/// Current unresolved contracts always prevent mutation, including direct service calls.
+/// Unresolved target data always prevents mutation, including direct service calls.
 /// </summary>
 public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAccountStatusAccess access,
     ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock, Dev2DependencyReader? dependencyReader = null)
@@ -46,7 +46,7 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
             || db.ChangeTracker.Entries().Any())
             throw new InvalidOperationException("Deactivation requires a clean context and its own SQL transaction.");
         var expected = expectedVersion.ToArray();
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         GlobalAdminTransaction guard;
         try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
         catch (GlobalAdminLockException) { return new(AccountDeactivationStatus.SerializationUnavailable); }
@@ -68,21 +68,23 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         if (target is null) return new(AccountDeactivationStatus.NotFound);
         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AccountDeactivationStatus.Stale);
         if (target.AccountStatus != "ACTIVE") return new(AccountDeactivationStatus.Conflict);
-        var responsibilities = new TransactionalUserResponsibilities(db, dependencyReader);
-        async Task<AccountDeactivationStatus?> Review(bool afterMutation = false)
+        // Keep the optional diagnostic dependency for source compatibility with existing
+        // callers; runtime clearance is based on the current concrete workflow contracts.
+        _ = dependencyReader;
+        var responsibilities = new AccountDeactivationResponsibilities(db);
+        async Task<AccountDeactivationStatus?> Review()
         {
-            var facts = await responsibilities.ReadAsync(targetId, afterMutation, ct);
+            var facts = await responsibilities.ReadAsync(targetId, ct);
             if (facts.Unsupported.Count != 0 || facts.Unresolved.Count != 0) return AccountDeactivationStatus.ResponsibilitiesUnresolved;
             return facts.Blockers.Count != 0 ? AccountDeactivationStatus.ResponsibilitiesBlocked : null;
         }
-        var review = await responsibilities.ReadAsync(targetId, false, ct);
+        var review = await responsibilities.ReadAsync(targetId, ct);
         // Unresolved takes precedence: a known blocker never masks incomplete coverage.
         if (review.Unsupported.Count != 0 || review.Unresolved.Count != 0)
             return new(AccountDeactivationStatus.ResponsibilitiesUnresolved);
         if (review.Blockers.Count != 0) return new(AccountDeactivationStatus.ResponsibilitiesBlocked);
-        // Mandatory immutable release fuse. Even if a future target's runtime review
-        // is fully clear, no direct service call may mutate before release acceptance.
-        try { UserAccountDeactivationReleaseAcceptance.EnsureAccepted(); }
+        // Retain the SQL boundary even for direct calls; a preview is never clearance.
+        try { UserAccountDeactivationReleaseAcceptance.EnsureAccepted(db); }
         catch (DeactivationReleaseNotAcceptedException) { return new(AccountDeactivationStatus.ReleaseAcceptanceRequired); }
         if (await Gate() is { } preWriteDenied) return new(preWriteDenied);
         if (await Review() is { } changedWork) return new(changedWork);
@@ -116,7 +118,7 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         try { await guard.EnsurePreservedAsync(before, ct); }
         catch (GlobalAdministrationInvariantException) { return new(AccountDeactivationStatus.LastAdministrator); }
         if (await Gate() is { } finalDenied) return new(finalDenied);
-        if (await Review(afterMutation: true) is { } finalWork) return new(finalWork);
+        if (await Review() is { } finalWork) return new(finalWork);
         await transaction.CommitAsync(ct);
         return new(AccountDeactivationStatus.Success, version);
         // Every early return / exception disposes the uncommitted transaction (rollback).

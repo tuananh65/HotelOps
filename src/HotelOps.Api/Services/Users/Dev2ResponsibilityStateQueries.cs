@@ -1,4 +1,7 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.Incidents;
+using HotelOps.Api.Services.InternalRequests;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -10,6 +13,25 @@ namespace HotelOps.Api.Services.Users;
 /// </summary>
 internal sealed class Dev2ResponsibilityStateQueries(HotelOpsDbContext db)
 {
+    private async Task<bool> IsHistoricalClosedWorkAsync(long incident, long work, CancellationToken ct)
+    {
+        // ReadAsync reuses closure, event and audit provenance validation. It requires
+        // the owning Serializable transaction; a diagnostic read cannot certify clearance.
+        if (db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel != System.Data.IsolationLevel.Serializable
+            || !await IncidentReopenStore.InstalledAsync(db, ct)) return false;
+        var events = await db.Database.SqlQuery<long>($"""
+            SELECT reopen_event_id AS Value FROM dbo.incident_reopen_cycles WITH(HOLDLOCK)
+            WHERE incident_id={incident} AND previous_work_id={work}
+            """).ToArrayAsync(ct);
+        if (events.Length != 1) return false;
+        try
+        {
+            var boundary = await IncidentReopenStore.ReadAsync(db, incident, ct, events[0]);
+            return boundary?.PreviousWorkId == work;
+        }
+        catch (InternalRequestReadException) { return false; }
+    }
+
     internal async Task<IReadOnlyList<string>> ReadUnresolvedAsync(long targetId, CancellationToken ct)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
@@ -19,7 +41,7 @@ internal sealed class Dev2ResponsibilityStateQueries(HotelOpsDbContext db)
             where work.AssigneeId == targetId
             join incident in db.Incidents.AsNoTracking() on work.IncidentId equals (long?)incident.IncidentId into incidents
             from incident in incidents.DefaultIfEmpty()
-            select new { work.Status, work.IncidentId, work.ResolvedAt, work.ReviewedAt,
+            select new { work.MaintenanceWorkId, work.Status, work.IncidentId, work.ResolvedAt, work.ReviewedAt,
                 IncidentStatus = incident == null ? null : incident.Status }).ToArrayAsync(ct);
         foreach (var row in works)
         {
@@ -29,7 +51,13 @@ internal sealed class Dev2ResponsibilityStateQueries(HotelOpsDbContext db)
                 "COMPLETED" => "RESOLVED", "CLOSED" => "CLOSED", "CANCELLED" => "CANCELLED", _ => null
             };
             if (incident is null) { Invalid("DEV2_MAINTENANCE_STATUS"); continue; }
-            if (row.IncidentId != null && row.IncidentStatus != incident) Invalid("DEV2_MAINTENANCE_INCIDENT_STATE");
+            if (row.IncidentId is long incidentId && row.IncidentStatus != incident)
+            {
+                // UC060 preserves the previous CLOSED work when its Incident opens a new
+                // cycle. Only an immutable, fully validated boundary can make it historical.
+                if (row.Status != "CLOSED" || !await IsHistoricalClosedWorkAsync(incidentId, row.MaintenanceWorkId, ct))
+                    Invalid("DEV2_MAINTENANCE_INCIDENT_STATE");
+            }
             if (row.Status is "PENDING" or "IN_PROGRESS" or "ON_HOLD")
             { if (row.ResolvedAt != null) Invalid("DEV2_MAINTENANCE_COMPLETION_MARKER"); }
             else if (row.Status is "COMPLETED" or "CLOSED")

@@ -22,7 +22,7 @@ export type DeactivationResult =
     };
 const tag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
-/** Unmounted technical candidate. Backend release gates cannot be enabled by this client. */
+/** Explicit confirmation client; the server always repeats authorization and dependency checks. */
 export function createUserDeactivationCandidateApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,

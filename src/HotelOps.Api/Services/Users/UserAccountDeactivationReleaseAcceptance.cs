@@ -1,23 +1,26 @@
+using HotelOps.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace HotelOps.Api.Services.Users;
 
 /// <summary>
-/// Release evidence, independent of any target's business data. No configuration,
-/// injected evaluator, caller flag or empty responsibility result can approve release.
-/// Closing a gate requires a reviewed source change backed by integration evidence.
+/// Runtime boundary for the integrated account workflow. Current responsibility readers
+/// replace historical DEV1/DEV2 handoff flags. Assignment writers retain ordered User
+/// locks (RoomTypeCreationService.BatchAsync, IR assignment/handover, maintenance
+/// assignment, shift planning and task series generation); the owner retains the global
+/// Users/authority snapshot and rechecks responsibilities before and after mutation.
 /// </summary>
 internal static class UserAccountDeactivationReleaseAcceptance
 {
-    internal static IReadOnlyList<string> PendingGates { get; } = Array.AsReadOnly(new[]
+    internal static void EnsureAccepted(HotelOpsDbContext db)
     {
-        "DEV1_WRITER_COORDINATION", "DEV2_INTEGRATED_SQL_ACCEPTANCE",
-        "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE"
-    });
-
-    internal static void EnsureAccepted()
-    {
-        if (PendingGates.Count != 0) throw new DeactivationReleaseNotAcceptedException();
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not { } transaction
+            || transaction.GetDbTransaction().IsolationLevel != System.Data.IsolationLevel.Serializable
+            || System.Transactions.Transaction.Current is not null)
+            throw new DeactivationReleaseNotAcceptedException();
     }
 }
 
 internal sealed class DeactivationReleaseNotAcceptedException()
-    : InvalidOperationException("Deactivation release acceptance has not passed.");
+    : InvalidOperationException("Deactivation requires its owned Serializable SQL transaction.");

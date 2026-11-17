@@ -23,19 +23,42 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
         ct.ThrowIfCancellationRequested();
         var blockers = new HashSet<string>(StringComparer.Ordinal);
-        var unresolved = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "OPERATIONAL_TASK_CONTRACT", "INTERNAL_REQUEST_CONTRACT", "SHIFT_CONTRACT", "WORKDAY_CONTRACT",
-            "LINE_MANAGER_CONTRACT"
-        };
+        // Current task projection/closure, assignment vocabulary and shift-state checks
+        // below replace the old module-wide handoff placeholders. Missing or inconsistent
+        // target rows still fail closed. Workday coverage is supplied by the integrated reader.
+        var unresolved = new HashSet<string>(StringComparer.Ordinal) { "WORKDAY_CONTRACT" };
         // Read all designated references, including history and contradictory legacy rows.
         // Materialize only lifecycle scalars; classify exact stored vocabulary ordinally.
         var assignments = await (from assignment in db.CleaningAssignments.AsNoTracking()
             where assignment.AssigneeUserId == targetId
             join parent in db.CleaningTasks.AsNoTracking() on assignment.CleaningTaskId equals parent.CleaningTaskId into parents
             from parent in parents.DefaultIfEmpty()
-            select new { assignment.AssignmentStatus, assignment.AssignedAt, assignment.EndedAt,
+            select new { assignment.CleaningTaskId, assignment.AssignmentStatus, assignment.AssignedAt, assignment.EndedAt,
                 Parent = parent == null ? null : parent.Status }).ToArrayAsync(ct);
+        var completedCleaning = new HashSet<long>();
+        if (assignments.Any(a => a.AssignmentStatus == "ACTIVE" && a.Parent == "COMPLETED"))
+        {
+            if (await HousekeepingSchema.InstalledAsync(db, ct))
+                completedCleaning = (await db.Database.SqlQuery<long>($"""
+                    SELECT t.cleaning_task_id AS Value
+                    FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
+                    WHERE t.status='COMPLETED' AND t.workflow_status='COMPLETED'
+                      AND EXISTS(SELECT 1 FROM dbo.cleaning_assignments a WITH(HOLDLOCK)
+                        WHERE a.cleaning_task_id=t.cleaning_task_id AND a.assignee_user_id={targetId}
+                          AND a.assignment_status='ACTIVE' AND a.ended_at IS NULL)
+                      AND EXISTS(SELECT 1 FROM dbo.room_inspections i WITH(HOLDLOCK)
+                        WHERE i.cleaning_task_id=t.cleaning_task_id AND i.room_id=t.room_id
+                          AND i.workflow_status='PASSED' AND i.status='COMPLETED' AND i.result='PASS'
+                          AND i.inspected_at IS NOT NULL
+                          AND NOT EXISTS(SELECT 1 FROM dbo.room_inspections later WITH(HOLDLOCK)
+                            WHERE later.cleaning_task_id=t.cleaning_task_id
+                              AND later.inspection_id>i.inspection_id))
+                      AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
+                        WHERE w.cleaning_task_id=t.cleaning_task_id
+                          AND (w.workflow_status IS NULL OR w.workflow_status NOT IN('COMPLETED','FAILED','CANCELLED')))
+                    """).ToArrayAsync(ct)).ToHashSet();
+            else unresolved.Add("CLEANING_WORKFLOW_REQUIRED");
+        }
         foreach (var row in assignments)
         {
             if (row.EndedAt < row.AssignedAt || row.AssignmentStatus == "ACTIVE" && row.EndedAt != null
@@ -47,8 +70,10 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
             if (row.AssignmentStatus != "ACTIVE") continue;
             if (row.Parent is "PENDING" or "IN_PROGRESS") blockers.Add("CLEANING_ASSIGNMENT");
             else if (row.Parent == "CANCELLED") unresolved.Add("CLEANING_DATA_INCONSISTENCY");
-            // SQL COMPLETED cannot prove SRS final completion vs Pending Inspection.
-            else unresolved.Add("CLEANING_TERMINAL_MAPPING");
+            // Physical COMPLETED alone is insufficient. A current Passed lifecycle ends
+            // the responsibility even though the historical cleaning assignment stays ACTIVE.
+            // Room blocks affect readiness, not the already completed cleaner's assignment.
+            else if (!completedCleaning.Contains(row.CleaningTaskId)) unresolved.Add("CLEANING_TERMINAL_MAPPING");
         }
         var reworks = await db.CleaningReworks.AsNoTracking().Where(x => x.AssigneeUserId == targetId)
             .Select(x => new { x.Status, x.CompletedAt, x.RequestedAt }).ToArrayAsync(ct);
@@ -101,7 +126,8 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
             blockers.Add("DEPARTMENT_MANAGER");
         // V1 positive evidence only: a nondeleted active employee explicitly still
         // designates this manager. Account INACTIVE alone does not end employment.
-        // Release/transfer rules for other references remain LINE_MANAGER_CONTRACT.
+        // Unknown employment values remain a row-level blocker; an account with no
+        // subordinate references does not require a hypothetical transfer contract.
         var subordinates = await db.Users.AsNoTracking().Where(x => x.ManagerUserId == targetId)
             .Select(x => new { x.DeletedAt, x.EmploymentStatus }).ToArrayAsync(ct);
         foreach (var row in subordinates)
@@ -129,6 +155,9 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         foreach (var row in shifts)
         {
+            if (row.AssignmentStatus is not ("ASSIGNED" or "CANCELLED")
+                || row.ShiftStatus is not ("PLANNED" or "CANCELLED"))
+            { unresolved.Add("SHIFT_STATE_UNRESOLVED"); continue; }
             if (!row.ParentExists || row.End <= row.Start || row.AssignedAt > now || row.CheckOut != null && row.CheckIn == null
                 || row.CheckOut < row.CheckIn || row.CheckIn < row.AssignedAt
                 || row.CheckIn > now || row.CheckOut > now)
@@ -200,7 +229,7 @@ internal sealed class ApprovedDev1ResponsibilityQueries(HotelOpsDbContext db)
         foreach (var row in requests)
         {
             if (row.Status is not ("ACTIVE" or "COMPLETED" or "REASSIGNED" or "CANCELLED")
-                || row.Parent is not ("DRAFT" or "SUBMITTED" or "IN_PROGRESS" or "COMPLETED" or "CLOSED" or "REJECTED" or "CANCELLED"))
+                || row.Parent is not ("DRAFT" or "PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "CLOSED" or "REJECTED" or "CANCELLED"))
             { unresolved.Add("INTERNAL_REQUEST_UNRESOLVED"); continue; }
             if (row.EndedAt < row.AssignedAt || row.Status == "ACTIVE" && row.EndedAt != null
                 || row.Status != "ACTIVE" && row.EndedAt == null)

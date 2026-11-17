@@ -12,4 +12,7 @@ public sealed class UserAccountStatusAccess(UserCredentialResetAccess approvedSc
 
     internal Task LockAuthorityAsync(long actorId, long targetId, CancellationToken ct)
         => approvedScope.LockAuthorityAsync(actorId, targetId, ct);
+
+    internal Task<bool> CanInspectDependenciesInBranchAsync(long branchId, CancellationToken ct)
+        => approvedScope.CanInspectDependenciesInBranchAsync(branchId, ct);
 }

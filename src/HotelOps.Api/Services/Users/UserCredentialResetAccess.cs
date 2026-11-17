@@ -63,6 +63,25 @@ public sealed class UserCredentialResetAccess(HotelOpsDbContext db, ICurrentUser
         return false;
     }
 
+    internal async Task<bool> CanInspectDependenciesInBranchAsync(long branchId, CancellationToken ct)
+    {
+        if (branchId <= 0 || !current.TryGetCurrentUser(out var actor) || actor.IsRestricted) return false;
+        var now = clock.GetUtcNow().UtcDateTime;
+        var roles = await db.UserRoles.AsNoTracking().Where(r => r.UserId == actor.UserId
+            && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "SYS_ADMIN"
+            && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now))
+            .Select(r => r.BranchId).ToArrayAsync(ct);
+        var global = (await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted;
+        if (roles.Contains(null) && global) return true;
+        if (!roles.Contains(null) && !roles.Contains(branchId)) return false;
+        if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == actor.UserId
+            && a.BranchId == branchId && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive, ct)) return false;
+        if (global) return true;
+        var evaluator = new PermissionService(current, new BranchOnlyData(data),
+            new UnresolvedPermissionResourceResolver(), clock);
+        return (await evaluator.EvaluateBranchAsync("USER_MANAGE", branchId, ct)).IsGranted;
+    }
+
     private sealed class BranchOnlyData(IPermissionDataSource source) : IPermissionDataSource
     {
         public Task<bool> IsActiveUserAsync(long id, CancellationToken ct) => source.IsActiveUserAsync(id, ct);
