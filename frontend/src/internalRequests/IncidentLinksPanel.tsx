@@ -62,6 +62,7 @@ export function InternalRequestIncidentLinksPanel({ id, onLinked }: { id: number
     <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload linked incidents</button>
     {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked incidents</button>}
     {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing incident</button>}
+    {!candidates && view?.canLink && <Link to={`/operations/incidents?action=A004A-021&branchId=${view.branchId}&internalRequestId=${id}&sourceVersion=${encodeURIComponent(view.version)}`}>Create linked incident</Link>}
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} incidents on this page.</p>}
       <ul>{view.items.map(t => <li key={t.incidentId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}

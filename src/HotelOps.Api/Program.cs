@@ -108,6 +108,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalReques
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestTaskLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestCleaningLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestIncidentLinks>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestCreationContext>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestMaterialLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProgressDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestCompletionService>();

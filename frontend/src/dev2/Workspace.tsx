@@ -1,3 +1,4 @@
+import { requestCreationDefaults } from "./requestCreationContext";
 import { IncidentEscalationPanel } from "./IncidentEscalationPanel";
 import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { IncidentCancellationPanel } from "./IncidentCancellationPanel";
@@ -211,6 +212,19 @@ function Screen({
   const [values, setValues] = useState<Values>(() =>
     operationDefaults(operation, context),
   );
+  const sourceRequest = ["A004A-021", "A004A-043"].includes(operation.id) && context.internalRequestId != null ? String(context.internalRequestId) : "";
+  const sourceBranch = String(context.branchId ?? ""), sourceVersion = String(context.sourceVersion ?? "");
+  const [sourceReady, setSourceReady] = useState(false);
+  const [sourceError, setSourceError] = useState("");
+  useEffect(() => {
+    setSourceReady(false); setSourceError("");
+    if (!sourceRequest) return;
+    const abort = new AbortController();
+    void requestCreationDefaults(sourceRequest, sourceBranch, sourceVersion, operation.id === "A004A-021", abort.signal)
+      .then(defaults => { if (!abort.signal.aborted) { setValues(v => ({ ...v, ...defaults })); setSourceReady(true); } })
+      .catch(e => { if (!abort.signal.aborted) setSourceError(e instanceof Error ? e.message : "Source request unavailable."); });
+    return () => abort.abort();
+  }, [sourceRequest, sourceBranch, sourceVersion, operation.id]);
   const [record, setRecord] = useState<Values>({});
   const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<IncidentReview | null>(null);
   const [incidentFiles, setIncidentFiles] = useState<File[]>([]);
@@ -272,7 +286,7 @@ function Screen({
         commandInput = { ...input, lines: input.mode === "FullRemaining" ? [] : issueLines };
       }
       if (["A004A-021", "A004A-043"].includes(target.id) && (context.internalRequestId != null || context.sourceVersion != null)) {
-        if (!Number.isSafeInteger(Number(context.internalRequestId)) || Number(context.internalRequestId) <= 0
+        if (!sourceReady || !Number.isSafeInteger(Number(context.internalRequestId)) || Number(context.internalRequestId) <= 0
           || !Number.isSafeInteger(Number(context.branchId)) || Number(context.branchId) <= 0
           || !["required", "optional"].includes(String(input.materialRequirement))
           || typeof context.sourceVersion !== "string" || !/^[A-Za-z0-9+/]{11}=$/.test(context.sourceVersion))
@@ -356,7 +370,7 @@ function Screen({
           }
           setMessage(
             error.status === 403
-              ? "Access denied for this action and resource. No permission was inferred from your role."
+              ? (sourceRequest ? "MSG02: Permission for the target work is required. Return to the request to link existing work or ask the responsible role." : "Access denied for this action and resource. No permission was inferred from your role.")
               : error.status === 404
                 ? "Record not found or outside your permitted scope."
                 : error.status === 400 || error.status === 409
@@ -385,9 +399,13 @@ function Screen({
       const root = isObject(response.data) ? response.data : {};
       setRecord(root);
       if (target.method !== "GET") {
+        if (sourceRequest && ["A004A-021", "A004A-043"].includes(target.id)) {
+          setSourceReady(false); setSourceError("MSG08: Work created and linked. Reload the source request before creating more work.");
+        }
         if (target.id === "A004A-021") { setIncidentFiles([]); setReviewedIncidentLocation(null); }
         setMessage(
-          target.id === "A004A-021" ? "MSG09: Incident reported. It is waiting for classification and triage."
+          sourceRequest && ["A004A-021", "A004A-043"].includes(target.id) ? "MSG08: Work created and linked to the Internal Request. Reload the source request to see the saved link."
+            : target.id === "A004A-021" ? "MSG09: Incident reported. It is waiting for classification and triage."
             : "Saved by the server. Related views will load current data when opened.",
         );
         // Read the current record after mutation so subsequent commands use its actual RowVersion.
@@ -609,6 +627,8 @@ function Screen({
         server checks your branch, resource, ownership and workflow for every
         request.
       </p>
+      {sourceRequest && !sourceReady && <p role="status">{sourceError || "Loading authorized source request defaults..."}
+        {sourceError && <Link to={"/internal-requests?requestId=" + encodeURIComponent(sourceRequest)}>Return to source and reload</Link>}</p>}
       <form
         data-operation={operation.id}
         onSubmit={(e) => {
@@ -616,7 +636,7 @@ function Screen({
           void run(operation);
         }}
       >
-        <fieldset disabled={busy}>
+        <fieldset disabled={busy || !!sourceRequest && !sourceReady}>
           <legend>{operation.name}</legend>
           <Fields
             fields={materialRequesterActions.includes(operation.id) || ["A004A-051", "A004A-057", "A004A-058", "A004A-059"].includes(operation.id) ? [] : routeFields}
