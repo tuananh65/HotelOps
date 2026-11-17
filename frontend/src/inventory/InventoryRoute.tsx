@@ -144,7 +144,7 @@ function InventoryRead({
     <main className="inventory-page">
       <nav aria-label="Inventory navigation">
         <Link to="/dashboard">Workspace</Link>
-        <Link to="/inventory/items">Items</Link> · <Link to="/inventory/receipts">Stock receipts</Link> | <Link to="/inventory/warehouses">Warehouses</Link> | <Link to="/inventory/catalog">Manage items</Link> · <Link to="/inventory/stock">Stock balance and ledger</Link> · <Link to="/inventory/units">Units and conversions</Link>
+        <Link to="/inventory/items">Items</Link> · <Link to="/inventory/transfers">Stock transfers</Link>{" | "}<Link to="/inventory/receipts">Stock receipts</Link> | <Link to="/inventory/warehouses">Warehouses</Link> | <Link to="/inventory/catalog">Manage items</Link> · <Link to="/inventory/stock">Stock balance and ledger</Link> · <Link to="/inventory/units">Units and conversions</Link>
         <Link to="/profile">Profile</Link>
       </nav>
       <header>

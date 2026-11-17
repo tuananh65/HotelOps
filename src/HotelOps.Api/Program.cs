@@ -74,6 +74,9 @@ builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.WorkAlertW
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.LowStockOptions>().BindConfiguration("LowStockAlerts");
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.LowStockAlerts>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.LowStockWorker>();
+builder.Services.AddOptions<HotelOps.Api.Services.Notifications.TransferNotificationOptions>().BindConfiguration("TransferNotifications");
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TransferNotifications>();
+builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TransferNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationOptions>()
     .BindConfiguration("MaterialApprovalNotifications").Validate(o => o.PollSeconds is >= 1 and <= 3600).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialApprovalNotificationDelivery>();
@@ -188,6 +191,10 @@ builder.Services.AddScoped<MinimumStockService>();
 builder.Services.AddScoped<UnitManagementService>();
 builder.Services.AddScoped<WarehouseManagementService>();
 builder.Services.AddScoped<ReceiptDraftAuthority>();
+builder.Services.AddScoped<ReturnPostingAuthority>();
+builder.Services.AddScoped<TransferAuthority>();
+builder.Services.AddScoped<TransferWorkspaceService>();
+builder.Services.AddScoped<ReturnWorkspaceService>();
 builder.Services.AddScoped<ReceiptWorkspaceService>();
 builder.Services.AddScoped<IInventoryIssueCapacity>(services => services.GetRequiredService<InventoryService>());
 builder.Services.AddScoped<HotelOps.Api.Services.Replenishments.ReplenishmentService>();

@@ -10,8 +10,8 @@ public record InventoryDraft(long? SourceWarehouseId, long? DestinationWarehouse
 public record InventoryAcceptedLine(long LineId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal AcceptedQty, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal RejectedQty = 0,
     [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal DamagedQty = 0, string? DiscrepancyReason = null);
 public record InventoryPost(string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines);
-public record InventoryReceiveLine(long TransferLineId, decimal ReceivedQty, decimal DamagedQty,
-    decimal MissingQty, string? Note = null);
+public record InventoryReceiveLine(long TransferLineId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal ReceivedQty, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal DamagedQty,
+    [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal MissingQty, string? Note = null);
 public record InventoryReceive(string ExpectedRowVersion,
     IReadOnlyList<InventoryReceiveLine> Lines, string? Note = null);
 public record InventoryDelta(long ItemId, decimal DeltaBaseQty);

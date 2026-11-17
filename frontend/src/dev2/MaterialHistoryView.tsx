@@ -60,7 +60,7 @@ export function MaterialHistoryView({ record }: { record: Values }) {
     <h3>Return documents</h3>
     <p>Return quantities describe their source documents. Draft, cancelled or reversed returns do not imply available stock or reduce the request's historical issued quantity.</p>
     {rows(record.returns).length ? <ul>{rows(record.returns).map((receipt, index) => <li key={`${receipt.documentId}:${receipt.originalIssueLineId}:${index}`}>
-      {String(receipt.documentNo)} — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
+      <Link to={`/inventory/returns/${encodeURIComponent(String(receipt.documentId))}`}>{String(receipt.documentNo)}</Link> — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
     </li>)}</ul> : <p>No linked return documents recorded.</p>}
     {record.incidentId != null && <section aria-label="Linked incident">
       <h3>Linked incident</h3>
