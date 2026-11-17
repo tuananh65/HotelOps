@@ -180,6 +180,7 @@ public sealed partial class RoomTypeCreationService
                     .OrderBy(w => w.IntervalId).Take(2).ToArrayAsync(inner);
                 if (open.Length != 1 || open[0].UserId != actor || open[0].BranchId != branch)
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_WORK_INTERVAL_REQUIRED");
+                var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, inner);
                 var closed = await time.CloseIntervalAsync(new(actor, actor, branch, "CLEANING", task), open[0].IntervalId, open[0].RowVersion, inner);
                 db.ChangeTracker.Clear();
                 var now = closed.ClosedAtUtc!.Value;
@@ -210,6 +211,7 @@ public sealed partial class RoomTypeCreationService
                 var effectiveReadiness = roomStates.TryGetValue(row.RoomId, out var roomState)
                     ? roomState.Readiness : "UNKNOWN";
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{readiness},{blocked},{actor},{now})", inner);
+                await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, now, note, inner);
                 var result = new CleaningClosureResult(task, branch, owner.AssignmentId, operation, Guid.NewGuid(), log.ProgressId,
                     closed.IntervalId, next, now, readiness, blocked, WorkflowTag((await CleaningState(task, inner)).Revision),
                     EffectiveReadiness: effectiveReadiness);

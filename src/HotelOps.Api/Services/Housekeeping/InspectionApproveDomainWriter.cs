@@ -65,9 +65,9 @@ public sealed partial class RoomTypeCreationService
                 UPDATE dbo.rooms SET operational_status={physicalStatus}
                   WHERE room_id={i.RoomId} AND branch_id={branch} AND operational_status={room.OperationalStatus} AND is_active=1;
                 IF @@ROWCOUNT<>1 THROW 51990,'INSPECTION_ROOM_WRITE_CONFLICT',1;
-                INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,trigger_id,changed_by,changed_at,reason)
-                VALUES({i.RoomId},{room.OperationalStatus},{physicalStatus},'INSPECTION',{inspection},{ticket.UserId},SYSUTCDATETIME(),'Inspection passed; effective readiness READY');
                 """, ct);
+        await RoomReadinessHistory.RecordAsync(db, before, after, room.OperationalStatus, physicalStatus,
+            "INSPECTION", inspection, ticket.UserId, clock.GetUtcNow().UtcDateTime, "Inspection passed", ct);
         var recipient = await ReadPassedInspectionRecipientAsync(inspection, branch, ct);
         // The committed audit event is the durable retry source. Inbox creation runs separately,
         // so a delivery failure cannot undo an already committed approval (GBR-010).

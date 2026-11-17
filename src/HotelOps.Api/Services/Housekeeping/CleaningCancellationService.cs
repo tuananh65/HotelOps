@@ -138,6 +138,7 @@ public sealed partial class RoomTypeCreationService
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "ASSIGNMENT_CHANGED_RETRY");
                 var owner = assignments.SingleOrDefault();
                 var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(inner), DateTimeKind.Utc);
+                var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, inner, now);
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET status='CANCELLED',workflow_status='CANCELLED',updated_at={now} WHERE cleaning_task_id={task}", inner);
                 if (owner != null)
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_assignments SET assignment_status='CANCELLED',ended_at={now} WHERE assignment_id={owner.AssignmentId}", inner);
@@ -162,6 +163,7 @@ public sealed partial class RoomTypeCreationService
                         throw new WorkTimeContractException("PREVIOUS_CYCLE_READINESS_SOURCE_REQUIRED");
                 }
                 var eventId = (await db.Database.SqlQuery<long>($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) OUTPUT INSERTED.event_id AS [Value] VALUES({row.RoomId},{task},{readiness},{readiness == "BLOCKED"},{actor},{now})").ToArrayAsync(inner)).Single();
+                await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, now, reason, inner);
                 written = new(task, branch, row.RoomId, owner?.AssignmentId, owner?.AssigneeUserId, operation,
                     owner == null ? null : Guid.NewGuid(), eventId, now, WorkflowTag((await CleaningState(task, inner)).Revision), Readiness: readiness);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.Status, assignmentId = owner?.AssignmentId },

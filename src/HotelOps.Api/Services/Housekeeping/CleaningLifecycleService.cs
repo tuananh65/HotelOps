@@ -97,6 +97,7 @@ public sealed partial class RoomTypeCreationService
                 if (assignments.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
+                var roomHistory = resume ? await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, token) : null;
                 var endOfShift = resume && await IsCleaningEndOfShiftHold(task, token);
                 var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid, admission, admission, admission);
                 var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note, endOfShift)
@@ -181,6 +182,8 @@ public sealed partial class RoomTypeCreationService
                         throw new RoomStatusTransitionException("ROOM_STATUS_TRANSITION_EVIDENCE_MISMATCH");
                     startBlocked = transition.HasEffectiveBlock;
                 }
+                if (roomHistory != null)
+                    await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, now, input.Note, token);
                 // Fresh START uses the locked authoritative block result returned by FE03.
                 var blocked = startBlocked || resume && await db.RoomBlocks.AsNoTracking()
                     .AnyAsync(x => x.RoomId == row.RoomId && x.BlockedAt <= now

@@ -78,6 +78,7 @@ public sealed partial class RoomTypeCreationService
                 closedIntervalId = interval[0].IntervalId;
             }
             else if (interval.Length != 0) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "SOURCE_INTERVAL_STATE_CONFLICT");
+            var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, token);
             var expected = Convert.FromHexString(tag.Trim('"'));
             var values = await db.Database.SqlQuery<string>($"EXEC dbo.fs013_reassign_with_evidence @actor={actor},@branch={branch},@task={task},@previous={old.AssignmentId},@assignee={request.AssigneeId},@operation={operation},@fingerprint={fingerprint},@expected={expected},@due={request.DueAt},@reason={request.Reason},@closedInterval={closedIntervalId}").ToArrayAsync(token);
             if (values.Length != 1) throw new InvalidOperationException("REASSIGN_RESULT_REQUIRED");
@@ -86,6 +87,7 @@ public sealed partial class RoomTypeCreationService
                 || result.PreviousAssignmentId != old.AssignmentId || result.PreviousAssigneeId != old.AssigneeUserId
                 || result.SourceETag != WorkflowTag((await CleaningState(task, token)).Revision))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
+            await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, clock.GetUtcNow().UtcDateTime, request.Reason, token);
             mutation = true;
             receiptFound = true;
             if (developmentSchema)

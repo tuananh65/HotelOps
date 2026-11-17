@@ -59,9 +59,13 @@ function RecordedSourceLink({
   branchId: number;
   source: RoomSource | null;
 }) {
-  const href = recordedCleaningHref(branchId, source);
+  const scopedSource = source?.availability === "VERIFIED_SAME_ROOM" && source.id !== null
+    && Number.isSafeInteger(source.id) && source.id > 0 && Number.isSafeInteger(branchId) && branchId > 0;
+  const href = recordedCleaningHref(branchId, source)
+    ?? (scopedSource && source?.type === "INSPECTION" ? `/inspections/${branchId}/${source.id}/execution` : null)
+    ?? (scopedSource && source?.type === "MAINTENANCE" ? `/operations/maintenance/${source.id}?branchId=${branchId}&action=A004A-036` : null);
   return href ? (
-    <Link to={href}>Mở công việc vệ sinh #{source?.id}</Link>
+    <Link to={href}>Open {source?.type} #{source?.id}</Link>
   ) : null;
 }
 export default function RoomStatusBoardScreen() {

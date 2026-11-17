@@ -70,7 +70,7 @@ const source = (v: RoomSource) =>
   text(v.type) &&
   (v.availability === "VERIFIED_SAME_ROOM"
     ? id(v.id) &&
-      ["CLEANING_TASK", "INSPECTION", "ROOM_BLOCK"].includes(v.type || "")
+      ["CLEANING_TASK", "INSPECTION", "ROOM_BLOCK", "MAINTENANCE"].includes(v.type || "")
     : ["NOT_RECORDED", "UNRESOLVED"].includes(v.availability) && v.id === null);
 function pageFits(
   items: { id: number }[],

@@ -196,14 +196,19 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
         var tasks=events.Where(x=>x.Type=="CLEANING_TASK"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
         var inspections=events.Where(x=>x.Type=="INSPECTION"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
         var blocks=events.Where(x=>x.Type=="ROOM_BLOCK"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
+        var maintenance=events.Where(x=>x.Type=="MAINTENANCE"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
         // Bound batches, never one source query per history event. Only verified same-room IDs escape.
         var validTasks=tasks.Length==0?[]:await db.CleaningTasks.AsNoTracking().Where(x=>x.RoomId==roomId&&tasks.Contains(x.CleaningTaskId)).Select(x=>x.CleaningTaskId).ToArrayAsync(ct);
         var validInspections=inspections.Length==0?[]:await db.RoomInspections.AsNoTracking().Where(x=>x.RoomId==roomId&&inspections.Contains(x.InspectionId)).Select(x=>x.InspectionId).ToArrayAsync(ct);
         var validBlocks=blocks.Length==0?[]:await db.RoomBlocks.AsNoTracking().Where(x=>x.RoomId==roomId&&blocks.Contains(x.BlockId)).Select(x=>x.BlockId).ToArrayAsync(ct);
+        var validMaintenance=maintenance.Length==0?[]:await db.MaintenanceWorks.AsNoTracking()
+            .Where(w=>maintenance.Contains(w.MaintenanceWorkId)&&w.IncidentId!=null
+                && db.RoomBlocks.Any(b=>b.RoomId==roomId&&b.IncidentId==w.IncidentId&&b.Room.BranchId==w.Incident!.BranchId))
+            .Select(w=>w.MaintenanceWorkId).ToArrayAsync(ct);
         return events.ToDictionary(x=>x.Id,x=>
         {
             var verified=x.SourceId is {} id && (x.Type=="CLEANING_TASK"&&validTasks.Contains(id)
-                ||x.Type=="INSPECTION"&&validInspections.Contains(id)||x.Type=="ROOM_BLOCK"&&validBlocks.Contains(id));
+                ||x.Type=="INSPECTION"&&validInspections.Contains(id)||x.Type=="ROOM_BLOCK"&&validBlocks.Contains(id)||x.Type=="MAINTENANCE"&&validMaintenance.Contains(id));
             return new RoomStatusSourceDto(x.Type,verified?x.SourceId:null,verified?"VERIFIED_SAME_ROOM":x.SourceId==null?"NOT_RECORDED":"UNRESOLVED");
         });
     }

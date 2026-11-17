@@ -61,6 +61,8 @@ public sealed partial class RoomTypeCreationService
             var after = (await readiness.ReadAsync([i.RoomId], clock.GetUtcNow().UtcDateTime, token))[i.RoomId];
             if (after.Readiness is not ("REWORK_REQUIRED" or "BLOCKED"))
                 throw new InvalidOperationException("INSPECTION_REJECTION_READINESS_CONFLICT");
+            await RoomReadinessHistory.RecordAsync(db, before, after, room.OperationalStatus, room.OperationalStatus,
+                "INSPECTION", inspection, actor, clock.GetUtcNow().UtcDateTime, reason, token);
             var oldJson = JsonSerializer.Serialize(new { workflow_status = "PENDING_CONCLUSION", effectiveReadiness = before.Readiness, operationalStatus = room.OperationalStatus });
             var newJson = JsonSerializer.Serialize(new
             {
@@ -69,7 +71,7 @@ public sealed partial class RoomTypeCreationService
                 defects = source.Domain.Defects.Select(d => d.DefectId).Order().ToArray(),
                 notification = new InspectionFailureIntent(1, "INSPECTION_FAILED", supervisors, cleaner)
             }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            // Effective history is in the atomic audit. Do not write REWORK_REQUIRED/BLOCKED
+            // Keep the audit and readiness history atomic. Do not write REWORK_REQUIRED/BLOCKED
             // into the physical status/history CHECK constraints, or invent OUT_OF_SERVICE.
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,occurred_at)

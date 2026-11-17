@@ -152,10 +152,10 @@ public sealed class RoomOperationalStatusTransitionParticipant(
                   AND t.status='IN_PROGRESS' AND t.row_version={task.Revision}
                   AND t.actual_start_at={source.OccurredAt} AND t.actual_end_at IS NULL);
             IF @@ROWCOUNT<>1 THROW 51803,'ROOM_STATUS_CONDITIONAL_UPDATE_FAILED',1;
-            INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,trigger_id,changed_by,changed_at,reason)
+            INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,trigger_id,changed_by,changed_at,reason,effective_from,effective_to)
             VALUES({records.History.RoomId},{records.History.FromStatus},{records.History.ToStatus},
               {records.History.TriggerType},{records.History.TriggerId},{records.History.ChangedBy},
-              {records.History.ChangedAt},{records.History.Reason});
+              {records.History.ChangedAt},{records.History.Reason},'PENDING_CLEANING','CLEANING_IN_PROGRESS');
             IF @@ROWCOUNT<>1 THROW 51803,'ROOM_STATUS_HISTORY_INSERT_FAILED',1;
             END;
             INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,request_id,occurred_at)

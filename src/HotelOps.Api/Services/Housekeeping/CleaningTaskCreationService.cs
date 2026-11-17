@@ -72,6 +72,7 @@ public sealed partial class RoomTypeCreationService
             if (history && pointers.Length != 1) return new(RoomTypeBatchStatus.Inactive);
             var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(token), DateTimeKind.Utc);
             if (input.DueAt <= now) return new(RoomTypeBatchStatus.InvalidReference);
+            var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, room.RoomId, token, now);
             var task = new CleaningTask
             {
                 RoomId = room.RoomId,
@@ -91,6 +92,7 @@ public sealed partial class RoomTypeCreationService
             var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == room.RoomId
                 && x.BlockedAt <= now && (x.ReleasedAt == null || x.ReleasedAt > now), token);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({room.RoomId},{task.CleaningTaskId},'PENDING_CLEANING',{blocked},{actor},{now})", token);
+            await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task.CleaningTaskId, actor, now, "Cleaning task created", token);
             var dto = new CreatedCleaningTask(task.CleaningTaskId, branch, room.RoomId, task.TaskNo, "PENDING_ASSIGNMENT", "PENDING_CLEANING", blocked,
                 StandardCleaningMinutes: standardMinutes is > 0 ? standardMinutes : null);
             await BatchAuditAsync(actor, branch, "cleaning_tasks", task.CleaningTaskId, null, dto, ["create", "currentCycle", "readinessEvent", "standardCleaningMinutes"], token);

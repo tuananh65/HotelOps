@@ -36,9 +36,10 @@ public sealed partial class IncidentCancellationService
             if(released.Length>0 && after.CanUse && physicalBefore!="READY")
             {
                 room.OperationalStatus="READY";
-                db.RoomStatusHistories.Add(new RoomStatusHistory {RoomId=id,FromStatus=physicalBefore,ToStatus="READY",
-                    TriggerType="ROOM_BLOCK",TriggerId=released[0].BlockId,ChangedBy=actor,ChangedAt=now,Reason=reason});
             }
+            if(released.Length>0)
+                await RoomReadinessHistory.RecordAsync(db,before,after,physicalBefore,room.OperationalStatus,
+                    "ROOM_BLOCK",released[0].BlockId,actor,now,reason,ct);
             db.AuditLogs.Add(new AuditLog {EntityType="rooms",EntityId=id.ToString(CultureInfo.InvariantCulture),Action="UPDATE",BranchId=incident.BranchId,
                 ActorUserId=actor,OccurredAt=now,OldValues=JsonSerializer.Serialize(new {effective_readiness=before.Readiness,operational_status=physicalBefore}),
                 NewValues=JsonSerializer.Serialize(new {effective_readiness=after.Readiness,operational_status=room.OperationalStatus,

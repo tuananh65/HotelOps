@@ -188,12 +188,14 @@ public sealed partial class RoomTypeCreationService
                         }
                     }
                 }
+                var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, inner, now);
                 var legacyStatus = next == "ACCEPTED" ? "PENDING" : "IN_PROGRESS";
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={next},status={legacyStatus},note={input!.Note.Trim()} WHERE rework_id={id}", inner);
                 if (action == "start") { interval = (await time.OpenIntervalAsync(new(actor, actor, branch, "REWORK", id), inner)).IntervalId; db.ChangeTracker.Clear(); }
                 var readiness = action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED";
                 var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(b => b.RoomId == row.RoomId && b.ReleasedAt == null, inner);
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{row.CleaningTaskId},{readiness},{blocked},{actor},{now})", inner);
+                await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", row.CleaningTaskId, actor, now, input.Note.Trim(), inner);
                 var result = new ReworkCommandResult(id, branch, row.CleaningTaskId, row.InspectionId, actor, action, next, operation,
                     WorkflowTag((await ReworkState(id, inner)).Revision), now, interval, action == "complete" ? Guid.NewGuid() : null,
                     readiness, action == "complete" ? "PENDING_DELIVERY" : "NOT_REQUIRED");

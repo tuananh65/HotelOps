@@ -69,6 +69,7 @@ public sealed partial class RoomTypeCreationService
                     """).SingleAsync(token)!=0)return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_PREEXISTING_REMEDIATION_UNPROVEN");
                 var open=await db.WorkIntervals.AsNoTracking().Where(w=>w.WorkItemKind=="REWORK"&&w.WorkItemId==id&&w.ClosedAt==null).Take(2).ToArrayAsync(token);
                 if(open.Length!=1||open[0].UserId!=actor||open[0].BranchId!=branch)return LifecycleFailure(RoomTypeBatchStatus.Inactive,"CURRENT_WORK_INTERVAL_REQUIRED");
+                var roomHistory=await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db,row.RoomId,token);
                 var closed=await time.CloseIntervalAsync(new(actor,actor,branch,"REWORK",id),open[0].IntervalId,open[0].RowVersion,token);
                 var now=closed.ClosedAtUtc!.Value;db.ChangeTracker.Clear();
                 if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status='PENDING_REINSPECTION',status='IN_PROGRESS',note={note} WHERE rework_id={id} AND row_version={state.Revision}",token)!=1)
@@ -87,6 +88,7 @@ public sealed partial class RoomTypeCreationService
                 }
                 var readiness=(await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db).ReadAsync([row.RoomId],now,token))[row.RoomId].Readiness;
                 if(readiness is not ("PENDING_INSPECTION" or "PENDING_CLEANING" or "BLOCKED"))throw new InvalidOperationException("REWORK_SUBMISSION_READINESS_CONFLICT");
+                await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db,roomHistory,"CLEANING_TASK",task,actor,now,note,token);
                 remediationDigest=await ReworkRemediationDigest(id,task,actor,root,token)??throw new InvalidOperationException("REWORK_REMEDIATION_UNPROVEN");
                 var result=new ReworkCommandResult(id,branch,task,row.InspectionId,actor,"complete","PENDING_REINSPECTION",operation,
                     WorkflowTag((await ReworkState(id,token)).Revision),now,closed.IntervalId,operation,readiness,"PENDING_DELIVERY",ReworkSubmissionContract);

@@ -33,8 +33,12 @@ public sealed partial class RoomTypeCreationService
             db.Add(room);
             await db.SaveChangesAsync(token);
             var value = new CreatedRoomDto(room.RoomId, room.BranchId, room.FloorId, room.AreaId, room.RoomTypeId, room.RoomNumber, room.Description, room.OperationalStatus, room.IsActive);
-            db.Add(new RoomStatusHistory { RoomId = room.RoomId, FromStatus = null, ToStatus = room.OperationalStatus, TriggerType = "INIT",
-                ChangedBy = actor, ChangedAt = clock.GetUtcNow().UtcDateTime });
+            var readiness = (await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+                .ReadAsync([room.RoomId], room.CreatedAt!.Value, token))[room.RoomId].Readiness;
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,changed_by,changed_at,effective_to)
+                VALUES({room.RoomId},NULL,{room.OperationalStatus},'INIT',{actor},{room.CreatedAt},{readiness});
+                """, token);
             await BatchAuditAsync(actor, input.BranchId, "rooms", room.RoomId, null, value,
                 ["branchId", "floorId", "areaId", "roomTypeId", "roomNumber", "notes", "operationalStatus", "isActive"], token);
             return new(RoomTypeBatchStatus.Success, value);

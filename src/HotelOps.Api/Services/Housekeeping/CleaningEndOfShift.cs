@@ -57,6 +57,7 @@ public sealed partial class RoomTypeCreationService
         var interval = await db.WorkIntervals.AsNoTracking().SingleOrDefaultAsync(i => i.UserId == actor && i.ClosedAt == null, ct);
         if (interval is null || interval.BranchId != branch || interval.WorkItemKind != "CLEANING" || interval.WorkItemId != task)
             return new(RoomTypeBatchStatus.Inactive);
+        var roomHistory = await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, room, ct);
         var closed = await time.CloseIntervalAsync(new(actor, actor, branch, "CLEANING", task), interval.IntervalId, interval.RowVersion, ct);
         var changed = await db.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD'
@@ -68,6 +69,7 @@ public sealed partial class RoomTypeCreationService
             INSERT dbo.cleaning_end_of_shift_events(interval_id,cleaning_task_id,hold_revision,reason_code,paused_at)
             VALUES({interval.IntervalId},{task},{held.Revision},'END_OF_SHIFT',{closed.ClosedAtUtc})
             """, ct);
+        await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, closed.ClosedAtUtc!.Value, "END_OF_SHIFT", ct);
         await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { workflowState = state.State },
             new { workflowState = "ON_HOLD", operation = "WORKDAY_PAUSE_ALL", reasonCode = "END_OF_SHIFT", interval.IntervalId, closed.ClosedAtUtc },
             ["workflowState", "workInterval", "pauseReason"], ct);

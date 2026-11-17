@@ -59,7 +59,7 @@ public sealed partial class RoomTypeCreationService
                 .AsNoTracking().SingleAsync(token);
             var now = clock.GetUtcNow().UtcDateTime;
             var readiness = new EffectiveRoomReadiness(db);
-            await readiness.ReadAsync([source.RoomId], now, token); // Hold effective-block ranges through commit.
+            var before = (await readiness.ReadAsync([source.RoomId], now, token))[source.RoomId]; // Hold effective-block ranges through commit.
             var encoded = JsonSerializer.Serialize(decisions.Select(d => new { defectId = d.DefectId, fixedResult = d.Fixed, note = d.Note }), Json);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE r SET fixed=j.fixed_result,note=j.note,recorded_by={actor},recorded_at={now}
@@ -125,9 +125,9 @@ public sealed partial class RoomTypeCreationService
                 await db.Database.ExecuteSqlInterpolatedAsync($"""
                     UPDATE dbo.rooms SET operational_status='READY' WHERE room_id={source.RoomId} AND branch_id={branch} AND operational_status={room.OperationalStatus} AND is_active=1;
                     IF @@ROWCOUNT<>1 THROW 51999,'Reinspection room status conflict',1;
-                    INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,trigger_id,changed_by,changed_at,reason)
-                    VALUES({source.RoomId},{room.OperationalStatus},'READY','INSPECTION',{inspection},{actor},{now},'Reinspection passed; effective readiness READY');
                     """, token);
+            await RoomReadinessHistory.RecordAsync(db, before, after, room.OperationalStatus,
+                after.CanUse ? "READY" : room.OperationalStatus, "INSPECTION", inspection, actor, now, reason, token);
             var result = new ReinspectionConclusionResult(inspection, source.ReworkId, branch, source.CleaningTaskId, source.RoomId,
                 inspectionState, reworkState, WorkflowTag((await InspectionState(inspection, token)).Revision),
                 WorkflowTag((await ReworkState(source.ReworkId, token)).Revision), operation, after.Readiness,

@@ -56,13 +56,9 @@ public sealed partial class MaintenanceWorkService
             if (after.CanUse && oldPhysical != "READY")
             {
                 room.OperationalStatus = "READY";
-                _dbContext.RoomStatusHistories.Add(new RoomStatusHistory
-                {
-                    RoomId = roomId, FromStatus = oldPhysical, ToStatus = "READY",
-                    TriggerType = "MAINTENANCE", TriggerId = work.MaintenanceWorkId,
-                    ChangedBy = TrustedActorId, ChangedAt = now, Reason = note
-                });
             }
+            await RoomReadinessHistory.RecordAsync(_dbContext, before, after, oldPhysical, room.OperationalStatus,
+                "MAINTENANCE", work.MaintenanceWorkId, TrustedActorId, now, note, ct);
             var oldRoom = new Dictionary<string, object?>
             {
                 ["operational_status"] = oldPhysical, ["effective_readiness"] = before.Readiness,
