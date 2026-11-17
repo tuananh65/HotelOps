@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Services.InternalRequests;
 using HotelOps.Api.Services.Notifications;
 using HotelOps.Api.Services.Users;
@@ -19,13 +20,15 @@ public sealed record IncidentClassificationContext(long IncidentId, long? Catego
     bool? AffectsRoomReadiness, string Version, IncidentClassificationOption[] Categories, IncidentClassificationOption[] Severities);
 public sealed record IncidentClassificationSaved(long IncidentId, long EventId, string Version, bool SuggestRoomBlock);
 
-public sealed class IncidentClassificationService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
+public sealed class IncidentClassificationService(HotelOpsDbContext db, TimeProvider clock, ICurrentUserAccessor current)
 {
     private async Task SessionAsync(SessionReference ticket, long sid, CancellationToken ct)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sid
             || actor.IsRestricted || ticket.IsRestricted) throw new InternalRequestReadException(401, "SESSION_INVALID");
-        var result = await sessions.ValidateSessionAsync(ticket, ct);
+        // Keep pending classification evidence tracked by its owner while the
+        // session reader uses a clean context enlisted in this same transaction.
+        var result = await Dev2SessionValidation.ValidateAsync(db, ticket, clock, ct);
         if (!result.IsValid || result.Session?.SessionId != sid || result.Session.IsRestricted)
             throw new InternalRequestReadException(401, "SESSION_INVALID");
     }
@@ -94,6 +97,7 @@ public sealed class IncidentClassificationService(HotelOpsDbContext db, ISqlSess
             .OrderBy(r => r.SortOrder).ThenBy(r => r.ReferenceId).Select(r => new IncidentClassificationOption(r.ReferenceId, r.ValueCode, r.DisplayName)).ToArrayAsync(ct);
         var version = await IncidentTriageStore.TagAsync(db, id, ct) ?? throw new InternalRequestReadException(503, "INCIDENT_VERSION_UNAVAILABLE");
         await SessionAsync(ticket, sid, ct);
+        await AuthorizeAsync(ticket.UserId, incident, ct);
         await tx.CommitAsync(ct);
         return new(id, data.CategoryId, incident.SeverityId, data.AffectsRoomReadiness, version, categories, severities);
     }

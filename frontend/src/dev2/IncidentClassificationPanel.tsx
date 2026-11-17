@@ -22,10 +22,12 @@ export function IncidentClassificationPanel({ data, onCommitted }: { data: Value
   const [impact, setImpact] = useState("");
   const [message, setMessage] = useState(""), [busy, setBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [revision, setRevision] = useState(0), [loading, setLoading] = useState(false);
   const sending = useRef(false), writer = useRef<AbortController | null>(null);
   useEffect(() => {
     if (!owner || owner !== mountedOwner || !positive(id)) return;
     const abort = new AbortController();
+    setLoading(true); setContext(undefined); setMessage("");
     void (async () => {
       try {
         const response = await fetch(`/api/incidents/${id}/classification`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
@@ -41,11 +43,13 @@ export function IncidentClassificationPanel({ data, onCommitted }: { data: Value
           setCategory(raw.categoryId === null ? "" : String(raw.categoryId));
           setSeverity(raw.severityId === null ? "" : String(raw.severityId));
           setImpact(raw.affectsRoomReadiness === null ? "" : String(raw.affectsRoomReadiness));
+          setAttempted(false);
         }
       } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Classification unavailable."); }
+      finally { if (!abort.signal.aborted && currentOwner.current === owner) setLoading(false); }
     })();
     return () => { abort.abort(); writer.current?.abort(); };
-  }, [owner, mountedOwner, id]);
+  }, [owner, mountedOwner, id, revision]);
   const valid = context?.categories.some(x => String(x.id) === category) && context.severities.some(x => String(x.id) === severity)
     && (impact === "true" || impact === "false");
   async function save() {
@@ -61,17 +65,27 @@ export function IncidentClassificationPanel({ data, onCommitted }: { data: Value
       const response = await fetch(`/api/incidents/${id}/classification`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": context.version },
         body: JSON.stringify({ categoryId: Number(category), severityId: Number(severity), affectsRoomReadiness: impact === "true" }) });
+      if (response.status === 400) {
+        const problem: unknown = await response.json();
+        if (isObject(problem) && problem.title === "Invalid incident classification"
+          && !abort.signal.aborted && currentOwner.current === owner) {
+          setAttempted(false);
+          setMessage(typeof problem.detail === "string" ? problem.detail : "Check category, severity and room readiness impact.");
+          return;
+        }
+      }
       if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload before retrying."
         : "Classification was not confirmed. Reload to check the incident and current permissions.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || !positive(result.eventId) || !tag(result.version) || typeof result.suggestRoomBlock !== "boolean")
         throw Error("Classification response could not be confirmed. Reload.");
-      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = result.suggestRoomBlock ? "Classification saved. Consider blocking the affected room using Block Room." : "Classification saved."; setMessage(notice); onCommitted?.(notice); }
+      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = result.suggestRoomBlock ? "MSG08: Classification saved. Consider blocking the affected room using Block Room." : "MSG08: Classification saved."; setMessage(notice); onCommitted?.(notice); }
     } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Classification not confirmed. Reload."); }
     finally { if (!abort.signal.aborted) { setBusy(false); sending.current = false; } }
   }
   if (!owner || owner !== mountedOwner || !positive(id)) return null;
-  if (!context) return message ? <p role="status">{message}</p> : null;
+  if (!context) return message ? <section aria-label="Classify incident"><p role="status">{message}</p>
+    <button disabled={busy || loading} onClick={() => setRevision(v => v + 1)}>Reload classification</button></section> : null;
   return <section aria-label="Classify incident"><h3>Classify incident</h3>
     <fieldset disabled={busy || attempted}>
       <label>Category<select value={category} onChange={e => setCategory(e.target.value)}><option value="">Select category</option>
@@ -85,5 +99,6 @@ export function IncidentClassificationPanel({ data, onCommitted }: { data: Value
       <p>Critical classification alerts eligible Maintenance Leads and Operations Managers and requires acknowledgment.</p>}
     {message && <p role="status">{message}</p>}
     <button disabled={!valid || busy || attempted} onClick={() => void save()}>Save classification</button>
+    <button disabled={busy || loading} onClick={() => setRevision(v => v + 1)}>Reload classification</button>
   </section>;
 }
