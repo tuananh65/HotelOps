@@ -8,6 +8,9 @@ type Schedule = { scheduleId: number; scheduleCode: string; title: string | null
   frequency: string; interval: number; nextDueAt: string; assetId: number | null; roomId: number | null;
   areaId: number | null; defaultAssigneeId: number | null; isActive: boolean; version: string; checkItems: Check[] | null };
 type Target = { id: number; kind: string; label: string };
+class ScheduleRequestError extends Error {
+  constructor(readonly status: number, readonly code: string | null, readonly title: string | null, message: string) { super(message); }
+}
 const positive = (x: unknown): x is number => typeof x === "number" && Number.isSafeInteger(x) && x > 0;
 function schedule(x: unknown): x is Schedule {
   return isObject(x) && positive(x.scheduleId) && typeof x.scheduleCode === "string"
@@ -31,6 +34,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
   const [frequency, setFrequency] = useState("DAYS"), [interval, setInterval] = useState("1");
   const [due, setDue] = useState(""), [assignee, setAssignee] = useState("");
   const [checks, setChecks] = useState<Check[]>([]), [reason, setReason] = useState("");
+  const [confirmDeactivation, setConfirmDeactivation] = useState(false);
   const [message, setMessage] = useState(""), [busy, setBusy] = useState(false), [authorized, setAuthorized] = useState(false);
   const [uncertain, setUncertain] = useState(false); const sending = useRef(false);
   const [cursor, setCursor] = useState(0);
@@ -38,16 +42,29 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
   const live = () => owner !== null && current.current === owner && !abort.current.signal.aborted;
   async function request(url: string, init?: RequestInit) {
     const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.current.signal });
-    if (!response.ok) throw Error(response.status === 412 ? "Schedule changed. Reload before editing." : `Request unavailable (${response.status}). Check current access and configuration.`);
+    if (!response.ok) {
+      const problem: unknown = await response.json().catch(() => null);
+      const code = isObject(problem) && typeof problem.code === "string" ? problem.code : null;
+      const title = isObject(problem) && typeof problem.title === "string" ? problem.title : null;
+      const knownValidation = response.status === 400 && (title === "Invalid preventive schedule" || title === "Invalid deactivation reason");
+      throw new ScheduleRequestError(response.status, code, title,
+        code === "DUPLICATE_ACTIVE_SCHEDULE" ? "MSG35: This target already has an active schedule with the same title. Change the title and save again."
+        : knownValidation && isObject(problem) && typeof problem.detail === "string" ? problem.detail
+        : response.status === 412 ? "Schedule changed. Reload before editing." : `Request unavailable (${response.status}). Check current access and configuration.`);
+    }
     return await response.json() as unknown;
   }
   async function load(more = false) {
-    if (!live() || sending.current) return;
+    if (!live() || sending.current || more && uncertain) return;
     sending.current = true; setBusy(true); setMessage("");
     try {
       const raw = await request(`${root}?afterId=${more ? cursor : 0}&limit=50`);
       if (!Array.isArray(raw) || !raw.every(schedule)) throw Error("Invalid schedule response.");
-      if (live()) { setRows(more ? [...rows.filter(r => !raw.some(n => n.scheduleId === r.scheduleId)), ...raw].sort((a,b) => a.scheduleId-b.scheduleId) : raw); setCursor(raw.at(-1)?.scheduleId ?? (more ? cursor : 0)); setAuthorized(true); }
+      if (live()) {
+        setRows(more ? [...rows.filter(r => !raw.some(n => n.scheduleId === r.scheduleId)), ...raw].sort((a,b) => a.scheduleId-b.scheduleId) : raw);
+        setCursor(raw.at(-1)?.scheduleId ?? (more ? cursor : 0)); setAuthorized(true);
+        if (!more) { setUncertain(false); edit(); setTargets([]); setTarget(""); }
+      }
     } catch (e) { if (live()) { setAuthorized(false); setRows([]); setSelected(undefined); setMessage(String(e)); } }
     finally { sending.current = false; if (live()) setBusy(false); }
   }
@@ -65,19 +82,20 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
     setSelected(row); setTitle(row?.title ?? ""); setInstruction(row?.instruction ?? "");
     setFrequency(row?.frequency ?? "DAYS"); setInterval(String(row?.interval ?? 1));
     setAssignee(row?.defaultAssigneeId?.toString() ?? ""); setChecks(row?.checkItems ?? []); setReason(""); setDue("");
+    setConfirmDeactivation(false);
   }
   async function save(deactivate = false) {
     if (!live() || sending.current || uncertain) return;
     if (!deactivate && (!title.trim() || !instruction.trim() || !positive(Number(interval))
       || (!selected && (!targets.some(t => t.id === Number(target)) || !due || !Number.isFinite(Date.parse(due))))
       || (assignee !== "" && !positive(Number(assignee))))) { setMessage("Complete the required schedule fields."); return; }
-    if (deactivate && (!selected || reason.trim().length < 10)) { setMessage("Provide a deactivation reason of at least 10 characters."); return; }
+    if (deactivate && (!selected || !confirmDeactivation || reason.trim().length < 10)) { setMessage("Confirm deactivation and provide a reason of at least 10 characters."); return; }
     sending.current = true; setBusy(true); setMessage(""); let submitted = false;
     try {
       const csrf = await request("/api/auth/csrf");
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || !live()) throw Error("Session changed. Reload.");
       const body = deactivate ? { reason } : { title, instruction, frequency, interval: Number(interval),
-        firstDueAt: selected?.nextDueAt ?? new Date(due).toISOString(),
+        firstDueAt: selected?.nextDueAt ?? new Date(due + "+07:00").toISOString(),
         assetId: selected ? selected.assetId : kind === "ASSET" ? Number(target) : null,
         roomId: selected ? selected.roomId : kind === "ROOM" ? Number(target) : null,
         areaId: selected ? selected.areaId : kind === "AREA" ? Number(target) : null,
@@ -88,15 +106,21 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
           ...(selected ? { "If-Match": selected.version } : {}) }, body: JSON.stringify(body) });
       if (!schedule(raw)) throw Error("Save response could not be confirmed.");
       if (live()) { setRows(old => [...old.filter(r => r.scheduleId !== raw.scheduleId), raw].sort((a,b) => a.scheduleId-b.scheduleId)); edit(raw); setMessage("Schedule saved. Existing occurrences retain their original definition."); }
-    } catch (e) { if (live()) { setMessage(String(e) + (submitted ? " Reload this page before another change." : "")); if (submitted) setUncertain(true); } }
+    } catch (e) { if (live()) {
+      const rejected = e instanceof ScheduleRequestError && (e.status === 409 && e.code === "DUPLICATE_ACTIVE_SCHEDULE"
+        || e.status === 400 && (e.title === "Invalid preventive schedule" || e.title === "Invalid deactivation reason"));
+      setMessage(String(e) + (submitted && !rejected ? " Reload schedules before another change." : ""));
+      if (submitted && !rejected) setUncertain(true);
+      if (e instanceof ScheduleRequestError && (e.status === 401 || e.status === 403)) { setAuthorized(false); setRows([]); setSelected(undefined); }
+    } }
     finally { sending.current = false; if (live()) setBusy(false); }
   }
   if (!owner || owner !== mounted || !positive(branchId)) return null;
   return <section aria-label="Preventive maintenance schedules"><h2>Preventive maintenance schedules</h2>
     <button disabled={busy} onClick={() => void load()}>Load schedules</button>
-    {rows.length > 0 && <button disabled={busy} onClick={() => void load(true)}>Load next page</button>}
+    {rows.length > 0 && <button disabled={busy || uncertain} onClick={() => void load(true)}>Load next page</button>}
     {message && <p role="status">{message}</p>}
-    <ul>{rows.map(r => <li key={r.scheduleId}><button disabled={busy || uncertain} onClick={() => edit(r)}>{r.title ?? r.scheduleCode}</button> — {r.isActive ? "Active" : "Inactive"} — {new Date(r.nextDueAt).toLocaleString()}</li>)}</ul>
+    <ul>{rows.map(r => <li key={r.scheduleId}><button disabled={busy || uncertain} onClick={() => edit(r)}>{r.title ?? r.scheduleCode}</button> — {r.isActive ? "Active" : "Inactive"} — {new Date(r.nextDueAt).toLocaleString("en-GB", { timeZone: "Asia/Ho_Chi_Minh" })} (UTC+7)</li>)}</ul>
     {authorized && <><button disabled={busy || uncertain} onClick={() => edit()}>New schedule</button>
       <fieldset disabled={busy || uncertain || selected?.isActive === false || selected?.title === null}>
         {!selected && <><label>Target type<select value={kind} onChange={e => { setKind(e.target.value); setTargets([]); setTarget(""); }}><option>ROOM</option><option>AREA</option><option>ASSET</option></select></label>
@@ -106,7 +130,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
         <label>Work description<textarea maxLength={16000} value={instruction} onChange={e => setInstruction(e.target.value)} /></label>
         <label>Repeat every<input type="number" min="1" value={interval} onChange={e => setInterval(e.target.value)} /></label>
         <select aria-label="Interval unit" value={frequency} onChange={e => setFrequency(e.target.value)}><option>DAYS</option><option>WEEKS</option><option>MONTHS</option></select>
-        {!selected && <label>First due (local time)<input type="datetime-local" value={due} onChange={e => setDue(e.target.value)} /></label>}
+        {!selected && <label>First due (UTC+7)<input type="datetime-local" value={due} onChange={e => setDue(e.target.value)} /></label>}
         <PreventiveTechnicianSelect url={`${root}/technicians`} value={assignee} onChange={setAssignee} optional />
         <p>The selected employee must currently have maintenance read and execution authority in this branch.</p>
         {checks.map((c,i) => <div key={c.key}><input aria-label={`Check ${i+1}`} maxLength={1000} value={c.description} onChange={e => setChecks(checks.map((x,j) => i===j ? {...x,description:e.target.value} : x))} />
@@ -115,7 +139,9 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
         <button disabled={checks.length>=100} onClick={() => setChecks([...checks,{key:crypto.randomUUID(),description:"",required:true}])}>Add check item</button>
         <button onClick={() => void save()}>Save schedule</button>
       </fieldset>
-      {selected?.isActive && <fieldset disabled={busy || uncertain}><label>Deactivation reason<textarea maxLength={4000} value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void save(true)}>Deactivate schedule</button></fieldset>}
+      {selected?.isActive && <fieldset disabled={busy || uncertain}><label>Deactivation reason<textarea maxLength={4000} value={reason} onChange={e => {setReason(e.target.value);setConfirmDeactivation(false);}} /></label>
+        <label><input type="checkbox" checked={confirmDeactivation} onChange={e => setConfirmDeactivation(e.target.checked)} />Confirm deactivation. Already generated occurrences remain unchanged.</label>
+        <button disabled={!confirmDeactivation || reason.trim().length < 10} onClick={() => void save(true)}>Deactivate schedule</button></fieldset>}
     </>}
   </section>;
 }
