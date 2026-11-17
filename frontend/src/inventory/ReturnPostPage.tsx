@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 type Receipt = { documentId: number; documentNo: string; status: string; rowVersion: string;
   lines: { lineId: number; itemId: number; uomId: number }[] };
-type Detail = { document: Receipt; originals: { returnLineId: number; originalIssueLineId: number; originalDocumentNo: string; itemName: string; uomName: string }[]; expectedQuantities: string[]; receivedQuantities: { lineId: number; accepted: string; damaged: string | null; reason: string | null }[] };
+type Detail = { canPost: boolean; approvalValid: boolean; document: Receipt; originals: { returnLineId: number; originalIssueLineId: number; originalDocumentNo: string; itemName: string; uomName: string }[]; expectedQuantities: string[]; receivedQuantities: { lineId: number; accepted: string; damaged: string | null; reason: string | null }[] };
 type Entry = { lineId: number; acceptedQty: string; rejectedQty: string; damagedQty: string; discrepancyReason: string };
 
 export function ReturnPostPage() {
@@ -43,7 +43,7 @@ export function ReturnPostPage() {
   }, [owner, id, revision, actions]);
   useEffect(() => () => writer.current?.abort(), [owner, id]);
   async function post() {
-    if (!owner || !receipt || busy || uncertain || receipt.document.status !== "DRAFT") return;
+    if (!owner || !receipt || busy || uncertain || receipt.document.status !== "DRAFT" || !receipt.canPost) return;
     if (!window.confirm("Post the reviewed accepted quantities? Posted stock cannot be edited.")) return;
     const abort = new AbortController(); writer.current = abort; setBusy(true); setMessage(""); let sent = false;
     try {
@@ -71,7 +71,8 @@ export function ReturnPostPage() {
             {line.reason && <p>{line.reason}</p>}</li>;
         })}</ul>
       </section>}
-      {receipt.document.status === "DRAFT" && <form onSubmit={e => { e.preventDefault(); void post(); }}><fieldset disabled={busy || uncertain}>
+      {receipt.document.status === "DRAFT" && !receipt.canPost && <p>Independent approval is required before posting. <Link to={`/inventory/returns/${id}/approve`}>Review approval (separate permission required)</Link></p>}
+      {receipt.document.status === "DRAFT" && <form onSubmit={e => { e.preventDefault(); void post(); }}><fieldset disabled={busy || uncertain || !receipt.canPost}>
         <p>Only usable accepted quantities increase stock. Damaged quantities are recorded separately. Explain damage or any shortage against the declared return.</p>
         {lines.map((line, index) => <fieldset key={line.lineId}><legend>{receipt.originals.find(o => o.returnLineId === line.lineId)?.itemName ?? `Item ${receipt.document.lines[index].itemId}`}, {receipt.originals.find(o => o.returnLineId === line.lineId)?.uomName ?? `unit ${receipt.document.lines[index].uomId}`}; declared {receipt.expectedQuantities[index]}; original issue {receipt.originals.find(o => o.returnLineId === line.lineId)?.originalDocumentNo ?? "unavailable"}, line {receipt.originals.find(o => o.returnLineId === line.lineId)?.originalIssueLineId ?? "unavailable"}</legend>
           {(["acceptedQty", "damagedQty"] as const).map(field => <label key={field}>{field}<input required inputMode="decimal" pattern="[0-9]+([.][0-9]{1,3})?" value={line[field]} onChange={e => setLines(v => v.map(x => x.lineId === line.lineId ? { ...x, [field]: e.target.value } : x))} /></label>)}

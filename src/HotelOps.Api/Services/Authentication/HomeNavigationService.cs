@@ -45,6 +45,11 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
             { links.Add("/cleaning/assignment"); break; }
         if (Granted(await RoleCatalogAuthority.EvaluateAsync(db, current, permissions, clock, ct))) links.Add("/roles");
         if (!current.TryGetCurrentUser(out var actor)) return [];
+        foreach (var branch in branches)
+            if (await HotelOps.Api.Services.Inventory.StockReturnReadAccess.QueueBranchAsync(db, actor.UserId, branch, "mine", ct)
+                || await HotelOps.Api.Services.Inventory.StockReturnReadAccess.QueueBranchAsync(db, actor.UserId, branch, "post", ct)
+                || await HotelOps.Api.Services.Inventory.StockReturnReadAccess.QueueBranchAsync(db, actor.UserId, branch, "approve", ct))
+            { links.Add("/inventory/return-requests"); break; }
         var now = clock.GetUtcNow().UtcDateTime;
         foreach (var branch in branches)
             if (await assetHistory.AllowedAsync(branch, ct)) { links.Add("/assets/maintenance-history"); break; }

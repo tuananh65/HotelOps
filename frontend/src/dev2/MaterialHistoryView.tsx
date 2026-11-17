@@ -58,10 +58,14 @@ export function MaterialHistoryView({ record }: { record: Values }) {
       currently open to fulfill {String(line.openFulfillableQty)}.
     </li>)}</ul>
     <h3>Return documents</h3>
+    <ul>{rows(record.fulfillments).filter(f => f.status === "ISSUED" && typeof f.stockDocumentId === "number").map(f => <li key={String(f.fulfillmentId)}>
+      <Link to={`/inventory/issues/${f.stockDocumentId}/return`}>Return unused materials from {String(f.fulfillmentNo)}</Link> (current return permission and recipient eligibility required)
+    </li>)}</ul>
     <p>Return quantities describe their source documents. Draft, cancelled or reversed returns do not imply available stock or reduce the request's historical issued quantity.</p>
     {rows(record.returns).length ? <ul>{rows(record.returns).map((receipt, index) => <li key={`${receipt.documentId}:${receipt.originalIssueLineId}:${index}`}>
       <Link to={`/inventory/returns/${encodeURIComponent(String(receipt.documentId))}`}>{String(receipt.documentNo)}</Link> — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
     </li>)}</ul> : <p>No linked return documents recorded.</p>}
+    <p><Link to="/inventory/return-requests">My returns and authorized warehouse queues</Link></p>
     {record.incidentId != null && <section aria-label="Linked incident">
       <h3>Linked incident</h3>
       {isObject(record.linkedIncident) ? <p>

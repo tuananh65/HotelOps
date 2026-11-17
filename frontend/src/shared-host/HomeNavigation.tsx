@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
 const labels: Record<string, string> = {
+  "/inventory/return-requests": "Material returns",
   "/assets/maintenance-history": "Asset maintenance history",
   "/assets/locations": "Assets by location",
   "/assets": "Assets",

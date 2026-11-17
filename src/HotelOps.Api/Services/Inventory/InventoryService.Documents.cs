@@ -80,12 +80,14 @@ public sealed partial class InventoryService
     {
         if (request.DocumentDate == default) throw Invalid("DocumentDate is required.");
         if (type is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Unsupported draft type.");
+        if (type == "RETURN" && id.HasValue) throw Invalid("Withdraw this return and submit a new request to change declared quantities.");
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0) throw Invalid("At least one line is required.");
         var receipt = type == "RECEIPT" ? receiptAuthority ?? throw Invalid("Receipt authority unavailable.") : null;
-        await using var tx = await Begin(actorUserId, ct, receipt == null && type != "TRANSFER" ? null : async token =>
+        await using var tx = await Begin(actorUserId, ct, async token =>
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token);
-        }, receipt == null && type != "TRANSFER" ? System.Data.IsolationLevel.ReadCommitted : System.Data.IsolationLevel.Serializable);
+        }, System.Data.IsolationLevel.Serializable);
+        if (type == "RETURN") await (returnRequestAuthority ?? throw Invalid("Return request authority unavailable.")).ValidateAsync(actorUserId, request, ct);
         if (receipt != null) await receipt.ValidateAsync(actorUserId, request, ct);
         if (type == "TRANSFER") await (transferAuthority ?? throw Invalid("Transfer authority unavailable.")).RequireAsync(actorUserId, request.SourceWarehouseId, request.DestinationWarehouseId, "both", ct);
         StockDocument d;
@@ -126,7 +128,9 @@ public sealed partial class InventoryService
             if (type == "RETURN")
             {
                 if (!input.OriginalIssueLineId.HasValue) throw Invalid("OriginalIssueLineId is required.");
-                await Original(input.OriginalIssueLineId.Value, input.ItemId, ct);
+                var original = await Original(input.OriginalIssueLineId.Value, input.ItemId, ct);
+                if (original.UomId != input.UomId || original.ConversionFactor <= 0) throw Invalid("Return requires the original issued unit and conversion evidence.");
+                line.ConversionFactor = original.ConversionFactor;
                 line.StockReturnLineDetailStockDocumentLine = new StockReturnLineDetail { OriginalIssueLineId = input.OriginalIssueLineId.Value };
             }
             else if (input.OriginalIssueLineId.HasValue) throw Invalid("OriginalIssueLineId is only valid for returns.");
@@ -158,8 +162,10 @@ public sealed partial class InventoryService
         if (!id.HasValue) { d.CreatedAt = now; d.DocumentNo = await Number(type == "RECEIPT" ? "GRN" : type == "RETURN" ? "RTN" : "TRF", now, false, ct); db.StockDocuments.Add(d); }
         else db.Entry(d).Property(x => x.Status).IsModified = true;
         await DocumentAudit(d, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "DRAFT_SAVED", before, warehouses, now, ct);
+        if (type == "RETURN" && !id.HasValue) await ReturnSubmittedIntentAsync(d, warehouses.Single(w => w.WarehouseId == d.DestinationWarehouseId).BranchId, ct);
         if (receipt != null) { await receipt.SaveSourceAsync(d, actorUserId, request, ct); await receipt.ValidateAsync(actorUserId, request, ct); foreach (var warehouse in warehouses) await receipt.RequireAsync(actorUserId, warehouse.WarehouseId, ct); }
         if (type == "TRANSFER") await transferAuthority!.RequireAsync(actorUserId, d, "both", ct);
+        if (type == "RETURN") await returnRequestAuthority!.ValidateAsync(actorUserId, request, ct);
         await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct);
     }
     public async Task<InventoryDocumentDto?> Post(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
@@ -189,8 +195,18 @@ public sealed partial class InventoryService
             await ReceiptPostingProof.RequireAsync(db, id, ct);
             return d; // MSG28: authorized replay returns the existing posted receipt.
         }
+        if (type == "RETURN" && d.DocumentType == "RETURN" && d.Status == "POSTED")
+        {
+            var key = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var events = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "stock_return_notification_intents" && a.EntityId == key)
+                .Select(a => a.AuditId).ToArrayAsync(ct);
+            if (events.Length != 1 || await HotelOps.Api.Services.Notifications.StockReturnPostedSource.ReadAsync(db, events[0], ct) == null)
+                throw Invalid("MSG28: Return is already posted; existing posting evidence is unavailable. No additional stock may be posted.");
+            return d;
+        }
         Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType != type || type is not ("RECEIPT" or "RETURN")) throw Invalid("Only the matching DRAFT receipt/return may be posted.");
+        if (type == "RETURN") await StockReturnApprovalStore.RequireForPostingAsync(db, id, ct);
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count != d.StockDocumentLines.Count || request.Lines.Select(x => x.LineId).Distinct().Count() != request.Lines.Count ||
             request.Lines.Any(x => !d.StockDocumentLines.Any(l => l.LineId == x.LineId))) throw Invalid("Supply every document line exactly once.");
         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
@@ -203,7 +219,10 @@ public sealed partial class InventoryService
         {
             var l = d.StockDocumentLines.Single(x => x.LineId == input.LineId);
             Qty(input.AcceptedQty); Qty(input.RejectedQty); Qty(input.DamagedQty);
-            var item = await Item(l.ItemId, ct); l.ConversionFactor = await Factor(item, l.UomId, ct);
+            var item = await Item(l.ItemId, ct); var currentFactor = await Factor(item, l.UomId, ct);
+            // A return reverses quantities in the original issue's historical unit,
+            // even if the catalog conversion has subsequently changed.
+            if (type != "RETURN") l.ConversionFactor = currentFactor;
             if (input.AcceptedQty != l.RequestedQty || input.RejectedQty > 0 || input.DamagedQty > 0) Reason(input.DiscrepancyReason);
             l.ActualQty = input.AcceptedQty; l.BaseQty = Base(input.AcceptedQty, l.ConversionFactor);
             if (d.DocumentType == "RECEIPT")
@@ -213,7 +232,9 @@ public sealed partial class InventoryService
                 if (input.RejectedQty != 0) throw Invalid("Returns persist damaged quantity, not rejected quantity.");
                 await db.Entry(l).Reference(x => x.StockReturnLineDetailStockDocumentLine).LoadAsync(ct);
                 var detail = l.StockReturnLineDetailStockDocumentLine ?? throw Invalid("Return lineage is missing.");
-                await Original(detail.OriginalIssueLineId, l.ItemId, ct);
+                var original = await Original(detail.OriginalIssueLineId, l.ItemId, ct);
+                if (original.UomId != l.UomId || original.ConversionFactor != l.ConversionFactor)
+                    throw Invalid("Return conversion must match the original issued unit.");
                 if (input.AcceptedQty + input.DamagedQty > l.RequestedQty) throw Invalid("Accepted usable + damaged exceeds requested return.");
                 detail.DamagedQty = input.DamagedQty; detail.Note = input.DiscrepancyReason;
             }
@@ -230,7 +251,9 @@ public sealed partial class InventoryService
     public async Task<InventoryDocumentDto?> CancelDocument(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
     {
         var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
-        var d = await Document(id, ct); if (d is null) return null; Version(d.RowVersion, request.ExpectedRowVersion);
+        var d = await Document(id, ct); if (d is null) return null;
+        if (d.DocumentType == "RETURN") await (returnRequestAuthority ?? throw Invalid("Return request authority unavailable.")).RequireOwnAsync(actorUserId, d, ct);
+        Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Only an eligible DRAFT may be cancelled.");
         if (d.DocumentType is "RECEIPT" or "TRANSFER" && reason.Length < 10) throw Invalid("Cancellation reason requires at least 10 characters (GBR-012).");
         if (d.DocumentType == "RECEIPT") await (receiptAuthority ?? throw Invalid("Receipt authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
@@ -240,6 +263,7 @@ public sealed partial class InventoryService
         await DocumentAudit(d, actorUserId, "CANCEL", "CANCELLED", before, warehouses, now, ct);
         if (d.DocumentType == "RECEIPT") await receiptAuthority!.RequireAsync(actorUserId, d.DestinationWarehouseId ?? 0, ct);
         if (d.DocumentType == "TRANSFER") await transferAuthority!.RequireAsync(actorUserId, d, "both", ct);
+        if (d.DocumentType == "RETURN") await returnRequestAuthority!.RequireOwnAsync(actorUserId, d, ct);
         await tx.CommitAsync(ct); return await GetDocument(id, ct);
     }
     public async Task<InventoryDocumentDto?> Dispatch(long id, long actorUserId, InventoryCommand request, CancellationToken ct)

@@ -16,13 +16,15 @@ public sealed class ReturnWorkspaceService(HotelOpsDbContext db, ReturnPostingAu
         await new UserEligibilityLock(db).LockAsync([access.UserId], ct);
         await authority.RequireAsync(access.UserId, id, ct);
         var document = await inventory.GetDocument(id, ct) ?? throw new InventoryAccessException(403);
+        var approvalValid = await StockReturnApprovalStore.InstalledAsync(db, ct)
+            && await StockReturnApprovalStore.MatchesAsync(db, id, document.Status == "DRAFT", ct);
         var originals = await db.StockReturnLineDetails.AsNoTracking().Where(r => r.StockDocumentLine.DocumentId == id)
             .Select(r => new { ReturnLineId = r.StockDocumentLineId, r.OriginalIssueLineId,
                 OriginalDocumentNo = r.OriginalIssueLine.Document.DocumentNo, OriginalDocumentId = r.OriginalIssueLine.DocumentId,
                 r.StockDocumentLine.Item.ItemName, r.StockDocumentLine.Uom.UomName }).ToArrayAsync(ct);
         await authority.RequireAsync(access.UserId, id, ct);
         await tx.CommitAsync(ct);
-        return new { document, originals,
+        return new { document, originals, approvalValid, canPost = document.Status == "DRAFT" && approvalValid,
             receivedQuantities = document.Lines.Select(l => new { lineId = l.LineId,
                 accepted = l.ActualQty.ToString(CultureInfo.InvariantCulture),
                 damaged = l.DamagedQty?.ToString(CultureInfo.InvariantCulture),

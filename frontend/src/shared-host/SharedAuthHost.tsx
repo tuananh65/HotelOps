@@ -385,7 +385,7 @@ export function SharedAuthHost({
               ...(roleAssignmentEnabled ? ["/roles"] : []),
               ...(structureReadEnabled ? ["/structure/work-categories", "/structure/reference-data", "/structure/priority-sla"] : []),
               ...(incidentReadEnabled ? ["/operations/incidents", "/assets/maintenance-history", "/assets/locations", "/assets"] : []),
-              ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments"] : []),
+              ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments", "/inventory/return-requests"] : []),
               ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
               ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),
               ...(checklistEnabled ? ["/inspections/checklists"] : []),

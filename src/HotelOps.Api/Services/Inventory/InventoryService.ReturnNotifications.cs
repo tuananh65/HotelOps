@@ -6,6 +6,18 @@ namespace HotelOps.Api.Services.Inventory;
 
 public sealed partial class InventoryService
 {
+    private async Task ReturnSubmittedIntentAsync(StockDocument document, long branch, CancellationToken ct)
+    {
+        db.AuditLogs.Add(new AuditLog
+        {
+            EntityType = "stock_return_request_intents", EntityId = document.DocumentId.ToString(CultureInfo.InvariantCulture),
+            Action = "CREATE", ActorUserId = document.CreatedBy, BranchId = branch, OccurredAt = document.CreatedAt,
+            NewValues = await StockReturnApprovalStore.SnapshotAsync(db, document.DocumentId, ct),
+            ChangedFields = "[\"return_request_notification_intent\"]"
+        });
+        await Save(ct);
+    }
+
     private async Task ReturnPostedIntentAsync(StockDocument document, long branch, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction == null || document.DocumentType != "RETURN" || document.Status != "POSTED"

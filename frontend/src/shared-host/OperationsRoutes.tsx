@@ -31,6 +31,8 @@ import { StocktakePage } from "../inventory/StocktakePage";
 import { TransferWorkspacePage } from "../inventory/TransferWorkspacePage";
 import { TransferDetailPage } from "../inventory/TransferDetailPage";
 import { ReturnPostPage } from "../inventory/ReturnPostPage";
+import { ReturnRequestPage } from "../inventory/ReturnRequestPage";
+import { ReturnQueuePage } from "../inventory/ReturnQueuePage";
 import { ReceiptWorkspacePage } from "../inventory/ReceiptWorkspacePage";
 export function OperationsRoutes() {
   return (
@@ -61,6 +63,10 @@ export function OperationsRoutes() {
           <Route path="/inventory/transfers" element={<TransferWorkspacePage />} />
           <Route path="/inventory/transfers/:id" element={<TransferDetailPage />} />
           <Route path="/inventory/returns/:id" element={<ReturnPostPage />} />
+          <Route path="/inventory/issues/:issueId/return" element={<ReturnRequestPage />} />
+          <Route path="/inventory/return-requests/:id" element={<ReturnRequestPage />} />
+          <Route path="/inventory/return-requests" element={<ReturnQueuePage />} />
+          <Route path="/inventory/returns/:id/approve" element={<ReturnRequestPage approve />} />
           <Route path="/inventory/receipts" element={<ReceiptWorkspacePage />} />
           <Route path="/inventory/stock" element={<StockBalancePage />} />
           <Route path="/inventory/minimums" element={<MinimumStockPage />} />
