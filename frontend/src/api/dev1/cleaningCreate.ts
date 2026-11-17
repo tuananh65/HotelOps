@@ -87,12 +87,7 @@ export async function cleaningOptions(
     r,
   );
 }
-export async function createCleaning(
-  branch: string,
-  input: CreateInput,
-  signal?: AbortSignal,
-) {
-  const b = positiveId(branch);
+export function validateCleaningInput(input: CreateInput) {
   if (input.internalRequestId !== undefined) {
     positiveId(String(input.internalRequestId));
     if (!input.requestLink || !/^[A-Za-z0-9+/]{11}=$/.test(input.requestLink.version) || typeof input.requestLink.mandatory!=="boolean") throw Error("SOURCE_VERSION_REQUIRED");
@@ -107,6 +102,10 @@ export async function createCleaning(
     /[\u0000-\u001f\u007f-\u009f]/.test(input.instruction ?? "")
   )
     throw Error("INVALID_CREATE_INPUT");
+}
+export async function createCleaning(branch: string, input: CreateInput, signal?: AbortSignal) {
+  const b = positiveId(branch);
+  validateCleaningInput(input);
   const token = (await getJson("/auth/csrf", signal)) as {
     csrfToken?: string;
     headerName?: string;
@@ -142,6 +141,8 @@ export async function createCleaning(
     roomId: number;
     taskNumber: string;
     state: string;
+    readiness: string;
+    hasEffectiveBlock: boolean;
   };
   if (
     !d ||
@@ -150,7 +151,7 @@ export async function createCleaning(
     d.branchId !== b ||
     d.roomId !== input.roomId ||
     typeof d.taskNumber !== "string" ||
-    d.state !== "PENDING_ASSIGNMENT"
+    d.state !== "PENDING_ASSIGNMENT" || d.readiness !== "PENDING_CLEANING" || typeof d.hasEffectiveBlock !== "boolean"
   )
     throw new ApiError(502, "CREATE_COMMITTED_RESPONSE_INVALID_RELOAD_MONITOR");
   return d;
@@ -161,6 +162,7 @@ export function createError(e: unknown) {
     if (e.status === 403)
       return "Không có quyền CLEANING_ASSIGN tại chi nhánh này.";
     if (e.status === 404) return "Không tìm thấy phòng trong chi nhánh.";
+    if (e.status === 409 && e.code === "INACTIVE") return "MSG24: Room or its required configuration is inactive. Creation was rejected.";
     if (e.status === 409)
       return "Phòng không hợp lệ hoặc đã có công việc đang mở. Tải lại Monitor trước khi tạo tiếp.";
     if (e.status === 400)

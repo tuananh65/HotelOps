@@ -1,6 +1,6 @@
 import { submitAssignment } from "../../api/dev1/cleaningAssignmentCommand";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import {
   readAssignmentPlan,
   buildAssignmentDraft,
@@ -10,6 +10,7 @@ import {
 import { PageHeader } from "../../ui";
 export default function CleaningAssignmentScreen() {
   const [params, setParams] = useSearchParams();
+  const creation = useLocation().state;
   const branch = params.get("branchId") || "",
     task = params.get("taskId") || params.get("record") || "",
     page = Number(params.get("page") || "1"),
@@ -162,6 +163,7 @@ export default function CleaningAssignmentScreen() {
   return (
     <>
       <PageHeader id={27} />
+      {creation?.cleaningCreatedId === Number(task) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Cleaning task created. {creation.cleaningRoomBlocked === true ? "MSG17: Room remains Blocked." : "Room is Pending Cleaning."} Select an assignee to continue.</p>}
       {committed && (
         <p role="status">
           Assignment {committed} committed. Notification pending delivery.

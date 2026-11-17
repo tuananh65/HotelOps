@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   cleaningOptions,
   createCleaning,
+  validateCleaningInput, type CreateInput,
   createError,
   type CreateOptions,
   cleaningSource, type CleaningSource,
@@ -74,31 +75,43 @@ export default function CreateCleaningTaskScreen() {
     const assignImmediately =
       (e.nativeEvent as SubmitEvent).submitter?.getAttribute("name") ===
       "saveAndAssign";
-    setBusy(true);
-    setError("");
-    setSubmitted(true);
-    pending.current = true;
-    try {
-      const d = await createCleaning(branch, {
+    const input: CreateInput = {
         roomId: data.roomId,
         cleaningTypeId: Number(f.get("cleaningTypeId")),
         priorityId: Number(f.get("priorityId")),
         dueAt: String(f.get("dueAt") || ""),
         instruction: String(f.get("instruction") || "").trim() || null,
         ...(source ? {internalRequestId:source.requestId,requestLink:{version:source.version,mandatory:f.get("mandatory")==="required"}} : {}),
-      }, abort.signal);
+    };
+    try { validateCleaningInput(input); }
+    catch { setError("MSG01: Select valid type/priority and a future UTC deadline; check instruction length."); return; }
+    if (data.existingTaskId) { setError("MSG03: This room already has an open cleaning task."); return; }
+    setBusy(true); setError(""); setSubmitted(true); pending.current = true;
+    try {
+      const d = await createCleaning(branch, input, abort.signal);
       if (abort.signal.aborted) return;
       nav(
         assignImmediately
           ? `/cleaning/assignment?branchId=${branch}&taskId=${d.id}`
           : `/cleaning/tasks/${d.id}?branchId=${branch}&monitor=1&kind=cleaning`,
+        {state:{cleaningCreatedId:d.id,cleaningCreatedBranchId:d.branchId,cleaningRoomBlocked:d.hasEffectiveBlock}},
       );
     } catch (e) {
       if (!abort.signal.aborted) {
         setError(request ? e instanceof ApiError && e.status === 403
           ? "MSG02: Creating cleaning requires target permission and current request authority. Link existing work or ask the responsible role."
           : "Save not confirmed. Reload current request and linked cleaning before trying again." : createError(e));
-        if (request) setResult(null);
+        if (e instanceof ApiError && e.status === 409 && e.code === "DUPLICATE") {
+          try {
+            const latest = await cleaningOptions(branch,String(data.roomId),abort.signal);
+            if (!abort.signal.aborted) {
+              setResult({key,data:latest,source});
+              setError("MSG03: This room already has an open cleaning task. Open the existing task below.");
+            }
+          } catch { if (!abort.signal.aborted) setResult(null); }
+        } else if (e instanceof ApiError && e.status === 400) {
+          setSubmitted(false); // Explicit rejection: allow corrections, never auto-submit.
+        } else if (request) setResult(null);
       }
     } finally {
       if (!abort.signal.aborted) { setBusy(false); pending.current = false; }
@@ -144,6 +157,7 @@ export default function CreateCleaningTaskScreen() {
               </li>
             ))}
           </ul>
+          {data.existingTaskId && <p role="alert">MSG03: This room already has an open cleaning task.</p>}
           {data.existingTaskId && (
             <Link
               to={`/cleaning/tasks/${data.existingTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
@@ -188,7 +202,7 @@ export default function CreateCleaningTaskScreen() {
               className="primary"
               disabled={
                 busy ||
-                submitted ||
+                submitted || !!data.existingTaskId ||
                 data.cleaningItemCount < 1 ||
                 data.cleaningItemCount > 100
               }
@@ -199,7 +213,7 @@ export default function CreateCleaningTaskScreen() {
               name="saveAndAssign"
               disabled={
                 busy ||
-                submitted ||
+                submitted || !!data.existingTaskId ||
                 data.cleaningItemCount < 1 ||
                 data.cleaningItemCount > 100
               }

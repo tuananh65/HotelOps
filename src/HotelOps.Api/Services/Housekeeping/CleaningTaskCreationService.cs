@@ -31,7 +31,7 @@ public sealed partial class RoomTypeCreationService
                 refs.Where(x => x.GroupCode == "CLEANING_TYPE").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(),
                 refs.Where(x => x.GroupCode == "PRIORITY").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(), items.Length, items, existing > 0 ? existing : null,
                 type.StandardCleaningMinutes is > 0 ? type.StandardCleaningMinutes : null));
-        }, ct, permissionCode: "CLEANING_ASSIGN");
+        }, ct, featurePermission: token => CleaningSourceAuthority(ticket.UserId, branch, null, token));
     }
 
     public Task<RoomTypeBatchResult> CreateCleaningTaskAsync(SessionReference ticket, long sid, long branch, CreateCleaningTaskRequest input, CancellationToken ct)

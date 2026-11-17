@@ -1,10 +1,11 @@
 import AssignedCleaningHeader from "./AssignedCleaningHeader";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useLocation } from "react-router-dom";
 import CleaningProgressPanel from "./CleaningProgressPanel";
 import CleaningMonitorDetail from "./CleaningMonitorDetail";
 import CleaningExecutionPanel from "./CleaningExecutionPanel";
 export default function CleaningTaskDetailScreen() {
   const { id } = useParams();
+  const creation = useLocation().state;
   const [params] = useSearchParams();
   const branch = params.get("branchId") || "";
   if (params.get("execution") === "1" && branch)
@@ -27,12 +28,15 @@ export default function CleaningTaskDetailScreen() {
   if (params.get("monitor") === "1") {
     const kind = params.get("kind") || "cleaning";
     return (
+      <>
+      {creation?.cleaningCreatedId === Number(id) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Cleaning task created. {creation.cleaningRoomBlocked === true ? "MSG17: Room remains Blocked." : "Room is Pending Cleaning."}</p>}
       <CleaningMonitorDetail
         key={`${branch}:${kind}:${id}`}
         branch={branch}
         kind={kind}
         id={id || ""}
       />
+      </>
     );
   }
   if (branch)

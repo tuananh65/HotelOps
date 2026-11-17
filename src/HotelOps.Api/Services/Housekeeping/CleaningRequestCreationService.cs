@@ -23,7 +23,13 @@ public sealed partial class RoomTypeCreationService
     private async Task<PermissionEvaluation> CleaningSourceAuthority(long actor, long branch, long? request, CancellationToken ct)
     {
         var target = await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", branch, ct);
-        if (!target.IsGranted || request == null) return target;
+        if (!target.IsGranted) return target;
+        var at = clock.GetUtcNow().UtcDateTime;
+        if (!await db.UserRoles.AsNoTracking().AnyAsync(a => a.UserId == actor && a.IsActive && a.Role.IsActive
+            && a.Role.RoleCode == "HK_SUPERVISOR" && (a.BranchId == null || a.BranchId == branch)
+            && a.AssignedAt <= at && (a.ExpiresAt == null || a.ExpiresAt > at), ct))
+            return new(PermissionDecision.Denied);
+        if (request == null) return target;
         if (!await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InternalRequestCleaningLinks.InstalledAsync(db, ct)) return new(PermissionDecision.Unavailable);
         if (!await new InternalRequestProcessAuthority(db).AllowsCurrentRequestAsync(actor, request.Value, ct)) return new(PermissionDecision.Denied);
         var now = DateTime.UtcNow; var scope = await new InternalRequestReadAccess(db).ReadAsync(actor, now, ct);
