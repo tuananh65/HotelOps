@@ -1,4 +1,5 @@
 import { requestCreationDefaults } from "./requestCreationContext";
+import { cleaningBlockerContext } from "./cleaningBlockerContext";
 import { IncidentEscalationPanel } from "./IncidentEscalationPanel";
 import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { IncidentCancellationPanel } from "./IncidentCancellationPanel";
@@ -16,6 +17,7 @@ import {
   Routes,
   useParams,
   useSearchParams,
+  useLocation,
 } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
@@ -119,9 +121,18 @@ function Workspace({ readOnly, enabledModules, enabledActions }: { readOnly: boo
   const { module = "incidents", id = "" } = useParams();
   const { state, actions } = useAuth();
   const [query, setQuery] = useSearchParams();
+  const location = useLocation();
+  const blocker = cleaningBlockerContext(location.state, String(state.session?.user.id ?? ""));
   const config = modules.find((m) => m.id === module);
   if (!config || enabledModules && !enabledModules.includes(module)) return <p role="alert">This destination is not activated.</p>;
   const context: Values = {};
+  if (blocker && ["A004A-021", "A004A-043"].includes(query.get("action") ?? "")) {
+    context.cleaningBlocker = blocker;
+    context.roomId = blocker.room;
+    context.receivingRoomId = blocker.room;
+    context.description = blocker.note;
+    context.purpose = blocker.note;
+  }
   for (const name of [
     "branchId",
     "departmentId",
@@ -226,6 +237,9 @@ function Screen({
     return () => abort.abort();
   }, [sourceRequest, sourceBranch, sourceVersion, operation.id]);
   const [record, setRecord] = useState<Values>({});
+  const blockerOrigin = cleaningBlockerContext({ cleaningBlocker: context.cleaningBlocker }, actor);
+  const createdSourceId = operation.id === "A004A-021" ? record.incidentId : operation.id === "A004A-043" ? record.requestId : null;
+  const validCreatedSource = Number.isSafeInteger(createdSourceId) && Number(createdSourceId) > 0 && Number(record.branchId) === Number(blockerOrigin?.branch);
   const [reviewedIncidentLocation, setReviewedIncidentLocation] = useState<IncidentReview | null>(null);
   const [incidentFiles, setIncidentFiles] = useState<File[]>([]);
   const [data, setData] = useState<unknown>();
@@ -629,6 +643,15 @@ function Screen({
       </p>
       {sourceRequest && !sourceReady && <p role="status">{sourceError || "Loading authorized source request defaults..."}
         {sourceError && <Link to={"/internal-requests?requestId=" + encodeURIComponent(sourceRequest)}>Return to source and reload</Link>}</p>}
+      {blockerOrigin && <section aria-label="Cleaning blocker origin">
+        {validCreatedSource && operation.id === "A004A-043" && <MaterialTaskLinks record={record} kind="cleaning" />}
+        <p>Review the prefilled note and room before saving. A saved Material Request must be linked to cleaning task #{blockerOrigin.task} before submitting the blocker.</p>
+        <Link to={`/cleaning/tasks/${blockerOrigin.task}?branchId=${blockerOrigin.branch}&execution=1`}
+          state={{ cleaningBlocker: { ...blockerOrigin,
+            ...(validCreatedSource ? operation.id === "A004A-021" ? { incident: String(createdSourceId) } : { material: String(createdSourceId) } : {}) } }}>
+          Return to cleaning blocker{validCreatedSource ? " with saved source" : ""}
+        </Link>
+      </section>}
       <form
         data-operation={operation.id}
         onSubmit={(e) => {

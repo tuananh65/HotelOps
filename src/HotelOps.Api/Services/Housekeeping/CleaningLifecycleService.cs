@@ -36,6 +36,16 @@ public sealed partial class RoomTypeCreationService
             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(x => x.CleaningTaskId == task && x.Room.BranchId == branch && x.Room.IsActive, token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
             if (!await HousekeepingInstalled(token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            var roomInfo = await db.Rooms.AsNoTracking().Where(r => r.RoomId == row.RoomId).Select(r => new { r.RoomNumber, r.RoomTypeId }).SingleAsync(token);
+            var cleaningType = await db.ReferenceValues.AsNoTracking().Where(r => r.ReferenceId == row.CleaningTypeId && r.GroupCode == "CLEANING_TYPE").Select(r => r.DisplayName).SingleOrDefaultAsync(token);
+            if (cleaningType == null || !await HotelOps.Api.Data.ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+            var hasSnapshot = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_progress_versions WHERE cleaning_task_id={task}").SingleAsync(token) > 0;
+            var preview = hasSnapshot
+                ? await db.Database.SqlQuery<CleaningItemPreview>($"SELECT TOP(101) item_id AS Id,label AS Label,is_required AS IsRequired,sort_order AS SortOrder FROM dbo.cleaning_task_items WHERE cleaning_task_id={task} ORDER BY sort_order,item_id").ToArrayAsync(token)
+                : await db.Database.SqlQuery<CleaningItemPreview>($"SELECT TOP(101) item_id AS Id,label AS Label,is_required AS IsRequired,sort_order AS SortOrder FROM dbo.cleaning_item_definitions WHERE room_type_id={roomInfo.RoomTypeId} ORDER BY sort_order,item_id").ToArrayAsync(token);
+            if (preview.Length is < 1 or > 100) return new(RoomTypeBatchStatus.SchemaRequired);
+            var details = new CleaningStartDetails(roomInfo.RoomNumber, cleaningType, row.Instruction,
+                row.DueAt is {} due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null, preview, row.RoomId);
             var state = await CleaningState(task, token);
             var assignments = await db.CleaningAssignments.AsNoTracking().Where(x => x.CleaningTaskId == task && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null).Take(2).ToArrayAsync(token);
             var active = assignments.Length == 1 ? assignments[0] : null;
@@ -64,7 +74,7 @@ public sealed partial class RoomTypeCreationService
                 active?.AssigneeUserId, row.ActualStartAt is { } time ? DateTime.SpecifyKind(time, DateTimeKind.Utc) : null,
                 WorkflowTag(state.Revision), start, reassign, closure ? "PROVISIONAL_V1" : "UNAVAILABLE", complete ? "PROVISIONAL_V1" : "UNAVAILABLE",
                 resume, reasons, progress?.Items, progressVersion == null ? null : WorkflowTag(progressVersion.Revision),
-                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null, assigneeName), WorkflowTag(state.Revision));
+                state.State == "ON_HOLD" && await IsCleaningEndOfShiftHold(task, token) ? "END_OF_SHIFT" : null, assigneeName, details), WorkflowTag(state.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_VIEW", token));
     }
     public async Task<RoomTypeBatchResult> StartCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, StartCleaningRequest input, CancellationToken ct)
@@ -98,7 +108,8 @@ public sealed partial class RoomTypeCreationService
                 if (assignments.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
-                var roomHistory = resume ? await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, token) : null;
+                var restart = state.State == "ASSIGNED" && row.ActualStartAt != null;
+                var roomHistory = resume || restart ? await HotelOps.Api.Services.Rooms.RoomReadinessHistory.CaptureAsync(db, row.RoomId, token) : null;
                 var endOfShift = resume && await IsCleaningEndOfShiftHold(task, token);
                 var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid, admission, admission, admission);
                 var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note, endOfShift)
@@ -111,15 +122,15 @@ public sealed partial class RoomTypeCreationService
                     // user/time/room/task/block locks must all be proven before mutation.
                     await freshEvidence.RequireAdmissionAsync(db, actor, branch, row.RoomId,
                         task, owner.AssignmentId, token);
-                    if (row.ActualStartAt != null)
-                        return LifecycleFailure(RoomTypeBatchStatus.Inactive, "FRESH_START_ALREADY_STARTED");
+                    if (restart && !await ReassignedCleaningStartAllowed(task, branch, owner.AssignmentId, row.ActualStartAt!.Value, token))
+                        return LifecycleFailure(RoomTypeBatchStatus.Inactive, "REASSIGNMENT_START_PROOF_REQUIRED");
                 }
                 if (!await DueHousekeeper(actor, branch, DateTime.MaxValue, token)) return new(RoomTypeBatchStatus.InvalidReference);
                 if (owner.AssignedAt > clock.GetUtcNow().UtcDateTime) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 if (await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(token) != task)
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_CYCLE_REQUIRED");
                 // A BLOCKED history record cannot be silently interpreted as a resolved blocker.
-                if (!resume && await db.CleaningProgressLogs.AnyAsync(x => x.CleaningTaskId == task && x.Status == "BLOCKED", token))
+                if (!resume && !restart && await db.CleaningProgressLogs.AnyAsync(x => x.CleaningTaskId == task && x.Status == "BLOCKED", token))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "BLOCKER_RESOLUTION_CONTRACT_REQUIRED");
                 var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(token), DateTimeKind.Utc);
                 if (resume)
@@ -133,6 +144,11 @@ public sealed partial class RoomTypeCreationService
                 }
                 if (resume)
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at=COALESCE(actual_start_at,{now}) WHERE cleaning_task_id={task}", token);
+                else if (restart)
+                {
+                    var affected = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS' WHERE cleaning_task_id={task} AND workflow_status='ASSIGNED' AND actual_start_at={row.ActualStartAt} AND row_version={state.Revision}", token);
+                    if (affected != 1) return new(RoomTypeBatchStatus.Stale);
+                }
                 else
                 {
                     // Exact strong pre-update revision; no unconditional fresh status mutation.
@@ -147,7 +163,7 @@ public sealed partial class RoomTypeCreationService
                 }
                 if (!await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_progress_versions WHERE cleaning_task_id={task}").AnyAsync(x => x > 0, token))
                 {
-                    if (resume) return LifecycleFailure(RoomTypeBatchStatus.SchemaRequired, "CLEANING_ITEM_SNAPSHOT_REQUIRED");
+                    if (resume || restart) return LifecycleFailure(RoomTypeBatchStatus.SchemaRequired, "CLEANING_ITEM_SNAPSHOT_REQUIRED");
                     var type = await db.Rooms.Where(x => x.RoomId == row.RoomId).Select(x => x.RoomTypeId).SingleAsync(token);
                     var count = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_item_definitions WHERE room_type_id={type}").SingleAsync(token);
                     if (count is < 1 or > 100) return LifecycleFailure(RoomTypeBatchStatus.SchemaRequired, "CLEANING_ITEMS_REQUIRED");
@@ -159,7 +175,7 @@ public sealed partial class RoomTypeCreationService
                 db.ChangeTracker.Clear();
                 Guid? sourceOperationId = null;
                 var startBlocked = false;
-                if (!resume)
+                if (!resume && !restart)
                 {
                     var connection = db.Database.GetDbConnection();
                     var transaction = db.Database.CurrentTransaction?.GetDbTransaction()
@@ -186,16 +202,17 @@ public sealed partial class RoomTypeCreationService
                 if (roomHistory != null)
                     await HotelOps.Api.Services.Rooms.RoomReadinessHistory.FinishAsync(db, roomHistory, "CLEANING_TASK", task, actor, now, input.Note, token);
                 // Fresh START uses the locked authoritative block result returned by FE03.
-                var blocked = startBlocked || resume && await db.RoomBlocks.AsNoTracking()
+                var blocked = startBlocked || (resume || restart) && await db.RoomBlocks.AsNoTracking()
                     .AnyAsync(x => x.RoomId == row.RoomId && x.BlockedAt <= now
                         && (x.ReleasedAt == null || x.ReleasedAt > now), token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},'CLEANING_IN_PROGRESS',{blocked},{actor},{now})", token);
                 var startedAt = row.ActualStartAt is { } first ? DateTime.SpecifyKind(first, DateTimeKind.Utc) : now;
                 var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, blocked ? "BLOCKED" : "CLEANING_IN_PROGRESS", blocked);
-                await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualStartAt }, new { action = resume ? "RESUME_CLEANING" : "START_CLEANING", input.Note,
-                    sourceOperationId, holdReason = endOfShift ? "END_OF_SHIFT" : null, contract = resume ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
+                await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualStartAt }, new { action = resume ? "RESUME_CLEANING" : restart ? "START_REASSIGNED_CLEANING" : "START_CLEANING", input.Note,
+                    sourceOperationId, holdReason = endOfShift ? "END_OF_SHIFT" : null, contract = resume || restart ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
                 return new(RoomTypeBatchStatus.Success, result, WorkflowTag((await CleaningState(task, token)).Revision));
             }, ct, requireRoomTypeSchema: false, afterUserLocks: token => time.LockUsersAsync([ticket.UserId], token),
+                eligibility: token => DueHousekeeper(ticket.UserId, branch, DateTime.MaxValue, token),
                 featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token));
         }
         catch (WorkTimeContractException error) { return LifecycleTimeFailure(error); }

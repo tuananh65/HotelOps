@@ -18,8 +18,10 @@ public sealed partial class RoomTypeCreationService
     {
         ValidateCleaningClosure(branch, task, tag, key, input.Note, input.Photos);
         if (input.ReasonId <= 0) throw new ValidationException("A positive blocker reference is required.");
+        if (input.IncidentId is <= 0 || input.MaterialRequestId is <= 0)
+            throw new ValidationException("Linked source identifiers must be positive.");
         return ExecuteCleaningClosureAsync(ticket, sid, branch, task, tag, key, input.ReasonId,
-            CleaningLifecycleRules.Reason(input.Note, 1), null, input.Photos, privateRoot, ct);
+            CleaningLifecycleRules.Reason(input.Note, 1), null, input.Photos, privateRoot, ct, input.IncidentId, input.MaterialRequestId);
     }
 
     public Task<RoomTypeBatchResult> CompleteCleaningAsync(SessionReference ticket, long sid,
@@ -79,10 +81,15 @@ public sealed partial class RoomTypeCreationService
 
     private async Task<RoomTypeBatchResult> ExecuteCleaningClosureAsync(SessionReference ticket, long sid, long branch,
         long task, string tag, string key, long? reason, string note, string? progressTag,
-        IReadOnlyList<EvidenceUpload>? photos, string? root, CancellationToken ct)
+        IReadOnlyList<EvidenceUpload>? photos, string? root, CancellationToken ct, long? incident = null, long? material = null)
     {
         var operation = CleaningLifecycleRules.Operation(key);
         var fingerprint = ClosureFingerprint(ticket.UserId, branch, task, tag, reason, note, progressTag, photos);
+        // Preserve historical unlinked request fingerprints while binding new source links
+        // to idempotency. Reusing a key with a different link must never replay success.
+        if (incident != null || material != null)
+            fingerprint = SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new {
+                version = 2, original = Convert.ToHexString(fingerprint), incidentId = incident, materialRequestId = material }));
         var files = new List<string>();
         // On ambiguous commit outcome keep files; committed attachment rows may reference them.
         var commitAttempted = false;
@@ -118,6 +125,8 @@ public sealed partial class RoomTypeCreationService
                 if (owners.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = owners[0];
                 if (owner.AssigneeUserId != actor) return LifecycleFailure(RoomTypeBatchStatus.Forbidden, "CURRENT_ASSIGNEE_REQUIRED");
+                if (!await CanLinkCleaningBlocker(actor, branch, task, row.RoomId, incident, material, inner))
+                    return LifecycleFailure(RoomTypeBatchStatus.Forbidden, "BLOCKER_LINK_NOT_AVAILABLE");
                 if (owner.AssignedAt > clock.GetUtcNow().UtcDateTime) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var state = await CleaningState(task, inner);
                 if (!enabled)
@@ -188,7 +197,7 @@ public sealed partial class RoomTypeCreationService
                 var log = new CleaningProgressLog { CleaningTaskId = task, ProgressPercent = reason == null ? 100 : progress.Percent,
                     Status = reason == null ? "COMPLETED" : "BLOCKED", BlockerTypeId = reason, Note = note, LoggedBy = actor, LoggedAt = now };
                 db.Add(log); await db.SaveChangesAsync(inner); db.ChangeTracker.Clear();
-                if (reason != null) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.fs014_cleaning_blocker_resolutions(progress_id) VALUES({log.ProgressId})", inner);
+                if (reason != null) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.fs014_cleaning_blocker_resolutions(progress_id,incident_id,material_request_id) VALUES({log.ProgressId},{incident},{material})", inner);
                 foreach (var photo in photos ?? [])
                 {
                     if (root == null) throw new ValidationException("Private evidence storage required.");
@@ -217,17 +226,23 @@ public sealed partial class RoomTypeCreationService
                     EffectiveReadiness: effectiveReadiness);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualEndAt },
                     new { operationId = operation, action = reason == null ? "COMPLETE_CLEANING" : "REPORT_CLEANING_BLOCKER", note,
-                        reasonId = reason, progressId = log.ProgressId, entity = result }, ["workflowStatus", "workInterval", "readiness", "notification", "progress"], inner);
+                        reasonId = reason, incidentId = incident, materialRequestId = material, progressId = log.ProgressId, entity = result }, ["workflowStatus", "workInterval", "readiness", "notification", "progress"], inner);
                 await candidateNotification.StageClosureAsync(actor, fingerprint, row.RoomId, recipients, result, inner);
                 mutation = true;
                 return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
             }, token, requireRoomTypeSchema: false, additionalUsers: users, preserveCommitErrors: true,
+                eligibility: async inner => await HotelOps.Api.Services.WorkTime.WorkdayMembershipStore.InstalledAsync(db, inner)
+                    && await HotelOps.Api.Services.Notifications.ReworkRecipientReadAccess.EligibleAssignees(db, branch, clock.GetUtcNow().UtcDateTime)
+                        .AnyAsync(u => u.UserId == ticket.UserId, inner),
                 featurePermission: inner => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", inner),
                 afterUserLocks: enabled && !recoveryOnly ? inner => time.LockUsersAsync(users, inner) : null,
                 beforeCommit: async inner =>
                 {
                     if (mutation)
                     {
+                        var roomId = await db.CleaningTasks.AsNoTracking().Where(t => t.CleaningTaskId == task).Select(t => t.RoomId).SingleAsync(inner);
+                        if (!await CanLinkCleaningBlocker(ticket.UserId, branch, task, roomId, incident, material, inner))
+                            throw new InvalidOperationException("BLOCKER_LINK_AUTHORITY_CHANGED");
                         if (!await candidateNotification!.ClosureAvailableAsync(inner) || !(await candidateNotification.ClosureRecipientsAsync(branch, inner)).SequenceEqual(recipients))
                             throw new InvalidOperationException("SUPERVISOR_SCOPE_CHANGED");
                         await candidateNotification.VerifyClosureAsync(ticket.UserId, operation, recipients.Length, inner);

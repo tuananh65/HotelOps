@@ -9,6 +9,7 @@ export interface CleaningExecution {
   assignmentId: number | null;
   assigneeId: number | null;
   assigneeName?: string | null;
+  startDetails?: { roomId: number; roomNumber: string; cleaningType: string; instructions: string | null; dueAtUtc: string | null; items: {id: number; label: string; isRequired: boolean; sortOrder: number}[] };
   actualStartAtUtc: string | null;
   sourceETag: string;
   startCapability: string;
@@ -62,6 +63,12 @@ export async function readCleaningExecution(
         Number.isFinite(Date.parse(d.actualStartAtUtc)))
     ) ||
     !(d.assigneeName == null || typeof d.assigneeName === "string") ||
+    !(d.startDetails && typeof d.startDetails.roomNumber === "string" && typeof d.startDetails.cleaningType === "string"
+      && Number.isSafeInteger(d.startDetails.roomId) && d.startDetails.roomId > 0
+      && (d.startDetails.instructions === null || typeof d.startDetails.instructions === "string")
+      && (d.startDetails.dueAtUtc === null || typeof d.startDetails.dueAtUtc === "string" && /Z$/.test(d.startDetails.dueAtUtc) && Number.isFinite(Date.parse(d.startDetails.dueAtUtc)))
+      && Array.isArray(d.startDetails.items) && d.startDetails.items.length > 0 && d.startDetails.items.length <= 100
+      && d.startDetails.items.every((i: any) => Number.isSafeInteger(i.id) && i.id > 0 && typeof i.label === "string" && typeof i.isRequired === "boolean" && Number.isInteger(i.sortOrder))) ||
     !tag(d.sourceETag) ||
     r.etag !== d.sourceETag ||
     ![
@@ -260,6 +267,8 @@ export interface ClosureCommand {
   reasonId?: number;
   progressETag?: string;
   photos?: EvidenceUpload[];
+  incidentId?: number;
+  materialRequestId?: number;
 }
 export function closureCommand(
   plan: CleaningExecution,

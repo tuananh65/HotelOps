@@ -118,6 +118,11 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
                 return Problem(statusCode:result.Status switch {RoomTypeBatchStatus.Duplicate=>409,RoomTypeBatchStatus.Unavailable=>503,_=>400},
                     title:failure.Code,extensions:new Dictionary<string,object?>
                     { ["messageCode"]=failure.Code=="INSPECTOR_CLEANER_CONFLICT"?"MSG22":"MSG03" });
+            if(result.Value is CleaningLifecycleFailure timeFailure && timeFailure.Code is "TIME_WORKDAY_REQUIRED" or "TIME_INTERVAL_ALREADY_OPEN")
+                return Problem(statusCode:409,title:timeFailure.Code,extensions:new Dictionary<string,object?>
+                    { ["messageCode"]=timeFailure.Code=="TIME_WORKDAY_REQUIRED"?"MSG30":"MSG31" });
+            if(result.Value is CleaningLifecycleFailure linkFailure && linkFailure.Code == "BLOCKER_LINK_NOT_AVAILABLE")
+                return Problem(statusCode:403,title:linkFailure.Code,extensions:new Dictionary<string,object?> { ["code"]=linkFailure.Code, ["messageCode"]="MSG02" });
             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
         }

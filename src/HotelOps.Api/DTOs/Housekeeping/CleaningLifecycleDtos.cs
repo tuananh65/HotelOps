@@ -6,7 +6,8 @@ public sealed record StartCleaningRequest(bool ResolveBlocker = false, string? N
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReassignCleaningRequest(long AssigneeId, DateTime DueAt, string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ReportCleaningBlockerRequest(long ReasonId, string Note, IReadOnlyList<EvidenceUpload>? Photos = null);
+public sealed record ReportCleaningBlockerRequest(long ReasonId, string Note, IReadOnlyList<EvidenceUpload>? Photos = null,
+    long? IncidentId = null, long? MaterialRequestId = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CompleteCleaningRequest(string Note, string? ProgressETag = null, IReadOnlyList<EvidenceUpload>? Photos = null);
 public sealed record CleaningLifecycleFailure(string Code);
@@ -15,7 +16,7 @@ public sealed record CleaningExecutionDto(long Id, long BranchId, string TaskNum
     string StartCapability, string ReassignCapability,
     string ReportBlockerCapability = "UNAVAILABLE", string CompleteCapability = "UNAVAILABLE",
     string ResumeCapability = "UNAVAILABLE", IReadOnlyList<CleaningReferenceDto>? BlockerReasons = null,
-    IReadOnlyList<ProgressItemDto>? Items = null, string? ProgressETag = null, string? HoldReason = null, string? AssigneeName = null);
+    IReadOnlyList<ProgressItemDto>? Items = null, string? ProgressETag = null, string? HoldReason = null, string? AssigneeName = null, CleaningStartDetails? StartDetails = null);
 public sealed record CleaningClosureResult(long Id, long BranchId, long AssignmentId, Guid OperationId,
     Guid PublicationId, long ProgressId, long ClosedIntervalId, string State, DateTime OccurredAtUtc,
     string Readiness, bool HasEffectiveBlock, string SourceETag, string Notification = "PENDING_DELIVERY", string Contract = "PROVISIONAL_NOT_ACCEPTED",
@@ -25,3 +26,5 @@ public sealed record StartedCleaningDto(long Id, long BranchId, long AssignmentI
 public sealed record ReassignedCleaningDto(long Id, long BranchId, long PreviousAssignmentId, long AssignmentId,
     long PreviousAssigneeId, long AssigneeId, Guid OperationId, string State, string Notification,
     string SourceETag, string Contract = "PROVISIONAL_NOT_ACCEPTED");
+
+public sealed record CleaningStartDetails(string RoomNumber, string CleaningType, string? Instructions, DateTime? DueAtUtc, IReadOnlyList<CleaningItemPreview> Items, long RoomId);

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../auth/AuthProvider";
+import { cleaningBlockerContext } from "../../dev2/cleaningBlockerContext";
 import { ApiError } from "../../api/dev1/client";
 import { uploadFile } from "../../api/dev1/cleaningProgress";
 import {
@@ -16,8 +18,10 @@ import {
   type ClosureCommand,
 } from "../../api/dev1/cleaningExecution";
 export default function CleaningExecutionPanel(props: { branch: string; task: string }) {
+  const { state } = useAuth();
+  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session) return <p role="status">Confirm your session before opening cleaning work.</p>;
   // A route change must not retarget an unresolved command to another task.
-  return <CleaningExecutionContent key={`${props.branch}:${props.task}`} {...props} />;
+  return <CleaningExecutionContent key={`${state.authorityGeneration}:${props.branch}:${props.task}`} {...props} />;
 }
 
 function CleaningExecutionContent({
@@ -29,6 +33,14 @@ function CleaningExecutionContent({
 }) {
   const [data, setData] = useState<CleaningExecution | null>(null),
     [plan, setPlan] = useState<AssignmentPlan | null>(null);
+  const { state: auth } = useAuth();
+  const location = useLocation();
+  const context = cleaningBlockerContext(location.state, String(auth.session?.user.id ?? ""));
+  const initialBlocker = context?.branch === branch && context.task === task ? context : null;
+  const [blockerNote, setBlockerNote] = useState(initialBlocker?.note ?? "");
+  const [blockerReason, setBlockerReason] = useState(initialBlocker?.reason ?? "");
+  const [incidentLink, setIncidentLink] = useState(initialBlocker?.incident ?? "");
+  const [materialLink, setMaterialLink] = useState(initialBlocker?.material ?? "");
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
@@ -84,6 +96,9 @@ function CleaningExecutionContent({
   }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
+      if (e.code === "BLOCKER_LINK_NOT_AVAILABLE") return "MSG02: Linked work is unavailable. Check source read permission, the Incident room, and the Material Request's explicit cleaning-task link.";
+      if (e.code === "TIME_WORKDAY_REQUIRED") return "MSG30: Start a Working workday in this branch, then return and select Start.";
+      if (e.code === "TIME_INTERVAL_ALREADY_OPEN") return "MSG31: Another work interval is open. Open Workday to view the current item before starting this task.";
       if (e.status === 400) return "MSG03: Check a different eligible assignee on shift, a future UTC deadline, and a reason of 10-500 characters. The task must be Assigned, In Progress or On Hold.";
       if (e.status === 401) return "Phiên đăng nhập đã hết hạn.";
       if (e.status === 403)
@@ -243,6 +258,13 @@ function CleaningExecutionContent({
         String(form.get("reasonId") ?? ""),
         photos,
       );
+      if (action === "blockers") {
+        for (const [name, value] of [["incidentId", incidentLink], ["materialRequestId", materialLink]] as const) {
+          if (!value) continue;
+          if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) throw Error("INVALID_BLOCKER_LINK");
+          command[name] = Number(value);
+        }
+      }
       const c = {
         branch,
         task,
@@ -272,6 +294,13 @@ function CleaningExecutionContent({
       {data && (
         <>
           <h2>{data.taskNumber}</h2>
+          {data.startDetails && <section aria-label="Cleaning instructions">
+            <p>Room {data.startDetails.roomNumber} - {data.startDetails.cleaningType}</p>
+            <p>Due (UTC): {data.startDetails.dueAtUtc ?? "N/A"}</p>
+            <p>{data.startDetails.instructions ?? "No additional instructions."}</p>
+            <ul>{data.startDetails.items.map(i => <li key={i.id}>{i.label}{i.isRequired ? " (required)" : ""}</li>)}</ul>
+          </section>}
+          {(error.startsWith("MSG30") || error.startsWith("MSG31")) && <Link to={"/workday?branchId=" + branch}>Open Workday</Link>}
           <p>
             {data.state} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
@@ -332,6 +361,19 @@ function CleaningExecutionContent({
               <Link to={`/cleaning/tasks/${task}?branchId=${branch}`}>
                 Mở tiến độ dọn phòng
               </Link>
+              {data.reportBlockerCapability === "PROVISIONAL_V1" && <fieldset disabled={busy || !!pending || !!closurePending}>
+                <legend>Linked blocker work (optional)</legend>
+                <label>Incident ID for this room<input inputMode="numeric" value={incidentLink} onChange={e => setIncidentLink(e.target.value)} /></label>
+                <label>Material Request ID linked to this task<input inputMode="numeric" value={materialLink} onChange={e => setMaterialLink(e.target.value)} /></label>
+                <p>Source read permissions are required. Link Material Requests to this cleaning task in their linked-work section first.</p>
+                <p>After returning, select any blocker photos again before submitting.</p>
+                {data.startDetails && !busy && !pending && !closurePending && ["incidents", "material-requests"].map(module => <Link key={module}
+                  to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
+                  state={{ cleaningBlocker: { actor: String(auth.session?.user.id), branch, task, room: data.startDetails!.roomId,
+                    note: blockerNote, reason: blockerReason, incident: incidentLink, material: materialLink } }}>
+                  {module === "incidents" ? "Report room incident" : "Create material request"}
+                </Link>)}
+              </fieldset>}
               {data.reportBlockerCapability === "PROVISIONAL_V1" ? (
                 <form onSubmit={(e) => void submitClosure(e, "blockers")}>
                   <h3>Báo cáo trở ngại</h3>
@@ -342,7 +384,8 @@ function CleaningExecutionContent({
                       name="reasonId"
                       required
                       disabled={busy || !!pending || !!closurePending}
-                      defaultValue=""
+                      value={blockerReason}
+                      onChange={e => setBlockerReason(e.target.value)}
                     >
                       <option value="">Chọn lý do</option>
                       {data.blockerReasons?.map((r) => (
@@ -356,6 +399,8 @@ function CleaningExecutionContent({
                     Ghi chú trở ngại
                     <input
                       name="note"
+                      value={blockerNote}
+                      onChange={e => setBlockerNote(e.target.value)}
                       required
                       maxLength={500}
                       disabled={busy || !!pending || !!closurePending}
