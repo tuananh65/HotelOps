@@ -42,9 +42,12 @@ public sealed partial class InventoryService
     }
     public async Task<InventoryDocumentDto> CreateAdjustment(long actorUserId, InventoryAdjustment r, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
         var warehouses = await Warehouses([r.WarehouseId], true, ct);
+        await (stocktakeAuthority ?? throw Invalid("Adjustment authority unavailable.")).RequireAsync(actorUserId, r.WarehouseId, "adjust", ct);
+        if ((r.Reason?.Trim().Length ?? 0) < 10) throw Invalid("Correction reason requires at least 10 characters (GBR-012).");
         var d = await Adjustment(actorUserId, r, warehouses, DateTime.UtcNow, postApprovedStocktake: false, ct);
+        await (stocktakeAuthority ?? throw Invalid("Adjustment authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? throw Invalid("Adjustment warehouse missing."), "adjust", ct);
         await tx.CommitAsync(ct);
         return (await GetDocument(d.DocumentId, ct))!;
     }
@@ -64,7 +67,7 @@ public sealed partial class InventoryService
         await StockGates(d.StockDocumentLines.Select(x => (warehouse, x.ItemId)), ct);
         foreach (var group in d.StockDocumentLines.GroupBy(x => x.ItemId))
             if (await Balance(warehouse, group.Key, ct) + group.Sum(x => x.RequestedQty!.Value) < 0)
-                throw Invalid("Adjustment would make stock negative.");
+                throw Invalid("MSG16: Adjustment would make stock negative.");
         foreach (var line in d.StockDocumentLines)
             db.StockMovements.Add(new()
             {
@@ -74,7 +77,7 @@ public sealed partial class InventoryService
     }
     public async Task<InventoryDocumentDto?> PostAdjustment(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
     {
-        await using var tx = await Begin(actorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct, async token => { await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actorUserId], token); }, System.Data.IsolationLevel.Serializable);
         var d = await Document(id, ct);
         if (d is null) return null;
         Version(d.RowVersion, r.ExpectedRowVersion);
@@ -84,10 +87,13 @@ public sealed partial class InventoryService
         if (await db.StockMovements.AnyAsync(x => x.DocumentLine.DocumentId == id, ct))
             throw Invalid("Adjustment DRAFT already has stock effects.");
         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
+        await (stocktakeAuthority ?? throw Invalid("Adjustment authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? throw Invalid("Adjustment warehouse missing."), "adjust", ct);
+        if ((d.Reason?.Trim().Length ?? 0) < 10) throw Invalid("Correction reason requires at least 10 characters (GBR-012).");
         var before = Scalars(d); var now = DateTime.UtcNow;
         await AdjustmentMovements(d, actorUserId, now, ct);
         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now;
         await DocumentAudit(d, actorUserId, "UPDATE", "ADJUSTMENT_POSTED", before, warehouses, now, ct);
+        await (stocktakeAuthority ?? throw Invalid("Adjustment authority unavailable.")).RequireAsync(actorUserId, d.DestinationWarehouseId ?? throw Invalid("Adjustment warehouse missing."), "adjust", ct);
         await tx.CommitAsync(ct);
         return await GetDocument(id, ct);
     }

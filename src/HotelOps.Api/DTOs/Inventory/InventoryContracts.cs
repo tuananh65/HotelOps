@@ -14,7 +14,7 @@ public record InventoryReceiveLine(long TransferLineId, [property: System.Text.J
     [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal MissingQty, string? Note = null);
 public record InventoryReceive(string ExpectedRowVersion,
     IReadOnlyList<InventoryReceiveLine> Lines, string? Note = null);
-public record InventoryDelta(long ItemId, decimal DeltaBaseQty);
+public record InventoryDelta(long ItemId, [property: System.Text.Json.Serialization.JsonNumberHandling(System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString)] decimal DeltaBaseQty);
 public record InventoryAdjustment(long WarehouseId, DateOnly DocumentDate,
     string Reason, IReadOnlyList<InventoryDelta> Lines);
 public record InventoryItemWrite(string ItemCode, string ItemName, long CategoryId,

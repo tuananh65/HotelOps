@@ -12,7 +12,7 @@ public sealed class StocktakeAuthority(HotelOpsDbContext db, InsightAccess acces
     {
         if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Stocktake transaction required.");
         await session.RequireAsync(ct);
-        if (actor != access.UserId || action is not ("read" or "perform" or "submit" or "cancel" or "reconcile" or "return" or "approve-adjustment"))
+        if (actor != access.UserId || action is not ("adjust" or "read" or "perform" or "submit" or "cancel" or "reconcile" or "return" or "approve-adjustment"))
             throw new InventoryAccessException(403);
         var branch = await db.Warehouses.AsNoTracking().Where(w => w.WarehouseId == warehouse && w.Branch.IsActive)
             .Select(w => (long?)w.BranchId).SingleOrDefaultAsync(ct) ?? throw new InventoryAccessException(403);
@@ -21,7 +21,7 @@ public sealed class StocktakeAuthority(HotelOpsDbContext db, InsightAccess acces
         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == actor && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now, ct))
             throw new InventoryAccessException(403);
         if (action == "read") return;
-        var decides = action is "return" or "approve-adjustment";
+        var decides = action is "adjust" or "return" or "approve-adjustment";
         InsightAccess.Require(await permissions.EvaluateBranchAsync(decides ? "STOCK_ADJUST_POST" : "STOCKTAKE_PERFORM", branch, ct));
         var role = decides ? "OPERATIONS_MANAGER" : "STOREKEEPER";
         if (!await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == actor && r.IsActive && r.Role.IsActive && r.Role.RoleCode == role

@@ -15,6 +15,7 @@ import { MinimumStockPage } from "../inventory/MinimumStockPage";
 import { UnitManagementPage } from "../inventory/UnitManagementPage";
 import { ItemManagementPage } from "../inventory/ItemManagementPage";
 import { WarehouseManagementPage } from "../inventory/WarehouseManagementPage";
+import { AdjustmentPage } from "../inventory/AdjustmentPage";
 import { StocktakePage } from "../inventory/StocktakePage";
 import { TransferWorkspacePage } from "../inventory/TransferWorkspacePage";
 import { TransferDetailPage } from "../inventory/TransferDetailPage";
@@ -30,6 +31,7 @@ export function OperationsRoutes() {
         <Routes>
           <Route path="/operations/*" element={<Dev2Workspace />} />
           <Route path="/inventory/items" element={<InventoryRoute mode="list" />} />
+          <Route path="/inventory/adjustments" element={<AdjustmentPage />} />
           <Route path="/inventory/stocktakes" element={<StocktakePage />} />
           <Route path="/inventory/stocktakes/:id" element={<StocktakePage />} />
           <Route path="/inventory/transfers" element={<TransferWorkspacePage />} />

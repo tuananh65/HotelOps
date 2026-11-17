@@ -19,6 +19,14 @@ public sealed class StocktakeWorkspaceController(StocktakeWorkspaceService servi
         catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
     }
 
+    [HttpGet("adjustments")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> Adjustments(int page = 1, CancellationToken ct = default)
+    {
+        try { return Ok(await service.AdjustmentsAsync(page, ct)); }
+        catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
+    }
+
     [HttpGet("{id:long}")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Detail(long id, CancellationToken ct)

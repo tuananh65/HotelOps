@@ -94,7 +94,9 @@ public sealed partial class InventoryService
                 x.Status = x.StocktakeLines.All(l => l.VarianceQty == 0) ? "RECONCILED" : "PENDING_ADJUSTMENT"; break;
             case "approve-adjustment":
                 if (x.Status != "PENDING_ADJUSTMENT" || x.AdjustmentDocumentId.HasValue) throw Invalid("Stocktake is not awaiting its first adjustment.");
-                if (x.CountedBy == actorUserId || x.StocktakeLines.Any(l => l.CountedBy == actorUserId)) throw Invalid("Adjustment approver must differ from counting/performing actors.");
+                if (await StocktakeSeparation.PerformedAsync(db, id, actorUserId, ct)) throw Invalid("Adjustment approver must differ from counting/performing actors.");
+                if (x.StocktakeLines.Any(l => l.CountedQty == null || l.VarianceQty == null || l.VarianceQty != l.CountedQty - l.SystemQty
+                    || l.VarianceQty != 0 && (l.DiscrepancyReason?.Trim().Length ?? 0) < 3)) throw Invalid("Saved reconciliation is incomplete or inconsistent.");
                 var deltas = x.StocktakeLines.Where(l => l.VarianceQty != 0).Select(l => new InventoryDelta(l.ItemId, l.VarianceQty ?? throw Invalid("Variance missing."))).ToList();
                 if (deltas.Count == 0) throw Invalid("No adjustment is required.");
                 var document = await Adjustment(actorUserId, new(x.WarehouseId, DateOnly.FromDateTime(now), Reason(r.Reason), deltas), [warehouse], now, postApprovedStocktake: true, ct);
@@ -110,14 +112,14 @@ public sealed partial class InventoryService
         var lineChanges = db.ChangeTracker.Entries<StocktakeLine>().Any(e => e.Entity.StocktakeId == id &&
             e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)));
         await Audit(x, "stocktakes", id, actorUserId, action == "cancel" ? "CANCEL" : "UPDATE", action, before, [warehouse.BranchId], now, ct, lineChanges ? ["lines"] : null);
-        if (action == "reconcile" && x.Status == "PENDING_ADJUSTMENT")
+        if (action == "reconcile" && x.Status == "PENDING_ADJUSTMENT" || action == "return")
         {
             var intent = db.AuditLogs.Local.Single(a => a.EntityType == "stocktakes" && a.EntityId == id.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 && a.ActorUserId == actorUserId && a.OccurredAt == now && a.Action == "UPDATE" && a.BranchId == warehouse.BranchId);
-            db.Notifications.Add(new Notification { NotificationType = HotelOps.Api.Services.Notifications.StocktakeNotifications.Kind,
+            db.Notifications.Add(new Notification { NotificationType = action == "return" ? HotelOps.Api.Services.Notifications.StocktakeNotifications.ReturnKind : HotelOps.Api.Services.Notifications.StocktakeNotifications.Kind,
                 SourceType = HotelOps.Api.Services.Notifications.StocktakeNotifications.Source, SourceId = intent.AuditId,
-                CreatedBy = actorUserId, CreatedAt = now, Priority = "NORMAL", Title = "Stocktake awaiting adjustment review",
-                Message = "A counted stocktake has explained discrepancies. Open the authorized stocktake to review." });
+                CreatedBy = actorUserId, CreatedAt = now, Priority = "NORMAL", Title = action == "return" ? "Stocktake returned for recount" : "Stocktake awaiting adjustment review",
+                Message = "Open the authorized stocktake to review the committed decision and current status." });
             await Save(ct);
         }
         await stocktakeAuthority!.RequireAsync(actorUserId, x.WarehouseId, action, ct);
