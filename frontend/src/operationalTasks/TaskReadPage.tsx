@@ -4,7 +4,6 @@ import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import { TaskProgressPanel } from "./TaskProgressPanel";
 import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
-import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
 import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
 import { TaskCreationHost } from "./TaskCreationHost";
@@ -385,12 +384,6 @@ export function TaskReadPage() {
             />
           )}
           <h3>Progress history</h3>
-          <TaskSubmissionReview
-            key={`submission:${owner}:${detail.task.branchId}:${detail.task.id}`}
-            branch={detail.task.branchId}
-            task={detail.task.id}
-            owner={owner}
-          />
           <TaskVerificationPanel
             key={`verify:${owner}:${detail.task.branchId}:${detail.task.id}`}
             branch={detail.task.branchId}

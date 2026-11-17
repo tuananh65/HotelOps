@@ -9,11 +9,15 @@ export function TaskSubmissionReview({
   task,
   owner,
   submission,
+  current = false,
+  onReady,
 }: {
   branch: number;
   task: number;
   owner: AuthorityGeneration;
   submission?: number;
+  current?: boolean;
+  onReady?: (ready: boolean) => void;
 }) {
   const { actions } = useAuth();
   const [result, setResult] = useState<TaskSubmission | null>(null);
@@ -21,11 +25,15 @@ export function TaskSubmissionReview({
   const [reload, setReload] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
+    onReady?.(false);
     setResult(null);
     setError("");
     void readTaskSubmission(branch, task, controller.signal, submission)
       .then((data) => {
-        if (!controller.signal.aborted) setResult(data);
+        if (!controller.signal.aborted) {
+          setResult(data);
+          onReady?.(true);
+        }
       })
       .catch((reason) => {
         if (controller.signal.aborted) return;
@@ -37,20 +45,20 @@ export function TaskSubmissionReview({
             : "Submitted completion is unavailable or access has changed.",
         );
       });
-    return () => controller.abort();
-  }, [branch, task, owner, reload, actions, submission]);
+    return () => { controller.abort(); onReady?.(false); };
+  }, [branch, task, owner, reload, actions, submission, onReady]);
   return (
     <section
       aria-label={
-        submission
+        submission && !current
           ? `Previous completion ${submission}`
           : "Submitted completion"
       }
     >
       <h3>
-        {submission ? "Previous cycle completion" : "Submitted completion"}
+        {submission && !current ? "Previous cycle completion" : "Submitted completion"}
       </h3>
-      <button onClick={() => setReload((n) => n + 1)}>
+      <button onClick={() => { onReady?.(false); setReload((n) => n + 1); }}>
         Reload submitted completion
       </button>
       {error && <p>{error}</p>}

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import { TaskProgressError } from "./progress";
@@ -21,6 +22,12 @@ export function TaskVerificationPanel({
 }) {
   const { actions } = useAuth();
   const [snapshot, setSnapshot] = useState<VerificationSnapshot | null>(null);
+  const [reviewReady, setReviewReady] = useState(false);
+  const reviewReadyRef = useRef(false);
+  const onReviewReady = useCallback((ready: boolean) => {
+    reviewReadyRef.current = ready;
+    setReviewReady(ready);
+  }, []);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -44,6 +51,7 @@ export function TaskVerificationPanel({
   useEffect(() => {
     const controller = new AbortController();
     active.current = controller;
+    onReviewReady(false);
     setSnapshot(null);
     setError("");
     setNote("");
@@ -67,9 +75,9 @@ export function TaskVerificationPanel({
       controller.abort();
       active.current?.abort();
     };
-  }, [branch, task, owner, reload, actions]);
+  }, [branch, task, owner, reload, actions, onReviewReady]);
   async function decide(decision: "ACCEPT" | "RETURN") {
-    if (!snapshot?.data.canDecide || locked || busy || saving.current) return;
+    if (!snapshot?.data.canDecide || !reviewReadyRef.current || locked || busy || saving.current) return;
     if (note.trim().length < (decision === "RETURN" ? 10 : 1)) {
       setError(
         decision === "RETURN"
@@ -100,6 +108,7 @@ export function TaskVerificationPanel({
       }
       const updated = await readVerification(branch, task, controller.signal);
       if (!controller.signal.aborted) {
+        onReviewReady(false);
         setSnapshot(updated);
         setNote("");
         setMessage(
@@ -119,13 +128,22 @@ export function TaskVerificationPanel({
   return (
     <section aria-label="Task verification">
       <h3>Task verification</h3>
-      <button disabled={busy} onClick={() => setReload((n) => n + 1)}>
+      <button disabled={busy} onClick={() => { onReviewReady(false); setReload((n) => n + 1); }}>
         Reload verification
       </button>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {snapshot && (
         <>
+          <TaskSubmissionReview
+            key={`${owner}:${branch}:${task}:${snapshot.data.submissionId}:${snapshot.etag}:${reload}`}
+            branch={branch}
+            task={task}
+            owner={owner}
+            submission={snapshot.data.submissionId}
+            current
+            onReady={onReviewReady}
+          />
           <p>Workflow: {snapshot.data.state}</p>
           <p>
             Actual effort: {snapshot.data.actualEffortSeconds} seconds (paused
@@ -144,7 +162,7 @@ export function TaskVerificationPanel({
             </p>
           )}
           {snapshot.data.canDecide && (
-            <fieldset disabled={busy || locked}>
+            <fieldset disabled={busy || locked || !reviewReady}>
               <legend>Review submitted completion</legend>
               <label>
                 Verification note or return reason
