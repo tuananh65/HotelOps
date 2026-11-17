@@ -102,12 +102,23 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     }
                     var blocks = await RoomOperationalReadQueries.UnreleasedBlocks(db.RoomBlocks.AsNoTracking(), requestedRoom)
                         .TagWith("UC027:UnreleasedBlocks").ToArrayAsync(ct);
-                    var readiness = await new EffectiveRoomReadiness(db).ReadAsync([requestedRoom], DateTime.UtcNow, ct);
+                    var now = DateTime.UtcNow;
+                    var readiness = await new EffectiveRoomReadiness(db).ReadAsync([requestedRoom], now, ct);
+                    var cycle = readiness.GetValueOrDefault(requestedRoom);
+                    var effectiveBlocks = await db.RoomBlocks.AsNoTracking()
+                        .Where(b => b.RoomId == requestedRoom && b.BlockedAt <= now && (b.ReleasedAt == null || b.ReleasedAt > now))
+                        .OrderByDescending(b => b.BlockedAt).ThenByDescending(b => b.BlockId)
+                        .Select(b => new RoomEffectiveBlockDto(b.BlockId,
+                            b.Incident != null && b.Incident.BranchId == selected.Value.BranchId ? b.IncidentId : null, b.BlockedAt)).ToArrayAsync(ct);
                     detail = new(selected.Value with { EffectiveReadiness = readiness.GetValueOrDefault(requestedRoom)?.Readiness ?? "UNKNOWN" },selected.Description,evidence,UnreleasedBlocks:blocks.Select(b => b with
                     {
                         BlockedAtUtc = DateTime.SpecifyKind(b.BlockedAtUtc, DateTimeKind.Utc),
                         ExpectedReleaseAtUtc = b.ExpectedReleaseAtUtc is { } at ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null
-                    }).ToArray());
+                    }).ToArray())
+                    {
+                        CurrentCycle = cycle == null ? null : new(cycle.CleaningTaskId,cycle.CleaningState,cycle.InspectionId,cycle.InspectionState,cycle.ReworkId),
+                        EffectiveBlocks = effectiveBlocks.Select(b => b with { BlockedAtUtc=DateTime.SpecifyKind(b.BlockedAtUtc,DateTimeKind.Utc) }).ToArray()
+                    };
                 }
                 if (!await HasSessionAsync(authenticatedSession, actor, ct)) return new(RoomDirectoryStatus.SessionInvalid);
                 access = await Access(); if (!access.IsGranted) return Denied(access);
@@ -122,6 +133,13 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
             // Literal substring, not a LIKE pattern supplied by the caller.
             if (!string.IsNullOrEmpty(search)) rooms = rooms.Where(r => r.RoomNumber.Contains(search));
 
+            var effective = await new EffectiveRoomReadiness(db).ReadAsync(await rooms.Select(r => r.RoomId).ToArrayAsync(ct), DateTime.UtcNow, ct);
+            if (query.EffectiveReadiness is { } readinessFilter)
+            {
+                var matchingIds = effective.Values.Where(r => r.Readiness == readinessFilter).Select(r => r.RoomId).ToArray();
+                rooms = rooms.Where(r => matchingIds.Contains(r.RoomId));
+                effective = effective.Where(r => r.Value.Readiness == readinessFilter).ToDictionary(r => r.Key, r => r.Value);
+            }
             var total = await rooms.TagWith("UC023:Count").LongCountAsync(ct);
             var counts = await RoomOperationalReadQueries.StatusCounts(rooms)
                 .TagWith("UC027:FilteredStatusCounts").ToArrayAsync(ct);
@@ -135,7 +153,6 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     r.OperationalStatus, r.IsActive))
                 .TagWith("UC023:Page").ToListAsync(ct);
 
-            var effective = await new EffectiveRoomReadiness(db).ReadAsync(await rooms.Select(r => r.RoomId).ToArrayAsync(ct), DateTime.UtcNow, ct);
             items = items.Select(r => r with { EffectiveReadiness = effective.GetValueOrDefault(r.Id)?.Readiness ?? "UNKNOWN" }).ToList();
 
             // Locks prevent SQL revocation races, but time can still expire while waiting.

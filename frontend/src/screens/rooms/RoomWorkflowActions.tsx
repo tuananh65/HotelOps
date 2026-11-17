@@ -76,11 +76,11 @@ export default function RoomWorkflowActions({
             Phân công kiểm tra phòng
           </Link>
         ) : (
-          <button disabled>Phân công kiểm tra phòng</button>
+          <button disabled>Assign room inspection</button>
         )}
       </p>
       <p>
-        <button disabled>Báo cáo sự cố</button> Chức năng chưa sẵn sàng.
+        <Link to={`/operations/incidents?action=A004A-021&branchId=${branch}&roomId=${room}`}>Report an incident for this room</Link>
       </p>
       <p>
         Chức năng đích kiểm tra lại quyền và điều kiện nghiệp vụ trước khi thực

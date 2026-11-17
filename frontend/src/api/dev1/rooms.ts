@@ -21,6 +21,7 @@ export interface RoomDirectoryResponse {
   statusCounts?: { operationalStatusCode: string; count: number }[] | null;
   effectiveReadinessCounts?: Record<string, number>;
 }
+export const readinessCodes = ["READY", "PENDING_CLEANING", "CLEANING_IN_PROGRESS", "PENDING_INSPECTION", "REWORK_REQUIRED", "BLOCKED", "INACTIVE", "UNKNOWN"] as const;
 export const roomStatusCodes = [
   "AVAILABLE",
   "OCCUPIED",
@@ -44,7 +45,7 @@ export async function listRooms(
   status: string,
   search: string,
   signal?: AbortSignal,
-  filters: { floorId?: string; areaId?: string; roomTypeId?: string } = {},
+  filters: { floorId?: string; areaId?: string; roomTypeId?: string; effectiveReadiness?: string } = {},
 ): Promise<RoomDirectoryResponse> {
   const branchId = positiveId(branch);
   if (
@@ -63,6 +64,10 @@ export async function listRooms(
   });
   for (const key of ["floorId", "areaId", "roomTypeId"] as const) {
     if (filters[key]) query.set(key, String(positiveId(filters[key])));
+  }
+  if (filters.effectiveReadiness) {
+    if (!readinessCodes.includes(filters.effectiveReadiness as typeof readinessCodes[number])) throw new Error("Invalid readiness");
+    query.set("effectiveReadiness", filters.effectiveReadiness);
   }
   if (status) query.set("operationalStatusCode", status);
   if (search.trim()) query.set("search", search.trim());

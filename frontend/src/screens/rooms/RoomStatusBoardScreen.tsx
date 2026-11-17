@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   positiveId,
-  roomStatusCodes,
+  readinessCodes,
   type RoomDirectoryResponse,
 } from "../../api/dev1/rooms";
 import {
@@ -68,6 +68,11 @@ export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const refresh = () => setRetry(v => v + 1);
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
   const query = params.toString(),
     key = useMemo(() => Symbol("room-read"), [location.key, query, retry]);
   let branch = "",
@@ -166,9 +171,9 @@ export default function RoomStatusBoardScreen() {
         ))}
         <label>
           Trạng thái vận hành
-          <select name="status" defaultValue={params.get("status") || ""}>
+          <select name="readiness" defaultValue={params.get("readiness") || ""}>
             <option value="">Tất cả</option>
-            {roomStatusCodes.map((s) => (
+            {readinessCodes.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
@@ -183,10 +188,8 @@ export default function RoomStatusBoardScreen() {
         </label>
         <button>Lọc phòng</button>
       </form>
-      <p role="note">
-        Effective Readiness: Chưa có nguồn được xác nhận. Trạng thái dọn phòng
-        và kết quả kiểm tra được theo dõi riêng.
-      </p>
+      <p role="note">Readiness is calculated from active blocks and the cleaning cycle. UNKNOWN does not permit room use.</p>
+      <button onClick={() => setRetry(v => v + 1)}>Refresh room status</button>
       {!branch && !error && (
         <p>Chọn chi nhánh để tải các phòng được phép xem.</p>
       )}
@@ -276,6 +279,16 @@ export default function RoomStatusBoardScreen() {
             động: {detail.room.isActive ? "Có" : "Không"}
           </p>
           <p>{detail.description}</p>
+          {detail.currentCycle && <section aria-label="Current cleaning cycle">
+            <h3>Current cleaning cycle</h3>
+            {detail.currentCycle.cleaningTaskId && <p><Link to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}>Cleaning #{detail.currentCycle.cleaningTaskId}</Link>: {detail.currentCycle.cleaningState ?? "UNKNOWN"}</p>}
+            {detail.currentCycle.inspectionId && <p><Link to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}>Inspection #{detail.currentCycle.inspectionId}</Link>: {detail.currentCycle.inspectionState ?? "UNKNOWN"}</p>}
+            {detail.currentCycle.reworkId && <p><Link to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}>Rework #{detail.currentCycle.reworkId}</Link></p>}
+          </section>}
+          <section aria-label="Effective room blocks"><h3>Effective blocks</h3>
+            {!detail.effectiveBlocks.length && <p>No effective blocks.</p>}
+            <ul>{detail.effectiveBlocks.map(b=><li key={b.id}>Block #{b.id} since {b.blockedAtUtc}{b.incidentId && <> ? <Link to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}>Incident #{b.incidentId}</Link></>}</li>)}</ul>
+          </section>
           {detail.room.branchId === Number(branch) &&
             detail.room.id === Number(room) && (
               <RoomWorkflowActions

@@ -23,6 +23,7 @@ public sealed class RoomDirectoryQuery : IValidatableObject
     public string? Search { get; init; }
 
     public string? OperationalStatusCode { get; init; }
+    public string? EffectiveReadiness { get; init; }
     public bool? IsActive { get; init; }
 
     [Range(1, int.MaxValue)]
@@ -41,6 +42,9 @@ public sealed class RoomDirectoryQuery : IValidatableObject
         if (OperationalStatusCode is not null && OperationalStatusCode is not
             ("AVAILABLE" or "OCCUPIED" or "DIRTY" or "CLEANING" or "INSPECTION" or "READY" or "OUT_OF_SERVICE"))
             yield return new ValidationResult("Unknown stored room status code.", [nameof(OperationalStatusCode)]);
+        if (EffectiveReadiness is not null && EffectiveReadiness is not
+            ("READY" or "PENDING_CLEANING" or "CLEANING_IN_PROGRESS" or "PENDING_INSPECTION" or "REWORK_REQUIRED" or "BLOCKED" or "INACTIVE" or "UNKNOWN"))
+            yield return new ValidationResult("Unknown effective readiness.", [nameof(EffectiveReadiness)]);
         if (Page > 0 && PageSize > 0 && (long)(Page - 1) * PageSize > int.MaxValue)
             yield return new ValidationResult("The requested page offset is too large.", [nameof(Page)]);
     }
@@ -73,7 +77,13 @@ public sealed record RoomCurrentStatusEvidenceDto(string Availability, string? R
     DateTime? RecordedAtUtc, RoomStatusSourceDto? Source);
 public sealed record RoomDirectoryDetailDto(RoomDirectoryItemDto Room, string? Description,
     RoomCurrentStatusEvidenceDto CurrentStatusEvidence, string? HistoryUrl = null,
-    IReadOnlyList<RoomUnreleasedBlockDto>? UnreleasedBlocks = null);
+    IReadOnlyList<RoomUnreleasedBlockDto>? UnreleasedBlocks = null)
+{
+    public RoomCycleEvidenceDto? CurrentCycle { get; init; }
+    public IReadOnlyList<RoomEffectiveBlockDto> EffectiveBlocks { get; init; } = [];
+}
+public sealed record RoomCycleEvidenceDto(long? CleaningTaskId, string? CleaningState, long? InspectionId, string? InspectionState, long? ReworkId);
+public sealed record RoomEffectiveBlockDto(long Id, long? IncidentId, DateTime BlockedAtUtc);
 public sealed record RoomDirectoryHistoryDto(IReadOnlyList<RoomStatusEventDto> Items, int Page,
     int PageSize, long TotalCount, string Coverage = "RECORDED_STATUS_EVENTS_ONLY");
 

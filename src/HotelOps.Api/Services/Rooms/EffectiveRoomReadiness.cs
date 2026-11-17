@@ -8,6 +8,11 @@ namespace HotelOps.Api.Services.Rooms;
 
 public sealed record EffectiveRoomState(long RoomId, string Readiness)
 {
+    public long? CleaningTaskId { get; init; }
+    public string? CleaningState { get; init; }
+    public long? InspectionId { get; init; }
+    public string? InspectionState { get; init; }
+    public long? ReworkId { get; init; }
     public bool CanUse => Readiness == "READY";
 }
 
@@ -19,6 +24,9 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
     {
         public long RoomId { get; set; }
         public bool IsActive { get; set; }
+        public long? CleaningTaskId { get; set; }
+        public long? InspectionId { get; set; }
+        public long? ReworkId { get; set; }
         public bool Blocked { get; set; }
         public string? Cleaning { get; set; }
         public string? Inspection { get; set; }
@@ -75,6 +83,10 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_blocks b WITH(HOLDLOCK) WHERE b.room_id=r.room_id
                 AND b.blocked_at<={now} AND (b.released_at IS NULL OR b.released_at>{now})) THEN 1 ELSE 0 END) AS Blocked,
             c.workflow_status AS Cleaning,i.workflow_status AS Inspection,
+            c.cleaning_task_id AS CleaningTaskId,i.inspection_id AS InspectionId,
+            (SELECT TOP(1) w.rework_id FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
+                WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status<>'CANCELLED'
+                ORDER BY w.requested_at DESC,w.rework_id DESC) AS ReworkId,
             CONVERT(bit,CASE WHEN c.workflow_status='COMPLETED' AND c.status='COMPLETED'
                 AND i.workflow_status='PASSED' AND i.status='COMPLETED' AND i.result='PASS' THEN 1 ELSE 0 END) AS CompletedCycleVerified,
             CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_inspections p WITH(HOLDLOCK)
@@ -90,11 +102,13 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
             OUTER APPLY(SELECT TOP(1) t.cleaning_task_id,t.workflow_status,t.status FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
                 WHERE t.room_id=r.room_id AND t.status<>'CANCELLED' AND (t.workflow_status IS NULL OR t.workflow_status<>'CANCELLED')
                 ORDER BY t.created_at DESC,t.cleaning_task_id DESC) c
-            OUTER APPLY(SELECT TOP(1) p.workflow_status,p.status,p.result FROM dbo.room_inspections p WITH(HOLDLOCK)
+            OUTER APPLY(SELECT TOP(1) p.inspection_id,p.workflow_status,p.status,p.result FROM dbo.room_inspections p WITH(HOLDLOCK)
                 WHERE p.room_id=r.room_id AND p.cleaning_task_id=c.cleaning_task_id AND p.status<>'CANCELLED'
                 ORDER BY p.created_at DESC,p.inspection_id DESC) i
             WHERE r.room_id IN(SELECT CONVERT(bigint,value) FROM OPENJSON({ids}))
             """).ToArrayAsync(ct);
-        return facts.ToDictionary(f => f.RoomId, f => new EffectiveRoomState(f.RoomId, Calculate(f)));
+        return facts.ToDictionary(f => f.RoomId, f => new EffectiveRoomState(f.RoomId, Calculate(f))
+        { CleaningTaskId=f.CleaningTaskId, CleaningState=f.Cleaning, InspectionId=f.InspectionId,
+          InspectionState=f.Inspection, ReworkId=f.ReworkId });
     }
 }

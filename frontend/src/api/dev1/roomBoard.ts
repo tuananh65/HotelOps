@@ -1,6 +1,7 @@
 import { ApiError, getJson, errorMessage } from "./client";
 import {
   listRooms,
+  readinessCodes,
   positiveId,
   type RoomDirectoryItem,
   type RoomDirectoryResponse,
@@ -12,6 +13,8 @@ export interface RoomSource {
   availability: string;
 }
 export interface RoomDetail {
+  currentCycle: { cleaningTaskId: number | null; cleaningState: string | null; inspectionId: number | null; inspectionState: string | null; reworkId: number | null } | null;
+  effectiveBlocks: { id: number; incidentId: number | null; blockedAtUtc: string }[];
   room: RoomDirectoryItem;
   description: string | null;
   currentStatusEvidence: {
@@ -94,10 +97,11 @@ export async function listRoomBoard(
   const result = await listRooms(
     params.get("branchId") || "",
     roomPage(params.get("page")),
-    params.get("status") || "",
+    "",
     params.get("search") || "",
     signal,
     {
+      effectiveReadiness: params.get("readiness") || undefined,
       floorId: params.get("floorId") || undefined,
       areaId: params.get("areaId") || undefined,
       roomTypeId: params.get("roomTypeId") || undefined,
@@ -115,13 +119,15 @@ export async function listRoomBoard(
     counts.reduce((sum, c) => sum + c.count, 0) !== result.totalCount
   )
     invalid();
-  const status = params.get("status");
+  const status = params.get("readiness");
+  const effectiveCounts = result.effectiveReadinessCounts;
+  if (!effectiveCounts || Object.entries(effectiveCounts).some(([s,n]) => !readinessCodes.includes(s as typeof readinessCodes[number]) || !count(n) || (status && s !== status))
+    || Object.values(effectiveCounts).reduce((a,b)=>a+b,0) !== result.totalCount) invalid();
   if (
     !pageFits(result.items, result.totalCount, result.page) ||
-    counts.some((c) => status && c.operationalStatusCode !== status) ||
     result.items.some(
       (r) =>
-        (status && r.operationalStatusCode !== status) ||
+        (status && r.effectiveReadiness !== status) ||
         (params.get("floorId") &&
           r.floor.id !== positiveId(params.get("floorId")!)) ||
         (params.get("areaId") &&
@@ -174,6 +180,10 @@ export async function readRoomDetail(
     signal,
   )) as RoomDetail;
   const e = data?.currentStatusEvidence;
+  const cycle = data?.currentCycle;
+  if (cycle !== null && (!cycle || ![cycle.cleaningTaskId,cycle.inspectionId,cycle.reworkId].every(v=>v===null||id(v))
+    || !text(cycle.cleaningState) || !text(cycle.inspectionState))) invalid();
+  if (!Array.isArray(data?.effectiveBlocks) || data.effectiveBlocks.some(b=>!b || !id(b.id) || (b.incidentId!==null&&!id(b.incidentId)) || !utc(b.blockedAtUtc))) invalid();
   if (
     !data ||
     !validRoom(data.room, branchId, roomId) ||
