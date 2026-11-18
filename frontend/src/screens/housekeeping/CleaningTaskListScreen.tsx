@@ -1,4 +1,5 @@
-﻿import {
+import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
+import {
   useRoomWorkspace,
   RoomBranchField,
   NamedFilter,
@@ -202,97 +203,119 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
         className="filter-bar"
         onSubmit={submit}
       >
-        <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
-        <label>
-          Từ ngày
-          <input
-            name="fromDate"
-            type="date"
-            defaultValue={params.get("fromDate") || ""}
+        <div className="ds-quick-search">
+          <label>
+            Tìm công việc
+            <input
+              name="search"
+              type="search"
+              placeholder="Số phòng hoặc mã công việc"
+              maxLength={150}
+              defaultValue={params.get("search") || ""}
+            />
+          </label>
+          <button type="submit">Tìm kiếm</button>
+        </div>
+        <CollapsibleFilterPanel
+          resetNative
+          activeCount={
+            [
+              "fromDate",
+              "toDate",
+              "floorId",
+              "assigneeId",
+              "priorityId",
+              "status",
+              "overdue",
+            ].filter((k) => !!params.get(k)).length
+          }
+        >
+          <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
+          <label>
+            Từ ngày
+            <input
+              name="fromDate"
+              type="date"
+              defaultValue={params.get("fromDate") || ""}
+            />
+          </label>
+          <label>
+            Đến ngày
+            <input
+              name="toDate"
+              type="date"
+              defaultValue={params.get("toDate") || ""}
+            />
+          </label>
+
+          <NamedFilter
+            name="floorId"
+            label="Tầng"
+            value={params.get("floorId") || ""}
+            items={options?.floors ?? []}
           />
-        </label>
-        <label>
-          Đến ngày
-          <input
-            name="toDate"
-            type="date"
-            defaultValue={params.get("toDate") || ""}
+          <NamedFilter
+            name="assigneeId"
+            label="Nhân viên"
+            value={params.get("assigneeId") || ""}
+            items={options?.assignees ?? []}
           />
-        </label>
-        <label>
-          Tìm công việc
-          <input
-            name="search"
-            type="search"
-            placeholder="Số phòng hoặc mã công việc"
-            maxLength={150}
-            defaultValue={params.get("search") || ""}
+          <NamedFilter
+            name="priorityId"
+            label="Độ ưu tiên"
+            value={params.get("priorityId") || ""}
+            items={options?.priorities ?? []}
           />
-        </label>
-        <NamedFilter
-          name="floorId"
-          label="Tầng"
-          value={params.get("floorId") || ""}
-          items={options?.floors ?? []}
-        />
-        <NamedFilter
-          name="assigneeId"
-          label="Nhân viên"
-          value={params.get("assigneeId") || ""}
-          items={options?.assignees ?? []}
-        />
-        <NamedFilter
-          name="priorityId"
-          label="Độ ưu tiên"
-          value={params.get("priorityId") || ""}
-          items={options?.priorities ?? []}
-        />
-        <label>
-          Trạng thái
-          <select name="status" defaultValue={params.get("status") || ""}>
-            <option value="">Tất cả</option>
-            {options?.statuses.map((s) => (
-              <option key={s} value={s}>
-                {roomLabel(s)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Loại
-          <select
-            name="kind"
-            value={kindOnly || undefined}
-            defaultValue={kindOnly ? undefined : params.get("kind") || ""}
-            disabled={!!kindOnly}
-          >
-            <option value="">Tất cả</option>
-            <option value="cleaning">Vệ sinh</option>
-            <option value="rework">Làm lại</option>
-          </select>
-          {kindOnly && <input type="hidden" name="kind" value={kindOnly} />}
-        </label>
-        <label>
-          Quá hạn
-          <select name="overdue" defaultValue={params.get("overdue") || ""}>
-            <option value="">Tất cả</option>
-            <option value="true">Có</option>
-            <option value="false">Không</option>
-          </select>
-        </label>
-        <label>
-          Số dòng
-          <select name="pageSize" defaultValue={params.get("pageSize") || "20"}>
-            {[10, 20, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {displayCode(n)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button className="primary" disabled={!scope.branch?.canMonitor}>
-          Lọc công việc
-        </button>
+          <label>
+            Trạng thái
+            <select name="status" defaultValue={params.get("status") || ""}>
+              <option value="">Tất cả</option>
+              {options?.statuses.map((s) => (
+                <option key={s} value={s}>
+                  {roomLabel(s)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Loại
+            <select
+              name="kind"
+              value={kindOnly || undefined}
+              defaultValue={kindOnly ? undefined : params.get("kind") || ""}
+              disabled={!!kindOnly}
+            >
+              <option value="">Tất cả</option>
+              <option value="cleaning">Vệ sinh</option>
+              <option value="rework">Làm lại</option>
+            </select>
+            {kindOnly && <input type="hidden" name="kind" value={kindOnly} />}
+          </label>
+          <label>
+            Quá hạn
+            <select name="overdue" defaultValue={params.get("overdue") || ""}>
+              <option value="">Tất cả</option>
+              <option value="true">Có</option>
+              <option value="false">Không</option>
+            </select>
+          </label>
+          <label>
+            Số dòng
+            <select
+              name="pageSize"
+              defaultValue={params.get("pageSize") || "20"}
+            >
+              {[10, 20, 50, 100].map((n) => (
+                <option key={n} value={n}>
+                  {displayCode(n)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="primary" disabled={!scope.branch?.canMonitor}>
+            Lọc công việc
+          </button>
+        </CollapsibleFilterPanel>
       </form>
       {optionResult?.branch === branch &&
         optionResult?.owner === owner &&

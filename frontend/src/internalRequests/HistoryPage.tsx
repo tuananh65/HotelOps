@@ -1,3 +1,5 @@
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
+import { StatusBadge } from "../components/design-system";
 import { displayCode } from "../i18n/vi";
 import { staffDate } from "./staffDate";
 import { LoadingIndicator } from "../components/LoadingIndicator";
@@ -82,12 +84,22 @@ export function InternalRequestHistoryPage() {
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestIds = searchParams.getAll("requestId");
-  const selected = requestIds.length === 1 && /^[1-9][0-9]*$/.test(requestIds[0])
-    && Number.isSafeInteger(Number(requestIds[0])) ? Number(requestIds[0]) : null;
-  const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
+  const selected =
+    requestIds.length === 1 &&
+    /^[1-9][0-9]*$/.test(requestIds[0]) &&
+    Number.isSafeInteger(Number(requestIds[0]))
+      ? Number(requestIds[0])
+      : null;
+  const setSelected = (id: number | null) =>
+    setSearchParams(id === null ? {} : { requestId: String(id) });
   const [completionNotice, setCompletionNotice] = useState<number | null>(null);
   const [escalationNotice, setEscalationNotice] = useState<number | null>(null);
-  const [workNotice, setWorkNotice] = useState<{ owner: typeof owner; id: number; message: string; receiptId?: number } | null>(null);
+  const [workNotice, setWorkNotice] = useState<{
+    owner: typeof owner;
+    id: number;
+    message: string;
+    receiptId?: number;
+  } | null>(null);
   useEffect(() => setWorkNotice(null), [selected, owner]);
   useEffect(() => setEscalationNotice(null), [selected, owner]);
   useEffect(() => setCompletionNotice(null), [selected, owner]);
@@ -96,7 +108,7 @@ export function InternalRequestHistoryPage() {
   const [revision, setRevision] = useState(0);
   function refreshWork(id: number, message: string, receiptId?: number) {
     setWorkNotice({ owner, id, message, receiptId });
-    setRevision(v => v + 1);
+    setRevision((v) => v + 1);
   }
   const query = new URLSearchParams({
     page: String(page),
@@ -161,216 +173,377 @@ export function InternalRequestHistoryPage() {
   if (!owner) return null;
   return (
     <main className="staff-workspace">
-      <header className="staff-heading"><div><h1>Theo dõi yêu cầu nội bộ</h1>
-      <p className="staff-subtitle">Xem yêu cầu đã gửi và công việc cần xử lý. Thời gian theo giờ Việt Nam (UTC+7).</p></div>
-      <InternalRequestIntakeLink /></header>
-      <div className="staff-toolbar"><Link to="/home">Trang chủ</Link>
-      <button onClick={() => setRevision((v) => v + 1)}>Tải lại lịch sử</button></div>
+      <header className="staff-heading">
+        <div>
+          <h1>Theo dõi yêu cầu nội bộ</h1>
+          <p className="staff-subtitle">
+            Xem yêu cầu đã gửi và công việc cần xử lý. Thời gian theo giờ Việt
+            Nam (UTC+7).
+          </p>
+        </div>
+        <InternalRequestIntakeLink />
+      </header>
+      <div className="staff-toolbar">
+        <Link to="/home">Trang chủ</Link>
+        <button onClick={() => setRevision((v) => v + 1)}>
+          Tải lại lịch sử
+        </button>
+      </div>
       {selected === null ? (
-        <section className="staff-filters" aria-label="Bộ lọc yêu cầu">
-          <label>
-            Tìm yêu cầu
-            <input
-              maxLength={200}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-          </label>
-          {visible?.options && (
-            <>
-              <label>
-                Trạng thái
-                <select
-                  aria-label="Trạng thái"
-                  value={filters.status}
-                  onChange={(e) => {
-                    setFilters((v) => ({ ...v, status: e.target.value }));
-                    setPage(1);
-                  }}
-                >
-                  <option value="">Tất cả trạng thái</option>
-                  {visible.options.statuses.map((value) => (
-                    <option key={value} value={value}>
-                      {displayCode(value)}
-                    </option>
+        <>
+          <div className="ds-quick-search">
+            <label>
+              Tìm yêu cầu
+              <input
+                maxLength={200}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </label>
+          </div>
+          <CollapsibleFilterPanel
+            activeCount={
+              Object.values(filters).filter(Boolean).length +
+              Number(overdue) +
+              Number(atRisk)
+            }
+          >
+            <section className="staff-filters" aria-label="Bộ lọc yêu cầu">
+              {visible?.options && (
+                <>
+                  <label>
+                    Trạng thái
+                    <select
+                      aria-label="Trạng thái"
+                      value={filters.status}
+                      onChange={(e) => {
+                        setFilters((v) => ({ ...v, status: e.target.value }));
+                        setPage(1);
+                      }}
+                    >
+                      <option value="">Tất cả trạng thái</option>
+                      {visible.options.statuses.map((value) => (
+                        <option key={value} value={value}>
+                          {displayCode(value)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {(
+                    [
+                      ["requestTypeId", "Loại yêu cầu", visible.options.types],
+                      ["priorityId", "Độ ưu tiên", visible.options.priorities],
+                      [
+                        "receivingDepartmentId",
+                        "Bộ phận tiếp nhận",
+                        visible.options.departments,
+                      ],
+                    ] as const
+                  ).map(([field, label, values]) => (
+                    <label key={field}>
+                      {label}
+                      <select
+                        aria-label={label}
+                        value={filters[field]}
+                        onChange={(e) => {
+                          setFilters((v) => ({
+                            ...v,
+                            [field]: e.target.value,
+                          }));
+                          setPage(1);
+                        }}
+                      >
+                        <option value="">Tất cả</option>
+                        {values.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   ))}
-                </select>
-              </label>
-              {(
-                [
-                  ["requestTypeId", "Loại yêu cầu", visible.options.types],
-                  ["priorityId", "Độ ưu tiên", visible.options.priorities],
-                  [
-                    "receivingDepartmentId",
-                    "Bộ phận tiếp nhận",
-                    visible.options.departments,
-                  ],
-                ] as const
-              ).map(([field, label, values]) => (
-                <label key={field}>
-                  {label}
-                  <select
-                    aria-label={label}
-                    value={filters[field]}
-                    onChange={(e) => {
-                      setFilters((v) => ({ ...v, [field]: e.target.value }));
+                  <button
+                    onClick={() => {
+                      setFilters({
+                        status: "",
+                        direction: "",
+                        requestTypeId: "",
+                        priorityId: "",
+                        receivingDepartmentId: "",
+                      });
+                      setSearch("");
+                      setOverdue(false);
+                      setAtRisk(false);
                       setPage(1);
                     }}
                   >
-                    <option value="">Tất cả</option>
-                    {values.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-              <button
-                onClick={() => {
-                  setFilters({
-                    status: "",
-                    direction: "",
-                    requestTypeId: "",
-                    priorityId: "",
-                    receivingDepartmentId: "",
-                  });
-                  setSearch("");
-                  setOverdue(false);
-                  setAtRisk(false);
-                  setPage(1);
-                }}
-              >
-                Xóa bộ lọc
-              </button>
-            </>
-          )}
-          <label>
-            Phạm vi yêu cầu
-            <select aria-label="Phạm vi yêu cầu" value={filters.direction} onChange={e => {
-              setFilters(current => ({ ...current, direction: e.target.value }));
-              setPage(1);
-            }}>
-              <option value="">Tất cả yêu cầu được phép xem</option>
-              <option value="SENT">Đã gửi</option>
-              <option value="RECEIVED">Đã nhận</option>
-            </select>
-          </label>
-          <label className="staff-check">
-            <input
-              type="checkbox"
-              checked={overdue}
-              onChange={(e) => {
-                setOverdue(e.target.checked);
-                if(e.target.checked) setAtRisk(false);
-                setPage(1);
-              }}
-            />
-            Chỉ hiện quá hạn
-          </label>
-          <label className="staff-check">
-            <input type="checkbox" checked={atRisk} onChange={e => {
-              setAtRisk(e.target.checked); if(e.target.checked) setOverdue(false); setPage(1);
-            }} />
-            Chỉ hiện có nguy cơ trễ hạn
-          </label>
-        </section>
+                    Xóa bộ lọc
+                  </button>
+                </>
+              )}
+              <label>
+                Phạm vi yêu cầu
+                <select
+                  aria-label="Phạm vi yêu cầu"
+                  value={filters.direction}
+                  onChange={(e) => {
+                    setFilters((current) => ({
+                      ...current,
+                      direction: e.target.value,
+                    }));
+                    setPage(1);
+                  }}
+                >
+                  <option value="">Tất cả yêu cầu được phép xem</option>
+                  <option value="SENT">Đã gửi</option>
+                  <option value="RECEIVED">Đã nhận</option>
+                </select>
+              </label>
+              <label className="staff-check">
+                <input
+                  type="checkbox"
+                  checked={overdue}
+                  onChange={(e) => {
+                    setOverdue(e.target.checked);
+                    if (e.target.checked) setAtRisk(false);
+                    setPage(1);
+                  }}
+                />
+                Chỉ hiện quá hạn
+              </label>
+              <label className="staff-check">
+                <input
+                  type="checkbox"
+                  checked={atRisk}
+                  onChange={(e) => {
+                    setAtRisk(e.target.checked);
+                    if (e.target.checked) setOverdue(false);
+                    setPage(1);
+                  }}
+                />
+                Chỉ hiện có nguy cơ trễ hạn
+              </label>
+            </section>
+          </CollapsibleFilterPanel>
+        </>
       ) : (
         <button onClick={() => setSelected(null)}>Quay lại yêu cầu</button>
       )}
       {!visible && <LoadingIndicator label="Đang tải yêu cầu" />}
-      {workNotice?.owner === owner && workNotice.id === selected && <p role="status">{workNotice.message}{" "}
-        {workNotice.receiptId && <Link to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}>Mở biên nhận bàn giao của tôi</Link>}
-      </p>}
-      {visible?.error && <p role="alert">{visible.error}{" "}
-        <button onClick={() => setRevision(value => value + 1)}>Tải lại lịch sử</button>
-      </p>}
+      {workNotice?.owner === owner && workNotice.id === selected && (
+        <p role="status">
+          {workNotice.message}{" "}
+          {workNotice.receiptId && (
+            <Link
+              to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}
+            >
+              Mở biên nhận bàn giao của tôi
+            </Link>
+          )}
+        </p>
+      )}
+      {visible?.error && (
+        <p role="alert">
+          {visible.error}{" "}
+          <button onClick={() => setRevision((value) => value + 1)}>
+            Tải lại lịch sử
+          </button>
+        </p>
+      )}
       {visible?.list && (
         <section aria-label="Danh sách yêu cầu">
           <p>{visible.list.totalCount} yêu cầu</p>
           {visible.list.totalCount === 0 ? (
-            <p role="status">MSG10: Không có yêu cầu phù hợp với quyền và bộ lọc hiện tại. Đổi hoặc xóa bộ lọc để tìm lại.</p>
+            <p role="status">
+              MSG10: Không có yêu cầu phù hợp với quyền và bộ lọc hiện tại. Đổi
+              hoặc xóa bộ lọc để tìm lại.
+            </p>
           ) : (
-            <div className="staff-table-scroll" tabIndex={0} role="region" aria-label="Bảng yêu cầu nội bộ"><table>
-              <thead>
-                <tr>
-                  <th>Yêu cầu</th>
-                  <th>Chủ đề</th>
-                  <th>Trạng thái</th>
-                  <th>Chi nhánh</th>
-                  <th>Bộ phận tiếp nhận</th>
-                  <th>Người xử lý hiện tại</th>
-                  <th>Thời hạn</th>
-                  <th>Quá hạn</th>
-                  <th>Khoảng thời gian</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.list.items.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <button
-                        onClick={() => {
-                          setSelected(row.id);
-                          setEventPage(1);
-                          setAssignmentPage(1);
-                        }}
-                      >
-                        {row.number}
-                      </button>
-                    </td>
-                    <td>{row.subject}</td>
-                    <td><span className="staff-status">{displayCode(row.status)}</span></td>
-                    <td>{row.branchName ?? "Chưa có tên chi nhánh"}</td>
-                    <td>{row.receivingDepartmentName ?? visible.options?.departments.find(d => d.id === row.receivingDepartmentId)?.name ?? "Chưa phân công"}</td>
-                    <td>
-                      {row.currentAssigneeName ?? "Chưa phân công"}
-                    </td>
-                    <td>{staffDate(row.deadline)}</td>
-                    <td>{row.overdue ? "Có" : "Không"}</td>
-                    <td>{row.timingStatus === "AT_RISK" ? "Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)"
-                      : row.timingStatus === "OVERDUE" ? "Quá hạn"
-                      : row.timingStatus === "ON_TIME" ? "Đã dùng dưới 80% thời gian"
-                      : row.timingStatus === "TERMINAL" ? "Đã hoàn tất"
-                      : "Cần thời điểm tạo và thời hạn hợp lệ"}</td>
+            <div
+              className="staff-table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Bảng yêu cầu nội bộ"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Yêu cầu</th>
+                    <th>Chủ đề</th>
+                    <th>Trạng thái</th>
+                    <th>Chi nhánh</th>
+                    <th>Bộ phận tiếp nhận</th>
+                    <th>Người xử lý hiện tại</th>
+                    <th>Thời hạn</th>
+                    <th>Quá hạn</th>
+                    <th>Khoảng thời gian</th>
                   </tr>
-                ))}
-              </tbody>
-            </table></div>
+                </thead>
+                <tbody>
+                  {visible.list.items.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <button
+                          onClick={() => {
+                            setSelected(row.id);
+                            setEventPage(1);
+                            setAssignmentPage(1);
+                          }}
+                        >
+                          {row.number}
+                        </button>
+                      </td>
+                      <td>{row.subject}</td>
+                      <td>
+                        <StatusBadge>{displayCode(row.status)}</StatusBadge>
+                      </td>
+                      <td>{row.branchName ?? "Chưa có tên chi nhánh"}</td>
+                      <td>
+                        {row.receivingDepartmentName ??
+                          visible.options?.departments.find(
+                            (d) => d.id === row.receivingDepartmentId,
+                          )?.name ??
+                          "Chưa phân công"}
+                      </td>
+                      <td>{row.currentAssigneeName ?? "Chưa phân công"}</td>
+                      <td>{staffDate(row.deadline)}</td>
+                      <td>{row.overdue ? "Có" : "Không"}</td>
+                      <td>
+                        {row.timingStatus === "AT_RISK"
+                          ? "Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)"
+                          : row.timingStatus === "OVERDUE"
+                            ? "Quá hạn"
+                            : row.timingStatus === "ON_TIME"
+                              ? "Đã dùng dưới 80% thời gian"
+                              : row.timingStatus === "TERMINAL"
+                                ? "Đã hoàn tất"
+                                : "Cần thời điểm tạo và thời hạn hợp lệ"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-          <nav className="staff-pagination" aria-label="Phân trang yêu cầu"><button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Trang trước
-          </button>
-          <span> Trang {page} </span>
-          <button
-            disabled={page * 25 >= visible.list.totalCount}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Trang sau
-          </button>
+          <nav className="staff-pagination" aria-label="Phân trang yêu cầu">
+            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              Trang trước
+            </button>
+            <span> Trang {page} </span>
+            <button
+              disabled={page * 25 >= visible.list.totalCount}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Trang sau
+            </button>
           </nav>
         </section>
       )}
       {visible?.timeline && (
         <section aria-label="Dòng thời gian yêu cầu">
           <h2>Yêu cầu {visible.timeline.requestId}</h2>
-          <InternalRequestReopenPanel id={visible.timeline.requestId} onReopened={() => { setCompletionNotice(null); refreshWork(visible.timeline!.requestId, "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng."); }} />
-          {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Đã đóng yêu cầu.</p>}
-          <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestDecisionPanel id={visible.timeline.requestId} onChanged={message => refreshWork(visible.timeline!.requestId, message)} />
-          <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
-          <InternalRequestProgressPanel id={visible.timeline.requestId}
-            onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã lưu tiến độ. Yêu cầu vẫn đang thực hiện.")} />
-          {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Đã chuyển cấp yêu cầu.</p>}
-          <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={(handoverState, receiptId) => refreshWork(visible.timeline!.requestId, `MSG08: Bàn giao ${handoverState}.`, receiptId)} />
-          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết công việc.")} />
-          <InternalRequestCleaningLinksPanel key={`Vệ sinh:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết công việc vệ sinh.")} />
-          <InternalRequestIncidentLinksPanel key={`Sự cố:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết sự cố.")} />
-          <InternalRequestMaterialLinksPanel key={`Vật tư:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết yêu cầu vật tư.")} />
+          <InternalRequestReopenPanel
+            id={visible.timeline.requestId}
+            onReopened={() => {
+              setCompletionNotice(null);
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng.",
+              );
+            }}
+          />
+          {completionNotice === visible.timeline.requestId && (
+            <p role="status">MSG08: Đã đóng yêu cầu.</p>
+          )}
+          <InternalRequestCompletionPanel
+            id={visible.timeline.requestId}
+            onCompleted={() => {
+              setCompletionNotice(visible.timeline?.requestId ?? null);
+              setRevision((v) => v + 1);
+            }}
+          />
+          <InternalRequestDecisionPanel
+            id={visible.timeline.requestId}
+            onChanged={(message) =>
+              refreshWork(visible.timeline!.requestId, message)
+            }
+          />
+          <InternalRequestWithdrawalPanel
+            id={visible.timeline.requestId}
+            onWithdrawn={() => setRevision((v) => v + 1)}
+          />
+          <InternalRequestProgressPanel
+            id={visible.timeline.requestId}
+            onSaved={() =>
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã lưu tiến độ. Yêu cầu vẫn đang thực hiện.",
+              )
+            }
+          />
+          {escalationNotice === visible.timeline.requestId && (
+            <p role="status">MSG08: Đã chuyển cấp yêu cầu.</p>
+          )}
+          <InternalRequestEscalationPanel
+            id={visible.timeline.requestId}
+            onSaved={() => {
+              setEscalationNotice(visible.timeline?.requestId ?? null);
+              setRevision((v) => v + 1);
+            }}
+          />
+          <InternalRequestHandoverPanel
+            id={visible.timeline.requestId}
+            onSaved={(handoverState, receiptId) =>
+              refreshWork(
+                visible.timeline!.requestId,
+                `MSG08: Bàn giao ${handoverState}.`,
+                receiptId,
+              )
+            }
+          />
+          <InternalRequestTaskLinksPanel
+            key={visible.timeline.requestId}
+            id={visible.timeline.requestId}
+            onLinked={() =>
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã liên kết công việc.",
+              )
+            }
+          />
+          <InternalRequestCleaningLinksPanel
+            key={`Vệ sinh:${visible.timeline.requestId}`}
+            id={visible.timeline.requestId}
+            onLinked={() =>
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã liên kết công việc vệ sinh.",
+              )
+            }
+          />
+          <InternalRequestIncidentLinksPanel
+            key={`Sự cố:${visible.timeline.requestId}`}
+            id={visible.timeline.requestId}
+            onLinked={() =>
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã liên kết sự cố.",
+              )
+            }
+          />
+          <InternalRequestMaterialLinksPanel
+            key={`Vật tư:${visible.timeline.requestId}`}
+            id={visible.timeline.requestId}
+            onLinked={() =>
+              refreshWork(
+                visible.timeline!.requestId,
+                "MSG08: Đã liên kết yêu cầu vật tư.",
+              )
+            }
+          />
           <h3>Sự kiện</h3>
           {visible.timeline.events.length === 0 && (
             <p>Không có sự kiện trên trang này.</p>
@@ -378,7 +551,8 @@ export function InternalRequestHistoryPage() {
           <ol>
             {visible.timeline.events.map((e) => (
               <li key={e.id}>
-                {staffDate(e.occurredAt)} — {displayCode(e.type)}: {e.oldStatus ? displayCode(e.oldStatus) : "—"} →{" "}
+                {staffDate(e.occurredAt)} — {displayCode(e.type)}:{" "}
+                {e.oldStatus ? displayCode(e.oldStatus) : "—"} →{" "}
                 {e.newStatus ?? "—"}; Người thực hiện {e.actorId}
                 {e.note && <p>{e.note}</p>}
               </li>
@@ -405,7 +579,9 @@ export function InternalRequestHistoryPage() {
             {visible.timeline.assignments.map((a) => (
               <li key={a.id}>
                 Người xử lý {a.assigneeId}; người phân công {a.assignedBy};{" "}
-                {staffDate(a.assignedAt)} → {a.endedAt ? staffDate(a.endedAt) : "Đang mở"}; {displayCode(a.status)}
+                {staffDate(a.assignedAt)} →{" "}
+                {a.endedAt ? staffDate(a.endedAt) : "Đang mở"};{" "}
+                {displayCode(a.status)}
                 {a.note && <p>{a.note}</p>}
               </li>
             ))}

@@ -1,5 +1,6 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { Link, useParams } from "react-router-dom";
 import { createRoleCatalogApi } from "./roleCatalogApi";
@@ -17,10 +18,21 @@ function key(x: object) {
   if (!keys.has(x)) keys.set(x, ++n);
   return keys.get(x)!;
 }
-export function CustomRoleEditRoute({ deactivate = false }: { deactivate?: boolean }) {
+export function CustomRoleEditRoute({
+  deactivate = false,
+}: {
+  deactivate?: boolean;
+}) {
   const { roleId = "" } = useParams();
-  if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId))) return <p role="alert">Mã vai trò không hợp lệ.</p>;
-  return <CustomRoleForm roleId={Number(roleId)} dispatchEnabled deactivate={deactivate} />;
+  if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId)))
+    return <p role="alert">Mã vai trò không hợp lệ.</p>;
+  return (
+    <CustomRoleForm
+      roleId={Number(roleId)}
+      dispatchEnabled
+      deactivate={deactivate}
+    />
+  );
 }
 /** Both operations retain current-session binding and never replay a mutation. */
 export function CustomRoleForm({
@@ -40,7 +52,14 @@ export function CustomRoleForm({
   const [invalid, setInvalid] = useState<object | null>(null);
   const binding = useMemo(
     () => ({}),
-    [state.session, state.status, state.pending, roleId, dispatchEnabled, deactivate],
+    [
+      state.session,
+      state.status,
+      state.pending,
+      roleId,
+      dispatchEnabled,
+      deactivate,
+    ],
   );
   const latest = useRef(binding);
   latest.current = binding;
@@ -145,20 +164,29 @@ function Bound({
       !dispatchEnabled ||
       attempted.current ||
       !mounted.current ||
-      !current() || (deactivate && (!record?.isActive || roleId === undefined))
-      || (roleId !== undefined && (!version || !record || record.isSystemRole))
+      !current() ||
+      (deactivate && (!record?.isActive || roleId === undefined)) ||
+      (roleId !== undefined && (!version || !record || record.isSystemRole))
     )
       return;
     attempted.current = true;
     setPending(true);
     controller.current = new AbortController();
-    const result = roleId !== undefined ? await api.update(roleId,
-      { roleName: review.roleName, description: review.description }, version!,
-      () => mounted.current && current(), controller.current.signal, deactivate) : await api.create(
-      review,
-      () => mounted.current && current(),
-      controller.current.signal,
-    );
+    const result =
+      roleId !== undefined
+        ? await api.update(
+            roleId,
+            { roleName: review.roleName, description: review.description },
+            version!,
+            () => mounted.current && current(),
+            controller.current.signal,
+            deactivate,
+          )
+        : await api.create(
+            review,
+            () => mounted.current && current(),
+            controller.current.signal,
+          );
     if (!mounted.current || !current()) return;
     setPending(false);
     setLocked(true);
@@ -170,8 +198,10 @@ function Bound({
       }
       setMessage(customRoleMessage(result));
       // A confirmed rejection permits a corrected explicit submission. Uncertain outcomes stay locked.
-      if (result.outcome === "REJECTED" && (result.reason === "ROLE_CODE_EXISTS"
-        || result.status === 400)) {
+      if (
+        result.outcome === "REJECTED" &&
+        (result.reason === "ROLE_CODE_EXISTS" || result.status === 400)
+      ) {
         attempted.current = false;
         setLocked(false);
         setDuplicateCode(result.reason === "ROLE_CODE_EXISTS");
@@ -180,7 +210,9 @@ function Bound({
     }
     if (deactivate) {
       setRecord(result.data);
-      setMessage("Đã vô hiệu hóa vai trò. Vai trò khác và lịch sử giữ nguyên. Người dùng bị ảnh hưởng cần đăng nhập lại.");
+      setMessage(
+        "Đã vô hiệu hóa vai trò. Vai trò khác và lịch sử giữ nguyên. Người dùng bị ảnh hưởng cần đăng nhập lại.",
+      );
       return;
     }
     setMessage(
@@ -206,13 +238,22 @@ function Bound({
   return (
     <main>
       <h1>
-        {deactivate ? "Vô hiệu hóa vai trò tùy chỉnh" : roleId === undefined
-          ? "Tạo vai trò tùy chỉnh"
-          : "Chỉnh sửa thông tin vai trò tùy chỉnh"}
+        {deactivate
+          ? "Vô hiệu hóa vai trò tùy chỉnh"
+          : roleId === undefined
+            ? "Tạo vai trò tùy chỉnh"
+            : "Chỉnh sửa thông tin vai trò tùy chỉnh"}
       </h1>
       <Link to="/roles">Quay lại vai trò</Link>
-      {deactivate && <p>Xác nhận vô hiệu hóa. Người dùng mất quyền từ vai trò này và phiên hiện tại kết thúc. Vai trò khác vẫn giữ nguyên.</p>}
-      {deactivate && locked && <button onClick={revalidate}>Xác minh lại phiên</button>}
+      {deactivate && (
+        <p>
+          Xác nhận vô hiệu hóa. Người dùng mất quyền từ vai trò này và phiên
+          hiện tại kết thúc. Vai trò khác vẫn giữ nguyên.
+        </p>
+      )}
+      {deactivate && locked && (
+        <button onClick={revalidate}>Xác minh lại phiên</button>
+      )}
       <p>
         Không tự cấp quyền hoặc phân công. Tên gọi không xác lập thẩm quyền.
       </p>
@@ -227,17 +268,22 @@ function Bound({
             onSubmit={(e) => {
               e.preventDefault();
               if (
-                deactivate ? !!record?.isActive && !record.isSystemRole : roleId === undefined
-                  ? validCustomRole(input)
-                  : validMetadata(input.roleName, input.description)
+                deactivate
+                  ? !!record?.isActive && !record.isSystemRole
+                  : roleId === undefined
+                    ? validCustomRole(input)
+                    : validMetadata(input.roleName, input.description)
               ) {
                 setReview({ ...input });
                 setMessage(
-                  deactivate ? "Xác nhận ngừng hoạt động vai trò này." : roleId === undefined
-                    ? "Xem lại thông tin trước khi xác nhận."
-                    : "Xem lại thay đổi thông tin trước khi xác nhận.",
+                  deactivate
+                    ? "Xác nhận ngừng hoạt động vai trò này."
+                    : roleId === undefined
+                      ? "Xem lại thông tin trước khi xác nhận."
+                      : "Xem lại thay đổi thông tin trước khi xác nhận.",
                 );
-              } else setMessage("Mã, tên hoặc thông tin bắt buộc không hợp lệ.");
+              } else
+                setMessage("Mã, tên hoặc thông tin bắt buộc không hợp lệ.");
             }}
           >
             {roleId === undefined && (
@@ -246,7 +292,9 @@ function Bound({
                 <input
                   value={input.roleCode}
                   aria-invalid={duplicateCode || undefined}
-                  aria-describedby={duplicateCode ? "role-code-conflict" : undefined}
+                  aria-describedby={
+                    duplicateCode ? "role-code-conflict" : undefined
+                  }
                   disabled={pending || locked}
                   onChange={(e) => {
                     setInput({ ...input, roleCode: e.target.value });
@@ -254,14 +302,20 @@ function Bound({
                     setDuplicateCode(false);
                   }}
                 />
-                {duplicateCode && <span id="role-code-conflict">MSG35: Mã vai trò đã tồn tại.</span>}
+                {duplicateCode && (
+                  <span id="role-code-conflict">
+                    MSG35: Mã vai trò đã tồn tại.
+                  </span>
+                )}
               </label>
             )}
             <label>
               Tên vai trò
               <input
                 value={input.roleName}
-                disabled={deactivate || pending || locked || record?.isSystemRole}
+                disabled={
+                  deactivate || pending || locked || record?.isSystemRole
+                }
                 onChange={(e) => {
                   setInput({ ...input, roleName: e.target.value });
                   setReview(null);
@@ -272,7 +326,9 @@ function Bound({
               Mô tả
               <textarea
                 value={input.description ?? ""}
-                disabled={deactivate || pending || locked || record?.isSystemRole}
+                disabled={
+                  deactivate || pending || locked || record?.isSystemRole
+                }
                 onChange={(e) => {
                   setInput({ ...input, description: e.target.value });
                   setReview(null);
@@ -282,22 +338,43 @@ function Bound({
             {record?.isSystemRole ? (
               <p>Vai trò hệ thống được bảo vệ. Không được đổi thông tin.</p>
             ) : (
-              <button disabled={pending || locked || (deactivate && !record?.isActive)}>{deactivate ? "Xem lại vô hiệu hóa" : "Xem lại thông tin mô tả"}</button>
+              <button
+                disabled={
+                  pending || locked || (deactivate && !record?.isActive)
+                }
+              >
+                {deactivate ? "Xem lại vô hiệu hóa" : "Xem lại thông tin mô tả"}
+              </button>
             )}
           </form>
           {review && !locked && (
-            <section aria-label="Xem lại thông tin">
-              <p>
-                {displayCode(review.roleCode)} — {review.roleName}
-              </p>
-              <p>{review.description}</p>
-              <button
-                disabled={!dispatchEnabled || pending || (roleId !== undefined && (!version || record?.isSystemRole))}
-                onClick={() => void create()}
-              >
-                {deactivate ? "Xác nhận vô hiệu hóa" : roleId === undefined ? "Xác nhận tạo mới" : "Xác nhận cập nhật"}
-              </button>
-            </section>
+            <ActionDialog
+              open
+              title="Xem lại thông tin"
+              onClose={() => setReview(null)}
+              busy={pending}
+            >
+              <section aria-label="Xem lại thông tin">
+                <p>
+                  {displayCode(review.roleCode)} — {review.roleName}
+                </p>
+                <p>{review.description}</p>
+                <button
+                  disabled={
+                    !dispatchEnabled ||
+                    pending ||
+                    (roleId !== undefined && (!version || record?.isSystemRole))
+                  }
+                  onClick={() => void create()}
+                >
+                  {deactivate
+                    ? "Xác nhận vô hiệu hóa"
+                    : roleId === undefined
+                      ? "Xác nhận tạo mới"
+                      : "Xác nhận cập nhật"}
+                </button>
+              </section>
+            </ActionDialog>
           )}
           {record && (
             <section aria-label="Vai trò được máy chủ xác nhận">
@@ -306,7 +383,8 @@ function Bound({
               </p>
               <p>
                 {record.isSystemRole ? "Hệ thống" : "Tùy chỉnh"}; Quyền được cấp{" "}
-                {record.permissionGrantCount}; Người dùng {record.assignedUserCount}
+                {record.permissionGrantCount}; Người dùng{" "}
+                {record.assignedUserCount}
               </p>
             </section>
           )}

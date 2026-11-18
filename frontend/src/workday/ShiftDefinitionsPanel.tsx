@@ -1,3 +1,7 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../components/workspace-interactions";
 import { ShiftPlanningContext, usePlanningBusy } from "./shiftPlanningData";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -189,9 +193,13 @@ export function ShiftDefinitionsPanel({ active = true }: { active?: boolean }) {
         setLoaded(false);
         setSelected(null);
         setEditing(false);
-        setMessage(
+        (announceWorkflowSuccess(
           "Đã lưu. Thời gian ca đã lên lịch giữ nguyên. Bấm Tải mẫu ca để xem kết quả.",
-        );
+          "workday/ShiftDefinitionsPanel.tsx",
+        ),
+          setMessage(
+            "Đã lưu. Thời gian ca đã lên lịch giữ nguyên. Bấm Tải mẫu ca để xem kết quả.",
+          ));
       }
     } catch (e) {
       if (!controller.signal.aborted && current.current === owner) {
@@ -287,66 +295,76 @@ export function ShiftDefinitionsPanel({ active = true }: { active?: boolean }) {
         </>
       )}
       {editing && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save();
-          }}
+        <ActionDialog
+          scope="workday/ShiftDefinitionsPanel.tsx"
+          open
+          title="Mẫu ca làm việc"
+          onClose={() => setEditing(false)}
+          busy={busy}
+          locked={uncertain}
+          error={message}
         >
-          <fieldset disabled={busy || uncertain}>
-            <legend>{selected ? "Chỉnh sửa mẫu ca" : "Mẫu ca mới"}</legend>
-            <label>
-              Mã
-              <input
-                required
-                maxLength={30}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </label>
-            <label>
-              Tên
-              <input
-                required
-                maxLength={100}
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-              />
-            </label>
-            <label>
-              Bắt đầu
-              <input
-                required
-                type="time"
-                step="1"
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-              />
-            </label>
-            <label>
-              Kết thúc
-              <input
-                required
-                type="time"
-                step="1"
-                value={resolution}
-                onChange={(e) => setResolution(e.target.value)}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={overnight}
-                onChange={(e) => setOvernight(e.target.checked)}
-              />
-              Kết thúc vào ngày hôm sau
-            </label>
-            <button>Lưu mẫu ca</button>
-            <button type="button" onClick={() => setEditing(false)}>
-              Hủy
-            </button>
-          </fieldset>
-        </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void save();
+            }}
+          >
+            <fieldset disabled={busy || uncertain}>
+              <legend>{selected ? "Chỉnh sửa mẫu ca" : "Mẫu ca mới"}</legend>
+              <label>
+                Mã
+                <input
+                  required
+                  maxLength={30}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </label>
+              <label>
+                Tên
+                <input
+                  required
+                  maxLength={100}
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                />
+              </label>
+              <label>
+                Bắt đầu
+                <input
+                  required
+                  type="time"
+                  step="1"
+                  value={response}
+                  onChange={(e) => setResponse(e.target.value)}
+                />
+              </label>
+              <label>
+                Kết thúc
+                <input
+                  required
+                  type="time"
+                  step="1"
+                  value={resolution}
+                  onChange={(e) => setResolution(e.target.value)}
+                />
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={overnight}
+                  onChange={(e) => setOvernight(e.target.checked)}
+                />
+                Kết thúc vào ngày hôm sau
+              </label>
+              <button data-dialog-action>Lưu mẫu ca</button>
+              <button type="button" onClick={() => setEditing(false)}>
+                Hủy
+              </button>
+            </fieldset>
+          </form>
+        </ActionDialog>
       )}
     </section>
   );

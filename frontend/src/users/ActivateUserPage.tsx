@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -61,15 +62,25 @@ function ConfirmationForm({
           Xem lại kích hoạt
         </button>
         {review !== null && (
-          <section aria-label="Xem lại kích hoạt">
-            <p>
-              Kiểm tra tài khoản đích bên trên và lý do này trước khi gửi:
-            </p>
-            <p>{review}</p>
-            <button type="button" onClick={confirm}>
-              Xác nhận kích hoạt
-            </button>
-          </section>
+          <ActionDialog
+            open
+            title="Xem lại kích hoạt"
+            onClose={() => {
+              setReview(null);
+              reviewed.current = null;
+            }}
+            busy={disabled}
+          >
+            <section aria-label="Xem lại kích hoạt">
+              <p>
+                Kiểm tra tài khoản đích bên trên và lý do này trước khi gửi:
+              </p>
+              <p>{review}</p>
+              <button data-dialog-action type="button" onClick={confirm}>
+                Xác nhận kích hoạt
+              </button>
+            </section>
+          </ActionDialog>
         )}
       </fieldset>
       {error && <p role="alert">{error}</p>}
@@ -93,23 +104,26 @@ export function ActivateUserPage({
       <h1>Kích hoạt tài khoản người dùng {target}</h1>
       <Link to="/profile">Hồ sơ cá nhân</Link>
       <p>
-        Máy chủ kiểm tra trạng thái tài khoản và quyền ngay khi kích hoạt. Tải hồ sơ không cấp quyền kích hoạt, kể cả tài khoản của bạn.
+        Máy chủ kiểm tra trạng thái tài khoản và quyền ngay khi kích hoạt. Tải
+        hồ sơ không cấp quyền kích hoạt, kể cả tài khoản của bạn.
       </p>
       <p>
-        Kích hoạt không đặt lại mật khẩu, trạng thái khóa hay hạn mật khẩu, và không khôi phục phiên đã thu hồi.
+        Kích hoạt không đặt lại mật khẩu, trạng thái khóa hay hạn mật khẩu, và
+        không khôi phục phiên đã thu hồi.
       </p>
       {progress.phase === "unknown" && (
         <>
           <p role="alert">{unknownActivationMessage}</p>
           <p>
-            Việc tải lại chỉ xác nhận hồ sơ và phiên bản, không xác nhận kích hoạt thành công. Thao tác kích hoạt vẫn bị khóa tại đây.
+            Việc tải lại chỉ xác nhận hồ sơ và phiên bản, không xác nhận kích
+            hoạt thành công. Thao tác kích hoạt vẫn bị khóa tại đây.
           </p>
         </>
       )}
       {progress.phase === "confirmed" && (
         <p role="status">
-          Máy chủ đã xác nhận kích hoạt. Mã tài khoản: {target}.
-          accountStatus: ACTIVE.
+          Máy chủ đã xác nhận kích hoạt. Mã tài khoản: {target}. accountStatus:
+          ACTIVE.
         </p>
       )}
       {progress.phase === "pending" && (

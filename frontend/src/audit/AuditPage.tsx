@@ -1,3 +1,7 @@
+import {
+  restoredFilterDraft,
+  CollapsibleFilterPanel,
+} from "../components/workspace-interactions";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -110,37 +114,77 @@ export function AuditPage() {
       <h1>Lịch sử thay đổi</h1>
       <Link to="/dashboard">Không gian làm việc</Link>
       {!owner ? (
-        <p role="status">Dữ liệu nhật ký được ẩn trong khi kiểm tra phiên đăng nhập.</p>
+        <p role="status">
+          Dữ liệu nhật ký được ẩn trong khi kiểm tra phiên đăng nhập.
+        </p>
       ) : (
         <>
           <form onSubmit={apply} aria-label="Bộ lọc lịch sử thay đổi">
-            {Object.entries(draft).map(([name, value]) => (
-              <label key={name}>
-                {
-                  (
-                    {
-                      branchId: "Mã chi nhánh",
-                      actorId: "Mã người thực hiện",
-                      entityType: "Loại đối tượng",
-                      entityId: "Mã hồ sơ",
-                      action: "Thao tác",
-                      search: "Tìm kiếm",
-                      from: "từ (UTC)",
-                      to: "Đến (UTC)",
-                    } as Record<string, string>
-                  )[name]
-                }
+            <div className="ds-quick-search">
+              <label>
+                Tìm lịch sử thay đổi
                 <input
-                  type={name === "from" || name === "to" ? "date" : "text"}
-                  value={value}
-                  maxLength={100}
+                  type="search"
+                  maxLength={200}
+                  value={draft.search}
                   onChange={(e) =>
-                    setDraft((d) => ({ ...d, [name]: e.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      search: e.target.value,
+                    }))
                   }
                 />
               </label>
-            ))}
-            <button type="submit">Áp dụng bộ lọc</button>
+              <button type="submit">Áp dụng bộ lọc</button>
+            </div>
+            <CollapsibleFilterPanel
+              onOpen={() =>
+                setDraft((v) => ({
+                  ...restoredFilterDraft(v, query, {}),
+                  search: v.search,
+                }))
+              }
+              onClose={() =>
+                setDraft((v) => ({
+                  ...restoredFilterDraft(v, query, {}),
+                  search: v.search,
+                }))
+              }
+              activeCount={
+                [...new URLSearchParams(query)].filter(
+                  ([k, v]) => !["page", "pageSize"].includes(k) && !!v,
+                ).length
+              }
+            >
+              {Object.entries(draft)
+                .filter(([name]) => name !== "search")
+                .map(([name, value]) => (
+                  <label key={name}>
+                    {
+                      (
+                        {
+                          branchId: "Mã chi nhánh",
+                          actorId: "Mã người thực hiện",
+                          entityType: "Loại đối tượng",
+                          entityId: "Mã hồ sơ",
+                          action: "Thao tác",
+                          search: "Tìm kiếm",
+                          from: "từ (UTC)",
+                          to: "Đến (UTC)",
+                        } as Record<string, string>
+                      )[name]
+                    }
+                    <input
+                      type={name === "from" || name === "to" ? "date" : "text"}
+                      value={value}
+                      maxLength={100}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, [name]: e.target.value }))
+                      }
+                    />
+                  </label>
+                ))}
+            </CollapsibleFilterPanel>
           </form>
           {visible?.error && <p role="alert">{visible.error}</p>}
           <p aria-label="Bộ lọc nhật ký đã áp dụng">
@@ -234,27 +278,48 @@ export function AuditPage() {
               </p>
               <p>Trường nhạy cảm và chưa hỗ trợ được ẩn.</p>
               <p>{detail.provenance}</p>
-              {detail.retention && <section aria-label="Lưu giữ bằng chứng">
-                <h3>Lưu giữ bằng chứng</h3>
-                <dl>
-                  <dt>Trạng thái lưu trữ</dt><dd>{detail.retention.archiveStatus}</dd>
-                  <dt>Lưu trữ lúc (UTC)</dt><dd>{detail.retention.archivedAt ?? "Chưa lưu trữ"}</dd>
-                  <dt>Thời hạn lưu giữ tối thiểu đến (UTC)</dt><dd>{detail.retention.retentionUntil ?? "Không áp dụng"}</dd>
-                  <dt>Người lưu trữ</dt><dd>{detail.retention.archivedBy ?? "Không áp dụng"}</dd>
-                  <dt>Lưu giữ theo yêu cầu pháp lý</dt><dd>{detail.retention.legalHold
-                    ? detail.retention.legalHoldUntil ? `Đến ${detail.retention.legalHoldUntil} (UTC)` : "Không thời hạn"
-                    : "Chưa có lệnh giữ bổ sung được ghi nhận"}</dd>
-                  <dt>Điều kiện xóa dữ liệu</dt><dd>{detail.retention.purgeEligibility}: {detail.retention.reason}</dd>
-                </dl>
-                <p>Đến hạn lưu giữ không tự cho phép xóa. Nhật ký và biên nhận vẫn được giữ.</p>
-              </section>}
+              {detail.retention && (
+                <section aria-label="Lưu giữ bằng chứng">
+                  <h3>Lưu giữ bằng chứng</h3>
+                  <dl>
+                    <dt>Trạng thái lưu trữ</dt>
+                    <dd>{detail.retention.archiveStatus}</dd>
+                    <dt>Lưu trữ lúc (UTC)</dt>
+                    <dd>{detail.retention.archivedAt ?? "Chưa lưu trữ"}</dd>
+                    <dt>Thời hạn lưu giữ tối thiểu đến (UTC)</dt>
+                    <dd>
+                      {detail.retention.retentionUntil ?? "Không áp dụng"}
+                    </dd>
+                    <dt>Người lưu trữ</dt>
+                    <dd>{detail.retention.archivedBy ?? "Không áp dụng"}</dd>
+                    <dt>Lưu giữ theo yêu cầu pháp lý</dt>
+                    <dd>
+                      {detail.retention.legalHold
+                        ? detail.retention.legalHoldUntil
+                          ? `Đến ${detail.retention.legalHoldUntil} (UTC)`
+                          : "Không thời hạn"
+                        : "Chưa có lệnh giữ bổ sung được ghi nhận"}
+                    </dd>
+                    <dt>Điều kiện xóa dữ liệu</dt>
+                    <dd>
+                      {detail.retention.purgeEligibility}:{" "}
+                      {detail.retention.reason}
+                    </dd>
+                  </dl>
+                  <p>
+                    Đến hạn lưu giữ không tự cho phép xóa. Nhật ký và biên nhận
+                    vẫn được giữ.
+                  </p>
+                </section>
+              )}
               <button onClick={() => history(detail.entry)}>
                 Xem lịch sử hồ sơ này
               </button>
               <h3>Các trường đã thay đổi</h3>
               {changes.length === 0 ? (
                 <p>
-                  Không có thay đổi có thể đối chiếu. Không tái dựng giá trị thiếu hoặc bị ẩn.
+                  Không có thay đổi có thể đối chiếu. Không tái dựng giá trị
+                  thiếu hoặc bị ẩn.
                 </p>
               ) : (
                 <table aria-label="Thay đổi các trường">

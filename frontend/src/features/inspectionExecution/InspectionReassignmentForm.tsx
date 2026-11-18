@@ -1,3 +1,7 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
@@ -105,9 +109,13 @@ export function InspectionReassignmentForm({
         reinspection,
       );
       if (!scope.signal.aborted && isCurrent())
-        setMessage(
+        (announceWorkflowSuccess(
           "MSG08: Đã đổi người kiểm tra. Tải lại phân công hiện tại.",
-        );
+          "features/inspectionExecution/InspectionReassignmentForm.tsx",
+        ),
+          setMessage(
+            "MSG08: Đã đổi người kiểm tra. Tải lại phân công hiện tại.",
+          ));
     } catch (error) {
       if (!scope.signal.aborted && isCurrent()) {
         setMessage(
@@ -131,85 +139,99 @@ export function InspectionReassignmentForm({
   }
   if (!owner) return null;
   return (
-    <section aria-label="Thay đổi người kiểm tra">
-      <h2>Thay đổi người kiểm tra</h2>
-      {message && <p role="status">{message}</p>}
-      {data && (
-        <p>
-          Người kiểm tra hiện tại #{data.inspectorId}. State: {displayCode(data.state)}. Checklist
-          and deadline remain unchanged.
-        </p>
-      )}
-      {data?.canReassign && !locked && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setReview(true);
-          }}
-        >
-          <fieldset disabled={busy || review}>
-            <label htmlFor={`reassign-inspector-${id}`}>Người kiểm tra mới</label>
-            <select
-              id={`reassign-inspector-${id}`}
-              required
-              value={inspector}
-              onChange={(e) => setInspector(e.target.value)}
-            >
-              <option value="">Chọn người kiểm tra</option>
-              {data.inspectors.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <label>
-              Lý do thay đổi
-              <input
+    <ActionDialog
+      scope="features/inspectionExecution/InspectionReassignmentForm.tsx"
+      title="Thay đổi người kiểm tra"
+      busy={busy}
+    >
+      <section aria-label="Thay đổi người kiểm tra">
+        <h2>Thay đổi người kiểm tra</h2>
+        {message && <p role="status">{message}</p>}
+        {data && (
+          <p>
+            Người kiểm tra hiện tại #{data.inspectorId}. State:{" "}
+            {displayCode(data.state)}. Checklist and deadline remain unchanged.
+          </p>
+        )}
+        {data?.canReassign && !locked && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setReview(true);
+            }}
+          >
+            <fieldset disabled={busy || review}>
+              <label htmlFor={`reassign-inspector-${id}`}>
+                Người kiểm tra mới
+              </label>
+              <select
+                id={`reassign-inspector-${id}`}
                 required
-                maxLength={500}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <button type="submit">Xem lại đổi người kiểm tra</button>
-          </fieldset>
-          {review && (
-            <div>
-              <p>
-                Thay đổi đến{" "}
-                {data.inspectors.find((p) => p.id === Number(inspector))?.name}:{" "}
-                {reason}
-              </p>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void submit()}
+                value={inspector}
+                onChange={(e) => setInspector(e.target.value)}
               >
-                Xác nhận đổi người kiểm tra
+                <option value="">Chọn người kiểm tra</option>
+                {data.inspectors.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <label>
+                Lý do thay đổi
+                <input
+                  required
+                  maxLength={500}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <button data-dialog-action type="submit">
+                Xem lại đổi người kiểm tra
               </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => setReview(false)}
-              >
-                Chỉnh sửa thay đổi
-              </button>
-            </div>
-          )}
-        </form>
-      )}
-      {data && !data.canReassign && (
-        <p>
-          Không có người kiểm tra thay thế đủ điều kiện với quyền hiện tại.
-        </p>
-      )}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => setRefresh((v) => v + 1)}
-      >
-        Tải lại lựa chọn người kiểm tra
-      </button>
-    </section>
+            </fieldset>
+            {review && (
+              <div>
+                <p>
+                  Thay đổi đến{" "}
+                  {
+                    data.inspectors.find((p) => p.id === Number(inspector))
+                      ?.name
+                  }
+                  : {reason}
+                </p>
+                <button
+                  data-dialog-action
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void submit()}
+                >
+                  Xác nhận đổi người kiểm tra
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setReview(false)}
+                >
+                  Chỉnh sửa thay đổi
+                </button>
+              </div>
+            )}
+          </form>
+        )}
+        {data && !data.canReassign && (
+          <p>
+            Không có người kiểm tra thay thế đủ điều kiện với quyền hiện tại.
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setRefresh((v) => v + 1)}
+        >
+          Tải lại lựa chọn người kiểm tra
+        </button>
+      </section>
+    </ActionDialog>
   );
 }

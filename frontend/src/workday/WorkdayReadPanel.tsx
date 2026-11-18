@@ -1,3 +1,4 @@
+import { StatusBadge } from "../components/design-system";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -122,8 +123,18 @@ export function WorkdayReadPanel({
   const session = state.session;
   const key = useMemo(() => ({}), [session, branchId, confirmed]);
   const enabled = confirmed && safeId(branchId);
-  const shifts = useRead(key, enabled && canReadShifts, branchId, client.ownShifts);
-  const current = useRead(key, enabled && canReadCurrent, branchId, client.current);
+  const shifts = useRead(
+    key,
+    enabled && canReadShifts,
+    branchId,
+    client.ownShifts,
+  );
+  const current = useRead(
+    key,
+    enabled && canReadCurrent,
+    branchId,
+    client.current,
+  );
 
   if (!confirmed)
     return (
@@ -138,42 +149,63 @@ export function WorkdayReadPanel({
     return <p role="alert">{messages["invalid-request"]}</p>;
   return (
     <section className="time-columns">
-      {canReadShifts && <ReadSection
-        title="Ca có thể bắt đầu hôm nay"
-        result={shifts}
-        revalidate={() => void actions.revalidate()}
-      >
-        {(data) =>
-          data.length === 0 ? (
-            <p className="time-empty">Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.</p>
-          ) : (
-            <ul className="time-list">
-              {data.map((s) => (
-                <li key={s.shiftAssignmentId}>
-                  <strong>{staffDate(s.scheduledStartAtUtc)} – {staffDate(s.scheduledEndAtUtc)}</strong>
-                  <p><Link to={`/workday?branchId=${branchId}&shiftAssignmentId=${s.shiftAssignmentId}`}>Xem chi tiết ca</Link></p>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-      </ReadSection>}
-      {canReadCurrent && <ReadSection
-        title="Ca đang làm"
-        result={current}
-        revalidate={() => void actions.revalidate()}
-      >
-        {(data) =>
-          data === null ? (
-            <p className="time-empty">Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.</p>
-          ) : (
-            <div><span className="time-status">Đang làm việc</span>
-              <p>Bắt đầu lúc {staffDate(data.startedAtUtc)}</p>
-              <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>Chuẩn bị bàn giao ca</Link>
-            </div>
-          )
-        }
-      </ReadSection>}
+      {canReadShifts && (
+        <ReadSection
+          title="Ca có thể bắt đầu hôm nay"
+          result={shifts}
+          revalidate={() => void actions.revalidate()}
+        >
+          {(data) =>
+            data.length === 0 ? (
+              <p className="time-empty">
+                Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc
+                không xuất hiện trong danh sách này.
+              </p>
+            ) : (
+              <ul className="time-list">
+                {data.map((s) => (
+                  <li key={s.shiftAssignmentId}>
+                    <strong>
+                      {staffDate(s.scheduledStartAtUtc)} –{" "}
+                      {staffDate(s.scheduledEndAtUtc)}
+                    </strong>
+                    <p>
+                      <Link
+                        to={`/workday?branchId=${branchId}&shiftAssignmentId=${s.shiftAssignmentId}`}
+                      >
+                        Xem chi tiết ca
+                      </Link>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        </ReadSection>
+      )}
+      {canReadCurrent && (
+        <ReadSection
+          title="Ca đang làm"
+          result={current}
+          revalidate={() => void actions.revalidate()}
+        >
+          {(data) =>
+            data === null ? (
+              <p className="time-empty">
+                Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.
+              </p>
+            ) : (
+              <div>
+                <StatusBadge>Đang làm việc</StatusBadge>
+                <p>Bắt đầu lúc {staffDate(data.startedAtUtc)}</p>
+                <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>
+                  Chuẩn bị bàn giao ca
+                </Link>
+              </div>
+            )
+          }
+        </ReadSection>
+      )}
     </section>
   );
 }

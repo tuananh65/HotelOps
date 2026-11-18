@@ -1,4 +1,8 @@
 import {
+  ActionDialog,
+  CollapsibleFilterPanel,
+} from "../components/workspace-interactions";
+import {
   ShiftPlanningContext,
   usePlanningBusy,
   localDate,
@@ -276,28 +280,30 @@ export function ShiftRosterPanel({
   return (
     <section className="shift-card">
       <h2>Danh sách phân ca theo tuần</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void load();
-        }}
-      >
-        <fieldset disabled={busy}>
-          <label>
-            Xem 7 ngày từ
-            <input
-              required
-              type="date"
-              value={from}
-              onChange={(e) => {
-                clear();
-                setFrom(e.target.value);
-              }}
-            />
-          </label>
-          <button>Tải danh sách phân ca</button>
-        </fieldset>
-      </form>
+      <CollapsibleFilterPanel activeCount={Number(!!result?.from)}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void load();
+          }}
+        >
+          <fieldset disabled={busy}>
+            <label>
+              Xem 7 ngày từ
+              <input
+                required
+                type="date"
+                value={from}
+                onChange={(e) => {
+                  clear();
+                  setFrom(e.target.value);
+                }}
+              />
+            </label>
+            <button>Tải danh sách phân ca</button>
+          </fieldset>
+        </form>
+      </CollapsibleFilterPanel>
       {busy && <LoadingIndicator compact label="Đang tải lịch phân ca" />}
       {notice?.owner === owner &&
         notice.branch === Number(branch) &&
@@ -381,39 +387,48 @@ export function ShiftRosterPanel({
         </>
       )}
       {selected && result && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void cancel();
-          }}
+        <ActionDialog
+          open
+          title="Hủy phân công ca"
+          onClose={() => setSelected(null)}
+          busy={busy}
+          locked={false}
+          error={error}
         >
-          <fieldset disabled={busy}>
-            <legend>Hủy phân công cho {selected.employeeName}</legend>
-            <label>
-              Lý do
-              <textarea
-                required
-                minLength={10}
-                maxLength={1000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                required
-                checked={confirmed}
-                onChange={(e) => setConfirmed(e.target.checked)}
-              />
-              Xác nhận hủy phân công tương lai này.
-            </label>
-            <button>Xác nhận hủy</button>
-            <button type="button" onClick={() => setSelected(null)}>
-              Giữ nguyên phân công
-            </button>
-          </fieldset>
-        </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void cancel();
+            }}
+          >
+            <fieldset disabled={busy}>
+              <legend>Hủy phân công cho {selected.employeeName}</legend>
+              <label>
+                Lý do
+                <textarea
+                  required
+                  minLength={10}
+                  maxLength={1000}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  required
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                />
+                Xác nhận hủy phân công tương lai này.
+              </label>
+              <button data-dialog-action>Xác nhận hủy</button>
+              <button type="button" onClick={() => setSelected(null)}>
+                Giữ nguyên phân công
+              </button>
+            </fieldset>
+          </form>
+        </ActionDialog>
       )}
     </section>
   );

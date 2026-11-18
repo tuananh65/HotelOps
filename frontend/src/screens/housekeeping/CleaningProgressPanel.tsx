@@ -1,4 +1,8 @@
-﻿import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../../components/workspace-interactions";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError } from "../../api/dev1/client";
 import {
   readCleaningProgress,
@@ -94,7 +98,9 @@ export default function CleaningProgressPanel({
           return await Promise.all(files.map(uploadFile));
         } catch (reason) {
           if (!controller.signal.aborted)
-            setFileError("MSG23: Chọn tối đa 5 tệp JPG/PNG/PDF hợp lệ, tối đa 10 MiB mỗi tệp.");
+            setFileError(
+              "MSG23: Chọn tối đa 5 tệp JPG/PNG/PDF hợp lệ, tối đa 10 MiB mỗi tệp.",
+            );
           throw reason;
         }
       })();
@@ -109,9 +115,13 @@ export default function CleaningProgressPanel({
       saved = true;
       if (controller.signal.aborted) return;
       show(updated);
-      setSuccess(
+      (announceWorkflowSuccess(
         "Đã lưu tiến độ. Công việc vẫn đang thực hiện, kể cả khi đạt 100%.",
-      );
+        "screens/housekeeping/CleaningProgressPanel.tsx",
+      ),
+        setSuccess(
+          "Đã lưu tiến độ. Công việc vẫn đang thực hiện, kể cả khi đạt 100%.",
+        ));
       const refreshed = await readCleaningProgress(
         branch,
         task,
@@ -156,118 +166,140 @@ export default function CleaningProgressPanel({
         </button>
       )}
       {current && !loading && (
-        <form onSubmit={save} noValidate>
-          <fieldset disabled={saving || locked}>
-            <legend>Cập nhật tiến độ</legend>
-            <label>
-              Tiến độ (%)
-              <input
-                aria-label="Tiến độ (%)"
-                aria-invalid={!!percentError}
-                aria-describedby={percentError ? "cleaning-percent-error" : undefined}
-                type="number"
-                required
-                min={0}
-                max={100}
-                step={1}
-                value={Number.isNaN(percent) ? "" : percent}
-                onChange={(event) =>
-                  setPercent(
-                    event.target.value === ""
-                      ? NaN
-                      : Number(event.target.value),
-                  )
-                }
-              />
-            </label>
-            {percentError && <p id="cleaning-percent-error" role="alert">{percentError}</p>}
-            {items.length === 0 && <p>Chưa có hạng mục vệ sinh.</p>}
-            {current.data.items.map((item, index) => (
-              <div key={item.id}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={items[index]?.done ?? false}
-                    onChange={(event) =>
-                      setItems((values) =>
-                        values.map((value) =>
-                          value.id === item.id
-                            ? { ...value, done: event.target.checked }
-                            : value,
-                        ),
-                      )
-                    }
-                  />
-                  {item.label}
-                  {item.required ? " (bắt buộc)" : ""}
-                </label>
-                <label>
-                  Ghi chú: {item.label}
-                  <input
-                    maxLength={1000}
-                    value={items[index]?.note ?? ""}
-                    onChange={(event) =>
-                      setItems((values) =>
-                        values.map((value) =>
-                          value.id === item.id
-                            ? { ...value, note: event.target.value || null }
-                            : value,
-                        ),
-                      )
-                    }
-                  />
-                </label>
-              </div>
-            ))}
-            <label>
-              Ghi chú tiến độ
-              <input
-                maxLength={4000}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-              />
-            </label>
-            <label>
-              Tệp đính kèm (tối đa 5)
-              <input
-                ref={fileInput}
-                aria-invalid={!!fileError}
-                aria-describedby={fileError ? "cleaning-file-error" : undefined}
-                type="file"
-                multiple
-                accept=".jpg,.jpeg,.png,.pdf"
-                onChange={(event) =>
-                  setFiles(Array.from(event.target.files || []))
-                }
-              />
-            </label>
-            {fileError && <p id="cleaning-file-error" role="alert">{fileError}</p>}
-            <p>JPG/PNG/PDF, tối đa 10 MiB mỗi tệp. Ghi chú dùng một dòng.</p>
-            <button type="submit">
-              {saving ? "Đang lưu…" : "Lưu tiến độ"}
-            </button>
-          </fieldset>
-          <p>
-            {current.data.timeline.length} bản ghi tiến độ ·{" "}
-            {current.data.evidence.length} tệp đã lưu.
-          </p>
-          <h3>Tiến độ đã ghi nhận</h3>
-          <ol>
-            {current.data.timeline.map((entry) => (
-              <li key={entry.id}>
-                <time>{entry.at}</time> · {entry.percent}% · {entry.note || "—"}
-              </li>
-            ))}
-          </ol>
-          <h3>Tệp đã lưu</h3>
-          <ul>
-            {current.data.evidence.map((file) => (
-              <li key={file.id}>
-                <a href={file.downloadPath} download>{file.name}</a>
-              </li>
-            ))}
-          </ul>
-        </form>
+        <ActionDialog
+          scope="screens/housekeeping/CleaningProgressPanel.tsx"
+          title="Cập nhật tiến độ dọn phòng"
+          busy={saving}
+          error={error}
+        >
+          <form onSubmit={save} noValidate>
+            <fieldset disabled={saving || locked}>
+              <legend>Cập nhật tiến độ</legend>
+              <label>
+                Tiến độ (%)
+                <input
+                  aria-label="Tiến độ (%)"
+                  aria-invalid={!!percentError}
+                  aria-describedby={
+                    percentError ? "cleaning-percent-error" : undefined
+                  }
+                  type="number"
+                  required
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Number.isNaN(percent) ? "" : percent}
+                  onChange={(event) =>
+                    setPercent(
+                      event.target.value === ""
+                        ? NaN
+                        : Number(event.target.value),
+                    )
+                  }
+                />
+              </label>
+              {percentError && (
+                <p id="cleaning-percent-error" role="alert">
+                  {percentError}
+                </p>
+              )}
+              {items.length === 0 && <p>Chưa có hạng mục vệ sinh.</p>}
+              {current.data.items.map((item, index) => (
+                <div key={item.id}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={items[index]?.done ?? false}
+                      onChange={(event) =>
+                        setItems((values) =>
+                          values.map((value) =>
+                            value.id === item.id
+                              ? { ...value, done: event.target.checked }
+                              : value,
+                          ),
+                        )
+                      }
+                    />
+                    {item.label}
+                    {item.required ? " (bắt buộc)" : ""}
+                  </label>
+                  <label>
+                    Ghi chú: {item.label}
+                    <input
+                      maxLength={1000}
+                      value={items[index]?.note ?? ""}
+                      onChange={(event) =>
+                        setItems((values) =>
+                          values.map((value) =>
+                            value.id === item.id
+                              ? { ...value, note: event.target.value || null }
+                              : value,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              ))}
+              <label>
+                Ghi chú tiến độ
+                <input
+                  maxLength={4000}
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                />
+              </label>
+              <label>
+                Tệp đính kèm (tối đa 5)
+                <input
+                  ref={fileInput}
+                  aria-invalid={!!fileError}
+                  aria-describedby={
+                    fileError ? "cleaning-file-error" : undefined
+                  }
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={(event) =>
+                    setFiles(Array.from(event.target.files || []))
+                  }
+                />
+              </label>
+              {fileError && (
+                <p id="cleaning-file-error" role="alert">
+                  {fileError}
+                </p>
+              )}
+              <p>JPG/PNG/PDF, tối đa 10 MiB mỗi tệp. Ghi chú dùng một dòng.</p>
+              <button data-dialog-action type="submit">
+                {saving ? "Đang lưu…" : "Lưu tiến độ"}
+              </button>
+            </fieldset>
+            <p>
+              {current.data.timeline.length} bản ghi tiến độ ·{" "}
+              {current.data.evidence.length} tệp đã lưu.
+            </p>
+            <h3>Tiến độ đã ghi nhận</h3>
+            <ol>
+              {current.data.timeline.map((entry) => (
+                <li key={entry.id}>
+                  <time>{entry.at}</time> · {entry.percent}% ·{" "}
+                  {entry.note || "—"}
+                </li>
+              ))}
+            </ol>
+            <h3>Tệp đã lưu</h3>
+            <ul>
+              {current.data.evidence.map((file) => (
+                <li key={file.id}>
+                  <a href={file.downloadPath} download>
+                    {file.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </form>
+        </ActionDialog>
       )}
     </>
   );

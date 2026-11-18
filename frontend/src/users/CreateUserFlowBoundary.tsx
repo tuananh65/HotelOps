@@ -3,10 +3,14 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { CreateUserPage } from "./CreateUserPage";
 import { useCreateUser } from "./useCreateUser";
+import { useUserCreationAccess } from "./useUserCreationAccess";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import { ErrorState } from "../components/design-system";
 
 export function CreateUserFlowBoundary() {
   const { state, actions } = useAuth();
   const flow = useCreateUser();
+  const access = useUserCreationAccess();
   const previousOwner = useRef(state.session);
   const revision = useRef(0);
   if (previousOwner.current !== state.session) {
@@ -26,7 +30,8 @@ export function CreateUserFlowBoundary() {
             : "Không xác minh được phiên đăng nhập của bạn."}
         </p>
         <p>
-          Chưa gửi lại yêu cầu tạo tài khoản. Kết quả đang chờ có thể chưa xác định. Mật khẩu đã ẩn và không thể lấy lại tại đây.
+          Chưa gửi lại yêu cầu tạo tài khoản. Kết quả đang chờ có thể chưa xác
+          định. Mật khẩu đã ẩn và không thể lấy lại tại đây.
         </p>
         {state.status !== "INITIALIZING" && (
           <button type="button" onClick={() => void actions.revalidate()}>
@@ -37,5 +42,22 @@ export function CreateUserFlowBoundary() {
       </main>
     );
   // A new PublicSession reference replaces the entire secret-bearing leaf, even for the same user ID.
+  if (access.status === "loading")
+    return <LoadingIndicator label="Đang kiểm tra quyền tạo tài khoản" />;
+  if (access.status !== "allowed")
+    return (
+      <main>
+        <h1>Tạo tài khoản nhân viên</h1>
+        <ErrorState
+          message={
+            access.status === "denied"
+              ? "Bạn chưa có quyền quản lý người dùng và vai trò trên toàn hệ thống để tạo tài khoản."
+              : "Chưa xác nhận được quyền tạo tài khoản."
+          }
+          retry={access.status === "error" ? access.reload : undefined}
+        />
+        <Link to="/users">Quay lại danh sách người dùng</Link>
+      </main>
+    );
   return <CreateUserPage key={revision.current} flow={flow} />;
 }

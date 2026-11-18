@@ -1,3 +1,7 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../components/workspace-interactions";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -43,6 +47,10 @@ export function TaskCriteriaSetup({
       );
       if (!controller.signal.aborted) {
         setSaved(true);
+        announceWorkflowSuccess(
+          "Đã lưu tiêu chí hoàn tất.",
+          "operationalTasks/TaskCriteriaSetup.tsx",
+        );
         onInitialized();
       }
     } catch (e) {
@@ -72,81 +80,95 @@ export function TaskCriteriaSetup({
         <>
           <h3>Thiết lập tiêu chí hoàn tất</h3>
           <p>
-            Dành cho công việc đã bắt đầu nhưng chưa có tiêu chí. Tiêu chí cố định sau khi thiết lập. Quyền quản lý công việc được kiểm tra khi lưu.
+            Dành cho công việc đã bắt đầu nhưng chưa có tiêu chí. Tiêu chí cố
+            định sau khi thiết lập. Quyền quản lý công việc được kiểm tra khi
+            lưu.
           </p>
           {error && <p role="alert">{error}</p>}
           {saved ? (
             <p role="status">Đã khởi tạo tiêu chí hoàn tất.</p>
           ) : (
-            <form onSubmit={submit}>
-              <fieldset disabled={busy || locked}>
-                <legend>Định nghĩa tiêu chí</legend>
-                {items.map((item, index) => (
-                  <div key={index}>
-                    <label>
-                      Tiêu chí {index + 1}
-                      <input
-                        required
-                        maxLength={250}
-                        value={item.label}
-                        onChange={(e) =>
-                          setItems((rows) =>
-                            rows.map((r, n) =>
-                              n === index ? { ...r, label: e.target.value } : r,
-                            ),
-                          )
+            <ActionDialog
+              scope="operationalTasks/TaskCriteriaSetup.tsx"
+              title="Cấu hình tiêu chí hoàn tất"
+              busy={busy}
+              error={error}
+            >
+              <form onSubmit={submit}>
+                <fieldset disabled={busy || locked}>
+                  <legend>Định nghĩa tiêu chí</legend>
+                  {items.map((item, index) => (
+                    <div key={index}>
+                      <label>
+                        Tiêu chí {index + 1}
+                        <input
+                          required
+                          maxLength={250}
+                          value={item.label}
+                          onChange={(e) =>
+                            setItems((rows) =>
+                              rows.map((r, n) =>
+                                n === index
+                                  ? { ...r, label: e.target.value }
+                                  : r,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={item.required}
+                          onChange={(e) =>
+                            setItems((rows) =>
+                              rows.map((r, n) =>
+                                n === index
+                                  ? { ...r, required: e.target.checked }
+                                  : r,
+                              ),
+                            )
+                          }
+                        />
+                        Tiêu chí bắt buộc {index + 1}
+                      </label>
+                      <button
+                        type="button"
+                        disabled={items.length === 1}
+                        onClick={() =>
+                          setItems((rows) => rows.filter((_, n) => n !== index))
                         }
-                      />
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={item.required}
-                        onChange={(e) =>
-                          setItems((rows) =>
-                            rows.map((r, n) =>
-                              n === index
-                                ? { ...r, required: e.target.checked }
-                                : r,
-                            ),
-                          )
-                        }
-                      />
-                      Tiêu chí bắt buộc {index + 1}
-                    </label>
-                    <button
-                      type="button"
-                      disabled={items.length === 1}
-                      onClick={() =>
-                        setItems((rows) => rows.filter((_, n) => n !== index))
-                      }
-                    >
-                      Xóa tiêu chí {index + 1}
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  disabled={items.length >= 100}
-                  onClick={() =>
-                    setItems((rows) => [...rows, { label: "", required: true }])
-                  }
-                >
-                  Thêm tiêu chí
-                </button>
-                <label>
-                  Lý do thiết lập
-                  <input
-                    required
-                    minLength={10}
-                    maxLength={500}
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  />
-                </label>
-                <button>Khởi tạo tiêu chí</button>
-              </fieldset>
-            </form>
+                      >
+                        Xóa tiêu chí {index + 1}
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={items.length >= 100}
+                    onClick={() =>
+                      setItems((rows) => [
+                        ...rows,
+                        { label: "", required: true },
+                      ])
+                    }
+                  >
+                    Thêm tiêu chí
+                  </button>
+                  <label>
+                    Lý do thiết lập
+                    <input
+                      required
+                      minLength={10}
+                      maxLength={500}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                    />
+                  </label>
+                  <button data-dialog-action>Khởi tạo tiêu chí</button>
+                </fieldset>
+              </form>
+            </ActionDialog>
           )}
         </>
       )}

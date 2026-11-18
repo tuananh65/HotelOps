@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createUserProfileApi } from "./userProfileApi";
@@ -21,7 +22,11 @@ export function RevokeUserRoleCandidate({
   );
   const latest = useRef(identity);
   latest.current = identity;
-  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session)
+  if (
+    state.status !== "AUTHENTICATED" ||
+    state.pending !== null ||
+    !state.session
+  )
     return (
       <p role="status">
         Xác minh phiên không bị hạn chế trước khi xét duyệt vai trò.
@@ -181,16 +186,27 @@ function Bound({
         <button onClick={() => setReview(true)}>Xem lại thu hồi quyền</button>
       )}
       {phase === "ready" && review && (
-        <>
+        <ActionDialog
+          open
+          title="Xác nhận thu hồi vai trò"
+          onClose={() => setReview(false)}
+        >
           <p>
-            Kiểm tra đúng phân công này. Máy chủ quyết định có được thu hồi hay không.
+            Kiểm tra đúng phân công này. Máy chủ quyết định có được thu hồi hay
+            không.
           </p>
-          <button disabled={!dispatchEnabled} onClick={() => void confirm()}>
+          <button
+            data-dialog-action
+            disabled={!dispatchEnabled}
+            onClick={() => void confirm()}
+          >
             Xác nhận thu hồi
           </button>
-        </>
+        </ActionDialog>
       )}
-      {phase === "loading" && <p role="status">Đang tải thông tin xét duyệt từ máy chủ...</p>}
+      {phase === "loading" && (
+        <p role="status">Đang tải thông tin xét duyệt từ máy chủ...</p>
+      )}
       {phase === "pending" && <p role="status">Đang chờ thu hồi quyền...</p>}
       {phase === "confirmed" && (
         <p role="status">
@@ -212,14 +228,29 @@ function Bound({
                     : "Chưa xác nhận thu hồi quyền. Không tự gửi lại."}
         </p>
       )}
-      {phase === "blocked" && dependencies.length > 0 && <section aria-label="Công việc đang chặn thu hồi quyền">
-        <h2>Trách nhiệm chưa hoàn tất</h2>
-        <ul>{dependencies.map(d => <li key={d}>{d.replaceAll("_", " ")}</li>)}</ul>
-        {dependencies.length === 200 && <p>Hiển thị 200 ràng buộc đầu tiên. Xử lý chúng trước khi kiểm tra lại.</p>}
-        <p>Các mã này không cấp quyền truy cập hồ sơ bên dưới.</p>
-      </section>}
-      <Link to={`/users/${userId}`}>Quay lại tài khoản và kiểm tra quyền hiện tại</Link>
-      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
+      {phase === "blocked" && dependencies.length > 0 && (
+        <section aria-label="Công việc đang chặn thu hồi quyền">
+          <h2>Trách nhiệm chưa hoàn tất</h2>
+          <ul>
+            {dependencies.map((d) => (
+              <li key={d}>{d.replaceAll("_", " ")}</li>
+            ))}
+          </ul>
+          {dependencies.length === 200 && (
+            <p>
+              Hiển thị 200 ràng buộc đầu tiên. Xử lý chúng trước khi kiểm tra
+              lại.
+            </p>
+          )}
+          <p>Các mã này không cấp quyền truy cập hồ sơ bên dưới.</p>
+        </section>
+      )}
+      <Link to={`/users/${userId}`}>
+        Quay lại tài khoản và kiểm tra quyền hiện tại
+      </Link>
+      {status === 401 && (
+        <button onClick={recover}>Kiểm tra phiên đăng nhập</button>
+      )}
     </main>
   );
 }

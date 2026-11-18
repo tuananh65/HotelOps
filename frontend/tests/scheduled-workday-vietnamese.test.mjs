@@ -185,29 +185,60 @@ test("start and end require confirmation, preserve server receipt and prevent du
     );
   }));
 test("running cleaning work shows actionable rejection without locking end-shift; retry succeeds after resolution", () =>
-  run({ working:true, blockedEnd:true }, async p => {
-    const end = p.getByRole('button',{name:'Kết thúc ngày làm việc',exact:true});
+  run({ working: true, blockedEnd: true }, async (p) => {
+    const end = p.getByRole("button", {
+      name: "Kết thúc ngày làm việc",
+      exact: true,
+    });
     await end.click();
-    await p.getByRole('button',{name:'Xác nhận kết thúc ngày làm việc',exact:true}).click();
-    await p.getByRole('alert').filter({hasText:'công việc dọn phòng'}).waitFor();
-    assert.equal(await end.isDisabled(),false);
-    assert.equal(await p.getByText('Chưa xác định kết quả.',{exact:false}).count(),0);
-    assert.equal((await p.evaluate(()=>calls.filter(c=>c.method==='POST'))).length,1);
-    await p.evaluate(()=>window.scenario.blockedEnd=false);
-    await p.getByRole('button',{name:'Tải lại dữ liệu',exact:true}).click();
+    await p
+      .getByRole("button", {
+        name: "Xác nhận kết thúc ngày làm việc",
+        exact: true,
+      })
+      .click();
+    await p
+      .getByRole("alert")
+      .filter({ hasText: "công việc dọn phòng" })
+      .waitFor();
+    assert.equal(await end.isDisabled(), false);
+    assert.equal(
+      await p.getByText("Chưa xác định kết quả.", { exact: false }).count(),
+      0,
+    );
+    assert.equal(
+      (await p.evaluate(() => calls.filter((c) => c.method === "POST"))).length,
+      1,
+    );
+    await p.evaluate(() => (window.scenario.blockedEnd = false));
+    await p
+      .getByRole("button", { name: "Tải lại dữ liệu", exact: true })
+      .click();
     await end.click();
-    await p.getByRole('button',{name:'Xác nhận kết thúc ngày làm việc',exact:true}).click();
-    await p.getByRole('status').filter({hasText:'Đã ghi nhận kết thúc ca thành công'}).waitFor();
-    assert.equal((await p.evaluate(()=>calls.filter(c=>c.method==='POST'))).length,2);
+    await p
+      .getByRole("button", {
+        name: "Xác nhận kết thúc ngày làm việc",
+        exact: true,
+      })
+      .click();
+    await p
+      .getByRole("status")
+      .filter({ hasText: "Đã ghi nhận kết thúc ca thành công" })
+      .waitFor();
+    assert.equal(
+      (await p.evaluate(() => calls.filter((c) => c.method === "POST"))).length,
+      2,
+    );
   }));
 test("empty, failed reads and unavailable branches are distinct; unscheduled only after successful reads", async () => {
   await run({ empty: true }, async (p) => {
     await p
       .getByText("Hôm nay chưa có ca có thể bắt đầu", { exact: true })
       .waitFor();
-    const details = p.locator("details");
-    assert.equal(await details.getAttribute("open"), null);
-    await details.locator("summary").click();
+    assert.equal(await p.getByRole("dialog").count(), 0);
+    await p
+      .getByRole("button", { name: "Làm việc ngoài kế hoạch ca", exact: true })
+      .click();
     await p.getByLabel("Bộ phận", { exact: true }).waitFor();
   });
   await run({ shiftError: true }, async (p) => {
@@ -215,7 +246,15 @@ test("empty, failed reads and unavailable branches are distinct; unscheduled onl
       .getByRole("alert")
       .filter({ hasText: "Chưa tải được ca làm việc" })
       .waitFor();
-    assert.equal(await p.locator("details").count(), 0);
+    assert.equal(
+      await p
+        .getByRole("button", {
+          name: "Làm việc ngoài kế hoạch ca",
+          exact: true,
+        })
+        .count(),
+      0,
+    );
     assert.equal(
       await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,

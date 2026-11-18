@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -156,28 +157,42 @@ function ResetFlow({
         <p role="status">Đang kiểm tra yêu cầu...</p>
       )}
       {review && (
-        <section aria-label="Xem lại đặt lại mật khẩu">
-          <p>Họ và tên: {review.data.fullName}</p>
-          <p>Email: {review.data.email}</p>
-          <p>
-            Mật khẩu tạm mới sẽ thay mật khẩu hiện tại và thu hồi mọi phiên của tài khoản. Vai trò và phân công chi nhánh không đổi.
-          </p>
-          <label>
-            <input
-              type="checkbox"
-              checked={attested}
-              onChange={(e) => setAttested(e.target.checked)}
-            />
-            Tôi đã xác minh danh tính nhân viên theo quy trình được duyệt
-          </label>
-          <button
-            type="button"
-            disabled={!attested}
-            onClick={() => void confirm()}
-          >
-            Xác nhận đặt lại mật khẩu
-          </button>
-        </section>
+        <ActionDialog
+          open
+          title="Xem lại đặt lại mật khẩu"
+          onClose={() => {
+            setReview(null);
+            setAttested(false);
+            setPhase("idle");
+          }}
+          busy={phase === "saving"}
+          error={message}
+        >
+          <section aria-label="Xem lại đặt lại mật khẩu">
+            <p>Họ và tên: {review.data.fullName}</p>
+            <p>Email: {review.data.email}</p>
+            <p>
+              Mật khẩu tạm mới sẽ thay mật khẩu hiện tại và thu hồi mọi phiên
+              của tài khoản. Vai trò và phân công chi nhánh không đổi.
+            </p>
+            <label>
+              <input
+                type="checkbox"
+                checked={attested}
+                onChange={(e) => setAttested(e.target.checked)}
+              />
+              Tôi đã xác minh danh tính nhân viên theo quy trình được duyệt
+            </label>
+            <button
+              data-dialog-action
+              type="button"
+              disabled={!attested}
+              onClick={() => void confirm()}
+            >
+              Xác nhận đặt lại mật khẩu
+            </button>
+          </section>
+        </ActionDialog>
       )}
       {secret && (
         <section aria-label="Bàn giao mật khẩu đặt lại">
@@ -215,7 +230,8 @@ function ResetFlow({
             Sao chép mật khẩu
           </button>
           <p>
-            Bộ nhớ sao chép có thể còn mật khẩu. Rời trang sẽ mất quyền xem tại đây và không lấy lại được.
+            Bộ nhớ sao chép có thể còn mật khẩu. Rời trang sẽ mất quyền xem tại
+            đây và không lấy lại được.
           </p>
           <button
             type="button"
@@ -274,7 +290,8 @@ export function CredentialResetRoute() {
     return (
       <main aria-label="Khôi phục phiên đặt lại mật khẩu">
         <p>
-          Thông tin tài khoản và mật khẩu đã ẩn. Không có yêu cầu đặt lại nào được gửi lại.
+          Thông tin tài khoản và mật khẩu đã ẩn. Không có yêu cầu đặt lại nào
+          được gửi lại.
         </p>
         <button
           type="button"
@@ -299,7 +316,8 @@ export function CredentialResetRoute() {
   if (String(target) === state.session.user.id)
     return (
       <p role="alert">
-        Dùng Đổi mật khẩu cho tài khoản của bạn. Không thể tự đặt lại theo quy trình này.
+        Dùng Đổi mật khẩu cho tài khoản của bạn. Không thể tự đặt lại theo quy
+        trình này.
       </p>
     );
   return (

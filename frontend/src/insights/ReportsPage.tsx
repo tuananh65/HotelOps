@@ -1,3 +1,4 @@
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -66,10 +67,29 @@ export function ReportsPage() {
   const [employee, setEmployee] = useState("");
   const [requestType, setRequestType] = useState("");
   const [specific, setSpecific] = useState<Record<string, string>>({});
-  const numericFilters: [string, string][] = kind === "rooms" ? [["floorId", "Mã tầng"], ["roomTypeId", "Mã loại phòng"]]
-    : kind === "incidents" ? [["categoryId", "Mã nhóm sự cố"], ["severityId", "Mã mức độ"]]
-    : kind === "assets" ? [["categoryId", "Mã nhóm tài sản"], ["roomId", "Mã phòng"], ["areaId", "Mã khu vực"]]
-    : kind === "items" ? [["warehouseId", "Mã kho"], ["itemId", "Mã vật tư"]] : [];
+  const numericFilters: [string, string][] =
+    kind === "rooms"
+      ? [
+          ["floorId", "Mã tầng"],
+          ["roomTypeId", "Mã loại phòng"],
+        ]
+      : kind === "incidents"
+        ? [
+            ["categoryId", "Mã nhóm sự cố"],
+            ["severityId", "Mã mức độ"],
+          ]
+        : kind === "assets"
+          ? [
+              ["categoryId", "Mã nhóm tài sản"],
+              ["roomId", "Mã phòng"],
+              ["areaId", "Mã khu vực"],
+            ]
+          : kind === "items"
+            ? [
+                ["warehouseId", "Mã kho"],
+                ["itemId", "Mã vật tư"],
+              ]
+            : [];
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -129,7 +149,10 @@ export function ReportsPage() {
     setMessage("");
     setPage(0);
   }
-  async function run(exporting: boolean, format: "csv" | "xlsx" | "pdf" = "csv") {
+  async function run(
+    exporting: boolean,
+    format: "csv" | "xlsx" | "pdf" = "csv",
+  ) {
     if (!owner || !options || operation.current) return;
     const controller = new AbortController();
     operation.current = controller;
@@ -154,14 +177,28 @@ export function ReportsPage() {
         const data = await api.preview(kind, {
           from,
           to,
-          ...Object.fromEntries(numericFilters.filter(([key]) => specific[key]).map(([key]) => [key, Number(specific[key])])),
-          ...(kind === "assets" && specific.condition ? { condition: specific.condition } : {}),
+          ...Object.fromEntries(
+            numericFilters
+              .filter(([key]) => specific[key])
+              .map(([key]) => [key, Number(specific[key])]),
+          ),
+          ...(kind === "assets" && specific.condition
+            ? { condition: specific.condition }
+            : {}),
           ...(branch ? { branchId: Number(branch) } : {}),
           ...(department ? { departmentId: Number(department) } : {}),
-          ...(kind === "tasks" && employee ? { employeeId: Number(employee) } : {}),
-          ...(kind === "requests" && requestType.trim() ? { type: requestType.trim() } : {}),
-          ...(kind === "inspections" && housekeeper ? { housekeeperId: Number(housekeeper) } : {}),
-          ...(kind === "inspections" && inspector ? { inspectorId: Number(inspector) } : {}),
+          ...(kind === "tasks" && employee
+            ? { employeeId: Number(employee) }
+            : {}),
+          ...(kind === "requests" && requestType.trim()
+            ? { type: requestType.trim() }
+            : {}),
+          ...(kind === "inspections" && housekeeper
+            ? { housekeeperId: Number(housekeeper) }
+            : {}),
+          ...(kind === "inspections" && inspector
+            ? { inspectorId: Number(inspector) }
+            : {}),
         });
         if (!controller.signal.aborted) {
           setSnapshot(data);
@@ -199,131 +236,221 @@ export function ReportsPage() {
       {options && (
         <>
           <p>
-            Khoảng thời gian dùng UTC. Giới hạn xuất: {options.exportRowLimit} dòng. Có thể xuất CSV, XLSX và PDF.
+            Khoảng thời gian dùng UTC. Giới hạn xuất: {options.exportRowLimit}{" "}
+            dòng. Có thể xuất CSV, XLSX và PDF.
           </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void run(false);
-            }}
+          <CollapsibleFilterPanel
+            activeCount={
+              snapshot
+                ? Object.values(snapshot.appliedFilters ?? {}).filter(Boolean)
+                    .length +
+                  Number(!!snapshot.filters.departmentId) +
+                  Number(!!snapshot.filters.from) +
+                  Number(!!snapshot.filters.to)
+                : 0
+            }
           >
-            <label>
-              Loại báo cáo
-              <select
-                aria-label="Loại báo cáo"
-                value={kind}
-                onChange={(e) => {
-                  changed();
-                  setKind(e.target.value as ReportType);
-                  setDepartment("");
-                  setHousekeeper("");
-                  setEmployee("");
-                  setRequestType("");
-                  setInspector("");
-                  setSpecific({});
-                }}
-              >
-                {reportTypes.map((k) => (
-                  <option key={k} value={k}>
-                    {displayCode(k)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {numericFilters.map(([key, label]) => <label key={key}>{label}
-              <input type="number" min="1" step="1" value={specific[key] ?? ""}
-                onChange={e => { changed(); setSpecific(s => ({ ...s, [key]: e.target.value })); }} />
-            </label>)}
-            {kind === "assets" && <label>Mã tình trạng<input maxLength={40} value={specific.condition ?? ""}
-              onChange={e => { changed(); setSpecific(s => ({ ...s, condition: e.target.value })); }} /></label>}
-            <label>
-              Chi nhánh
-              <select
-                aria-label="Chi nhánh"
-                value={branch}
-                onChange={(e) => {
-                  changed();
-                  setBranch(e.target.value);
-                  setDepartment("");
-                }}
-              >
-                <option value="">Tất cả trong phạm vi được phép</option>
-                {options.branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.code} — {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {kind === "inspections" && <>
-              <label>Mã nhân viên buồng phòng<input type="number" min="1" step="1" value={housekeeper}
-                onChange={e => { changed(); setHousekeeper(e.target.value); }} /></label>
-              <label>Mã người kiểm tra<input type="number" min="1" step="1" value={inspector}
-                onChange={e => { changed(); setInspector(e.target.value); }} /></label>
-            </>}
-            {kind === "tasks" && <label>Mã nhân viên<input type="number" min="1" step="1" value={employee}
-              onChange={e => { changed(); setEmployee(e.target.value); }} /></label>}
-            {kind === "tasks" && <p>Dòng công việc hiển thị người được giao hiện tại. Thời gian thực hiện và ngày làm việc vẫn thuộc nhân viên đã làm.</p>}
-            {kind === "requests" && <label>Mã loại yêu cầu<input maxLength={40} value={requestType}
-              onChange={e => { changed(); setRequestType(e.target.value); }} /></label>}
-            {(kind === "tasks" || kind === "requests") && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run(false);
+              }}
+            >
               <label>
-                {kind === "requests" ? "Bộ phận tiếp nhận" : "Bộ phận"}
+                Loại báo cáo
                 <select
-                  aria-label="Bộ phận"
-                  value={department}
+                  aria-label="Loại báo cáo"
+                  value={kind}
                   onChange={(e) => {
                     changed();
-                    setDepartment(e.target.value);
+                    setKind(e.target.value as ReportType);
+                    setDepartment("");
+                    setHousekeeper("");
+                    setEmployee("");
+                    setRequestType("");
+                    setInspector("");
+                    setSpecific({});
+                  }}
+                >
+                  {reportTypes.map((k) => (
+                    <option key={k} value={k}>
+                      {displayCode(k)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {numericFilters.map(([key, label]) => (
+                <label key={key}>
+                  {label}
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={specific[key] ?? ""}
+                    onChange={(e) => {
+                      changed();
+                      setSpecific((s) => ({ ...s, [key]: e.target.value }));
+                    }}
+                  />
+                </label>
+              ))}
+              {kind === "assets" && (
+                <label>
+                  Mã tình trạng
+                  <input
+                    maxLength={40}
+                    value={specific.condition ?? ""}
+                    onChange={(e) => {
+                      changed();
+                      setSpecific((s) => ({ ...s, condition: e.target.value }));
+                    }}
+                  />
+                </label>
+              )}
+              <label>
+                Chi nhánh
+                <select
+                  aria-label="Chi nhánh"
+                  value={branch}
+                  onChange={(e) => {
+                    changed();
+                    setBranch(e.target.value);
+                    setDepartment("");
                   }}
                 >
                   <option value="">Tất cả trong phạm vi được phép</option>
-                  {options.departments
-                    .filter((d) => !branch || d.branchId === Number(branch))
-                    .map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
+                  {options.branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.code} — {b.name}
+                    </option>
+                  ))}
                 </select>
               </label>
-            )}
-            <label>
-              từ (UTC)
-              <input
-                required
-                type="date"
-                value={from}
-                max={to}
-                onChange={(e) => {
-                  changed();
-                  setFrom(e.target.value);
-                }}
-              />
-            </label>
-            <label>
-              Đến (UTC)
-              <input
-                required
-                type="date"
-                value={to}
-                min={from}
-                onChange={(e) => {
-                  changed();
-                  setTo(e.target.value);
-                }}
-              />
-            </label>
-            <button disabled={busy}>Xem trước</button>
-          </form>
+              {kind === "inspections" && (
+                <>
+                  <label>
+                    Mã nhân viên buồng phòng
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={housekeeper}
+                      onChange={(e) => {
+                        changed();
+                        setHousekeeper(e.target.value);
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Mã người kiểm tra
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={inspector}
+                      onChange={(e) => {
+                        changed();
+                        setInspector(e.target.value);
+                      }}
+                    />
+                  </label>
+                </>
+              )}
+              {kind === "tasks" && (
+                <label>
+                  Mã nhân viên
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={employee}
+                    onChange={(e) => {
+                      changed();
+                      setEmployee(e.target.value);
+                    }}
+                  />
+                </label>
+              )}
+              {kind === "tasks" && (
+                <p>
+                  Dòng công việc hiển thị người được giao hiện tại. Thời gian
+                  thực hiện và ngày làm việc vẫn thuộc nhân viên đã làm.
+                </p>
+              )}
+              {kind === "requests" && (
+                <label>
+                  Mã loại yêu cầu
+                  <input
+                    maxLength={40}
+                    value={requestType}
+                    onChange={(e) => {
+                      changed();
+                      setRequestType(e.target.value);
+                    }}
+                  />
+                </label>
+              )}
+              {(kind === "tasks" || kind === "requests") && (
+                <label>
+                  {kind === "requests" ? "Bộ phận tiếp nhận" : "Bộ phận"}
+                  <select
+                    aria-label="Bộ phận"
+                    value={department}
+                    onChange={(e) => {
+                      changed();
+                      setDepartment(e.target.value);
+                    }}
+                  >
+                    <option value="">Tất cả trong phạm vi được phép</option>
+                    {options.departments
+                      .filter((d) => !branch || d.branchId === Number(branch))
+                      .map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                từ (UTC)
+                <input
+                  required
+                  type="date"
+                  value={from}
+                  max={to}
+                  onChange={(e) => {
+                    changed();
+                    setFrom(e.target.value);
+                  }}
+                />
+              </label>
+              <label>
+                Đến (UTC)
+                <input
+                  required
+                  type="date"
+                  value={to}
+                  min={from}
+                  onChange={(e) => {
+                    changed();
+                    setTo(e.target.value);
+                  }}
+                />
+              </label>
+              <button disabled={busy}>Xem trước</button>
+            </form>
+          </CollapsibleFilterPanel>
           {message && <p role="status">{message}</p>}
           {snapshot && (
             <section aria-label="Xem trước báo cáo">
               <p>
                 Bản chụp dữ liệu (UTC): {snapshot.snapshot}. Branches:{" "}
                 {snapshot.filters.branchIds.join(", ") || "Không có"}; Bộ phận:{" "}
-                {snapshot.filters.departmentId ?? "Tất cả trong phạm vi được phép"}; Khoảng thời gian:{" "}
-                {snapshot.filters.from} — {snapshot.filters.to}.
+                {snapshot.filters.departmentId ??
+                  "Tất cả trong phạm vi được phép"}
+                ; Khoảng thời gian: {snapshot.filters.from} —{" "}
+                {snapshot.filters.to}.
               </p>
               {Object.entries(snapshot.appliedFilters ?? {}).map(
                 ([key, value]) => (
@@ -334,7 +461,9 @@ export function ReportsPage() {
               )}
               {snapshot.missingSources.length > 0 && (
                 <aside aria-label="Giới hạn báo cáo">
-                  <strong>Phạm vi báo cáo, bằng chứng và giá trị chưa khả dụng:</strong>
+                  <strong>
+                    Phạm vi báo cáo, bằng chứng và giá trị chưa khả dụng:
+                  </strong>
                   <ul>
                     {snapshot.missingSources.map((s, i) => (
                       <li key={i}>{s}</li>
@@ -344,7 +473,8 @@ export function ReportsPage() {
               )}
               {snapshot.totalCount === 0 && (
                 <p role="status">
-                  MSG10: Không có hồ sơ phù hợp. Vẫn có thể xuất tiêu đề cột CSV.
+                  MSG10: Không có hồ sơ phù hợp. Vẫn có thể xuất tiêu đề cột
+                  CSV.
                 </p>
               )}
               <p>

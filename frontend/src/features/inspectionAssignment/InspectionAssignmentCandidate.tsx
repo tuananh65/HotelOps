@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import {
   InspectionAssignmentClient,
@@ -55,7 +56,9 @@ function Assignment({
     setBusy(true);
     api
       .queue(branchId, c.signal, roomId)
-      .then(value => { if (!c.signal.aborted) setQueue(value); })
+      .then((value) => {
+        if (!c.signal.aborted) setQueue(value);
+      })
       .catch((e) => {
         if (!c.signal.aborted) setError(assignmentError(e));
       })
@@ -80,9 +83,14 @@ function Assignment({
     setReason("");
     setBlocked(true);
     try {
-      const selected = queue.pending.find(t => t.taskId === task);
+      const selected = queue.pending.find((t) => t.taskId === task);
       if (!selected) return;
-      const fresh = await api.options(branchId, task, request.signal, roomId ?? selected.roomId);
+      const fresh = await api.options(
+        branchId,
+        task,
+        request.signal,
+        roomId ?? selected.roomId,
+      );
       if (request.signal.aborted) return;
       setSource(fresh);
       setInspector("");
@@ -141,95 +149,106 @@ function Assignment({
         </button>
       ))}
       {source && (
-        <div>
-          <p>
-            Phòng #{source.roomId}; phiên bản danh sách kiểm tra {source.checklistVersionId}
-          </p>
-          <fieldset disabled={busy || blocked || review}>
-            <label>
-              Người kiểm tra
-              <select
-                value={inspector}
-                onChange={(e) => setInspector(e.target.value)}
-              >
-                <option value="">Chọn người kiểm tra</option>
-                {source.inspectors.map((p) => (
-                  <option key={p.userId} value={p.userId}>
-                    {p.fullName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Giám sát chịu trách nhiệm
-              <select
-                value={supervisor}
-                onChange={(e) => setSupervisor(e.target.value)}
-              >
-                <option value="">Chọn rõ người giám sát</option>
-                {source.responsibleSupervisors.map((p) => (
-                  <option key={p.userId} value={p.userId}>
-                    {p.fullName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Thời hạn
-              <input
-                type="datetime-local"
-                value={due}
-                onChange={(e) => setDue(e.target.value)}
-              />
-            </label>
-            <label>
-              Lý do
-              <input
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-          </fieldset>
-          <button
-            disabled={!valid || busy || blocked}
-            onClick={() => {
-              // Retain the same UUID for repeated review of this immutable source/input.
-              operationId.current ??= crypto.randomUUID();
-              setReview(true);
-              setConfirmed(false);
-            }}
-          >
-            Xem lại phân công
-          </button>
-          {review && (
-            <div>
-              <p>
-                Xác nhận người kiểm tra, giám sát chịu trách nhiệm, danh sách kiểm tra và thời hạn đã chọn.
-              </p>
+        <ActionDialog
+          open
+          title="Phân công người kiểm tra"
+          onClose={() => setSource(null)}
+          busy={busy}
+        >
+          <div>
+            <p>
+              Phòng #{source.roomId}; phiên bản danh sách kiểm tra{" "}
+              {source.checklistVersionId}
+            </p>
+            <fieldset disabled={busy || blocked || review}>
               <label>
-                <input
-                  type="checkbox"
-                  checked={confirmed}
-                  disabled={busy || blocked}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                />
-                Tôi xác nhận phân công này
+                Người kiểm tra
+                <select
+                  value={inspector}
+                  onChange={(e) => setInspector(e.target.value)}
+                >
+                  <option value="">Chọn người kiểm tra</option>
+                  {source.inspectors.map((p) => (
+                    <option key={p.userId} value={p.userId}>
+                      {p.fullName}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <button
-                disabled={!confirmed || busy || blocked}
-                onClick={confirm}
-              >
-                Xác nhận phân công
-              </button>
-            </div>
-          )}
-          <p>
-            Phân công thực tế chưa khả dụng; thông báo bắt buộc chưa được chấp nhận.
-          </p>
-          <button disabled={busy} onClick={() => open(source.taskId)}>
-            Tải lại nguồn phân công
-          </button>
-        </div>
+              <label>
+                Giám sát chịu trách nhiệm
+                <select
+                  value={supervisor}
+                  onChange={(e) => setSupervisor(e.target.value)}
+                >
+                  <option value="">Chọn rõ người giám sát</option>
+                  {source.responsibleSupervisors.map((p) => (
+                    <option key={p.userId} value={p.userId}>
+                      {p.fullName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Thời hạn
+                <input
+                  type="datetime-local"
+                  value={due}
+                  onChange={(e) => setDue(e.target.value)}
+                />
+              </label>
+              <label>
+                Lý do
+                <input
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+            </fieldset>
+            <button
+              disabled={!valid || busy || blocked}
+              onClick={() => {
+                // Retain the same UUID for repeated review of this immutable source/input.
+                operationId.current ??= crypto.randomUUID();
+                setReview(true);
+                setConfirmed(false);
+              }}
+            >
+              Xem lại phân công
+            </button>
+            {review && (
+              <div>
+                <p>
+                  Xác nhận người kiểm tra, giám sát chịu trách nhiệm, danh sách
+                  kiểm tra và thời hạn đã chọn.
+                </p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    disabled={busy || blocked}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                  />
+                  Tôi xác nhận phân công này
+                </label>
+                <button
+                  data-dialog-action
+                  disabled={!confirmed || busy || blocked}
+                  onClick={confirm}
+                >
+                  Xác nhận phân công
+                </button>
+              </div>
+            )}
+            <p>
+              Phân công thực tế chưa khả dụng; thông báo bắt buộc chưa được chấp
+              nhận.
+            </p>
+            <button disabled={busy} onClick={() => open(source.taskId)}>
+              Tải lại nguồn phân công
+            </button>
+          </div>
+        </ActionDialog>
       )}
     </section>
   );

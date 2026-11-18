@@ -3,60 +3,60 @@
 :root {
   color-scheme: light;
   --white: #fff;
-  --navy-950: #30231e;
-  --navy-900: #392b26;
-  --navy-800: #42342c;
-  --navy-700: #594233;
-  --navy-600: #785039;
-  --navy-500: #89664c;
-  --blue-50: #faf6ee;
-  --blue-100: #f4e9d7;
-  --blue-500: #916448;
-  --blue-600: #785039;
-  --blue-700: #68432e;
-  --blue-800: #543525;
-  --gray-50: #faf6ee;
-  --gray-100: #f4eee4;
-  --gray-200: #e5d8c4;
-  --gray-300: #c9b79f;
-  --gray-400: #9b826b;
-  --gray-500: #806a56;
-  --gray-600: #75604e;
-  --gray-700: #594638;
-  --gray-800: #42342c;
-  --gray-900: #392b26;
-  --gray-950: #30231e;
-  --workspace-surface: #faf6ee;
-  --table-header-surface: #f8f2e8;
-  --row-hover-surface: #f4e9d7;
-  --content-heading: #42342c;
-  --content-important: #42342c;
-  --content-border: #e5d8c4;
-  --interaction-surface: #faf6ee;
-  --interaction-selected: #f4e9d7;
-  --interaction-border: #c9b79f;
-  --interaction-focus: #785039;
-  --interaction-primary: #785039;
-  --interaction-link: #68432e;
-  --interaction-hover: #543525;
-  --requested-action-navy: #785039;
-  --requested-action-hover: #543525;
-  --rich-navy-sidebar: #392b26;
-  --rich-navy-active: #594233;
-  --bridge-navy-950: #30231e;
-  --bridge-navy-900: #392b26;
-  --bridge-navy-800: #42342c;
-  --bridge-navy-700: #594233;
-  --bridge-navy-600: #785039;
-  --bridge-navy-500: #89664c;
-  --bridge-navy-300: #c9b79f;
-  --bridge-navy-200: #e5d8c4;
-  --bridge-navy-100: #f4e9d7;
-  --bridge-navy-50: #faf6ee;
-  --bridge-header-surface: #f8f2e8;
+  --navy-950: var(--text-primary);
+  --navy-900: var(--text-primary);
+  --navy-800: var(--text-primary);
+  --navy-700: var(--text-primary);
+  --navy-600: var(--primary-500);
+  --navy-500: var(--primary-500);
+  --blue-50: var(--surface-muted);
+  --blue-100: var(--primary-50);
+  --blue-500: var(--primary-500);
+  --blue-600: var(--primary-500);
+  --blue-700: var(--primary-600);
+  --blue-800: var(--primary-700);
+  --gray-50: var(--surface-muted);
+  --gray-100: var(--primary-50);
+  --gray-200: var(--border);
+  --gray-300: var(--border);
+  --gray-400: var(--text-secondary);
+  --gray-500: var(--text-secondary);
+  --gray-600: var(--text-secondary);
+  --gray-700: var(--text-primary);
+  --gray-800: var(--text-primary);
+  --gray-900: var(--text-primary);
+  --gray-950: var(--text-primary);
+  --workspace-surface: var(--surface-muted);
+  --table-header-surface: var(--surface-muted);
+  --row-hover-surface: var(--primary-50);
+  --content-heading: var(--text-primary);
+  --content-important: var(--text-primary);
+  --content-border: var(--border);
+  --interaction-surface: var(--surface-muted);
+  --interaction-selected: var(--primary-50);
+  --interaction-border: var(--border);
+  --interaction-focus: var(--primary-500);
+  --interaction-primary: var(--primary-500);
+  --interaction-link: var(--primary-600);
+  --interaction-hover: var(--primary-700);
+  --requested-action-navy: var(--primary-500);
+  --requested-action-hover: var(--primary-700);
+  --rich-navy-sidebar: var(--text-primary);
+  --rich-navy-active: var(--text-primary);
+  --bridge-navy-950: var(--text-primary);
+  --bridge-navy-900: var(--text-primary);
+  --bridge-navy-800: var(--text-primary);
+  --bridge-navy-700: var(--text-primary);
+  --bridge-navy-600: var(--primary-500);
+  --bridge-navy-500: var(--primary-500);
+  --bridge-navy-300: var(--border);
+  --bridge-navy-200: var(--border);
+  --bridge-navy-100: var(--primary-50);
+  --bridge-navy-50: var(--surface-muted);
+  --bridge-header-surface: var(--surface-muted);
   --bridge-card-surface: #fff;
-  --chart-primary: #785039;
-  --brand-accent: #d7bea0;
+  --chart-primary: var(--primary-500);
+  --brand-accent: var(--border);
   --font-heading: var(--font-body);
 }
 body {
@@ -64,8 +64,8 @@ body {
   color: var(--gray-800);
 }
 ::selection {
-  background: #e5d8c4;
-  color: #392b26;
+  background: var(--border);
+  color: var(--text-primary);
 }
 input,
 textarea {
@@ -93,7 +93,7 @@ textarea::placeholder {
   grid-template-columns: 74px minmax(0, 1fr);
 }
 .cacao-rail {
-  background: #392b26;
+  background: var(--text-primary);
   color: #fff;
   padding: 22px 7px;
   display: flex;
@@ -111,7 +111,7 @@ textarea::placeholder {
 }
 .cacao-rail button {
   flex-direction: column;
-  color: #f4e9d7;
+  color: var(--primary-50);
   min-height: 66px;
   border-radius: 7px;
   padding: 10px 2px;
@@ -123,11 +123,11 @@ textarea::placeholder {
 }
 .cacao-rail button:hover,
 .cacao-rail button[aria-pressed="true"] {
-  background: #60483b;
+  background: var(--text-secondary);
   color: #fff;
 }
 .cacao-rail :focus-visible {
-  outline-color: #f4e9d7;
+  outline-color: var(--primary-50);
 }
 .cacao-subnav {
   background: #fff;
@@ -141,12 +141,12 @@ textarea::placeholder {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #392b26;
+  color: var(--text-primary);
   margin-bottom: 42px;
 }
 .cacao-brand span {
   font-weight: 400;
-  color: #785039;
+  color: var(--primary-500);
 }
 .cacao-subnav h2 {
   font-size: 15px;
@@ -158,7 +158,7 @@ textarea::placeholder {
   gap: 7px;
 }
 .cacao-subnav nav a {
-  color: #75604e;
+  color: var(--text-secondary);
   padding: 12px;
   border-radius: 6px;
   line-height: 1.5;
@@ -166,8 +166,8 @@ textarea::placeholder {
 }
 .cacao-subnav nav a:hover,
 .cacao-subnav nav a.active {
-  background: #f4e9d7;
-  color: #543525;
+  background: var(--primary-50);
+  color: var(--primary-700);
 }
 .cacao-subnav nav a.active {
   font-weight: 650;
@@ -178,7 +178,7 @@ textarea::placeholder {
   display: grid;
   gap: 8px;
   font-size: 12px;
-  color: #75604e;
+  color: var(--text-secondary);
 }
 .cacao-subnav-foot small {
   font-size: 11px;
@@ -195,7 +195,7 @@ textarea::placeholder {
   align-items: center;
   gap: 16px;
   font-size: 12px;
-  color: #75604e;
+  color: var(--text-secondary);
 }
 .cacao-topbar > a {
   margin-left: auto;
@@ -216,7 +216,7 @@ textarea::placeholder {
   font-size: 28px;
   font-weight: 650;
   letter-spacing: -0.025em;
-  color: #42342c;
+  color: var(--text-primary);
 }
 .cacao-content h2 {
   font-weight: 650;
@@ -255,7 +255,7 @@ textarea::placeholder {
   gap: 7px;
   margin: 0;
   font-size: 12px;
-  color: #75604e;
+  color: var(--text-secondary);
   flex: 1 1 180px;
 }
 .cacao-content form:not([class]) > label:has(input[type="checkbox"]),
@@ -288,7 +288,7 @@ textarea::placeholder {
   border-radius: 10px;
 }
 .cacao-content dt {
-  color: #75604e;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .cacao-content dd {
@@ -311,7 +311,7 @@ textarea::placeholder {
   gap: 7px;
   flex: 1 1 150px;
   font-size: 12px;
-  color: #75604e;
+  color: var(--text-secondary);
 }
 .cacao-content input,
 .cacao-content select,
@@ -319,7 +319,7 @@ textarea::placeholder {
   max-width: 100%;
   border: 1px solid var(--gray-300);
   background: #fff;
-  color: #42342c;
+  color: var(--text-primary);
   border-radius: 6px;
 }
 .cacao-content button:not([class]),
@@ -328,16 +328,16 @@ textarea::placeholder {
   border: 1px solid var(--content-border);
   border-radius: 6px;
   background: #fff;
-  color: #68432e;
+  color: var(--primary-600);
 }
 .cacao-content button[type="submit"] {
-  background: #785039;
-  border-color: #785039;
+  background: var(--primary-500);
+  border-color: var(--primary-500);
   color: #fff;
 }
 .cacao-content button:not([class]):hover {
-  background: #f4e9d7;
-  color: #543525;
+  background: var(--primary-50);
+  color: var(--primary-700);
 }
 .cacao-content table {
   width: 100%;
@@ -346,8 +346,8 @@ textarea::placeholder {
   font-variant-numeric: tabular-nums;
 }
 .cacao-content th {
-  background: #f8f2e8;
-  color: #75604e;
+  background: var(--surface-muted);
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 12px;
 }
@@ -360,7 +360,7 @@ textarea::placeholder {
   white-space: normal;
 }
 .cacao-content tbody tr:hover {
-  background: #faf6ee;
+  background: var(--surface-muted);
 }
 .cacao-content section:has(> table),
 .cacao-content .table-wrap {
@@ -389,14 +389,14 @@ textarea::placeholder {
   background: transparent;
 }
 .cacao-content .dev2-workspace nav a {
-  background: #f4e9d7;
+  background: var(--primary-50);
 }
 .cacao-content .dev2-workspace a[aria-current="page"] {
-  background: #785039;
+  background: var(--primary-500);
   color: #fff;
 }
 .cacao-content :is(.dev2-permission, .dev2-workspace small) {
-  color: #75604e;
+  color: var(--text-secondary);
 }
 .cacao-content :is(.dev2-workspace, .hotel-workspace) [role="alert"] {
   border-left: 0;
@@ -407,7 +407,7 @@ textarea::placeholder {
   border-color: var(--content-border);
 }
 .cacao-content .inventory-page {
-  --text: #42342c;
+  --text: var(--text-primary);
 }
 .cacao-content .dev2-record {
   display: grid;
@@ -436,7 +436,7 @@ textarea::placeholder {
 .user-directory table small {
   display: block;
   margin-top: 5px;
-  color: #75604e;
+  color: var(--text-secondary);
   font-size: 11px;
 }
 .user-directory-name {
@@ -448,7 +448,7 @@ textarea::placeholder {
   margin: 0;
 }
 .user-directory tr.is-selected {
-  background: #f4e9d7;
+  background: var(--primary-50);
 }
 .user-account-status {
   display: inline-block;
@@ -480,7 +480,7 @@ textarea::placeholder {
   flex: 1;
 }
 .user-directory-inspector p {
-  color: #75604e;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .cacao-content .user-directory-inspector dl {
@@ -495,23 +495,23 @@ textarea::placeholder {
 .user-directory-inspector .primary {
   display: flex;
   justify-content: center;
-  background: #785039;
+  background: var(--primary-500);
   color: #fff;
   padding: 12px;
   border-radius: 6px;
 }
 .cacao-public .auth-art {
-  background: #392b26;
+  background: var(--text-primary);
 }
 .cacao-public .auth-panel {
-  background: #faf6ee;
+  background: var(--surface-muted);
 }
 .cacao-public .auth-art::after {
-  border-color: #785039;
+  border-color: var(--primary-500);
 }
 .cacao-public .primary {
-  background: #785039;
-  border-color: #785039;
+  background: var(--primary-500);
+  border-color: var(--primary-500);
   color: #fff;
 }
 .cacao-public .auth {
@@ -528,8 +528,8 @@ textarea::placeholder {
   width: 100%;
   min-height: 44px;
   background: #fff;
-  color: #42342c;
-  border: 1px solid #c9b79f;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 6px;
 }
 :is(.cacao-public, .cacao-content) .auth-panel .form-grid {
@@ -588,7 +588,7 @@ textarea::placeholder {
 }
 .cacao-public {
   min-height: 100dvh;
-  background: #faf6ee;
+  background: var(--surface-muted);
 }
 .cacao-public > main,
 .cacao-public > section {

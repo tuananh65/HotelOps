@@ -11,9 +11,8 @@ const { createBranchMaintenanceApi } = await import(
   "data:text/javascript;base64," +
     Buffer.from(bundle.outputFiles[0].text).toString("base64")
 );
-const tag =
-    '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
-  next = '"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"',
+const tag = '"AAAAAAAAAAA="',
+  next = '"AAAAAAAAAAE="',
   secret = "SYNTHETIC-BRANCH-PRIVATE";
 const branch = (id = 1) => ({
   id,
@@ -160,11 +159,12 @@ test("404 read remains unavailable error, never empty success", async () => {
     error: { kind: "http", status: 404 },
   });
 });
-test("active UC012 ETag contract rejects legacy base64 rowversion", async () => {
-  const h = setup({ body: branch(), etag: '"AAAAAAAAAAE="' });
+test("native UC012 rowversion rejects the obsolete 64-character tag", async () => {
+  const obsolete = '"' + "A".repeat(64) + '"';
+  const h = setup({ body: branch(), etag: obsolete });
   assert.equal((await h.api.read(1)).ok, false);
   assert.equal(
-    (await h.api.update(1, '"AAAAAAAAAAE="', update, () => true)).outcome,
+    (await h.api.update(1, obsolete, update, () => true)).outcome,
     "NOT_DISPATCHED",
   );
   assert.equal(h.calls.filter((c) => c.method === "PUT").length, 0);

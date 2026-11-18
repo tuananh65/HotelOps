@@ -1,0 +1,294 @@
+﻿.ds-dashboard {
+  display: grid;
+  gap: 20px;
+}
+.ds-dashboard .ds-page-header {
+  margin: 0;
+}
+.ds-dashboard-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ds-dashboard-tabs a {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 7px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.ds-dashboard-tabs a.is-selected {
+  background: var(--primary-50);
+  color: var(--link-text);
+  font-weight: 600;
+}
+.ds-dashboard-filters {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.ds-dashboard-filters form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ds-dashboard-filters fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  border: 0;
+  padding: 0;
+  width: 100%;
+}
+.ds-dashboard-filters legend {
+  font-size: 14px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+.ds-dashboard-filters label {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.ds-dashboard-filters label select {
+  width: 100%;
+}
+.ds-snapshot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.ds-snapshot > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ds-missing {
+  padding: 12px 16px;
+  border: 1px solid #ebd7ab;
+  background: var(--warning-surface);
+  border-radius: 8px;
+  color: var(--warning-text);
+  font-size: 13px;
+}
+.ds-missing summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+.ds-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.ds-kpi {
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ds-kpi-label {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.ds-kpi-label > svg {
+  color: var(--primary-500);
+}
+.ds-kpi-value {
+  display: block;
+  margin-top: 14px;
+  color: var(--link-text);
+  font-size: 28px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.ds-kpi-value small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+.ds-kpi-unavailable {
+  font-size: 16px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.ds-kpi-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 11px;
+}
+.ds-kpi-links :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--link-text);
+  padding: 0 !important;
+  min-height: 24px !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 11px !important;
+  text-align: left;
+  text-decoration: none;
+}
+.ds-dashboard-summaries {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.ds-readiness-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.ds-readiness-heading > svg {
+  color: var(--primary-500);
+}
+.ds-readiness-bar {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--neutral-surface);
+  margin: 16px 0 20px;
+}
+.ds-chart-segment {
+  background: var(--primary-500);
+}
+.ds-chart-segment--1 {
+  background: #57acfb;
+}
+.ds-chart-segment--2 {
+  background: #90c9ff;
+}
+.ds-chart-segment--3 {
+  background: #ccdfff;
+}
+.ds-state-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ds-state-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px 60px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.ds-state-list li:last-child {
+  border: 0;
+}
+.ds-state-list span:first-child {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ds-state-list i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.ds-state-list li > span:last-child {
+  color: var(--text-secondary);
+  text-align: right;
+}
+.ds-caption {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.ds-source-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+.ds-source-grid button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: left;
+  font-size: 12px !important;
+}
+.ds-source-grid button > span:nth-child(2) {
+  flex: 1;
+  color: var(--text-primary);
+}
+.ds-source-icon {
+  color: var(--primary-500);
+  width: 32px;
+  height: 32px;
+  background: var(--primary-50);
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+}
+.ds-dashboard-notes {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.ds-dashboard-notes summary {
+  cursor: pointer;
+}
+@media (max-width: 1200px) {
+  .ds-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .ds-dashboard-summaries {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 639px) {
+  .ds-kpi-grid {
+    gap: 12px;
+  }
+  .ds-kpi {
+    padding: 16px;
+  }
+  .ds-kpi-value {
+    font-size: 26px;
+  }
+  .ds-kpi-label {
+    font-size: 12px;
+  }
+  .ds-kpi-label > svg {
+    display: none;
+  }
+  .ds-source-grid {
+    grid-template-columns: 1fr;
+  }
+}

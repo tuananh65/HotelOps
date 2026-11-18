@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { useState } from "react";
 import {
   criteriaInput,
@@ -40,7 +41,11 @@ export function ChecklistForm({
   const [blocked, setBlocked] = useState(false);
   const [validationAttempted, setValidationAttempted] = useState(false);
   function invalidText(value: string) {
-    return !value.trim() || value.trim().length > 250 || /[\x00-\x1f\x7f-\x9f]/.test(value.trim());
+    return (
+      !value.trim() ||
+      value.trim().length > 250 ||
+      /[\x00-\x1f\x7f-\x9f]/.test(value.trim())
+    );
   }
   function change(index: number, patch: Partial<CriterionInput>) {
     setCriteria((items) =>
@@ -52,7 +57,9 @@ export function ChecklistForm({
     setError("");
     setValidationAttempted(true);
     if (!criteria.length || criteria.some((c) => invalidText(c.text))) {
-      setError("MSG03: Checklist cần có tiêu chí hợp lệ. Kiểm tra các trường được đánh dấu.");
+      setError(
+        "MSG03: Checklist cần có tiêu chí hợp lệ. Kiểm tra các trường được đánh dấu.",
+      );
       return;
     }
     try {
@@ -84,140 +91,155 @@ export function ChecklistForm({
     }
   }
   return (
-    <form
-      className="fe05-checklist-form"
-      onSubmit={save}
-      noValidate
-      aria-label={initial ? "Chỉnh sửa tiêu chí" : "Tạo checklist"}
+    <ActionDialog
+      open
+      drawer
+      title={initial ? "Chỉnh sửa tiêu chí checklist" : "Tạo checklist"}
+      onClose={onCancel}
+      busy={busy}
+      error={error}
     >
-      <h2>{initial ? "Lưu tiêu chí vào Draft" : "Tạo checklist mới"}</h2>
-      {error && <p role="alert">{error}</p>}
-      <fieldset disabled={disabled || busy || blocked}>
-        {!initial && (
-          <>
+      <form
+        className="fe05-checklist-form"
+        onSubmit={save}
+        noValidate
+        aria-label={initial ? "Chỉnh sửa tiêu chí" : "Tạo checklist"}
+      >
+        <h2>{initial ? "Lưu tiêu chí vào Draft" : "Tạo checklist mới"}</h2>
+        {error && <p role="alert">{error}</p>}
+        <fieldset disabled={disabled || busy || blocked}>
+          {!initial && (
+            <>
+              <label>
+                Mã checklist
+                <input
+                  required
+                  maxLength={40}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </label>
+              <label>
+                Tên checklist
+                <input
+                  required
+                  maxLength={200}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+              <label>
+                Mô tả
+                <textarea
+                  maxLength={4000}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </label>
+              <p>Nhập ID loại phòng đã biết thuộc chi nhánh đang chọn.</p>
+              <label>
+                Mã loại phòng áp dụng (phân cách bằng dấu phẩy)
+                <input
+                  required
+                  value={ids}
+                  onChange={(e) => setIds(e.target.value)}
+                />
+              </label>
+            </>
+          )}
+          <h3>Tiêu chí kiểm tra</h3>
+          {criteria.map((c, i) => (
+            <fieldset key={i}>
+              <legend>Tiêu chí {i + 1}</legend>
+              <label>
+                Nội dung
+                <input
+                  required
+                  maxLength={250}
+                  aria-invalid={validationAttempted && invalidText(c.text)}
+                  aria-describedby={
+                    validationAttempted && invalidText(c.text)
+                      ? `checklist-criterion-${i}-error`
+                      : undefined
+                  }
+                  value={c.text}
+                  onChange={(e) => change(i, { text: e.target.value })}
+                />
+              </label>
+              {validationAttempted && invalidText(c.text) && (
+                <p id={`checklist-criterion-${i}-error`} role="alert">
+                  MSG03: Nội dung tiêu chí {i + 1} là bắt buộc, tối đa 250 ký tự
+                  và không chứa ký tự điều khiển.
+                </p>
+              )}
+              <label>
+                Nhóm
+                <input
+                  maxLength={100}
+                  value={c.group || ""}
+                  onChange={(e) => change(i, { group: e.target.value })}
+                />
+              </label>
+              <label className="fe05-inline">
+                <input
+                  type="checkbox"
+                  checked={c.mandatory}
+                  onChange={(e) => change(i, { mandatory: e.target.checked })}
+                />
+                Bắt buộc
+              </label>
+              <label>
+                Điều kiện đạt
+                <textarea
+                  maxLength={4000}
+                  value={c.passCondition || ""}
+                  onChange={(e) => change(i, { passCondition: e.target.value })}
+                />
+              </label>
+              <label>
+                Mô tả tiêu chí
+                <textarea
+                  maxLength={4000}
+                  value={c.description || ""}
+                  onChange={(e) => change(i, { description: e.target.value })}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={criteria.length === 1}
+                onClick={() =>
+                  setCriteria((items) =>
+                    items.filter((_, index) => index !== i),
+                  )
+                }
+              >
+                Xóa tiêu chí {i + 1}
+              </button>
+            </fieldset>
+          ))}
+          <button
+            type="button"
+            disabled={criteria.length >= 200}
+            onClick={() => setCriteria((items) => [...items, emptyCriterion()])}
+          >
+            Thêm tiêu chí
+          </button>
+          {initial && (
             <label>
-              Mã checklist
-              <input
-                required
-                maxLength={40}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </label>
-            <label>
-              Tên checklist
-              <input
-                required
-                maxLength={200}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <label>
-              Mô tả
+              Lý do cập nhật
               <textarea
-                maxLength={4000}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
-            <p>Nhập ID loại phòng đã biết thuộc chi nhánh đang chọn.</p>
-            <label>
-              Mã loại phòng áp dụng (phân cách bằng dấu phẩy)
-              <input
                 required
-                value={ids}
-                onChange={(e) => setIds(e.target.value)}
+                maxLength={500}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
               />
             </label>
-          </>
-        )}
-        <h3>Tiêu chí kiểm tra</h3>
-        {criteria.map((c, i) => (
-          <fieldset key={i}>
-            <legend>Tiêu chí {i + 1}</legend>
-            <label>
-              Nội dung
-              <input
-                required
-                maxLength={250}
-                aria-invalid={validationAttempted && invalidText(c.text)}
-                aria-describedby={validationAttempted && invalidText(c.text) ? `checklist-criterion-${i}-error` : undefined}
-                value={c.text}
-                onChange={(e) => change(i, { text: e.target.value })}
-              />
-            </label>
-            {validationAttempted && invalidText(c.text) && (
-              <p id={`checklist-criterion-${i}-error`} role="alert">
-                MSG03: Nội dung tiêu chí {i + 1} là bắt buộc, tối đa 250 ký tự và không chứa ký tự điều khiển.
-              </p>
-            )}
-            <label>
-              Nhóm
-              <input
-                maxLength={100}
-                value={c.group || ""}
-                onChange={(e) => change(i, { group: e.target.value })}
-              />
-            </label>
-            <label className="fe05-inline">
-              <input
-                type="checkbox"
-                checked={c.mandatory}
-                onChange={(e) => change(i, { mandatory: e.target.checked })}
-              />
-              Bắt buộc
-            </label>
-            <label>
-              Điều kiện đạt
-              <textarea
-                maxLength={4000}
-                value={c.passCondition || ""}
-                onChange={(e) => change(i, { passCondition: e.target.value })}
-              />
-            </label>
-            <label>
-              Mô tả tiêu chí
-              <textarea
-                maxLength={4000}
-                value={c.description || ""}
-                onChange={(e) => change(i, { description: e.target.value })}
-              />
-            </label>
-            <button
-              type="button"
-              disabled={criteria.length === 1}
-              onClick={() =>
-                setCriteria((items) => items.filter((_, index) => index !== i))
-              }
-            >
-              Xóa tiêu chí {i + 1}
-            </button>
-          </fieldset>
-        ))}
-        <button
-          type="button"
-          disabled={criteria.length >= 200}
-          onClick={() => setCriteria((items) => [...items, emptyCriterion()])}
-        >
-          Thêm tiêu chí
-        </button>
-        {initial && (
-          <label>
-            Lý do cập nhật
-            <textarea
-              required
-              maxLength={500}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </label>
-        )}
-        <button type="submit">{busy ? "Đang lưu…" : "Lưu Draft"}</button>
-      </fieldset>
-      <button type="button" disabled={busy} onClick={onCancel}>
-        {blocked ? "Đóng để tải lại / kiểm tra kết quả" : "Hủy"}
-      </button>
-    </form>
+          )}
+          <button data-dialog-action type="submit">
+            {busy ? "Đang lưu…" : "Lưu Draft"}
+          </button>
+        </fieldset>
+      </form>
+    </ActionDialog>
   );
 }

@@ -1,11 +1,14 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { DeferredFilterPanel } from "../components/workspace-interactions";
+import { useEffect, useState } from "react";
 import type { AuthorityGeneration } from "../auth/authStore";
+import { AppButton } from "../components/design-system";
+import { LoadingIndicator } from "../components/LoadingIndicator";
 import {
   DashboardFailure,
   readDashboardOptions,
   type DashboardOptions,
 } from "./dashboardApi";
-
+const empty = { branchId: "", departmentId: "", from: "", to: "" };
 export function DashboardFilters({
   owner,
   roomsOnly = false,
@@ -23,16 +26,13 @@ export function DashboardFilters({
     options?: DashboardOptions;
     error?: string;
   } | null>(null);
-  const [draft, setDraft] = useState({
-    branchId: "",
-    departmentId: "",
-    from: "",
-    to: "",
-  });
+  const [draft, setDraft] = useState(empty);
+  const [appliedDraft, setAppliedDraft] = useState(empty);
   useEffect(() => {
     const controller = new AbortController();
     setResult(null);
-    setDraft({ branchId: "", departmentId: "", from: "", to: "" });
+    setDraft(empty);
+    setAppliedDraft(empty);
     void readDashboardOptions(controller.signal, roomsOnly)
       .then((options) => {
         if (!controller.signal.aborted) setResult({ owner, options });
@@ -49,56 +49,78 @@ export function DashboardFilters({
       });
     return () => controller.abort();
   }, [owner, retry, invalidate, roomsOnly]);
-  const visible = result?.owner === owner ? result : null;
-  const options = visible?.options;
+  const options = result?.owner === owner ? result.options : undefined;
+  const error = result?.owner === owner ? result.error : undefined;
   const departments =
     options?.departments.filter(
-      (d) => !draft.branchId || String(d.branchId) === draft.branchId,
+      (item) => !draft.branchId || String(item.branchId) === draft.branchId,
     ) ?? [];
-  function submit(event: FormEvent) {
-    event.preventDefault();
+  function commit(value: typeof empty) {
     if (
       !options ||
-      (draft.branchId &&
-        !options.branches.some((b) => String(b.id) === draft.branchId)) ||
-      (draft.departmentId &&
-        !departments.some((d) => String(d.id) === draft.departmentId))
+      (value.branchId &&
+        !options.branches.some((item) => String(item.id) === value.branchId)) ||
+      (value.departmentId &&
+        !options.departments.some(
+          (item) =>
+            String(item.id) === value.departmentId &&
+            (!value.branchId || String(item.branchId) === value.branchId),
+        ))
     )
       return;
     const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(draft))
-      if (value) query.set(key, value);
+    for (const [key, item] of Object.entries(value))
+      if (item) query.set(key, item);
+    setAppliedDraft({ ...value });
+    setDraft({ ...value });
     apply(query.toString());
   }
   return (
-    <section aria-label="Phạm vi tổng quan">
-      {visible?.error && (
-        <>
-          <p role="status">{visible.error}</p>
-          <button onClick={() => setRetry((n) => n + 1)}>Tải lại bộ lọc</button>
-        </>
-      )}
-      {!visible && <p role="status">Đang tải bộ lọc được phép sử dụng…</p>}
-      <form onSubmit={submit} aria-label="Bộ lọc tổng quan">
+    <section
+      className="ds-dashboard-filter-toolbar"
+      aria-label="Phạm vi tổng quan"
+    >
+      <div>
+        <strong>Phạm vi dữ liệu</strong>
+        <p>Chọn chi nhánh, bộ phận và khoảng thời gian cần theo dõi.</p>
+      </div>
+      <DeferredFilterPanel
+        activeCount={Object.values(appliedDraft).filter(Boolean).length}
+        disabled={!options}
+        onOpen={() => setDraft({ ...appliedDraft })}
+        onReset={() => setDraft(empty)}
+        onApply={() => commit(draft)}
+      >
+        {!options && !error && (
+          <LoadingIndicator compact label="Đang tải bộ lọc được phép sử dụng" />
+        )}
+        {error && (
+          <>
+            <p role="alert">{error}</p>
+            <AppButton onClick={() => setRetry((value) => value + 1)}>
+              Tải lại bộ lọc
+            </AppButton>
+          </>
+        )}
         <fieldset disabled={!options}>
-          <legend>Bộ lọc</legend>
+          <legend>Điều kiện lọc</legend>
           <label>
             Chi nhánh
             <select
               aria-label="Chi nhánh"
               value={options ? draft.branchId : ""}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  branchId: e.target.value,
+              onChange={(event) =>
+                setDraft((value) => ({
+                  ...value,
+                  branchId: event.target.value,
                   departmentId: "",
                 }))
               }
             >
               <option value="">Tất cả chi nhánh được phép</option>
-              {options?.branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.code})
+              {options?.branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
                 </option>
               ))}
             </select>
@@ -108,42 +130,84 @@ export function DashboardFilters({
             <select
               aria-label="Bộ phận"
               value={options ? draft.departmentId : ""}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, departmentId: e.target.value }))
+              onChange={(event) =>
+                setDraft((value) => ({
+                  ...value,
+                  departmentId: event.target.value,
+                }))
               }
             >
               <option value="">Tất cả bộ phận được phép</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} —{" "}
-                  {options?.branches.find((b) => b.id === d.branchId)?.name}
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name} —{" "}
+                  {
+                    options?.branches.find(
+                      (branch) => branch.id === department.branchId,
+                    )?.name
+                  }
                 </option>
               ))}
             </select>
           </label>
           <label>
-            từ (UTC)
+            Từ ngày (UTC)
             <input
               type="date"
               value={draft.from}
               max={draft.to || undefined}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, from: e.target.value }))
+              onChange={(event) =>
+                setDraft((value) => ({ ...value, from: event.target.value }))
               }
             />
           </label>
           <label>
-            Đến (UTC)
+            Đến ngày (UTC)
             <input
               type="date"
               value={draft.to}
               min={draft.from || undefined}
-              onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
+              onChange={(event) =>
+                setDraft((value) => ({ ...value, to: event.target.value }))
+              }
             />
           </label>
-          <button type="submit">Áp dụng bộ lọc</button>
         </fieldset>
-      </form>
+      </DeferredFilterPanel>
+      {Object.values(appliedDraft).some(Boolean) && (
+        <div className="ds-filter-chips" aria-label="Bộ lọc đã áp dụng">
+          {Object.entries(appliedDraft)
+            .filter(([, value]) => value)
+            .map(([field, value]) => (
+              <button
+                type="button"
+                key={field}
+                aria-label={`Xóa bộ lọc ${field === "branchId" ? "chi nhánh" : field === "departmentId" ? "bộ phận" : field === "from" ? "từ ngày" : "đến ngày"}`}
+                onClick={() =>
+                  commit({
+                    ...appliedDraft,
+                    [field]: "",
+                    ...(field === "branchId" ? { departmentId: "" } : {}),
+                  })
+                }
+              >
+                {field === "branchId"
+                  ? (options?.branches.find(
+                      (branch) => String(branch.id) === value,
+                    )?.name ?? "Chi nhánh")
+                  : field === "departmentId"
+                    ? (options?.departments.find(
+                        (department) => String(department.id) === value,
+                      )?.name ?? "Bộ phận")
+                    : `${field === "from" ? "Từ" : "Đến"}: ${value}`}{" "}
+                ×
+              </button>
+            ))}
+          <AppButton variant="ghost" onClick={() => commit(empty)}>
+            Xóa tất cả
+          </AppButton>
+        </div>
+      )}
     </section>
   );
 }

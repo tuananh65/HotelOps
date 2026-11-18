@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import {
   useEffect,
@@ -199,7 +200,9 @@ function Editor({
         setLoadFailed(true);
         if (d.status === 401) invalidate();
         setMessage(
-          d.status === 403 ? "Máy chủ từ chối quyền truy cập." : "Vai trò chưa khả dụng.",
+          d.status === 403
+            ? "Máy chủ từ chối quyền truy cập."
+            : "Vai trò chưa khả dụng.",
         );
         return;
       }
@@ -320,8 +323,8 @@ function Editor({
     <section aria-label="Quyền ban đầu của vai trò">
       <h1>Cấu hình quyền ban đầu cho vai trò</h1>
       <p>
-        Vai trò {roleId}. Server validates global authority and complete assignment
-        history.
+        Vai trò {roleId}. Server validates global authority and complete
+        assignment history.
       </p>
       {!dispatchEnabled && (
         <p>Thao tác ghi đang tắt, chờ phê duyệt vận hành.</p>
@@ -335,7 +338,8 @@ function Editor({
       )}
       {reservation && (
         <p>
-          Tải lại hoặc bắt đầu lại không xác minh kết quả thao tác. Cần xác minh từ backend trước lần thử tiếp theo.
+          Tải lại hoặc bắt đầu lại không xác minh kết quả thao tác. Cần xác minh
+          từ backend trước lần thử tiếp theo.
         </p>
       )}
       {message && <p role="status">{message}</p>}
@@ -402,7 +406,9 @@ function Editor({
                               value={scope}
                               disabled
                             >
-                              <option value={scope}>{displayCode(scope)}</option>
+                              <option value={scope}>
+                                {displayCode(scope)}
+                              </option>
                             </select>
                           ) : (
                             <span>Chưa hỗ trợ trong phiên bản giới hạn V1</span>
@@ -429,30 +435,42 @@ function Editor({
         </>
       )}
       {review && (
-        <section aria-label="Xem lại quyền">
-          <p>
-            Cấu hình vai trò {roleId} một lần; không thay đổi phân công hoặc quyền hiện có.
-          </p>
-          {review.map((g) => (
-            <p key={g.permissionId}>
-              Quyền {g.permissionId}: {displayCode(g.dataScope)}
+        <ActionDialog
+          open
+          title="Xem lại quyền"
+          onClose={() => {
+            setReview(null);
+            reviewed.current = null;
+          }}
+          busy={pending}
+        >
+          <section aria-label="Xem lại quyền">
+            <p>
+              Cấu hình vai trò {roleId} một lần; không thay đổi phân công hoặc
+              quyền hiện có.
             </p>
-          ))}
-          <button
-            disabled={pending || locked || !!reservation}
-            onClick={() => void confirm()}
-          >
-            Xác nhận và lưu
-          </button>
-          <button
-            onClick={() => {
-              reviewed.current = null;
-              setReview(null);
-            }}
-          >
-            Hủy
-          </button>
-        </section>
+            {review.map((g) => (
+              <p key={g.permissionId}>
+                Quyền {g.permissionId}: {displayCode(g.dataScope)}
+              </p>
+            ))}
+            <button
+              data-dialog-action
+              disabled={pending || locked || !!reservation}
+              onClick={() => void confirm()}
+            >
+              Xác nhận và lưu
+            </button>
+            <button
+              onClick={() => {
+                reviewed.current = null;
+                setReview(null);
+              }}
+            >
+              Hủy
+            </button>
+          </section>
+        </ActionDialog>
       )}
     </section>
   );

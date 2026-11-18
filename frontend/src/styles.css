@@ -233,7 +233,7 @@ summary {
   overflow-y: auto;
   padding-bottom: 30px;
   scrollbar-width: thin;
-  scrollbar-color: #555 #232323;
+  scrollbar-color: #555 var(--text-primary);
 }
 .nav-group {
   padding: 0 var(--space-3);

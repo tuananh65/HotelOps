@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import {
   useEffect,
@@ -7,7 +8,10 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
-import { decodeUserDeactivationPreview, UserDeactivationReview } from "./UserDeactivationReview";
+import {
+  decodeUserDeactivationPreview,
+  UserDeactivationReview,
+} from "./UserDeactivationReview";
 import {
   createUserDeactivationCandidateApi,
   type DeactivationResult,
@@ -165,9 +169,14 @@ function Bound({
       let preview;
       try {
         response = await fetch(`/api/users/${userId}/deactivation-preview`, {
-          credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          signal: abort.signal,
         });
-        preview = response.ok ? decodeUserDeactivationPreview(await response.json(), userId) : null;
+        preview = response.ok
+          ? decodeUserDeactivationPreview(await response.json(), userId)
+          : null;
       } catch {
         if (reading && alive.current && current()) setPhase("unavailable");
         return;
@@ -178,10 +187,16 @@ function Bound({
         setStatus(response.status);
         return;
       }
-      const blocked = preview.accountStatus !== "ACTIVE" ? "Chỉ tài khoản đang hoạt động mới được vô hiệu hóa."
-        : preview.lastDurableAdministrator ? "Không được vô hiệu hóa quản trị viên thường trực cuối cùng."
-        : preview.coverageIncomplete ? "Cần kiểm tra ràng buộc trước khi vô hiệu hóa tài khoản này."
-        : preview.hasOpenResponsibilities ? "Xử lý trách nhiệm còn tồn của tài khoản trước khi vô hiệu hóa." : null;
+      const blocked =
+        preview.accountStatus !== "ACTIVE"
+          ? "Chỉ tài khoản đang hoạt động mới được vô hiệu hóa."
+          : preview.lastDurableAdministrator
+            ? "Không được vô hiệu hóa quản trị viên thường trực cuối cùng."
+            : preview.coverageIncomplete
+              ? "Cần kiểm tra ràng buộc trước khi vô hiệu hóa tài khoản này."
+              : preview.hasOpenResponsibilities
+                ? "Xử lý trách nhiệm còn tồn của tài khoản trước khi vô hiệu hóa."
+                : null;
       setData({
         name: `Người dùng ${userId}`,
         accountStatus: preview.accountStatus,
@@ -242,7 +257,8 @@ function Bound({
       {data && !reservation && (
         <section aria-label="Tài khoản đích">
           <p>
-            {data.name}; Mã tài khoản {userId}; {displayCode(data.accountStatus)}
+            {data.name}; Mã tài khoản {userId};{" "}
+            {displayCode(data.accountStatus)}
           </p>
         </section>
       )}
@@ -264,23 +280,43 @@ function Bound({
               Xem lại vô hiệu hóa
             </button>
           ) : (
-            <>
+            <ActionDialog
+              open
+              title="Xác nhận vô hiệu hóa tài khoản"
+              onClose={() => setReview(false)}
+            >
               <p>
-                Xác nhận tài khoản và lý do. Máy chủ phải kiểm tra quyền và mọi trách nhiệm.
+                Xác nhận tài khoản và lý do. Máy chủ phải kiểm tra quyền và mọi
+                trách nhiệm.
               </p>
-              <button disabled={!enabled} onClick={() => void confirm()}>
+              <button
+                data-dialog-action
+                disabled={!enabled}
+                onClick={() => void confirm()}
+              >
                 Xác nhận vô hiệu hóa
               </button>
               <button onClick={() => setReview(false)}>Chỉnh sửa lý do</button>
-            </>
+            </ActionDialog>
           )}
         </>
       )}
-      {phase === "blocked" && !reservation && <>
-        <p role="alert">{data?.blocked}</p>
-        <UserDeactivationReview userId={userId} autoLoad />
-        <button type="button" onClick={() => { setData(null); setReview(false); setPhase("loading"); }}>Kiểm tra lại tài khoản</button>
-      </>}
+      {phase === "blocked" && !reservation && (
+        <>
+          <p role="alert">{data?.blocked}</p>
+          <UserDeactivationReview userId={userId} autoLoad />
+          <button
+            type="button"
+            onClick={() => {
+              setData(null);
+              setReview(false);
+              setPhase("loading");
+            }}
+          >
+            Kiểm tra lại tài khoản
+          </button>
+        </>
+      )}
       {phase === "loading" && !reservation && (
         <p role="status">Đang tải tài khoản...</p>
       )}
@@ -305,7 +341,9 @@ function Bound({
                   : "Chưa thể vô hiệu hóa. Không tự gửi lại."}
         </p>
       )}
-      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
+      {status === 401 && (
+        <button onClick={recover}>Kiểm tra phiên đăng nhập</button>
+      )}
     </main>
   );
 }

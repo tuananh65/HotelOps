@@ -1,3 +1,8 @@
+import {
+  ActionDialog,
+  announceWorkflowSuccess,
+} from "../components/workspace-interactions";
+import { StatusBadge } from "../components/design-system";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -402,7 +407,7 @@ function Bound({
             </div>
           ) : (
             <>
-              <span className="workday-badge">Đang làm việc</span>
+              <StatusBadge>Đang làm việc</StatusBadge>
               <dl className="workday-facts">
                 <div>
                   <dt>Bắt đầu lúc</dt>
@@ -460,72 +465,92 @@ function Bound({
         shifts.length === 0 &&
         !shiftError &&
         !dayError && (
-          <details className="workday-card workday-unscheduled">
-            <summary>Làm việc ngoài kế hoạch ca</summary>
-            <p>
-              Chỉ dùng khi hôm nay không có ca được phân. Bạn cần chọn bộ phận
-              và ghi rõ lý do.
-            </p>
-            <UnscheduledStartForm
-              branchId={branchId}
-              current={current}
-              disabled={pending || locked}
-              invalidate={invalidateSession}
-              onBusy={(value) => {
-                busy.current = value;
-                setPending(value);
-              }}
-              onUnknown={() => {
-                uncertain.current = true;
-                setLocked(true);
-              }}
-              onStarted={(value) => {
-                setMessage("Đã bắt đầu ngày làm việc ngoài kế hoạch.");
-                setReceipt(value);
-                setDay(undefined);
-                setPending(false);
-                setRefresh((n) => n + 1);
-              }}
-            />
-          </details>
+          <ActionDialog
+            scope="workday/ScheduledWorkdayPanel.tsx"
+            title="Làm việc ngoài kế hoạch ca"
+            busy={pending}
+          >
+            <section>
+              <p>
+                Chỉ dùng khi hôm nay không có ca được phân. Bạn cần chọn bộ phận
+                và ghi rõ lý do.
+              </p>
+              <UnscheduledStartForm
+                branchId={branchId}
+                current={current}
+                disabled={pending || locked}
+                invalidate={invalidateSession}
+                onBusy={(value) => {
+                  busy.current = value;
+                  setPending(value);
+                }}
+                onUnknown={() => {
+                  uncertain.current = true;
+                  setLocked(true);
+                }}
+                onStarted={(value) => {
+                  (announceWorkflowSuccess(
+                    "Đã bắt đầu ngày làm việc ngoài kế hoạch.",
+                    "workday/ScheduledWorkdayPanel.tsx",
+                  ),
+                    setMessage("Đã bắt đầu ngày làm việc ngoài kế hoạch."));
+                  setReceipt(value);
+                  setDay(undefined);
+                  setPending(false);
+                  setRefresh((n) => n + 1);
+                }}
+              />
+            </section>
+          </ActionDialog>
         )}
       {review && (
-        <section
-          className="workday-card workday-review"
-          aria-label="Xem lại ngày làm việc theo ca"
-        >
-          <h2>
-            {review.operation === "start"
+        <ActionDialog
+          open
+          title={
+            review.operation === "start"
               ? "Xác nhận bắt đầu ca"
-              : "Xác nhận kết thúc ca"}
-          </h2>
-          {branchName && <p>{branchName}</p>}
-          <p>
-            {review.operation === "start"
-              ? `Ca đã chọn: ${shiftLabel(review.shift!)}`
-              : `Đã bắt đầu lúc: ${dateTime(review.day!.startedAtUtc)}`}
-          </p>
-          <p>
-            Thời gian thực tế được ghi nhận khi bạn xác nhận.
-            {review.operation === "end" &&
-              review.day?.openInterval &&
-              " Công việc đang chạy sẽ được tạm dừng. Nếu không thể tạm dừng, ca làm việc vẫn tiếp tục."}
-          </p>
-          <div className="workday-actions">
-            <button
-              className="workday-primary"
-              disabled={pending || locked || !dispatchEnabled}
-              onClick={() => void confirm()}
-            >
+              : "Xác nhận kết thúc ca"
+          }
+          onClose={clearReview}
+          busy={pending}
+        >
+          <section
+            className="workday-card workday-review"
+            aria-label="Xem lại ngày làm việc theo ca"
+          >
+            <h2>
               {review.operation === "start"
                 ? "Xác nhận bắt đầu ca"
-                : "Xác nhận kết thúc ngày làm việc"}
-            </button>
-            <button disabled={pending} onClick={clearReview}>
-              Quay lại
-            </button>
-          </div>
-        </section>
+                : "Xác nhận kết thúc ca"}
+            </h2>
+            {branchName && <p>{branchName}</p>}
+            <p>
+              {review.operation === "start"
+                ? `Ca đã chọn: ${shiftLabel(review.shift!)}`
+                : `Đã bắt đầu lúc: ${dateTime(review.day!.startedAtUtc)}`}
+            </p>
+            <p>
+              Thời gian thực tế được ghi nhận khi bạn xác nhận.
+              {review.operation === "end" &&
+                review.day?.openInterval &&
+                " Công việc đang chạy sẽ được tạm dừng. Nếu không thể tạm dừng, ca làm việc vẫn tiếp tục."}
+            </p>
+            <div className="workday-actions">
+              <button
+                className="workday-primary"
+                disabled={pending || locked || !dispatchEnabled}
+                onClick={() => void confirm()}
+              >
+                {review.operation === "start"
+                  ? "Xác nhận bắt đầu ca"
+                  : "Xác nhận kết thúc ngày làm việc"}
+              </button>
+              <button disabled={pending} onClick={clearReview}>
+                Quay lại
+              </button>
+            </div>
+          </section>
+        </ActionDialog>
       )}
       {pending && <LoadingIndicator label="Đang ghi nhận ca làm việc" />}
       {message && (

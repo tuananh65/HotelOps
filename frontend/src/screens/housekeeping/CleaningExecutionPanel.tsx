@@ -1,6 +1,11 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Circle, CircleCheck } from "lucide-react";
 import { useAuth } from "../../auth/AuthProvider";
 import { cleaningBlockerContext } from "../../dev2/cleaningBlockerContext";
 import { ApiError } from "../../api/dev1/client";
@@ -18,11 +23,28 @@ import {
   closureCommand,
   type ClosureCommand,
 } from "../../api/dev1/cleaningExecution";
-export default function CleaningExecutionPanel(props: { branch: string; task: string }) {
+export default function CleaningExecutionPanel(props: {
+  branch: string;
+  task: string;
+}) {
   const { state } = useAuth();
-  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session) return <p role="status">Xác minh phiên đăng nhập trước khi mở công việc vệ sinh.</p>;
+  if (
+    state.status !== "AUTHENTICATED" ||
+    state.pending !== null ||
+    !state.session
+  )
+    return (
+      <p role="status">
+        Xác minh phiên đăng nhập trước khi mở công việc vệ sinh.
+      </p>
+    );
   // A route change must not retarget an unresolved command to another task.
-  return <CleaningExecutionContent key={`${state.authorityGeneration}:${props.branch}:${props.task}`} {...props} />;
+  return (
+    <CleaningExecutionContent
+      key={`${state.authorityGeneration}:${props.branch}:${props.task}`}
+      {...props}
+    />
+  );
 }
 
 function CleaningExecutionContent({
@@ -36,12 +58,22 @@ function CleaningExecutionContent({
     [plan, setPlan] = useState<AssignmentPlan | null>(null);
   const { state: auth } = useAuth();
   const location = useLocation();
-  const context = cleaningBlockerContext(location.state, String(auth.session?.user.id ?? ""));
-  const initialBlocker = context?.branch === branch && context.task === task ? context : null;
+  const context = cleaningBlockerContext(
+    location.state,
+    String(auth.session?.user.id ?? ""),
+  );
+  const initialBlocker =
+    context?.branch === branch && context.task === task ? context : null;
   const [blockerNote, setBlockerNote] = useState(initialBlocker?.note ?? "");
-  const [blockerReason, setBlockerReason] = useState(initialBlocker?.reason ?? "");
-  const [incidentLink, setIncidentLink] = useState(initialBlocker?.incident ?? "");
-  const [materialLink, setMaterialLink] = useState(initialBlocker?.material ?? "");
+  const [blockerReason, setBlockerReason] = useState(
+    initialBlocker?.reason ?? "",
+  );
+  const [incidentLink, setIncidentLink] = useState(
+    initialBlocker?.incident ?? "",
+  );
+  const [materialLink, setMaterialLink] = useState(
+    initialBlocker?.material ?? "",
+  );
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
@@ -100,10 +132,14 @@ function CleaningExecutionContent({
   }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
-      if (e.code === "BLOCKER_LINK_NOT_AVAILABLE") return "MSG02: Công việc liên quan chưa khả dụng. Kiểm tra quyền đọc nguồn, phòng của sự cố và liên kết rõ ràng giữa yêu cầu vật tư với việc vệ sinh.";
-      if (e.code === "TIME_WORKDAY_REQUIRED") return "MSG30: Bắt đầu ngày làm việc trong chi nhánh, quay lại rồi chọn Bắt đầu.";
-      if (e.code === "TIME_INTERVAL_ALREADY_OPEN") return "MSG31: Có khoảng làm việc khác đang mở. Mở Ngày làm việc để xem trước khi bắt đầu công việc này.";
-      if (e.status === 400) return "MSG03: Chọn nhân viên khác đủ điều kiện đang trong ca, hạn UTC tương lai và lý do 10–500 ký tự. Công việc phải đang được giao, thực hiện hoặc tạm dừng.";
+      if (e.code === "BLOCKER_LINK_NOT_AVAILABLE")
+        return "MSG02: Công việc liên quan chưa khả dụng. Kiểm tra quyền đọc nguồn, phòng của sự cố và liên kết rõ ràng giữa yêu cầu vật tư với việc vệ sinh.";
+      if (e.code === "TIME_WORKDAY_REQUIRED")
+        return "MSG30: Bắt đầu ngày làm việc trong chi nhánh, quay lại rồi chọn Bắt đầu.";
+      if (e.code === "TIME_INTERVAL_ALREADY_OPEN")
+        return "MSG31: Có khoảng làm việc khác đang mở. Mở Ngày làm việc để xem trước khi bắt đầu công việc này.";
+      if (e.status === 400)
+        return "MSG03: Chọn nhân viên khác đủ điều kiện đang trong ca, hạn UTC tương lai và lý do 10–500 ký tự. Công việc phải đang được giao, thực hiện hoặc tạm dừng.";
       if (e.status === 401) return "Phiên đăng nhập đã hết hạn.";
       if (e.status === 403)
         return "Không có quyền hoặc bạn không còn là người phụ trách.";
@@ -117,14 +153,21 @@ function CleaningExecutionContent({
     return "Không xác minh được kết quả. Tải lại nguồn; với Reassign hãy thử đúng lệnh cũ.";
   }
   async function start(resume = false) {
-    const confirmBlockers = !!data && (resume && data.holdReason !== "END_OF_SHIFT"
-      || data.state === "ASSIGNED" && data.actualStartAtUtc !== null && !!data.blockers?.length);
+    const confirmBlockers =
+      !!data &&
+      ((resume && data.holdReason !== "END_OF_SHIFT") ||
+        (data.state === "ASSIGNED" &&
+          data.actualStartAtUtc !== null &&
+          !!data.blockers?.length));
     if (
       !data ||
       busy ||
       pending ||
       closurePending ||
-      (confirmBlockers && (!blockersConfirmed || !resolutionNote.trim() || data?.blockers?.some(b => !b.sourceResolved))) ||
+      (confirmBlockers &&
+        (!blockersConfirmed ||
+          !resolutionNote.trim() ||
+          data?.blockers?.some((b) => !b.sourceResolved))) ||
       (resume
         ? data.resumeCapability !== "PROVISIONAL_V1"
         : data.startCapability !== "AVAILABLE")
@@ -134,14 +177,22 @@ function CleaningExecutionContent({
     setError("");
     setNotice("");
     try {
-      const result = await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
-        resolveBlocker: confirmBlockers && blockersConfirmed,
-        ...(confirmBlockers ? { note: resolutionNote.trim() } : {}),
-      });
+      const result = await mutateCleaningExecution(
+        branch,
+        task,
+        "start",
+        data.sourceETag,
+        {
+          resolveBlocker: confirmBlockers && blockersConfirmed,
+          ...(confirmBlockers ? { note: resolutionNote.trim() } : {}),
+        },
+      );
       if (alive.current) {
-        setNotice(result.hasEffectiveBlock
-          ? "Đã bắt đầu dọn phòng và ghi nhận thời gian. Phòng vẫn bị chặn sử dụng."
-          : "Đã bắt đầu dọn phòng; thời gian được ghi nhận bởi máy chủ.");
+        setNotice(
+          result.hasEffectiveBlock
+            ? "Đã bắt đầu dọn phòng và ghi nhận thời gian. Phòng vẫn bị chặn sử dụng."
+            : "Đã bắt đầu dọn phòng; thời gian được ghi nhận bởi máy chủ.",
+        );
         setRefresh((n) => n + 1);
       }
     } catch (e) {
@@ -166,7 +217,13 @@ function CleaningExecutionContent({
       );
       if (alive.current) {
         setPending(null);
-        setNotice("MSG08: Đã lưu phân công lại. Thông báo chờ gửi đến cả hai nhân viên; thời gian trước vẫn thuộc người được giao trước.");
+        (announceWorkflowSuccess(
+          "MSG08: Đã lưu phân công lại. Thông báo chờ gửi đến cả hai nhân viên; thời gian trước vẫn thuộc người được giao trước.",
+          "screens/housekeeping/CleaningExecutionPanel.tsx",
+        ),
+          setNotice(
+            "MSG08: Đã lưu phân công lại. Thông báo chờ gửi đến cả hai nhân viên; thời gian trước vẫn thuộc người được giao trước.",
+          ));
         setRefresh((n) => n + 1);
       }
     } catch (e) {
@@ -197,7 +254,13 @@ function CleaningExecutionContent({
       );
       if (!plan?.candidates.some((c) => c.id === command.assigneeId))
         throw Error("INVALID_CANDIDATE");
-      const c = { branch, task, command, tag: data.sourceETag, key: crypto.randomUUID() };
+      const c = {
+        branch,
+        task,
+        command,
+        tag: data.sourceETag,
+        key: crypto.randomUUID(),
+      };
       setPending(c);
       void execute(c);
     } catch {
@@ -224,7 +287,8 @@ function CleaningExecutionContent({
           (c.action === "blockers"
             ? "Đã ghi nhận trở ngại và tạm dừng dọn phòng."
             : "Đã hoàn tất dọn phòng, chờ kiểm tra.") +
-            (result.hasEffectiveBlock ? " Phòng vẫn bị chặn sử dụng."
+            (result.hasEffectiveBlock
+              ? " Phòng vẫn bị chặn sử dụng."
               : result.effectiveReadiness === "PENDING_CLEANING"
                 ? " Trạng thái phòng: chờ dọn theo quy tắc hiện hành."
                 : result.effectiveReadiness === "PENDING_INSPECTION"
@@ -266,9 +330,13 @@ function CleaningExecutionContent({
         photos,
       );
       if (action === "blockers") {
-        for (const [name, value] of [["incidentId", incidentLink], ["materialRequestId", materialLink]] as const) {
+        for (const [name, value] of [
+          ["incidentId", incidentLink],
+          ["materialRequestId", materialLink],
+        ] as const) {
           if (!value) continue;
-          if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) throw Error("INVALID_BLOCKER_LINK");
+          if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value)))
+            throw Error("INVALID_BLOCKER_LINK");
           command[name] = Number(value);
         }
       }
@@ -301,27 +369,79 @@ function CleaningExecutionContent({
       {data && (
         <>
           <h2>{data.taskNumber}</h2>
-          {data.startDetails && <section aria-label="Hướng dẫn vệ sinh">
-            <p>Phòng {data.startDetails.roomNumber} - {data.startDetails.cleaningType}</p>
-            <p>Đến hạn (UTC): {data.startDetails.dueAtUtc ?? "N/A"}</p>
-            <p>{data.startDetails.instructions ?? "Chưa có hướng dẫn bổ sung."}</p>
-            <ul>{data.startDetails.items.map(i => <li key={i.id}>{i.label}{i.isRequired ? " (required)" : ""}</li>)}</ul>
-          </section>}
-          {(error.startsWith("MSG30") || error.startsWith("MSG31")) && <Link to={"/workday?branchId=" + branch}>Mở ngày làm việc</Link>}
-          {!!data.blockers?.length && <ul aria-label="Trở ngại vệ sinh">
-            {data.blockers.map(blocker => <li key={blocker.progressId}>
-              Trở ngại #{blocker.progressId}: {blocker.incidentId ? `Sự cố #${blocker.incidentId}` : blocker.materialRequestId ? `Yêu cầu vật tư #${blocker.materialRequestId}` : "Trở ngại vệ sinh"}
-              {" — "}{blocker.sourceResolved ? (blocker.confirmed ? "Đã xác nhận xử lý" : "Sẵn sàng để bạn xác nhận") : blocker.failure}
-            </li>)}
-          </ul>}
-          {data.state === "ASSIGNED" && data.actualStartAtUtc && !!data.blockers?.length && <fieldset disabled={busy || !!pending || !!closurePending}>
-            <legend>Xác nhận trở ngại trước khi bắt đầu lại công việc được giao</legend>
-            <label><input type="checkbox" checked={blockersConfirmed} onChange={event => setBlockersConfirmed(event.target.checked)} />
-              Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.</label>
-            <label>Ghi chú xác nhận<input value={resolutionNote} maxLength={500} onChange={event => setResolutionNote(event.target.value)} /></label>
-          </fieldset>}
+          {data.startDetails && (
+            <section aria-label="Hướng dẫn vệ sinh">
+              <p>
+                Phòng {data.startDetails.roomNumber} -{" "}
+                {data.startDetails.cleaningType}
+              </p>
+              <p>Đến hạn (UTC): {data.startDetails.dueAtUtc ?? "N/A"}</p>
+              <p>
+                {data.startDetails.instructions ?? "Chưa có hướng dẫn bổ sung."}
+              </p>
+              <ul>
+                {data.startDetails.items.map((i) => (
+                  <li key={i.id}>
+                    {i.label}
+                    {i.isRequired ? " (required)" : ""}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {(error.startsWith("MSG30") || error.startsWith("MSG31")) && (
+            <Link to={"/workday?branchId=" + branch}>Mở ngày làm việc</Link>
+          )}
+          {!!data.blockers?.length && (
+            <ul aria-label="Trở ngại vệ sinh">
+              {data.blockers.map((blocker) => (
+                <li key={blocker.progressId}>
+                  Trở ngại #{blocker.progressId}:{" "}
+                  {blocker.incidentId
+                    ? `Sự cố #${blocker.incidentId}`
+                    : blocker.materialRequestId
+                      ? `Yêu cầu vật tư #${blocker.materialRequestId}`
+                      : "Trở ngại vệ sinh"}
+                  {" — "}
+                  {blocker.sourceResolved
+                    ? blocker.confirmed
+                      ? "Đã xác nhận xử lý"
+                      : "Sẵn sàng để bạn xác nhận"
+                    : blocker.failure}
+                </li>
+              ))}
+            </ul>
+          )}
+          {data.state === "ASSIGNED" &&
+            data.actualStartAtUtc &&
+            !!data.blockers?.length && (
+              <fieldset disabled={busy || !!pending || !!closurePending}>
+                <legend>
+                  Xác nhận trở ngại trước khi bắt đầu lại công việc được giao
+                </legend>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={blockersConfirmed}
+                    onChange={(event) =>
+                      setBlockersConfirmed(event.target.checked)
+                    }
+                  />
+                  Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.
+                </label>
+                <label>
+                  Ghi chú xác nhận
+                  <input
+                    value={resolutionNote}
+                    maxLength={500}
+                    onChange={(event) => setResolutionNote(event.target.value)}
+                  />
+                </label>
+              </fieldset>
+            )}
           <p>
-            {displayCode(data.state)} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
+            {displayCode(data.state)} · Nhân viên{" "}
+            {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
           <button
             disabled={
@@ -329,8 +449,12 @@ function CleaningExecutionContent({
               !!pending ||
               !!closurePending ||
               data.startCapability !== "AVAILABLE" ||
-              (data.state === "ASSIGNED" && data.actualStartAtUtc !== null && !!data.blockers?.length &&
-                (!blockersConfirmed || !resolutionNote.trim() || data.blockers.some(blocker => !blocker.sourceResolved)))
+              (data.state === "ASSIGNED" &&
+                data.actualStartAtUtc !== null &&
+                !!data.blockers?.length &&
+                (!blockersConfirmed ||
+                  !resolutionNote.trim() ||
+                  data.blockers.some((blocker) => !blocker.sourceResolved)))
             }
             onClick={() => void start()}
           >
@@ -340,37 +464,71 @@ function CleaningExecutionContent({
             <>
               {data.resumeCapability === "PROVISIONAL_V1" ? (
                 data.holdReason === "END_OF_SHIFT" ? (
-                  <button disabled={busy || !!pending || !!closurePending} onClick={() => void start(true)}>Tiếp tục sau khi kết thúc ca</button>
-                ) : (<form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void start(true);
-                  }}
-                >
-                  <label><input type="checkbox" required checked={blockersConfirmed}
-                    disabled={busy || !!pending || !!closurePending || data.blockers?.some(b => !b.sourceResolved)}
-                    onChange={event => setBlockersConfirmed(event.target.checked)} />
-                    Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.
-                  </label>
-                  <label>
-                    Ghi chú xử lý trở ngại
-                    <input
-                      required
-                      maxLength={500}
-                      value={resolutionNote}
-                      disabled={busy || !!pending}
-                      onChange={(event) =>
-                        setResolutionNote(event.target.value)
-                      }
-                    />
-                  </label>
-                  <p>Tiếp tục xác nhận rằng các trở ngại đã được xử lý.</p>
                   <button
-                    disabled={busy || !!pending || !!closurePending || !blockersConfirmed || !resolutionNote.trim() || data.blockers?.some(b => !b.sourceResolved)}
+                    disabled={busy || !!pending || !!closurePending}
+                    onClick={() => void start(true)}
                   >
-                    Tiếp tục dọn phòng
+                    Tiếp tục sau khi kết thúc ca
                   </button>
-                </form>)
+                ) : (
+                  <ActionDialog
+                    scope="screens/housekeeping/CleaningExecutionPanel.tsx"
+                    title="Tiếp tục dọn phòng"
+                    busy={busy}
+                    error={error}
+                  >
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        void start(true);
+                      }}
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          required
+                          checked={blockersConfirmed}
+                          disabled={
+                            busy ||
+                            !!pending ||
+                            !!closurePending ||
+                            data.blockers?.some((b) => !b.sourceResolved)
+                          }
+                          onChange={(event) =>
+                            setBlockersConfirmed(event.target.checked)
+                          }
+                        />
+                        Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.
+                      </label>
+                      <label>
+                        Ghi chú xử lý trở ngại
+                        <input
+                          required
+                          maxLength={500}
+                          value={resolutionNote}
+                          disabled={busy || !!pending}
+                          onChange={(event) =>
+                            setResolutionNote(event.target.value)
+                          }
+                        />
+                      </label>
+                      <p>Tiếp tục xác nhận rằng các trở ngại đã được xử lý.</p>
+                      <button
+                        data-dialog-action
+                        disabled={
+                          busy ||
+                          !!pending ||
+                          !!closurePending ||
+                          !blockersConfirmed ||
+                          !resolutionNote.trim() ||
+                          data.blockers?.some((b) => !b.sourceResolved)
+                        }
+                      >
+                        Tiếp tục dọn phòng
+                      </button>
+                    </form>
+                  </ActionDialog>
+                )
               ) : (
                 <>
                   <button disabled>Tiếp tục dọn phòng</button>
@@ -387,114 +545,181 @@ function CleaningExecutionContent({
               <Link to={`/cleaning/tasks/${task}?branchId=${branch}`}>
                 Mở tiến độ dọn phòng
               </Link>
-              {data.reportBlockerCapability === "PROVISIONAL_V1" && <fieldset disabled={busy || !!pending || !!closurePending}>
-                <legend>Công việc xử lý trở ngại liên quan (không bắt buộc)</legend>
-                <label>Mã sự cố của phòng này<input inputMode="numeric" value={incidentLink} onChange={e => setIncidentLink(e.target.value)} /></label>
-                <label>Mã yêu cầu vật tư liên quan đến công việc này<input inputMode="numeric" value={materialLink} onChange={e => setMaterialLink(e.target.value)} /></label>
-                <p>Cần quyền đọc nguồn. Liên kết yêu cầu vật tư với công việc vệ sinh này trong phần công việc liên quan trước.</p>
-                <p>Sau khi quay lại, chọn lại ảnh trở ngại trước khi gửi.</p>
-                {data.startDetails && !busy && !pending && !closurePending && ["incidents", "material-requests"].map(module => <Link key={module}
-                  to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
-                  state={{ cleaningBlocker: { actor: String(auth.session?.user.id), branch, task, room: data.startDetails!.roomId,
-                    note: blockerNote, reason: blockerReason, incident: incidentLink, material: materialLink } }}>
-                  {module === "incidents" ? "Báo sự cố phòng" : "Tạo yêu cầu vật tư"}
-                </Link>)}
-              </fieldset>}
+              {data.reportBlockerCapability === "PROVISIONAL_V1" && (
+                <fieldset disabled={busy || !!pending || !!closurePending}>
+                  <legend>
+                    Công việc xử lý trở ngại liên quan (không bắt buộc)
+                  </legend>
+                  <label>
+                    Mã sự cố của phòng này
+                    <input
+                      inputMode="numeric"
+                      value={incidentLink}
+                      onChange={(e) => setIncidentLink(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Mã yêu cầu vật tư liên quan đến công việc này
+                    <input
+                      inputMode="numeric"
+                      value={materialLink}
+                      onChange={(e) => setMaterialLink(e.target.value)}
+                    />
+                  </label>
+                  <p>
+                    Cần quyền đọc nguồn. Liên kết yêu cầu vật tư với công việc
+                    vệ sinh này trong phần công việc liên quan trước.
+                  </p>
+                  <p>Sau khi quay lại, chọn lại ảnh trở ngại trước khi gửi.</p>
+                  {data.startDetails &&
+                    !busy &&
+                    !pending &&
+                    !closurePending &&
+                    ["incidents", "material-requests"].map((module) => (
+                      <Link
+                        key={module}
+                        to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
+                        state={{
+                          cleaningBlocker: {
+                            actor: String(auth.session?.user.id),
+                            branch,
+                            task,
+                            room: data.startDetails!.roomId,
+                            note: blockerNote,
+                            reason: blockerReason,
+                            incident: incidentLink,
+                            material: materialLink,
+                          },
+                        }}
+                      >
+                        {module === "incidents"
+                          ? "Báo sự cố phòng"
+                          : "Tạo yêu cầu vật tư"}
+                      </Link>
+                    ))}
+                </fieldset>
+              )}
               {data.reportBlockerCapability === "PROVISIONAL_V1" ? (
-                <form onSubmit={(e) => void submitClosure(e, "blockers")}>
-                  <h3>Báo cáo trở ngại</h3>
-                  <label>
-                    Lý do trở ngại
-                    <select
-                      aria-label="Lý do trở ngại"
-                      name="reasonId"
-                      required
+                <ActionDialog
+                  scope="screens/housekeeping/CleaningExecutionPanel.tsx"
+                  title="Báo cáo trở ngại"
+                  busy={busy}
+                  error={error}
+                >
+                  <form onSubmit={(e) => void submitClosure(e, "blockers")}>
+                    <h3>Báo cáo trở ngại</h3>
+                    <label>
+                      Lý do trở ngại
+                      <select
+                        aria-label="Lý do trở ngại"
+                        name="reasonId"
+                        required
+                        disabled={busy || !!pending || !!closurePending}
+                        value={blockerReason}
+                        onChange={(e) => setBlockerReason(e.target.value)}
+                      >
+                        <option value="">Chọn lý do</option>
+                        {data.blockerReasons?.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Ghi chú trở ngại
+                      <input
+                        name="note"
+                        value={blockerNote}
+                        onChange={(e) => setBlockerNote(e.target.value)}
+                        required
+                        maxLength={500}
+                        disabled={busy || !!pending || !!closurePending}
+                      />
+                    </label>
+                    <label>
+                      Ảnh hoặc PDF trở ngại
+                      <input
+                        name="photos"
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,application/pdf"
+                        disabled={busy || !!pending || !!closurePending}
+                      />
+                    </label>
+                    <button
+                      data-dialog-action
                       disabled={busy || !!pending || !!closurePending}
-                      value={blockerReason}
-                      onChange={e => setBlockerReason(e.target.value)}
                     >
-                      <option value="">Chọn lý do</option>
-                      {data.blockerReasons?.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Ghi chú trở ngại
-                    <input
-                      name="note"
-                      value={blockerNote}
-                      onChange={e => setBlockerNote(e.target.value)}
-                      required
-                      maxLength={500}
-                      disabled={busy || !!pending || !!closurePending}
-                    />
-                  </label>
-                  <label>
-                    Ảnh hoặc PDF trở ngại
-                    <input
-                      name="photos"
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/png,application/pdf"
-                      disabled={busy || !!pending || !!closurePending}
-                    />
-                  </label>
-                  <button disabled={busy || !!pending || !!closurePending}>
-                    Báo cáo trở ngại
-                  </button>
-                </form>
+                      Báo cáo trở ngại
+                    </button>
+                  </form>
+                </ActionDialog>
               ) : (
                 <button disabled>Báo cáo trở ngại</button>
               )}
               {data.completeCapability === "PROVISIONAL_V1" ? (
-                <form onSubmit={(e) => void submitClosure(e, "complete")}>
-                  <h3>Hoàn tất dọn phòng</h3>
-                  <ul>
-                    {data.items?.map((i) => (
-                      <li key={i.id}>
-                        {i.done ? "✓" : "○"} {i.label}
-                        {i.required ? " (bắt buộc)" : ""}
-                      </li>
-                    ))}
-                  </ul>
-                  <p>
-                    Lưu các hạng mục bắt buộc trong tiến độ rồi tải lại nguồn
-                    trước khi hoàn tất.
-                  </p>
-                  <label>
-                    Ghi chú hoàn tất
-                    <input
-                      name="note"
-                      required
-                      maxLength={500}
-                      disabled={busy || !!pending || !!closurePending}
-                    />
-                  </label>
-                  <label>
-                    Ảnh hoặc PDF hoàn tất
-                    <input
-                      name="photos"
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/png,application/pdf"
-                      disabled={busy || !!pending || !!closurePending}
-                    />
-                  </label>
-                  <button
-                    disabled={
-                      busy ||
-                      !!pending ||
-                      !!closurePending ||
-                      !data.items?.length ||
-                      data.items.some((i) => i.required && !i.done)
-                    }
-                  >
-                    Hoàn tất dọn phòng
-                  </button>
-                </form>
+                <ActionDialog
+                  scope="screens/housekeeping/CleaningExecutionPanel.tsx"
+                  title="Hoàn tất dọn phòng"
+                  busy={busy}
+                  error={error}
+                >
+                  <form onSubmit={(e) => void submitClosure(e, "complete")}>
+                    <h3>Hoàn tất dọn phòng</h3>
+                    <ul>
+                      {data.items?.map((i) => (
+                        <li key={i.id}>
+                          {i.done ? (
+                            <CircleCheck size={16} aria-hidden="true" />
+                          ) : (
+                            <Circle size={16} aria-hidden="true" />
+                          )}{" "}
+                          <span className="ds-sr-only">
+                            {i.done ? "Đã hoàn thành: " : "Chưa hoàn thành: "}
+                          </span>
+                          {i.label}
+                          {i.required ? " (bắt buộc)" : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    <p>
+                      Lưu các hạng mục bắt buộc trong tiến độ rồi tải lại nguồn
+                      trước khi hoàn tất.
+                    </p>
+                    <label>
+                      Ghi chú hoàn tất
+                      <input
+                        name="note"
+                        required
+                        maxLength={500}
+                        disabled={busy || !!pending || !!closurePending}
+                      />
+                    </label>
+                    <label>
+                      Ảnh hoặc PDF hoàn tất
+                      <input
+                        name="photos"
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,application/pdf"
+                        disabled={busy || !!pending || !!closurePending}
+                      />
+                    </label>
+                    <button
+                      data-dialog-action
+                      disabled={
+                        busy ||
+                        !!pending ||
+                        !!closurePending ||
+                        !data.items?.length ||
+                        data.items.some((i) => i.required && !i.done)
+                      }
+                    >
+                      Hoàn tất dọn phòng
+                    </button>
+                  </form>
+                </ActionDialog>
               ) : (
                 <button disabled>Hoàn tất dọn phòng</button>
               )}
@@ -509,85 +734,93 @@ function CleaningExecutionContent({
             </>
           )}
           {data.reassignCapability === "PROVISIONAL_NOT_ACCEPTED" && plan && (
-            <form onSubmit={reassign}>
-              <h3>Phân công lại</h3>
-              <p>
-                Thay đổi người phụ trách và gửi thông báo cho hai nhân viên.
-              </p>
-              <label>
-                Người phụ trách mới
-                <select
-                  aria-label="Người phụ trách mới"
-                  name="assigneeId"
-                  required
-                  disabled={busy || !!pending}
-                  defaultValue=""
-                >
-                  <option value="">Chọn nhân viên</option>
-                  {plan.candidates
-                    .filter((c) => c.id !== data.assigneeId)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {displayCode(c.openTasks)} việc mở
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <div>
+            <ActionDialog
+              scope="screens/housekeeping/CleaningExecutionPanel.tsx"
+              title="Phân công lại dọn phòng"
+              busy={busy}
+              error={error}
+            >
+              <form onSubmit={reassign}>
+                <h3>Phân công lại</h3>
+                <p>
+                  Thay đổi người phụ trách và gửi thông báo cho hai nhân viên.
+                </p>
+                <label>
+                  Người phụ trách mới
+                  <select
+                    aria-label="Người phụ trách mới"
+                    name="assigneeId"
+                    required
+                    disabled={busy || !!pending}
+                    defaultValue=""
+                  >
+                    <option value="">Chọn nhân viên</option>
+                    {plan.candidates
+                      .filter((c) => c.id !== data.assigneeId)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} · {displayCode(c.openTasks)} việc mở
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <div>
+                  <button
+                    type="button"
+                    disabled={busy || !!pending || candidatePage <= 1}
+                    onClick={() => setCandidatePage((n) => n - 1)}
+                  >
+                    Trang trước nhân viên
+                  </button>
+                  <span>
+                    {" "}
+                    Trang {candidatePage} /{" "}
+                    {Math.max(1, Math.ceil(plan.total / 20))}{" "}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={
+                      busy || !!pending || candidatePage * 20 >= plan.total
+                    }
+                    onClick={() => setCandidatePage((n) => n + 1)}
+                  >
+                    Trang sau nhân viên
+                  </button>
+                </div>
+                <label>
+                  Hạn UTC
+                  <input
+                    name="dueAt"
+                    defaultValue={plan.task.dueAt ?? ""}
+                    required
+                    placeholder="YYYY-MM-DDTHH:mm:ssZ"
+                    disabled={busy || !!pending}
+                  />
+                </label>
+                <label>
+                  Lý do
+                  <input
+                    name="reason"
+                    required
+                    minLength={10}
+                    maxLength={500}
+                    disabled={busy || !!pending}
+                  />
+                </label>
                 <button
-                  type="button"
-                  disabled={busy || !!pending || candidatePage <= 1}
-                  onClick={() => setCandidatePage((n) => n - 1)}
-                >
-                  Trang trước nhân viên
-                </button>
-                <span>
-                  {" "}
-                  Trang {candidatePage} /{" "}
-                  {Math.max(1, Math.ceil(plan.total / 20))}{" "}
-                </span>
-                <button
-                  type="button"
+                  data-dialog-action
                   disabled={
-                    busy || !!pending || candidatePage * 20 >= plan.total
+                    busy ||
+                    !!pending ||
+                    !["ASSIGNED", "IN_PROGRESS", "ON_HOLD"].includes(
+                      data.state ?? "",
+                    )
                   }
-                  onClick={() => setCandidatePage((n) => n + 1)}
                 >
-                  Trang sau nhân viên
+                  Lưu phân công lại
                 </button>
-              </div>
-              <label>
-                Hạn UTC
-                <input
-                  name="dueAt"
-                  defaultValue={plan.task.dueAt ?? ""}
-                  required
-                  placeholder="YYYY-MM-DDTHH:mm:ssZ"
-                  disabled={busy || !!pending}
-                />
-              </label>
-              <label>
-                Lý do
-                <input
-                  name="reason"
-                  required
-                  minLength={10}
-                  maxLength={500}
-                  disabled={busy || !!pending}
-                />
-              </label>
-              <button
-                disabled={
-                  busy ||
-                  !!pending ||
-                  !["ASSIGNED", "IN_PROGRESS", "ON_HOLD"].includes(
-                    data.state ?? "",
-                  )
-                }
-              >
-                Lưu phân công lại
-              </button>
-            </form>
+              </form>
+            </ActionDialog>
           )}
         </>
       )}

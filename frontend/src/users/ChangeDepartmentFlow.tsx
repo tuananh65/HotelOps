@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -123,17 +124,20 @@ function Bound({
     <main>
       <h1>Thay đổi bộ phận</h1>
       <p>
-        Chỉ cùng chi nhánh chính. Lịch sử vai trò đang chặn phiên bản giới hạn này. Thao tác gửi bị khóa đến khi được chấp nhận.
+        Chỉ cùng chi nhánh chính. Lịch sử vai trò đang chặn phiên bản giới hạn
+        này. Thao tác gửi bị khóa đến khi được chấp nhận.
       </p>
       {review && (
         <section aria-label="Phạm vi máy chủ cho phép">
           <p>
-            Người dùng {review.data.userId}; Chi nhánh {review.data.branchId}; Bộ phận{" "}
-            {review.data.departmentId}
+            Người dùng {review.data.userId}; Chi nhánh {review.data.branchId};
+            Bộ phận {review.data.departmentId}
           </p>
         </section>
       )}
-      {phase === "loading" && <p role="status">Đang tải thông tin xét duyệt bộ phận...</p>}
+      {phase === "loading" && (
+        <p role="status">Đang tải thông tin xét duyệt bộ phận...</p>
+      )}
       {phase === "ready" && (
         <form
           onSubmit={(e) => {
@@ -153,16 +157,26 @@ function Bound({
         </form>
       )}
       {phase === "review" && (
-        <section>
-          <p>
-            Xác nhận bộ phận đích {destination}. The server verifies
-            scope and all dependencies.
-          </p>
-          <button onClick={() => setPhase("ready")}>Quay lại</button>
-          <button disabled={!enabled} onClick={() => void confirm()}>
-            Xác nhận chuyển bộ phận
-          </button>
-        </section>
+        <ActionDialog
+          open
+          title="Xác nhận chuyển bộ phận"
+          onClose={() => setPhase("ready")}
+        >
+          <section>
+            <p>
+              Xác nhận bộ phận đích {destination}. The server verifies scope and
+              all dependencies.
+            </p>
+            <button onClick={() => setPhase("ready")}>Quay lại</button>
+            <button
+              data-dialog-action
+              disabled={!enabled}
+              onClick={() => void confirm()}
+            >
+              Xác nhận chuyển bộ phận
+            </button>
+          </section>
+        </ActionDialog>
       )}
       {phase === "pending" && <p role="status">Đang chờ chuyển bộ phận...</p>}
       {phase === "confirmed" && (
@@ -185,7 +199,9 @@ function Bound({
                     : "Chưa thể chuyển bộ phận. Chưa xác nhận thay đổi."}
         </p>
       )}
-      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
+      {status === 401 && (
+        <button onClick={recover}>Kiểm tra phiên đăng nhập</button>
+      )}
     </main>
   );
 }

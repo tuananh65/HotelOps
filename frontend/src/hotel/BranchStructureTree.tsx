@@ -1,6 +1,23 @@
-import { displayCode } from "../i18n/vi";
-﻿import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useLocation, useParams } from "react-router-dom";
+import {
+  Building2,
+  RefreshCw,
+  ChevronRight,
+  ChevronLeft,
+  Search,
+  FolderOpen,
+} from "lucide-react";
+import { AppButton } from "../components/design-system";
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import {
+  StructureDetails,
+  StructureManagementLinks,
+  StructureStatus,
+  structureIcons,
+} from "./structure-presentation";
+import "./hotel-structure.css";
+import { useEffect, useRef, useState } from "react";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { PublicSession } from "../auth/authStore";
 import { decimalId, type StructureDto } from "./contracts";
@@ -42,24 +59,55 @@ export function BranchStructureTree() {
   );
   const [active, setActive] = useState("");
   const [request, setRequest] = useState<Request | null>(null);
-  const [branchOptions, setBranchOptions] = useState<{ owner: PublicSession; items: { id: number; code: string; name: string; isActive: boolean }[] } | null>(null);
+  const [branchOptions, setBranchOptions] = useState<{
+    owner: PublicSession;
+    items: { id: number; code: string; name: string; isActive: boolean }[];
+  } | null>(null);
   const [branchError, setBranchError] = useState("");
   const [optionsReload, setOptionsReload] = useState(0);
   useEffect(() => {
-    setBranchOptions(null); setBranchError("");
+    setBranchOptions(null);
+    setBranchError("");
     if (!owner || owner.mustChangePassword) return;
     const abort = new AbortController();
     void (async () => {
       try {
-        const response = await fetch("/api/branches/structure-options", { credentials: "include", cache: "no-store", redirect: "error",
-          signal: abort.signal, headers: { Accept: "application/json" } });
-        if (!response.ok || response.headers.get("Content-Type")?.split(";")[0] !== "application/json") throw new Error();
+        const response = await fetch("/api/branches/structure-options", {
+          credentials: "include",
+          cache: "no-store",
+          redirect: "error",
+          signal: abort.signal,
+          headers: { Accept: "application/json" },
+        });
+        if (
+          !response.ok ||
+          response.headers.get("Content-Type")?.split(";")[0] !==
+            "application/json"
+        )
+          throw new Error();
         const items: unknown = await response.json();
-        if (!Array.isArray(items) || !items.every(item => item && typeof item === "object" && Number.isSafeInteger(item.id)
-          && item.id > 0 && typeof item.code === "string" && typeof item.name === "string" && typeof item.isActive === "boolean")
-          || new Set(items.map(item => item.id)).size !== items.length) throw new Error();
+        if (
+          !Array.isArray(items) ||
+          !items.every(
+            (item) =>
+              item &&
+              typeof item === "object" &&
+              Number.isSafeInteger(item.id) &&
+              item.id > 0 &&
+              typeof item.code === "string" &&
+              typeof item.name === "string" &&
+              typeof item.isActive === "boolean",
+          ) ||
+          new Set(items.map((item) => item.id)).size !== items.length
+        )
+          throw new Error();
         if (!abort.signal.aborted) setBranchOptions({ owner, items });
-      } catch { if (!abort.signal.aborted) setBranchError("Không tải được chi nhánh được phép truy cập. Tải lại hoặc kiểm tra phiên đăng nhập."); }
+      } catch {
+        if (!abort.signal.aborted)
+          setBranchError(
+            "Không tải được chi nhánh được phép truy cập. Tải lại hoặc kiểm tra phiên đăng nhập.",
+          );
+      }
     })();
     return () => abort.abort();
   }, [owner, optionsReload]);
@@ -82,9 +130,7 @@ export function BranchStructureTree() {
   if (!owner || state.session?.mustChangePassword)
     return (
       <main>
-        <p role="status">
-          Chưa xác minh được phiên. Dữ liệu cấu trúc đã ẩn.
-        </p>
+        <p role="status">Chưa xác minh được phiên. Dữ liệu cấu trúc đã ẩn.</p>
         {state.status !== "INITIALIZING" && (
           <button onClick={() => void actions.revalidate()}>
             Kiểm tra phiên đăng nhập
@@ -158,195 +204,302 @@ export function BranchStructureTree() {
       trail: selected.trail.slice(0, index + 1),
     });
   }
-  const details =
-    data?.nodeType === "branch"
-      ? data.branch
-      : data?.nodeType === "floor"
-        ? data.selectedFloor
-        : data?.nodeType === "area"
-          ? data.selectedArea
-          : data?.nodeType === "room"
-            ? data.selectedRoom
-            : data?.selectedDepartment;
+  const branchReady = branchOptions?.owner === owner;
+  const validBranch =
+    branchReady &&
+    branchOptions.items.some((item) => String(item.id) === branch);
+  const reading = flow.phase === "reading";
+  const collection = data?.collection as StructureCollection | undefined;
+  const canManage = data?.visibility === "management";
+  const activeLabel =
+    active === ""
+      ? "Tất cả trạng thái"
+      : active === "true"
+        ? "Đang hoạt động"
+        : "Ngừng hoạt động";
   return (
-    <main className="hotel-workspace">
-      <h1>Cấu trúc khách sạn — Cấu trúc chi nhánh</h1>
-      <nav aria-label="Điều hướng cấu trúc khách sạn">
-        <Link to="/profile">Hồ sơ cá nhân</Link>
-        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm tầng</Link>
-        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm khu vực</Link>
-        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}`}>Quản lý tầng</Link>
-        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}`}>Quản lý khu vực</Link>
-        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm bộ phận</Link>
-        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}`}>Bộ phận</Link>
-        <Link to={`/structure/room-types?branchId=${encodeURIComponent(branch)}`}>Loại phòng</Link>
-        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm phòng</Link>
-        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}`}>Quản lý phòng</Link>
-      </nav>
-      <p>
-        Xem từng trang dữ liệu được máy chủ cho phép. Số đếm không có nghĩa đã tải toàn bộ mục con.
-      </p>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          root();
-        }}
+    <main className="hotel-structure-workspace">
+      <header className="hotel-structure-heading">
+        <div>
+          <span className="hotel-structure-eyebrow">Quản lý khách sạn</span>
+          <h1>Cấu trúc khách sạn</h1>
+          <p>Xem tầng, khu vực, phòng và bộ phận trong từng chi nhánh.</p>
+        </div>
+      </header>
+      <section
+        className="hotel-structure-card hotel-structure-selection"
+        aria-label="Chọn chi nhánh"
       >
-        <label>
-          Chi nhánh
-          <select name="branchId" value={branch} disabled={branchOptions?.owner !== owner}
-            onChange={event => { setBranch(event.target.value); setRequest(null); }}>
-            <option value="">Chọn chi nhánh được phép truy cập</option>
-            {branchOptions?.owner === owner && branchOptions.items.map(item => <option key={item.id} value={item.id}>
-              {item.code} ? {item.name}{item.isActive ? "" : " (Inactive)"}
-            </option>)}
-          </select>
-        </label>
-        <button disabled={!decimalId(branch) || branchOptions?.owner !== owner || !branchOptions.items.some(item => String(item.id) === branch) || flow.phase === "reading"}>
-          Tải dữ liệu
-        </button>
-      </form>
-      {branchError && <p role="alert">{branchError}</p>}
-      <button type="button" onClick={() => setOptionsReload(value => value + 1)}>Tải lại chi nhánh được phép truy cập</button>
-      <label>
-        Bộ lọc hoạt động
-        <select
-          aria-label="Bộ lọc hoạt động"
-          value={active}
-          onChange={(event) => {
-            setActive(event.target.value);
-            if (selected)
-              setRequest({
-                ...selected,
-                query: {
-                  ...selected.query,
-                  isActive: event.target.value,
-                  page: 1,
-                },
-              });
+        <form
+          className="hotel-structure-branch-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            root();
           }}
         >
-          <option value="">Tất cả</option>
-          <option value="true">Đang hoạt động</option>
-          <option value="false">Ngừng hoạt động</option>
-        </select>
-      </label>
-      {flow.phase === "reading" && <p role="status">Đang tải dữ liệu từ máy chủ...</p>}
-      {flow.message && <p role="alert">{flow.message}</p>}
-      {raw && !data && (
-        <p role="alert">
-          Phản hồi cấu trúc không khớp ngữ cảnh đã chọn. Không hiển thị dữ liệu.
+          <label htmlFor="structure-branch">
+            Chi nhánh
+            <select
+              id="structure-branch"
+              aria-label="Chi nhánh"
+              name="branchId"
+              value={branch}
+              disabled={!branchReady}
+              onChange={(event) => {
+                setBranch(event.target.value);
+                setRequest(null);
+              }}
+            >
+              <option value="">Chọn chi nhánh</option>
+              {branchReady &&
+                branchOptions.items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.code} — {item.name}
+                    {item.isActive ? "" : " (Ngừng hoạt động)"}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <AppButton
+            type="submit"
+            variant="primary"
+            icon={Search}
+            disabled={!validBranch || reading}
+          >
+            Xem cấu trúc
+          </AppButton>
+          <AppButton
+            icon={RefreshCw}
+            onClick={() => setOptionsReload((value) => value + 1)}
+            disabled={!branchReady && !branchError}
+          >
+            Tải lại chi nhánh
+          </AppButton>
+        </form>
+        {!branchReady && !branchError && (
+          <LoadingIndicator compact label="Đang tải chi nhánh" />
+        )}
+        {branchError && (
+          <p className="hotel-structure-feedback" role="alert">
+            {branchError}
+          </p>
+        )}
+        {branchReady && branchOptions.items.length === 0 && (
+          <p className="hotel-structure-muted">
+            Tài khoản chưa có chi nhánh để xem.
+          </p>
+        )}
+        <CollapsibleFilterPanel activeCount={Number(active !== "")}>
+          <label className="hotel-structure-filter">
+            Trạng thái hoạt động
+            <select
+              aria-label="Bộ lọc hoạt động"
+              value={active}
+              onChange={(event) => {
+                setActive(event.target.value);
+                if (selected)
+                  setRequest({
+                    ...selected,
+                    query: {
+                      ...selected.query,
+                      isActive: event.target.value,
+                      page: 1,
+                    },
+                  });
+              }}
+            >
+              <option value="">Tất cả</option>
+              <option value="true">Đang hoạt động</option>
+              <option value="false">Ngừng hoạt động</option>
+            </select>
+          </label>
+        </CollapsibleFilterPanel>
+      </section>
+      {reading && <LoadingIndicator label="Đang tải cấu trúc khách sạn" />}
+      {flow.message && (
+        <p className="hotel-structure-feedback" role="alert">
+          {flow.message}
         </p>
       )}
+      {raw && !data && (
+        <p className="hotel-structure-feedback" role="alert">
+          Chưa xác nhận được dữ liệu của mục đang chọn. Vui lòng chọn lại chi
+          nhánh và xem cấu trúc.
+        </p>
+      )}
+      {!selected && !reading && !flow.message && (
+        <div className="hotel-structure-card hotel-structure-empty">
+          <Building2 size={36} aria-hidden="true" />
+          <h2>Chọn chi nhánh để bắt đầu</h2>
+          <p>Chọn chi nhánh ở trên rồi bấm Xem cấu trúc.</p>
+        </div>
+      )}
       {data && selected && (
-        <section aria-label="Cấu trúc chi nhánh theo từng cấp">
-          <p aria-label="Bộ lọc cấu trúc đã áp dụng">Chi nhánh: {data.branch.code}; Trạng thái: {selected.query.isActive === "" ? "Tất cả" : selected.query.isActive === "true" ? "Đang hoạt động" : "Ngừng hoạt động"}; Bộ sưu tập: {data.collection ?? "Mục đã chọn"}.</p>
-          <nav aria-label="Đường dẫn cấu trúc">
-            <button onClick={() => ancestor(-1)}>
-              Chi nhánh: {data.branch.name}
-            </button>
-            {selected.trail.map((node, index) => (
-              <button key={node.type + node.id} onClick={() => ancestor(index)}>
-                {displayCode(node.type)}: {node.label}
-              </button>
-            ))}
-          </nav>
-          {data.visibility === "management" && <nav aria-label="Quản lý mục đã chọn">
-            {data.nodeType === "branch" && <Link to={`/structure/branches/${data.branch.id}/edit`}>Cập nhật thông tin chi nhánh</Link>}
-            {(data.nodeType === "floor" || data.nodeType === "area") && selected.query.nodeId &&
-              <Link to={`/structure/${data.nodeType}s/${selected.query.nodeId}?branchId=${data.branch.id}`}>Quản lý mục đã chọn {data.nodeType}</Link>}
-          </nav>}
-          <section aria-label="Chi tiết mục đã chọn">
-            <h2>Đã chọn {data.nodeType}</h2>
-            <dl>
-              {Object.entries(details ?? {}).map(([field, value]) => (
-                <div key={field}>
-                  <dt>{field}</dt>
-                  <dd>{value === null ? "Chưa cung cấp" : String(value)}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-          <nav aria-label="Bộ sưu tập khả dụng">
-            {collectionsFor(data.nodeType as StructureNode)
-              .filter((collection) =>
-                data.availableCollections.includes(collection),
-              )
-              .map((collection) => (
-                <button
-                  key={collection}
-                  aria-pressed={data.collection === collection}
-                  onClick={() =>
-                    setRequest({
-                      ...selected,
-                      query: { ...selected.query, collection, page: 1 },
-                    })
-                  }
-                >
-                  {heading[collection]}
-                </button>
-              ))}
-          </nav>
-          {page && data.collection && (
-            <section
-              aria-label={`${heading[data.collection as StructureCollection]} Trang`}
+        <section
+          className="hotel-structure-result"
+          aria-label="Cấu trúc chi nhánh theo từng cấp"
+        >
+          <div className="hotel-structure-context">
+            <nav
+              aria-label="Đường dẫn cấu trúc"
+              className="hotel-structure-trail"
             >
-              <h2>{heading[data.collection as StructureCollection]}</h2>
-              <p>
-                {page.totalCount} hồ sơ; trang {page.page} trên{" "}
-                {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}; Số dòng mỗi trang {page.pageSize}.
-              </p>
-              {page.items.length === 0 ? (
-                <p>MSG10: Không có hồ sơ phù hợp bộ lọc trên trang này.</p>
-              ) : (
-                <ul aria-label="Các mục cấu trúc">
-                  {page.items.map((item) => {
-                    const label =
-                      "roomNumber" in item ? item.roomNumber : item.name;
-                    return (
-                      <li key={item.id}>
-                        <button
+              <AppButton
+                variant="ghost"
+                icon={Building2}
+                onClick={() => ancestor(-1)}
+              >
+                {data.branch.name}
+              </AppButton>
+              {selected.trail.map((node, index) => (
+                <span key={node.type + node.id}>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <AppButton
+                    variant="ghost"
+                    aria-current={
+                      index === selected.trail.length - 1
+                        ? "location"
+                        : undefined
+                    }
+                    onClick={() => ancestor(index)}
+                  >
+                    {node.label}
+                  </AppButton>
+                </span>
+              ))}
+            </nav>
+            <p
+              className="hotel-structure-muted"
+              aria-label="Bộ lọc cấu trúc đã áp dụng"
+            >
+              {activeLabel}
+            </p>
+          </div>
+          {canManage && <StructureManagementLinks branchId={data.branch.id} />}
+          <div
+            className={page ? "hotel-structure-layout" : "hotel-structure-leaf"}
+          >
+            {page && collection && (
+              <section
+                className="hotel-structure-card hotel-structure-list"
+                aria-label={heading[collection] + " Trang"}
+              >
+                <nav
+                  className="hotel-structure-tabs"
+                  aria-label="Danh mục cấu trúc"
+                >
+                  {collectionsFor(data.nodeType as StructureNode)
+                    .filter((item) => data.availableCollections.includes(item))
+                    .map((item) => {
+                      const Icon = structureIcons[singular[item]];
+                      return (
+                        <AppButton
+                          key={item}
+                          variant="ghost"
+                          icon={Icon}
+                          aria-pressed={collection === item}
                           onClick={() =>
-                            select(
-                              singular[data.collection as StructureCollection],
-                              item.id,
-                              label,
-                            )
+                            setRequest({
+                              ...selected,
+                              query: {
+                                ...selected.query,
+                                collection: item,
+                                page: 1,
+                              },
+                            })
                           }
                         >
-                          {singular[data.collection as StructureCollection]}:{" "}
-                          {label}
-                        </button>
-                        <span> — {item.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <button
-                disabled={page.page <= 1}
-                onClick={() =>
-                  setRequest({
-                    ...selected,
-                    query: { ...selected.query, page: page.page - 1 },
-                  })
-                }
-              >
-                Trang trước
-              </button>
-              <button
-                disabled={page.page * page.pageSize >= page.totalCount}
-                onClick={() =>
-                  setRequest({
-                    ...selected,
-                    query: { ...selected.query, page: page.page + 1 },
-                  })
-                }
-              >
-                Trang sau
-              </button>
-            </section>
-          )}
+                          {heading[item]}
+                        </AppButton>
+                      );
+                    })}
+                </nav>
+                <div className="hotel-structure-list-heading">
+                  <h2>{heading[collection]}</h2>
+                  <span>{page.totalCount} mục</span>
+                </div>
+                {page.items.length === 0 ? (
+                  <div className="hotel-structure-empty">
+                    <FolderOpen size={32} aria-hidden="true" />
+                    <h3>Không có mục phù hợp</h3>
+                    <p>Thử đổi trạng thái hoặc chọn mục khác trong cấu trúc.</p>
+                  </div>
+                ) : (
+                  <ul
+                    aria-label="Các mục cấu trúc"
+                    className="hotel-structure-items"
+                  >
+                    {page.items.map((item) => {
+                      const label =
+                        "roomNumber" in item
+                          ? "Phòng " + item.roomNumber
+                          : item.name;
+                      const Icon = structureIcons[singular[collection]];
+                      return (
+                        <li key={item.id}>
+                          <button
+                            className="hotel-structure-node"
+                            aria-label={"Xem " + label}
+                            onClick={() =>
+                              select(singular[collection], item.id, label)
+                            }
+                          >
+                            <span className="hotel-structure-icon">
+                              <Icon size={20} aria-hidden="true" />
+                            </span>
+                            <span className="hotel-structure-node-name">
+                              <strong>{label}</strong>
+                              {"code" in item && <small>{item.code}</small>}
+                            </span>
+                            <StructureStatus active={item.isActive} />
+                            <ChevronRight
+                              className="hotel-structure-node-arrow"
+                              size={18}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <nav
+                  aria-label="Phân trang cấu trúc"
+                  className="hotel-structure-pagination"
+                >
+                  <AppButton
+                    icon={ChevronLeft}
+                    disabled={page.page <= 1}
+                    onClick={() =>
+                      setRequest({
+                        ...selected,
+                        query: { ...selected.query, page: page.page - 1 },
+                      })
+                    }
+                  >
+                    Trang trước
+                  </AppButton>
+                  <span>
+                    Trang {page.page} /{" "}
+                    {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}
+                  </span>
+                  <AppButton
+                    icon={ChevronRight}
+                    disabled={page.page * page.pageSize >= page.totalCount}
+                    onClick={() =>
+                      setRequest({
+                        ...selected,
+                        query: { ...selected.query, page: page.page + 1 },
+                      })
+                    }
+                  >
+                    Trang sau
+                  </AppButton>
+                </nav>
+              </section>
+            )}
+            <StructureDetails data={data} />
+          </div>
         </section>
       )}
     </main>

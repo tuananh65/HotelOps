@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import {
   createDeactivationPreviewApi,
@@ -107,7 +108,9 @@ export function StructureDeactivationPanel({
     state.session.mustChangePassword ||
     state.pending !== null
   )
-    return <p role="status">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>;
+    return (
+      <p role="status">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
+    );
   if (!safeId(branchId) || !safeId(id) || (kind !== "floor" && kind !== "area"))
     return <p role="alert">Chọn mã chi nhánh và hồ sơ hợp lệ.</p>;
   return (
@@ -208,7 +211,9 @@ function Bound({
       attempted.current ||
       !current() ||
       !mounted.current ||
-      !dispatchEnabled || data.writerCoordinationRequired || data.dependencies.length !== 0
+      !dispatchEnabled ||
+      data.writerCoordinationRequired ||
+      data.dependencies.length !== 0
     )
       return;
     const reserved = reserve(principal, resource);
@@ -259,7 +264,8 @@ function Bound({
       </p>
       {!dispatchEnabled && (
         <p role="status">
-          Vô hiệu hóa thực tế bị khóa, chờ nghiệm thu backend và trưởng dự án phê duyệt.
+          Vô hiệu hóa thực tế bị khóa, chờ nghiệm thu backend và trưởng dự án
+          phê duyệt.
         </p>
       )}
       {loading && !reservation && <p role="status">Đang tải hồ sơ...</p>}
@@ -281,18 +287,19 @@ function Bound({
             <dt>Tên</dt>
             <dd>{data.record.name}</dd>
             <dt>Trạng thái</dt>
-            <dd>{data.record.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</dd>
+            <dd>
+              {data.record.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+            </dd>
             <dt>Mô tả</dt>
             <dd>{data.record.description ?? "Không có"}</dd>
           </dl>
           <p>
-            Xem trước ràng buộc chỉ là dữ liệu tại thời điểm đọc, không cấp quyền hay giữ chỗ. Máy chủ kiểm tra lại trước khi lưu.
+            Xem trước ràng buộc chỉ là dữ liệu tại thời điểm đọc, không cấp
+            quyền hay giữ chỗ. Máy chủ kiểm tra lại trước khi lưu.
           </p>
           <section aria-label="Xem trước các ràng buộc">
             {data.dependencies.length === 0 ? (
-              <p>
-                Không thấy trở ngại trong bản chụp dữ liệu này.
-              </p>
+              <p>Không thấy trở ngại trong bản chụp dữ liệu này.</p>
             ) : (
               data.dependencies.map((d) => (
                 <p key={d.kind}>
@@ -301,50 +308,70 @@ function Bound({
               ))
             )}
           </section>
-          {data.writerCoordinationRequired && <p role="alert">Cần cập nhật cấu trúc bảo vệ vị trí trước khi vô hiệu hóa.</p>}
-          {!locked && data.record.isActive && !data.writerCoordinationRequired && data.dependencies.length === 0 && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (validReason(reason) && current()) {
-                  setReview({ reason, etag: data.etag });
-                  setMessage("");
-                } else
-                  setMessage(
-                    "Nhập lý do 10–1000 ký tự, không chứa ký tự điều khiển.",
-                  );
-              }}
-            >
-              <label>
-                Lý do
-                <textarea
-                  value={reason}
-                  onChange={(e) => {
-                    setReason(e.target.value);
-                    setReview(null);
-                  }}
-                />
-              </label>
-              <button disabled={pending}>Xem xét</button>
-            </form>
+          {data.writerCoordinationRequired && (
+            <p role="alert">
+              Cần cập nhật cấu trúc bảo vệ vị trí trước khi vô hiệu hóa.
+            </p>
           )}
-          {review && !locked && (
-            <section aria-label="Xem lại vô hiệu hóa">
-              <h2>Xem lại vô hiệu hóa</h2>
-              <p>
-                {data.record.code} — {data.record.name}
-              </p>
-              <p>{review.reason}</p>
-              <button disabled={pending} onClick={() => setReview(null)}>
-                Hủy xem xét
-              </button>
-              <button
-                disabled={!dispatchEnabled || pending || data.writerCoordinationRequired || data.dependencies.length !== 0}
-                onClick={() => void confirm()}
+          {!locked &&
+            data.record.isActive &&
+            !data.writerCoordinationRequired &&
+            data.dependencies.length === 0 && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (validReason(reason) && current()) {
+                    setReview({ reason, etag: data.etag });
+                    setMessage("");
+                  } else
+                    setMessage(
+                      "Nhập lý do 10–1000 ký tự, không chứa ký tự điều khiển.",
+                    );
+                }}
               >
-                Xác nhận vô hiệu hóa
-              </button>
-            </section>
+                <label>
+                  Lý do
+                  <textarea
+                    value={reason}
+                    onChange={(e) => {
+                      setReason(e.target.value);
+                      setReview(null);
+                    }}
+                  />
+                </label>
+                <button disabled={pending}>Xem xét</button>
+              </form>
+            )}
+          {review && !locked && (
+            <ActionDialog
+              open
+              title="Xác nhận vô hiệu hóa"
+              onClose={() => setReview(null)}
+              busy={pending}
+            >
+              <section aria-label="Xem lại vô hiệu hóa">
+                <h2>Xem lại vô hiệu hóa</h2>
+                <p>
+                  {data.record.code} — {data.record.name}
+                </p>
+                <p>{review.reason}</p>
+                <button disabled={pending} onClick={() => setReview(null)}>
+                  Hủy xem xét
+                </button>
+                <button
+                  data-dialog-action
+                  disabled={
+                    !dispatchEnabled ||
+                    pending ||
+                    data.writerCoordinationRequired ||
+                    data.dependencies.length !== 0
+                  }
+                  onClick={() => void confirm()}
+                >
+                  Xác nhận vô hiệu hóa
+                </button>
+              </section>
+            </ActionDialog>
           )}
         </>
       )}

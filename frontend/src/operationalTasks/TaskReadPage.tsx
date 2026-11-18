@@ -1,3 +1,5 @@
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
+import { StatusBadge } from "../components/design-system";
 import { useEffect, useState } from "react";
 import { useTaskBranches } from "./useTaskBranches";
 import { displayCode } from "../i18n/vi";
@@ -16,7 +18,10 @@ import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import { TaskReopenPanel } from "./TaskReopenPanel";
 import { TaskWorkloadPanel } from "./TaskWorkloadPanel";
-import { dashboardWorkloadBranches, dashboardWorkloadFilters } from "../insights/dashboardWorkloadLink";
+import {
+  dashboardWorkloadBranches,
+  dashboardWorkloadFilters,
+} from "../insights/dashboardWorkloadLink";
 import {
   readTasks,
   taskWorkflowStates,
@@ -47,7 +52,12 @@ export function TaskReadPage() {
   const [planned, setPlanned] = useState<AuthorityGeneration | null>(null);
   const [reopened, setReopened] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
-  const [workflowNotice, setWorkflowNotice] = useState<{ owner: AuthorityGeneration; branch: number; task: number; message: string } | null>(null);
+  const [workflowNotice, setWorkflowNotice] = useState<{
+    owner: AuthorityGeneration;
+    branch: number;
+    task: number;
+    message: string;
+  } | null>(null);
   const [query, setQuery] = useState<{
     branch: number;
     search: string;
@@ -67,22 +77,34 @@ export function TaskReadPage() {
     if (!owner || !query?.id) return;
     setWorkflowNotice({ owner, branch: query.branch, task: query.id, message });
     setResult(null);
-    setProgressRevision(n => n + 1);
+    setProgressRevision((n) => n + 1);
     setQuery({ ...query, revision: query.revision + 1 });
   }
   const workloadBranches = dashboardWorkloadBranches(params);
   useEffect(() => {
-    if (params.has("workloadBranches")) { setQuery(null); return; }
-    if (!branches.items) { setQuery(null); return; }
-    const sourceBranch = params.has("branchId") ? Number(params.get("branchId"))
-      : (branches.items.find(b => b.isPrimary) ?? (branches.items.length === 1 ? branches.items[0] : undefined))?.id;
+    if (params.has("workloadBranches")) {
+      setQuery(null);
+      return;
+    }
+    if (!branches.items) {
+      setQuery(null);
+      return;
+    }
+    const sourceBranch = params.has("branchId")
+      ? Number(params.get("branchId"))
+      : (
+          branches.items.find((b) => b.isPrimary) ??
+          (branches.items.length === 1 ? branches.items[0] : undefined)
+        )?.id;
     const sourceTask = params.has("taskId")
       ? Number(params.get("taskId"))
       : null;
     if (
       !owner ||
       !Number.isSafeInteger(sourceBranch) ||
-      !sourceBranch || sourceBranch <= 0 || !branches.items.some(b => b.id === sourceBranch) ||
+      !sourceBranch ||
+      sourceBranch <= 0 ||
+      !branches.items.some((b) => b.id === sourceBranch) ||
       (sourceTask !== null &&
         (!Number.isSafeInteger(sourceTask) || sourceTask <= 0))
     ) {
@@ -135,30 +157,65 @@ export function TaskReadPage() {
   const data = visible?.data;
   const page = data && "items" in data ? data : null;
   const detail = data && "task" in data ? data : null;
-  if (!owner)
+  if (!owner) return <LoadingIndicator label="Đang kiểm tra phiên đăng nhập" />;
+  if (params.has("workloadBranches"))
     return (
-      <LoadingIndicator label="Đang kiểm tra phiên đăng nhập" />
+      <main aria-label="Khối lượng công việc theo các chi nhánh">
+        <h1>Khối lượng công việc tổng quan</h1>
+        <Link to="/dashboard">Quay lại tổng quan</Link>
+        {!workloadBranches ? (
+          <p role="alert">
+            Phạm vi khối lượng công việc không hợp lệ. Quay lại tổng quan và
+            chọn lại bộ lọc.
+          </p>
+        ) : (
+          <>
+            <p>
+              Chi nhánh: {workloadBranches.join(", ")}. Each branch shows its
+              own current snapshot and pagination. Access is checked again for
+              every branch.
+            </p>
+            {workloadBranches.map((id) => (
+              <section
+                key={`${owner}:${id}:${params.toString()}`}
+                aria-label={`Chi nhánh theo dõi khối lượng ${id}`}
+              >
+                <h2>Chi nhánh {id}</h2>
+                <TaskWorkloadPanel
+                  branch={id}
+                  owner={owner}
+                  initialFilters={dashboardWorkloadFilters(params)}
+                />
+              </section>
+            ))}
+          </>
+        )}
+      </main>
     );
-  if (params.has("workloadBranches")) return (
-    <main aria-label="Khối lượng công việc theo các chi nhánh">
-      <h1>Khối lượng công việc tổng quan</h1>
-      <Link to="/dashboard">Quay lại tổng quan</Link>
-      {!workloadBranches ? <p role="alert">Phạm vi khối lượng công việc không hợp lệ. Quay lại tổng quan và chọn lại bộ lọc.</p> : <>
-        <p>Chi nhánh: {workloadBranches.join(", ")}. Each branch shows its own current snapshot and pagination. Access is checked again for every branch.</p>
-        {workloadBranches.map(id => <section key={`${owner}:${id}:${params.toString()}`} aria-label={`Chi nhánh theo dõi khối lượng ${id}`}>
-          <h2>Chi nhánh {id}</h2>
-          <TaskWorkloadPanel branch={id} owner={owner} initialFilters={dashboardWorkloadFilters(params)} />
-        </section>)}
-      </>}
-    </main>
-  );
   return (
     <main className="staff-workspace">
-      <header className="staff-heading"><div><h1>Công việc được giao</h1>
-      <p className="staff-subtitle">Theo dõi công việc, tiến độ và thời hạn trong chi nhánh của bạn.</p></div><Link to="/home">Trang chủ</Link></header>
-      {branches.error && <p role="alert" className="staff-notice">{branches.error} <button onClick={branches.reload}>Thử lại</button></p>}
-      {!branches.items && !branches.error && <LoadingIndicator label="Đang tải chi nhánh" />}
-      {branches.items?.length === 0 && <p className="staff-empty">Bạn chưa có chi nhánh được phép xem công việc.</p>}
+      <header className="staff-heading">
+        <div>
+          <h1>Công việc được giao</h1>
+          <p className="staff-subtitle">
+            Theo dõi công việc, tiến độ và thời hạn trong chi nhánh của bạn.
+          </p>
+        </div>
+        <Link to="/home">Trang chủ</Link>
+      </header>
+      {branches.error && (
+        <p role="alert" className="staff-notice">
+          {branches.error} <button onClick={branches.reload}>Thử lại</button>
+        </p>
+      )}
+      {!branches.items && !branches.error && (
+        <LoadingIndicator label="Đang tải chi nhánh" />
+      )}
+      {branches.items?.length === 0 && (
+        <p className="staff-empty">
+          Bạn chưa có chi nhánh được phép xem công việc.
+        </p>
+      )}
       <form
         className="staff-filters"
         onSubmit={(e) => {
@@ -175,39 +232,69 @@ export function TaskReadPage() {
             });
         }}
       >
-        <label>
-          Chi nhánh
-          {branches.items?.length === 1 ? <span className="staff-branch">{branches.items[0].name}</span> :
-          <select aria-label="Chi nhánh" required value={branch} onChange={e => { setBranch(e.target.value); setParams({branchId:e.target.value}); }}>
-            <option value="">Chọn chi nhánh</option>{branches.items?.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>}
-        </label>
-        <label>
-          Tìm công việc
-          <input
-            maxLength={150}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-        <label>
-          Trạng thái quy trình
-          <select
-            aria-label="Trạng thái quy trình"
-            value={workflowStatus}
-            onChange={(e) =>
-              setWorkflowStatus(e.target.value as TaskWorkflowState | "")
+        <div className="ds-quick-search">
+          <label>
+            Chi nhánh
+            {branches.items?.length === 1 ? (
+              <span className="staff-branch">{branches.items[0].name}</span>
+            ) : (
+              <select
+                aria-label="Chi nhánh"
+                required
+                value={branch}
+                onChange={(e) => {
+                  setBranch(e.target.value);
+                  setParams({ branchId: e.target.value });
+                }}
+              >
+                <option value="">Chọn chi nhánh</option>
+                {branches.items?.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </label>
+          <label>
+            Tìm công việc
+            <input
+              maxLength={150}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <button
+            disabled={
+              !branch || !branches.items?.some((b) => String(b.id) === branch)
             }
           >
-            <option value="">Tất cả quy trình</option>
-            {taskWorkflowStates.map((s) => (
-              <option key={s} value={s}>
-                {displayCode(s)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button disabled={!branch || !branches.items?.some(b => String(b.id) === branch)}>Tìm kiếm / tải lại</button>
+            Tìm kiếm / tải lại
+          </button>
+        </div>
+        <CollapsibleFilterPanel
+          activeCount={Number(!!query?.workflowStatus)}
+          onOpen={() => setWorkflowStatus(query?.workflowStatus ?? "")}
+          onClose={() => setWorkflowStatus(query?.workflowStatus ?? "")}
+        >
+          <label>
+            Trạng thái quy trình
+            <select
+              aria-label="Trạng thái quy trình"
+              value={workflowStatus}
+              onChange={(e) =>
+                setWorkflowStatus(e.target.value as TaskWorkflowState | "")
+              }
+            >
+              <option value="">Tất cả quy trình</option>
+              {taskWorkflowStates.map((s) => (
+                <option key={s} value={s}>
+                  {displayCode(s)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </CollapsibleFilterPanel>
       </form>
       {query && data && (
         <TaskWorkloadPanel
@@ -223,10 +310,15 @@ export function TaskReadPage() {
           MSG19: Đã từ chối công việc và trả về chờ phân công.
         </p>
       )}
-      {workflowNotice?.owner === owner && workflowNotice.branch === query?.branch && workflowNotice.task === query.id && <p role="status">{workflowNotice.message}</p>}
+      {workflowNotice?.owner === owner &&
+        workflowNotice.branch === query?.branch &&
+        workflowNotice.task === query.id && (
+          <p role="status">{workflowNotice.message}</p>
+        )}
       {assigned === owner && (
         <p role="status">
-          MSG08: Đã phân công công việc. Người thực hiện mới cần tiếp nhận trước khi bắt đầu.
+          MSG08: Đã phân công công việc. Người thực hiện mới cần tiếp nhận trước
+          khi bắt đầu.
         </p>
       )}
       {reopened === owner && (
@@ -245,36 +337,41 @@ export function TaskReadPage() {
       {planned === owner && (
         <p role="status">MSG08: Đã lưu định nghĩa hoặc kế hoạch công việc.</p>
       )}
-      {page && query && branches.items?.find(b => b.id === query.branch)?.canCreate && (
-        <TaskCreationHost
-          key={`Tạo mới:${owner}:${query.branch}:${query.revision}`}
-          branch={query.branch}
-          owner={owner}
-          onSeriesCreated={() => {
-            setPlanned(owner);
-            setResult(null);
-            setQuery({
-              ...query,
-              id: null,
-              page: 1,
-              revision: query.revision + 1,
-            });
-          }}
-          onCreated={(id, assign) => {
-            setPlanned(owner);
-            setResult(null);
-            if (assign)
-              setParams({ branchId: String(query.branch), taskId: String(id) });
-            else
+      {page &&
+        query &&
+        branches.items?.find((b) => b.id === query.branch)?.canCreate && (
+          <TaskCreationHost
+            key={`Tạo mới:${owner}:${query.branch}:${query.revision}`}
+            branch={query.branch}
+            owner={owner}
+            onSeriesCreated={() => {
+              setPlanned(owner);
+              setResult(null);
               setQuery({
                 ...query,
                 id: null,
                 page: 1,
                 revision: query.revision + 1,
               });
-          }}
-        />
-      )}
+            }}
+            onCreated={(id, assign) => {
+              setPlanned(owner);
+              setResult(null);
+              if (assign)
+                setParams({
+                  branchId: String(query.branch),
+                  taskId: String(id),
+                });
+              else
+                setQuery({
+                  ...query,
+                  id: null,
+                  page: 1,
+                  revision: query.revision + 1,
+                });
+            }}
+          />
+        )}
       {query && !visible && <LoadingIndicator label="Đang tải công việc" />}
       {page && query && (
         <TaskSeriesPanel
@@ -286,7 +383,11 @@ export function TaskReadPage() {
       {page && (
         <>
           <p>{page.totalCount} công việc</p>
-          {page.totalCount === 0 && <p className="staff-empty">Chưa có công việc phù hợp với quyền và bộ lọc hiện tại.</p>}
+          {page.totalCount === 0 && (
+            <p className="staff-empty">
+              Chưa có công việc phù hợp với quyền và bộ lọc hiện tại.
+            </p>
+          )}
           <ul className="staff-task-list">
             {page.items.map((task) => (
               <li key={task.id}>
@@ -301,8 +402,14 @@ export function TaskReadPage() {
                 >
                   {task.code}: {task.title}
                 </button>{" "}
-                <div><span className="staff-status">{displayCode(task.workflowStatus ?? task.status)}</span>{" · "}
-                Tiến độ {task.progressPercent}%{task.dueAt && <> · Hạn: {staffDate(task.dueAt)}</>}</div>
+                <div>
+                  <StatusBadge>
+                    {displayCode(task.workflowStatus ?? task.status)}
+                  </StatusBadge>
+                  {" · "}
+                  Tiến độ {task.progressPercent}%
+                  {task.dueAt && <> · Hạn: {staffDate(task.dueAt)}</>}
+                </div>
               </li>
             ))}
           </ul>
@@ -407,8 +514,9 @@ export function TaskReadPage() {
           <ul>
             {detail.progress.map((p) => (
               <li key={p.id}>
-                {staffDate(p.reportedAt)}: {displayCode(p.fromStatus ?? "")} → {displayCode(p.toStatus ?? "")},{" "}
-                {p.progressPercent}%<p>{p.description}</p>
+                {staffDate(p.reportedAt)}: {displayCode(p.fromStatus ?? "")} →{" "}
+                {displayCode(p.toStatus ?? "")}, {p.progressPercent}%
+                <p>{p.description}</p>
                 {p.blockerReason && <p>Trở ngại: {p.blockerReason}</p>}
               </li>
             ))}

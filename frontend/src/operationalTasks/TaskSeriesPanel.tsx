@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -57,8 +58,7 @@ export function TaskSeriesPanel({
           [403, 503].includes(error.status)
         )
           setHidden(true);
-        else
-          setError("Không tải được công việc định kỳ. Tải lại để thử tiếp.");
+        else setError("Không tải được công việc định kỳ. Tải lại để thử tiếp.");
       });
     return () => controller.abort();
   }, [branch, owner, actions, page, revision, seriesId]);
@@ -81,7 +81,9 @@ export function TaskSeriesPanel({
       );
       if (!controller.signal.aborted) {
         setMessage(
-          selected.isActive ? "MSG08: Đã dừng chuỗi. Công việc đã tạo giữ nguyên." : "MSG08: Đã kích hoạt lại chuỗi, không tạo bù lần bị bỏ qua.",
+          selected.isActive
+            ? "MSG08: Đã dừng chuỗi. Công việc đã tạo giữ nguyên."
+            : "MSG08: Đã kích hoạt lại chuỗi, không tạo bù lần bị bỏ qua.",
         );
         setRevision((n) => n + 1);
       }
@@ -114,12 +116,13 @@ export function TaskSeriesPanel({
             {data.items.map((series) => (
               <li key={series.seriesId}>
                 <strong>{series.title}</strong> —{" "}
-                {series.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}; {series.rule}; Người thực hiện: {series.defaultAssigneeName}; công việc đã tạo:{" "}
-                {series.occurrenceCount}.
+                {series.isActive ? "Đang hoạt động" : "Ngừng hoạt động"};{" "}
+                {series.rule}; Người thực hiện: {series.defaultAssigneeName};
+                công việc đã tạo: {series.occurrenceCount}.
                 <p>
                   Thời hạn đầu tiên: {series.firstDueAt}; Thời hạn tiếp theo:{" "}
-                  {series.nextDueAt ?? "Lịch đã hết lần thực hiện"}; Ngày kết thúc:{" "}
-                  {series.endDate ?? "Chưa có ngày kết thúc"}.
+                  {series.nextDueAt ?? "Lịch đã hết lần thực hiện"}; Ngày kết
+                  thúc: {series.endDate ?? "Chưa có ngày kết thúc"}.
                 </p>
                 {(series.isActive || series.nextDueAt !== null) && (
                   <button
@@ -130,7 +133,8 @@ export function TaskSeriesPanel({
                       setReason("");
                     }}
                   >
-                    {series.isActive ? "Dừng" : "Kích hoạt lại"} Chuỗi định kỳ: {series.title}
+                    {series.isActive ? "Dừng" : "Kích hoạt lại"} Chuỗi định kỳ:{" "}
+                    {series.title}
                   </button>
                 )}
               </li>
@@ -154,40 +158,58 @@ export function TaskSeriesPanel({
         </>
       )}
       {selected && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void stop();
-          }}
+        <ActionDialog
+          open
+          title="Thay đổi chuỗi công việc"
+          onClose={() => setSelected(null)}
+          busy={busy}
+          locked={uncertain}
+          error={message}
         >
-          <fieldset disabled={busy || uncertain}>
-            <legend>{selected.isActive ? "Dừng" : "Kích hoạt lại"} {selected.title}</legend>
-            <p>
-              Công việc và lịch sử hiện có giữ nguyên. Kích hoạt lại cần quyền nguồn, yêu cầu liên quan đang mở và người thực hiện hợp lệ; không tạo bù kỳ đã bỏ qua.
-            </p>
-            <label>
-              Lý do thay đổi
-              <textarea
-                maxLength={4000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                required
-                checked={confirmed}
-                onChange={(e) => setConfirmed(e.target.checked)}
-              />
-              Xác nhận áp dụng thay đổi cho các lần tạo trong tương lai
-            </label>
-            <button disabled={!confirmed || !selected.isActive && !reason.trim()}>Xác nhận {selected.isActive ? "stop" : "reactivation"}</button>
-            <button type="button" onClick={() => setSelected(null)}>
-              Hủy thay đổi
-            </button>
-          </fieldset>
-        </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void stop();
+            }}
+          >
+            <fieldset disabled={busy || uncertain}>
+              <legend>
+                {selected.isActive ? "Dừng" : "Kích hoạt lại"} {selected.title}
+              </legend>
+              <p>
+                Công việc và lịch sử hiện có giữ nguyên. Kích hoạt lại cần quyền
+                nguồn, yêu cầu liên quan đang mở và người thực hiện hợp lệ;
+                không tạo bù kỳ đã bỏ qua.
+              </p>
+              <label>
+                Lý do thay đổi
+                <textarea
+                  maxLength={4000}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  required
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                />
+                Xác nhận áp dụng thay đổi cho các lần tạo trong tương lai
+              </label>
+              <button
+                data-dialog-action
+                disabled={!confirmed || (!selected.isActive && !reason.trim())}
+              >
+                Xác nhận {selected.isActive ? "stop" : "reactivation"}
+              </button>
+              <button type="button" onClick={() => setSelected(null)}>
+                Hủy thay đổi
+              </button>
+            </fieldset>
+          </form>
+        </ActionDialog>
       )}
     </section>
   );

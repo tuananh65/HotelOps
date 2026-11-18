@@ -1,3 +1,4 @@
+import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { createChecklistApi } from "./api";
@@ -60,6 +61,16 @@ export function ChecklistCollection({
       });
     return () => controller.abort();
   }, [branch, query, refresh, reload, onDenied, onAuthorized]);
+  function restoreAdvanced() {
+    setActive(
+      query.isActive === null || query.isActive === undefined
+        ? ""
+        : String(query.isActive),
+    );
+    setStatus(query.status ?? "");
+    setType(query.roomTypeId?.toString() ?? "");
+    setSize(String(query.pageSize));
+  }
   function apply(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -95,7 +106,7 @@ export function ChecklistCollection({
         </button>
       </div>
       <form onSubmit={apply} aria-label="Bộ lọc checklist">
-        <div className="fe05-filters">
+        <div className="ds-quick-search">
           <label>
             Tìm mã hoặc tên
             <input
@@ -104,64 +115,88 @@ export function ChecklistCollection({
               onChange={(e) => setSearch(e.target.value)}
             />
           </label>
-          <label>
-            Hoạt động
-            <select value={active} onChange={(e) => setActive(e.target.value)}>
-              <option value="">Tất cả</option>
-              <option value="true">Đang hoạt động</option>
-              <option value="false">Ngừng hoạt động</option>
-            </select>
-          </label>
-          <label>
-            Trạng thái phiên bản
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">Tất cả</option>
-              {["DRAFT", "PUBLISHED", "RETIRED"].map((v) => (
-                <option key={v} value={v}>{displayCode(v)}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            ID loại phòng
-            <input
-              inputMode="numeric"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            />
-          </label>
-          <label>
-            Số dòng mỗi trang
-            <select value={size} onChange={(e) => setSize(e.target.value)}>
-              {[20, 50, 100].map((v) => (
-                <option key={v} value={v}>{displayCode(v)}</option>
-              ))}
-            </select>
-          </label>
+          <button type="submit">Tìm kiếm</button>
         </div>
-        <p>Trạng thái khớp bất kỳ phiên bản đã lưu, kể cả lịch sử.</p>
-        <button type="submit">Áp dụng bộ lọc</button>
-        <button
-          type="button"
-          onClick={() => {
-            setSearch("");
-            setActive("");
-            setStatus("");
-            setType("");
-            setSize("20");
-            setFormError("");
-            setQuery(defaultCollectionQuery());
-          }}
+        <CollapsibleFilterPanel
+          activeCount={
+            [query.isActive, query.status, query.roomTypeId].filter(
+              (v) => v !== null && v !== undefined,
+            ).length
+          }
+          onOpen={restoreAdvanced}
+          onClose={restoreAdvanced}
         >
-          Xóa bộ lọc
-        </button>
-        {formError && <p role="alert">{formError}</p>}
+          <div className="fe05-filters">
+            <label>
+              Hoạt động
+              <select
+                value={active}
+                onChange={(e) => setActive(e.target.value)}
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
+              </select>
+            </label>
+            <label>
+              Trạng thái phiên bản
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="">Tất cả</option>
+                {["DRAFT", "PUBLISHED", "RETIRED"].map((v) => (
+                  <option key={v} value={v}>
+                    {displayCode(v)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              ID loại phòng
+              <input
+                inputMode="numeric"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              />
+            </label>
+            <label>
+              Số dòng mỗi trang
+              <select value={size} onChange={(e) => setSize(e.target.value)}>
+                {[20, 50, 100].map((v) => (
+                  <option key={v} value={v}>
+                    {displayCode(v)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p>Trạng thái khớp bất kỳ phiên bản đã lưu, kể cả lịch sử.</p>
+          <button type="submit">Áp dụng bộ lọc</button>
+          <button
+            type="button"
+            onClick={() => {
+              setSearch("");
+              setActive("");
+              setStatus("");
+              setType("");
+              setSize("20");
+              setFormError("");
+              setQuery(defaultCollectionQuery());
+            }}
+          >
+            Xóa bộ lọc
+          </button>
+          {formError && <p role="alert">{formError}</p>}
+        </CollapsibleFilterPanel>
       </form>
       {busy && <p role="status">Đang tải danh sách checklist…</p>}
       {error && <p role="alert">{error}</p>}
       {visible && (
         <>
           <p role="status">
-            Tổng cộng {visible.total} danh sách kiểm tra · Trang {query.page}/{pages}
+            Tổng cộng {visible.total} danh sách kiểm tra · Trang {query.page}/
+            {pages}
           </p>
           {visible.items.length ? (
             <div className="fe05-table-scroll">

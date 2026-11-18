@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -84,9 +85,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       })
       .catch((error) => {
         if (!abort.signal.aborted && current.current === owner) {
-          setMessage(
-            "Kiểm tra lại chưa khả dụng hoặc bạn không còn quyền.",
-          );
+          setMessage("Kiểm tra lại chưa khả dụng hoặc bạn không còn quyền.");
           if (error instanceof ApiError && error.status === 401)
             actions.invalidateSession(owner);
         }
@@ -127,9 +126,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       !reason.trim() ||
       selected.reduce((n, d) => n + d.files.length, 0) > 5
     ) {
-      setMessage(
-        "Quyết định từng lỗi, nhập lý do và chọn tối đa 5 ảnh.",
-      );
+      setMessage("Quyết định từng lỗi, nhập lý do và chọn tối đa 5 ảnh.");
       return;
     }
     writing.current = true;
@@ -207,8 +204,8 @@ function Execution({ branch, id }: { branch: string; id: string }) {
           )}
           <p role="status">
             Kiểm tra lại {result.state === "PASSED" ? "Đạt" : "Không đạt"}.
-            Rework {result.reworkState === "COMPLETED" ? "Đã hoàn tất" : "Không đạt"}
-            .
+            Rework{" "}
+            {result.reworkState === "COMPLETED" ? "Đã hoàn tất" : "Không đạt"}.
           </p>
           <p>
             {terminalRead
@@ -222,8 +219,8 @@ function Execution({ branch, id }: { branch: string; id: string }) {
           {terminalRead && (
             <>
               <p>
-                Kết quả đã ghi nhận: {displayCode(result.state)}; Mức sẵn sàng khi kết luận:{" "}
-                {displayCode(result.effectiveReadiness)}.
+                Kết quả đã ghi nhận: {displayCode(result.state)}; Mức sẵn sàng
+                khi kết luận: {displayCode(result.effectiveReadiness)}.
               </p>
               {terminalRead.defects.map((d) => (
                 <section key={d.id} aria-label={`Lỗi đã ghi nhận ${d.id}`}>
@@ -340,21 +337,18 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                       role="alert"
                       style={{ color: "#b91c1c" }}
                     >
-                      Kết quả: chọn Đã khắc phục hoặc Chưa khắc phục. Kiểm tra và thử lại.
+                      Kết quả: chọn Đã khắc phục hoặc Chưa khắc phục. Kiểm tra
+                      và thử lại.
                     </p>
                   )}
-                  <label htmlFor={`note-${d.id}`}>
-                    Ghi chú lỗi #{d.id}
-                  </label>
+                  <label htmlFor={`note-${d.id}`}>Ghi chú lỗi #{d.id}</label>
                   <textarea
                     id={`note-${d.id}`}
                     maxLength={500}
                     value={decisions[d.id]?.note ?? ""}
                     onChange={(e) => change(d.id, { note: e.target.value })}
                   />
-                  <label htmlFor={`photos-${d.id}`}>
-                    Ảnh lỗi #{d.id}
-                  </label>
+                  <label htmlFor={`photos-${d.id}`}>Ảnh lỗi #{d.id}</label>
                   <input
                     id={`photos-${d.id}`}
                     type="file"
@@ -377,28 +371,39 @@ function Execution({ branch, id }: { branch: string; id: string }) {
               <button type="submit">Xem lại kết luận</button>
             </fieldset>
             {review && !locked && (
-              <section aria-label="Xem lại kết luận">
-                <p>
-                  {data.defects.every((d) => decisions[d.id]?.fixed === "FIXED")
-                    ? "Tất cả lỗi đã khắc phục. Kết luận đạt."
-                    : "Còn lỗi chưa khắc phục. Kết luận không đạt và yêu cầu làm lại."}
-                </p>
-                <p>{reason}</p>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void submit()}
-                >
-                  Xác nhận kết luận
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setReview(false)}
-                >
-                  Chỉnh sửa quyết định
-                </button>
-              </section>
+              <ActionDialog
+                open
+                title="Xem lại kết luận"
+                onClose={() => setReview(false)}
+                busy={busy}
+                error={message}
+              >
+                <section aria-label="Xem lại kết luận">
+                  <p>
+                    {data.defects.every(
+                      (d) => decisions[d.id]?.fixed === "FIXED",
+                    )
+                      ? "Tất cả lỗi đã khắc phục. Kết luận đạt."
+                      : "Còn lỗi chưa khắc phục. Kết luận không đạt và yêu cầu làm lại."}
+                  </p>
+                  <p>{reason}</p>
+                  <button
+                    data-dialog-action
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void submit()}
+                  >
+                    Xác nhận kết luận
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setReview(false)}
+                  >
+                    Chỉnh sửa quyết định
+                  </button>
+                </section>
+              </ActionDialog>
             )}
           </form>
         </>

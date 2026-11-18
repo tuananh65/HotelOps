@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { ShiftPlanApiError, type SavePlanAdapter } from "./shiftPlanApi";
 import { useContext, useEffect, useRef, useState } from "react";
 import { LoadingIndicator } from "../components/LoadingIndicator";
@@ -526,33 +527,41 @@ function Bound({
               Tiếp tục lưu kế hoạch
             </button>
             {saveReview && (
-              <div
-                className="shift-confirm"
-                role="region"
-                aria-label="Xác nhận lưu kế hoạch"
+              <ActionDialog
+                open
+                title="Xác nhận lưu kế hoạch ca"
+                onClose={() => setSaveReview(false)}
+                busy={pending}
               >
-                <h3>Lưu {drafts.length} phân công?</h3>
-                <p>
-                  {planning?.scope.departmentName} ·{" "}
-                  {planning?.scope.branchName}. Nhân viên sẽ được thông báo sau
-                  khi lưu thành công.
-                </p>
-                <div className="shift-actions">
-                  <button
-                    className="shift-primary"
-                    disabled={pending}
-                    onClick={() => void savePlan()}
-                  >
-                    Xác nhận lưu kế hoạch
-                  </button>
-                  <button
-                    disabled={pending}
-                    onClick={() => setSaveReview(false)}
-                  >
-                    Quay lại kiểm tra
-                  </button>
+                <div
+                  className="shift-confirm"
+                  role="region"
+                  aria-label="Xác nhận lưu kế hoạch"
+                >
+                  <h3>Lưu {drafts.length} phân công?</h3>
+                  <p>
+                    {planning?.scope.departmentName} ·{" "}
+                    {planning?.scope.branchName}. Nhân viên sẽ được thông báo
+                    sau khi lưu thành công.
+                  </p>
+                  <div className="shift-actions">
+                    <button
+                      data-dialog-action
+                      className="shift-primary"
+                      disabled={pending}
+                      onClick={() => void savePlan()}
+                    >
+                      Xác nhận lưu kế hoạch
+                    </button>
+                    <button
+                      disabled={pending}
+                      onClick={() => setSaveReview(false)}
+                    >
+                      Quay lại kiểm tra
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </ActionDialog>
             )}
           </div>
         )}

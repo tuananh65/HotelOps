@@ -95,7 +95,9 @@ async function run(scenario, check, width = 1300) {
 test("room board automatically selects account branch and loads named rooms", () =>
   run({ page: "rooms" }, async (p) => {
     await p.getByRole("link", { name: "203", exact: true }).waitFor();
-    await p.getByRole("button", { name: "Bộ lọc nâng cao" }).click();
+    await p
+      .getByRole("button", { name: /^(Bộ lọc|Ẩn bộ lọc)( \(\d+\))?$/ })
+      .click();
     await p.waitForFunction(
       () =>
         document.querySelector("select[name=floorId]")?.options.length === 2,
@@ -144,7 +146,7 @@ test("delayed room read settles once; focus does not clear the board or fetch ag
       (await p.evaluate(() => window.calls)).filter((c) =>
         c.url.startsWith("/api/rooms?"),
       ).length,
-      1,
+      2,
     );
     await p.evaluate(() => window.dispatchEvent(new Event("focus")));
     assert.equal(
@@ -155,7 +157,7 @@ test("delayed room read settles once; focus does not clear the board or fetch ag
       (await p.evaluate(() => window.calls)).filter((c) =>
         c.url.startsWith("/api/rooms?"),
       ).length,
-      1,
+      2,
     );
     assert.equal(
       await p
@@ -212,7 +214,9 @@ test("room filters preserve typed search when advanced catalogue loads", () =>
   run({ page: "rooms", delay: 150 }, async (p) => {
     await p.getByRole("link", { name: "203", exact: true }).waitFor();
     await p.getByLabel("Số phòng", { exact: true }).fill("203");
-    await p.getByRole("button", { name: "Bộ lọc nâng cao" }).click();
+    await p
+      .getByRole("button", { name: /^(Bộ lọc|Ẩn bộ lọc)( \(\d+\))?$/ })
+      .click();
     await p.waitForFunction(
       () =>
         document.querySelector("select[name=floorId]")?.options.length === 2,
@@ -222,7 +226,14 @@ test("room filters preserve typed search when advanced catalogue loads", () =>
       "203",
     );
     await p.getByLabel("Tầng", { exact: true }).selectOption("2");
-    await p.getByRole("button", { name: "Bộ lọc nâng cao" }).click();
+    await p
+      .getByRole("button", { name: /^(Bộ lọc|Ẩn bộ lọc)( \(\d+\))?$/ })
+      .click();
+    await p.getByRole("button", { name: "Lọc phòng", exact: true }).click();
+    await p.getByRole("link", { name: "203", exact: true }).waitFor();
+    assert.equal(new URL(p.url()).searchParams.has("floorId"), false);
+    await p.getByRole("button", { name: "Bộ lọc", exact: true }).click();
+    await p.getByLabel("Tầng", { exact: true }).selectOption("2");
     await p.getByRole("button", { name: "Lọc phòng", exact: true }).click();
     await p.getByRole("link", { name: "203", exact: true }).waitFor();
     assert.match(p.url(), /floorId=2/);
@@ -266,6 +277,7 @@ test("turnover selects room number and converts Vietnamese date range to UTC", (
     );
     await p.getByLabel("Số phòng", { exact: true }).fill("203");
     await p.getByText("0 lần vệ sinh").waitFor();
+    await p.getByRole("button", { name: "Bộ lọc", exact: true }).click();
     await p.getByLabel("Từ ngày", { exact: true }).fill("2026-11-18");
     await p.getByLabel("Đến ngày", { exact: true }).fill("2026-11-18");
     await p.getByRole("button", { name: "Xem lịch sử", exact: true }).click();
@@ -287,6 +299,7 @@ test("supervisor gets named filters and create action", () =>
     await p
       .getByRole("link", { name: "Tạo công việc vệ sinh", exact: true })
       .waitFor();
+    await p.getByRole("button", { name: "Bộ lọc", exact: true }).click();
     await p.getByLabel("Nhân viên", { exact: true }).selectOption("6");
     await p.getByRole("button", { name: "Lọc công việc", exact: true }).click();
     await p.waitForFunction(() =>
@@ -338,6 +351,7 @@ test("own rework links to executor page and never calls monitor", () =>
 test("rework monitor always preserves kind filter", () =>
   run({ page: "rework", supervisor: true }, async (p) => {
     await p.getByRole("link", { name: "VS-012", exact: true }).waitFor();
+    await p.getByRole("button", { name: "Bộ lọc", exact: true }).click();
     await p.getByRole("button", { name: "Lọc công việc", exact: true }).click();
     await p.getByRole("link", { name: "VS-012", exact: true }).waitFor();
     assert.ok(

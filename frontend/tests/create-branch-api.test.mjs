@@ -11,7 +11,7 @@ const { createBranchApi } = await import(
   "data:text/javascript;base64," +
     Buffer.from(b.outputFiles[0].text).toString("base64")
 );
-const tag = '"' + "A".repeat(64) + '"',
+const tag = '"AAAAAAAAAAA="',
   secret = "SYNTHETIC-CREATE-CSRF";
 const input = {
   code: " b-new ",
@@ -101,9 +101,9 @@ for (const reply of [
   { body: { ...branch, id: Number.MAX_SAFE_INTEGER + 1 } },
   { body: { ...branch, code: "OTHER" } },
   { body: { ...branch, isActive: false } },
-  { body: { ...branch, timezone: "OTHER" } },
+  { body: { ...branch, timezone: "" } },
   { body: { ...branch, address: null } },
-  { body: branch, etag: '"AAAAAAAAAAE="' },
+  { body: branch, etag: '"' + "A".repeat(64) + '"' },
   { body: branch, etag: "W/" + tag },
   { body: null },
   { raw: "{" },

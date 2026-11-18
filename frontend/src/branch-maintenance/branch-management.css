@@ -1,0 +1,491 @@
+.branch-workspace {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+.branch-heading,
+.branch-toolbar,
+.branch-pagination,
+.branch-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.branch-heading {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.branch-heading > div {
+  min-width: 0;
+}
+.branch-heading h1 {
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.branch-eyebrow {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.branch-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.branch-back a:hover {
+  color: var(--primary-600);
+}
+.branch-heading .ds-button {
+  flex-shrink: 0;
+}
+.branch-workspace h2 {
+  font-size: 18px;
+  line-height: 1.4;
+}
+.branch-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.branch-section-heading .ds-button {
+  flex-shrink: 0;
+}
+.branch-workspace .branch-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.branch-metric {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+}
+.branch-metric dt {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.branch-metric dd {
+  margin: 2px 0 0;
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.branch-metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+.branch-metric.is-active .branch-metric-icon {
+  background: var(--success-surface);
+  color: var(--success-text);
+}
+.branch-metric.is-inactive .branch-metric-icon {
+  background: var(--neutral-surface);
+  color: var(--neutral-text);
+}
+.branch-heading h1,
+.branch-card h2 {
+  margin: 0 0 8px;
+}
+.branch-heading p,
+.branch-muted {
+  color: var(--text-secondary);
+  margin: 0;
+}
+.branch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  padding: 24px;
+  min-width: 0;
+}
+.branch-toolbar {
+  justify-content: space-between;
+}
+.branch-search {
+  position: relative;
+}
+.branch-search > svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.branch-workspace
+  .branch-directory
+  .branch-toolbar
+  .branch-search
+  input[type="search"] {
+  padding-left: 42px;
+  min-height: 44px;
+}
+.branch-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.branch-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+.branch-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.branch-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.branch-name svg {
+  color: var(--text-secondary);
+}
+.branch-name:hover {
+  color: var(--primary-600);
+}
+.branch-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-600);
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.branch-toolbar label {
+  flex: 1 1 260px;
+  max-width: 520px;
+}
+.branch-workspace label,
+.branch-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 500;
+}
+.branch-workspace input,
+.branch-workspace select,
+.branch-form input,
+.branch-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-control);
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+.branch-form {
+  display: grid;
+  gap: 20px;
+}
+.branch-form .branch-form-section {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.branch-form .branch-form-section + .branch-form-section {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+.branch-form .branch-form-section legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.branch-form-section legend svg {
+  color: var(--primary-600);
+}
+.branch-form-section > p {
+  margin-bottom: 20px;
+}
+.branch-form-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-muted);
+  border-radius: 10px;
+  color: var(--text-secondary);
+}
+.branch-form-note strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.branch-form-note p {
+  margin: 4px 0 0;
+}
+.branch-form-footer {
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.branch-form-intro {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.branch-form-grid,
+.branch-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+.branch-form-grid .branch-wide {
+  grid-column: 1 / -1;
+}
+.branch-summary.branch-summary {
+  margin: 0;
+  gap: 0 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.branch-summary > div {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.branch-summary-wide {
+  grid-column: 1 / -1;
+}
+.branch-summary dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.branch-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.branch-status {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--neutral-surface);
+  color: var(--neutral-text);
+  font-size: 13px;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+.branch-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.branch-status.is-active,
+.branch-feedback.is-success {
+  background: var(--success-surface);
+  color: var(--success-text);
+}
+.branch-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.branch-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+  text-align: left;
+}
+.branch-table th {
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.branch-table th,
+.branch-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  word-break: normal;
+}
+.branch-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.branch-table tbody tr:hover {
+  background: var(--surface-muted);
+}
+.branch-table th:first-child {
+  width: 16%;
+}
+.branch-table th:nth-child(3) {
+  width: 180px;
+}
+.branch-table th:last-child {
+  width: 148px;
+}
+.branch-table td:nth-child(2) {
+  overflow-wrap: anywhere;
+}
+.branch-pagination {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.branch-feedback {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--error-surface);
+  color: var(--error-text);
+}
+.branch-feedback.is-warning {
+  background: var(--warning-surface);
+  color: var(--warning-text);
+}
+.branch-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.branch-empty > svg {
+  color: var(--text-muted);
+}
+.branch-empty h3 {
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 12px 0 4px;
+}
+.branch-empty p {
+  margin: 0;
+}
+.branch-check {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+}
+.branch-check input {
+  width: auto !important;
+  margin-top: 4px;
+}
+.branch-danger {
+  border-left: 3px solid var(--warning-text);
+}
+.branch-danger > p {
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin: 0 0 20px;
+}
+@media (max-width: 900px) {
+  .branch-metric {
+    padding: 16px;
+    gap: 10px;
+  }
+  .branch-metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+@media (max-width: 640px) {
+  .branch-workspace {
+    gap: 20px;
+  }
+  .branch-workspace .branch-metrics {
+    gap: 8px;
+  }
+  .branch-metric {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+  }
+  .branch-metric-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .branch-metric dd {
+    font-size: 24px;
+  }
+  .branch-metric dt {
+    font-size: 12px;
+    min-height: 36px;
+  }
+  .branch-heading > .ds-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .branch-toolbar label {
+    max-width: none;
+  }
+  .branch-section-heading {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .branch-section-heading > .ds-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .branch-form-footer {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .branch-form-footer .ds-button {
+    justify-content: center;
+  }
+  .branch-form-grid,
+  .branch-summary.branch-summary {
+    grid-template-columns: 1fr;
+  }
+  .branch-card {
+    padding: 16px;
+  }
+  .branch-pagination {
+    justify-content: center;
+  }
+}

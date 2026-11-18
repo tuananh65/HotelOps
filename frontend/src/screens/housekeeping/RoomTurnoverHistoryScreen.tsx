@@ -1,4 +1,5 @@
-﻿import {
+import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
+import {
   useRoomWorkspace,
   useRoomChoices,
   RoomBranchField,
@@ -142,61 +143,74 @@ export default function RoomTurnoverHistoryScreen() {
         className="filter-bar"
         onSubmit={submit}
       >
-        <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
-        <RoomNumberField
-          items={choices.items ?? []}
-          selected={room}
-          onSelect={(id) => {
-            const next = new URLSearchParams(params);
-            next.delete("cycleId");
-            next.delete("timelinePage");
-            next.delete("room");
-            next.set("roomId", id);
-            next.set("page", "1");
-            setParams(next);
-          }}
-        />
-        <label>
-          Từ ngày
-          <input
-            type="date"
-            name="fromDate"
-            defaultValue={localDate(params.get("from"))}
+        <div className="ds-quick-search">
+          <RoomNumberField
+            items={choices.items ?? []}
+            selected={room}
+            onSelect={(id) => {
+              const next = new URLSearchParams(params);
+              next.delete("cycleId");
+              next.delete("timelinePage");
+              next.delete("room");
+              next.set("roomId", id);
+              next.set("page", "1");
+              setParams(next);
+            }}
           />
-        </label>
-        <label>
-          Đến ngày
-          <input
-            type="date"
-            name="toDate"
-            defaultValue={localDate(params.get("to"))}
-          />
-        </label>
-        <label>
-          Kết quả kiểm tra
-          <select
-            aria-label="Kết quả kiểm tra"
-            name="result"
-            defaultValue={params.get("result") || ""}
-          >
-            <option value="">Tất cả</option>
-            <option value="PASS">Đạt</option>
-            <option value="FAIL">Không đạt</option>
-          </select>
-        </label>
-        <label>
-          Số dòng
-          <select name="pageSize" defaultValue={params.get("pageSize") || "20"}>
-            {[10, 20, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {displayCode(n)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button disabled={!scope.branch || !choices.items?.length}>
-          Xem lịch sử
-        </button>
+          <button disabled={!scope.branch || !choices.items?.length}>
+            Xem lịch sử
+          </button>
+        </div>
+        <CollapsibleFilterPanel
+          resetNative
+          activeCount={
+            ["from", "to", "result"].filter((k) => !!params.get(k)).length
+          }
+        >
+          <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
+
+          <label>
+            Từ ngày
+            <input
+              type="date"
+              name="fromDate"
+              defaultValue={localDate(params.get("from"))}
+            />
+          </label>
+          <label>
+            Đến ngày
+            <input
+              type="date"
+              name="toDate"
+              defaultValue={localDate(params.get("to"))}
+            />
+          </label>
+          <label>
+            Kết quả kiểm tra
+            <select
+              aria-label="Kết quả kiểm tra"
+              name="result"
+              defaultValue={params.get("result") || ""}
+            >
+              <option value="">Tất cả</option>
+              <option value="PASS">Đạt</option>
+              <option value="FAIL">Không đạt</option>
+            </select>
+          </label>
+          <label>
+            Số dòng
+            <select
+              name="pageSize"
+              defaultValue={params.get("pageSize") || "20"}
+            >
+              {[10, 20, 50, 100].map((n) => (
+                <option key={n} value={n}>
+                  {displayCode(n)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </CollapsibleFilterPanel>
       </form>
       {!room && (
         <p className="room-empty">

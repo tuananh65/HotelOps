@@ -1,3 +1,4 @@
+import { StatusBadge } from "../components/design-system";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import { label } from "./contracts";
@@ -34,6 +35,13 @@ function Scalar({ name, value }: { name: string; value: unknown }) {
         </Link>
       );
   }
+  if (
+    ["status", "workflowStatus", "operationalStatus", "accountStatus"].includes(
+      name,
+    ) &&
+    typeof value === "string"
+  )
+    return <StatusBadge>{fieldValue(name, value)}</StatusBadge>;
   const target = destinations[name];
   if (
     target &&
@@ -42,11 +50,7 @@ function Scalar({ name, value }: { name: string; value: unknown }) {
     value > 0
   )
     return <Link to={`/operations/${target}/${value}`}>{String(value)}</Link>;
-  return (
-    <span>
-      {fieldValue(name, value)}
-    </span>
-  );
+  return <span>{fieldValue(name, value)}</span>;
 }
 export function DataView({
   data,

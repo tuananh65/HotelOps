@@ -12,6 +12,7 @@ const result = await build({
   },
   bundle: true,
   write: false,
+  outfile: ".test-output/scheduled-workday-panel.js",
   format: "iife",
   jsx: "automatic",
   define: { "process.env.NODE_ENV": '"production"' },
@@ -70,7 +71,8 @@ async function openReview(p, operation) {
   const before = await p.evaluate(() => window.fixture.calls.length);
   await p
     .getByRole("button", {
-      name: operation === "start" ? "Bắt đầu ca đã phân" : "Kết thúc ngày làm việc",
+      name:
+        operation === "start" ? "Bắt đầu ca đã phân" : "Kết thúc ngày làm việc",
       exact: true,
     })
     .click();
@@ -97,9 +99,7 @@ test("OFF zero CSRF/POST", () =>
   run({}, async (p) => {
     await choose(p);
     assert.equal(
-      await p
-        .getByRole("button", { name: "Bắt đầu ca đã phân" })
-        .isDisabled(),
+      await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,
     );
     assert.equal(
@@ -115,9 +115,7 @@ test("confirmed start then end refresh authoritative current", () =>
     await perform(p, "start");
     await p.getByText("Working day 20", { exact: true }).waitFor();
     assert.equal(
-      await p
-        .getByRole("button", { name: "Bắt đầu ca đã phân" })
-        .isDisabled(),
+      await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,
     );
     await perform(p, "end");
@@ -125,16 +123,19 @@ test("confirmed start then end refresh authoritative current", () =>
     assert.equal((await posts(p)).length, 2);
   }));
 test("unsupported open interval blocks End", () =>
-  run({ enabled: true, working: true, open: true, kind: "UNSUPPORTED" }, async (p) => {
-    await p.getByRole("alert").waitFor();
-    assert.equal(
-      await p
-        .getByRole("button", { name: "Kết thúc ngày làm việc", exact: true })
-        .isDisabled(),
-      true,
-    );
-    assert.equal((await posts(p)).length, 0);
-  }));
+  run(
+    { enabled: true, working: true, open: true, kind: "UNSUPPORTED" },
+    async (p) => {
+      await p.getByRole("alert").waitFor();
+      assert.equal(
+        await p
+          .getByRole("button", { name: "Kết thúc ngày làm việc", exact: true })
+          .isDisabled(),
+        true,
+      );
+      assert.equal((await posts(p)).length, 0);
+    },
+  ));
 for (const s of [{ restricted: true }, { anonymous: true }, { invalid: true }])
   test("no protected calls " + JSON.stringify(s), () =>
     run(s, async (p) => {
@@ -182,9 +183,7 @@ test("unknown outcome stays locked after refresh", () =>
       true,
     );
     assert.equal(
-      await p
-        .getByRole("button", { name: "Bắt đầu ca đã phân" })
-        .isDisabled(),
+      await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,
     );
     assert.equal((await posts(p)).length, 1);
@@ -217,9 +216,7 @@ test("current denial blocks Start", () =>
     await p.getByText(/Ngày làm việc hiện tại chưa khả dụng:/).waitFor();
     await p.getByLabel("Ca đã lên lịch", { exact: true }).selectOption("10");
     assert.equal(
-      await p
-        .getByRole("button", { name: "Bắt đầu ca đã phân" })
-        .isDisabled(),
+      await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,
     );
   }));
@@ -258,7 +255,10 @@ test("double End dispatches once and cannot end empty current", () =>
     await p.getByText("Working day 20", { exact: true }).waitFor();
     await openReview(p, "end");
     await p
-      .getByRole("button", { name: "Xác nhận kết thúc ngày làm việc", exact: true })
+      .getByRole("button", {
+        name: "Xác nhận kết thúc ngày làm việc",
+        exact: true,
+      })
       .evaluate((b) => {
         b.click();
         b.click();
@@ -362,7 +362,9 @@ test("mutation 401 removes previous data and prevents repeated End", () =>
       0,
     );
     assert.equal(
-      await p.getByRole("button", { name: "Kết thúc ngày làm việc", exact: true }).count(),
+      await p
+        .getByRole("button", { name: "Kết thúc ngày làm việc", exact: true })
+        .count(),
       0,
     );
     assert.equal((await posts(p)).length, 1);
@@ -474,9 +476,12 @@ for (const operation of ["start", "end"]) {
                 .waitFor();
             else {
               await p
-                .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.", {
-                  exact: true,
-                })
+                .getByText(
+                  "Cần phiên đăng nhập đã xác minh và không bị hạn chế.",
+                  {
+                    exact: true,
+                  },
+                )
                 .waitFor();
               assert.equal(
                 await p
@@ -666,13 +671,13 @@ test("032 scheduled claim stays consumed after End; receipt retains server times
     await perform(p, "end");
     await p.getByText("No current working day.").waitFor();
     await p.getByText("No assigned shifts.").waitFor();
-    const receipt = p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" });
+    const receipt = p.getByRole("region", {
+      name: "Kết quả ngày làm việc đã xác nhận",
+    });
     await receipt.getByText("Workday 20: ENDED").waitFor();
     assert.equal(await receipt.locator("time").count(), 2);
     assert.equal(
-      await p
-        .getByRole("button", { name: "Bắt đầu ca đã phân" })
-        .isDisabled(),
+      await p.getByRole("button", { name: "Bắt đầu ca đã phân" }).isDisabled(),
       true,
     );
     assert.equal((await posts(p)).length, 2);
@@ -681,11 +686,15 @@ test("032 confirmed receipt is removed on branch replacement", () =>
   run({ enabled: true }, async (p) => {
     await choose(p);
     await perform(p, "start");
-    await p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" }).waitFor();
+    await p
+      .getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" })
+      .waitFor();
     await p.getByRole("button", { name: "Change branch" }).click();
     await p.getByText("Working day 20", { exact: true }).waitFor();
     assert.equal(
-      await p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" }).count(),
+      await p
+        .getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" })
+        .count(),
       0,
     );
   }));
@@ -693,11 +702,15 @@ test("032 confirmed receipt is removed on session replacement", () =>
   run({ enabled: true }, async (p) => {
     await choose(p);
     await perform(p, "start");
-    await p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" }).waitFor();
+    await p
+      .getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" })
+      .waitFor();
     await p.evaluate(() => window.fixture.replace());
     await p.getByText("Working day 20", { exact: true }).waitFor();
     assert.equal(
-      await p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" }).count(),
+      await p
+        .getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" })
+        .count(),
       0,
     );
   }));
@@ -707,7 +720,9 @@ test("032 unknown Start outcome creates no confirmed receipt", () =>
     await perform(p, "start");
     await p.getByText(/Outcome unknown/).waitFor();
     assert.equal(
-      await p.getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" }).count(),
+      await p
+        .getByRole("region", { name: "Kết quả ngày làm việc đã xác nhận" })
+        .count(),
       0,
     );
     assert.equal((await posts(p)).length, 1);
@@ -752,60 +767,166 @@ for (const operation of ["start", "end"])
       ),
   );
 
-test("unscheduled current workday can End without a new shift assignment",()=>run({enabled:true,working:true,unscheduled:true,shiftDenied:true},async p=>{
- await p.getByText('Working day 20',{exact:true}).waitFor();
- await perform(p,'end');await p.getByText('No current working day.').waitFor();
- assert.equal((await posts(p)).length,1);
- await p.getByText(/Unscheduled workday; Branch/).waitFor();
-}));
-test("unscheduled unsupported open interval still blocks End",()=>run({enabled:true,working:true,unscheduled:true,open:true,kind:"UNSUPPORTED"},async p=>{
- await p.getByRole('alert').waitFor();
- assert.equal(await p.getByRole('button',{name:"Kết thúc ngày làm việc",exact:true}).isDisabled(),true);
- assert.equal((await posts(p)).length,0);
-}));
+test("unscheduled current workday can End without a new shift assignment", () =>
+  run(
+    { enabled: true, working: true, unscheduled: true, shiftDenied: true },
+    async (p) => {
+      await p.getByText("Working day 20", { exact: true }).waitFor();
+      await perform(p, "end");
+      await p.getByText("No current working day.").waitFor();
+      assert.equal((await posts(p)).length, 1);
+      await p.getByText(/Unscheduled workday; Branch/).waitFor();
+    },
+  ));
+test("unscheduled unsupported open interval still blocks End", () =>
+  run(
+    {
+      enabled: true,
+      working: true,
+      unscheduled: true,
+      open: true,
+      kind: "UNSUPPORTED",
+    },
+    async (p) => {
+      await p.getByRole("alert").waitFor();
+      assert.equal(
+        await p
+          .getByRole("button", { name: "Kết thúc ngày làm việc", exact: true })
+          .isDisabled(),
+        true,
+      );
+      assert.equal((await posts(p)).length, 0);
+    },
+  ));
 
-test("task Pause All reviews before End",()=>run({enabled:true,working:true,open:true},async p=>{
- await p.getByRole('button',{name:"Tạm dừng tất cả và kết thúc ngày làm việc",exact:true}).click();
- await p.getByText(/Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./).waitFor();
- assert.equal((await posts(p)).length,0);
- await p.getByRole('button',{name:"Xác nhận kết thúc ngày làm việc",exact:true}).click();
- await p.getByText('No current working day.').waitFor();
- assert.equal((await posts(p)).length,1);
-}));
+test("task Pause All reviews before End", () =>
+  run({ enabled: true, working: true, open: true }, async (p) => {
+    await p
+      .getByRole("button", {
+        name: "Tạm dừng tất cả và kết thúc ngày làm việc",
+        exact: true,
+      })
+      .click();
+    await p
+      .getByText(
+        /Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./,
+      )
+      .waitFor();
+    assert.equal((await posts(p)).length, 0);
+    await p
+      .getByRole("button", {
+        name: "Xác nhận kết thúc ngày làm việc",
+        exact: true,
+      })
+      .click();
+    await p.getByText("No current working day.").waitFor();
+    assert.equal((await posts(p)).length, 1);
+  }));
 
-test("unscheduled start uses verified membership and reason",()=>run({enabled:true,unscheduled:true,memberships:[{departmentId:12,code:'HK',name:'Housekeeping'}]},async p=>{
- await p.getByText('No current working day.').waitFor();
- await p.getByLabel("Lý do",{exact:true}).fill('Cover an unexpected absence');
- await p.getByRole('button',{name:"Xem lại thông tin bắt đầu ngoài ca",exact:true}).click();
- assert.equal((await posts(p)).length,0);
- await p.getByRole('button',{name:"Xác nhận bắt đầu ngoài ca",exact:true}).click();
- await p.getByText('Working day 20',{exact:true}).waitFor();
- assert.equal((await posts(p)).length,1);
-}));
+test("unscheduled start uses verified membership and reason", () =>
+  run(
+    {
+      enabled: true,
+      unscheduled: true,
+      memberships: [{ departmentId: 12, code: "HK", name: "Housekeeping" }],
+    },
+    async (p) => {
+      await p.getByText("No current working day.").waitFor();
+      await p
+        .getByLabel("Lý do", { exact: true })
+        .fill("Cover an unexpected absence");
+      await p
+        .getByRole("button", {
+          name: "Xem lại thông tin bắt đầu ngoài ca",
+          exact: true,
+        })
+        .click();
+      assert.equal((await posts(p)).length, 0);
+      await p
+        .getByRole("button", { name: "Xác nhận bắt đầu ngoài ca", exact: true })
+        .click();
+      await p.getByText("Working day 20", { exact: true }).waitFor();
+      assert.equal((await posts(p)).length, 1);
+    },
+  ));
 
-test("Cleaning Pause All uses a hold before ending workday",()=>run({enabled:true,working:true,open:true,kind:'CLEANING'},async p=>{
- await p.getByRole('button',{name:"Tạm dừng tất cả và kết thúc ngày làm việc",exact:true}).click();
- await p.getByText(/Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./).waitFor();
- assert.equal((await posts(p)).length,0);
- await p.getByRole('button',{name:"Xác nhận kết thúc ngày làm việc",exact:true}).click();
- await p.getByText('No current working day.').waitFor();
- assert.equal((await posts(p)).length,1);
-}));
+test("Cleaning Pause All uses a hold before ending workday", () =>
+  run(
+    { enabled: true, working: true, open: true, kind: "CLEANING" },
+    async (p) => {
+      await p
+        .getByRole("button", {
+          name: "Tạm dừng tất cả và kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p
+        .getByText(
+          /Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./,
+        )
+        .waitFor();
+      assert.equal((await posts(p)).length, 0);
+      await p
+        .getByRole("button", {
+          name: "Xác nhận kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p.getByText("No current working day.").waitFor();
+      assert.equal((await posts(p)).length, 1);
+    },
+  ));
 
-test("Rework Pause All reviews before ending workday",()=>run({enabled:true,working:true,open:true,kind:'REWORK'},async p=>{
- await p.getByRole('button',{name:"Tạm dừng tất cả và kết thúc ngày làm việc",exact:true}).click();
- await p.getByText(/Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./).waitFor();
- assert.equal((await posts(p)).length,0);
- await p.getByRole('button',{name:"Xác nhận kết thúc ngày làm việc",exact:true}).click();
- await p.getByText('No current working day.').waitFor();
- assert.equal((await posts(p)).length,1);
-}));
+test("Rework Pause All reviews before ending workday", () =>
+  run(
+    { enabled: true, working: true, open: true, kind: "REWORK" },
+    async (p) => {
+      await p
+        .getByRole("button", {
+          name: "Tạm dừng tất cả và kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p
+        .getByText(
+          /Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./,
+        )
+        .waitFor();
+      assert.equal((await posts(p)).length, 0);
+      await p
+        .getByRole("button", {
+          name: "Xác nhận kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p.getByText("No current working day.").waitFor();
+      assert.equal((await posts(p)).length, 1);
+    },
+  ));
 
-test("Maintenance Pause All reviews before ending workday",()=>run({enabled:true,working:true,open:true,kind:'MAINTENANCE'},async p=>{
- await p.getByRole('button',{name:"Tạm dừng tất cả và kết thúc ngày làm việc",exact:true}).click();
- await p.getByText(/Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./).waitFor();
- assert.equal((await posts(p)).length,0);
- await p.getByRole('button',{name:"Xác nhận kết thúc ngày làm việc",exact:true}).click();
- await p.getByText('No current working day.').waitFor();
- assert.equal((await posts(p)).length,1);
-}));
+test("Maintenance Pause All reviews before ending workday", () =>
+  run(
+    { enabled: true, working: true, open: true, kind: "MAINTENANCE" },
+    async (p) => {
+      await p
+        .getByRole("button", {
+          name: "Tạm dừng tất cả và kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p
+        .getByText(
+          /Công việc đang chạy sẽ tạm dừng với lý do hết ca và kết thúc khoảng làm việc\. Nếu tạm dừng thất bại, ngày làm việc vẫn đang hoạt động\./,
+        )
+        .waitFor();
+      assert.equal((await posts(p)).length, 0);
+      await p
+        .getByRole("button", {
+          name: "Xác nhận kết thúc ngày làm việc",
+          exact: true,
+        })
+        .click();
+      await p.getByText("No current working day.").waitFor();
+      assert.equal((await posts(p)).length, 1);
+    },
+  ));

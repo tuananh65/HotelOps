@@ -1,3 +1,7 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -105,6 +109,10 @@ export function TaskAssignmentPanel({
       );
       if (!controller.signal.aborted) {
         setLocked(true);
+        announceWorkflowSuccess(
+          "Đã phân công công việc.",
+          "operationalTasks/TaskAssignmentPanel.tsx",
+        );
         onAssigned();
       }
     } catch (error) {
@@ -116,102 +124,112 @@ export function TaskAssignmentPanel({
   }
   if (hidden) return null;
   return (
-    <section aria-label="Phân công công việc">
-      <h3>Phân công hoặc phân công lại công việc</h3>
-      <button
-        disabled={busy}
-        onClick={() => setQuery((q) => ({ ...q, revision: q.revision + 1 }))}
-      >
-        Tải lại phân công
-      </button>
-      {error && <p role="alert">{error}</p>}
-      {snapshot && (
-        <>
-          <p>
-            Quy trình: {displayCode(snapshot.data.state)}; người thực hiện hiện tại:{" "}
-            {snapshot.data.assigneeId ?? "Chưa phân công"}
-          </p>
-          <p>
-            Khối lượng công việc trong chi nhánh tính đến {snapshot.data.asOf}. Logged time
-            today ({snapshot.data.timezone}) gồm các khoảng làm việc đã kết thúc; không tính thời gian tạm dừng.
-          </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!busy)
-                setQuery((q) => ({
-                  search,
-                  page: 1,
-                  revision: q.revision + 1,
-                }));
-            }}
-          >
-            <label>
-              Tìm người thực hiện
-              <input
-                maxLength={150}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </label>
-            <button disabled={busy}>Tìm người thực hiện</button>
-          </form>
-          <fieldset disabled={busy || locked}>
-            <legend>Chọn người thực hiện đủ điều kiện</legend>
-            <label>
-              Người thực hiện
-              <select
-                aria-label="Người thực hiện"
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
+    <ActionDialog
+      scope="operationalTasks/TaskAssignmentPanel.tsx"
+      title="Phân công người thực hiện công việc"
+      busy={busy}
+    >
+      <section aria-label="Phân công công việc">
+        <h3>Phân công hoặc phân công lại công việc</h3>
+        <button
+          disabled={busy}
+          onClick={() => setQuery((q) => ({ ...q, revision: q.revision + 1 }))}
+        >
+          Tải lại phân công
+        </button>
+        {error && <p role="alert">{error}</p>}
+        {snapshot && (
+          <>
+            <p>
+              Quy trình: {displayCode(snapshot.data.state)}; người thực hiện
+              hiện tại: {snapshot.data.assigneeId ?? "Chưa phân công"}
+            </p>
+            <p>
+              Khối lượng công việc trong chi nhánh tính đến {snapshot.data.asOf}
+              . Logged time today ({snapshot.data.timezone}) gồm các khoảng làm
+              việc đã kết thúc; không tính thời gian tạm dừng.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!busy)
+                  setQuery((q) => ({
+                    search,
+                    page: 1,
+                    revision: q.revision + 1,
+                  }));
+              }}
+            >
+              <label>
+                Tìm người thực hiện
+                <input
+                  maxLength={150}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </label>
+              <button data-dialog-action disabled={busy}>
+                Tìm người thực hiện
+              </button>
+            </form>
+            <fieldset disabled={busy || locked}>
+              <legend>Chọn người thực hiện đủ điều kiện</legend>
+              <label>
+                Người thực hiện
+                <select
+                  aria-label="Người thực hiện"
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                >
+                  <option value="">Chọn người thực hiện</option>
+                  {snapshot.data.executors.map((e) => (
+                    <option
+                      key={e.userId}
+                      value={e.userId}
+                      disabled={e.userId === snapshot.data.assigneeId}
+                    >
+                      {e.name} — {displayCode(e.openTasks)} công việc đang mở;{" "}
+                      {displayCode(e.loggedSecondsToday)} giây ghi nhận hôm nay
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Lý do phân công lại
+                <textarea
+                  maxLength={4000}
+                  required={snapshot.data.assigneeId !== null}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <button onClick={() => void save()}>
+                {snapshot.data.assigneeId === null
+                  ? "Phân công công việc"
+                  : "Phân công lại công việc"}
+              </button>
+            </fieldset>
+            <nav aria-label="Phân trang người thực hiện">
+              <button
+                disabled={busy || query.page === 1}
+                onClick={() => setQuery((q) => ({ ...q, page: q.page - 1 }))}
               >
-                <option value="">Chọn người thực hiện</option>
-                {snapshot.data.executors.map((e) => (
-                  <option
-                    key={e.userId}
-                    value={e.userId}
-                    disabled={e.userId === snapshot.data.assigneeId}
-                  >
-                    {e.name} — {displayCode(e.openTasks)} công việc đang mở; {displayCode(e.loggedSecondsToday)}{" "}
-                    giây ghi nhận hôm nay
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Lý do phân công lại
-              <textarea
-                maxLength={4000}
-                required={snapshot.data.assigneeId !== null}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <button onClick={() => void save()}>
-              {snapshot.data.assigneeId === null
-                ? "Phân công công việc"
-                : "Phân công lại công việc"}
-            </button>
-          </fieldset>
-          <nav aria-label="Phân trang người thực hiện">
-            <button
-              disabled={busy || query.page === 1}
-              onClick={() => setQuery((q) => ({ ...q, page: q.page - 1 }))}
-            >
-              Người thực hiện trước
-            </button>
-            <span>
-              Trang {query.page}; {snapshot.data.totalCount} người thực hiện đủ điều kiện
-            </span>
-            <button
-              disabled={busy || query.page * 25 >= snapshot.data.totalCount}
-              onClick={() => setQuery((q) => ({ ...q, page: q.page + 1 }))}
-            >
-              Người thực hiện tiếp theo
-            </button>
-          </nav>
-        </>
-      )}
-    </section>
+                Người thực hiện trước
+              </button>
+              <span>
+                Trang {query.page}; {snapshot.data.totalCount} người thực hiện
+                đủ điều kiện
+              </span>
+              <button
+                disabled={busy || query.page * 25 >= snapshot.data.totalCount}
+                onClick={() => setQuery((q) => ({ ...q, page: q.page + 1 }))}
+              >
+                Người thực hiện tiếp theo
+              </button>
+            </nav>
+          </>
+        )}
+      </section>
+    </ActionDialog>
   );
 }

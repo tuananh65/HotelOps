@@ -1,3 +1,4 @@
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
@@ -163,11 +164,11 @@ function Catalog({
         <Link to="/profile">Hồ sơ cá nhân</Link>
         <Link to="/roles">Vai trò</Link>
         <Link to="/permissions">Danh mục quyền</Link>
-        {creationEnabled && r?.ok && <Link to="/roles/new">Tạo vai trò tùy chỉnh</Link>}
+        {creationEnabled && r?.ok && (
+          <Link to="/roles/new">Tạo vai trò tùy chỉnh</Link>
+        )}
       </nav>
-      <p>
-        Xem vai trò và quyền cần được máy chủ cho phép hiện tại.
-      </p>
+      <p>Xem vai trò và quyền cần được máy chủ cho phép hiện tại.</p>
       {mode === "list" && (
         <form
           onSubmit={(e) => {
@@ -176,30 +177,34 @@ function Catalog({
             setSearch(draft);
           }}
         >
-          <label>
-            Tìm vai trò
-            <input
-              maxLength={100}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-            />
-          </label>
-          <label>
-            Trạng thái vai trò
-            <select
-              aria-label="Trạng thái vai trò"
-              value={active}
-              onChange={(e) => {
-                setP(1);
-                setActive(e.target.value);
-              }}
-            >
-              <option value="">Tất cả</option>
-              <option value="true">Đang hoạt động</option>
-              <option value="false">Ngừng hoạt động</option>
-            </select>
-          </label>
-          <button>Tìm kiếm</button>
+          <div className="ds-quick-search">
+            <label>
+              Tìm vai trò
+              <input
+                maxLength={100}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+              />
+            </label>
+            <button>Tìm kiếm</button>
+          </div>
+          <CollapsibleFilterPanel activeCount={Number(!!active)}>
+            <label>
+              Trạng thái vai trò
+              <select
+                aria-label="Trạng thái vai trò"
+                value={active}
+                onChange={(e) => {
+                  setP(1);
+                  setActive(e.target.value);
+                }}
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
+              </select>
+            </label>
+          </CollapsibleFilterPanel>
         </form>
       )}
       {!r ? (
@@ -212,7 +217,9 @@ function Catalog({
           return (
             <>
               <p>
-                Người dùng được gán: tài khoản đang hoạt động, đang làm việc, chưa xóa và còn phân công hiệu lực; không phải số người có quyền truy cập thực tế.
+                Người dùng được gán: tài khoản đang hoạt động, đang làm việc,
+                chưa xóa và còn phân công hiệu lực; không phải số người có quyền
+                truy cập thực tế.
               </p>
               {!d.items.length && <p>Không tìm thấy vai trò.</p>}
               <ul>
@@ -223,7 +230,8 @@ function Catalog({
                     </Link>{" "}
                     {x.isActive ? "Đang hoạt động" : "Ngừng hoạt động"};{" "}
                     {x.isSystemRole ? "Hệ thống" : "Tùy chỉnh"}; Người dùng{" "}
-                    {x.assignedUserCount}; Quyền được cấp {x.permissionGrantCount}
+                    {x.assignedUserCount}; Quyền được cấp{" "}
+                    {x.permissionGrantCount}
                   </li>
                 ))}
               </ul>
@@ -248,9 +256,21 @@ function Catalog({
                 .
               </p>
               <Link to={`/roles/${roleId}/permissions`}>Ma trận quyền</Link>
-              {creationEnabled && d.role.isActive && <Link to={`/roles/${roleId}/permissions/edit`}>Cấu hình quyền</Link>}
-              {creationEnabled && !d.role.isSystemRole && <Link to={`/roles/${roleId}/edit`}>Chỉnh sửa thông tin vai trò</Link>}
-              {creationEnabled && !d.role.isSystemRole && d.role.isActive && <Link to={`/roles/${roleId}/deactivate`}>Vô hiệu hóa vai trò</Link>}
+              {creationEnabled && d.role.isActive && (
+                <Link to={`/roles/${roleId}/permissions/edit`}>
+                  Cấu hình quyền
+                </Link>
+              )}
+              {creationEnabled && !d.role.isSystemRole && (
+                <Link to={`/roles/${roleId}/edit`}>
+                  Chỉnh sửa thông tin vai trò
+                </Link>
+              )}
+              {creationEnabled && !d.role.isSystemRole && d.role.isActive && (
+                <Link to={`/roles/${roleId}/deactivate`}>
+                  Vô hiệu hóa vai trò
+                </Link>
+              )}
               <ul>
                 {d.grants.map((x) => (
                   <li key={x.rolePermissionId}>
@@ -295,9 +315,14 @@ function Catalog({
           return (
             <>
               <p>
-                Danh mục và quyền là các bản đọc riêng; không cung cấp phiên bản tổng hợp hoặc quyền ghi.
+                Danh mục và quyền là các bản đọc riêng; không cung cấp phiên bản
+                tổng hợp hoặc quyền ghi.
               </p>
-              {creationEnabled && <Link to={`/roles/${roleId}/permissions/edit`}>Cấu hình quyền</Link>}
+              {creationEnabled && (
+                <Link to={`/roles/${roleId}/permissions/edit`}>
+                  Cấu hình quyền
+                </Link>
+              )}
               {!d.items.length && <p>Không tìm thấy quyền.</p>}
               {[...new Set(d.items.map((x) => x.moduleCode))].map((module) => (
                 <section key={module}>

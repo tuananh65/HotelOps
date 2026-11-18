@@ -1,5 +1,29 @@
-.loading-indicator { display: flex; align-items: center; justify-content: center; min-height: 160px; width: 100%; color: #79533c; }
-.loading-indicator--compact { min-height: 48px; }
-.loading-indicator__ring { display: block; width: 32px; height: 32px; border: 3px solid #eadccb; border-top-color: currentColor; border-radius: 50%; animation: hotelops-loading 0.8s linear infinite; }
-@keyframes hotelops-loading { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .loading-indicator__ring { animation-duration: 2s; } }
+﻿.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  width: 100%;
+  color: var(--primary-500, #1677ff);
+}
+.loading-indicator--compact {
+  min-height: 40px;
+  width: auto;
+}
+.loading-indicator__ring {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  animation: hotelops-loading 0.9s linear infinite;
+}
+@keyframes hotelops-loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-indicator__ring {
+    animation: none;
+  }
+}

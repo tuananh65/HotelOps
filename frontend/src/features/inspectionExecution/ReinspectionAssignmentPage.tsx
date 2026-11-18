@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -120,9 +121,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
       !reason.trim() ||
       reason.trim().length > 500
     ) {
-      setMessage(
-        "Chọn người kiểm tra hợp lệ, hạn tương lai và lý do.",
-      );
+      setMessage("Chọn người kiểm tra hợp lệ, hạn tương lai và lý do.");
       return;
     }
     writing.current = true;
@@ -174,9 +173,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
       {visible?.error && <p role="alert">{visible.error}</p>}
       {confirmed && (
         <p role="status">
-          <span>
-            Đã phân công kiểm tra. Mã kiểm tra #{confirmed.id}.
-          </span>
+          <span>Đã phân công kiểm tra. Mã kiểm tra #{confirmed.id}.</span>
           <Link to={`/reinspections/${branch}/${confirmed.id}/execution`}>
             Mở kiểm tra lại
           </Link>
@@ -195,8 +192,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           {data.existingInspectionId !== null && (
             <p role="status">
               <span>
-                MSG03: Đã có phân công kiểm tra: #
-                {data.existingInspectionId}.
+                MSG03: Đã có phân công kiểm tra: #{data.existingInspectionId}.
               </span>
               <Link
                 to={`/reinspections/${branch}/${data.existingInspectionId}/execution`}
@@ -223,77 +219,86 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
             </p>
           )}
           {data.canAssign && !confirmed && !locked && (
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                setMessage("");
-                setReview(true);
-              }}
+            <ActionDialog
+              error={message}
+              title="Phân công kiểm tra lại"
+              busy={busy}
             >
-              <fieldset disabled={busy || review}>
-                <label htmlFor="reinspection-inspector">Người kiểm tra</label>
-                <select
-                  id="reinspection-inspector"
-                  required
-                  value={inspector}
-                  onChange={(event) => setInspector(event.target.value)}
-                >
-                  <option value="">Chọn người kiểm tra</option>
-                  {data.inspectors.map((person) => (
-                    <option key={person.id} value={person.id}>
-                      {person.name}
-                    </option>
-                  ))}
-                </select>
-                <label>
-                  Thời hạn
-                  <input
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setMessage("");
+                  setReview(true);
+                }}
+              >
+                <fieldset disabled={busy || review}>
+                  <label htmlFor="reinspection-inspector">Người kiểm tra</label>
+                  <select
+                    id="reinspection-inspector"
                     required
-                    type="datetime-local"
-                    value={due}
-                    onChange={(event) => setDue(event.target.value)}
-                  />
-                </label>
-                <label>
-                  Lý do phân công
-                  <textarea
-                    required
-                    maxLength={500}
-                    value={reason}
-                    onChange={(event) => setReason(event.target.value)}
-                  />
-                </label>
-                <button type="submit">Xem lại phân công</button>
-              </fieldset>
-              {review && (
-                <section aria-label="Xem lại phân công kiểm tra lại">
-                  <p>
-                    Phân công đến{" "}
-                    {
-                      data.inspectors.find(
-                        (person) => person.id === Number(inspector),
-                      )?.name
-                    }{" "}
-                    bởi {due.replace("T", " ")}.
-                  </p>
-                  <p>{reason}</p>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void submit()}
+                    value={inspector}
+                    onChange={(event) => setInspector(event.target.value)}
                   >
-                    Xác nhận phân công
+                    <option value="">Chọn người kiểm tra</option>
+                    {data.inspectors.map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.name}
+                      </option>
+                    ))}
+                  </select>
+                  <label>
+                    Thời hạn
+                    <input
+                      required
+                      type="datetime-local"
+                      value={due}
+                      onChange={(event) => setDue(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Lý do phân công
+                    <textarea
+                      required
+                      maxLength={500}
+                      value={reason}
+                      onChange={(event) => setReason(event.target.value)}
+                    />
+                  </label>
+                  <button data-dialog-action type="submit">
+                    Xem lại phân công
                   </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setReview(false)}
-                  >
-                    Chỉnh sửa phân công
-                  </button>
-                </section>
-              )}
-            </form>
+                </fieldset>
+                {review && (
+                  <section aria-label="Xem lại phân công kiểm tra lại">
+                    <p>
+                      Phân công đến{" "}
+                      {
+                        data.inspectors.find(
+                          (person) => person.id === Number(inspector),
+                        )?.name
+                      }{" "}
+                      bởi {due.replace("T", " ")}.
+                    </p>
+                    <p>{reason}</p>
+                    <button
+                      data-dialog-action
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void submit()}
+                    >
+                      Xác nhận phân công
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setReview(false)}
+                    >
+                      Chỉnh sửa phân công
+                    </button>
+                  </section>
+                )}
+              </form>
+            </ActionDialog>
           )}
         </>
       )}

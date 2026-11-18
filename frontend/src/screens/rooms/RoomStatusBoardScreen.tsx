@@ -1,4 +1,8 @@
 import {
+  ActionDialog,
+  FilterToggleButton,
+} from "../../components/workspace-interactions";
+import {
   useRoomWorkspace,
   useRoomChoices,
   RoomBranchField,
@@ -96,16 +100,10 @@ export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const scope = useRoomWorkspace("rooms");
-  const [advanced, setAdvanced] = useState(() =>
-    ["floorId", "areaId", "roomTypeId", "isActive"].some((name) =>
-      params.has(name),
-    ),
-  );
-  // Load the optional filter catalogue only when requested, not alongside every board read.
-  const [catalogRequested, setCatalogRequested] = useState(advanced);
+  const [advanced, setAdvanced] = useState(false);
   const choices = useRoomChoices({
     ...scope,
-    branch: catalogRequested ? scope.branch : undefined,
+    branch: scope.branch,
   });
   const [retry, setRetry] = useState(0);
   const query = params.toString(),
@@ -238,17 +236,26 @@ export default function RoomStatusBoardScreen() {
             </select>
           </label>
           <button disabled={!scope.branch}>Lọc phòng</button>
-          <button
-            type="button"
-            aria-expanded={advanced}
-            aria-controls="room-board-advanced"
+          <FilterToggleButton
+            open={advanced}
+            count={
+              ["floorId", "areaId", "roomTypeId", "isActive"].filter(
+                (name) => !!params.get(name),
+              ).length
+            }
+            controls="room-board-advanced"
             onClick={() => {
-              setCatalogRequested(true);
+              if (advanced)
+                document
+                  .querySelectorAll<HTMLSelectElement>(
+                    "#room-board-advanced select",
+                  )
+                  .forEach((select) => {
+                    select.value = params.get(select.name) || "";
+                  });
               setAdvanced((v) => !v);
             }}
-          >
-            Bộ lọc nâng cao
-          </button>
+          />
         </div>
         <div
           id="room-board-advanced"
@@ -412,163 +419,178 @@ export default function RoomStatusBoardScreen() {
         </>
       )}
       {detail && (
-        <section aria-label="Chi tiết trạng thái phòng">
-          <Link to={href()}>Quay lại danh sách phòng</Link>
-          <h2>Phòng {detail.room.roomNumber}</h2>
-          <p>
-            Chi nhánh {detail.room.branchId} · {detail.room.floor.name} ·{" "}
-            {detail.room.roomType.name}
-          </p>
-          <p>
-            Mức sẵn sàng thực tế:{" "}
-            {roomLabel(detail.room.effectiveReadiness ?? "UNKNOWN")} · Đã ghi
-            nhận: {roomLabel(detail.room.operationalStatusCode)} · Hoạt động:{" "}
-            {detail.room.isActive ? "Có" : "Không"}
-          </p>
-          <p>{detail.description}</p>
-          {detail.currentCycle && (
-            <section aria-label="Chu kỳ vệ sinh hiện tại">
-              <h3>Chu kỳ vệ sinh hiện tại</h3>
-              {detail.currentCycle.cleaningTaskId && (
+        <ActionDialog
+          open
+          drawer
+          title={`Phòng ${detail.room.roomNumber}`}
+          onClose={() => {
+            const next = new URLSearchParams(params);
+            next.delete("roomId");
+            next.delete("historyPage");
+            setParams(next);
+          }}
+        >
+          {" "}
+          {detail && (
+            <section aria-label="Chi tiết trạng thái phòng">
+              <Link to={href()}>Quay lại danh sách phòng</Link>
+              <h2>Phòng {detail.room.roomNumber}</h2>
+              <p>
+                Chi nhánh {detail.room.branchId} · {detail.room.floor.name} ·{" "}
+                {detail.room.roomType.name}
+              </p>
+              <p>
+                Mức sẵn sàng thực tế:{" "}
+                {roomLabel(detail.room.effectiveReadiness ?? "UNKNOWN")} · Đã
+                ghi nhận: {roomLabel(detail.room.operationalStatusCode)} · Hoạt
+                động: {detail.room.isActive ? "Có" : "Không"}
+              </p>
+              <p>{detail.description}</p>
+              {detail.currentCycle && (
+                <section aria-label="Chu kỳ vệ sinh hiện tại">
+                  <h3>Chu kỳ vệ sinh hiện tại</h3>
+                  {detail.currentCycle.cleaningTaskId && (
+                    <p>
+                      <Link
+                        to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
+                      >
+                        Vệ sinh #{detail.currentCycle.cleaningTaskId}
+                      </Link>
+                      : {detail.currentCycle.cleaningState ?? "Chưa xác định"}
+                    </p>
+                  )}
+                  {detail.currentCycle.inspectionId && (
+                    <p>
+                      <Link
+                        to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}
+                      >
+                        Kiểm tra #{detail.currentCycle.inspectionId}
+                      </Link>
+                      : {detail.currentCycle.inspectionState ?? "Chưa xác định"}
+                    </p>
+                  )}
+                  {detail.currentCycle.reworkId && (
+                    <p>
+                      <Link
+                        to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}
+                      >
+                        Làm lại #{detail.currentCycle.reworkId}
+                      </Link>
+                    </p>
+                  )}
+                </section>
+              )}
+              <section aria-label="Lệnh khóa phòng có hiệu lực">
+                <h3>Lệnh khóa có hiệu lực</h3>
+                {!detail.effectiveBlocks.length && (
+                  <p>Chưa có lệnh khóa có hiệu lực.</p>
+                )}
+                <ul>
+                  {detail.effectiveBlocks.map((b) => (
+                    <li key={b.id}>
+                      Lệnh khóa #{b.id} từ {hotelTime(b.blockedAtUtc)}
+                      {b.incidentId && (
+                        <>
+                          {" "}
+                          ?{" "}
+                          <Link
+                            to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}
+                          >
+                            Sự cố #{b.incidentId}
+                          </Link>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              {detail.room.branchId === Number(branch) &&
+                detail.room.id === Number(room) && (
+                  <RoomWorkflowActions
+                    key={`${location.key}:${query}:${retry}`}
+                    branch={String(detail.room.branchId)}
+                    room={String(detail.room.id)}
+                  />
+                )}
+              <h3>Bằng chứng trạng thái hiện tại</h3>
+              <p>
+                {detail.currentStatusEvidence.availability} ·{" "}
+                {detail.currentStatusEvidence.reason || "Chưa ghi nhận lý do"} ·{" "}
+                {detail.currentStatusEvidence.recordedAtUtc || "—"}
+              </p>
+              {detail.currentStatusEvidence.source && (
                 <p>
-                  <Link
-                    to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
-                  >
-                    Vệ sinh #{detail.currentCycle.cleaningTaskId}
-                  </Link>
-                  : {detail.currentCycle.cleaningState ?? "Chưa xác định"}
+                  Nguồn: {detail.currentStatusEvidence.source.type || "—"}{" "}
+                  {detail.currentStatusEvidence.source.id ?? ""} ·{" "}
+                  {detail.currentStatusEvidence.source.availability}{" "}
+                  <RecordedSourceLink
+                    branchId={detail.room.branchId}
+                    source={detail.currentStatusEvidence.source}
+                  />
                 </p>
               )}
-              {detail.currentCycle.inspectionId && (
-                <p>
-                  <Link
-                    to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}
-                  >
-                    Kiểm tra #{detail.currentCycle.inspectionId}
-                  </Link>
-                  : {detail.currentCycle.inspectionState ?? "Chưa xác định"}
-                </p>
+              <h3>Lệnh khóa chưa kết thúc</h3>
+              <p>
+                Các lệnh khóa chưa kết thúc; thời điểm dự kiến không xác nhận
+                phòng đã được mở lại.
+              </p>
+              {!detail.unreleasedBlocks.length && (
+                <p>Không có lệnh khóa chưa kết thúc.</p>
               )}
-              {detail.currentCycle.reworkId && (
-                <p>
-                  <Link
-                    to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}
-                  >
-                    Làm lại #{detail.currentCycle.reworkId}
-                  </Link>
-                </p>
-              )}
+              <ul>
+                {detail.unreleasedBlocks.map((b) => (
+                  <li key={b.id}>
+                    {b.reason} · Bắt đầu: {hotelTime(b.blockedAtUtc)} · Dự kiến:{" "}
+                    {hotelTime(b.expectedReleaseAtUtc)}
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
-          <section aria-label="Lệnh khóa phòng có hiệu lực">
-            <h3>Lệnh khóa có hiệu lực</h3>
-            {!detail.effectiveBlocks.length && (
-              <p>Chưa có lệnh khóa có hiệu lực.</p>
-            )}
-            <ul>
-              {detail.effectiveBlocks.map((b) => (
-                <li key={b.id}>
-                  Lệnh khóa #{b.id} từ {hotelTime(b.blockedAtUtc)}
-                  {b.incidentId && (
-                    <>
-                      {" "}
-                      ?{" "}
-                      <Link
-                        to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}
-                      >
-                        Sự cố #{b.incidentId}
-                      </Link>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-          {detail.room.branchId === Number(branch) &&
-            detail.room.id === Number(room) && (
-              <RoomWorkflowActions
-                key={`${location.key}:${query}:${retry}`}
-                branch={String(detail.room.branchId)}
-                room={String(detail.room.id)}
-              />
-            )}
-          <h3>Bằng chứng trạng thái hiện tại</h3>
-          <p>
-            {detail.currentStatusEvidence.availability} ·{" "}
-            {detail.currentStatusEvidence.reason || "Chưa ghi nhận lý do"} ·{" "}
-            {detail.currentStatusEvidence.recordedAtUtc || "—"}
-          </p>
-          {detail.currentStatusEvidence.source && (
-            <p>
-              Nguồn: {detail.currentStatusEvidence.source.type || "—"}{" "}
-              {detail.currentStatusEvidence.source.id ?? ""} ·{" "}
-              {detail.currentStatusEvidence.source.availability}{" "}
-              <RecordedSourceLink
-                branchId={detail.room.branchId}
-                source={detail.currentStatusEvidence.source}
-              />
-            </p>
+          {history && detail && (
+            <section aria-label="Lịch sử trạng thái">
+              <h2>Lịch sử trạng thái đã ghi nhận</h2>
+              {!history.items.length && <p>Chưa có sự kiện trên trang này.</p>}
+              <ol>
+                {history.items.map((e) => (
+                  <li key={e.id}>
+                    <time>{hotelTime(e.changedAtUtc)}</time> ·{" "}
+                    {e.fromStatusCode || "—"} → {e.toStatusCode} ·{" "}
+                    {e.effectiveTo && (
+                      <>
+                        Mức sẵn sàng: {e.effectiveFrom || "—"} → {e.effectiveTo}{" "}
+                        ·{" "}
+                      </>
+                    )}
+                    {e.reason || "—"} · Nguồn {e.source.type || "—"}{" "}
+                    {e.source.id ?? ""} ({e.source.availability}) · Người thay
+                    đổi (ID): {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
+                    <RecordedSourceLink
+                      branchId={detail.room.branchId}
+                      source={e.source}
+                    />
+                  </li>
+                ))}
+              </ol>
+              <p>
+                Trang lịch sử {history.page} · {history.totalCount} sự kiện
+              </p>
+              <button
+                disabled={history.page <= 1}
+                onClick={() => paginate("historyPage", history.page - 1)}
+              >
+                Lịch sử trước
+              </button>{" "}
+              <button
+                disabled={history.page * history.pageSize >= history.totalCount}
+                onClick={() => paginate("historyPage", history.page + 1)}
+              >
+                Lịch sử sau
+              </button>
+            </section>
           )}
-          <h3>Lệnh khóa chưa kết thúc</h3>
-          <p>
-            Các lệnh khóa chưa kết thúc; thời điểm dự kiến không xác nhận phòng
-            đã được mở lại.
-          </p>
-          {!detail.unreleasedBlocks.length && (
-            <p>Không có lệnh khóa chưa kết thúc.</p>
-          )}
-          <ul>
-            {detail.unreleasedBlocks.map((b) => (
-              <li key={b.id}>
-                {b.reason} · Bắt đầu: {hotelTime(b.blockedAtUtc)} · Dự kiến:{" "}
-                {hotelTime(b.expectedReleaseAtUtc)}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {history && detail && (
-        <section aria-label="Lịch sử trạng thái">
-          <h2>Lịch sử trạng thái đã ghi nhận</h2>
-          {!history.items.length && <p>Chưa có sự kiện trên trang này.</p>}
-          <ol>
-            {history.items.map((e) => (
-              <li key={e.id}>
-                <time>{hotelTime(e.changedAtUtc)}</time> ·{" "}
-                {e.fromStatusCode || "—"} → {e.toStatusCode} ·{" "}
-                {e.effectiveTo && (
-                  <>
-                    Mức sẵn sàng: {e.effectiveFrom || "—"} → {e.effectiveTo}{" "}
-                    ·{" "}
-                  </>
-                )}
-                {e.reason || "—"} · Nguồn {e.source.type || "—"}{" "}
-                {e.source.id ?? ""} ({e.source.availability}) · Người thay đổi
-                (ID): {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
-                <RecordedSourceLink
-                  branchId={detail.room.branchId}
-                  source={e.source}
-                />
-              </li>
-            ))}
-          </ol>
-          <p>
-            Trang lịch sử {history.page} · {history.totalCount} sự kiện
-          </p>
-          <button
-            disabled={history.page <= 1}
-            onClick={() => paginate("historyPage", history.page - 1)}
-          >
-            Lịch sử trước
-          </button>{" "}
-          <button
-            disabled={history.page * history.pageSize >= history.totalCount}
-            onClick={() => paginate("historyPage", history.page + 1)}
-          >
-            Lịch sử sau
-          </button>
-        </section>
-      )}
+        </ActionDialog>
+      )}{" "}
     </div>
   );
 }

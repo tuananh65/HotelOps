@@ -6,6 +6,8 @@ import {
   useState,
 } from "react";
 import type { CreateUserResponse } from "./createUserContracts";
+import { Check, Copy, Eye, EyeOff } from "lucide-react";
+import { AppButton } from "../components/design-system";
 
 export interface CredentialHandoffHandle {
   receive(data: CreateUserResponse): void;
@@ -51,9 +53,7 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
           credential.temporaryCredential.password,
         );
         if (active.current && current === revision.current)
-          setNotice(
-            "Đã sao chép. Chưa xác nhận đã bàn giao cho nhân viên.",
-          );
+          setNotice("Đã sao chép. Chưa xác nhận đã bàn giao cho nhân viên.");
       } catch {
         if (active.current && current === revision.current)
           setNotice(
@@ -63,25 +63,35 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
     }
     if (acknowledged)
       return (
-        <section aria-label="Đã bàn giao mật khẩu">
+        <section className="user-credential" aria-label="Đã bàn giao mật khẩu">
           <h2>Đã bàn giao mật khẩu</h2>
           <p>
-            Mật khẩu đã xóa khỏi trang. Nếu bị mất, dùng quy trình đặt lại được cấp quyền; không tạo lại tài khoản.
+            Mật khẩu đã xóa khỏi trang. Nếu bị mất, dùng quy trình đặt lại được
+            cấp quyền; không tạo lại tài khoản.
           </p>
         </section>
       );
     if (!credential) return null;
     return (
-      <section aria-label="Bàn giao mật khẩu ban đầu">
+      <section
+        className="user-credential"
+        aria-label="Bàn giao mật khẩu ban đầu"
+      >
         <h2>Đã tạo tài khoản — mật khẩu ban đầu</h2>
         <p>Nhân viên: {credential.user.fullName}</p>
         <p>Tên đăng nhập: {credential.user.username}</p>
         <p>Mã nhân viên: {credential.user.employeeCode}</p>
-        <p>Mã tài khoản: {credential.user.id}</p>
         <p>
           Hết hạn lúc:{" "}
           <time dateTime={credential.temporaryCredential.expiresAtUtc}>
-            {credential.temporaryCredential.expiresAtUtc}
+            {new Intl.DateTimeFormat("vi-VN", {
+              dateStyle: "short",
+              timeStyle: "short",
+              timeZone: "Asia/Ho_Chi_Minh",
+            }).format(
+              new Date(credential.temporaryCredential.expiresAtUtc),
+            )}{" "}
+            (giờ Việt Nam)
           </time>
         </p>
         {revealed ? (
@@ -91,21 +101,26 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
         ) : (
           <p>Đã ẩn mật khẩu</p>
         )}
-        <button type="button" onClick={() => setRevealed((value) => !value)}>
+        <AppButton
+          icon={revealed ? EyeOff : Eye}
+          onClick={() => setRevealed((value) => !value)}
+        >
           {revealed ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-        </button>
-        <button type="button" onClick={() => void copy()}>
+        </AppButton>
+        <AppButton icon={Copy} onClick={() => void copy()}>
           Sao chép mật khẩu
-        </button>
+        </AppButton>
         {notice && <p role="status">{notice}</p>}
         <p>
-          Bộ nhớ sao chép có thể giữ mật khẩu sau khi rời trang. Rời hoặc đóng trang sẽ mất quyền xem mật khẩu này; không lấy lại được tại đây.
+          Bộ nhớ sao chép có thể giữ mật khẩu sau khi rời trang. Rời hoặc đóng
+          trang sẽ mất quyền xem mật khẩu này; không lấy lại được tại đây.
         </p>
         <p>
-          Nếu mất mật khẩu, nhờ quản trị viên có quyền đặt lại. Không tạo lại tài khoản.
+          Nếu mất mật khẩu, nhờ quản trị viên có quyền đặt lại. Không tạo lại
+          tài khoản.
         </p>
-        <button
-          type="button"
+        <AppButton
+          icon={Check}
           onClick={() => {
             ++revision.current;
             setCredential(null);
@@ -115,7 +130,7 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
           }}
         >
           Tôi đã bàn giao mật khẩu an toàn
-        </button>
+        </AppButton>
       </section>
     );
   },

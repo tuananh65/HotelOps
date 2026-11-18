@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
@@ -78,7 +79,14 @@ export function TaskVerificationPanel({
     };
   }, [branch, task, owner, reload, actions, onReviewReady]);
   async function decide(decision: "ACCEPT" | "RETURN") {
-    if (!snapshot?.data.canDecide || !reviewReadyRef.current || locked || busy || saving.current) return;
+    if (
+      !snapshot?.data.canDecide ||
+      !reviewReadyRef.current ||
+      locked ||
+      busy ||
+      saving.current
+    )
+      return;
     if (note.trim().length < (decision === "RETURN" ? 10 : 1)) {
       setError(
         decision === "RETURN"
@@ -104,7 +112,12 @@ export function TaskVerificationPanel({
       );
       if (!controller.signal.aborted && onChanged) {
         setLocked(true);
-        onChanged(result.messageCode + (decision === "ACCEPT" ? ": Đã đóng công việc." : ": Công việc đã trả lại cho người được giao ban đầu. Bắt đầu lại để tiếp tục."));
+        onChanged(
+          result.messageCode +
+            (decision === "ACCEPT"
+              ? ": Đã đóng công việc."
+              : ": Công việc đã trả lại cho người được giao ban đầu. Bắt đầu lại để tiếp tục."),
+        );
         return;
       }
       const updated = await readVerification(branch, task, controller.signal);
@@ -127,68 +140,76 @@ export function TaskVerificationPanel({
     }
   }
   return (
-    <section aria-label="Xác minh công việc">
-      <h3>Xác minh công việc</h3>
-      <button disabled={busy} onClick={() => { onReviewReady(false); setReload((n) => n + 1); }}>
-        Tải lại xác minh
-      </button>
-      {error && <p role="alert">{error}</p>}
-      {message && <p role="status">{message}</p>}
-      {snapshot && (
-        <>
-          <TaskSubmissionReview
-            key={`${owner}:${branch}:${task}:${snapshot.data.submissionId}:${snapshot.etag}:${reload}`}
-            branch={branch}
-            task={task}
-            owner={owner}
-            submission={snapshot.data.submissionId}
-            current
-            onReady={onReviewReady}
-          />
-          <p>Quy trình: {displayCode(snapshot.data.state)}</p>
-          <p>
-            Thời gian thực hiện thực tế: {snapshot.data.actualEffortSeconds} giây (không tính thời gian tạm dừng)
-          </p>
-          {snapshot.data.denialCode === "MSG22" && (
+    <ActionDialog title="Xác minh công việc" busy={busy}>
+      <section aria-label="Xác minh công việc">
+        <h3>Xác minh công việc</h3>
+        <button
+          disabled={busy}
+          onClick={() => {
+            onReviewReady(false);
+            setReload((n) => n + 1);
+          }}
+        >
+          Tải lại xác minh
+        </button>
+        {error && <p role="alert">{error}</p>}
+        {message && <p role="status">{message}</p>}
+        {snapshot && (
+          <>
+            <TaskSubmissionReview
+              key={`${owner}:${branch}:${task}:${snapshot.data.submissionId}:${snapshot.etag}:${reload}`}
+              branch={branch}
+              task={task}
+              owner={owner}
+              submission={snapshot.data.submissionId}
+              current
+              onReady={onReviewReady}
+            />
+            <p>Quy trình: {displayCode(snapshot.data.state)}</p>
             <p>
-              MSG22: Người yêu cầu, người nộp hoặc người thực hiện không được xác minh chu kỳ này.
+              Thời gian thực hiện thực tế: {snapshot.data.actualEffortSeconds}{" "}
+              giây (không tính thời gian tạm dừng)
             </p>
-          )}
-          {snapshot.data.denialCode === "SOURCE_PROVENANCE_REQUIRED" && (
-            <p>
-              Chưa thể xác minh đến khi kiểm tra được yêu cầu liên quan.
-            </p>
-          )}
-          {snapshot.data.canDecide && (
-            <fieldset disabled={busy || locked || !reviewReady}>
-              <legend>Xem lại kết quả hoàn tất đã nộp</legend>
-              <label>
-                Ghi chú xác minh hoặc lý do trả lại
-                <textarea
-                  maxLength={4000}
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                />
-              </label>
-              <button onClick={() => void decide("ACCEPT")}>
-                Tiếp nhận hoàn tất
-              </button>
-              <button onClick={() => void decide("RETURN")}>
-                Trả lại để xử lý tiếp
-              </button>
-            </fieldset>
-          )}
-          <ol>
-            {snapshot.data.decisions.map((d) => (
-              <li key={d.submissionId}>
-                {d.decision} bởi người dùng {d.verifiedBy} lúc{" "}
-                <time dateTime={d.decidedAt}>{d.decidedAt}</time>
-                <p style={{ whiteSpace: "pre-wrap" }}>{d.note}</p>
-              </li>
-            ))}
-          </ol>
-        </>
-      )}
-    </section>
+            {snapshot.data.denialCode === "MSG22" && (
+              <p>
+                MSG22: Người yêu cầu, người nộp hoặc người thực hiện không được
+                xác minh chu kỳ này.
+              </p>
+            )}
+            {snapshot.data.denialCode === "SOURCE_PROVENANCE_REQUIRED" && (
+              <p>Chưa thể xác minh đến khi kiểm tra được yêu cầu liên quan.</p>
+            )}
+            {snapshot.data.canDecide && (
+              <fieldset disabled={busy || locked || !reviewReady}>
+                <legend>Xem lại kết quả hoàn tất đã nộp</legend>
+                <label>
+                  Ghi chú xác minh hoặc lý do trả lại
+                  <textarea
+                    maxLength={4000}
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                  />
+                </label>
+                <button onClick={() => void decide("ACCEPT")}>
+                  Tiếp nhận hoàn tất
+                </button>
+                <button onClick={() => void decide("RETURN")}>
+                  Trả lại để xử lý tiếp
+                </button>
+              </fieldset>
+            )}
+            <ol>
+              {snapshot.data.decisions.map((d) => (
+                <li key={d.submissionId}>
+                  {d.decision} bởi người dùng {d.verifiedBy} lúc{" "}
+                  <time dateTime={d.decidedAt}>{d.decidedAt}</time>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{d.note}</p>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </section>
+    </ActionDialog>
   );
 }

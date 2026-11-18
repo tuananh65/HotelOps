@@ -1,3 +1,7 @@
+import {
+  restoredFilterDraft,
+  CollapsibleFilterPanel,
+} from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -90,7 +94,11 @@ export function NotificationCenter() {
     pending.current = controller;
     setWrite({ owner, busy: true });
     try {
-      const path = await openInboxSource(id, controller.signal, () => current.current === owner);
+      const path = await openInboxSource(
+        id,
+        controller.signal,
+        () => current.current === owner,
+      );
       if (current.current === owner && !controller.signal.aborted)
         navigate(path);
     } catch (error) {
@@ -98,9 +106,10 @@ export function NotificationCenter() {
         setWrite({
           owner,
           busy: false,
-          message: error instanceof InboxFailure && [403, 404].includes(error.status)
-            ? "MSG02: Nguồn chưa khả dụng hoặc bạn không còn quyền truy cập. Nội dung thông báo vẫn hiển thị."
-            : "Nguồn hoặc xác nhận đọc chưa khả dụng. Tải lại để kiểm tra quyền.",
+          message:
+            error instanceof InboxFailure && [403, 404].includes(error.status)
+              ? "MSG02: Nguồn chưa khả dụng hoặc bạn không còn quyền truy cập. Nội dung thông báo vẫn hiển thị."
+              : "Nguồn hoặc xác nhận đọc chưa khả dụng. Tải lại để kiểm tra quyền.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);
@@ -174,10 +183,53 @@ export function NotificationCenter() {
               setRevision((n) => n + 1);
             }}
           >
-            {(["type", "priority", "search", "from", "to"] as const).map(
-              (name) => (
+            <div className="ds-quick-search">
+              <label>
+                Tìm thông báo
+                <input
+                  type="search"
+                  maxLength={200}
+                  value={draft.search}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      search: e.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <button>Áp dụng bộ lọc</button>
+            </div>
+            <CollapsibleFilterPanel
+              onOpen={() =>
+                setDraft((v) => ({
+                  ...restoredFilterDraft(v, query, {}),
+                  search: v.search,
+                }))
+              }
+              onClose={() =>
+                setDraft((v) => ({
+                  ...restoredFilterDraft(v, query, {}),
+                  search: v.search,
+                }))
+              }
+              activeCount={
+                [...new URLSearchParams(query)].filter(
+                  ([k, v]) => !["page", "pageSize"].includes(k) && !!v,
+                ).length
+              }
+            >
+              {(["type", "priority", "from", "to"] as const).map((name) => (
                 <label key={name}>
-                  {name}
+                  {
+                    {
+                      type: "Loại thông báo",
+                      priority: "Độ ưu tiên",
+                      search: "Tìm thông báo",
+                      from: "Từ ngày",
+                      to: "Đến ngày",
+                    }[name]
+                  }
                   <input
                     type={name === "from" || name === "to" ? "date" : "text"}
                     value={draft[name]}
@@ -186,54 +238,54 @@ export function NotificationCenter() {
                     }
                   />
                 </label>
-              ),
-            )}
-            <label>
-              Trạng thái đã đọc
-              <select
-                aria-label="Trạng thái đã đọc"
-                value={draft.unread}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, unread: e.target.value }))
-                }
+              ))}
+              <label>
+                Trạng thái đã đọc
+                <select
+                  aria-label="Trạng thái đã đọc"
+                  value={draft.unread}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, unread: e.target.value }))
+                  }
+                >
+                  <option value="">Tất cả</option>
+                  <option value="true">Chưa đọc</option>
+                  <option value="false">Đã đọc</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDraft({
+                    type: "",
+                    priority: "",
+                    search: "",
+                    unread: "",
+                    acknowledged: "",
+                    from: "",
+                    to: "",
+                  });
+                  setQuery("");
+                  setRevision((n) => n + 1);
+                }}
               >
-                <option value="">Tất cả</option>
-                <option value="true">Chưa đọc</option>
-                <option value="false">Đã đọc</option>
-              </select>
-            </label>
-            <button>Áp dụng bộ lọc</button>
-            <button
-              type="button"
-              onClick={() => {
-                setDraft({
-                  type: "",
-                  priority: "",
-                  search: "",
-                  unread: "",
-                  acknowledged: "",
-                  from: "",
-                  to: "",
-                });
-                setQuery("");
-                setRevision((n) => n + 1);
-              }}
-            >
-              Xóa bộ lọc
-            </button>
-            <label>
-              Trạng thái xác nhận đã đọc
-              <select
-                value={draft.acknowledged}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, acknowledged: e.target.value }))
-                }
-              >
-                <option value="">Tất cả</option>
-                <option value="false">Chờ xác nhận đã đọc</option>
-                <option value="true">Đã xác nhận</option>
-              </select>
-            </label>
+                Xóa bộ lọc
+              </button>
+              <label>
+                Trạng thái xác nhận đã đọc
+                <select
+                  value={draft.acknowledged}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, acknowledged: e.target.value }))
+                  }
+                >
+                  <option value="">Tất cả</option>
+                  <option value="false">Chờ xác nhận đã đọc</option>
+                  <option value="true">Đã xác nhận</option>
+                </select>
+              </label>
+            </CollapsibleFilterPanel>
           </form>
           <button onClick={() => setRevision((n) => n + 1)}>Tải lại</button>
           <p aria-label="Bộ lọc thông báo đã áp dụng">
@@ -308,10 +360,20 @@ export function NotificationCenter() {
               ) : (
                 <ul>
                   {data.items.map((row) => (
-                    <li key={row.id}
-                      data-awaiting-acknowledgment={!!row.requiresAcknowledgment && !row.acknowledgedAt}
-                      style={row.requiresAcknowledgment && !row.acknowledgedAt
-                        ? { borderInlineStart: "4px solid currentColor", paddingInlineStart: "1rem" } : undefined}>
+                    <li
+                      key={row.id}
+                      data-awaiting-acknowledgment={
+                        !!row.requiresAcknowledgment && !row.acknowledgedAt
+                      }
+                      style={
+                        row.requiresAcknowledgment && !row.acknowledgedAt
+                          ? {
+                              borderInlineStart: "4px solid currentColor",
+                              paddingInlineStart: "1rem",
+                            }
+                          : undefined
+                      }
+                    >
                       <label>
                         <input
                           type="checkbox"
@@ -342,11 +404,16 @@ export function NotificationCenter() {
                         Mở nguồn
                       </button>
                       <p>{row.message}</p>
-                      {data.acknowledgmentAvailable && row.requiresAcknowledgment && !row.acknowledgedAt && (
-                        <button disabled={!!operation?.busy} onClick={() => void mark([row.id], true)}>
-                          Xác nhận đã nhận thông báo {row.id}
-                        </button>
-                      )}
+                      {data.acknowledgmentAvailable &&
+                        row.requiresAcknowledgment &&
+                        !row.acknowledgedAt && (
+                          <button
+                            disabled={!!operation?.busy}
+                            onClick={() => void mark([row.id], true)}
+                          >
+                            Xác nhận đã nhận thông báo {row.id}
+                          </button>
+                        )}
                       {row.requiresAcknowledgment && !row.acknowledgedAt && (
                         <strong>Chờ xác nhận đã đọc</strong>
                       )}

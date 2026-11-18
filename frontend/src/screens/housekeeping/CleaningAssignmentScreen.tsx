@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { ApiError } from "../../api/dev1/client";
 import { submitAssignment } from "../../api/dev1/cleaningAssignmentCommand";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -86,7 +87,7 @@ export default function CleaningAssignmentScreen() {
         // retain the original command for unknown outcomes and durable replay.
         if (e instanceof ApiError && [400, 409, 412].includes(e.status)) {
           setCommand(null);
-          if (e.status !== 400) setRetry(v => v + 1);
+          if (e.status !== 400) setRetry((v) => v + 1);
         }
       }
     } finally {
@@ -172,7 +173,16 @@ export default function CleaningAssignmentScreen() {
   return (
     <>
       <PageHeader id={27} />
-      {creation?.cleaningCreatedId === Number(task) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Đã tạo công việc vệ sinh. {creation.cleaningRoomBlocked === true ? "MSG17: Phòng vẫn bị khóa." : "Phòng đang chờ vệ sinh."} Chọn người được giao để tiếp tục.</p>}
+      {creation?.cleaningCreatedId === Number(task) &&
+        creation?.cleaningCreatedBranchId === Number(branch) && (
+          <p role="status">
+            MSG08: Đã tạo công việc vệ sinh.{" "}
+            {creation.cleaningRoomBlocked === true
+              ? "MSG17: Phòng vẫn bị khóa."
+              : "Phòng đang chờ vệ sinh."}{" "}
+            Chọn người được giao để tiếp tục.
+          </p>
+        )}
       {committed && (
         <p role="status">
           MSG08: Phân công {committed} đã lưu. Thông báo đang chờ gửi.
@@ -240,56 +250,64 @@ export default function CleaningAssignmentScreen() {
             >
               Chi tiết Cleaning Monitor
             </Link>
-            <form key={`${key}:${retry}`} onSubmit={preview}>
-              <label>
-                Nhân viên (bản nháp)
-                <select
-                  aria-label="Nhân viên (bản nháp)"
-                  name="assigneeId"
-                  required
-                  defaultValue=""
+            <ActionDialog
+              title="Phân công dọn phòng"
+              busy={saving}
+              error={saveError || error?.message}
+            >
+              <form key={`${key}:${retry}`} onSubmit={preview}>
+                <label>
+                  Nhân viên (bản nháp)
+                  <select
+                    aria-label="Nhân viên (bản nháp)"
+                    name="assigneeId"
+                    required
+                    defaultValue=""
+                  >
+                    <option value="">Chọn nhân viên</option>
+                    {data.candidates.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Hạn UTC (ISO 8601)
+                  <input
+                    name="dueAt"
+                    required
+                    placeholder="YYYY-MM-DDTHH:mm:ssZ"
+                  />
+                </label>
+                <label>
+                  Lý do phân công
+                  <input name="reason" required maxLength={500} />
+                </label>
+                <button
+                  data-dialog-action
+                  disabled={
+                    !data.workflowStateVerified ||
+                    data.task.workflowState !== "PENDING_ASSIGNMENT"
+                  }
                 >
-                  <option value="">Chọn nhân viên</option>
-                  {data.candidates.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Hạn UTC (ISO 8601)
-                <input
-                  name="dueAt"
-                  required
-                  placeholder="YYYY-MM-DDTHH:mm:ssZ"
-                />
-              </label>
-              <label>
-                Lý do phân công
-                <input name="reason" required maxLength={500} />
-              </label>
-              <button
-                disabled={
-                  !data.workflowStateVerified ||
-                  data.task.workflowState !== "PENDING_ASSIGNMENT"
-                }
-              >
-                Kiểm tra bản nháp
-              </button>
-              <button
-                type="button"
-                disabled={
-                  saving ||
-                  command !== null ||
-                  data.assignmentCapability !== "PROVISIONAL_NOT_ACCEPTED" ||
-                  data.task.workflowState !== "PENDING_ASSIGNMENT"
-                }
-                onClick={(e) => assign(e.currentTarget.form!)}
-              >
-                Lưu phân công
-              </button>
-            </form>
+                  Kiểm tra bản nháp
+                </button>
+                <button
+                  data-dialog-action
+                  type="button"
+                  disabled={
+                    saving ||
+                    command !== null ||
+                    data.assignmentCapability !== "PROVISIONAL_NOT_ACCEPTED" ||
+                    data.task.workflowState !== "PENDING_ASSIGNMENT"
+                  }
+                  onClick={(e) => assign(e.currentTarget.form!)}
+                >
+                  Lưu phân công
+                </button>
+              </form>
+            </ActionDialog>
             {draft?.key === key && <p role="status">{draft.message}</p>}
             <p>
               Không tự tiếp nhận task legacy, không đổi người phụ trách. Danh

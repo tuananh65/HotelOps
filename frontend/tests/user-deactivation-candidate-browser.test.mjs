@@ -52,7 +52,7 @@ const result = await build({
     contents: `
 import React from'react';import{flushSync}from'react-dom';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{UserDeactivationCandidate}from'./src/users/UserDeactivationCandidate';
 const s=window.scenario,calls=[],waiting=new Map(),make=r=>{if(r.network)throw Error('SECRET-ERROR');const response=new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json',ETag:${JSON.stringify(next)},...r.headers}});if(r.unreadable)response.json=async()=>{throw Error('SECRET-ERROR')};return response;};
-window.fetch=async(url,init)=>{calls.push({url,method:init.method});let r;const target=Number(url.split('/')[3]),record={...${JSON.stringify(account)},id:target};if(url==='/api/auth/session')r=s.auth??{body:${JSON.stringify(session)}};else if(url.endsWith('/profile'))r=s.profile??{body:record,headers:{ETag:${JSON.stringify(tag)}}};else if(url.includes('/effective-access'))r={body:${JSON.stringify(access)}};else if(url.startsWith('/api/users/')&&url.split('/').length===4)r={body:record};else if(url==='/api/auth/csrf')r=s.csrf??{body:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC-CSRF'}};else r=s.mutation??{status:200,body:{userId:target,accountStatus:"INACTIVE"}};if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r);};
+window.fetch=async(url,init)=>{calls.push({url,method:init.method ?? "GET"});let r;const target=Number(url.split('/')[3]),record={...${JSON.stringify(account)},id:target};if(url==='/api/auth/session')r=s.auth??{body:${JSON.stringify(session)}};else if(url.endsWith('/deactivation-preview'))r={body:{userId:target,version:'0011223344556677',accountStatus:'ACTIVE',workItems:[],hasRestrictedWork:false,hasMore:false,lastDurableAdministrator:false,coverageIncomplete:false,hasOpenResponsibilities:false}};else if(url.endsWith('/profile'))r=s.profile??{body:record,headers:{ETag:${JSON.stringify(tag)}}};else if(url.includes('/effective-access'))r={body:${JSON.stringify(access)}};else if(url.startsWith('/api/users/')&&url.split('/').length===4)r={body:record};else if(url==='/api/auth/csrf')r=s.csrf??{body:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC-CSRF'}};else r=s.mutation??{status:200,body:{userId:target,accountStatus:"INACTIVE"}};if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r);};
 let store=createAuthStore(createAuthApi(window.fetch)),visible=true,target=42,provider=0;const root=createRoot(document.getElementById('root'));function render(){const app=visible?<UserDeactivationCandidate userId={target} dispatchEnabled={s.enabled===true}/>:null;flushSync(()=>root.render(<AuthProvider key={provider} store={store} fallback={app}>{app}</AuthProvider>));}render();window.fixture={calls,revalidate:()=>store.revalidate(),scenario:s,finish:(k,r)=>waiting.get(k)(make(r)),mount:v=>{visible=v;render()},target:id=>{target=id;render()},replace:auth=>{s.auth={body:auth};store=createAuthStore(createAuthApi(window.fetch));provider++;render()}};
 `,
   },
@@ -109,27 +109,27 @@ async function run(s, fn) {
 async function review(p) {
   await p.getByLabel("Lý do", { exact: true }).fill("Valid departure reason");
   await p
-    .getByRole("button", { name: "Review deactivation", exact: true })
+    .getByRole("button", { name: "Xem lại vô hiệu hóa", exact: true })
     .click();
 }
 
 test("unknown outcome cannot dispatch a second PATCH after remount", () =>
   run({ enabled: true, mutation: { status: 503, body: {} } }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm deactivate" }).click();
-    await p.getByText("Outcome unknown.", { exact: false }).waitFor();
+    await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
+    await p.getByText("Chưa xác định kết quả.", { exact: false }).waitFor();
     await p.evaluate(() => window.fixture.mount(false));
     await p.evaluate(() => window.fixture.mount(true));
     // Exercise any incorrectly restored editor, then check actual dispatch count.
     await p.waitForFunction(
       () =>
         document.querySelector("textarea") ||
-        document.body.textContent.includes("Outcome unknown."),
+        document.body.textContent.includes("Chưa xác định kết quả."),
     );
     if (await p.getByLabel("Lý do", { exact: true }).count()) {
       await review(p);
-      await p.getByRole("button", { name: "Confirm deactivate" }).click();
-      await p.getByText("Outcome unknown.", { exact: false }).waitFor();
+      await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
+      await p.getByText("Chưa xác định kết quả.", { exact: false }).waitFor();
     }
     assert.equal(
       await p.evaluate(
@@ -142,11 +142,13 @@ test("default OFF reason review cannot dispatch", () =>
   run({}, async (p) => {
     await p.getByLabel("Lý do").waitFor();
     assert.ok(
-      await p.getByRole("button", { name: "Review deactivation" }).isDisabled(),
+      await p.getByRole("button", { name: "Xem lại vô hiệu hóa" }).isDisabled(),
     );
     await review(p);
     assert.ok(
-      await p.getByRole("button", { name: "Confirm deactivate" }).isDisabled(),
+      await p
+        .getByRole("button", { name: "Xác nhận vô hiệu hóa" })
+        .isDisabled(),
     );
     assert.equal(
       await p.evaluate(
@@ -164,12 +166,10 @@ test("default OFF reason review cannot dispatch", () =>
 test("synthetic success sends one confirmed attempt and removes controls", () =>
   run({ enabled: true }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm deactivate" }).click();
-    await p
-      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
-      .waitFor();
+    await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
+    await p.getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.").waitFor();
     assert.equal(
-      await p.getByRole("button", { name: "Confirm deactivate" }).count(),
+      await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).count(),
       0,
     );
     assert.equal(
@@ -185,14 +185,14 @@ for (const status of [401, 403, 412, 503])
       { enabled: true, mutation: { status, body: { detail: "SECRET-ERROR" } } },
       async (p) => {
         await review(p);
-        await p.getByRole("button", { name: "Confirm deactivate" }).click();
+        await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
         await p.getByRole("alert").waitFor();
         assert.equal(
           await p.getByRole("region", { name: "Tài khoản đích" }).count(),
           0,
         );
         assert.equal(
-          await p.getByRole("button", { name: "Confirm deactivate" }).count(),
+          await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).count(),
           0,
         );
         assert.equal(
@@ -203,7 +203,9 @@ for (const status of [401, 403, 412, 503])
           1,
         );
         if (status === 401)
-          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
+          await p
+            .getByRole("button", { name: "Kiểm tra phiên đăng nhập" })
+            .waitFor();
       },
     ),
   );
@@ -226,8 +228,8 @@ for (const auth of [
 test("late response after session invalidation cannot restore account or reason", () =>
   run({ enabled: true, mutation: { deferred: "patch" } }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm deactivate" }).click();
-    await p.getByText("Deactivation pending...").waitFor();
+    await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
+    await p.getByText("Đang chờ vô hiệu hóa...").waitFor();
     await p.waitForFunction(() =>
       window.fixture.calls.some((c) => c.method === "PATCH"),
     );
@@ -252,7 +254,11 @@ test("late response after session invalidation cannot restore account or reason"
     );
     assert.equal(await p.getByLabel("Lý do").count(), 0);
     assert.equal(
-      await p.getByText("Account deactivated.", { exact: false }).count(),
+      await p
+        .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.", {
+          exact: false,
+        })
+        .count(),
       0,
     );
   }));
@@ -260,12 +266,12 @@ test("two synchronous confirms produce one PATCH and no queued replay", () =>
   run({ enabled: true, mutation: { deferred: "patch" } }, async (p) => {
     await review(p);
     await p
-      .getByRole("button", { name: "Confirm deactivate" })
+      .getByRole("button", { name: "Xác nhận vô hiệu hóa" })
       .evaluate((b) => {
         b.click();
         b.click();
       });
-    await p.getByText("Deactivation pending...").waitFor();
+    await p.getByText("Đang chờ vô hiệu hóa...").waitFor();
     assert.equal(
       await p.evaluate(
         () => window.fixture.calls.filter((c) => c.method === "PATCH").length,
@@ -278,9 +284,7 @@ test("two synchronous confirms produce one PATCH and no queued replay", () =>
         body: { userId: 42, accountStatus: "INACTIVE" },
       }),
     );
-    await p
-      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
-      .waitFor();
+    await p.getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.").waitFor();
     assert.equal(
       await p.evaluate(
         () => window.fixture.calls.filter((c) => c.method === "PATCH").length,
@@ -293,10 +297,11 @@ const patchCount = (p) =>
   p.evaluate(
     () => window.fixture.calls.filter((c) => c.method === "PATCH").length,
   );
-const unknownText = (p) => p.getByText("Outcome unknown.", { exact: false });
+const unknownText = (p) =>
+  p.getByText("Chưa xác định kết quả.", { exact: false });
 async function confirm(p) {
   await review(p);
-  await p.getByRole("button", { name: "Confirm deactivate" }).click();
+  await p.getByRole("button", { name: "Xác nhận vô hiệu hóa" }).click();
 }
 for (const fault of [
   { name: "503", response: { status: 503, body: { detail: "SECRET-ERROR" } } },
@@ -360,7 +365,7 @@ for (const replacement of ["remount", "provider", "revalidation"])
       } else if (replacement === "provider") {
         await p.evaluate((s) => window.fixture.replace(s), session);
       } else await p.evaluate(() => window.fixture.revalidate());
-      await p.getByText("Deactivation pending...").waitFor();
+      await p.getByText("Đang chờ vô hiệu hóa...").waitFor();
       assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
       await p.evaluate(() =>
         window.fixture.finish("patch", {
@@ -371,7 +376,11 @@ for (const replacement of ["remount", "provider", "revalidation"])
       await unknownText(p).waitFor();
       assert.equal(await patchCount(p), 1);
       assert.equal(
-        await p.getByText("Account deactivated.", { exact: false }).count(),
+        await p
+          .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.", {
+            exact: false,
+          })
+          .count(),
         0,
       );
     }));
@@ -408,9 +417,7 @@ test("old pending response cannot overwrite or recover replacement principal", (
       ...session,
       user: { id: "8", username: "other", name: "Other" },
     });
-    await p
-      .getByLabel("Lý do", { exact: true })
-      .fill("Independent new reason");
+    await p.getByLabel("Lý do", { exact: true }).fill("Independent new reason");
     const authReads = await p.evaluate(
       () =>
         window.fixture.calls.filter((c) => c.url === "/api/auth/session")
@@ -450,7 +457,7 @@ test("CSRF pending across remount never dispatches stale PATCH and releases only
     );
     await p.evaluate(() => window.fixture.mount(false));
     await p.evaluate(() => window.fixture.mount(true));
-    await p.getByText("Deactivation pending...").waitFor();
+    await p.getByText("Đang chờ vô hiệu hóa...").waitFor();
     await p.evaluate(() =>
       window.fixture.finish("csrf", {
         body: { headerName: "X-CSRF-TOKEN", csrfToken: "SYNTHETIC-CSRF" },
@@ -462,9 +469,7 @@ test("CSRF pending across remount never dispatches stale PATCH and releases only
       window.fixture.scenario.csrf = undefined;
     });
     await confirm(p);
-    await p
-      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
-      .waitFor();
+    await p.getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.").waitFor();
     assert.equal(await patchCount(p), 1);
   }));
 

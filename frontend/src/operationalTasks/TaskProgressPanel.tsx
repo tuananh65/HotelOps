@@ -1,3 +1,7 @@
+import {
+  announceWorkflowSuccess,
+  ActionDialog,
+} from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -145,15 +149,24 @@ export function TaskProgressPanel({
       );
       if (!controller.signal.aborted) {
         show(updated);
-        setMessage(
+        (announceWorkflowSuccess(
           "Đã lưu tiến độ. Đạt 100% không tự hoàn tất công việc.",
-        );
+          "operationalTasks/TaskProgressPanel.tsx",
+        ),
+          setMessage("Đã lưu tiến độ. Đạt 100% không tự hoàn tất công việc."));
         onChanged?.("Đã lưu tiến độ. Đạt 100% không tự hoàn tất công việc.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
-        if (!evidencePrepared || reason instanceof TaskProgressError && reason.status === 400 && reason.messageCode === "MSG23")
-          setError("MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi lưu lại. Chỉnh sửa được giữ nguyên.");
+        if (
+          !evidencePrepared ||
+          (reason instanceof TaskProgressError &&
+            reason.status === 400 &&
+            reason.messageCode === "MSG23")
+        )
+          setError(
+            "MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi lưu lại. Chỉnh sửa được giữ nguyên.",
+          );
         else failure(reason);
       }
     } finally {
@@ -261,8 +274,12 @@ export function TaskProgressPanel({
       );
       if (!controller.signal.aborted) {
         setCurrent(updated);
-        setMessage("Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.");
-        onChanged?.("Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.");
+        setMessage(
+          "Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.",
+        );
+        onChanged?.(
+          "Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.",
+        );
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
@@ -300,7 +317,11 @@ export function TaskProgressPanel({
             ? "MSG08: Đã tiếp nhận công việc."
             : "Đã bắt đầu công việc. Đang ghi nhận thời gian làm việc.",
         );
-        onChanged?.(action === "accept" ? "MSG08: Đã tiếp nhận công việc. Bắt đầu khi sẵn sàng." : "Đã bắt đầu công việc. Đang ghi nhận thời gian làm việc.");
+        onChanged?.(
+          action === "accept"
+            ? "MSG08: Đã tiếp nhận công việc. Bắt đầu khi sẵn sàng."
+            : "Đã bắt đầu công việc. Đang ghi nhận thời gian làm việc.",
+        );
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
@@ -342,7 +363,8 @@ export function TaskProgressPanel({
     setMessage("");
     let evidencePrepared = false;
     try {
-      if (files.length > 5) throw new Error("Vượt số lượng tệp bằng chứng cho phép");
+      if (files.length > 5)
+        throw new Error("Vượt số lượng tệp bằng chứng cho phép");
       const photos = await Promise.all(files.map(uploadFile));
       controller.signal.throwIfAborted();
       evidencePrepared = true;
@@ -367,20 +389,28 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted && onChanged) {
         setLocked(true);
         setFiles([]);
-        onChanged("MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.");
+        onChanged(
+          "MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.",
+        );
         return;
       }
       const updated = await readTaskProgress(branch, task, controller.signal);
       if (!controller.signal.aborted) {
         show(updated);
-        setMessage(
+        (announceWorkflowSuccess(
           "MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.",
-        );
+          "operationalTasks/TaskProgressPanel.tsx",
+        ),
+          setMessage(
+            "MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.",
+          ));
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
         if (!evidencePrepared)
-          setError("MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi gửi lại. Chỉnh sửa được giữ nguyên.");
+          setError(
+            "MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi gửi lại. Chỉnh sửa được giữ nguyên.",
+          );
         else if (
           reason instanceof TaskProgressError &&
           reason.messageCode === "MSG03"
@@ -544,101 +574,108 @@ export function TaskProgressPanel({
         </section>
       )}
       {current && (
-        <form onSubmit={save}>
-          <p>Trạng thái thực hiện công việc: {displayCode(current.data.state)}</p>
-          <fieldset
-            disabled={
-              busy ||
-              locked ||
-              !["IN_PROGRESS", "PAUSED"].includes(current.data.state)
-            }
-          >
-            <legend>Tiến độ và tiêu chí hoàn tất</legend>
-            <label>
-              Tiến độ (%)
-              <input
-                type="number"
-                required
-                min={0}
-                max={100}
-                step={1}
-                value={Number.isNaN(percent) ? "" : percent}
-                onChange={(e) =>
-                  setPercent(
-                    e.target.value === "" ? NaN : Number(e.target.value),
-                  )
-                }
-              />
-            </label>
-            {items.length === 0 && (
-              <p>Chưa cấu hình tiêu chí hoàn tất.</p>
-            )}
-            {items.map((item, index) => (
-              <div key={item.id}>
-                <label>
-                  {item.label}
-                  {item.required ? "(bắt buộc để hoàn tất)" : ""}
-                  <select
-                    aria-label={`Kết quả tiêu chí: ${item.label}`}
-                    value={item.outcome ?? ""}
-                    onChange={(e) =>
-                      setItems((rows) =>
-                        rows.map((r, n) =>
-                          n === index
-                            ? {
-                                ...r,
-                                outcome: e.target.value as "PASS" | "FAIL",
-                              }
-                            : r,
-                        ),
-                      )
-                    }
-                  >
-                    <option value="" disabled>
-                      Chưa ghi nhận
-                    </option>
-                    <option value="PASS">Đạt</option>
-                    <option value="FAIL">Không đạt</option>
-                  </select>
-                </label>
-                <label>
-                  Ghi chú tiêu chí: {item.label}
-                  <input
-                    maxLength={1000}
-                    disabled={item.outcome === null}
-                    value={item.note ?? ""}
-                    onChange={(e) =>
-                      setItems((rows) =>
-                        rows.map((r, n) =>
-                          n === index ? { ...r, note: e.target.value } : r,
-                        ),
-                      )
-                    }
-                  />
-                </label>
-              </div>
-            ))}
-            <label>
-              Ghi chú tiến độ
-              <input
-                maxLength={4000}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </label>
-            <label>
-              Tệp bằng chứng (tối đa 5 tệp PNG/JPEG/PDF, 10 MB mỗi tệp)
-              <input
-                ref={fileInput}
-                type="file"
-                multiple
-                accept="image/png,image/jpeg,application/pdf"
-                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-              />
-            </label>
-            <button>Lưu tiến độ</button>
-          </fieldset>
-        </form>
+        <ActionDialog
+          scope="operationalTasks/TaskProgressPanel.tsx"
+          title="Cập nhật tiến độ công việc"
+          busy={busy}
+          error={error}
+        >
+          <form onSubmit={save}>
+            <p>
+              Trạng thái thực hiện công việc: {displayCode(current.data.state)}
+            </p>
+            <fieldset
+              disabled={
+                busy ||
+                locked ||
+                !["IN_PROGRESS", "PAUSED"].includes(current.data.state)
+              }
+            >
+              <legend>Tiến độ và tiêu chí hoàn tất</legend>
+              <label>
+                Tiến độ (%)
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Number.isNaN(percent) ? "" : percent}
+                  onChange={(e) =>
+                    setPercent(
+                      e.target.value === "" ? NaN : Number(e.target.value),
+                    )
+                  }
+                />
+              </label>
+              {items.length === 0 && <p>Chưa cấu hình tiêu chí hoàn tất.</p>}
+              {items.map((item, index) => (
+                <div key={item.id}>
+                  <label>
+                    {item.label}
+                    {item.required ? "(bắt buộc để hoàn tất)" : ""}
+                    <select
+                      aria-label={`Kết quả tiêu chí: ${item.label}`}
+                      value={item.outcome ?? ""}
+                      onChange={(e) =>
+                        setItems((rows) =>
+                          rows.map((r, n) =>
+                            n === index
+                              ? {
+                                  ...r,
+                                  outcome: e.target.value as "PASS" | "FAIL",
+                                }
+                              : r,
+                          ),
+                        )
+                      }
+                    >
+                      <option value="" disabled>
+                        Chưa ghi nhận
+                      </option>
+                      <option value="PASS">Đạt</option>
+                      <option value="FAIL">Không đạt</option>
+                    </select>
+                  </label>
+                  <label>
+                    Ghi chú tiêu chí: {item.label}
+                    <input
+                      maxLength={1000}
+                      disabled={item.outcome === null}
+                      value={item.note ?? ""}
+                      onChange={(e) =>
+                        setItems((rows) =>
+                          rows.map((r, n) =>
+                            n === index ? { ...r, note: e.target.value } : r,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              ))}
+              <label>
+                Ghi chú tiến độ
+                <input
+                  maxLength={4000}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </label>
+              <label>
+                Tệp bằng chứng (tối đa 5 tệp PNG/JPEG/PDF, 10 MB mỗi tệp)
+                <input
+                  ref={fileInput}
+                  type="file"
+                  multiple
+                  accept="image/png,image/jpeg,application/pdf"
+                  onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                />
+              </label>
+              <button data-dialog-action>Lưu tiến độ</button>
+            </fieldset>
+          </form>
+        </ActionDialog>
       )}
     </section>
   );

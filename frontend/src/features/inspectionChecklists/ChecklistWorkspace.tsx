@@ -1,3 +1,7 @@
+import {
+  ActionDialog,
+  announceWorkflowSuccess,
+} from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { ChecklistCollection } from "./ChecklistCollection";
 import { useCallback, useEffect, useState } from "react";
@@ -186,14 +190,21 @@ function BranchWorkspace({
         />
       )}
       {selected && (
-        <ChecklistDetail
-          key={`${selected}:${detailKey}`}
-          branch={branch}
-          id={selected}
-          onLoaded={authorize}
-          onDenied={deny}
-          onMutated={changed}
-        />
+        <ActionDialog
+          open
+          drawer
+          title="Chi tiết checklist"
+          onClose={() => setSelected(null)}
+        >
+          <ChecklistDetail
+            key={`${selected}:${detailKey}`}
+            branch={branch}
+            id={selected}
+            onLoaded={authorize}
+            onDenied={deny}
+            onMutated={changed}
+          />
+        </ActionDialog>
       )}
     </>
   );
@@ -258,7 +269,11 @@ function ChecklistDetail({
     setAction(null);
     setReason("");
     setConfirmed(false);
-    setNotice("MSG08: Checklist đã được lưu thành công.");
+    (announceWorkflowSuccess(
+      "MSG08: Checklist đã được lưu thành công.",
+      "features/inspectionChecklists/ChecklistWorkspace.tsx",
+    ),
+      setNotice("MSG08: Checklist đã được lưu thành công."));
   }
   async function transition(e: React.FormEvent) {
     e.preventDefault();
@@ -398,43 +413,62 @@ function ChecklistDetail({
             />
           )}
           {action && (
-            <form onSubmit={transition} aria-label="Xác nhận phiên bản">
-              <h3>
-                {action === "publish"
-                  ? "Công bố Draft"
-                  : "Ngừng sử dụng bản công bố"}
-              </h3>
-              <fieldset disabled={busy || blocked}>
-                {action === "retire" && <p role="alert">MSG33: Bạn có chắc muốn ngừng sử dụng phiên bản checklist này? Không thể hoàn tác.</p>}
-                <label>
-                  Lý do
-                  <textarea
-                    required
-                    maxLength={500}
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  />
-                </label>
-                <label className="fe05-inline">
-                  <input
-                    type="checkbox"
-                    checked={confirmed}
-                    onChange={(e) => setConfirmed(e.target.checked)}
-                  />
-                  Tôi xác nhận thao tác
-                </label>
-                <button disabled={!confirmed} type="submit">
-                  Xác nhận
+            <ActionDialog
+              scope="features/inspectionChecklists/ChecklistWorkspace.tsx"
+              open
+              title="Xác nhận phiên bản checklist"
+              onClose={() => setAction(null)}
+              busy={busy}
+              locked={blocked}
+              error={error}
+            >
+              <form onSubmit={transition} aria-label="Xác nhận phiên bản">
+                <h3>
+                  {action === "publish"
+                    ? "Công bố Draft"
+                    : "Ngừng sử dụng bản công bố"}
+                </h3>
+                <fieldset disabled={busy || blocked}>
+                  {action === "retire" && (
+                    <p role="alert">
+                      MSG33: Bạn có chắc muốn ngừng sử dụng phiên bản checklist
+                      này? Không thể hoàn tác.
+                    </p>
+                  )}
+                  <label>
+                    Lý do
+                    <textarea
+                      required
+                      maxLength={500}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                    />
+                  </label>
+                  <label className="fe05-inline">
+                    <input
+                      type="checkbox"
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                    />
+                    Tôi xác nhận thao tác
+                  </label>
+                  <button
+                    data-dialog-action
+                    disabled={!confirmed}
+                    type="submit"
+                  >
+                    Xác nhận
+                  </button>
+                </fieldset>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setAction(null)}
+                >
+                  Hủy thao tác
                 </button>
-              </fieldset>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => setAction(null)}
-              >
-                Hủy thao tác
-              </button>
-            </form>
+              </form>
+            </ActionDialog>
           )}
         </>
       )}

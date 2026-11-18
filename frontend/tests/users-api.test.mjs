@@ -44,6 +44,8 @@ const directory = () => {
   };
 };
 const review = () => ({
+  departmentMembershipsAvailable: true,
+  departmentMemberships: [],
   account: account(),
   evaluatedAtUtc: stamp,
   reviewerScope: { isGlobal: false, branchIds: [1] },

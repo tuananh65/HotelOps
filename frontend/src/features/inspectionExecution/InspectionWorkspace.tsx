@@ -1,3 +1,4 @@
+import { ActionDialog } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -329,9 +330,9 @@ export function InspectionWorkspace({
       {current && (
         <>
           <p>
-            Trạng thái: <strong>{displayCode(current.value.state)}</strong>. Assigned version #
-            {current.value.versionId}; Phòng #{current.value.roomId}; Công việc #
-            {current.value.cleaningTaskId}.
+            Trạng thái: <strong>{displayCode(current.value.state)}</strong>.
+            Assigned version #{current.value.versionId}; Phòng #
+            {current.value.roomId}; Công việc #{current.value.cleaningTaskId}.
           </p>
           <label>
             Lý do{" "}
@@ -365,7 +366,9 @@ export function InspectionWorkspace({
           )}
           {["PASSED", "FAILED"].includes(current.value.state) && (
             <p role="status">
-              MSG24: Kiểm tra đang ở trạng thái {displayCode(current.value.state)} và các lỗi liên quan không còn được chỉnh sửa.
+              MSG24: Kiểm tra đang ở trạng thái{" "}
+              {displayCode(current.value.state)} và các lỗi liên quan không còn
+              được chỉnh sửa.
             </p>
           )}
           {current.value.state === "FAILED" && (
@@ -382,7 +385,8 @@ export function InspectionWorkspace({
               (c) => c.mandatory && c.outcome === "FAIL",
             ) && (
               <p role="alert">
-                MSG03: Tiêu chí bắt buộc không đạt. Không thể duyệt. Kiểm tra lỗi và chọn Từ chối kết quả kiểm tra.
+                MSG03: Tiêu chí bắt buộc không đạt. Không thể duyệt. Kiểm tra
+                lỗi và chọn Từ chối kết quả kiểm tra.
               </p>
             )}
           <button
@@ -400,39 +404,42 @@ export function InspectionWorkspace({
             Duyệt kết quả kiểm tra
           </button>
           {current.value.state === "PENDING_CONCLUSION" && (
-            <fieldset disabled={busy || blocked}>
-              <legend>Từ chối kết quả kiểm tra</legend>
-              {why.trim().length < 10 && (
-                <p role="alert" style={{ color: "#b91c1c" }}>
-                  MSG03: Lý do từ chối cần ít nhất 10 ký tự.
-                </p>
-              )}
-              {current.value.defects.length === 0 && (
-                <p role="alert" style={{ color: "#b91c1c" }}>
-                  MSG03: Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ chối kiểm tra. Kiểm tra và thử lại.
-                </p>
-              )}
-              <label>
-                <input
-                  type="checkbox"
-                  checked={rejectConfirmed}
-                  onChange={(e) => setRejectConfirmed(e.target.checked)}
-                />
-                Xác nhận kiểm tra không đạt và yêu cầu vệ sinh lại
-              </label>
-              <button
-                type="button"
-                disabled={
-                  !rejectConfirmed ||
-                  why.trim().length < 10 ||
-                  !current.value.defects.length ||
-                  !current.value.criteria.some((c) => c.outcome === "FAIL")
-                }
-                onClick={() => void action("reject")}
-              >
-                Từ chối kết quả kiểm tra
-              </button>
-            </fieldset>
+            <ActionDialog title="Từ chối kết quả kiểm tra" busy={busy}>
+              <fieldset disabled={busy || blocked}>
+                <legend>Từ chối kết quả kiểm tra</legend>
+                {why.trim().length < 10 && (
+                  <p role="alert" style={{ color: "#b91c1c" }}>
+                    MSG03: Lý do từ chối cần ít nhất 10 ký tự.
+                  </p>
+                )}
+                {current.value.defects.length === 0 && (
+                  <p role="alert" style={{ color: "#b91c1c" }}>
+                    MSG03: Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ
+                    chối kiểm tra. Kiểm tra và thử lại.
+                  </p>
+                )}
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={rejectConfirmed}
+                    onChange={(e) => setRejectConfirmed(e.target.checked)}
+                  />
+                  Xác nhận kiểm tra không đạt và yêu cầu vệ sinh lại
+                </label>
+                <button
+                  type="button"
+                  disabled={
+                    !rejectConfirmed ||
+                    why.trim().length < 10 ||
+                    !current.value.defects.length ||
+                    !current.value.criteria.some((c) => c.outcome === "FAIL")
+                  }
+                  onClick={() => void action("reject")}
+                >
+                  Từ chối kết quả kiểm tra
+                </button>
+              </fieldset>
+            </ActionDialog>
           )}
           <button
             type="button"
@@ -479,7 +486,8 @@ export function InspectionWorkspace({
                 />
               </label>
               <label>
-                Bằng chứng theo tiêu chí #{c.itemId} (JPG, PNG, PDF; tối đa 10 MiB mỗi tệp)
+                Bằng chứng theo tiêu chí #{c.itemId} (JPG, PNG, PDF; tối đa 10
+                MiB mỗi tệp)
                 <input
                   key={`${c.itemId}:${uploadGeneration}`}
                   type="file"
@@ -542,7 +550,8 @@ export function InspectionWorkspace({
           ))}
           {!severities?.length && (
             <p role="status">
-              Chưa có mã mức độ từ máy chủ; thao tác gửi lỗi bị khóa. INSPECTION_PERFORM không cấp quyền xem bằng chứng.
+              Chưa có mã mức độ từ máy chủ; thao tác gửi lỗi bị khóa.
+              INSPECTION_PERFORM không cấp quyền xem bằng chứng.
             </p>
           )}
           <fieldset
@@ -556,9 +565,7 @@ export function InspectionWorkspace({
               )
             }
           >
-            <legend>
-              Ghi nhận lỗi (chỉ cho tiêu chí đã lưu là không đạt)
-            </legend>
+            <legend>Ghi nhận lỗi (chỉ cho tiêu chí đã lưu là không đạt)</legend>
             <label>
               Tiêu chí không đạt{" "}
               <select
@@ -643,7 +650,8 @@ export function InspectionWorkspace({
             )}
           </fieldset>
           <p>
-            Chưa cho phép xem / tải bằng chứng nếu chưa xác minh riêng quyền INSPECTION_VIEW.
+            Chưa cho phép xem / tải bằng chứng nếu chưa xác minh riêng quyền
+            INSPECTION_VIEW.
           </p>
         </>
       )}

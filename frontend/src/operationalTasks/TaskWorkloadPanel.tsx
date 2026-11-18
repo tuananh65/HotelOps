@@ -1,3 +1,4 @@
+import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -42,10 +43,14 @@ export function TaskWorkloadPanel({
     page: number;
     employee: number | null;
     revision: number;
-  } | null>(initialFilters ? { filters: initialFilters, page: 1, employee: null, revision: 0 } : null);
-  const [result, setResult] = useState<WorkloadPage | WorkloadDetail | WorkloadTaskPage | null>(
-    null,
+  } | null>(
+    initialFilters
+      ? { filters: initialFilters, page: 1, employee: null, revision: 0 }
+      : null,
   );
+  const [result, setResult] = useState<
+    WorkloadPage | WorkloadDetail | WorkloadTaskPage | null
+  >(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [denied, setDenied] = useState(false);
@@ -82,8 +87,28 @@ export function TaskWorkloadPanel({
       });
     return () => controller.abort();
   }, [branch, owner, actions, query]);
+  function restoreAdvanced() {
+    const applied = query?.filters ?? initialFilters ?? {};
+    setForm((v) => ({
+      ...v,
+      from: applied.from ?? "",
+      to: applied.to ?? "",
+      departmentId: applied.departmentId?.toString() ?? "",
+      employeeId: applied.employeeId?.toString() ?? "",
+      priorityId: applied.priorityId?.toString() ?? "",
+      status: applied.status ?? "",
+      deadlineFrom: applied.deadlineFrom ?? "",
+      deadlineTo: applied.deadlineTo ?? "",
+      search: applied.search ?? initialSearch,
+      overdueOnly: applied.overdueOnly ?? false,
+    }));
+  }
   function load() {
-    const filters: WorkloadFilters = { overdueOnly: form.overdueOnly, calendar: initialFilters?.calendar, taskSet: initialFilters?.taskSet };
+    const filters: WorkloadFilters = {
+      overdueOnly: form.overdueOnly,
+      calendar: initialFilters?.calendar,
+      taskSet: initialFilters?.taskSet,
+    };
     for (const key of [
       "from",
       "to",
@@ -112,16 +137,22 @@ export function TaskWorkloadPanel({
   if (denied)
     return (
       <p role="status">
-        Xem khối lượng công việc cần trưởng bộ phận hoặc quản lý vận hành có quyền.
+        Xem khối lượng công việc cần trưởng bộ phận hoặc quản lý vận hành có
+        quyền.
       </p>
     );
   if (!query)
-    return <button onClick={load}>Xem lại khối lượng công việc và nhật ký thời gian</button>;
+    return (
+      <button onClick={load}>
+        Xem lại khối lượng công việc và nhật ký thời gian
+      </button>
+    );
   const page = result && "items" in result ? result : null;
   const detail = result && "userId" in result ? result : null;
   const taskPage = result && "taskSet" in result ? result : null;
   const total =
-    taskPage?.totalCount ?? page?.totalCount ??
+    taskPage?.totalCount ??
+    page?.totalCount ??
     (detail
       ? Math.max(detail.taskCount, detail.intervalCount, detail.shiftCount ?? 0)
       : 0);
@@ -131,107 +162,117 @@ export function TaskWorkloadPanel({
     <section aria-label="Khối lượng công việc">
       <h3>Khối lượng công việc và nhật ký thời gian</h3>
       <p>Lịch kỳ: {initialFilters?.calendar ?? "Asia/Ho_Chi_Minh"}.</p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          load();
-        }}
+      <CollapsibleFilterPanel
+        activeCount={
+          Object.entries(query?.filters ?? {}).filter(
+            ([k, v]) => !["calendar", "taskSet"].includes(k) && !!v,
+          ).length
+        }
+        onOpen={restoreAdvanced}
+        onClose={restoreAdvanced}
       >
-        <label>
-          Khối lượng từ ngày
-          <input
-            type="date"
-            value={form.from}
-            onChange={(e) => field("from", e.target.value)}
-          />
-        </label>
-        <label>
-          Khối lượng đến ngày
-          <input
-            type="date"
-            value={form.to}
-            onChange={(e) => field("to", e.target.value)}
-          />
-        </label>
-        <label>
-          Mã bộ phận theo dõi khối lượng
-          <input
-            inputMode="numeric"
-            pattern="[1-9][0-9]*"
-            value={form.departmentId}
-            onChange={(e) => field("departmentId", e.target.value)}
-          />
-        </label>
-        <label>
-          Mã nhân viên theo dõi khối lượng
-          <input
-            inputMode="numeric"
-            pattern="[1-9][0-9]*"
-            value={form.employeeId}
-            disabled={initialFilters?.taskSet !== undefined}
-            onChange={(e) => field("employeeId", e.target.value)}
-          />
-        </label>
-        <label>
-          Mã độ ưu tiên công việc
-          <input
-            inputMode="numeric"
-            pattern="[1-9][0-9]*"
-            value={form.priorityId}
-            onChange={(e) => field("priorityId", e.target.value)}
-          />
-        </label>
-        <label>
-          Trạng thái công việc
-          <select
-            aria-label="Trạng thái công việc"
-            value={form.status}
-            onChange={(e) => field("status", e.target.value)}
-          >
-            <option value="">Tất cả quy trình</option>
-            {taskWorkflowStates.map((s) => (
-              <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Thời hạn từ
-          <input
-            type="date"
-            value={form.deadlineFrom}
-            onChange={(e) => field("deadlineFrom", e.target.value)}
-          />
-        </label>
-        <label>
-          Thời hạn đến
-          <input
-            type="date"
-            value={form.deadlineTo}
-            onChange={(e) => field("deadlineTo", e.target.value)}
-          />
-        </label>
-        <label>
-          Tìm công việc theo khối lượng
-          <input
-            maxLength={150}
-            value={form.search}
-            onChange={(e) => field("search", e.target.value)}
-          />
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={form.overdueOnly}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, overdueOnly: e.target.checked }))
-            }
-          />
-          Chỉ hiện quá hạn
-        </label>
-        <button disabled={busy}>Áp dụng bộ lọc khối lượng công việc</button>
-      </form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            load();
+          }}
+        >
+          <label>
+            Khối lượng từ ngày
+            <input
+              type="date"
+              value={form.from}
+              onChange={(e) => field("from", e.target.value)}
+            />
+          </label>
+          <label>
+            Khối lượng đến ngày
+            <input
+              type="date"
+              value={form.to}
+              onChange={(e) => field("to", e.target.value)}
+            />
+          </label>
+          <label>
+            Mã bộ phận theo dõi khối lượng
+            <input
+              inputMode="numeric"
+              pattern="[1-9][0-9]*"
+              value={form.departmentId}
+              onChange={(e) => field("departmentId", e.target.value)}
+            />
+          </label>
+          <label>
+            Mã nhân viên theo dõi khối lượng
+            <input
+              inputMode="numeric"
+              pattern="[1-9][0-9]*"
+              value={form.employeeId}
+              disabled={initialFilters?.taskSet !== undefined}
+              onChange={(e) => field("employeeId", e.target.value)}
+            />
+          </label>
+          <label>
+            Mã độ ưu tiên công việc
+            <input
+              inputMode="numeric"
+              pattern="[1-9][0-9]*"
+              value={form.priorityId}
+              onChange={(e) => field("priorityId", e.target.value)}
+            />
+          </label>
+          <label>
+            Trạng thái công việc
+            <select
+              aria-label="Trạng thái công việc"
+              value={form.status}
+              onChange={(e) => field("status", e.target.value)}
+            >
+              <option value="">Tất cả quy trình</option>
+              {taskWorkflowStates.map((s) => (
+                <option key={s} value={s}>
+                  {s.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Thời hạn từ
+            <input
+              type="date"
+              value={form.deadlineFrom}
+              onChange={(e) => field("deadlineFrom", e.target.value)}
+            />
+          </label>
+          <label>
+            Thời hạn đến
+            <input
+              type="date"
+              value={form.deadlineTo}
+              onChange={(e) => field("deadlineTo", e.target.value)}
+            />
+          </label>
+          <label>
+            Tìm công việc theo khối lượng
+            <input
+              maxLength={150}
+              value={form.search}
+              onChange={(e) => field("search", e.target.value)}
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={form.overdueOnly}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, overdueOnly: e.target.checked }))
+              }
+            />
+            Chỉ hiện quá hạn
+          </label>
+          <button disabled={busy}>Áp dụng bộ lọc khối lượng công việc</button>
+        </form>
+      </CollapsibleFilterPanel>
       {busy && <p role="status">Đang tải khối lượng công việc…</p>}
       {error && <p role="alert">{error}</p>}
       <button
@@ -242,28 +283,60 @@ export function TaskWorkloadPanel({
       </button>
       {result && (
         <p>
-          Ngày {result.from} đến {result.to} ({result.calendar ?? "Asia/Ho_Chi_Minh"}). Bản chụp dữ liệu {result.asOf}. Durations are seconds within this period.
+          Ngày {result.from} đến {result.to} (
+          {result.calendar ?? "Asia/Ho_Chi_Minh"}). Bản chụp dữ liệu{" "}
+          {result.asOf}. Durations are seconds within this period.
         </p>
       )}
       {taskPage && (
         <section aria-label="Công việc phù hợp với bộ lọc khối lượng">
           <h4>Công việc phù hợp {taskPage.taskSet?.replaceAll("_", " ")}</h4>
-          <p>{taskPage.totalCount} công việc phù hợp, gồm cả công việc chưa được phân công.</p>
-          {taskPage.messageCode === "MSG10" && <p role="status">MSG10: Không có công việc phù hợp bộ lọc.</p>}
+          <p>
+            {taskPage.totalCount} công việc phù hợp, gồm cả công việc chưa được
+            phân công.
+          </p>
+          {taskPage.messageCode === "MSG10" && (
+            <p role="status">MSG10: Không có công việc phù hợp bộ lọc.</p>
+          )}
           <table aria-label="Công việc phù hợp">
-            <thead><tr><th>Công việc</th><th>Trạng thái</th><th>Người được giao hiện tại</th><th>Thời hạn</th><th>Đóng lúc</th></tr></thead>
-            <tbody>{taskPage.tasks.map(t => <tr key={t.taskId}>
-              <td><Link to={`/operational-tasks?branchId=${branch}&taskId=${t.taskId}`}>{t.code}: {t.title}</Link></td>
-              <td>{displayCode(t.state)}</td><td>{t.currentAssigneeId ?? "Chưa có phân công hiện tại"}</td>
-              <td>{t.deadline ?? "—"}{t.overdue && " · Overdue"}</td><td>{t.completedAt ?? "—"}</td>
-            </tr>)}</tbody>
+            <thead>
+              <tr>
+                <th>Công việc</th>
+                <th>Trạng thái</th>
+                <th>Người được giao hiện tại</th>
+                <th>Thời hạn</th>
+                <th>Đóng lúc</th>
+              </tr>
+            </thead>
+            <tbody>
+              {taskPage.tasks.map((t) => (
+                <tr key={t.taskId}>
+                  <td>
+                    <Link
+                      to={`/operational-tasks?branchId=${branch}&taskId=${t.taskId}`}
+                    >
+                      {t.code}: {t.title}
+                    </Link>
+                  </td>
+                  <td>{displayCode(t.state)}</td>
+                  <td>{t.currentAssigneeId ?? "Chưa có phân công hiện tại"}</td>
+                  <td>
+                    {t.deadline ?? "—"}
+                    {t.overdue && " · Overdue"}
+                  </td>
+                  <td>{t.completedAt ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </section>
       )}
       {page && (
         <>
           {page.messageCode === "MSG10" && (
-            <p role="status">MSG10: Không có khối lượng công việc phù hợp bộ lọc.</p>
+            <p role="status">
+              MSG10: Không có khối lượng công việc phù hợp bộ lọc.
+            </p>
           )}
           <table aria-label="Khối lượng công việc của nhân viên">
             <thead>
@@ -304,7 +377,9 @@ export function TaskWorkloadPanel({
             </tbody>
           </table>
           <p>
-            Số đã đóng đếm công việc riêng biệt có kết quả được chấp nhận của nhân viên trong kỳ. Mở lại vẫn giữ kết quả hoàn tất và thời gian trước đó.
+            Số đã đóng đếm công việc riêng biệt có kết quả được chấp nhận của
+            nhân viên trong kỳ. Mở lại vẫn giữ kết quả hoàn tất và thời gian
+            trước đó.
           </p>
         </>
       )}
@@ -373,7 +448,10 @@ export function TaskWorkloadPanel({
               ))}
             </tbody>
           </table>
-          <h4>Thời gian ngày làm việc / ca — tách biệt với thời gian thực hiện công việc</h4>
+          <h4>
+            Thời gian ngày làm việc / ca — tách biệt với thời gian thực hiện
+            công việc
+          </h4>
           {detail.shifts === null ? (
             <p>Không có thời gian ca nếu thiếu quyền SHIFT_VIEW hiện tại.</p>
           ) : (
@@ -401,7 +479,9 @@ export function TaskWorkloadPanel({
             </table>
           )}
           <p>
-            Bảng công việc, khoảng làm việc và ngày làm việc phân trang riêng bên dưới; bộ lọc công việc không biến thời gian ca thành thời gian thực hiện.
+            Bảng công việc, khoảng làm việc và ngày làm việc phân trang riêng
+            bên dưới; bộ lọc công việc không biến thời gian ca thành thời gian
+            thực hiện.
           </p>
         </section>
       )}

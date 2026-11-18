@@ -26,3 +26,4 @@ createRoot(document.getElementById("root")!).render(
 import "./inventory/inventory.css";
 import "./dev2/dev2.css";
 import "./styles/cacao.css";
+import "./styles/design-system.css";

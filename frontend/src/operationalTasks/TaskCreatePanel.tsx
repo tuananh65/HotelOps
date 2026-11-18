@@ -1,3 +1,4 @@
+import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -36,7 +37,9 @@ export function TaskCreatePanel({
   onSourceInvalid?: () => void;
 }) {
   const { actions } = useAuth();
-  const [department, setDepartment] = useState(source ? String(source.departmentId) : "");
+  const [department, setDepartment] = useState(
+    source ? String(source.departmentId) : "",
+  );
   const [category, setCategory] = useState("");
   const [options, setOptions] = useState<PlanningOptions | null>(null);
   const [title, setTitle] = useState(source?.title ?? "");
@@ -44,8 +47,12 @@ export function TaskCreatePanel({
   const [mandatory, setMandatory] = useState("");
   const [outcome, setOutcome] = useState("");
   const [criteria, setCriteria] = useState([{ label: "", required: true }]);
-  const [locationType, setLocationType] = useState(source?.roomId ? "room" : source?.areaId ? "area" : "department");
-  const [location, setLocation] = useState(String(source?.roomId ?? source?.areaId ?? ""));
+  const [locationType, setLocationType] = useState(
+    source?.roomId ? "room" : source?.areaId ? "area" : "department",
+  );
+  const [location, setLocation] = useState(
+    String(source?.roomId ?? source?.areaId ?? ""),
+  );
   const [plan, setPlan] = useState<PlanDraft>({
     priority: source?.priorityId ? String(source.priorityId) : "",
     start: "",
@@ -91,10 +98,7 @@ export function TaskCreatePanel({
           actions.invalidateSession(owner);
         if (error instanceof TaskProgressError && error.status === 403)
           setHidden(true);
-        else
-          setError(
-            "Chưa có lựa chọn tạo việc. Tải lại để thử tiếp.",
-          );
+        else setError("Chưa có lựa chọn tạo việc. Tải lại để thử tiếp.");
       });
     return () => controller.abort();
   }, [branch, department, owner, actions, revision]);
@@ -108,7 +112,10 @@ export function TaskCreatePanel({
     };
     try {
       if (source && !pending && !["required", "optional"].includes(mandatory)) {
-        setError("Chọn công việc này có bắt buộc để hoàn tất yêu cầu hay không."); return;
+        setError(
+          "Chọn công việc này có bắt buộc để hoàn tất yêu cầu hay không.",
+        );
+        return;
       }
       submission = pending ?? {
         assign,
@@ -128,7 +135,14 @@ export function TaskCreatePanel({
           roomId: locationType === "room" ? Number(location) : null,
           areaId: locationType === "area" ? Number(location) : null,
           internalRequestId: source?.requestId ?? null,
-          ...(source ? { requestLink: { version: source.version, mandatory: mandatory === "required" } } : {}),
+          ...(source
+            ? {
+                requestLink: {
+                  version: source.version,
+                  mandatory: mandatory === "required",
+                },
+              }
+            : {}),
         },
       };
       if (
@@ -183,8 +197,16 @@ export function TaskCreatePanel({
       if (controller.signal.aborted) return;
       if (error instanceof TaskProgressError && error.status === 401)
         actions.invalidateSession(owner);
-      if (source && error instanceof TaskProgressError && [403, 409, 412].includes(error.status)) {
-        setPending(null); setOptions(null); setHidden(true); onSourceInvalid?.(); return;
+      if (
+        source &&
+        error instanceof TaskProgressError &&
+        [403, 409, 412].includes(error.status)
+      ) {
+        setPending(null);
+        setOptions(null);
+        setHidden(true);
+        onSourceInvalid?.();
+        return;
       }
       if (
         error instanceof TaskProgressError &&
@@ -225,205 +247,227 @@ export function TaskCreatePanel({
         </button>
       )}
       {options && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save(false);
-          }}
-        >
-          <fieldset disabled={busy || pending !== null}>
-            <legend>Định nghĩa công việc</legend>
-            {source && <><p>Liên kết với yêu cầu {source.requestId}. The request stays open after creation.</p>
-              <label>Điều kiện hoàn tất yêu cầu<select aria-label="Điều kiện hoàn tất yêu cầu" required value={mandatory} onChange={e => setMandatory(e.target.value)}>
-                <option value="">Chọn điều kiện</option><option value="required">Bắt buộc để hoàn tất</option><option value="optional">Không bắt buộc</option>
-              </select></label></>}
-            <label>
-              Tiêu đề công việc
-              <input
-                required
-                maxLength={200}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </label>
-            <label>
-              Bộ phận
-              <select
-                aria-label="Bộ phận"
-                required
-                value={department}
-                onChange={(e) => {
-                  setDepartment(e.target.value);
-                  setCategory("");
-                  setRecurrence((r) => ({ ...r, defaultAssigneeId: 0 }));
-                }}
-              >
-                <option value="">Chọn bộ phận</option>
-                {options.departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Nhóm công việc
-              <select
-                aria-label="Nhóm công việc"
-                required
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="">Chọn nhóm</option>
-                {options.categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p>
-              Vệ sinh, sự cố và yêu cầu vật tư sử dụng quy trình riêng.
-            </p>
-            <label>
-              Loại vị trí
-              <select
-                aria-label="Loại vị trí"
-                value={locationType}
-                onChange={(e) => {
-                  setLocationType(e.target.value);
-                  setLocation("");
-                }}
-              >
-                <option value="department">Chỉ trong bộ phận</option>
-                <option value="room">Phòng</option>
-                <option value="area">Khu vực</option>
-              </select>
-            </label>
-            {locationType !== "department" && (
+        <ActionDialog error={error} drawer title="Tạo công việc" busy={busy}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void save(false);
+            }}
+          >
+            <fieldset disabled={busy || pending !== null}>
+              <legend>Định nghĩa công việc</legend>
+              {source && (
+                <>
+                  <p>
+                    Liên kết với yêu cầu {source.requestId}. The request stays
+                    open after creation.
+                  </p>
+                  <label>
+                    Điều kiện hoàn tất yêu cầu
+                    <select
+                      aria-label="Điều kiện hoàn tất yêu cầu"
+                      required
+                      value={mandatory}
+                      onChange={(e) => setMandatory(e.target.value)}
+                    >
+                      <option value="">Chọn điều kiện</option>
+                      <option value="required">Bắt buộc để hoàn tất</option>
+                      <option value="optional">Không bắt buộc</option>
+                    </select>
+                  </label>
+                </>
+              )}
               <label>
-                Mã vị trí
+                Tiêu đề công việc
                 <input
                   required
-                  inputMode="numeric"
-                  pattern="[1-9][0-9]*"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  maxLength={200}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </label>
-            )}
-            <label>
-              Mô tả công việc
-              <textarea
-                aria-label="Mô tả công việc"
-                maxLength={4000}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
-            <label>
-              Kết quả mong đợi
-              <textarea
-                aria-label="Kết quả mong đợi"
-                required
-                maxLength={4000}
-                value={outcome}
-                onChange={(e) => setOutcome(e.target.value)}
-              />
-            </label>
-            <fieldset>
-              <legend>Tiêu chí hoàn tất</legend>
-              {criteria.map((criterion, index) => (
-                <div key={index}>
-                  <label>
-                    Tiêu chí {index + 1}
-                    <input
-                      required
-                      maxLength={250}
-                      value={criterion.label}
-                      onChange={(e) =>
+              <label>
+                Bộ phận
+                <select
+                  aria-label="Bộ phận"
+                  required
+                  value={department}
+                  onChange={(e) => {
+                    setDepartment(e.target.value);
+                    setCategory("");
+                    setRecurrence((r) => ({ ...r, defaultAssigneeId: 0 }));
+                  }}
+                >
+                  <option value="">Chọn bộ phận</option>
+                  {options.departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Nhóm công việc
+                <select
+                  aria-label="Nhóm công việc"
+                  required
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="">Chọn nhóm</option>
+                  {options.categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p>Vệ sinh, sự cố và yêu cầu vật tư sử dụng quy trình riêng.</p>
+              <label>
+                Loại vị trí
+                <select
+                  aria-label="Loại vị trí"
+                  value={locationType}
+                  onChange={(e) => {
+                    setLocationType(e.target.value);
+                    setLocation("");
+                  }}
+                >
+                  <option value="department">Chỉ trong bộ phận</option>
+                  <option value="room">Phòng</option>
+                  <option value="area">Khu vực</option>
+                </select>
+              </label>
+              {locationType !== "department" && (
+                <label>
+                  Mã vị trí
+                  <input
+                    required
+                    inputMode="numeric"
+                    pattern="[1-9][0-9]*"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </label>
+              )}
+              <label>
+                Mô tả công việc
+                <textarea
+                  aria-label="Mô tả công việc"
+                  maxLength={4000}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </label>
+              <label>
+                Kết quả mong đợi
+                <textarea
+                  aria-label="Kết quả mong đợi"
+                  required
+                  maxLength={4000}
+                  value={outcome}
+                  onChange={(e) => setOutcome(e.target.value)}
+                />
+              </label>
+              <fieldset>
+                <legend>Tiêu chí hoàn tất</legend>
+                {criteria.map((criterion, index) => (
+                  <div key={index}>
+                    <label>
+                      Tiêu chí {index + 1}
+                      <input
+                        required
+                        maxLength={250}
+                        value={criterion.label}
+                        onChange={(e) =>
+                          setCriteria((rows) =>
+                            rows.map((c, i) =>
+                              i === index ? { ...c, label: e.target.value } : c,
+                            ),
+                          )
+                        }
+                      />
+                    </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={criterion.required}
+                        onChange={(e) =>
+                          setCriteria((rows) =>
+                            rows.map((c, i) =>
+                              i === index
+                                ? { ...c, required: e.target.checked }
+                                : c,
+                            ),
+                          )
+                        }
+                      />
+                      Tiêu chí bắt buộc {index + 1}
+                    </label>
+                    <button
+                      type="button"
+                      disabled={criteria.length === 1}
+                      onClick={() =>
                         setCriteria((rows) =>
-                          rows.map((c, i) =>
-                            i === index ? { ...c, label: e.target.value } : c,
-                          ),
+                          rows.filter((_, i) => i !== index),
                         )
                       }
-                    />
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={criterion.required}
-                      onChange={(e) =>
-                        setCriteria((rows) =>
-                          rows.map((c, i) =>
-                            i === index
-                              ? { ...c, required: e.target.checked }
-                              : c,
-                          ),
-                        )
-                      }
-                    />
-                    Tiêu chí bắt buộc {index + 1}
-                  </label>
-                  <button
-                    type="button"
-                    disabled={criteria.length === 1}
-                    onClick={() =>
-                      setCriteria((rows) => rows.filter((_, i) => i !== index))
-                    }
-                  >
-                    Xóa tiêu chí {index + 1}
-                  </button>
-                </div>
-              ))}
+                    >
+                      Xóa tiêu chí {index + 1}
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  disabled={criteria.length >= 100}
+                  onClick={() =>
+                    setCriteria((rows) => [
+                      ...rows,
+                      { label: "", required: true },
+                    ])
+                  }
+                >
+                  Thêm tiêu chí
+                </button>
+              </fieldset>
+              <TaskPlanFields
+                value={plan}
+                onChange={setPlan}
+                priorities={options.priorities}
+              />
+              {options.recurringAvailable && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={repeat}
+                    onChange={(e) => setRepeat(e.target.checked)}
+                  />
+                  Lặp công việc
+                </label>
+              )}
+              {repeat && (
+                <TaskRecurrenceFields
+                  value={recurrence}
+                  onChange={setRecurrence}
+                  executors={options.defaultExecutors ?? []}
+                />
+              )}
+              <button data-dialog-action>
+                {repeat ? "Lưu chuỗi công việc định kỳ" : "Lưu công việc"}
+              </button>
               <button
+                data-dialog-action
                 type="button"
-                disabled={criteria.length >= 100}
-                onClick={() =>
-                  setCriteria((rows) => [
-                    ...rows,
-                    { label: "", required: true },
-                  ])
-                }
+                disabled={repeat}
+                onClick={(e) => {
+                  if (e.currentTarget.form?.reportValidity()) void save(true);
+                }}
               >
-                Thêm tiêu chí
+                Lưu và phân công
               </button>
             </fieldset>
-            <TaskPlanFields
-              value={plan}
-              onChange={setPlan}
-              priorities={options.priorities}
-            />
-            {options.recurringAvailable && (
-              <label>
-                <input
-                  type="checkbox"
-                  checked={repeat}
-                  onChange={(e) => setRepeat(e.target.checked)}
-                />
-                Lặp công việc
-              </label>
-            )}
-            {repeat && (
-              <TaskRecurrenceFields
-                value={recurrence}
-                onChange={setRecurrence}
-                executors={options.defaultExecutors ?? []}
-              />
-            )}
-            <button>{repeat ? "Lưu chuỗi công việc định kỳ" : "Lưu công việc"}</button>
-            <button
-              type="button"
-              disabled={repeat}
-              onClick={(e) => {
-                if (e.currentTarget.form?.reportValidity()) void save(true);
-              }}
-            >
-              Lưu và phân công
-            </button>
-          </fieldset>
-        </form>
+          </form>
+        </ActionDialog>
       )}
     </section>
   );
