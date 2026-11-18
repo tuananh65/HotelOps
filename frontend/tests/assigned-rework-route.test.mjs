@@ -118,8 +118,8 @@ async function scenario(run, writable = false) {
       assert.equal(request.headers()["if-match"], source.sourceETag);
       assert.equal(
         request.postDataJSON().note,
-        action === "accept" ? "Accepted rework"
-          : state.data.state === "ON_HOLD" ? "Resumed rework after end of shift" : "Started rework",
+        action === "accept" ? "Kết quả làm lại đã chấp nhận"
+          : state.data.state === "ON_HOLD" ? "Đã tiếp tục làm lại sau khi hết ca" : "Đã bắt đầu làm lại",
       );
       state.data = {
         ...state.data,
@@ -170,10 +170,10 @@ test("end-of-shift hold resumes only with the server capability", async () => {
     state.data = { ...source, state: "ON_HOLD", capability: "READ_ONLY" };
     await page.getByRole("button", { name: "Refresh rework" }).click();
     await page.getByText("Rework #12: on hold.", { exact: true }).waitFor();
-    assert.equal(await page.getByRole("button", { name: "Resume rework", exact: true }).count(), 0);
+    assert.equal(await page.getByRole("button", { name: "Tiếp tục làm lại", exact: true }).count(), 0);
     state.data.capability = "RESUME_REWORK";
     await page.getByRole("button", { name: "Refresh rework" }).click();
-    await page.getByRole("button", { name: "Resume rework", exact: true }).click();
+    await page.getByRole("button", { name: "Tiếp tục làm lại", exact: true }).click();
     await page.getByText("Rework #12: in progress.", { exact: true }).waitFor();
     assert.deepEqual(state.calls.filter(c => c.method === "POST").map(c => c.path), ["/api/branches/3/reworks/12/start"]);
   }, true);
@@ -238,7 +238,7 @@ test("executor terminal acknowledgement is read-only, separates readiness and cl
     state.signedIn = false;
     await page.evaluate(() => window.reworkTest.revalidate());
     await page.waitForURL(/\/login/);
-    assert.equal(await page.getByRole("region", { name: "Reinspection result" }).count(), 0);
+    assert.equal(await page.getByRole("region", { name: "Kết quả kiểm tra lại" }).count(), 0);
   });
 });
 test("source 401 invalidates the current session and removes prior details", async () => {
@@ -268,6 +268,6 @@ test("unsupported lifecycle capability is not displayed as pending acceptance", 
       await page.getByText("PRIVATE-DEFECT", { exact: true }).count(),
       0,
     );
-    assert.equal(await page.getByText(/is pending acceptance/).count(), 0);
+    assert.equal(await page.getByText(/đang chờ tiếp nhận\./).count(), 0);
   });
 });

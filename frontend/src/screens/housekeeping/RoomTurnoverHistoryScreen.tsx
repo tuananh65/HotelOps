@@ -1,6 +1,15 @@
+﻿import {
+  useRoomWorkspace,
+  useRoomChoices,
+  RoomBranchField,
+  RoomNumberField,
+  roomLabel,
+  hotelTime,
+} from "./RoomWorkspace";
+import { LoadingIndicator } from "../../components/LoadingIndicator";
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { PageHeader } from "../../ui";
 import {
   listTurnovers,
   readTurnover,
@@ -11,15 +20,18 @@ import {
 } from "../../api/dev1/turnoverHistory";
 function CoverageNote({ value }: { value: Coverage }) {
   return (
-    <p role="note">
-      Coverage: Cleaning {value.cleaning} · Inspection {value.inspection} ·
-      Rework {value.rework} · Readiness {value.readiness} · RoomHistory{" "}
-      {value.roomStatusHistory}. Kết quả kiểm tra là lịch sử, không thay thế
-      trạng thái sẵn sàng hiện tại của phòng.
+    <p className="room-note">
+      Lịch sử vệ sinh và kiểm tra phòng được hiển thị trong phạm vi bạn được
+      phép xem. Kết quả kiểm tra trước đây không thay thế trạng thái phòng hiện
+      tại.
+      {value.inspection === "SOURCE_READ_DENIED" &&
+        " Bạn chưa có quyền xem chi tiết kiểm tra."}
     </p>
   );
 }
 export default function RoomTurnoverHistoryScreen() {
+  const scope = useRoomWorkspace("rooms");
+  const choices = useRoomChoices(scope);
   const [params, setParams] = useSearchParams(),
     [retry, setRetry] = useState(0);
   const key = params.toString(),
@@ -27,6 +39,7 @@ export default function RoomTurnoverHistoryScreen() {
     cycle = params.get("cycleId") || "";
   const [result, setResult] = useState<{
       key: string;
+      owner: typeof scope.owner;
       page?: TurnoverPage;
       detail?: TurnoverDetail;
     } | null>(null),
@@ -37,16 +50,16 @@ export default function RoomTurnoverHistoryScreen() {
     setResult(null);
     setError("");
     setLoading(!!room);
-    if (room)
+    if (room && scope.branch && scope.owner)
       (cycle
         ? readTurnover(
             room,
             cycle,
             new URLSearchParams(key),
             abort.signal,
-          ).then((detail) => ({ key, detail }))
+          ).then((detail) => ({ key, owner: scope.owner, detail }))
         : listTurnovers(room, new URLSearchParams(key), abort.signal).then(
-            (page) => ({ key, page }),
+            (page) => ({ key, owner: scope.owner, page }),
           )
       )
         .then((d) => {
@@ -59,13 +72,28 @@ export default function RoomTurnoverHistoryScreen() {
           if (!abort.signal.aborted) setLoading(false);
         });
     return () => abort.abort();
-  }, [room, cycle, key, retry]);
+  }, [room, cycle, key, retry, scope.branch?.id, scope.owner]);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const next = new URLSearchParams();
     new FormData(e.currentTarget).forEach((v, k) => {
       if (String(v).trim()) next.set(k, String(v).trim());
     });
+    if (!next.get("roomId")) {
+      setError("Chọn một số phòng trong danh sách gợi ý.");
+      return;
+    }
+    const from = next.get("fromDate"),
+      to = next.get("toDate");
+    if (from && to && from > to) {
+      setError("Ngày kết thúc phải từ ngày bắt đầu trở đi.");
+      return;
+    }
+    next.delete("fromDate");
+    next.delete("toDate");
+    if (from)
+      next.set("from", new Date(from + "T00:00:00+07:00").toISOString());
+    if (to) next.set("to", new Date(to + "T23:59:59+07:00").toISOString());
     next.set("page", "1");
     setParams(next);
     setRetry((v) => v + 1);
@@ -84,70 +112,101 @@ export default function RoomTurnoverHistoryScreen() {
     next.set(name, String(value));
     setParams(next);
   }
-  const data = result?.key === key ? result : null;
+  const data =
+    scope.branch &&
+    scope.owner &&
+    result?.owner === scope.owner &&
+    result?.key === key
+      ? result
+      : null;
   const p = data?.page,
     d = data?.detail;
   return (
-    <>
-      <PageHeader id={30} />
-      <form key={key} className="filter-bar" onSubmit={submit}>
+    <div className="room-workspace">
+      <div className="page-header">
+        <div>
+          <span className="eyebrow">Buồng phòng</span>
+          <h1>Lịch sử luân chuyển phòng</h1>
+          <p>Chọn số phòng để xem các lần vệ sinh, kiểm tra và làm lại.</p>
+        </div>
+      </div>
+      <RoomBranchField scope={scope} />
+      {choices.error && (
+        <p role="alert">
+          {choices.error}{" "}
+          <button onClick={choices.reload}>Tải lại danh sách phòng</button>
+        </p>
+      )}
+      <form
+        key={key + (choices.items ? ":ready" : "")}
+        className="filter-bar"
+        onSubmit={submit}
+      >
+        <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
+        <RoomNumberField
+          items={choices.items ?? []}
+          selected={room}
+          onSelect={(id) => {
+            const next = new URLSearchParams(params);
+            next.delete("cycleId");
+            next.delete("timelinePage");
+            next.delete("room");
+            next.set("roomId", id);
+            next.set("page", "1");
+            setParams(next);
+          }}
+        />
         <label>
-          Chi nhánh (ID)
+          Từ ngày
           <input
-            name="branchId"
-            inputMode="numeric"
-            defaultValue={params.get("branchId") || ""}
+            type="date"
+            name="fromDate"
+            defaultValue={localDate(params.get("from"))}
           />
         </label>
         <label>
-          Phòng (ID)
+          Đến ngày
           <input
-            name="roomId"
-            inputMode="numeric"
-            required
-            defaultValue={room}
+            type="date"
+            name="toDate"
+            defaultValue={localDate(params.get("to"))}
           />
         </label>
         <label>
-          Từ UTC
-          <input
-            name="from"
-            placeholder="2026-11-01T00:00:00Z"
-            defaultValue={params.get("from") || ""}
-          />
-        </label>
-        <label>
-          Đến UTC
-          <input
-            name="to"
-            placeholder="2026-11-07T23:59:59Z"
-            defaultValue={params.get("to") || ""}
-          />
-        </label>
-        <label>
-          Kết quả Inspection
+          Kết quả kiểm tra
           <select
-            aria-label="Kết quả Inspection"
+            aria-label="Kết quả kiểm tra"
             name="result"
             defaultValue={params.get("result") || ""}
           >
             <option value="">Tất cả</option>
-            <option value="PASS">PASS</option>
-            <option value="FAIL">FAIL</option>
+            <option value="PASS">Đạt</option>
+            <option value="FAIL">Không đạt</option>
           </select>
         </label>
         <label>
           Số dòng
           <select name="pageSize" defaultValue={params.get("pageSize") || "20"}>
             {[10, 20, 50, 100].map((n) => (
-              <option key={n}>{n}</option>
+              <option key={n} value={n}>
+                {displayCode(n)}
+              </option>
             ))}
           </select>
         </label>
-        <button>Tải lịch sử</button>
+        <button disabled={!scope.branch || !choices.items?.length}>
+          Xem lịch sử
+        </button>
       </form>
-      {!room && <p>Chọn ID phòng để xem lịch sử từ máy chủ.</p>}
-      {loading && <p role="status">Đang tải lịch sử…</p>}
+      {!room && (
+        <p className="room-empty">
+          Nhập số phòng rồi chọn phòng trong danh sách gợi ý để xem lịch sử.
+        </p>
+      )}
+      {scope.branch && !choices.items && !choices.error && (
+        <LoadingIndicator label="Đang tải danh sách phòng" />
+      )}
+      {loading && scope.branch && <LoadingIndicator label="Đang tải lịch sử" />}
       {error && (
         <p role="alert">
           {error}{" "}
@@ -158,25 +217,27 @@ export default function RoomTurnoverHistoryScreen() {
         <>
           <CoverageNote value={p.coverage} />
           <p>
-            {p.total} cycles · phòng {p.roomId} · chi nhánh {p.branchId}
+            {p.total} lần vệ sinh · Phòng{" "}
+            {choices.items?.find((r) => r.id === p.roomId)?.roomNumber ??
+              p.items[0]?.roomNumber}
           </p>
           {!p.items.length ? (
-            <p>Không có cycle phù hợp bộ lọc.</p>
+            <p>Chưa có lịch sử phù hợp. Hãy thử chọn khoảng ngày khác.</p>
           ) : (
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
                     {[
-                      "Cycle",
+                      "Chu kỳ",
                       "Loại",
                       "Trạng thái",
                       "Hiện tại",
                       "Nhân viên",
-                      "Bắt đầu UTC",
-                      "Kết thúc UTC",
+                      "Bắt đầu",
+                      "Kết thúc",
                       "Kết quả kiểm tra",
-                      "Rework",
+                      "Làm lại",
                       "Lý do hủy",
                     ].map((x) => (
                       <th key={x}>{x}</th>
@@ -189,8 +250,8 @@ export default function RoomTurnoverHistoryScreen() {
                       <td>
                         <Link to={href(c.id)}>{c.number}</Link>
                       </td>
-                      <td>{c.cleaningType}</td>
-                      <td>{c.workflowState ?? c.recordedStatus}</td>
+                      <td>{roomLabel(c.cleaningType)}</td>
+                      <td>{roomLabel(c.workflowState ?? c.recordedStatus)}</td>
                       <td>
                         {c.isCurrentCycle === null
                           ? "Chưa xác định"
@@ -202,9 +263,13 @@ export default function RoomTurnoverHistoryScreen() {
                         {c.assignees.map((a) => a.name).join(", ") ||
                           "Chưa phân công"}
                       </td>
-                      <td>{c.startUtc || "—"}</td>
-                      <td>{c.endUtc || "—"}</td>
-                      <td>{c.result ?? "Chưa có kết quả hoặc không có quyền xem"}</td>
+                      <td>{hotelTime(c.startUtc)}</td>
+                      <td>{hotelTime(c.endUtc)}</td>
+                      <td>
+                        {c.result
+                          ? roomLabel(c.result)
+                          : "Chưa có kết quả hoặc không có quyền xem"}
+                      </td>
                       <td>{c.reworkCount ?? "Chưa xác định"}</td>
                       <td>{c.cancellationReason || "—"}</td>
                     </tr>
@@ -215,14 +280,14 @@ export default function RoomTurnoverHistoryScreen() {
           )}
           <button
             disabled={p.filters.page <= 1}
-            onClick={() => pageChange("page", p.filters.page - 1)}
+            onClick={() => pageChange("Trang", p.filters.page - 1)}
           >
             Trang trước
           </button>{" "}
           Trang {p.filters.page}{" "}
           <button
             disabled={p.filters.page * p.filters.pageSize >= p.total}
-            onClick={() => pageChange("page", p.filters.page + 1)}
+            onClick={() => pageChange("Trang", p.filters.page + 1)}
           >
             Trang sau
           </button>
@@ -233,23 +298,24 @@ export default function RoomTurnoverHistoryScreen() {
           <h2>
             {d.cycle.number} · Phòng {d.cycle.roomNumber}
           </h2>
-          <Link to={href()}>Danh sách cycles</Link>
+          <Link to={href()}>Danh sách lần vệ sinh</Link>
           <CoverageNote value={d.coverage} />
           <p>
             {d.cycle.isCurrentCycle === null
-              ? "Current cycle chưa xác định"
+              ? "Chưa xác định chu kỳ hiện tại"
               : d.cycle.isCurrentCycle
-                ? "Current cycle"
-                : "Historical cycle"}{" "}
-            · {d.cycle.workflowState ?? d.cycle.recordedStatus}
+                ? "Chu kỳ hiện tại"
+                : "Chu kỳ trước"}{" "}
+            · {roomLabel(d.cycle.workflowState ?? d.cycle.recordedStatus)}
           </p>
-          <h2>Timeline ({d.timelineTotal})</h2>
+          <h2>Dòng thời gian ({d.timelineTotal})</h2>
           {!d.timeline.length && <p>Không có sự kiện trên trang này.</p>}
           <ol>
             {d.timeline.map((e) => (
-              <li key={`${e.sourceType}:${e.sourceId}:${e.event}`}>
-                <time>{e.atUtc}</time> · {e.sourceType} #{e.sourceId} ·{" "}
-                {e.event} · {e.state} · {e.note} · Actor {e.actorId ?? "—"}
+              <li key={`${displayCode(e.sourceType)}:${e.sourceId}:${e.event}`}>
+                <time>{hotelTime(e.atUtc)}</time> · {displayCode(e.sourceType)}{" "}
+                #{e.sourceId} · {e.event} · {displayCode(e.state)} · {e.note} ·
+                Người thực hiện {e.actorId ?? "—"}
               </li>
             ))}
           </ol>
@@ -257,38 +323,42 @@ export default function RoomTurnoverHistoryScreen() {
             disabled={d.timelinePage <= 1}
             onClick={() => pageChange("timelinePage", d.timelinePage - 1)}
           >
-            Timeline trước
+            Sự kiện trước
           </button>{" "}
           Trang {d.timelinePage}{" "}
           <button
             disabled={d.timelinePage * d.timelinePageSize >= d.timelineTotal}
             onClick={() => pageChange("timelinePage", d.timelinePage + 1)}
           >
-            Timeline sau
+            Dòng thời gian tiếp theo
           </button>
           <h2>Kiểm tra phòng</h2>
           <ul>
             {d.inspections.map((i) => (
               <li key={i.id}>
-                Inspection {i.id} · Checklist version {i.versionNumber} (ID{" "}
-                {i.versionId}) · {i.recordedStatus} · {i.atUtc} · {i.result ?? "Chưa kết luận"}{" "}
-                <Link to={`/inspection-history/${i.id}?branchId=${d.cycle.branchId}`}>
+                Kiểm tra {i.id} · Phiên bản danh sách kiểm tra {i.versionNumber}{" "}
+                (mã {i.versionId}) · {displayCode(i.recordedStatus)} ·{" "}
+                {hotelTime(i.atUtc)} ·{" "}
+                {i.result ? roomLabel(i.result) : "Chưa kết luận"}{" "}
+                <Link
+                  to={`/inspection-history/${i.id}?branchId=${d.cycle.branchId}`}
+                >
                   Xem tiêu chí, lỗi và ảnh kiểm tra
                 </Link>
               </li>
             ))}
           </ul>
-          <h2>Rework đã ghi nhận</h2>
+          <h2>Công việc làm lại đã ghi nhận</h2>
           <ul>
             {d.reworks.map((w) => (
               <li key={w.id}>
-                Rework {w.id} · Inspection {w.inspectionId} ·{" "}
-                {w.workflowState ?? w.recordedStatus} · {w.requestedAtUtc} ·{" "}
-                {w.note}
+                Làm lại {w.id} · Kiểm tra {w.inspectionId} ·{" "}
+                {roomLabel(w.workflowState ?? w.recordedStatus)} ·{" "}
+                {hotelTime(w.requestedAtUtc)} · {w.note}
               </li>
             ))}
           </ul>
-          <h2>Evidence</h2>
+          <h2>Bằng chứng</h2>
           <ul>
             {d.evidence.map((e) => (
               <li key={e.id}>
@@ -301,6 +371,17 @@ export default function RoomTurnoverHistoryScreen() {
           </ul>
         </>
       )}
-    </>
+    </div>
   );
+}
+
+function localDate(value: string | null) {
+  return value && Number.isFinite(Date.parse(value))
+    ? new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Ho_Chi_Minh",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(value))
+    : "";
 }

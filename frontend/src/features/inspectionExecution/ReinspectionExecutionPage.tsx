@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -84,7 +85,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       .catch((error) => {
         if (!abort.signal.aborted && current.current === owner) {
           setMessage(
-            "This reinspection is unavailable or you no longer have access.",
+            "Kiểm tra lại chưa khả dụng hoặc bạn không còn quyền.",
           );
           if (error instanceof ApiError && error.status === 401)
             actions.invalidateSession(owner);
@@ -127,7 +128,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       selected.reduce((n, d) => n + d.files.length, 0) > 5
     ) {
       setMessage(
-        "Decide every defect, enter a reason and select at most five photos.",
+        "Quyết định từng lỗi, nhập lý do và chọn tối đa 5 ảnh.",
       );
       return;
     }
@@ -171,11 +172,11 @@ function Execution({ branch, id }: { branch: string; id: string }) {
         setLocked(sending);
         setMessage(
           !sending
-            ? "A selected photo is invalid. Use a PNG or JPEG image and review again."
+            ? "Ảnh đã chọn không hợp lệ. Chọn ảnh PNG hoặc JPEG và kiểm tra lại."
             : error instanceof ApiError &&
                 [400, 403, 409, 412, 428].includes(error.status)
-              ? "Conclusion was rejected. Reload to review current state; no automatic retry was sent."
-              : "Conclusion outcome is unconfirmed. Do not submit another conclusion; check the current record.",
+              ? "Kết luận bị từ chối. Tải lại trạng thái hiện tại; không tự gửi lại."
+              : "Chưa xác nhận kết luận. Không gửi kết luận khác; kiểm tra hồ sơ hiện tại.",
         );
         if (error instanceof ApiError && error.status === 401)
           actions.invalidateSession(owner);
@@ -185,56 +186,56 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       if (isCurrent() && !abort.signal.aborted) setBusy(false);
     }
   }
-  if (!owner) return <p role="status">Checking session…</p>;
+  if (!owner) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
   return (
     <main>
-      <h1>Reinspect room</h1>
-      <Link to="/notifications">Notifications</Link>
+      <h1>Kiểm tra lại phòng</h1>
+      <Link to="/notifications">Thông báo</Link>
       {data && (
         <p>
           <Link to={`/reinspections/${branch}/${id}/original`}>
-            Original inspection #{data.originalInspectionId}
+            Lần kiểm tra ban đầu #{data.originalInspectionId}
           </Link>
         </p>
       )}
       {message && <p role="alert">{message}</p>}
-      {!data && !message && <p role="status">Loading reinspection…</p>}
+      {!data && !message && <p role="status">Đang tải kiểm tra lại…</p>}
       {result && (
-        <section aria-label="Reinspection conclusion">
+        <section aria-label="Kết luận kiểm tra lại">
           {saved?.owner === owner && (
-            <p role="status">Reinspection has been saved successfully.</p>
+            <p role="status">Đã lưu kết quả kiểm tra lại.</p>
           )}
           <p role="status">
-            Reinspection {result.state === "PASSED" ? "Passed" : "Failed"}.
-            Rework {result.reworkState === "COMPLETED" ? "Completed" : "Failed"}
+            Kiểm tra lại {result.state === "PASSED" ? "Đạt" : "Không đạt"}.
+            Rework {result.reworkState === "COMPLETED" ? "Đã hoàn tất" : "Không đạt"}
             .
           </p>
           <p>
             {terminalRead
-              ? `Current room readiness: ${terminalRead.effectiveReadiness}.`
+              ? `Mức sẵn sàng của phòng hiện tại: ${terminalRead.effectiveReadiness}.`
               : result.effectiveReadiness === "BLOCKED"
-                ? "The room remains blocked (MSG17)."
+                ? "Phòng vẫn bị khóa (MSG17)."
                 : result.state === "PASSED"
-                  ? "The room was ready at conclusion."
-                  : "The cleaning cycle requires another rework."}
+                  ? "Phòng sẵn sàng tại thời điểm kết luận."
+                  : "Chu kỳ vệ sinh cần làm lại lần nữa."}
           </p>
           {terminalRead && (
             <>
               <p>
-                Recorded outcome: {result.state}; readiness at conclusion:{" "}
-                {result.effectiveReadiness}.
+                Kết quả đã ghi nhận: {displayCode(result.state)}; Mức sẵn sàng khi kết luận:{" "}
+                {displayCode(result.effectiveReadiness)}.
               </p>
               {terminalRead.defects.map((d) => (
-                <section key={d.id} aria-label={`Recorded defect ${d.id}`}>
+                <section key={d.id} aria-label={`Lỗi đã ghi nhận ${d.id}`}>
                   <h2>{d.description}</h2>
-                  <p>Remediation: {d.remediation}</p>
-                  <p>Result: {d.fixed ? "Fixed" : "Not Fixed"}</p>
+                  <p>Khắc phục: {d.remediation}</p>
+                  <p>Kết quả: {d.fixed ? "Đã khắc phục" : "Chưa khắc phục"}</p>
                   <p>{d.note}</p>
                   {(
                     [
-                      ["Original", d.originalPhotos],
-                      ["Remediation", d.remediationPhotos],
-                      ["Reinspection", d.reinspectionPhotos],
+                      ["Ban đầu", d.originalPhotos],
+                      ["Khắc phục", d.remediationPhotos],
+                      ["Kiểm tra lại", d.reinspectionPhotos],
                     ] as const
                   ).map(([label, files]) => (
                     <p key={label}>
@@ -245,7 +246,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          {label} photo #{file}{" "}
+                          {label} ảnh #{file}{" "}
                         </a>
                       ))}
                     </p>
@@ -254,7 +255,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
               ))}
             </>
           )}
-          <p>Notification pending delivery.</p>
+          <p>Thông báo đang chờ gửi.</p>
           {result.state === "FAILED" && (
             <RequestReworkForm
               branch={Number(branch)}
@@ -263,7 +264,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                 setLoaded(null);
                 setSaved(null);
                 setMessage(
-                  "The next rework is unavailable with your current access.",
+                  "Quyền hiện tại không cho phép xem lần làm lại kế tiếp.",
                 );
                 if (status === 401) actions.invalidateSession(owner);
               }}
@@ -275,11 +276,11 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       {data && !result && (
         <>
           <p>
-            Room #{data.roomId} · Rework #{data.reworkId} · Cleaning cycle #
+            Phòng #{data.roomId} · Làm lại #{data.reworkId} · Chu kỳ vệ sinh #
             {data.cleaningTaskId}
           </p>
           {data.effectiveReadiness === "BLOCKED" && (
-            <p role="status">The room is blocked (MSG17).</p>
+            <p role="status">Phòng bị khóa (MSG17).</p>
           )}
           <form
             onInvalidCapture={() => setShowValidation(true)}
@@ -290,15 +291,15 @@ function Execution({ branch, id }: { branch: string; id: string }) {
             }}
           >
             <fieldset disabled={busy || locked || review}>
-              <legend>Defect decisions</legend>
+              <legend>Quyết định xử lý lỗi</legend>
               {data.defects.map((d) => (
-                <section key={d.id} aria-label={`Defect ${d.id}`}>
+                <section key={d.id} aria-label={`Lỗi ${d.id}`}>
                   <h2>{d.description}</h2>
-                  <p>Remediation: {d.remediation}</p>
+                  <p>Khắc phục: {d.remediation}</p>
                   {(
                     [
-                      ["Original", d.originalPhotos],
-                      ["Remediation", d.remediationPhotos],
+                      ["Ban đầu", d.originalPhotos],
+                      ["Khắc phục", d.remediationPhotos],
                     ] as const
                   ).map(([label, photos]) => (
                     <p key={label}>
@@ -309,13 +310,13 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          {label} photo #{file}{" "}
+                          {label} ảnh #{file}{" "}
                         </a>
                       ))}
                     </p>
                   ))}
                   <label htmlFor={`decision-${d.id}`}>
-                    Result for defect #{d.id}
+                    Kết quả lỗi #{d.id}
                   </label>
                   <select
                     id={`decision-${d.id}`}
@@ -329,9 +330,9 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                     value={decisions[d.id]?.fixed ?? ""}
                     onChange={(e) => change(d.id, { fixed: e.target.value })}
                   >
-                    <option value="">Select result</option>
-                    <option value="FIXED">Fixed</option>
-                    <option value="NOT_FIXED">Not Fixed</option>
+                    <option value="">Chọn kết quả</option>
+                    <option value="FIXED">Đã khắc phục</option>
+                    <option value="NOT_FIXED">Chưa khắc phục</option>
                   </select>
                   {showValidation && !decisions[d.id]?.fixed && (
                     <p
@@ -339,12 +340,11 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                       role="alert"
                       style={{ color: "#b91c1c" }}
                     >
-                      Result: select Fixed or Not Fixed. Please check and try
-                      again.
+                      Kết quả: chọn Đã khắc phục hoặc Chưa khắc phục. Kiểm tra và thử lại.
                     </p>
                   )}
                   <label htmlFor={`note-${d.id}`}>
-                    Note for defect #{d.id}
+                    Ghi chú lỗi #{d.id}
                   </label>
                   <textarea
                     id={`note-${d.id}`}
@@ -353,7 +353,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                     onChange={(e) => change(d.id, { note: e.target.value })}
                   />
                   <label htmlFor={`photos-${d.id}`}>
-                    Photos for defect #{d.id}
+                    Ảnh lỗi #{d.id}
                   </label>
                   <input
                     id={`photos-${d.id}`}
@@ -366,7 +366,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                   />
                 </section>
               ))}
-              <label htmlFor="conclusion-reason">Conclusion reason</label>
+              <label htmlFor="conclusion-reason">Lý do kết luận</label>
               <textarea
                 id="conclusion-reason"
                 required
@@ -374,14 +374,14 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
-              <button type="submit">Review conclusion</button>
+              <button type="submit">Xem lại kết luận</button>
             </fieldset>
             {review && !locked && (
-              <section aria-label="Review conclusion">
+              <section aria-label="Xem lại kết luận">
                 <p>
                   {data.defects.every((d) => decisions[d.id]?.fixed === "FIXED")
-                    ? "All defects are Fixed. Conclude Passed."
-                    : "A defect is Not Fixed. Conclude Failed and request another rework."}
+                    ? "Tất cả lỗi đã khắc phục. Kết luận đạt."
+                    : "Còn lỗi chưa khắc phục. Kết luận không đạt và yêu cầu làm lại."}
                 </p>
                 <p>{reason}</p>
                 <button
@@ -389,21 +389,21 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                   disabled={busy}
                   onClick={() => void submit()}
                 >
-                  Confirm conclusion
+                  Xác nhận kết luận
                 </button>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => setReview(false)}
                 >
-                  Edit decisions
+                  Chỉnh sửa quyết định
                 </button>
               </section>
             )}
           </form>
         </>
       )}
-      {busy && <p role="status">Conclusion pending…</p>}
+      {busy && <p role="status">Đang chờ kết luận…</p>}
     </main>
   );
 }

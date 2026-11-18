@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -16,7 +17,7 @@ export function StocktakePage() {
   const current = useRef(owner); current.current = owner;
   const [page, setPage] = useState(1), [revision, setRevision] = useState(0);
   const [loaded, setLoaded] = useState<{ owner: typeof owner; key: string; value: Catalogue | Detail }>();
-  const key = id || `list:${page}`;
+  const key = id || `Danh sách:${page}`;
   const data = loaded?.owner === owner && loaded.key === key ? loaded.value : null;
   const detail = id && data ? data as Detail : null, catalogue = !id && data ? data as Catalogue : null;
   const [counts, setCounts] = useState<Count[]>([]), [warehouse, setWarehouse] = useState("");
@@ -32,14 +33,14 @@ export function StocktakePage() {
         const response = await fetch(id ? `/api/stocktake-workspace/${id}` : `/api/stocktake-workspace?page=${page}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
         if (response.status === 401) actions.invalidateSession(owner);
         const value = await response.json();
-        if (!response.ok) throw new Error(value.detail ?? `Stocktake unavailable (${response.status}).`);
+        if (!response.ok) throw new Error(value.detail ?? `Kiểm kê chưa khả dụng (${response.status}).`);
         if (abort.signal.aborted || current.current !== owner) return;
         if (id && loadedVersion.current !== value.rowVersion) {
           setCounts(value.lines.map((l: Line) => ({ stocktakeLineId: l.stocktakeLineId, countedQty: l.countedQty ?? "", discrepancyReason: l.discrepancyReason ?? "" })));
           loadedVersion.current = value.rowVersion;
         }
         setLoaded({ owner, key, value });
-      } catch (e) { if (!abort.signal.aborted) setMessage(e instanceof Error ? e.message : "Stocktake unavailable."); }
+      } catch (e) { if (!abort.signal.aborted) setMessage(e instanceof Error ? e.message : "Kiểm kê chưa khả dụng."); }
     })();
     const refresh = () => { if (!writer.current) { setLoaded(undefined); setRevision(v => v + 1); } };
     const timer = setInterval(refresh, 30000); window.addEventListener("focus", refresh);
@@ -51,20 +52,21 @@ export function StocktakePage() {
 
   async function write(action: "start" | "counts" | "submit" | "cancel" | "reconcile" | "approve-adjustment" | "return") {
     if (!owner || !data || busy || uncertain || writer.current) return;
-    if (action === "start" && !catalogue?.warehouses.some(w => String(w.id) === warehouse && w.isActive && w.canPerform)) { setMessage("Select an authorized active warehouse."); return; }
+    if (action === "start" && !catalogue?.warehouses.some(w => String(w.id) === warehouse && w.isActive && w.canPerform)) { setMessage("Chọn kho đang hoạt động được phép truy cập."); return; }
     const decision = action === "approve-adjustment" || action === "return";
     if (action !== "start" && !(decision ? detail?.canDecide : detail?.canPerform)) return;
-    if (decision && (detail?.status !== "PENDING_ADJUSTMENT" || reason.trim().length < (action === "return" ? 10 : 3))) { setMessage("Enter an approval note or a return reason of at least 10 characters."); return; }
-    if (action === "counts" && counts.some(c => c.countedQty !== "" && !/^\d+(\.\d{1,3})?$/.test(c.countedQty))) { setMessage("Counts must be nonnegative quantities with at most three decimal places."); return; }
-    if (action === "submit" && (dirty || missing.length)) { setMessage("Save counts first and enter a quantity (including zero) for every item."); return; }
-    if (action === "reconcile" && (dirty || missing.length || detail?.lines.some(l => l.previewVariance != null && /[1-9]/.test(l.previewVariance) && (l.discrepancyReason?.trim().length ?? 0) < 3))) { setMessage("Save counts and a cause for every non-zero discrepancy before reconciliation."); return; }
-    if (action === "cancel" && reason.trim().length < 10) { setMessage("Cancellation requires a reason of at least 10 characters."); return; }
-    if ((action === "submit" || action === "cancel" || action === "reconcile" || decision) && !window.confirm(`Confirm ${action} for this stocktake?`)) return;
+    if (decision && (detail?.status !== "PENDING_ADJUSTMENT" || reason.trim().length < (action === "return" ? 10 : 3))) { setMessage("Nhập ghi chú duyệt hoặc lý do trả lại ít nhất 10 ký tự."); return; }
+    if (action === "counts" && counts.some(c => c.countedQty !== "" && !/^\d+(\.\d{1,3})?$/.test(c.countedQty))) { setMessage("Số kiểm đếm phải không âm và có tối đa 3 chữ số thập phân."); return; }
+    if (action === "submit" && (dirty || missing.length)) { setMessage("Lưu số kiểm đếm trước và nhập số lượng, kể cả 0, cho từng vật tư."); return; }
+    if (action === "reconcile" && (dirty || missing.length || detail?.lines.some(l => l.previewVariance != null && /[1-9]/.test(l.previewVariance) && (l.discrepancyReason?.trim().length ?? 0) < 3))) { setMessage("Lưu số kiểm đếm và nguyên nhân cho mọi chênh lệch khác 0 trước khi đối soát."); return; }
+    if (action === "cancel" && reason.trim().length < 10) { setMessage("Cần lý do hủy ít nhất 10 ký tự."); return; }
+    const actionLabel = { start: "bắt đầu", counts: "lưu số kiểm đếm", submit: "nộp kết quả", cancel: "hủy", reconcile: "đối soát", "approve-adjustment": "duyệt điều chỉnh", return: "trả lại" }[action];
+    if ((action === "submit" || action === "cancel" || action === "reconcile" || decision) && !window.confirm(`Xác nhận ${actionLabel} cho lần kiểm kê này?`)) return;
     const abort = new AbortController(); writer.current = abort; setBusy(true); let sent = false;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       const csrf = await bootstrap.json();
-      if (!bootstrap.ok || csrf.headerName !== "X-CSRF-TOKEN" || !csrf.csrfToken) throw new Error("CSRF unavailable.");
+      if (!bootstrap.ok || csrf.headerName !== "X-CSRF-TOKEN" || !csrf.csrfToken) throw new Error("Chưa có bảo vệ phiên (CSRF).");
       if (abort.signal.aborted || current.current !== owner) return;
       const body = action === "start" ? { warehouseId: Number(warehouse), note } : { expectedRowVersion: detail!.rowVersion, reason,
         ...(action === "counts" ? { lines: counts.map(c => ({ ...c, countedQty: c.countedQty === "" ? null : c.countedQty })) } : {}) };
@@ -73,36 +75,36 @@ export function StocktakePage() {
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken }, body: JSON.stringify(body) });
       if (response.status === 401) actions.invalidateSession(owner);
       const value = await response.json();
-      if (!response.ok) { if (response.status < 500) sent = false; if ([401, 403].includes(response.status)) setLoaded(undefined); throw new Error(value.detail ?? `Operation failed (${response.status}).`); }
+      if (!response.ok) { if (response.status < 500) sent = false; if ([401, 403].includes(response.status)) setLoaded(undefined); throw new Error(value.detail ?? `Thao tác thất bại (${response.status}).`); }
       if (!abort.signal.aborted && current.current === owner) {
-        setMessage(action === "reconcile" ? (value.status === "RECONCILED" ? "MSG08: No discrepancy; reconciled without adjustment." : "MSG09: Reconciliation submitted for Operations Manager review.") : "MSG08: Stocktake saved."); setLoaded(undefined); setRevision(v => v + 1);
+        setMessage(action === "reconcile" ? (value.status === "RECONCILED" ? "MSG08: Không có chênh lệch; đã đối soát không cần điều chỉnh." : "MSG09: Đã gửi đối soát để quản lý vận hành xét duyệt.") : "MSG08: Đã lưu kiểm kê."); setLoaded(undefined); setRevision(v => v + 1);
         if (action === "start") navigate(`/inventory/stocktakes/${value.stocktakeId}`);
       }
-    } catch (e) { if (sent) setUncertain(true); if (!abort.signal.aborted) setMessage(`${e instanceof Error ? e.message : "Operation failed."}${sent ? " Outcome unknown. Reopen and inspect before another mutation." : ""}`); }
+    } catch (e) { if (sent) setUncertain(true); if (!abort.signal.aborted) setMessage(`${e instanceof Error ? e.message : "Thao tác thất bại."}${sent ? "Chưa xác định kết quả. Mở lại và kiểm tra trước khi ghi tiếp." : ""}`); }
     finally { if (writer.current === abort) { writer.current = null; setBusy(false); } }
   }
-  return <main><h1>Stocktakes</h1><Link to="/inventory/adjustments">Stock adjustments</Link> | <Link to="/inventory/stocktakes">Stocktake list</Link> | <Link to="/inventory/stock">Current stock</Link>
-    {message && <p role="status">{message}</p>}<button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload</button>
-    {catalogue && <><table><thead><tr><th>Stocktake</th><th>Warehouse</th><th>Status</th><th>Cutoff (UTC)</th></tr></thead><tbody>{catalogue.rows.map(s => <tr key={s.stocktakeId}>
-      <td><Link to={`/inventory/stocktakes/${s.stocktakeId}`}>{s.stocktakeNo}</Link></td><td>{catalogue.warehouses.find(w => w.id === s.warehouseId)?.name}</td><td>{s.status}</td><td>{s.snapshotAt}</td></tr>)}</tbody></table>
-      <p>{catalogue.count} authorized stocktakes; page {page}</p><button disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}>Previous</button><button disabled={busy || page * catalogue.pageSize >= catalogue.count} onClick={() => setPage(p => p + 1)}>Next</button>
-      <form onSubmit={e => { e.preventDefault(); void write("start"); }}><fieldset disabled={busy || uncertain}><legend>Start stocktake</legend><label>Warehouse<select required value={warehouse} onChange={e => setWarehouse(e.target.value)}><option value="">Select warehouse</option>
-        {catalogue.warehouses.filter(w => w.isActive && w.canPerform).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label><label>Note<textarea value={note} onChange={e => setNote(e.target.value)} /></label><button>Start stocktake</button></fieldset></form></>}
-    {detail && <><h2>{detail.stocktakeNo}: {detail.status}</h2><p>Cutoff (UTC): {detail.snapshotAt}. Quantities use each material's base unit.</p>{detail.note && <p>{detail.note}</p>}
-      {missing.length > 0 && <p role="status">Not yet counted: {missing.map(l => l.itemName).join(", ")}. Enter zero for an empty count.</p>}
-      <fieldset disabled={busy || uncertain || !detail.canPerform || !["IN_PROGRESS", "COUNTED"].includes(detail.status)}><table><thead><tr><th>Material</th><th>Base unit</th><th>Cutoff quantity</th><th>Counted</th><th>Current quantity</th><th>Result after adjustment</th><th>Saved discrepancy</th><th>Cause</th></tr></thead><tbody>
+  return <main><h1>Kiểm kê</h1><Link to="/inventory/adjustments">Điều chỉnh tồn kho</Link> | <Link to="/inventory/stocktakes">Danh sách kiểm kê</Link> | <Link to="/inventory/stock">Tồn kho hiện tại</Link>
+    {message && <p role="status">{message}</p>}<button disabled={busy} onClick={() => setRevision(v => v + 1)}>Tải lại</button>
+    {catalogue && <><table><thead><tr><th>Kiểm kê</th><th>Kho</th><th>Trạng thái</th><th>Mốc chốt (UTC)</th></tr></thead><tbody>{catalogue.rows.map(s => <tr key={s.stocktakeId}>
+      <td><Link to={`/inventory/stocktakes/${s.stocktakeId}`}>{s.stocktakeNo}</Link></td><td>{catalogue.warehouses.find(w => w.id === s.warehouseId)?.name}</td><td>{displayCode(s.status)}</td><td>{s.snapshotAt}</td></tr>)}</tbody></table>
+      <p>{catalogue.count} phiếu kiểm kê được phép xem; trang {page}</p><button disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><button disabled={busy || page * catalogue.pageSize >= catalogue.count} onClick={() => setPage(p => p + 1)}>Tiếp</button>
+      <form onSubmit={e => { e.preventDefault(); void write("start"); }}><fieldset disabled={busy || uncertain}><legend>Bắt đầu kiểm kê</legend><label>Kho<select required value={warehouse} onChange={e => setWarehouse(e.target.value)}><option value="">Chọn kho</option>
+        {catalogue.warehouses.filter(w => w.isActive && w.canPerform).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label><label>Ghi chú<textarea value={note} onChange={e => setNote(e.target.value)} /></label><button>Bắt đầu kiểm kê</button></fieldset></form></>}
+    {detail && <><h2>{detail.stocktakeNo}: {displayCode(detail.status)}</h2><p>Mốc chốt (UTC): {detail.snapshotAt}. Quantities use each material's base unit.</p>{detail.note && <p>{detail.note}</p>}
+      {missing.length > 0 && <p role="status">Chưa kiểm đếm: {missing.map(l => l.itemName).join(", ")}. Enter zero for an empty count.</p>}
+      <fieldset disabled={busy || uncertain || !detail.canPerform || !["IN_PROGRESS", "COUNTED"].includes(detail.status)}><table><thead><tr><th>Vật tư</th><th>Đơn vị cơ sở</th><th>Số lượng tại mốc chốt</th><th>Đã kiểm đếm</th><th>Số lượng hiện tại</th><th>Kết quả sau điều chỉnh</th><th>Chênh lệch đã lưu</th><th>Nguyên nhân</th></tr></thead><tbody>
         {detail.lines.map(l => { const entry = counts.find(c => c.stocktakeLineId === l.stocktakeLineId); return <tr key={l.stocktakeLineId}><td>{l.itemName}</td><td>{l.uomName}</td><td>{l.systemQty}</td>
-          <td><input aria-label={`Count ${l.itemName}`} inputMode="decimal" pattern="[0-9]+([.][0-9]{1,3})?" value={entry?.countedQty ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, countedQty: e.target.value } : c))} /></td>
-          <td>{l.currentQty}</td><td>{l.resultingQty ?? "N/A"}</td><td>{l.previewVariance ?? "Not counted"}</td><td><input aria-label={`Cause ${l.itemName}`} value={entry?.discrepancyReason ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, discrepancyReason: e.target.value } : c))} /></td></tr>; })}</tbody></table>
-        <button disabled={!dirty || !counts.length} onClick={() => void write("counts")}>Save counts</button>
-        {detail.status === "COUNTED" && <button disabled={dirty || missing.length > 0} onClick={() => void write("reconcile")}>Submit reconciliation</button>}
-        {detail.status === "IN_PROGRESS" && <><button disabled={dirty || missing.length > 0} onClick={() => void write("submit")}>Submit count</button><label>Cancellation reason<input value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void write("cancel")}>Cancel stocktake</button></>}
+          <td><input aria-label={`Số lượng ${l.itemName}`} inputMode="decimal" pattern="[0-9]+([.][0-9]{1,3})?" value={entry?.countedQty ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, countedQty: e.target.value } : c))} /></td>
+          <td>{l.currentQty}</td><td>{l.resultingQty ?? "N/A"}</td><td>{l.previewVariance ?? "Chưa kiểm đếm"}</td><td><input aria-label={`Nguyên nhân ${l.itemName}`} value={entry?.discrepancyReason ?? ""} onChange={e => setCounts(rows => rows.map(c => c.stocktakeLineId === l.stocktakeLineId ? { ...c, discrepancyReason: e.target.value } : c))} /></td></tr>; })}</tbody></table>
+        <button disabled={!dirty || !counts.length} onClick={() => void write("counts")}>Lưu số liệu</button>
+        {detail.status === "COUNTED" && <button disabled={dirty || missing.length > 0} onClick={() => void write("reconcile")}>Gửi đối soát</button>}
+        {detail.status === "IN_PROGRESS" && <><button disabled={dirty || missing.length > 0} onClick={() => void write("submit")}>Gửi số lượng</button><label>Lý do hủy<input value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void write("cancel")}>Hủy kiểm kê</button></>}
       </fieldset>
-      {detail.adjustmentDocumentId && <p>Posted adjustment: {detail.adjustmentDocumentId}</p>}
-      {detail.canDecide && detail.status === "PENDING_ADJUSTMENT" && <fieldset disabled={busy || uncertain}><legend>Review adjustment</legend>
-        <p>Resulting balances include movements since the count cutoff; the server checks current stock again when posting.</p>
-        <label>Approval note / return reason<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>
-        <button onClick={() => void write("approve-adjustment")}>Approve adjustment</button><button onClick={() => void write("return")}>Return for recount</button>
+      {detail.adjustmentDocumentId && <p>Điều chỉnh đã ghi sổ: {detail.adjustmentDocumentId}</p>}
+      {detail.canDecide && detail.status === "PENDING_ADJUSTMENT" && <fieldset disabled={busy || uncertain}><legend>Xem lại điều chỉnh</legend>
+        <p>Số dư kết quả gồm biến động sau mốc chốt kiểm đếm; máy chủ kiểm tra lại tồn hiện tại khi ghi sổ.</p>
+        <label>Ghi chú duyệt / lý do trả lại<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>
+        <button onClick={() => void write("approve-adjustment")}>Phê duyệt điều chỉnh</button><button onClick={() => void write("return")}>Trả lại để kiểm đếm lại</button>
       </fieldset>}</>}
   </main>;
 }

@@ -36,7 +36,7 @@ export function ReworkSubmissionForm({
     setInvalid(missing);
     setError("");
     if (missing.length) {
-      setError("Enter a remediation note for every defect.");
+      setError("Nhập ghi chú khắc phục cho từng lỗi.");
       return;
     }
     working.current = true;
@@ -49,7 +49,7 @@ export function ReworkSubmissionForm({
       if (data.defects.reduce((count, d) => count + files(d.id).length, 0) > 5)
         throw Error("TOO_MANY_FILES");
       const command: ReworkCommand = {
-        note: "Submitted rework",
+        note: "Kết quả làm lại đã nộp",
         remediations: await Promise.all(
           data.defects.map(async (d) => ({
             defectId: d.id,
@@ -63,7 +63,7 @@ export function ReworkSubmissionForm({
     } catch {
       if (alive.current)
         setError(
-          "Check the remediation notes and attachments. At most five supported files are allowed.",
+          "Kiểm tra ghi chú khắc phục và tệp đính kèm. Tối đa 5 tệp đúng định dạng.",
         );
     } finally {
       working.current = false;
@@ -71,14 +71,14 @@ export function ReworkSubmissionForm({
     }
   }
   return (
-    <form aria-label="Complete rework" onSubmit={onSubmit}>
+    <form aria-label="Hoàn tất làm lại" onSubmit={onSubmit}>
       <fieldset disabled={busy || preparing}>
-        <legend>Complete rework</legend>
+        <legend>Hoàn tất làm lại</legend>
         {data.defects.map((d) => (
           <section key={d.id}>
             <p>{d.description}</p>
             <label>
-              Remediation for defect {d.id}
+              Khắc phục lỗi {d.id}
               <textarea
                 name={`remediation-${d.id}`}
                 required
@@ -87,10 +87,10 @@ export function ReworkSubmissionForm({
               />
             </label>
             {invalid.includes(d.id) && (
-              <p role="alert">This field is required.</p>
+              <p role="alert">Trường này là bắt buộc.</p>
             )}
             <label>
-              Remediation photos for defect {d.id}
+              Ảnh khắc phục lỗi {d.id}
               <input
                 name={`photo-${d.id}`}
                 type="file"
@@ -100,8 +100,8 @@ export function ReworkSubmissionForm({
             </label>
           </section>
         ))}
-        <p>Submitting sends this rework for reinspection.</p>
-        <button type="submit">Submit rework</button>
+        <p>Nộp sẽ chuyển kết quả làm lại sang kiểm tra lại.</p>
+        <button type="submit">Nộp kết quả làm lại</button>
       </fieldset>
       {error && <p role="alert">{error}</p>}
     </form>

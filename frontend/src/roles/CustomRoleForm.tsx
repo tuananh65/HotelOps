@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { Link, useParams } from "react-router-dom";
@@ -18,7 +19,7 @@ function key(x: object) {
 }
 export function CustomRoleEditRoute({ deactivate = false }: { deactivate?: boolean }) {
   const { roleId = "" } = useParams();
-  if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId))) return <p role="alert">Invalid role ID.</p>;
+  if (!/^[1-9][0-9]*$/.test(roleId) || !id(Number(roleId))) return <p role="alert">Mã vai trò không hợp lệ.</p>;
   return <CustomRoleForm roleId={Number(roleId)} dispatchEnabled deactivate={deactivate} />;
 }
 /** Both operations retain current-session binding and never replay a mutation. */
@@ -53,14 +54,14 @@ export function CustomRoleForm({
   )
     return (
       <section>
-        <p>Confirmed unrestricted session required.</p>
+        <p>Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
         <button onClick={() => void actions.revalidate()}>
-          Revalidate session
+          Xác minh lại phiên
         </button>
       </section>
     );
   if (roleId !== undefined && !id(roleId))
-    return <p role="alert">Invalid role ID.</p>;
+    return <p role="alert">Mã vai trò không hợp lệ.</p>;
   return (
     <Bound
       key={key(binding)}
@@ -122,7 +123,7 @@ function Bound({
       setLoading(false);
       if (!r.ok) {
         setReadError(true);
-        setMessage("Role unavailable or access denied.");
+        setMessage("Vai trò chưa khả dụng hoặc không có quyền truy cập.");
         return;
       }
       setRecord(r.data.role);
@@ -179,11 +180,11 @@ function Bound({
     }
     if (deactivate) {
       setRecord(result.data);
-      setMessage("Role deactivated. Other role assignments and history are preserved. Affected users must sign in again.");
+      setMessage("Đã vô hiệu hóa vai trò. Vai trò khác và lịch sử giữ nguyên. Người dùng bị ảnh hưởng cần đăng nhập lại.");
       return;
     }
     setMessage(
-      `Saved custom role ${result.data.roleId}. Refreshing authoritative detail...`,
+      `Đã lưu vai trò tùy chỉnh ${result.data.roleId}. Đang tải lại chi tiết từ máy chủ…`,
     );
     const fresh = await read.detail(
       result.data.roleId,
@@ -193,31 +194,31 @@ function Bound({
     if (fresh.ok) {
       setRecord(fresh.data.role);
       setMessage(
-        `Saved custom role ${fresh.data.role.roleId}. Authoritative detail refreshed.`,
+        `Đã lưu vai trò tùy chỉnh ${fresh.data.role.roleId}. Đã tải lại chi tiết từ máy chủ.`,
       );
     } else {
       setRecord(null);
       setMessage(
-        "Save confirmed, authoritative refresh unavailable. Do not replay Save.",
+        "Đã xác nhận lưu nhưng chưa tải lại được dữ liệu. Không gửi lại thao tác lưu.",
       );
     }
   }
   return (
     <main>
       <h1>
-        {deactivate ? "Deactivate custom role" : roleId === undefined
-          ? "Create custom role"
-          : "Edit custom role metadata"}
+        {deactivate ? "Vô hiệu hóa vai trò tùy chỉnh" : roleId === undefined
+          ? "Tạo vai trò tùy chỉnh"
+          : "Chỉnh sửa thông tin vai trò tùy chỉnh"}
       </h1>
-      <Link to="/roles">Back to roles</Link>
-      {deactivate && <p>Confirm deactivation. Users will lose access from this role and their current sessions will end. Their other roles remain assigned.</p>}
-      {deactivate && locked && <button onClick={revalidate}>Revalidate session</button>}
+      <Link to="/roles">Quay lại vai trò</Link>
+      {deactivate && <p>Xác nhận vô hiệu hóa. Người dùng mất quyền từ vai trò này và phiên hiện tại kết thúc. Vai trò khác vẫn giữ nguyên.</p>}
+      {deactivate && locked && <button onClick={revalidate}>Xác minh lại phiên</button>}
       <p>
-        No automatic grants or assignments. Names do not establish authority.
+        Không tự cấp quyền hoặc phân công. Tên gọi không xác lập thẩm quyền.
       </p>
-      {!dispatchEnabled && <p>Mutation dispatch OFF.</p>}
+      {!dispatchEnabled && <p>Thao tác ghi đang tắt.</p>}
       {loading ? (
-        <p>Loading role...</p>
+        <p>Đang tải vai trò...</p>
       ) : readError ? (
         <p role="alert">{message}</p>
       ) : (
@@ -232,16 +233,16 @@ function Bound({
               ) {
                 setReview({ ...input });
                 setMessage(
-                  deactivate ? "Confirm that this role should become inactive." : roleId === undefined
-                    ? "Review metadata before confirming."
-                    : "Review the metadata changes before confirming.",
+                  deactivate ? "Xác nhận ngừng hoạt động vai trò này." : roleId === undefined
+                    ? "Xem lại thông tin trước khi xác nhận."
+                    : "Xem lại thay đổi thông tin trước khi xác nhận.",
                 );
-              } else setMessage("Required code/name or metadata is invalid.");
+              } else setMessage("Mã, tên hoặc thông tin bắt buộc không hợp lệ.");
             }}
           >
             {roleId === undefined && (
               <label>
-                Role code
+                Mã vai trò
                 <input
                   value={input.roleCode}
                   aria-invalid={duplicateCode || undefined}
@@ -253,11 +254,11 @@ function Bound({
                     setDuplicateCode(false);
                   }}
                 />
-                {duplicateCode && <span id="role-code-conflict">MSG35: Role code already exists.</span>}
+                {duplicateCode && <span id="role-code-conflict">MSG35: Mã vai trò đã tồn tại.</span>}
               </label>
             )}
             <label>
-              Role name
+              Tên vai trò
               <input
                 value={input.roleName}
                 disabled={deactivate || pending || locked || record?.isSystemRole}
@@ -268,7 +269,7 @@ function Bound({
               />
             </label>
             <label>
-              Description
+              Mô tả
               <textarea
                 value={input.description ?? ""}
                 disabled={deactivate || pending || locked || record?.isSystemRole}
@@ -279,39 +280,39 @@ function Bound({
               />
             </label>
             {record?.isSystemRole ? (
-              <p>System role protected. No metadata changes allowed.</p>
+              <p>Vai trò hệ thống được bảo vệ. Không được đổi thông tin.</p>
             ) : (
-              <button disabled={pending || locked || (deactivate && !record?.isActive)}>{deactivate ? "Review deactivation" : "Review metadata"}</button>
+              <button disabled={pending || locked || (deactivate && !record?.isActive)}>{deactivate ? "Xem lại vô hiệu hóa" : "Xem lại thông tin mô tả"}</button>
             )}
           </form>
           {review && !locked && (
-            <section aria-label="Metadata review">
+            <section aria-label="Xem lại thông tin">
               <p>
-                {review.roleCode} — {review.roleName}
+                {displayCode(review.roleCode)} — {review.roleName}
               </p>
               <p>{review.description}</p>
               <button
                 disabled={!dispatchEnabled || pending || (roleId !== undefined && (!version || record?.isSystemRole))}
                 onClick={() => void create()}
               >
-                {deactivate ? "Confirm deactivate" : roleId === undefined ? "Confirm create" : "Confirm update"}
+                {deactivate ? "Xác nhận vô hiệu hóa" : roleId === undefined ? "Xác nhận tạo mới" : "Xác nhận cập nhật"}
               </button>
             </section>
           )}
           {record && (
-            <section aria-label="Authoritative role">
+            <section aria-label="Vai trò được máy chủ xác nhận">
               <p>
-                {record.roleCode} — {record.roleName}
+                {displayCode(record.roleCode)} — {record.roleName}
               </p>
               <p>
-                {record.isSystemRole ? "System" : "Custom"}; grants{" "}
-                {record.permissionGrantCount}; users {record.assignedUserCount}
+                {record.isSystemRole ? "Hệ thống" : "Tùy chỉnh"}; Quyền được cấp{" "}
+                {record.permissionGrantCount}; Người dùng {record.assignedUserCount}
               </p>
             </section>
           )}
         </>
       )}
-      {pending && <p role="status">Submitting once...</p>}
+      {pending && <p role="status">Đang gửi…</p>}
       {message && <p role="status">{message}</p>}
     </main>
   );

@@ -26,7 +26,7 @@ export function EmployeeMembershipPage(){
       if(controller.signal.aborted||current.current!==owner)return;
       setBranchesLoading(false);
       if(result.ok){setBranches(result.data);if(result.data.length===1)setBranch(String(result.data[0].id));}
-      else{setMessage("Current branch memberships could not be loaded. Reload to refresh your authorization.");if(result.error.kind==="http"&&result.error.status===401)actions.invalidateSession(owner);}
+      else{setMessage("Không tải được phân quyền chi nhánh hiện tại. Tải lại để cập nhật quyền.");if(result.error.kind==="http"&&result.error.status===401)actions.invalidateSession(owner);}
     });return()=>controller.abort();
   },[owner,target,branchAttempt]);
   async function load(){
@@ -38,7 +38,7 @@ export function EmployeeMembershipPage(){
           ||(v.primaryDepartmentId!==null&&!positive(v.primaryDepartmentId))||!Array.isArray(v.memberships)||!v.memberships.every(member)||!Array.isArray(v.history)||!v.history.every(h=>isObject(h)&&positive(h.historyId)&&positive(h.recordedBy)&&positive(h.restoredBy)&&typeof h.restoredAt==="string"&&typeof h.revokedAt==="string"&&member(h))
           ||!Array.isArray(v.replacementDepartments)||!v.replacementDepartments.every(d=>isObject(d)&&positive(d.id)&&typeof d.name==="string")||!Array.isArray(v.departments)||!v.departments.every(d=>isObject(d)&&positive(d.id)&&typeof d.name==="string"))return;return v as Page;}});
       if(controller.signal.aborted||current.current!==owner)return;
-      if(result.ok)setPage(result.data);else{setMessage("Memberships unavailable. Administrator USER_MANAGE and existing target branch access are required.");if(result.error.kind==="http"&&result.error.status===401)actions.invalidateSession(owner);}
+      if(result.ok)setPage(result.data);else{setMessage("Chưa có phân công thành viên. Cần quyền USER_MANAGE của quản trị viên và quyền chi nhánh đích hiện có.");if(result.error.kind==="http"&&result.error.status===401)actions.invalidateSession(owner);}
     }finally{sending.current=false;if(current.current===owner)setBusy(false);}
   }
   async function save(remove=false){
@@ -48,8 +48,8 @@ export function EmployeeMembershipPage(){
     const snapshot=page,controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setMessage("");let dispatched=false;
     try{
       const first=await fetch("/api/auth/csrf",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal});
-      if(!first.ok)throw Error("Session validation failed.");const csrf:unknown=await first.json();
-      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Session changed.");
+      if(!first.ok)throw Error("Xác minh phiên đăng nhập thất bại.");const csrf:unknown=await first.json();
+      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Phiên đăng nhập đã thay đổi.");
       dispatched=true;
       const response=await fetch("/api/users/"+snapshot.userId+"/branches/"+snapshot.branchId+"/departments"+(restore?"/restore":remove?"/remove":""),{method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":snapshot.version},body:JSON.stringify({departmentId:chosen,reason,...(remove&&!restore&&snapshot.primaryDepartmentId===chosen?{replacementDepartmentId:Number(replacement)}:{})})});
@@ -57,30 +57,30 @@ export function EmployeeMembershipPage(){
         if(isObject(problem)&&problem.title==="MEMBERSHIP_DEPENDENCIES"&&Array.isArray(problem.dependencies)){
           const detail=problem.dependencies.filter(d=>isObject(d)&&typeof d.kind==="string"&&typeof d.count==="number")
             .map(d=>`${String(d.kind).toLowerCase().replaceAll("_"," ")}: ${d.count}`).join("; ");
-          throw Error("Membership cannot be removed: "+detail);
+          throw Error("Không thể xóa phân công thành viên:"+detail);
         }
-        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");}
-      if(!controller.signal.aborted&&current.current===owner)setMessage(`Membership ${restore?"restored; previous period preserved":remove?"removed; history preserved":"added"}. The employee must sign in again. Reload memberships to continue.`);
-    }catch(e){if(!controller.signal.aborted&&current.current===owner)setMessage(String(e)+" Reload before retrying.");}
+        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Chưa xác nhận lưu.");}
+      if(!controller.signal.aborted&&current.current===owner)setMessage(`Phân công thành viên ${restore?"đã khôi phục; giai đoạn trước được giữ lại":remove?"đã xóa; lịch sử được giữ lại":"đã thêm"}. Nhân viên cần đăng nhập lại. Tải lại phân công thành viên để tiếp tục.`);
+    }catch(e){if(!controller.signal.aborted&&current.current===owner)setMessage(String(e)+"Tải lại trước khi thử lại.");}
     finally{sending.current=false;if(current.current===owner){setBusy(false);if(dispatched)setPage(null);}}
   }
-  if(!positive(target))return <p role="alert">Invalid user.</p>;
-  return <main><h1>Employee department memberships</h1><Link to={"/users/"+target}>User {target}</Link>
-    <p>Manage working departments inside a branch already granted to this employee. Removal preserves history and requires resolving dependent work. Removing the primary department requires an active replacement membership. Role grants and Head authority must be handled through their own workflows.</p>
-    <form onSubmit={e=>{e.preventDefault();void load();}}><fieldset disabled={busy||branchesLoading}><label>Current branch<select required value={branch} onChange={e=>{setBranch(e.target.value);setPage(null);setMessage("");}}>
-      <option value="">Select branch</option>{branches.map(b=><option key={b.id} value={b.id}>{b.name}{b.isPrimary?" (primary)":""}</option>)}</select></label><button disabled={!branch}>Load memberships</button>
-      <button type="button" onClick={()=>setBranchAttempt(n=>n+1)}>Reload branches</button></fieldset></form>
-    {branchesLoading&&<p role="status">Loading current branches...</p>}
-    {message&&<p role="status">{message}</p>}{page&&<><EmployeeBranchRemovalPanel key={`${owner}:${page.branchId}:${page.version}`} user={target} branch={page.branchId} version={page.version} branches={branches} onChanged={()=>{setPage(null);setBranchAttempt(n=>n+1);setMessage("MSG08: Branch removed. Employee must sign in again.");}}/><table><thead><tr><th>Department</th><th>Granted</th><th>Revoked</th><th>Provenance</th><th>Action</th></tr></thead><tbody>{page.memberships.map(m=><tr key={m.departmentId}><td>{m.name}{m.departmentId===page.primaryDepartmentId?" (primary)":""}</td><td>{m.grantedAt}</td><td>{m.revokedAt??"Active"}</td><td>{m.provenance}</td><td><button disabled={busy||m.revokedAt!==null&&!page.departments.some(d=>d.id===m.departmentId)} onClick={()=>{setRemoving(m);setConfirmed(false);setReason("");setReplacement("");}}>{m.revokedAt===null?"Remove":"Restore"} membership</button></td></tr>)}</tbody></table>
-      {page.history.length>0&&<details><summary>Previous membership periods</summary><table><thead><tr><th>Department</th><th>Granted</th><th>Revoked</th><th>Provenance</th><th>Recorded by</th><th>Restored</th><th>Restored by</th></tr></thead><tbody>{page.history.map(h=><tr key={h.historyId}><td>{h.name}</td><td>{h.grantedAt}</td><td>{h.revokedAt}</td><td>{h.provenance}</td><td>{h.recordedBy}</td><td>{h.restoredAt}</td><td>{h.restoredBy}</td></tr>)}</tbody></table></details>}
-      {removing?<form onSubmit={e=>{e.preventDefault();void save(true);}}><fieldset disabled={busy}><legend>{removing.revokedAt===null?"Remove":"Restore"} {removing.name}</legend>
-        {removing.revokedAt===null&&removing.departmentId===page.primaryDepartmentId&&<label>Replacement primary department<select required value={replacement} onChange={e=>setReplacement(e.target.value)}><option value="">Select active membership</option>{page.replacementDepartments.filter(d=>d.id!==removing.departmentId).map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
-        <label>Reason<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label>
-        <label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Confirm {removing.revokedAt===null?"removal":"restoration"} of this membership and revocation of employee sessions.</label>
-        <button disabled={!confirmed}>Confirm {removing.revokedAt===null?"removal":"restoration"}</button><button type="button" onClick={()=>{setRemoving(null);setConfirmed(false);}}>Cancel</button>
-      </fieldset></form>:<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy}><legend>Add department membership</legend>
-        <label>Department<select required value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Select department</option>{page.departments.filter(d=>!page.memberships.some(m=>m.departmentId===d.id)).map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
-        <label>Reason<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label><button>Add membership</button>
+  if(!positive(target))return <p role="alert">Người dùng không hợp lệ.</p>;
+  return <main><h1>Phân công bộ phận của nhân viên</h1><Link to={"/users/"+target}>Người dùng {target}</Link>
+    <p>Quản lý bộ phận trong chi nhánh đã cấp cho nhân viên. Xóa vẫn giữ lịch sử và cần xử lý công việc liên quan. Xóa bộ phận chính cần phân công thay thế đang hoạt động. Vai trò và thẩm quyền trưởng bộ phận dùng quy trình riêng.</p>
+    <form onSubmit={e=>{e.preventDefault();void load();}}><fieldset disabled={busy||branchesLoading}><label>Chi nhánh hiện tại<select required value={branch} onChange={e=>{setBranch(e.target.value);setPage(null);setMessage("");}}>
+      <option value="">Chọn chi nhánh</option>{branches.map(b=><option key={b.id} value={b.id}>{b.name}{b.isPrimary?" (primary)":""}</option>)}</select></label><button disabled={!branch}>Tải phân công thành viên</button>
+      <button type="button" onClick={()=>setBranchAttempt(n=>n+1)}>Tải lại chi nhánh</button></fieldset></form>
+    {branchesLoading&&<p role="status">Đang tải chi nhánh hiện tại...</p>}
+    {message&&<p role="status">{message}</p>}{page&&<><EmployeeBranchRemovalPanel key={`${owner}:${page.branchId}:${page.version}`} user={target} branch={page.branchId} version={page.version} branches={branches} onChanged={()=>{setPage(null);setBranchAttempt(n=>n+1);setMessage("MSG08: Đã xóa phân quyền chi nhánh. Nhân viên cần đăng nhập lại.");}}/><table><thead><tr><th>Bộ phận</th><th>Đã cấp</th><th>Đã thu hồi</th><th>Nguồn gốc</th><th>Thao tác</th></tr></thead><tbody>{page.memberships.map(m=><tr key={m.departmentId}><td>{m.name}{m.departmentId===page.primaryDepartmentId?" (primary)":""}</td><td>{m.grantedAt}</td><td>{m.revokedAt??"Đang hoạt động"}</td><td>{m.provenance}</td><td><button disabled={busy||m.revokedAt!==null&&!page.departments.some(d=>d.id===m.departmentId)} onClick={()=>{setRemoving(m);setConfirmed(false);setReason("");setReplacement("");}}>{m.revokedAt===null?"Xóa":"Khôi phục"} Phân công thành viên</button></td></tr>)}</tbody></table>
+      {page.history.length>0&&<details><summary>Các giai đoạn phân công trước</summary><table><thead><tr><th>Bộ phận</th><th>Đã cấp</th><th>Đã thu hồi</th><th>Nguồn gốc</th><th>Người ghi nhận</th><th>Đã khôi phục</th><th>Người khôi phục</th></tr></thead><tbody>{page.history.map(h=><tr key={h.historyId}><td>{h.name}</td><td>{h.grantedAt}</td><td>{h.revokedAt}</td><td>{h.provenance}</td><td>{h.recordedBy}</td><td>{h.restoredAt}</td><td>{h.restoredBy}</td></tr>)}</tbody></table></details>}
+      {removing?<form onSubmit={e=>{e.preventDefault();void save(true);}}><fieldset disabled={busy}><legend>{removing.revokedAt===null?"Xóa":"Khôi phục"} {removing.name}</legend>
+        {removing.revokedAt===null&&removing.departmentId===page.primaryDepartmentId&&<label>Bộ phận chính thay thế<select required value={replacement} onChange={e=>setReplacement(e.target.value)}><option value="">Chọn phân công thành viên đang hiệu lực</option>{page.replacementDepartments.filter(d=>d.id!==removing.departmentId).map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
+        <label>Lý do<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label>
+        <label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Xác nhận {removing.revokedAt===null?"removal":"restoration"} của phân công thành viên này và thu hồi phiên đăng nhập của nhân viên.</label>
+        <button disabled={!confirmed}>Xác nhận {removing.revokedAt===null?"removal":"restoration"}</button><button type="button" onClick={()=>{setRemoving(null);setConfirmed(false);}}>Hủy</button>
+      </fieldset></form>:<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy}><legend>Thêm phân công bộ phận</legend>
+        <label>Bộ phận<select required value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Chọn bộ phận</option>{page.departments.filter(d=>!page.memberships.some(m=>m.departmentId===d.id)).map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+        <label>Lý do<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label><button>Thêm phân công thành viên</button>
       </fieldset></form>}</>}
   </main>;
 }

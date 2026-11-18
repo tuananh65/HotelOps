@@ -58,7 +58,7 @@ export function TaskSeriesPanel({
         )
           setHidden(true);
         else
-          setError("Recurring tasks could not be loaded. Reload to try again.");
+          setError("Không tải được công việc định kỳ. Tải lại để thử tiếp.");
       });
     return () => controller.abort();
   }, [branch, owner, actions, page, revision, seriesId]);
@@ -81,7 +81,7 @@ export function TaskSeriesPanel({
       );
       if (!controller.signal.aborted) {
         setMessage(
-          selected.isActive ? "MSG08: Series stopped. Already generated tasks remain unchanged." : "MSG08: Series reactivated without backfilling skipped occurrences.",
+          selected.isActive ? "MSG08: Đã dừng chuỗi. Công việc đã tạo giữ nguyên." : "MSG08: Đã kích hoạt lại chuỗi, không tạo bù lần bị bỏ qua.",
         );
         setRevision((n) => n + 1);
       }
@@ -91,7 +91,7 @@ export function TaskSeriesPanel({
         actions.invalidateSession(owner);
       setUncertain(true);
       setError(
-        "Stop could not be confirmed or the series changed. Reload the series before any further action.",
+        "Chưa xác nhận dừng hoặc chuỗi đã đổi. Tải lại chuỗi trước mọi thao tác tiếp theo.",
       );
     } finally {
       saving.current = false;
@@ -100,27 +100,26 @@ export function TaskSeriesPanel({
   }
   if (hidden) return null;
   return (
-    <section aria-label="Recurring task series">
-      <h2>Recurring task series</h2>
+    <section aria-label="Chuỗi công việc định kỳ">
+      <h2>Chuỗi công việc định kỳ</h2>
       <button disabled={busy} onClick={() => setRevision((n) => n + 1)}>
-        Reload series
+        Tải lại chuỗi định kỳ
       </button>
       {message && <p role="status">{message}</p>}
       {error && <p role="alert">{error}</p>}
       {data && (
         <>
-          <p>{data.totalCount} series</p>
+          <p>{data.totalCount} Chuỗi định kỳ</p>
           <ul>
             {data.items.map((series) => (
               <li key={series.seriesId}>
                 <strong>{series.title}</strong> —{" "}
-                {series.isActive ? "Active" : "Inactive"}; {series.rule};
-                executor: {series.defaultAssigneeName}; generated tasks:{" "}
+                {series.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}; {series.rule}; Người thực hiện: {series.defaultAssigneeName}; công việc đã tạo:{" "}
                 {series.occurrenceCount}.
                 <p>
-                  First deadline: {series.firstDueAt}; next deadline:{" "}
-                  {series.nextDueAt ?? "Schedule exhausted"}; end date:{" "}
-                  {series.endDate ?? "No end date"}.
+                  Thời hạn đầu tiên: {series.firstDueAt}; Thời hạn tiếp theo:{" "}
+                  {series.nextDueAt ?? "Lịch đã hết lần thực hiện"}; Ngày kết thúc:{" "}
+                  {series.endDate ?? "Chưa có ngày kết thúc"}.
                 </p>
                 {(series.isActive || series.nextDueAt !== null) && (
                   <button
@@ -131,25 +130,25 @@ export function TaskSeriesPanel({
                       setReason("");
                     }}
                   >
-                    {series.isActive ? "Stop" : "Reactivate"} series: {series.title}
+                    {series.isActive ? "Dừng" : "Kích hoạt lại"} Chuỗi định kỳ: {series.title}
                   </button>
                 )}
               </li>
             ))}
           </ul>
-          <nav aria-label="Series pagination">
+          <nav aria-label="Phân trang chuỗi định kỳ">
             <button
               disabled={busy || page === 1}
               onClick={() => setPage((n) => n - 1)}
             >
-              Previous series
+              Chuỗi định kỳ trước
             </button>
-            <span>Series page {page}</span>
+            <span>Trang chuỗi định kỳ {page}</span>
             <button
               disabled={busy || page * data.pageSize >= data.totalCount}
               onClick={() => setPage((n) => n + 1)}
             >
-              Next series
+              Chuỗi định kỳ tiếp theo
             </button>
           </nav>
         </>
@@ -162,12 +161,12 @@ export function TaskSeriesPanel({
           }}
         >
           <fieldset disabled={busy || uncertain}>
-            <legend>{selected.isActive ? "Stop" : "Reactivate"} {selected.title}</legend>
+            <legend>{selected.isActive ? "Dừng" : "Kích hoạt lại"} {selected.title}</legend>
             <p>
-              Existing tasks and history remain unchanged. Reactivation requires current source authority, an open linked request and an eligible executor; skipped periods are never backfilled.
+              Công việc và lịch sử hiện có giữ nguyên. Kích hoạt lại cần quyền nguồn, yêu cầu liên quan đang mở và người thực hiện hợp lệ; không tạo bù kỳ đã bỏ qua.
             </p>
             <label>
-              Change reason
+              Lý do thay đổi
               <textarea
                 maxLength={4000}
                 value={reason}
@@ -181,11 +180,11 @@ export function TaskSeriesPanel({
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              Confirm this change to future generation
+              Xác nhận áp dụng thay đổi cho các lần tạo trong tương lai
             </label>
-            <button disabled={!confirmed || !selected.isActive && !reason.trim()}>Confirm {selected.isActive ? "stop" : "reactivation"}</button>
+            <button disabled={!confirmed || !selected.isActive && !reason.trim()}>Xác nhận {selected.isActive ? "stop" : "reactivation"}</button>
             <button type="button" onClick={() => setSelected(null)}>
-              Cancel change
+              Hủy thay đổi
             </button>
           </fieldset>
         </form>

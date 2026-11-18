@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -37,7 +38,7 @@ export function AssetRetirementPage() {
       const csrf = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (csrf.status === 401) actions.invalidateSession(owner);
       const token = await csrf.json();
-      if (!csrf.ok || token.headerName !== "X-CSRF-TOKEN" || typeof token.csrfToken !== "string" || !token.csrfToken) throw new Error("CSRF bootstrap unavailable.");
+      if (!csrf.ok || token.headerName !== "X-CSRF-TOKEN" || typeof token.csrfToken !== "string" || !token.csrfToken) throw new Error("Chưa khởi tạo được bảo vệ phiên (CSRF).");
       if (current.current !== owner || abort.signal.aborted) return;
       const response = await fetch(`/api/asset-retirement/${id}`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": token.csrfToken, "If-Match": preview.version }, body: JSON.stringify({ reason: reason.trim(), confirmed }) });
@@ -50,7 +51,7 @@ export function AssetRetirementPage() {
   if (!owner || owner !== loadedOwner) return <p>Đang kiểm tra quyền…</p>;
   return <section><h2>Retire tài sản</h2><Link to={`/assets/${id}`}>Hồ sơ tài sản</Link>
     {error && <p role="alert">{error}</p>}<p><button disabled={busy} onClick={() => setRevision(v => v + 1)}>Kiểm tra lại điều kiện</button></p>
-    {preview && <><h3>{preview.assetCode} — {preview.assetName}</h3><p>Lifecycle: {preview.lifecycleStatus}</p>
+    {preview && <><h3>{preview.assetCode} — {preview.assetName}</h3><p>Vòng đời: {displayCode(preview.lifecycleStatus)}</p>
       {preview.blockers.length > 0 && <><p>MSG34 — Chưa thể retire:</p><ul>{preview.blockers.map(b => <li key={b.kind}>{labels[b.kind] ?? b.kind}: {b.count}</li>)}</ul></>}
       {preview.canRetire && <form onSubmit={e => { e.preventDefault(); void retire(); }}><fieldset disabled={busy}>
         <legend>MSG33 — Xác nhận ngừng sử dụng tài sản</legend><p>Lịch sử và chứng từ sẽ được giữ nguyên. Tài sản không được tính vào tập đang hoạt động.</p>

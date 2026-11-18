@@ -3,16 +3,18 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createWorkdayApi, type WorkdayApi } from "./workdayApi";
 import { safeId, type ReadFailure, type ReadResult } from "./contracts";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import { staffDate } from "../internalRequests/staffDate";
 
 const messages: Record<ReadFailure, string> = {
   "invalid-request": "Chưa có chi nhánh hợp lệ.",
   "invalid-response": "Dữ liệu phản hồi không hợp lệ.",
   unauthorized: "Phiên không còn hợp lệ. Vui lòng xác minh phiên đăng nhập.",
   forbidden: "Máy chủ từ chối quyền truy cập.",
-  unavailable: "Workday API chưa sẵn sàng. Không thể xác định ca hoặc workday.",
+  unavailable: "Chưa tải được dữ liệu ca làm việc. Vui lòng thử lại.",
   network: "Không thể kết nối máy chủ.",
   cancelled: "Yêu cầu đã hủy.",
-  http: "Không thể đọc dữ liệu workday.",
+  http: "Không thể đọc dữ liệu ngày làm việc.",
 };
 type View<T> =
   | { key: object; kind: "loading" }
@@ -72,10 +74,10 @@ function ReadSection<T>({
 }) {
   const view = result.view;
   return (
-    <section aria-label={title}>
+    <section className="time-card" aria-label={title}>
       <h2>{title}</h2>
       {!view || view.kind === "loading" ? (
-        <p role="status">Đang tải…</p>
+        <LoadingIndicator label="Đang tải ca làm việc" />
       ) : view.kind === "error" ? (
         <div role="alert">
           <p>{messages[view.error]}</p>
@@ -100,9 +102,13 @@ function ReadSection<T>({
 export function WorkdayReadPanel({
   branchId,
   client: injectedClient,
+  canReadShifts = true,
+  canReadCurrent = true,
 }: {
   branchId: number;
   client?: WorkdayApi;
+  canReadShifts?: boolean;
+  canReadCurrent?: boolean;
 }) {
   const { state, actions } = useAuth();
   const defaultClient = useMemo(() => createWorkdayApi(), []);
@@ -116,13 +122,13 @@ export function WorkdayReadPanel({
   const session = state.session;
   const key = useMemo(() => ({}), [session, branchId, confirmed]);
   const enabled = confirmed && safeId(branchId);
-  const shifts = useRead(key, enabled, branchId, client.ownShifts);
-  const current = useRead(key, enabled, branchId, client.current);
+  const shifts = useRead(key, enabled && canReadShifts, branchId, client.ownShifts);
+  const current = useRead(key, enabled && canReadCurrent, branchId, client.current);
 
   if (!confirmed)
     return (
       <section>
-        <h1>Ca làm và workday của tôi</h1>
+        <h2>Ca làm việc của tôi</h2>
         <p>Chưa xác nhận phiên đăng nhập không hạn chế.</p>
         <Link to="/login">Đăng nhập</Link>
         <Link to="/change-password">Đổi mật khẩu</Link>
@@ -131,50 +137,43 @@ export function WorkdayReadPanel({
   if (!safeId(branchId))
     return <p role="alert">{messages["invalid-request"]}</p>;
   return (
-    <section>
-      <h1>Ca làm và workday của tôi</h1>
-      <p>Branch {branchId}</p>
-      <nav>
-        <Link to="/profile">Hồ sơ</Link>{" "}
-        <Link to="/hotel">Cấu trúc khách sạn</Link>
-      </nav>
-      <ReadSection
-        title="Ca được phân công trong ngày"
+    <section className="time-columns">
+      {canReadShifts && <ReadSection
+        title="Ca có thể bắt đầu hôm nay"
         result={shifts}
         revalidate={() => void actions.revalidate()}
       >
         {(data) =>
           data.length === 0 ? (
-            <p>Không có ca đủ điều kiện trong ngày.</p>
+            <p className="time-empty">Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.</p>
           ) : (
-            <ul>
+            <ul className="time-list">
               {data.map((s) => (
                 <li key={s.shiftAssignmentId}>
-                  Ca {s.shiftId}: {s.shiftDate}, {s.scheduledStartAtUtc} –{" "}
-                  {s.scheduledEndAtUtc}
+                  <strong>{staffDate(s.scheduledStartAtUtc)} – {staffDate(s.scheduledEndAtUtc)}</strong>
+                  <p><Link to={`/workday?branchId=${branchId}&shiftAssignmentId=${s.shiftAssignmentId}`}>Xem chi tiết ca</Link></p>
                 </li>
               ))}
             </ul>
           )
         }
-      </ReadSection>
-      <ReadSection
-        title="Workday hiện tại"
+      </ReadSection>}
+      {canReadCurrent && <ReadSection
+        title="Ca đang làm"
         result={current}
         revalidate={() => void actions.revalidate()}
       >
         {(data) =>
           data === null ? (
-            <p>Không có workday đang làm.</p>
+            <p className="time-empty">Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.</p>
           ) : (
-            <p>
-              <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>Prepare shift handover</Link>{" "}
-              Workday {data.workdayId}, ngày {data.workDate}, bắt đầu{" "}
-              {data.startedAtUtc}
-            </p>
+            <div><span className="time-status">Đang làm việc</span>
+              <p>Bắt đầu lúc {staffDate(data.startedAtUtc)}</p>
+              <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>Chuẩn bị bàn giao ca</Link>
+            </div>
           )
         }
-      </ReadSection>
+      </ReadSection>}
     </section>
   );
 }

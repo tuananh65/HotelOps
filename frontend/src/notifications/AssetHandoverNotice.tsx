@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -32,13 +33,13 @@ export function AssetHandoverNotice() {
     return () => abort.abort();
   }, [id, owner, actions]);
   const visible = owner && result?.owner === owner && result.id === id ? result : null;
-  return <main><h1>Asset handover</h1><Link to="/notifications">Notifications</Link>
-    {!visible ? <p>Verifying access...</p> : visible.failed ? <p role="alert">Handover unavailable. Current asset read permission is required.</p>
+  return <main><h1>Bàn giao tài sản</h1><Link to="/notifications">Thông báo</Link>
+    {!visible ? <p>Đang xác minh quyền truy cập…</p> : visible.failed ? <p role="alert">Chưa xem được bàn giao. Cần quyền xem tài sản hiện tại.</p>
       : visible.data && <><h2>{visible.data.number}</h2><dl>
-        <dt>Asset</dt><dd>{visible.data.assetCode}</dd><dt>Status</dt><dd>{visible.data.state}</dd>
-        <dt>Condition at handover</dt><dd>{visible.data.conditionNote ?? "No condition note"}</dd>
-        <dt>Submitted</dt><dd>{new Date(visible.data.submittedAtUtc).toLocaleString()}</dd></dl>
-        <Link to={`/assets/${visible.data.assetId}/${visible.data.crossBranch ? "transfer/cross-branch" : "custody"}`}>Open custody workflow</Link>
-        <p>Reading this handover does not acknowledge it or change asset custody.</p></>}
+        <dt>Tài sản</dt><dd>{visible.data.assetCode}</dd><dt>Trạng thái</dt><dd>{displayCode(visible.data.state)}</dd>
+        <dt>Tình trạng khi bàn giao</dt><dd>{visible.data.conditionNote ?? "Chưa có ghi chú tình trạng"}</dd>
+        <dt>Đã nộp</dt><dd>{new Date(visible.data.submittedAtUtc).toLocaleString()}</dd></dl>
+        <Link to={`/assets/${visible.data.assetId}/${visible.data.crossBranch ? "transfer/cross-branch" : "custody"}`}>Mở quy trình quản lý tài sản</Link>
+        <p>Xem bàn giao không xác nhận đã nhận hoặc đổi người quản lý tài sản.</p></>}
   </main>;
 }

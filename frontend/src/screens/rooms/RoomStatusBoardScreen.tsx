@@ -1,3 +1,14 @@
+import {
+  useRoomWorkspace,
+  useRoomChoices,
+  RoomBranchField,
+  NamedFilter,
+  uniqueOptions,
+  roomLabel,
+  hotelTime,
+} from "../housekeeping/RoomWorkspace";
+import { LoadingIndicator } from "../../components/LoadingIndicator";
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
@@ -17,6 +28,7 @@ import {
 } from "../../api/dev1/roomBoard";
 
 import RoomWorkflowActions from "./RoomWorkflowActions";
+import "./room-status-board.css";
 
 type Loaded = {
   key: symbol;
@@ -27,12 +39,12 @@ type Loaded = {
 export function parseRoomContext(params: URLSearchParams) {
   for (const name of ["branchId", "roomId"]) {
     const values = params.getAll(name);
-    if (values.length > 1) throw new Error("Duplicate room context");
+    if (values.length > 1) throw new Error("Ngữ cảnh phòng bị trùng");
     if (values.length) positiveId(values[0]);
   }
   const branch = params.get("branchId") ?? "";
   const room = params.get("roomId") ?? "";
-  if (room && !branch) throw new Error("Room requires branch context");
+  if (room && !branch) throw new Error("Phòng cần ngữ cảnh chi nhánh");
   return { branch, room };
 }
 // URL context is a navigation hint; the destination reauthorizes every read.
@@ -59,26 +71,48 @@ function RecordedSourceLink({
   branchId: number;
   source: RoomSource | null;
 }) {
-  const scopedSource = source?.availability === "VERIFIED_SAME_ROOM" && source.id !== null
-    && Number.isSafeInteger(source.id) && source.id > 0 && Number.isSafeInteger(branchId) && branchId > 0;
-  const href = recordedCleaningHref(branchId, source)
-    ?? (scopedSource && source?.type === "INSPECTION" ? `/inspections/${branchId}/${source.id}/execution` : null)
-    ?? (scopedSource && source?.type === "MAINTENANCE" ? `/operations/maintenance/${source.id}?branchId=${branchId}&action=A004A-036` : null);
+  const scopedSource =
+    source?.availability === "VERIFIED_SAME_ROOM" &&
+    source.id !== null &&
+    Number.isSafeInteger(source.id) &&
+    source.id > 0 &&
+    Number.isSafeInteger(branchId) &&
+    branchId > 0;
+  const href =
+    recordedCleaningHref(branchId, source) ??
+    (scopedSource && source?.type === "INSPECTION"
+      ? `/inspections/${branchId}/${source.id}/execution`
+      : null) ??
+    (scopedSource && source?.type === "MAINTENANCE"
+      ? `/operations/maintenance/${source.id}?branchId=${branchId}&action=A004A-036`
+      : null);
   return href ? (
-    <Link to={href}>Open {source?.type} #{source?.id}</Link>
+    <Link to={href}>
+      Đang mở {displayCode(source?.type)} #{source?.id}
+    </Link>
   ) : null;
 }
 export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
+  const scope = useRoomWorkspace("rooms");
+  const [advanced, setAdvanced] = useState(() =>
+    ["floorId", "areaId", "roomTypeId", "isActive"].some((name) =>
+      params.has(name),
+    ),
+  );
+  // Load the optional filter catalogue only when requested, not alongside every board read.
+  const [catalogRequested, setCatalogRequested] = useState(advanced);
+  const choices = useRoomChoices({
+    ...scope,
+    branch: catalogRequested ? scope.branch : undefined,
+  });
   const [retry, setRetry] = useState(0);
-  useEffect(() => {
-    const refresh = () => setRetry(v => v + 1);
-    window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
-  }, []);
   const query = params.toString(),
-    key = useMemo(() => Symbol("room-read"), [location.key, query, retry]);
+    key = useMemo(
+      () => Symbol("room-read"),
+      [location.key, query, retry, scope.owner],
+    );
   let branch = "",
     room = "",
     contextError = "";
@@ -94,7 +128,15 @@ export default function RoomStatusBoardScreen() {
   } | null>(null);
   useEffect(() => {
     const abort = new AbortController();
-    if (contextError || !branch) return () => abort.abort();
+    if (contextError || !branch || !scope.branch || !scope.owner)
+      return () => abort.abort();
+    const timeout = window.setTimeout(() => {
+      setFailure({
+        key,
+        message: "Tải danh sách phòng quá lâu. Vui lòng thử lại.",
+      });
+      abort.abort();
+    }, 25000);
     async function load() {
       const p = new URLSearchParams(query);
       try {
@@ -111,12 +153,20 @@ export default function RoomStatusBoardScreen() {
       } catch (error) {
         if (!abort.signal.aborted)
           setFailure({ key, message: roomBoardError(error) });
+      } finally {
+        window.clearTimeout(timeout);
       }
     }
     void load();
-    return () => abort.abort();
-  }, [branch, room, query, key, contextError]);
-  const data = !contextError && loaded?.key === key ? loaded : null;
+    return () => {
+      window.clearTimeout(timeout);
+      abort.abort();
+    };
+  }, [branch, room, query, key, contextError, scope.branch?.id, scope.owner]);
+  const data =
+    scope.branch && scope.owner && !contextError && loaded?.key === key
+      ? loaded
+      : null;
   const error = contextError || (failure?.key === key ? failure.message : "");
   const board = data?.board,
     detail = data?.detail,
@@ -147,59 +197,151 @@ export default function RoomStatusBoardScreen() {
     ? [...new Map(board.items.map((r) => [r.floor.id, r.floor])).values()]
     : [];
   return (
-    <>
+    <div className="room-workspace room-status-board">
       <div className="page-header">
         <div>
-          <span className="eyebrow">FE-03</span>
+          <span className="eyebrow">Buồng phòng</span>
           <h1>Trạng thái vận hành phòng</h1>
-          <p>Trạng thái phòng đã ghi nhận từ máy chủ.</p>
+          <p>
+            Theo dõi tình trạng phòng, chọn số phòng để xem chi tiết và xử lý
+            công việc.
+          </p>
         </div>
       </div>
-      <form key={query} className="filter-bar" onSubmit={submit}>
-        {[
-          ["branchId", "Chi nhánh (ID)"],
-          ["departmentId", "Department (explicit mapping ID)"],
-          ["floorId", "Tầng (ID)"],
-          ["areaId", "Khu vực (ID)"],
-          ["roomTypeId", "Loại phòng (ID)"],
-        ].map(([name, label]) => (
-          <label key={name}>
-            {label}
+      <RoomBranchField scope={scope} />
+      <form key={query} className="room-board-filters" onSubmit={submit}>
+        <input type="hidden" name="branchId" value={scope.branch?.id ?? ""} />
+        <div className="room-board-primary-filters">
+          <label>
+            Số phòng
             <input
-              name={name}
-              inputMode="numeric"
-              required={name === "branchId"}
-              pattern="[1-9][0-9]*"
-              defaultValue={params.get(name) || ""}
+              name="search"
+              type="search"
+              maxLength={200}
+              placeholder="Nhập số phòng cần tìm"
+              defaultValue={params.get("search") || ""}
             />
           </label>
-        ))}
-        <label>
-          Trạng thái vận hành
-          <select name="readiness" defaultValue={params.get("readiness") || ""}>
-            <option value="">Tất cả</option>
-            {readinessCodes.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Số phòng
-          <input
-            name="search"
-            maxLength={200}
-            defaultValue={params.get("search") || ""}
-          />
-        </label>
-        <button>Lọc phòng</button>
-        <label>Active filter<select name="isActive" defaultValue={params.get("isActive") || ""}><option value="">All</option><option value="true">Active</option><option value="false">Inactive</option></select></label>
+          <label>
+            Trạng thái vận hành
+            <select
+              aria-label="Trạng thái vận hành"
+              name="readiness"
+              defaultValue={params.get("readiness") || ""}
+            >
+              <option value="">Tất cả</option>
+              {readinessCodes.map((s) => (
+                <option key={s} value={s}>
+                  {roomLabel(s)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button disabled={!scope.branch}>Lọc phòng</button>
+          <button
+            type="button"
+            aria-expanded={advanced}
+            aria-controls="room-board-advanced"
+            onClick={() => {
+              setCatalogRequested(true);
+              setAdvanced((v) => !v);
+            }}
+          >
+            Bộ lọc nâng cao
+          </button>
+        </div>
+        <div
+          id="room-board-advanced"
+          className="room-board-advanced"
+          hidden={!advanced}
+        >
+          <div
+            key={choices.items ? "ready" : "pending"}
+            className="room-board-advanced-fields"
+          >
+            <NamedFilter
+              name="floorId"
+              label="Tầng"
+              value={params.get("floorId") || ""}
+              items={uniqueOptions((choices.items ?? []).map((r) => r.floor))}
+            />
+            <NamedFilter
+              name="areaId"
+              label="Khu vực"
+              value={params.get("areaId") || ""}
+              items={uniqueOptions(
+                (choices.items ?? []).flatMap((r) => (r.area ? [r.area] : [])),
+              )}
+            />
+            <NamedFilter
+              name="roomTypeId"
+              label="Loại phòng"
+              value={params.get("roomTypeId") || ""}
+              items={uniqueOptions(
+                (choices.items ?? []).map((r) => r.roomType),
+              )}
+            />
+            <label>
+              Bộ lọc hoạt động
+              <select
+                name="isActive"
+                defaultValue={params.get("isActive") || ""}
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        {[
+          "search",
+          "readiness",
+          "floorId",
+          "areaId",
+          "roomTypeId",
+          "isActive",
+        ].some((name) => params.has(name)) && (
+          <button
+            type="button"
+            className="room-clear-filters"
+            onClick={() => {
+              if (scope.branch)
+                setParams({ branchId: String(scope.branch.id) });
+            }}
+          >
+            Xóa bộ lọc
+          </button>
+        )}
       </form>
-      <p role="note">Readiness is calculated from active blocks and the cleaning cycle. UNKNOWN does not permit room use.</p>
-      <button onClick={() => setRetry(v => v + 1)}>Refresh room status</button>
+      {choices.error && (
+        <p role="alert">
+          {choices.error}{" "}
+          <button onClick={choices.reload}>Tải lại danh mục</button>
+        </p>
+      )}
+      <div className="room-board-results-heading">
+        <div>
+          <h2>{room ? "Thông tin phòng" : "Danh sách phòng"}</h2>
+          {board && (
+            <span>
+              {board.totalCount} phòng phù hợp · Trang {board.page}
+            </span>
+          )}
+        </div>
+        <button
+          disabled={!scope.branch || (!data && !error)}
+          onClick={() => setRetry((v) => v + 1)}
+        >
+          Tải lại trạng thái phòng
+        </button>
+      </div>
       {!branch && !error && (
         <p>Chọn chi nhánh để tải các phòng được phép xem.</p>
       )}
-      {branch && !data && !error && <p role="status">Đang tải phòng…</p>}
+      {scope.branch && branch && !data && !error && (
+        <LoadingIndicator label="Đang tải phòng" />
+      )}
       {error && (
         <p role="alert">
           {error}{" "}
@@ -208,19 +350,14 @@ export default function RoomStatusBoardScreen() {
       )}
       {board && (
         <>
-          <h2>Bộ đếm theo bộ lọc</h2>
-          <p>
-            {board.totalCount} phòng phù hợp · Trang {board.page}
-          </p>
-          <ul aria-label="Bộ đếm trạng thái">
-            {Object.entries(board.effectiveReadinessCounts ?? {}).map(([state, count]) => (
-              <li key={`effective-${state}`}>Effective {state}: {count}</li>
-            ))}
-            {board.statusCounts?.map((c) => (
-              <li key={c.operationalStatusCode}>
-                Recorded {c.operationalStatusCode}: {c.count}
-              </li>
-            ))}
+          <ul className="room-stats" aria-label="Bộ đếm trạng thái">
+            {Object.entries(board.effectiveReadinessCounts ?? {}).map(
+              ([state, count]) => (
+                <li key={`effective-${state}`}>
+                  {roomLabel(state)}: {count}
+                </li>
+              ),
+            )}
           </ul>
           {!board.items.length && <p>Không có phòng phù hợp trên trang này.</p>}
           {floors.map((f) => (
@@ -247,7 +384,9 @@ export default function RoomStatusBoardScreen() {
                           <td>
                             <Link to={href(r.id)}>{r.roomNumber}</Link>
                           </td>
-                          <td>{r.effectiveReadiness ?? "UNKNOWN"} (recorded: {r.operationalStatusCode})</td>
+                          <td>
+                            {roomLabel(r.effectiveReadiness ?? "UNKNOWN")}
+                          </td>
                           <td>{r.isActive ? "Có" : "Không"}</td>
                           <td>{r.area?.name || "—"}</td>
                           <td>{r.roomType.name}</td>
@@ -281,19 +420,69 @@ export default function RoomStatusBoardScreen() {
             {detail.room.roomType.name}
           </p>
           <p>
-            Effective readiness: {detail.room.effectiveReadiness ?? "UNKNOWN"} · Recorded: {detail.room.operationalStatusCode} · Hoạt
-            động: {detail.room.isActive ? "Có" : "Không"}
+            Mức sẵn sàng thực tế:{" "}
+            {roomLabel(detail.room.effectiveReadiness ?? "UNKNOWN")} · Đã ghi
+            nhận: {roomLabel(detail.room.operationalStatusCode)} · Hoạt động:{" "}
+            {detail.room.isActive ? "Có" : "Không"}
           </p>
           <p>{detail.description}</p>
-          {detail.currentCycle && <section aria-label="Current cleaning cycle">
-            <h3>Current cleaning cycle</h3>
-            {detail.currentCycle.cleaningTaskId && <p><Link to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}>Cleaning #{detail.currentCycle.cleaningTaskId}</Link>: {detail.currentCycle.cleaningState ?? "UNKNOWN"}</p>}
-            {detail.currentCycle.inspectionId && <p><Link to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}>Inspection #{detail.currentCycle.inspectionId}</Link>: {detail.currentCycle.inspectionState ?? "UNKNOWN"}</p>}
-            {detail.currentCycle.reworkId && <p><Link to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}>Rework #{detail.currentCycle.reworkId}</Link></p>}
-          </section>}
-          <section aria-label="Effective room blocks"><h3>Effective blocks</h3>
-            {!detail.effectiveBlocks.length && <p>No effective blocks.</p>}
-            <ul>{detail.effectiveBlocks.map(b=><li key={b.id}>Block #{b.id} since {b.blockedAtUtc}{b.incidentId && <> ? <Link to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}>Incident #{b.incidentId}</Link></>}</li>)}</ul>
+          {detail.currentCycle && (
+            <section aria-label="Chu kỳ vệ sinh hiện tại">
+              <h3>Chu kỳ vệ sinh hiện tại</h3>
+              {detail.currentCycle.cleaningTaskId && (
+                <p>
+                  <Link
+                    to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
+                  >
+                    Vệ sinh #{detail.currentCycle.cleaningTaskId}
+                  </Link>
+                  : {detail.currentCycle.cleaningState ?? "Chưa xác định"}
+                </p>
+              )}
+              {detail.currentCycle.inspectionId && (
+                <p>
+                  <Link
+                    to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}
+                  >
+                    Kiểm tra #{detail.currentCycle.inspectionId}
+                  </Link>
+                  : {detail.currentCycle.inspectionState ?? "Chưa xác định"}
+                </p>
+              )}
+              {detail.currentCycle.reworkId && (
+                <p>
+                  <Link
+                    to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}
+                  >
+                    Làm lại #{detail.currentCycle.reworkId}
+                  </Link>
+                </p>
+              )}
+            </section>
+          )}
+          <section aria-label="Lệnh khóa phòng có hiệu lực">
+            <h3>Lệnh khóa có hiệu lực</h3>
+            {!detail.effectiveBlocks.length && (
+              <p>Chưa có lệnh khóa có hiệu lực.</p>
+            )}
+            <ul>
+              {detail.effectiveBlocks.map((b) => (
+                <li key={b.id}>
+                  Lệnh khóa #{b.id} từ {hotelTime(b.blockedAtUtc)}
+                  {b.incidentId && (
+                    <>
+                      {" "}
+                      ?{" "}
+                      <Link
+                        to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}
+                      >
+                        Sự cố #{b.incidentId}
+                      </Link>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
           </section>
           {detail.room.branchId === Number(branch) &&
             detail.room.id === Number(room) && (
@@ -320,19 +509,19 @@ export default function RoomStatusBoardScreen() {
               />
             </p>
           )}
-          <h3>RoomBlock chưa release</h3>
+          <h3>Lệnh khóa chưa kết thúc</h3>
           <p>
-            Các bản ghi chưa release; thời điểm dự kiến không xác nhận phòng đã
-            được mở lại.
+            Các lệnh khóa chưa kết thúc; thời điểm dự kiến không xác nhận phòng
+            đã được mở lại.
           </p>
           {!detail.unreleasedBlocks.length && (
-            <p>Không có RoomBlock chưa release được ghi nhận.</p>
+            <p>Không có lệnh khóa chưa kết thúc.</p>
           )}
           <ul>
             {detail.unreleasedBlocks.map((b) => (
               <li key={b.id}>
-                {b.reason} · Bắt đầu UTC: {b.blockedAtUtc} · Dự kiến UTC:{" "}
-                {b.expectedReleaseAtUtc || "—"}
+                {b.reason} · Bắt đầu: {hotelTime(b.blockedAtUtc)} · Dự kiến:{" "}
+                {hotelTime(b.expectedReleaseAtUtc)}
               </li>
             ))}
           </ul>
@@ -345,11 +534,17 @@ export default function RoomStatusBoardScreen() {
           <ol>
             {history.items.map((e) => (
               <li key={e.id}>
-                <time>{e.changedAtUtc}</time> · {e.fromStatusCode || "—"} →{" "}
-                {e.toStatusCode} · {e.effectiveTo && <>Readiness: {e.effectiveFrom || "—"} → {e.effectiveTo} · </>}{e.reason || "—"} · Nguồn{" "}
-                {e.source.type || "—"} {e.source.id ?? ""} (
-                {e.source.availability}) · Người thay đổi (ID):{" "}
-                {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
+                <time>{hotelTime(e.changedAtUtc)}</time> ·{" "}
+                {e.fromStatusCode || "—"} → {e.toStatusCode} ·{" "}
+                {e.effectiveTo && (
+                  <>
+                    Mức sẵn sàng: {e.effectiveFrom || "—"} → {e.effectiveTo}{" "}
+                    ·{" "}
+                  </>
+                )}
+                {e.reason || "—"} · Nguồn {e.source.type || "—"}{" "}
+                {e.source.id ?? ""} ({e.source.availability}) · Người thay đổi
+                (ID): {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
                 <RecordedSourceLink
                   branchId={detail.room.branchId}
                   source={e.source}
@@ -374,6 +569,6 @@ export default function RoomStatusBoardScreen() {
           </button>
         </section>
       )}
-    </>
+    </div>
   );
 }

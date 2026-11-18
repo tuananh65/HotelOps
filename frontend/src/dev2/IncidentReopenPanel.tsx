@@ -34,16 +34,16 @@ export function IncidentReopenPanel({ data, onCommitted }: { data: Values; onCom
           const problem: unknown = await response.json().catch(() => null);
           const windowExpired = response.status === 409 && isObject(problem) && problem.code === "INCIDENT_REOPEN_WINDOW_EXPIRED";
           if (!abort.signal.aborted && currentOwner.current === owner) setExpired(windowExpired);
-          throw Error(windowExpired ? "The reopen window has expired. Report a new incident for this recurrence."
-            : response.status === 409 ? "Reopen is unavailable: required closure evidence does not permit reopening."
-            : "Reopen is unavailable. Reload to check the current session and configuration.");
+          throw Error(windowExpired ? "Đã hết thời hạn mở lại. Báo sự cố mới cho lần tái phát này."
+            : response.status === 409 ? "Không thể mở lại: bằng chứng đóng bắt buộc không cho phép mở lại."
+            : "Chưa thể mở lại. Tải lại để kiểm tra phiên và cấu hình.");
         }
         const raw: unknown = await response.json();
         if (!isObject(raw) || raw.incidentId !== id || !positive(raw.previousWorkId) || !date(raw.closedAt) || !date(raw.evaluatedAt)
           || typeof raw.closureNote !== "string" || !positive(raw.windowDays) || typeof raw.version !== "string" || !/^"[0-9A-F]{16}"$/.test(raw.version))
-          throw Error("Reopen details could not be confirmed. Reload.");
+          throw Error("Chưa xác minh được chi tiết mở lại. Tải lại.");
         if (!abort.signal.aborted && currentOwner.current === owner) setContext(raw as Context);
-      } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setError(e instanceof Error ? e.message : "Reopen unavailable."); }
+      } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setError(e instanceof Error ? e.message : "Mở lại chưa khả dụng."); }
     })();
     return () => { abort.abort(); writer.current?.abort(); };
   }, [owner, mountedOwner, id, data.status]);
@@ -64,10 +64,10 @@ export function IncidentReopenPanel({ data, onCommitted }: { data: Values; onCom
         return { name: f.name, mimeType: f.type, base64: btoa(binary) };
       }));
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken)
-        || abort.signal.aborted || currentOwner.current !== owner) throw Error("Session changed. Reload.");
+        || abort.signal.aborted || currentOwner.current !== owner) throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       const response = await fetch(`/api/incidents/${id}/reopen`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": context.version },
         body: JSON.stringify({ reason: reason.trim(), recurrenceDiscoveredAt: instant.toISOString(), evidence: { note: note.trim(), files: uploads } }) });
@@ -79,34 +79,34 @@ export function IncidentReopenPanel({ data, onCommitted }: { data: Values; onCom
           if (isObject(problem) && problem.title === "Invalid incident reopening"
               && !abort.signal.aborted && currentOwner.current === owner) {
             setAttempted(false);
-            throw Error(typeof problem.detail === "string" ? problem.detail : "Check the recurrence time, reason and evidence.");
+            throw Error(typeof problem.detail === "string" ? problem.detail : "Kiểm tra thời điểm tái phát, lý do và bằng chứng.");
           }
         }
-        throw Error(response.status === 412 ? "Incident changed. Reload before retrying."
-          : "Reopen was not confirmed. Reload the incident to check its current state and your permissions before retrying.");
+        throw Error(response.status === 412 ? "Sự cố đã thay đổi. Tải lại trước khi thử lại."
+          : "Chưa xác nhận mở lại. Tải lại sự cố để kiểm tra trạng thái và quyền trước khi thử lại.");
       }
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || !positive(result.eventId) || result.workflow !== "PENDING_TRIAGE"
-        || typeof result.version !== "string" || !/^"[0-9A-F]{16}"$/.test(result.version)) throw Error("Reopen response could not be confirmed. Reload the incident.");
-      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = "Incident reopened to Pending Triage. Previous handling history is preserved. Classify, triage and assign the new cycle."; setMessage(notice); onCommitted?.(notice); }
-    } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Reopen not confirmed. Reload."); }
+        || typeof result.version !== "string" || !/^"[0-9A-F]{16}"$/.test(result.version)) throw Error("Chưa xác minh được phản hồi mở lại. Tải lại sự cố.");
+      if (!abort.signal.aborted && currentOwner.current === owner) { const notice = "Đã mở lại sự cố ở trạng thái chờ tiếp nhận. Lịch sử trước giữ nguyên. Phân loại, tiếp nhận và phân công chu kỳ mới."; setMessage(notice); onCommitted?.(notice); }
+    } catch (e) { if (!abort.signal.aborted && currentOwner.current === owner) setMessage(e instanceof Error ? e.message : "Chưa xác nhận mở lại. Vui lòng tải lại."); }
     finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
   if (!owner || owner !== mountedOwner || !positive(id) || data.status !== "CLOSED") return null;
   if (!context) return error ? <div role="status"><p>{error}</p>{expired &&
-    <Link to={`/operations/incidents?action=A004A-021${positive(data.branchId) ? `&branchId=${data.branchId}` : ""}`}>Report a new incident</Link>}</div> : null;
-  return <section aria-label="Reopen incident"><h3>Reopen incident</h3>
-    <p>Closed: {new Date(context.closedAt).toLocaleString()}. Reopen window: {context.windowDays} days after closure.</p>
+    <Link to={`/operations/incidents?action=A004A-021${positive(data.branchId) ? `&branchId=${data.branchId}` : ""}`}>Báo sự cố mới</Link>}</div> : null;
+  return <section aria-label="Mở lại sự cố"><h3>Mở lại sự cố</h3>
+    <p>Đã đóng: {new Date(context.closedAt).toLocaleString()}. Reopen window: {context.windowDays} ngày sau khi đóng.</p>
     <p>{context.closureNote}</p>
     <fieldset disabled={busy || attempted || review}>
-      <label>Recurrence discovered at (local time)<input type="datetime-local" step="1" value={discovery} onChange={e => setDiscovery(e.target.value)} /></label>
-      <label>Reason (at least 10 characters)<textarea maxLength={4000} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      <label>Evidence of recurrence<textarea maxLength={4000} value={note} onChange={e => setNote(e.target.value)} /></label>
-      <label>Evidence files (up to 5 JPG, PNG or PDF files; 10 MiB each)<input type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
+      <label>Phát hiện tái phát lúc (giờ địa phương)<input type="datetime-local" step="1" value={discovery} onChange={e => setDiscovery(e.target.value)} /></label>
+      <label>Lý do (ít nhất 10 ký tự)<textarea maxLength={4000} value={reason} onChange={e => setReason(e.target.value)} /></label>
+      <label>Bằng chứng tái phát<textarea maxLength={4000} value={note} onChange={e => setNote(e.target.value)} /></label>
+      <label>Tệp bằng chứng (tối đa 5 tệp JPG, PNG hoặc PDF; 10 MiB mỗi tệp)<input type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
     </fieldset>
     {message && <p role="status">{message}</p>}
-    {review ? <><p>Start a new processing cycle using this confirmed recurrence time? Previous repair records remain unchanged; the new SLA will be set during Triage.</p>
-      <button disabled={busy || attempted} onClick={() => void submit()}>Confirm Reopen</button><button disabled={busy} onClick={() => setReview(false)}>Back</button></>
-      : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Review Reopen</button>}
+    {review ? <><p>Bắt đầu chu kỳ xử lý mới với thời điểm tái phát đã xác nhận? Hồ sơ sửa chữa trước giữ nguyên; SLA mới đặt khi tiếp nhận.</p>
+      <button disabled={busy || attempted} onClick={() => void submit()}>Xác nhận mở lại</button><button disabled={busy} onClick={() => setReview(false)}>Quay lại</button></>
+      : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Xem lại mở lại</button>}
   </section>;
 }

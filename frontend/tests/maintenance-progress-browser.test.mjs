@@ -40,11 +40,11 @@ for (const mode of ['materials', 'note-only', 'stale']) test(`Progress: ${mode},
     await page.goto('https://hotelops.test'); await page.addScriptTag({ content: bundle.outputFiles[0].text });
     const review = page.getByRole('button', { name: 'Review progress', exact: true }); await review.waitFor();
     assert.equal(await review.isDisabled(), true);
-    await page.getByLabel('Progress note').fill(' Replaced worn seal ');
-    for(const value of ['-1','101','0.5']) {await page.getByLabel('Progress (%)',{exact:true}).fill(value);assert.equal(await review.isDisabled(),true);}
-    await page.getByLabel('Progress (%)',{exact:true}).fill('100');
+    await page.getByLabel("Ghi chú tiến độ").fill(' Replaced worn seal ');
+    for(const value of ['-1','101','0.5']) {await page.getByLabel("Tiến độ (%)",{exact:true}).fill(value);assert.equal(await review.isDisabled(),true);}
+    await page.getByLabel("Tiến độ (%)",{exact:true}).fill('100');
     await page.getByRole('button', { name: 'Load issued materials' }).click();
-    if (mode === 'note-only') await page.getByText('Material availability is unavailable. Current inventory and material request access are required.', { exact: true }).waitFor();
+    if (mode === 'note-only') await page.getByText("Vật tư khả dụng chưa tải được. Cần quyền kho và yêu cầu vật tư hiện tại.", { exact: true }).waitFor();
     else {
       await page.getByRole('button', { name: 'Add line 1 from ISS-1' }).click();
       assert.equal(await review.isDisabled(), true);
@@ -59,7 +59,7 @@ for (const mode of ['materials', 'note-only', 'stale']) test(`Progress: ${mode},
     }
     await review.click(); assert.equal(calls.length, 0);
     await page.getByRole('button', { name: 'Confirm progress' }).click();
-    await page.getByText(mode === 'stale' ? 'Work changed. Reload before recording progress again.' : 'Progress recorded. Reload the work detail before another action.', { exact: true }).waitFor();
+    await page.getByText(mode === 'stale' ? "Công việc đã đổi. Tải lại trước khi ghi tiến độ tiếp." : 'Progress recorded. Reload the work detail before another action.', { exact: true }).waitFor();
     assert.equal(calls.length, 1); assert.equal(calls[0].headers['if-match'], '"0000000000000001"');
     assert.equal(calls[0].headers['x-csrf-token'], 'synthetic');
     assert.deepEqual(calls[0].body, { actorUserId: 42, progressPercent: 100, workNote: 'Replaced worn seal', spentMinutes: 0, materialUsages: mode === 'note-only' ? [] : [

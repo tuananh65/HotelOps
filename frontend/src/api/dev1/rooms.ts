@@ -35,7 +35,7 @@ export const roomStatusCodes = [
 export function positiveId(value: string): number {
   const id = Number(value);
   if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(id))
-    throw new Error("Invalid ID");
+    throw new Error("Mã không hợp lệ");
   return id;
 }
 
@@ -55,7 +55,7 @@ export async function listRooms(
       !roomStatusCodes.includes(status as (typeof roomStatusCodes)[number])) ||
     search.length > 200
   )
-    throw new Error("Invalid filter");
+    throw new Error("Bộ lọc không hợp lệ");
   const query = new URLSearchParams({
     branchId: String(branchId),
     page: String(page),
@@ -66,11 +66,11 @@ export async function listRooms(
     if (filters[key]) query.set(key, String(positiveId(filters[key])));
   }
   if (filters.isActive) {
-    if (!["true", "false"].includes(filters.isActive)) throw new Error("Invalid active filter");
+    if (!["true", "false"].includes(filters.isActive)) throw new Error("Bộ lọc hoạt động không hợp lệ");
     query.set("isActive", filters.isActive);
   }
   if (filters.effectiveReadiness) {
-    if (!readinessCodes.includes(filters.effectiveReadiness as typeof readinessCodes[number])) throw new Error("Invalid readiness");
+    if (!readinessCodes.includes(filters.effectiveReadiness as typeof readinessCodes[number])) throw new Error("Mức sẵn sàng không hợp lệ");
     query.set("effectiveReadiness", filters.effectiveReadiness);
   }
   if (status) query.set("operationalStatusCode", status);

@@ -10,6 +10,8 @@ using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.WorkTime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+if (args is ["--sql-session-regression", var username]) { await SessionRevalidationChecks.RunAsync(username); return; }
+if (args is ["--sql-current-end", var employee]) { await SessionRevalidationChecks.CheckCurrentEndAsync(employee); return; }
 var count = 0; void Check(bool v, string name) { if (!v) throw new Exception("FAIL: " + name); count++; Console.WriteLine("PASS: " + name); }
 Check(!typeof(WorkdaysController).IsDefined(typeof(NonControllerAttribute)), "authorized scheduled mutation controller discoverable");
 Check(typeof(WorkdaysController).GetMethod("Start")!.GetCustomAttribute<HttpPostAttribute>()?.Template == null, "scheduled start POST template");
@@ -33,7 +35,7 @@ var http = new WorkdaysController(null!) { ControllerContext = new() { HttpConte
 // Explicit source assertions complement executable guards; NOT SQL behavioral/race evidence.
 var serviceSource = File.ReadAllText("src/HotelOps.Api/Services/WorkTime/WorkdayService.cs");
 var participant = File.ReadAllText("src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs");
-foreach (var token in new[] { "IsolationLevel.Serializable", "participant.LockUsersAsync([actor.UserId]", "sessions.ValidateSessionAsync(ticket", "ticket.UserId != actor.UserId", "Authorize(\"ATTENDANCE_RECORD\"", "a.UserId == actor.UserId && a.Shift.BranchId == branchId", "TIME_STALE", "MSG31_PAUSE_ALL_REQUIRED", "participant.StartUnscheduledWorkdayAsync", "PAUSE_ALL_SOURCE_UNAVAILABLE" }) Check(serviceSource.Contains(token), "service boundary source: " + token);
+foreach (var token in new[] { "IsolationLevel.Serializable", "participant.LockUsersAsync(timeOwner is > 0 ? [actor.UserId, timeOwner.Value] : [actor.UserId]", "sessions.ValidateSessionAsync(ticket", "ticket.UserId != actor.UserId", "Authorize(\"ATTENDANCE_RECORD\"", "a.UserId == actor.UserId && a.Shift.BranchId == branchId", "TIME_STALE", "MSG31_PAUSE_ALL_REQUIRED", "participant.StartUnscheduledWorkdayAsync", "PAUSE_ALL_SOURCE_UNAVAILABLE" }) Check(serviceSource.Contains(token), "service boundary source: " + token);
 foreach (var token in new[] { "new UserEligibilityLock(db).LockAsync", "sp_getapplock", "RequireLocks(actorUserId)", "Working(actorUserId).AnyAsync", "assignment.UserId != actorUserId", "assignment.AssignmentStatus != \"ASSIGNED\"", "shift.BranchId != branchId", "x.IsActive", "day.RowVersion.AsSpan().SequenceEqual(expectedRowVersion)", "Open(actorUserId).AnyAsync", "x.RowVersion == expectedRowVersion", "SetProperty(x => x.Status, \"ENDED\")", "\"CREATE\"", "\"UPDATE\"", "db.SaveChangesAsync" }) Check(participant.Contains(token), "participant invariant source: " + token);
 Check(serviceSource.IndexOf("participant.LockUsersAsync", StringComparison.Ordinal) < serviceSource.IndexOf("sessions.ValidateSessionAsync", StringComparison.Ordinal), "user-first source ordering");
 Check(serviceSource.Contains("await using var tx") && serviceSource.Contains("if (result.Status is >= 200 and < 300)") && serviceSource.Contains("var finalSession = await sessions.ValidateSessionAsync(ticket, ct)") && serviceSource.IndexOf("var finalSession", StringComparison.Ordinal) < serviceSource.IndexOf("await tx.CommitAsync(ct)", StringComparison.Ordinal), "transaction disposal/commit boundary source");

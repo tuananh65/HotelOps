@@ -46,7 +46,7 @@ test("foreign branch data is rejected", async (t) => {
   t.mock.method(globalThis, "fetch", async () =>
     Response.json({ ...page, items: [{ ...task, branchId: 9 }] }),
   );
-  await assert.rejects(readTasks(2, 1, "", null, signal), /Invalid task page/);
+  await assert.rejects(readTasks(2, 1, "", null, signal), /Trang công việc không hợp lệ/);
 });
 test("wrong detail identity is rejected", async (t) => {
   t.mock.method(globalThis, "fetch", async () =>
@@ -58,7 +58,7 @@ test("wrong detail identity is rejected", async (t) => {
       progressTotalCount: 0,
     }),
   );
-  await assert.rejects(readTasks(2, 1, "", 5, signal), /Invalid task detail/);
+  await assert.rejects(readTasks(2, 1, "", 5, signal), /Chi tiết công việc không hợp lệ/);
 });
 test("unsafe IDs cause no network request", async (t) => {
   const fetch = t.mock.method(globalThis, "fetch", () =>
@@ -97,5 +97,5 @@ test("invalid progress history cannot render", async (t) => {
       progressTotalCount: 1,
     }),
   );
-  await assert.rejects(readTasks(2, 1, "", 4, signal), /Invalid task detail/);
+  await assert.rejects(readTasks(2, 1, "", 4, signal), /Chi tiết công việc không hợp lệ/);
 });

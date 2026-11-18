@@ -35,7 +35,7 @@ function retention(v: unknown): AuditRetention | null {
   if (v == null) return null;
   if (!object(v) || ![v.archiveStatus, v.purgeEligibility, v.reason].every(x => typeof x === "string") ||
       ![v.archivedAt, v.retentionUntil, v.archivedBy, v.legalHoldUntil].every(x => x === null || typeof x === "string") ||
-      typeof v.legalHold !== "boolean") throw new Error("Invalid audit retention response");
+      typeof v.legalHold !== "boolean") throw new Error("Phản hồi lưu giữ nhật ký không hợp lệ");
   return v as unknown as AuditRetention;
 }
 const object = (v: unknown): v is Record<string, unknown> =>
@@ -53,7 +53,7 @@ function row(v: unknown): AuditRow {
       (!Array.isArray(v.changedFields) ||
         !v.changedFields.every((x) => typeof x === "string")))
   )
-    throw new Error("Invalid audit response");
+    throw new Error("Phản hồi nhật ký không hợp lệ");
   return {
     id: v.id as number,
     actor: v.actor as string | null,
@@ -70,7 +70,7 @@ export async function readAudit(
   signal: AbortSignal,
 ): Promise<AuditPage | AuditDetail> {
   if (id !== null && (!Number.isSafeInteger(id) || id <= 0))
-    throw new Error("Invalid entry");
+    throw new Error("Bản ghi không hợp lệ");
   const response = await fetch(
     id === null ? `/api/audit-logs?${query}` : `/api/audit-logs/${id}`,
     {
@@ -84,11 +84,11 @@ export async function readAudit(
   );
   if (!response.ok) throw new AuditFailure(response.status);
   const v: unknown = await response.json();
-  if (!object(v)) throw new Error("Invalid audit response");
+  if (!object(v)) throw new Error("Phản hồi nhật ký không hợp lệ");
   if (id !== null) {
     const entry = row(v.entry);
     if (entry.id !== id || v.redacted !== true || typeof v.provenance !== "string")
-      throw new Error("Invalid audit detail");
+      throw new Error("Chi tiết nhật ký không hợp lệ");
     return { entry, before: v.before, after: v.after, redacted: true,
       provenance: v.provenance, retention: retention(v.retention) };
   }
@@ -102,7 +102,7 @@ export async function readAudit(
     Number(v.pageSize) < 1 ||
     Number(v.pageSize) > 100
   )
-    throw new Error("Invalid audit page");
+    throw new Error("Trang nhật ký không hợp lệ");
   return {
     items: v.items.map(row),
     totalCount: v.totalCount as number,
@@ -112,6 +112,6 @@ export async function readAudit(
 }
 export class AuditFailure extends Error {
   constructor(readonly status: number) {
-    super("Audit request failed");
+    super("Yêu cầu nhật ký thay đổi thất bại");
   }
 }

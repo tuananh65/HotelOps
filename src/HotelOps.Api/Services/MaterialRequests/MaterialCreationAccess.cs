@@ -29,12 +29,13 @@ public sealed class MaterialCreationAccess(HotelOpsDbContext db, ISqlSessionServ
                 db.UserBranchAccesses.Any(b => b.UserId == actor && b.BranchId == assignment.BranchId && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
         var view = await new EfPermissionDataSource(db).ReadPathsAsync(actor, "MR_VIEW", now, ct);
         var branches = await db.UserBranchAccesses.AsNoTracking().Where(b => b.UserId == actor && b.RevokedAt == null
-            && b.GrantedAt <= now && b.Branch.IsActive).Select(b => new MaterialCreationBranch(b.BranchId, b.Branch.BranchName))
+            && b.GrantedAt <= now && b.Branch.IsActive).Select(b => new { b.BranchId, Name = b.Branch.BranchName })
             .Distinct().OrderBy(b => b.Name).ThenBy(b => b.BranchId).ToArrayAsync(ct);
         static bool Allows(PermissionGrantPath p, long branch, DateTime at) => PermissionGrantRules.IsEligible(p, at)
             && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL" || p.BranchId == branch && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN");
         return branches.Where(b => create.Any(p => Allows(p, b.BranchId, now))
-            && view.Any(p => p.PermissionCode == "MR_VIEW" && Allows(p, b.BranchId, now))).ToArray();
+            && view.Any(p => p.PermissionCode == "MR_VIEW" && Allows(p, b.BranchId, now)))
+            .Select(b => new MaterialCreationBranch(b.BranchId, b.Name)).ToArray();
     }
 
     private async Task SessionAsync(SessionReference ticket, long sid, CancellationToken ct)

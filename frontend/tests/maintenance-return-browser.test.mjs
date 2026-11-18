@@ -29,10 +29,10 @@ for(const stale of [false,true])test(`Return validates reason and handles ${stal
   });
   await page.goto('https://hotelops.test');await page.addScriptTag({content:bundle.outputFiles[0].text});
   const review=page.getByRole('button',{name:'Review return',exact:true});await review.waitFor();assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Return reason').fill('short');assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Return reason').fill(' Repair is incomplete ');await review.click();assert.equal(calls.length,0);
+  await page.getByLabel("Lý do trả lại").fill('short');assert.equal(await review.isDisabled(),true);
+  await page.getByLabel("Lý do trả lại").fill(' Repair is incomplete ');await review.click();assert.equal(calls.length,0);
   await page.getByRole('button',{name:'Confirm return'}).click();
-  await page.getByText(stale?'Work changed. Reload before reviewing again.':'Result returned. The executor must Resume to start a new work interval. Reload the work detail.',{exact:true}).waitFor();
+  await page.getByText(stale?"Công việc đã đổi. Tải lại trước khi xét duyệt tiếp.":'Result returned. The executor must Resume to start a new work interval. Reload the work detail.',{exact:true}).waitFor();
   assert.equal(calls.length,1);assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
   assert.deepEqual(calls[0].body,{actorUserId:42,reason:'Repair is incomplete'});
   assert.equal(await review.isDisabled(),true);

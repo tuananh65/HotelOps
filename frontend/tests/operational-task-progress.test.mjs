@@ -120,7 +120,7 @@ test("invalid CSRF cannot dispatch a write", async (t) => {
   );
   await assert.rejects(
     saveTaskProgress(2, 4, current, input, signal),
-    /Invalid CSRF response/,
+    /Phản hồi CSRF không hợp lệ/,
   );
   assert.equal(mock.mock.callCount(), 1);
 });
@@ -202,7 +202,7 @@ test("saved evidence must belong to this exact task and use its protected downlo
 test('initialization validates definitions before dispatch',async t=>{
  t.mock.method(globalThis,'fetch',()=>assert.fail('network'));
  for(const items of [[],[{label:'A',required:true},{label:' a ',required:false}],[{label:'',required:true}]])
-  await assert.rejects(initializeTaskProgress(2,4,items,'Valid setup reason',signal),/Invalid task criteria input/);
+  await assert.rejects(initializeTaskProgress(2,4,items,'Valid setup reason',signal),/Dữ liệu tiêu chí công việc không hợp lệ/);
 });
 test('initialization uses fresh CSRF and validates created task identity',async t=>{
  const calls=[];

@@ -226,16 +226,16 @@ export function customRoleMessage(
   r: Exclude<CustomRoleResult, { outcome: "CONFIRMED" }>,
 ) {
   return r.outcome === "OUTCOME_UNKNOWN"
-    ? "Outcome unknown. Do not replay; verify with an authorized owner."
+    ? "Chưa xác định kết quả. Không gửi lại; xác minh với người có trách nhiệm."
     : r.reason === "ROLE_CODE_EXISTS"
-      ? "MSG35: Role code already exists. Choose another code."
+      ? "MSG35: Mã vai trò đã tồn tại. Chọn mã khác."
     : r.status === 409
-      ? "Role code conflict or administrator protection."
+      ? "Xung đột mã vai trò hoặc bảo vệ quản trị viên."
       : r.status === 401
-        ? "Session invalid. Revalidate."
+        ? "Phiên đăng nhập không hợp lệ. Vui lòng xác minh lại."
         : r.status === 403
-          ? "Global administration access denied."
+          ? "Không có quyền quản trị toàn hệ thống."
           : r.status === 412
-            ? "Version conflict. No replay."
-            : "Operation not confirmed. Check input and server availability.";
+            ? "Xung đột phiên bản. Không gửi lại yêu cầu cũ."
+            : "Chưa xác nhận thao tác. Kiểm tra dữ liệu nhập và kết nối máy chủ.";
 }

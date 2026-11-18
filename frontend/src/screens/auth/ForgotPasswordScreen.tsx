@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 export const forgotPasswordInstruction =
-  "For password assistance, contact your Administrator through your usual internal support channel.";
+  "Để được hỗ trợ mật khẩu, liên hệ quản trị viên qua kênh hỗ trợ nội bộ.";
 /** UC001 instruction-only alternative. No lookup, reset, storage or telemetry. */
 export default function ForgotPasswordScreen() {
   const [identifier, setIdentifier] = useState("");
@@ -9,7 +9,7 @@ export default function ForgotPasswordScreen() {
     [submitted, setSubmitted] = useState(false);
   return (
     <main>
-      <h1>Forgot Password</h1>
+      <h1>Quên mật khẩu</h1>
       <form
         noValidate
         onSubmit={(event) => {
@@ -25,7 +25,7 @@ export default function ForgotPasswordScreen() {
         }}
       >
         <label>
-          Username or email
+          Tên đăng nhập hoặc email
           <input
             name="identifier"
             autoComplete="off"
@@ -41,13 +41,13 @@ export default function ForgotPasswordScreen() {
         </label>
         {required && (
           <p id="forgot-required" role="alert">
-            Enter your username or email.
+            Nhập tên đăng nhập hoặc email.
           </p>
         )}
-        <button type="submit">Show instructions</button>
+        <button type="submit">Hiện hướng dẫn</button>
       </form>
       {submitted && <p role="status">{forgotPasswordInstruction}</p>}
-      <Link to="/login">Return to sign in</Link>
+      <Link to="/login">Quay lại đăng nhập</Link>
     </main>
   );
 }

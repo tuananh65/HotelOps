@@ -26,8 +26,8 @@ for(const stale of [false,true])test('Assignment '+(stale?'stale':'success')+' s
  return route.fulfill({contentType:'text/html',body:'<div id="root"></div>'});});
  await page.goto('https://hotelops.test');await page.addScriptTag({content:bundle.outputFiles[0].text});
  await page.getByRole('button',{name:'Load eligible technicians',exact:true}).click();
- await page.getByLabel('Technician',{exact:true}).selectOption('43');
- await page.getByLabel('Planned end (Asia/Ho_Chi_Minh, UTC+7)',{exact:true}).fill('2026-11-17T15:00');
+ await page.getByLabel("Kỹ thuật viên",{exact:true}).selectOption('43');
+ await page.getByLabel("Kết thúc dự kiến (giờ Việt Nam, UTC+7)",{exact:true}).fill('2026-11-17T15:00');
  await page.getByRole('button',{name:'Review assignment',exact:true}).click();assert.equal(calls.length,0);
  await page.getByRole('button',{name:'Confirm assignment',exact:true}).click();
  await page.getByRole('status').filter({hasText:stale?'Assignment changed.':'Assignment saved.'}).waitFor();

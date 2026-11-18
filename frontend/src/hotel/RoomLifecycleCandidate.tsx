@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -11,7 +12,7 @@ function dependencies(value: unknown): Dependency[] | null {
 export function RoomLifecycleRoute() {
   const { id } = useParams(); const [params] = useSearchParams();
   const roomId = Number(id), branchId = Number(params.get("branchId"));
-  return safeId(roomId) && safeId(branchId) ? <RoomLifecycleCandidate roomId={roomId} branchId={branchId} dispatchEnabled /> : <p role="alert">Invalid room context.</p>;
+  return safeId(roomId) && safeId(branchId) ? <RoomLifecycleCandidate roomId={roomId} branchId={branchId} dispatchEnabled /> : <p role="alert">Ngữ cảnh phòng không hợp lệ.</p>;
 }
 export function RoomLifecycleCandidate({
   branchId,
@@ -36,7 +37,7 @@ export function RoomLifecycleCandidate({
   )
     return (
       <p role="status">
-        Confirm an unrestricted session before reviewing the room.
+        Xác minh phiên không bị hạn chế trước khi xét duyệt phòng.
       </p>
     );
   return (
@@ -92,9 +93,9 @@ function Bound({
     attempted.current = false; setData(null); setBlocked([]); setStatus(undefined); setPhase("loading");
     void fetch(`/api/rooms/${roomId}/lifecycle?branchId=${branchId}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal })
       .then(async r => {
-        if (!r.ok) { if (alive.current && current() && !abort.signal.aborted) setStatus(r.status); throw Error("Unavailable"); }
+        if (!r.ok) { if (alive.current && current() && !abort.signal.aborted) setStatus(r.status); throw Error("Chưa khả dụng"); }
         const v = await r.json(), room = roomDto(v.room), deps = dependencies(v.dependencies), etag = r.headers.get("ETag");
-        if (!room || room.id !== roomId || room.branchId !== branchId || !deps || !strongTag(etag) || typeof v.effectiveReadiness !== "string") throw Error("Invalid response");
+        if (!room || room.id !== roomId || room.branchId !== branchId || !deps || !strongTag(etag) || typeof v.effectiveReadiness !== "string") throw Error("Phản hồi không hợp lệ");
         if (!alive.current || !current() || abort.signal.aborted) return;
         setData({ room, etag, readiness: v.effectiveReadiness, dependencies: deps }); setPhase("ready");
       }).catch(() => { if (alive.current && current() && !abort.signal.aborted) setPhase("unavailable"); });
@@ -146,31 +147,31 @@ function Bound({
     !/[\x00-\x1f\x7f-\x9f]/.test(reason);
   return (
     <main>
-      <h1>Room activation</h1>
-      <Link to={`/structure/rooms/${roomId}?branchId=${branchId}`}>Back to room</Link>
+      <h1>Kích hoạt phòng</h1>
+      <Link to={`/structure/rooms/${roomId}?branchId=${branchId}`}>Quay lại phòng</Link>
       <p>
-        Deactivation requires all open work and effective blocks to be resolved and all assets to be moved.
+        Cần xử lý hết công việc đang mở, lệnh khóa hiệu lực và di chuyển mọi tài sản trước khi vô hiệu hóa.
       </p>
       {data && (
-        <section aria-label="Selected room">
-          <h2>Room {data.room.roomNumber}</h2>
+        <section aria-label="Phòng đã chọn">
+          <h2>Phòng {data.room.roomNumber}</h2>
           <p>
-            Branch {data.room.branchId};{" "}
-            {data.room.isActive ? "Active" : "Inactive"};{" "}
-            {data.readiness}
+            Chi nhánh {data.room.branchId};{" "}
+            {data.room.isActive ? "Đang hoạt động" : "Ngừng hoạt động"};{" "}
+            {displayCode(data.readiness)}
           </p>
           <p>
             {data.room.isActive
-              ? "Deactivate to Inactive."
-              : "Reactivate requires eligible active parents and Pending Cleaning until inspection; never infer Ready."}
+              ? "Chuyển sang ngừng hoạt động."
+              : "Kích hoạt lại cần mục cha hoạt động hợp lệ và phòng chờ vệ sinh đến khi kiểm tra; không tự coi là sẵn sàng."}
           </p>
         </section>
       )}
-      {(data?.dependencies.length || blocked.length) ? <section role="alert"><p>MSG34: Resolve these dependencies before deactivation.</p><ul>{(data?.dependencies ?? blocked).map(d => <li key={d.kind}>{d.kind}: {d.count}</li>)}</ul></section> : null}
+      {(data?.dependencies.length || blocked.length) ? <section role="alert"><p>MSG34: Xử lý các ràng buộc này trước khi vô hiệu hóa.</p><ul>{(data?.dependencies ?? blocked).map(d => <li key={d.kind}>{displayCode(d.kind)}: {d.count}</li>)}</ul></section> : null}
       {phase === "ready" && (
         <>
           <label>
-            Reason
+            Lý do
             <textarea
               value={reason}
               disabled={review}
@@ -179,42 +180,41 @@ function Bound({
           </label>
           {!review ? (
             <button disabled={!valid || !!data?.dependencies.length} onClick={() => setReview(true)}>
-              Review room change
+              Xem lại thay đổi phòng
             </button>
           ) : (
             <>
               <p>
-                MSG33: Confirm this exact room and reason. The server authorizes the
-                transition and all dependencies.
+                MSG33: Xác nhận đúng phòng và lý do. Máy chủ kiểm tra quyền chuyển trạng thái và mọi ràng buộc.
               </p>
               <button disabled={!enabled || !!data?.dependencies.length} onClick={() => void confirm()}>
-                Confirm room change
+                Xác nhận thay đổi phòng
               </button>
-              <button onClick={() => setReview(false)}>Edit reason</button>
+              <button onClick={() => setReview(false)}>Chỉnh sửa lý do</button>
             </>
           )}
         </>
       )}
-      {phase === "loading" && <p role="status">Loading room...</p>}
-      {phase === "pending" && <p role="status">Room change pending...</p>}
+      {phase === "loading" && <p role="status">Đang tải phòng...</p>}
+      {phase === "pending" && <p role="status">Đang chờ thay đổi phòng...</p>}
       {phase === "confirmed" && (
-        <p role="status">MSG08: Server confirmed room change. Refresh to view its current readiness.</p>
+        <p role="status">MSG08: Máy chủ đã xác nhận thay đổi phòng. Tải lại để xem mức sẵn sàng hiện tại.</p>
       )}
       {["unavailable", "rejected", "unknown"].includes(phase) && (
         <p role="alert">
           {phase === "unknown"
-            ? "Outcome unknown. Do not replay; verify with an authorized owner."
+            ? "Chưa xác định kết quả. Không gửi lại; xác minh với người có trách nhiệm."
             : status === 412
-              ? "Room version changed. Obtain a fresh read and review in a new flow."
+              ? "Phiên bản phòng đã đổi. Tải lại và bắt đầu xét duyệt mới."
               : status === 403
-                ? "Access denied by server."
+                ? "Máy chủ từ chối quyền truy cập."
                 : status === 409
-                  ? "Room dependencies, state or parents prevent this transition."
-                  : "Room lifecycle unavailable. No automatic retry."}
+                  ? "Ràng buộc, trạng thái hoặc mục cha của phòng không cho phép chuyển đổi này."
+                  : "Chưa có chức năng vòng đời phòng. Không tự gửi lại."}
         </p>
       )}
-      {phase !== "pending" && phase !== "loading" && <button onClick={() => { setReview(false); setReason(""); setReload(x => x + 1); }}>Refresh room and dependencies</button>}
-      {status === 401 && <button onClick={recover}>Check session</button>}
+      {phase !== "pending" && phase !== "loading" && <button onClick={() => { setReview(false); setReason(""); setReload(x => x + 1); }}>Tải lại phòng và ràng buộc</button>}
+      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
     </main>
   );
 }

@@ -21,17 +21,16 @@ import { RevokeUserRoleFlowBoundary } from "../users/RevokeUserRoleFlowBoundary"
 function Recovery() {
   const { state, actions } = useAuth();
   if (state.status === "INITIALIZING")
-    return <p role="status">Checking your session...</p>;
+    return <p role="status">Đang kiểm tra phiên đăng nhập của bạn...</p>;
   return (
-    <section aria-label="Session recovery">
+    <section aria-label="Khôi phục phiên đăng nhập">
       <p role="alert">
-        Your session could not be confirmed. The previous operation's outcome is
-        not confirmed. No request has been retried automatically.
+        Chưa xác minh được phiên và kết quả thao tác trước. Không tự gửi lại yêu cầu.
       </p>
       <button type="button" onClick={() => void actions.revalidate()}>
-        Check session
+        Kiểm tra phiên đăng nhập
       </button>
-      <Link to="/forgot-password">Contact Administrator</Link>
+      <Link to="/forgot-password">Liên hệ quản trị viên</Link>
     </section>
   );
 }
@@ -91,11 +90,11 @@ function BusinessBoundary() {
   // No prototype imports, mock identity, business data or permission inference.
   return (
     <main>
-      <h1>HotelOps workspace</h1>
-      <p>This business screen is not integrated yet.</p>
-      <Link to="/roles">Role directory</Link>
-      <Link to="/profile">Profile</Link>
-      <Link to="/change-password">Change password</Link>
+      <h1>Không gian làm việc HotelOps</h1>
+      <p>Màn nghiệp vụ này chưa được tích hợp.</p>
+      <Link to="/roles">Danh mục vai trò</Link>
+      <Link to="/profile">Hồ sơ cá nhân</Link>
+      <Link to="/change-password">Đổi mật khẩu</Link>
     </main>
   );
 }
@@ -103,9 +102,9 @@ function BusinessBoundary() {
 function PrototypeUnavailable() {
   return (
     <main>
-      <h1>Prototype unavailable</h1>
-      <p>Prototype screens are unavailable in real-auth mode.</p>
-      <Link to="/login">Return to sign in</Link>
+      <h1>Bản thử nghiệm chưa khả dụng</h1>
+      <p>Màn hình thử nghiệm không khả dụng khi dùng xác thực thực tế.</p>
+      <Link to="/login">Quay lại đăng nhập</Link>
     </main>
   );
 }

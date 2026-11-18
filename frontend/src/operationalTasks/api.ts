@@ -45,7 +45,7 @@ export interface TaskDetail {
 }
 export class TaskReadFailure extends Error {
   constructor(readonly status: number) {
-    super("Task request failed");
+    super("Yêu cầu công việc thất bại");
   }
 }
 const positive = (x: unknown): x is number =>
@@ -75,12 +75,12 @@ export async function readTasks(
   workflowStatus?: TaskWorkflowState,
 ): Promise<TaskPage | TaskDetail> {
   if (!positive(branch) || !positive(page) || (id !== null && !positive(id)))
-    throw new Error("Invalid task identifiers");
+    throw new Error("Mã công việc không hợp lệ");
   if (
     workflowStatus !== undefined &&
     !taskWorkflowStates.includes(workflowStatus)
   )
-    throw new Error("Invalid workflow filter");
+    throw new Error("Bộ lọc quy trình không hợp lệ");
   const query = new URLSearchParams({
     page: String(page),
     pageSize: "25",
@@ -107,7 +107,7 @@ export async function readTasks(
       data.page !== page ||
       data.pageSize !== 25
     )
-      throw new Error("Invalid task page");
+      throw new Error("Trang công việc không hợp lệ");
   } else if (
     !data ||
     !row(data.task, branch) ||
@@ -128,6 +128,6 @@ export async function readTasks(
         [p.fromStatus, p.toStatus, p.description, p.blockerReason].every(text),
     )
   )
-    throw new Error("Invalid task detail");
+    throw new Error("Chi tiết công việc không hợp lệ");
   return data;
 }

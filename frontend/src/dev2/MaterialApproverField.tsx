@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
 import { useAuth } from "../auth/AuthProvider";
@@ -34,21 +35,21 @@ export function MaterialApproverField({ branch, warehouse, value, required, onCh
       if (abort.signal.aborted) return;
       const matching = result.ok && result.data.branchId === Number(branchId) && result.data.sourceWarehouseId === (warehouseId ? Number(warehouseId) : null);
       setLoaded({ owner, key, rows: matching ? result.data.items : [], message: matching
-        ? result.data.items.length ? "" : "No eligible approver is currently available. You can save a draft."
-        : "Approvers unavailable. Check the selected branch and issuing warehouse, then reload." });
+        ? result.data.items.length ? "" : "Hiện chưa có người duyệt đủ điều kiện. Bạn có thể lưu nháp."
+        : "Chưa có danh sách người duyệt. Kiểm tra chi nhánh và kho cấp phát, rồi tải lại." });
       if (!result.ok && result.error.kind === "http" && result.error.status === 401) void actions.revalidate();
     });
     return () => abort.abort();
   }, [owner, branchId, warehouseId, key, revision, actions]);
   const current = loaded?.owner === owner && loaded.key === key ? loaded : undefined;
   const selected = current?.rows.some(c => String(c.userId) === String(value)) ? String(value) : "";
-  return <div><label>Approver{required ? " (required to submit)" : " (for submission)"}
+  return <div><label>Người duyệt{required ? "(bắt buộc để gửi)" : "(để gửi kết quả)"}
     <select name="assignedApproverUserId" value={selected} required={required}
       onChange={event => onChange(event.target.value)}>
-      <option value="">Select approver</option>
-      {current?.rows.map(c => <option key={c.userId} value={c.userId}>{c.fullName} ({c.employeeCode})</option>)}
+      <option value="">Chọn người duyệt</option>
+      {current?.rows.map(c => <option key={c.userId} value={c.userId}>{c.fullName} ({displayCode(c.employeeCode)})</option>)}
     </select></label>
-    <button type="button" onClick={() => { onChange(""); setRevision(v => v + 1); }}>Reload approvers</button>
-    <p role="status">{current?.message ?? (branchId ? "Loading eligible approvers…" : "Select a branch to load eligible approvers.")}</p>
+    <button type="button" onClick={() => { onChange(""); setRevision(v => v + 1); }}>Tải lại người duyệt</button>
+    <p role="status">{current?.message ?? (branchId ? "Đang tải người duyệt đủ điều kiện…" : "Chọn chi nhánh để tải người duyệt đủ điều kiện.")}</p>
   </div>;
 }

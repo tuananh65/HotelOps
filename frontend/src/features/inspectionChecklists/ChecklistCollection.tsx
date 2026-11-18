@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { createChecklistApi } from "./api";
 import {
@@ -116,7 +117,7 @@ export function ChecklistCollection({
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">Tất cả</option>
               {["DRAFT", "PUBLISHED", "RETIRED"].map((v) => (
-                <option key={v}>{v}</option>
+                <option key={v} value={v}>{displayCode(v)}</option>
               ))}
             </select>
           </label>
@@ -132,7 +133,7 @@ export function ChecklistCollection({
             Số dòng mỗi trang
             <select value={size} onChange={(e) => setSize(e.target.value)}>
               {[20, 50, 100].map((v) => (
-                <option key={v}>{v}</option>
+                <option key={v} value={v}>{displayCode(v)}</option>
               ))}
             </select>
           </label>
@@ -160,7 +161,7 @@ export function ChecklistCollection({
       {visible && (
         <>
           <p role="status">
-            Tổng cộng {visible.total} checklist · Trang {query.page}/{pages}
+            Tổng cộng {visible.total} danh sách kiểm tra · Trang {query.page}/{pages}
           </p>
           {visible.items.length ? (
             <div className="fe05-table-scroll">

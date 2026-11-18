@@ -316,19 +316,19 @@ export class ReinspectionCandidateClient {
 }
 export function candidateError(error: unknown) {
   if (error instanceof ApiError) {
-    if (error.status === 401) return "Your session expired. Sign in again.";
+    if (error.status === 401) return "Phiên đã hết hạn. Đăng nhập lại.";
     if (error.status === 403)
-      return "You cannot perform reinspection in this branch.";
+      return "Bạn không được kiểm tra lại trong chi nhánh này.";
     if (error.status === 412)
-      return "The source changed. Reload before saving.";
+      return "Nguồn đã đổi. Tải lại trước khi lưu.";
     if (error.status === 0 || error.status >= 500)
-      return "The result could not be confirmed. Reload before another save.";
+      return "Chưa xác nhận kết quả. Tải lại trước khi lưu tiếp.";
     if (error.status === 409)
-      return "This review conflicts with a saved proposal. Reload before continuing.";
+      return "Lần xét duyệt xung đột với đề xuất đã lưu. Tải lại trước khi tiếp tục.";
     if (error.status === 400)
-      return "Review every selected defect before saving.";
+      return "Kiểm tra mọi lỗi đã chọn trước khi lưu.";
   }
-  return "Could not load the reinspection. Please reload.";
+  return "Không tải được kiểm tra lại. Vui lòng tải lại.";
 }
 
 export interface ConclusionProposal {

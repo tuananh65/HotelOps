@@ -13,8 +13,8 @@ test("Login Forgot Password link opens identifier form and returns to Login", ()
     async (p) => {
       await p.getByRole("link", { name: /forgot password/i }).click();
       await p.waitForURL("**/forgot-password");
-      await p.getByRole("textbox", { name: "Username or email" }).waitFor();
-      await p.getByRole("link", { name: "Return to sign in" }).click();
+      await p.getByRole("textbox", { name: "Tên đăng nhập hoặc email" }).waitFor();
+      await p.getByRole("link", { name: "Quay lại đăng nhập" }).click();
       await p.waitForURL("**/login");
       assert.equal(await p.locator("input[type=password]").count(), 1);
     },
@@ -24,13 +24,13 @@ test("required and whitespace validation before any instructions, no extra reque
   pageTest(
     { auth: anonymous },
     async (p) => {
-      await p.getByRole("textbox", { name: "Username or email" }).waitFor();
+      await p.getByRole("textbox", { name: "Tên đăng nhập hoặc email" }).waitFor();
       const before = await p.evaluate(() => window.fixture.calls.length);
-      await p.getByRole("button", { name: "Show instructions" }).click();
+      await p.getByRole("button", { name: "Hiện hướng dẫn" }).click();
       await p.getByRole("alert").waitFor();
       assert.equal(await p.getByText(instruction, { exact: true }).count(), 0);
-      await p.getByRole("textbox", { name: "Username or email" }).fill("   ");
-      await p.getByRole("button", { name: "Show instructions" }).click();
+      await p.getByRole("textbox", { name: "Tên đăng nhập hoặc email" }).fill("   ");
+      await p.getByRole("button", { name: "Hiện hướng dẫn" }).click();
       await p.getByRole("alert").waitFor();
       assert.equal(await p.evaluate(() => window.fixture.calls.length), before);
     },
@@ -40,7 +40,7 @@ test("username/email/nonexistent identifiers all yield exactly the same instruct
   pageTest(
     { auth: anonymous },
     async (p) => {
-      const input = p.getByRole("textbox", { name: "Username or email" });
+      const input = p.getByRole("textbox", { name: "Tên đăng nhập hoặc email" });
       await input.waitFor();
       const before = await p.evaluate(() => window.fixture.calls.length);
       for (const identifier of [
@@ -50,7 +50,7 @@ test("username/email/nonexistent identifiers all yield exactly the same instruct
         "unknown@example.invalid",
       ]) {
         await input.fill(identifier);
-        await p.getByRole("button", { name: "Show instructions" }).click();
+        await p.getByRole("button", { name: "Hiện hướng dẫn" }).click();
         assert.equal(await p.getByRole("status").innerText(), instruction);
         assert.equal(await input.inputValue(), "");
         assert.ok(!(await p.locator("body").innerText()).includes(identifier));
@@ -77,7 +77,7 @@ test("instruction-only screen leaves authenticated Change Password flow intact",
   pageTest(
     {},
     async (p) => {
-      await p.getByRole("textbox", { name: "Username or email" }).waitFor();
+      await p.getByRole("textbox", { name: "Tên đăng nhập hoặc email" }).waitFor();
       await p.evaluate(() => window.fixture.navigate("/change-password"));
       await p.waitForURL("**/change-password");
       await p.locator("input[type=password]").first().waitFor();

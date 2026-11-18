@@ -27,16 +27,16 @@ for (const stale of [false, true]) test(`Triage ${stale ? 'override with stale c
       return route.fulfill({ contentType:'text/html',body:'<div id="root"></div>' });
     });
     await page.goto('https://hotelops.test'); await page.addScriptTag({content:bundle.outputFiles[0].text});
-    const review = page.getByRole('button',{name:'Review triage',exact:true});
+    const review = page.getByRole('button',{name:"Xem lại thông tin tiếp nhận",exact:true});
     await review.waitFor(); assert.equal(await review.isDisabled(),true);
-    await page.getByLabel('Priority',{exact:true}).selectOption('3'); await page.getByLabel('Initial action plan',{exact:true}).fill('Inspect equipment and isolate the failed supply.');
-    if(stale){ await page.getByLabel('Override response deadline (UTC+7, optional)',{exact:true}).fill('2026-11-16T10:00');assert.equal(await review.isDisabled(),true);
-      await page.getByLabel('Reason for changing deadlines (at least 10 characters)',{exact:true}).fill('Approved access window'); }
-    await review.click(); assert.equal(calls.length,0); await page.getByRole('button',{name:'Confirm triage',exact:true}).click();
-    await page.getByText(stale?'Incident or SLA targets changed. Reload before trying again.':'Triage saved. The incident is pending assignment.',{exact:true}).waitFor();
+    await page.getByLabel("Độ ưu tiên",{exact:true}).selectOption('3'); await page.getByLabel("Kế hoạch xử lý ban đầu",{exact:true}).fill('Inspect equipment and isolate the failed supply.');
+    if(stale){ await page.getByLabel("Điều chỉnh hạn phản hồi (UTC+7, không bắt buộc)",{exact:true}).fill('2026-11-16T10:00');assert.equal(await review.isDisabled(),true);
+      await page.getByLabel("Lý do đổi thời hạn (ít nhất 10 ký tự)",{exact:true}).fill('Approved access window'); }
+    await review.click(); assert.equal(calls.length,0); await page.getByRole('button',{name:"Xác nhận tiếp nhận",exact:true}).click();
+    await page.getByText(stale?"Sự cố hoặc cấu hình SLA đã thay đổi. Tải lại trước khi thử lại.":"Đã lưu thông tin tiếp nhận. Sự cố đang chờ phân công.",{exact:true}).waitFor();
     assert.equal(calls.length,1);assert.equal(calls[0].method,'PATCH');assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
     assert.equal(calls[0].body.expectedSlaTargetVersion,'0000000000000005');assert.equal(calls[0].body.actorUserId,42);assert.equal(calls[0].body.priorityId,3);
     if(stale){assert.equal(calls[0].body.responseDeadlineAt,'2026-11-16T03:00:00.000Z');assert.equal(await review.isDisabled(),true);}
-    else {assert.equal(calls[0].body.responseDeadlineAt,undefined);assert.equal(await page.getByRole('link',{name:'Reload incident to assign'}).getAttribute('href'),'/operations/incidents/7?action=A004A-023');}
+    else {assert.equal(calls[0].body.responseDeadlineAt,undefined);assert.equal(await page.getByRole('link',{name:"Tải lại sự cố để phân công"}).getAttribute('href'),'/operations/incidents/7?action=A004A-023');}
   } finally { await page.close(); }
 });

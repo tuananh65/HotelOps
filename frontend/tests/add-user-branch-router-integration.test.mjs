@@ -329,7 +329,7 @@ test("profile-only admission, server identity and exact confirmed POST without p
     assert.ok(preview.includes("Account ID: 42"));
     assert.ok(preview.includes("Destination Branch ID: 123"));
     await confirm(p);
-    await p.getByRole("status", { name: "Confirmed membership" }).waitFor();
+    await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).waitFor();
     const write = (await posts(p))[0];
     assert.equal((await posts(p)).length, 1);
     assert.equal(write.url, "/api/users/42/branches");
@@ -337,7 +337,7 @@ test("profile-only admission, server identity and exact confirmed POST without p
     assert.equal(write.headers["if-match"], tag);
     assert.equal((await calls(p, "/api/auth/csrf")).length, 1);
     const result = await p
-      .getByRole("status", { name: "Confirmed membership" })
+      .getByRole("status", { name: "Phân công thành viên đã xác nhận" })
       .innerText();
     for (const value of [
       "accessId: 91",
@@ -387,7 +387,7 @@ for (const branch of ["1", "000123", String(Number.MAX_SAFE_INTEGER)])
         await ready(p);
         await review(p, branch);
         await confirm(p);
-        await p.getByRole("status", { name: "Confirmed membership" }).waitFor();
+        await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).waitFor();
         assert.equal(
           (await posts(p))[0].body,
           JSON.stringify({ branchId: Number(branch) }),
@@ -432,7 +432,7 @@ test("StrictMode, double confirm and repeated Enter never duplicate POST", async
     await settle(p);
     assert.equal((await posts(p)).length, 1);
     await finish(p, "post", membership());
-    await p.getByRole("status", { name: "Confirmed membership" }).waitFor();
+    await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).waitFor();
     assert.equal((await posts(p)).length, 1);
   });
 });
@@ -453,7 +453,7 @@ for (const [code, message] of [
         assert.ok((await body(p)).includes(message));
         assert.equal((await posts(p)).length, 1);
         assert.equal(
-          await p.getByRole("status", { name: "Confirmed membership" }).count(),
+          await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
           0,
         );
       },
@@ -518,7 +518,7 @@ test("412 removes old confirmation; explicit Reload and review use fresh ETag", 
       assert.equal((await posts(p)).length, 1);
       await review(p, "456");
       await confirm(p);
-      await p.getByRole("status", { name: "Confirmed membership" }).waitFor();
+      await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).waitFor();
       assert.equal((await posts(p))[1].headers["if-match"], nextTag);
     },
   );
@@ -535,7 +535,7 @@ test("unreadable POST401 starts bounded recovery and preserves unknown membershi
       await confirm(p);
       assert.equal((await calls(p, "/api/auth/session")).length, 2);
       await p
-        .getByRole("main", { name: "Membership session recovery" })
+        .getByRole("main", { name: "Khôi phục phiên phân công thành viên" })
         .waitFor();
       assert.equal((await posts(p)).length, 1);
       await finish(p, "recover", { body: session() });
@@ -578,7 +578,7 @@ test("bootstrap failure stays NOT_DISPATCHED without automatic retry", async () 
     await review(p);
     await confirm(p);
     await p.getByRole("alert").waitFor();
-    assert.ok((await body(p)).includes("No membership POST was sent."));
+    assert.ok((await body(p)).includes("Không gửi yêu cầu thêm phân công thành viên."));
     assert.equal((await posts(p)).length, 0);
     assert.equal((await calls(p, "/api/auth/csrf")).length, 1);
   });
@@ -617,7 +617,7 @@ for (const reply of [
         );
         assert.equal((await posts(p)).length, 1);
         assert.equal(
-          await p.getByRole("status", { name: "Confirmed membership" }).count(),
+          await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
           0,
         );
       },
@@ -640,7 +640,7 @@ for (const id of ["7", "8"])
         await p.getByText(unknown, { exact: true }).waitFor();
         assert.equal((await posts(p))[0].aborted, true);
         assert.equal(
-          await p.getByRole("status", { name: "Confirmed membership" }).count(),
+          await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
           0,
         );
         assert.equal(await p.locator("input[name=branchId]").count(), 0);
@@ -663,12 +663,12 @@ test("session unavailable while POST pending stays uncertain after explicit reco
       assert.ok(!(await body(p)).includes("server@example.test"));
       await finish(p, "post", membership());
       await p
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await p.getByText(unknown, { exact: true }).waitFor();
       assert.equal((await posts(p))[0].aborted, true);
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed membership" }).count(),
+        await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
         0,
       );
     },
@@ -751,7 +751,7 @@ for (const destination of ["/profile", "/users/43/branches/add"])
         assert.equal(new URL(p.url()).pathname, destination);
         assert.equal((await posts(p))[0].aborted, true);
         assert.equal(
-          await p.getByRole("status", { name: "Confirmed membership" }).count(),
+          await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
           0,
         );
       },
@@ -775,11 +775,11 @@ test("confirmed membership receipt is removed on ownership replacement", async (
       await ready(p);
       await review(p);
       await confirm(p);
-      await p.getByRole("status", { name: "Confirmed membership" }).waitFor();
+      await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).waitFor();
       await p.evaluate(() => window.fixture.revalidate());
       await settle(p);
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed membership" }).count(),
+        await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
         0,
       );
     },
@@ -814,7 +814,7 @@ test("contradictory 409 identifiers lock replay without exposing private respons
       assert.ok((await body(p)).includes(unknown));
       assert.equal((await posts(p)).length, 1);
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed membership" }).count(),
+        await p.getByRole("status", { name: "Phân công thành viên đã xác nhận" }).count(),
         0,
       );
       assert.equal((await body(p)).includes(secret), false);

@@ -1,9 +1,9 @@
 [
   {
     "id": 24,
-    "name": "Cleaning Task List",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Supervisor monitors tasks by status/overdue and cancels tasks; staff see their own cleaning tasks.",
+    "name": "Danh sách công việc vệ sinh",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Giám sát theo dõi trạng thái, công việc quá hạn và hủy công việc; nhân viên xem công việc vệ sinh được giao.",
     "ucs": [
       "UC-031",
       "UC-037"
@@ -16,9 +16,9 @@
   },
   {
     "id": 25,
-    "name": "Create Cleaning Task",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Creates a cleaning task for a room with cleaning type, priority and due time.",
+    "name": "Tạo công việc vệ sinh",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Tạo công việc vệ sinh phòng, chọn loại vệ sinh, độ ưu tiên và thời hạn hoàn thành.",
     "ucs": [
       "UC-028"
     ],
@@ -29,9 +29,9 @@
   },
   {
     "id": 26,
-    "name": "Cleaning Task Detail",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Displays a cleaning task; staff start it, update progress, report blockers and complete it.",
+    "name": "Chi tiết công việc vệ sinh",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Xem công việc vệ sinh, bắt đầu thực hiện, cập nhật tiến độ, báo vướng mắc và hoàn tất công việc.",
     "ucs": [
       "UC-031",
       "UC-032",
@@ -47,9 +47,9 @@
   },
   {
     "id": 27,
-    "name": "Cleaning Assignment",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Assigns or reassigns a cleaning task based on area and current workload.",
+    "name": "Phân công vệ sinh",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Phân công hoặc giao lại công việc vệ sinh theo khu vực và khối lượng công việc hiện tại.",
     "ucs": [
       "UC-029",
       "UC-030"
@@ -61,9 +61,9 @@
   },
   {
     "id": 28,
-    "name": "Rework Task List",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Lists rework tasks; staff see their own rework tasks.",
+    "name": "Danh sách công việc làm lại",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Xem danh sách công việc cần làm lại; nhân viên xem các công việc được giao cho mình.",
     "ucs": [
       "UC-035"
     ],
@@ -74,9 +74,9 @@
   },
   {
     "id": 29,
-    "name": "Rework Task Detail",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Displays defects to fix; staff accept, start and submit the rework with remediation notes.",
+    "name": "Chi tiết công việc làm lại",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Xem các lỗi cần khắc phục, tiếp nhận, bắt đầu và nộp kết quả làm lại kèm ghi chú khắc phục.",
     "ucs": [
       "UC-035",
       "UC-036"
@@ -88,9 +88,9 @@
   },
   {
     "id": 30,
-    "name": "Room Turnover History",
-    "feature": "Housekeeping (FE-04)",
-    "description": "Displays cleaning cycles of a room with assignees, times, inspection results and rework count.",
+    "name": "Lịch sử luân chuyển phòng",
+    "feature": "Buồng phòng (FE-04)",
+    "description": "Xem các lần vệ sinh phòng, người thực hiện, thời gian, kết quả kiểm tra và số lần làm lại.",
     "ucs": [
       "UC-038"
     ],

@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import {
   useEffect,
   useMemo,
@@ -20,7 +21,7 @@ export function InitialRolePermissionsWorkspace() {
   return (
     <>
       <Link to={`/roles/${Number(roleId)}/permissions`}>
-        View read-only permission matrix
+        Xem ma trận quyền chỉ xem
       </Link>
       <InitialRolePermissionsPanel roleId={Number(roleId)} />
     </>
@@ -119,17 +120,17 @@ export function InitialRolePermissionsPanel({
   )
     return (
       <section>
-        <p role="alert">Confirmed unrestricted session required.</p>
+        <p role="alert">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
         <button onClick={() => void actions.revalidate()}>
-          Revalidate session
+          Xác minh lại phiên
         </button>
       </section>
     );
-  if (!id(roleId)) return <p role="alert">Invalid role ID.</p>;
+  if (!id(roleId)) return <p role="alert">Mã vai trò không hợp lệ.</p>;
   if (reservation?.hideEditor)
     return (
       <p role="alert">
-        Outcome unknown. Do not replay. Verify with an authorized owner.
+        Chưa xác định kết quả. Không gửi lại. Nhờ người có trách nhiệm xác minh.
       </p>
     );
   return (
@@ -198,7 +199,7 @@ function Editor({
         setLoadFailed(true);
         if (d.status === 401) invalidate();
         setMessage(
-          d.status === 403 ? "Access denied by server." : "Role unavailable.",
+          d.status === 403 ? "Máy chủ từ chối quyền truy cập." : "Vai trò chưa khả dụng.",
         );
         return;
       }
@@ -209,19 +210,19 @@ function Editor({
         if (!r.ok) {
           setLoadFailed(true);
           if (r.status === 401) invalidate();
-          setMessage("Permission catalog unavailable.");
+          setMessage("Danh mục quyền chưa khả dụng.");
           return;
         }
         if (r.data.total > 1000) {
           setLoadFailed(true);
-          setMessage("Catalog exceeds this slice limit.");
+          setMessage("Danh mục vượt giới hạn hỗ trợ hiện tại.");
           return;
         }
         permissions.push(...r.data.items);
         if (permissions.length >= r.data.total) break;
         if (r.data.items.length === 0) {
           setLoadFailed(true);
-          setMessage("Incomplete permission catalog.");
+          setMessage("Danh mục quyền chưa đầy đủ.");
           return;
         }
       }
@@ -231,7 +232,7 @@ function Editor({
     })().catch(() => {
       if (active && current()) {
         setLoadFailed(true);
-        setMessage("Role catalog unavailable.");
+        setMessage("Danh mục vai trò chưa khả dụng.");
       }
     });
     return () => {
@@ -297,65 +298,64 @@ function Editor({
       return;
     }
     if (r.outcome === "CONFIRMED") {
-      setMessage("Initial permissions confirmed. Refreshing server grants.");
+      setMessage("Đã xác nhận quyền ban đầu. Đang tải lại quyền từ máy chủ.");
       setRevision((n) => n + 1);
     } else if (r.outcome === "OUTCOME_UNKNOWN") {
       setMessage(
-        "Outcome unknown. Do not replay. Verify with an authorized owner.",
+        "Chưa xác định kết quả. Không gửi lại. Nhờ người có trách nhiệm xác minh.",
       );
       setLocked(true);
     } else {
       setMessage(
         r.status === 409
-          ? "Role changed or already configured. Reload and review."
+          ? "Vai trò đã đổi hoặc đã cấu hình. Tải lại và xem xét."
           : r.status === 403
-            ? "Access denied by server."
-            : "Initial configuration not confirmed.",
+            ? "Máy chủ từ chối quyền truy cập."
+            : "Chưa xác nhận cấu hình ban đầu.",
       );
     }
     busy.current = false;
   }
   return (
-    <section aria-label="Initial role permissions">
-      <h1>Initial role permission configuration</h1>
+    <section aria-label="Quyền ban đầu của vai trò">
+      <h1>Cấu hình quyền ban đầu cho vai trò</h1>
       <p>
-        Role {roleId}. Server validates global authority and complete assignment
+        Vai trò {roleId}. Server validates global authority and complete assignment
         history.
       </p>
       {!dispatchEnabled && (
-        <p>Mutation dispatch OFF pending runtime approval.</p>
+        <p>Thao tác ghi đang tắt, chờ phê duyệt vận hành.</p>
       )}
       {reservation && !message && (
         <p role="status">
           {reservation.state === "PENDING"
-            ? "Original operation pending. Do not replay."
-            : "Outcome unknown. Do not replay. Verify with an authorized owner."}
+            ? "Thao tác gốc đang chờ. Không gửi lại."
+            : "Chưa xác định kết quả. Không gửi lại. Nhờ người có trách nhiệm xác minh."}
         </p>
       )}
       {reservation && (
         <p>
-          Reloading or restarting does not reconcile this operation. Obtain
-          backend-authoritative verification before any later attempt.
+          Tải lại hoặc bắt đầu lại không xác minh kết quả thao tác. Cần xác minh từ backend trước lần thử tiếp theo.
         </p>
       )}
       {message && <p role="status">{message}</p>}
       {!detail ? (
         <p>
           {loadFailed
-            ? "No editable role snapshot available."
-            : "Loading role and catalog..."}
+            ? "Chưa có thông tin vai trò có thể chỉnh sửa."
+            : "Đang tải vai trò và danh mục..."}
         </p>
       ) : (
         <>
           <h2>{detail.role.roleName}</h2>
-          <p>Existing grants: {detail.grants.length}</p>
+          <p>Quyền hiện có: {detail.grants.length}</p>
           {detail.grants.map((g) => (
             <p key={g.rolePermissionId}>
-              {g.permission.permissionCode}: {g.dataScope}
+              {g.permission.permissionCode}: {displayCode(g.dataScope)}
             </p>
           ))}
           {!eligible ? (
-            <p>This role is not eligible for initial configuration.</p>
+            <p>Vai trò này không đủ điều kiện cấu hình ban đầu.</p>
           ) : (
             <>
               {[...new Set(catalog.map((p) => p.moduleCode))].map((module) => (
@@ -398,14 +398,14 @@ function Editor({
                           {p.permissionName}
                           {scope ? (
                             <select
-                              aria-label={"Scope " + p.permissionCode}
+                              aria-label={"Phạm vi" + p.permissionCode}
                               value={scope}
                               disabled
                             >
-                              <option>{scope}</option>
+                              <option value={scope}>{displayCode(scope)}</option>
                             </select>
                           ) : (
-                            <span>Unsupported in restricted V1</span>
+                            <span>Chưa hỗ trợ trong phiên bản giới hạn V1</span>
                           )}
                         </label>
                       );
@@ -422,28 +422,27 @@ function Editor({
                 }
                 onClick={prepare}
               >
-                Review permissions
+                Xem lại quyền
               </button>
             </>
           )}
         </>
       )}
       {review && (
-        <section aria-label="Review permissions">
+        <section aria-label="Xem lại quyền">
           <p>
-            Configure Role {roleId} once; no assignments or existing grants will
-            change.
+            Cấu hình vai trò {roleId} một lần; không thay đổi phân công hoặc quyền hiện có.
           </p>
           {review.map((g) => (
             <p key={g.permissionId}>
-              Permission {g.permissionId}: {g.dataScope}
+              Quyền {g.permissionId}: {displayCode(g.dataScope)}
             </p>
           ))}
           <button
             disabled={pending || locked || !!reservation}
             onClick={() => void confirm()}
           >
-            Confirm and save
+            Xác nhận và lưu
           </button>
           <button
             onClick={() => {
@@ -451,7 +450,7 @@ function Editor({
               setReview(null);
             }}
           >
-            Cancel
+            Hủy
           </button>
         </section>
       )}

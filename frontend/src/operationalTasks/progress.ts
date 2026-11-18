@@ -4,7 +4,7 @@ export class TaskProgressError extends Error {
     public readonly messageCode?: string,
     public readonly missingCriteria: string[] = [],
   ) {
-    super(`Task progress request failed (${status})`);
+    super(`Yêu cầu tiến độ công việc thất bại (${status})`);
   }
 }
 export interface Criterion {
@@ -55,7 +55,7 @@ const text = (s: string | null, max: number) =>
     s.trim().length <= max &&
     !/[\u0000-\u001f\u007f-\u009f]/.test(s));
 function path(branch: number, task: number) {
-  if (!id(branch) || !id(task)) throw new Error("Invalid task identity");
+  if (!id(branch) || !id(task)) throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}/progress`;
 }
 async function request(
@@ -138,7 +138,7 @@ function validate(data: TaskProgress, branch: number, task: number) {
         e.downloadPath !== `${path(branch, task)}/evidence/${e.id}`,
     )
   )
-    throw new Error("Invalid task progress response");
+    throw new Error("Phản hồi tiến độ công việc không hợp lệ");
 }
 async function snapshot(
   response: Response,
@@ -148,7 +148,7 @@ async function snapshot(
   const data = (await response.json()) as TaskProgress;
   validate(data, branch, task);
   const etag = response.headers.get("ETag") ?? "";
-  if (!tag(etag)) throw new Error("Invalid task progress version");
+  if (!tag(etag)) throw new Error("Phiên bản tiến độ công việc không hợp lệ");
   return { data, etag };
 }
 export async function readTaskProgress(
@@ -166,7 +166,7 @@ export async function resumeTask(
 ) {
   validate(current.data, branch, task);
   if (!tag(current.etag) || current.data.state !== "PAUSED")
-    throw new Error("Only a paused task can be resumed");
+    throw new Error("Chỉ công việc đang tạm dừng mới được tiếp tục");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -174,7 +174,7 @@ export async function resumeTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const result = await snapshot(
     await request(
@@ -189,7 +189,7 @@ export async function resumeTask(
     task,
   );
   if (result.data.state !== "IN_PROGRESS" || result.etag === current.etag)
-    throw new Error("Task resume could not be confirmed");
+    throw new Error("Chưa xác nhận tiếp tục công việc");
   return result;
 }
 export async function enterTask(
@@ -205,7 +205,7 @@ export async function enterTask(
     !tag(current.etag) ||
     current.data.state !== (action === "accept" ? "ASSIGNED" : "ACCEPTED")
   )
-    throw new Error("Invalid task entry transition");
+    throw new Error("Chuyển trạng thái bắt đầu công việc không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -213,7 +213,7 @@ export async function enterTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const result = await snapshot(
     await request(
@@ -231,7 +231,7 @@ export async function enterTask(
     result.data.state !== (action === "accept" ? "ACCEPTED" : "IN_PROGRESS") ||
     result.etag === current.etag
   )
-    throw new Error("Task entry could not be confirmed");
+    throw new Error("Chưa xác nhận bắt đầu công việc");
   return result;
 }
 export async function declineTask(
@@ -249,7 +249,7 @@ export async function declineTask(
     reason.length > 4000 ||
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(reason)
   )
-    throw new Error("An assigned task and a valid decline reason are required");
+    throw new Error("Cần công việc đã được giao và lý do từ chối hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -257,7 +257,7 @@ export async function declineTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const response = await request(
     path(branch, task).replace(/\/progress$/, "/decline"),
@@ -283,7 +283,7 @@ export async function declineTask(
     result.state !== "PENDING_ASSIGNMENT" ||
     result.messageCode !== "MSG19"
   )
-    throw new Error("Task decline could not be confirmed");
+    throw new Error("Chưa xác nhận từ chối công việc");
   return result;
 }
 
@@ -303,7 +303,7 @@ export async function pauseTask(
     reasonId <= 0 ||
     note.length > 1000
   )
-    throw new Error("A running task and valid pause reason are required");
+    throw new Error("Cần công việc đang thực hiện và lý do tạm dừng hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -311,7 +311,7 @@ export async function pauseTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const result = await snapshot(
     await request(path(branch, task).replace(/\/progress$/, "/pause"), signal, {
@@ -327,7 +327,7 @@ export async function pauseTask(
     task,
   );
   if (result.data.state !== "PAUSED" || result.etag === current.etag)
-    throw new Error("Task pause could not be confirmed");
+    throw new Error("Chưa xác nhận tạm dừng công việc");
   return result;
 }
 export type PauseReason = { id: number; code: string; label: string };
@@ -353,7 +353,7 @@ export async function readPauseReasons(
         !r.label.trim(),
     )
   )
-    throw new Error("Invalid pause reasons");
+    throw new Error("Lý do tạm dừng không hợp lệ");
   return data;
 }
 export async function initializeTaskProgress(
@@ -385,7 +385,7 @@ export async function initializeTaskProgress(
     reason.trim().length < 10 ||
     !text(reason, 500)
   )
-    throw new Error("Invalid task criteria input");
+    throw new Error("Dữ liệu tiêu chí công việc không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -393,7 +393,7 @@ export async function initializeTaskProgress(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const response = await request(url, signal, {
     method: "POST",
@@ -416,7 +416,7 @@ export async function initializeTaskProgress(
     result?.kind !== "task" ||
     result?.initialized !== true
   )
-    throw new Error("Invalid task initialization response");
+    throw new Error("Phản hồi khởi tạo công việc không hợp lệ");
 }
 export async function saveTaskProgress(
   branch: number,
@@ -443,7 +443,7 @@ export async function saveTaskProgress(
     ) ||
     (input.photos?.length ?? 0) > 5
   )
-    throw new Error("Invalid task progress input");
+    throw new Error("Dữ liệu tiến độ công việc không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -451,7 +451,7 @@ export async function saveTaskProgress(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   return snapshot(
     await request(url, signal, {

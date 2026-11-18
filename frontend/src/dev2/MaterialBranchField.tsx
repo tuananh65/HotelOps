@@ -21,18 +21,18 @@ export function MaterialBranchField({ value, onChange, fixed = false }: { value:
     const abort = new AbortController();
     void request({ method: "GET", url: "/api/material-requests/creation-branches", expectedStatus: 200, decode, signal: abort.signal }).then(result => {
       if (abort.signal.aborted) return;
-      setLoaded({ owner, branches: result.ok ? result.data : [], error: result.ok ? undefined : "Branch choices unavailable. Reload current access." });
+      setLoaded({ owner, branches: result.ok ? result.data : [], error: result.ok ? undefined : "Chưa có lựa chọn chi nhánh. Tải lại quyền truy cập hiện tại." });
       if (!result.ok && result.error.kind === "http" && result.error.status === 401) void actions.revalidate();
     });
     return () => abort.abort();
   }, [owner, revision, actions]);
   const current = loaded?.owner === owner ? loaded : undefined;
-  return <div><label>Branch<select required name="branchId" disabled={fixed}
+  return <div><label>Chi nhánh<select required name="branchId" disabled={fixed}
     value={current?.branches.some(b => String(b.branchId) === String(value)) ? String(value) : ""}
     onChange={event => onChange(event.target.value)}>
-    <option value="">Select branch</option>{current?.branches.map(b => <option key={b.branchId} value={b.branchId}>{b.name}</option>)}
+    <option value="">Chọn chi nhánh</option>{current?.branches.map(b => <option key={b.branchId} value={b.branchId}>{b.name}</option>)}
   </select></label>
-    <button type="button" onClick={() => setRevision(v => v + 1)}>Reload branches</button>
-    <p role="status">{current?.error ?? (!current ? "Loading branches…" : current.branches.length ? "" : "You cannot currently create material requests in any branch.")}</p>
+    <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại chi nhánh</button>
+    <p role="status">{current?.error ?? (!current ? "Đang tải chi nhánh…" : current.branches.length ? "" : "Hiện bạn không được tạo yêu cầu vật tư ở chi nhánh nào.")}</p>
   </div>;
 }

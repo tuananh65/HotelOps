@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -35,8 +36,8 @@ export function TaskReopenPanel({
     setLocked(true);
     setError(
       error instanceof TaskProgressError && error.status === 412
-        ? "The task changed. Reload reopening details before trying again."
-        : "Reopening is unavailable or its outcome could not be confirmed. Reload before trying again.",
+        ? "Công việc đã đổi. Tải lại chi tiết mở lại trước khi thử lại."
+        : "Chưa thể mở lại hoặc chưa xác minh kết quả. Tải lại trước khi thử lại.",
     );
   }
   useEffect(() => {
@@ -77,7 +78,7 @@ export function TaskReopenPanel({
     if (!snapshot || busy || locked || saving.current) return;
     if (!assignee || reason.trim().length < 10 || !instructions.trim()) {
       setError(
-        "Select an executor, enter a reason of at least 10 characters and remediation instructions.",
+        "Chọn người thực hiện, nhập lý do ít nhất 10 ký tự và hướng dẫn khắc phục.",
       );
       return;
     }
@@ -113,13 +114,13 @@ export function TaskReopenPanel({
   )
     return null;
   return (
-    <section aria-label="Task reopening">
-      <h3>Processing cycles</h3>
+    <section aria-label="Mở lại công việc">
+      <h3>Chu kỳ xử lý</h3>
       <button
         disabled={busy}
         onClick={() => setQuery((q) => ({ ...q, revision: q.revision + 1 }))}
       >
-        Reload reopening details
+        Tải lại chi tiết mở lại
       </button>
       {error && <p role="alert">{error}</p>}
       {snapshot && (
@@ -127,9 +128,8 @@ export function TaskReopenPanel({
           <ol>
             {snapshot.data.history.map((event) => (
               <li key={event.previousSubmissionId}>
-                Reopened {event.reopenedAt} by user {event.reopenedBy}; assigned
-                to user {event.assigneeId}.<p>Reason: {event.reason}</p>
-                <p>Remediation instructions: {event.instructions}</p>
+                Đã mở lại {event.reopenedAt} bởi người dùng {event.reopenedBy}; giao cho người dùng {event.assigneeId}.<p>Lý do: {event.reason}</p>
+                <p>Hướng dẫn khắc phục: {event.instructions}</p>
                 <TaskSubmissionReview
                   branch={branch}
                   task={task}
@@ -142,9 +142,7 @@ export function TaskReopenPanel({
           {snapshot.data.canReopen && (
             <>
               <p>
-                Review the previous submission and verification history below.
-                Reopening preserves these results and starts a new cycle. The
-                selected executor must accept again before starting work.
+                Xem lịch sử nộp và xác minh trước bên dưới. Mở lại giữ kết quả này và bắt đầu chu kỳ mới. Người được chọn phải tiếp nhận lại trước khi bắt đầu.
               </p>
               <form
                 onSubmit={(e) => {
@@ -158,7 +156,7 @@ export function TaskReopenPanel({
                 }}
               >
                 <label>
-                  Find reopening executor
+                  Tìm người thực hiện khi mở lại
                   <input
                     value={search}
                     maxLength={150}
@@ -166,7 +164,7 @@ export function TaskReopenPanel({
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </label>
-                <button disabled={busy}>Find reopening executors</button>
+                <button disabled={busy}>Tìm người thực hiện khi mở lại</button>
               </form>
               <form
                 onSubmit={(e) => {
@@ -175,25 +173,25 @@ export function TaskReopenPanel({
                 }}
               >
                 <label>
-                  Reopening executor
+                  Người thực hiện khi mở lại
                   <select
-                    aria-label="Reopening executor"
+                    aria-label="Người thực hiện khi mở lại"
                     required
                     disabled={busy || locked}
                     value={assignee}
                     onChange={(e) => setAssignee(e.target.value)}
                   >
-                    <option value="">Select executor</option>
+                    <option value="">Chọn người thực hiện</option>
                     {snapshot.data.executors.map((e) => (
                       <option key={e.userId} value={e.userId}>
-                        {e.name} — {e.openTasks} open tasks,{" "}
-                        {e.loggedSecondsToday}s logged today
+                        {e.name} — {displayCode(e.openTasks)} công việc đang mở,{" "}
+                        {displayCode(e.loggedSecondsToday)}giây ghi nhận hôm nay
                       </option>
                     ))}
                   </select>
                 </label>
                 <label>
-                  Reopening reason
+                  Lý do mở lại
                   <textarea
                     required
                     minLength={10}
@@ -204,7 +202,7 @@ export function TaskReopenPanel({
                   />
                 </label>
                 <label>
-                  Remediation instructions
+                  Hướng dẫn khắc phục
                   <textarea
                     required
                     maxLength={4000}
@@ -213,24 +211,23 @@ export function TaskReopenPanel({
                     onChange={(e) => setInstructions(e.target.value)}
                   />
                 </label>
-                <button disabled={busy || locked}>Reopen task</button>
+                <button disabled={busy || locked}>Mở lại công việc</button>
               </form>
               <p>
-                Executor page {snapshot.data.page}; {snapshot.data.totalCount}{" "}
-                eligible executors. Logged time uses closed intervals for today
-                in Asia/Ho_Chi_Minh.
+                Trang danh sách người thực hiện {snapshot.data.page}; {snapshot.data.totalCount}{" "}
+                người thực hiện đủ điều kiện. Thời gian ghi nhận tính từ khoảng đã kết thúc trong hôm nay theo giờ Việt Nam.
               </p>
               <button
                 disabled={busy || query.page <= 1}
                 onClick={() => setQuery((q) => ({ ...q, page: q.page - 1 }))}
               >
-                Previous reopening executors
+                Người thực hiện khi mở lại trước
               </button>
               <button
                 disabled={busy || query.page * 25 >= snapshot.data.totalCount}
                 onClick={() => setQuery((q) => ({ ...q, page: q.page + 1 }))}
               >
-                Next reopening executors
+                Người thực hiện khi mở lại tiếp theo
               </button>
             </>
           )}

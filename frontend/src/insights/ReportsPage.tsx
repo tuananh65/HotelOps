@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -40,7 +41,7 @@ export function ReportAccessLink() {
       });
     return () => lifetime.abort();
   }, [owner, actions]);
-  return owner && allowed === owner ? <Link to="/reports">Reports</Link> : null;
+  return owner && allowed === owner ? <Link to="/reports">Báo cáo</Link> : null;
 }
 
 export function ReportsPage() {
@@ -65,10 +66,10 @@ export function ReportsPage() {
   const [employee, setEmployee] = useState("");
   const [requestType, setRequestType] = useState("");
   const [specific, setSpecific] = useState<Record<string, string>>({});
-  const numericFilters: [string, string][] = kind === "rooms" ? [["floorId", "Floor ID"], ["roomTypeId", "Room type ID"]]
-    : kind === "incidents" ? [["categoryId", "Incident category ID"], ["severityId", "Severity ID"]]
-    : kind === "assets" ? [["categoryId", "Asset category ID"], ["roomId", "Room ID"], ["areaId", "Area ID"]]
-    : kind === "items" ? [["warehouseId", "Warehouse ID"], ["itemId", "Item ID"]] : [];
+  const numericFilters: [string, string][] = kind === "rooms" ? [["floorId", "Mã tầng"], ["roomTypeId", "Mã loại phòng"]]
+    : kind === "incidents" ? [["categoryId", "Mã nhóm sự cố"], ["severityId", "Mã mức độ"]]
+    : kind === "assets" ? [["categoryId", "Mã nhóm tài sản"], ["roomId", "Mã phòng"], ["areaId", "Mã khu vực"]]
+    : kind === "items" ? [["warehouseId", "Mã kho"], ["itemId", "Mã vật tư"]] : [];
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -107,8 +108,8 @@ export function ReportsPage() {
           owner,
           error:
             e instanceof ReportFailure && e.status === 403
-              ? "You do not have access to operational reports."
-              : "Report access is unavailable.",
+              ? "Bạn không có quyền xem báo cáo vận hành."
+              : "Quyền xem báo cáo chưa khả dụng.",
         });
         if (e instanceof ReportFailure && e.status === 401)
           actions.invalidateSession(owner);
@@ -148,7 +149,7 @@ export function ReportsPage() {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        setMessage("MSG25: Export created; download requested.");
+        setMessage("MSG25: Đã tạo bản xuất và yêu cầu tải xuống.");
       } else {
         const data = await api.preview(kind, {
           from,
@@ -172,15 +173,15 @@ export function ReportsPage() {
       const status = e instanceof ReportFailure ? e.status : 0;
       if (status === 401 || status === 403) {
         setSnapshot(null);
-        setAdmission({ owner, error: "Report access is no longer available." });
+        setAdmission({ owner, error: "Không còn quyền xem báo cáo." });
         if (status === 401) actions.invalidateSession(owner);
       }
       setMessage(
         status === 422
-          ? "MSG26: Narrow the report filters; the export limit was exceeded."
+          ? "MSG26: Thu hẹp bộ lọc báo cáo; dữ liệu vượt giới hạn xuất."
           : exporting
-            ? "MSG27: Export failed. Nothing was downloaded. You may retry or generate a new preview."
-            : "Preview unavailable. Check filters and current access; no data was substituted.",
+            ? "MSG27: Xuất thất bại. Chưa tải tệp nào. Có thể thử lại hoặc tạo bản xem trước mới."
+            : "Không xem trước được. Kiểm tra bộ lọc và quyền; không thay thế dữ liệu thiếu.",
       );
     } finally {
       if (operation.current === controller) {
@@ -190,16 +191,15 @@ export function ReportsPage() {
     }
   }
   return (
-    <main aria-label="Operational reports">
-      <h1>Operational reports</h1>
-      <Link to="/dashboard">Dashboard</Link>
+    <main aria-label="Báo cáo vận hành">
+      <h1>Báo cáo vận hành</h1>
+      <Link to="/dashboard">Tổng quan</Link>
       {visible?.error && <p role="alert">{visible.error}</p>}
-      {!visible && <p role="status">Checking report access…</p>}
+      {!visible && <p role="status">Đang kiểm tra quyền xem báo cáo…</p>}
       {options && (
         <>
           <p>
-            Periods use UTC. Export limit: {options.exportRowLimit} rows. CSV
-            , XLSX and PDF are available.
+            Khoảng thời gian dùng UTC. Giới hạn xuất: {options.exportRowLimit} dòng. Có thể xuất CSV, XLSX và PDF.
           </p>
           <form
             onSubmit={(e) => {
@@ -208,9 +208,9 @@ export function ReportsPage() {
             }}
           >
             <label>
-              Report type
+              Loại báo cáo
               <select
-                aria-label="Report type"
+                aria-label="Loại báo cáo"
                 value={kind}
                 onChange={(e) => {
                   changed();
@@ -225,7 +225,7 @@ export function ReportsPage() {
               >
                 {reportTypes.map((k) => (
                   <option key={k} value={k}>
-                    {k}
+                    {displayCode(k)}
                   </option>
                 ))}
               </select>
@@ -234,12 +234,12 @@ export function ReportsPage() {
               <input type="number" min="1" step="1" value={specific[key] ?? ""}
                 onChange={e => { changed(); setSpecific(s => ({ ...s, [key]: e.target.value })); }} />
             </label>)}
-            {kind === "assets" && <label>Condition code<input maxLength={40} value={specific.condition ?? ""}
+            {kind === "assets" && <label>Mã tình trạng<input maxLength={40} value={specific.condition ?? ""}
               onChange={e => { changed(); setSpecific(s => ({ ...s, condition: e.target.value })); }} /></label>}
             <label>
-              Branch
+              Chi nhánh
               <select
-                aria-label="Branch"
+                aria-label="Chi nhánh"
                 value={branch}
                 onChange={(e) => {
                   changed();
@@ -247,7 +247,7 @@ export function ReportsPage() {
                   setDepartment("");
                 }}
               >
-                <option value="">All permitted</option>
+                <option value="">Tất cả trong phạm vi được phép</option>
                 {options.branches.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.code} — {b.name}
@@ -256,28 +256,28 @@ export function ReportsPage() {
               </select>
             </label>
             {kind === "inspections" && <>
-              <label>Housekeeper ID<input type="number" min="1" step="1" value={housekeeper}
+              <label>Mã nhân viên buồng phòng<input type="number" min="1" step="1" value={housekeeper}
                 onChange={e => { changed(); setHousekeeper(e.target.value); }} /></label>
-              <label>Inspector ID<input type="number" min="1" step="1" value={inspector}
+              <label>Mã người kiểm tra<input type="number" min="1" step="1" value={inspector}
                 onChange={e => { changed(); setInspector(e.target.value); }} /></label>
             </>}
-            {kind === "tasks" && <label>Employee ID<input type="number" min="1" step="1" value={employee}
+            {kind === "tasks" && <label>Mã nhân viên<input type="number" min="1" step="1" value={employee}
               onChange={e => { changed(); setEmployee(e.target.value); }} /></label>}
-            {kind === "tasks" && <p>Task rows use the current assignee. Effort and workday time remain with the employee who performed the work.</p>}
-            {kind === "requests" && <label>Request type code<input maxLength={40} value={requestType}
+            {kind === "tasks" && <p>Dòng công việc hiển thị người được giao hiện tại. Thời gian thực hiện và ngày làm việc vẫn thuộc nhân viên đã làm.</p>}
+            {kind === "requests" && <label>Mã loại yêu cầu<input maxLength={40} value={requestType}
               onChange={e => { changed(); setRequestType(e.target.value); }} /></label>}
             {(kind === "tasks" || kind === "requests") && (
               <label>
-                {kind === "requests" ? "Receiving department" : "Department"}
+                {kind === "requests" ? "Bộ phận tiếp nhận" : "Bộ phận"}
                 <select
-                  aria-label="Department"
+                  aria-label="Bộ phận"
                   value={department}
                   onChange={(e) => {
                     changed();
                     setDepartment(e.target.value);
                   }}
                 >
-                  <option value="">All permitted</option>
+                  <option value="">Tất cả trong phạm vi được phép</option>
                   {options.departments
                     .filter((d) => !branch || d.branchId === Number(branch))
                     .map((d) => (
@@ -289,7 +289,7 @@ export function ReportsPage() {
               </label>
             )}
             <label>
-              From (UTC)
+              từ (UTC)
               <input
                 required
                 type="date"
@@ -302,7 +302,7 @@ export function ReportsPage() {
               />
             </label>
             <label>
-              To (UTC)
+              Đến (UTC)
               <input
                 required
                 type="date"
@@ -314,27 +314,27 @@ export function ReportsPage() {
                 }}
               />
             </label>
-            <button disabled={busy}>Preview</button>
+            <button disabled={busy}>Xem trước</button>
           </form>
           {message && <p role="status">{message}</p>}
           {snapshot && (
-            <section aria-label="Report preview">
+            <section aria-label="Xem trước báo cáo">
               <p>
-                Snapshot (UTC): {snapshot.snapshot}. Branches:{" "}
-                {snapshot.filters.branchIds.join(", ") || "None"}; department:{" "}
-                {snapshot.filters.departmentId ?? "All permitted"}; period:{" "}
+                Bản chụp dữ liệu (UTC): {snapshot.snapshot}. Branches:{" "}
+                {snapshot.filters.branchIds.join(", ") || "Không có"}; Bộ phận:{" "}
+                {snapshot.filters.departmentId ?? "Tất cả trong phạm vi được phép"}; Khoảng thời gian:{" "}
                 {snapshot.filters.from} — {snapshot.filters.to}.
               </p>
               {Object.entries(snapshot.appliedFilters ?? {}).map(
                 ([key, value]) => (
                   <p key={key}>
-                    {key}: {value ?? "All"}
+                    {key}: {value ?? "Tất cả"}
                   </p>
                 ),
               )}
               {snapshot.missingSources.length > 0 && (
-                <aside aria-label="Report limitations">
-                  <strong>Report scope, evidence and unavailable values:</strong>
+                <aside aria-label="Giới hạn báo cáo">
+                  <strong>Phạm vi báo cáo, bằng chứng và giá trị chưa khả dụng:</strong>
                   <ul>
                     {snapshot.missingSources.map((s, i) => (
                       <li key={i}>{s}</li>
@@ -344,12 +344,11 @@ export function ReportsPage() {
               )}
               {snapshot.totalCount === 0 && (
                 <p role="status">
-                  MSG10: No records match these filters. CSV headers can still
-                  be exported.
+                  MSG10: Không có hồ sơ phù hợp. Vẫn có thể xuất tiêu đề cột CSV.
                 </p>
               )}
               <p>
-                {snapshot.totalCount} rows. Page {page + 1}.
+                {snapshot.totalCount} dòng. Trang {page + 1}.
               </p>
               {snapshot.sections.map((section) => (
                 <section key={section.key}>
@@ -382,7 +381,7 @@ export function ReportsPage() {
                 disabled={page === 0}
                 onClick={() => setPage((n) => n - 1)}
               >
-                Previous page
+                Trang trước
               </button>
               <button
                 disabled={snapshot.sections.every(
@@ -390,25 +389,25 @@ export function ReportsPage() {
                 )}
                 onClick={() => setPage((n) => n + 1)}
               >
-                Next page
+                Trang sau
               </button>
               <button
                 disabled={busy || !snapshot.exportFormats.includes("csv")}
                 onClick={() => void run(true)}
               >
-                Export CSV
+                Xuất CSV
               </button>
               <button
                 disabled={busy || !snapshot.exportFormats.includes("xlsx")}
                 onClick={() => void run(true, "xlsx")}
               >
-                Export XLSX
+                Xuất XLSX
               </button>
               <button
                 disabled={busy || !snapshot.exportFormats.includes("pdf")}
                 onClick={() => void run(true, "pdf")}
               >
-                Export PDF
+                Xuất PDF
               </button>
             </section>
           )}

@@ -5,18 +5,18 @@ import type { AuthError } from "../../auth/authStore";
 
 function logoutMessage(error: AuthError): string {
   if (error.kind === "busy")
-    return "Another authentication operation is in progress. Sign-out was not confirmed.";
+    return "Một thao tác xác thực khác đang chạy. Chưa xác nhận đăng xuất.";
   if (error.kind === "stale")
-    return "Authentication state changed. Please check your session. Sign-out was not confirmed.";
+    return "Trạng thái xác thực đã đổi. Kiểm tra phiên đăng nhập; chưa xác nhận đăng xuất.";
   if (error.kind === "http" && error.status === 401)
-    return "Your session is invalid. Server-side sign-out was not confirmed. Please check your session.";
+    return "Phiên không hợp lệ. Chưa xác nhận đăng xuất trên máy chủ. Kiểm tra phiên.";
   if (
     error.kind === "http" &&
     error.status === 400 &&
     error.code === "CSRF_VALIDATION_FAILED"
   )
-    return "The security check could not be completed. Sign-out was not confirmed. Please check your session.";
-  return "Sign-out could not be confirmed. Authentication is currently unavailable. Please check your session before trying again.";
+    return "Chưa hoàn tất kiểm tra bảo mật. Chưa xác nhận đăng xuất. Kiểm tra phiên.";
+  return "Chưa xác nhận đăng xuất. Xác thực chưa khả dụng. Kiểm tra phiên trước khi thử lại.";
 }
 
 export default function ProfileScreen() {
@@ -50,7 +50,7 @@ export default function ProfileScreen() {
     } catch {
       if (mounted.current)
         setError(
-          "Sign-out could not be confirmed. Authentication is currently unavailable. Please check your session before trying again.",
+          "Chưa xác nhận đăng xuất. Xác thực chưa khả dụng. Kiểm tra phiên trước khi thử lại.",
         );
     } finally {
       submitting.current = false;
@@ -70,15 +70,15 @@ export default function ProfileScreen() {
   return (
     <>
       <header className="page-header">
-        <h1>Profile</h1>
+        <h1>Hồ sơ cá nhân</h1>
       </header>
       <section className="panel form-panel">
-        <span className="eyebrow">STAFF PROFILE</span>
+        <span className="eyebrow">HỒ SƠ NHÂN VIÊN</span>
         {session ? (
           <>
             <h2>{session.user.name}</h2>
             {location.state?.passwordChanged === true && !session.mustChangePassword && (
-              <p role="status">MSG08: Password changed successfully.</p>
+              <p role="status">MSG08: Đã đổi mật khẩu thành công.</p>
             )}
             <dl className="metadata">
               <div>
@@ -86,33 +86,33 @@ export default function ProfileScreen() {
                 <dd>{session.user.id}</dd>
               </div>
               <div>
-                <dt>Username</dt>
+                <dt>Tên đăng nhập</dt>
                 <dd>{session.user.username}</dd>
               </div>
               <div>
-                <dt>Session expires</dt>
+                <dt>Phiên hết hạn lúc</dt>
                 <dd>
                   <time dateTime={session.expiresAt}>{session.expiresAt}</time>
                 </dd>
               </div>
               <div>
-                <dt>Password change required</dt>
-                <dd>{session.mustChangePassword ? "Yes" : "No"}</dd>
+                <dt>Cần đổi mật khẩu</dt>
+                <dd>{session.mustChangePassword ? "Có" : "Không"}</dd>
               </div>
             </dl>
           </>
         ) : (
           <p role="status">
             {busy
-              ? "Signing out…"
-              : "No confirmed profile is available. Please check your session."}
+              ? "Đang đăng xuất…"
+              : "Chưa có hồ sơ đã xác minh. Kiểm tra phiên đăng nhập."}
           </p>
         )}
         {error && <p role="alert">{error}</p>}
         <div className="form-actions">
           {session && (
             <Link className="secondary" to="/change-password">
-              Change password
+              Đổi mật khẩu
             </Link>
           )}
           {(session || identityHidden) && (
@@ -123,7 +123,7 @@ export default function ProfileScreen() {
               disabled={pending}
               aria-busy={pending}
             >
-              {pending ? "Signing out…" : "Logout"}
+              {pending ? "Đang đăng xuất…" : "Đăng xuất"}
             </button>
           )}
         </div>

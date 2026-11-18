@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { useAuth } from "../auth/AuthProvider";
@@ -41,10 +42,10 @@ export function TaskVerificationPanel({
       actions.invalidateSession(owner);
     setError(
       reason instanceof TaskProgressError && reason.messageCode === "MSG22"
-        ? "MSG22: The requester, submitter or performer cannot verify this cycle."
+        ? "MSG22: Người yêu cầu, người nộp hoặc người thực hiện không được xác minh chu kỳ này."
         : reason instanceof TaskProgressError && reason.status === 412
-          ? "The task changed. Reload and review before deciding again."
-          : "Verification is unavailable or its outcome could not be confirmed. Reload before deciding again.",
+          ? "Công việc đã đổi. Tải lại và xem xét trước khi quyết định tiếp."
+          : "Chưa thể xác minh hoặc chưa xác nhận kết quả. Tải lại trước khi quyết định tiếp.",
     );
     setLocked(true);
   }
@@ -81,8 +82,8 @@ export function TaskVerificationPanel({
     if (note.trim().length < (decision === "RETURN" ? 10 : 1)) {
       setError(
         decision === "RETURN"
-          ? "Return reason must contain at least 10 characters."
-          : "Enter a verification note.",
+          ? "Lý do trả lại cần ít nhất 10 ký tự."
+          : "Nhập ghi chú xác minh.",
       );
       return;
     }
@@ -103,7 +104,7 @@ export function TaskVerificationPanel({
       );
       if (!controller.signal.aborted && onChanged) {
         setLocked(true);
-        onChanged(result.messageCode + (decision === "ACCEPT" ? ": Task closed." : ": Task returned to the same assignee. Start again to continue work."));
+        onChanged(result.messageCode + (decision === "ACCEPT" ? ": Đã đóng công việc." : ": Công việc đã trả lại cho người được giao ban đầu. Bắt đầu lại để tiếp tục."));
         return;
       }
       const updated = await readVerification(branch, task, controller.signal);
@@ -114,8 +115,8 @@ export function TaskVerificationPanel({
         setMessage(
           result.messageCode +
             (decision === "ACCEPT"
-              ? ": Task closed."
-              : ": Task returned to the same assignee."),
+              ? ": Đã đóng công việc."
+              : ": Công việc đã trả lại cho người được giao ban đầu."),
         );
       }
     } catch (reason) {
@@ -126,10 +127,10 @@ export function TaskVerificationPanel({
     }
   }
   return (
-    <section aria-label="Task verification">
-      <h3>Task verification</h3>
+    <section aria-label="Xác minh công việc">
+      <h3>Xác minh công việc</h3>
       <button disabled={busy} onClick={() => { onReviewReady(false); setReload((n) => n + 1); }}>
-        Reload verification
+        Tải lại xác minh
       </button>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
@@ -144,28 +145,25 @@ export function TaskVerificationPanel({
             current
             onReady={onReviewReady}
           />
-          <p>Workflow: {snapshot.data.state}</p>
+          <p>Quy trình: {displayCode(snapshot.data.state)}</p>
           <p>
-            Actual effort: {snapshot.data.actualEffortSeconds} seconds (paused
-            time excluded)
+            Thời gian thực hiện thực tế: {snapshot.data.actualEffortSeconds} giây (không tính thời gian tạm dừng)
           </p>
           {snapshot.data.denialCode === "MSG22" && (
             <p>
-              MSG22: The requester, submitter or performer cannot verify this
-              cycle.
+              MSG22: Người yêu cầu, người nộp hoặc người thực hiện không được xác minh chu kỳ này.
             </p>
           )}
           {snapshot.data.denialCode === "SOURCE_PROVENANCE_REQUIRED" && (
             <p>
-              Verification is unavailable until the linked request can be
-              validated.
+              Chưa thể xác minh đến khi kiểm tra được yêu cầu liên quan.
             </p>
           )}
           {snapshot.data.canDecide && (
             <fieldset disabled={busy || locked || !reviewReady}>
-              <legend>Review submitted completion</legend>
+              <legend>Xem lại kết quả hoàn tất đã nộp</legend>
               <label>
-                Verification note or return reason
+                Ghi chú xác minh hoặc lý do trả lại
                 <textarea
                   maxLength={4000}
                   value={note}
@@ -173,17 +171,17 @@ export function TaskVerificationPanel({
                 />
               </label>
               <button onClick={() => void decide("ACCEPT")}>
-                Accept completion
+                Tiếp nhận hoàn tất
               </button>
               <button onClick={() => void decide("RETURN")}>
-                Return for more work
+                Trả lại để xử lý tiếp
               </button>
             </fieldset>
           )}
           <ol>
             {snapshot.data.decisions.map((d) => (
               <li key={d.submissionId}>
-                {d.decision} by user {d.verifiedBy} at{" "}
+                {d.decision} bởi người dùng {d.verifiedBy} lúc{" "}
                 <time dateTime={d.decidedAt}>{d.decidedAt}</time>
                 <p style={{ whiteSpace: "pre-wrap" }}>{d.note}</p>
               </li>

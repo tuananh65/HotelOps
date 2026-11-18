@@ -19,14 +19,14 @@ export function InspectionHistoryAuthRoute() {
   const query = new URLSearchParams(location.search);
   if (!id && !location.search) return (
     <main>
-      <h1>Inspection history</h1>
+      <h1>Lịch sử kiểm tra</h1>
       <form onSubmit={(event) => {
         event.preventDefault();
         try { setParams({ branchId: String(positiveId(branchInput)) }); setInputError(""); }
-        catch { setInputError("Enter a valid branch ID."); }
+        catch { setInputError("Nhập mã chi nhánh hợp lệ."); }
       }}>
-        <label>Branch ID<input inputMode="numeric" value={branchInput} onChange={event => setBranchInput(event.target.value)} /></label>
-        <button type="submit">View inspection history</button>
+        <label>Mã chi nhánh<input inputMode="numeric" value={branchInput} onChange={event => setBranchInput(event.target.value)} /></label>
+        <button type="submit">Xem lịch sử kiểm tra</button>
       </form>
       {inputError && <p role="alert">{inputError}</p>}
     </main>
@@ -41,7 +41,7 @@ export function InspectionHistoryAuthRoute() {
     branch = positiveId(query.get("branchId") ?? "");
     inspection = id === undefined ? undefined : positiveId(id);
   } catch {
-    return <p role="alert">Invalid inspection history destination.</p>;
+    return <p role="alert">Đích lịch sử kiểm tra không hợp lệ.</p>;
   }
   if (
     state.status !== "AUTHENTICATED" ||
@@ -49,7 +49,7 @@ export function InspectionHistoryAuthRoute() {
     !state.session ||
     state.session.mustChangePassword
   )
-    return <p role="status">Checking session...</p>;
+    return <p role="status">Đang kiểm tra phiên đăng nhập...</p>;
   return (
     <AdmittedHistory
       key={`${branch}:${inspection}`}
@@ -91,15 +91,15 @@ function AdmittedHistory({
   }, [branch, inspection, generation, actions]);
   return (
     <main>
-      <h1>Inspection history</h1>
-      <Link to="/notifications">Notifications</Link>
-      <Link to="/inspection-history">Change branch</Link>
+      <h1>Lịch sử kiểm tra</h1>
+      <Link to="/notifications">Thông báo</Link>
+      <Link to="/inspection-history">Thay đổi chi nhánh</Link>
       {admission === "pending" && (
-        <p role="status">Checking inspection history access...</p>
+        <p role="status">Đang kiểm tra quyền xem lịch sử kiểm tra...</p>
       )}
       {admission === "denied" && (
         <p role="alert">
-          Inspection history is unavailable or access has changed.
+          Lịch sử kiểm tra chưa khả dụng hoặc quyền đã đổi.
         </p>
       )}
       {admission === "granted" && state.session && (

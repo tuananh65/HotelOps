@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -19,7 +20,7 @@ import {
 } from "../../api/dev1/cleaningExecution";
 export default function CleaningExecutionPanel(props: { branch: string; task: string }) {
   const { state } = useAuth();
-  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session) return <p role="status">Confirm your session before opening cleaning work.</p>;
+  if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session) return <p role="status">Xác minh phiên đăng nhập trước khi mở công việc vệ sinh.</p>;
   // A route change must not retarget an unresolved command to another task.
   return <CleaningExecutionContent key={`${state.authorityGeneration}:${props.branch}:${props.task}`} {...props} />;
 }
@@ -99,10 +100,10 @@ function CleaningExecutionContent({
   }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
-      if (e.code === "BLOCKER_LINK_NOT_AVAILABLE") return "MSG02: Linked work is unavailable. Check source read permission, the Incident room, and the Material Request's explicit cleaning-task link.";
-      if (e.code === "TIME_WORKDAY_REQUIRED") return "MSG30: Start a Working workday in this branch, then return and select Start.";
-      if (e.code === "TIME_INTERVAL_ALREADY_OPEN") return "MSG31: Another work interval is open. Open Workday to view the current item before starting this task.";
-      if (e.status === 400) return "MSG03: Check a different eligible assignee on shift, a future UTC deadline, and a reason of 10-500 characters. The task must be Assigned, In Progress or On Hold.";
+      if (e.code === "BLOCKER_LINK_NOT_AVAILABLE") return "MSG02: Công việc liên quan chưa khả dụng. Kiểm tra quyền đọc nguồn, phòng của sự cố và liên kết rõ ràng giữa yêu cầu vật tư với việc vệ sinh.";
+      if (e.code === "TIME_WORKDAY_REQUIRED") return "MSG30: Bắt đầu ngày làm việc trong chi nhánh, quay lại rồi chọn Bắt đầu.";
+      if (e.code === "TIME_INTERVAL_ALREADY_OPEN") return "MSG31: Có khoảng làm việc khác đang mở. Mở Ngày làm việc để xem trước khi bắt đầu công việc này.";
+      if (e.status === 400) return "MSG03: Chọn nhân viên khác đủ điều kiện đang trong ca, hạn UTC tương lai và lý do 10–500 ký tự. Công việc phải đang được giao, thực hiện hoặc tạm dừng.";
       if (e.status === 401) return "Phiên đăng nhập đã hết hạn.";
       if (e.status === 403)
         return "Không có quyền hoặc bạn không còn là người phụ trách.";
@@ -165,7 +166,7 @@ function CleaningExecutionContent({
       );
       if (alive.current) {
         setPending(null);
-        setNotice("MSG08: Reassignment saved. Notifications queued for both employees; previous effort remains attributed to the previous assignee.");
+        setNotice("MSG08: Đã lưu phân công lại. Thông báo chờ gửi đến cả hai nhân viên; thời gian trước vẫn thuộc người được giao trước.");
         setRefresh((n) => n + 1);
       }
     } catch (e) {
@@ -300,27 +301,27 @@ function CleaningExecutionContent({
       {data && (
         <>
           <h2>{data.taskNumber}</h2>
-          {data.startDetails && <section aria-label="Cleaning instructions">
-            <p>Room {data.startDetails.roomNumber} - {data.startDetails.cleaningType}</p>
-            <p>Due (UTC): {data.startDetails.dueAtUtc ?? "N/A"}</p>
-            <p>{data.startDetails.instructions ?? "No additional instructions."}</p>
+          {data.startDetails && <section aria-label="Hướng dẫn vệ sinh">
+            <p>Phòng {data.startDetails.roomNumber} - {data.startDetails.cleaningType}</p>
+            <p>Đến hạn (UTC): {data.startDetails.dueAtUtc ?? "N/A"}</p>
+            <p>{data.startDetails.instructions ?? "Chưa có hướng dẫn bổ sung."}</p>
             <ul>{data.startDetails.items.map(i => <li key={i.id}>{i.label}{i.isRequired ? " (required)" : ""}</li>)}</ul>
           </section>}
-          {(error.startsWith("MSG30") || error.startsWith("MSG31")) && <Link to={"/workday?branchId=" + branch}>Open Workday</Link>}
-          {!!data.blockers?.length && <ul aria-label="Cleaning blockers">
+          {(error.startsWith("MSG30") || error.startsWith("MSG31")) && <Link to={"/workday?branchId=" + branch}>Mở ngày làm việc</Link>}
+          {!!data.blockers?.length && <ul aria-label="Trở ngại vệ sinh">
             {data.blockers.map(blocker => <li key={blocker.progressId}>
-              Blocker #{blocker.progressId}: {blocker.incidentId ? `Incident #${blocker.incidentId}` : blocker.materialRequestId ? `Material Request #${blocker.materialRequestId}` : "Cleaning blocker"}
-              {" — "}{blocker.sourceResolved ? (blocker.confirmed ? "Confirmed resolved" : "Ready for your confirmation") : blocker.failure}
+              Trở ngại #{blocker.progressId}: {blocker.incidentId ? `Sự cố #${blocker.incidentId}` : blocker.materialRequestId ? `Yêu cầu vật tư #${blocker.materialRequestId}` : "Trở ngại vệ sinh"}
+              {" — "}{blocker.sourceResolved ? (blocker.confirmed ? "Đã xác nhận xử lý" : "Sẵn sàng để bạn xác nhận") : blocker.failure}
             </li>)}
           </ul>}
           {data.state === "ASSIGNED" && data.actualStartAtUtc && !!data.blockers?.length && <fieldset disabled={busy || !!pending || !!closurePending}>
-            <legend>Confirm blockers before restarting assigned work</legend>
+            <legend>Xác nhận trở ngại trước khi bắt đầu lại công việc được giao</legend>
             <label><input type="checkbox" checked={blockersConfirmed} onChange={event => setBlockersConfirmed(event.target.checked)} />
-              I confirm that all listed blockers have been resolved.</label>
-            <label>Confirmation note<input value={resolutionNote} maxLength={500} onChange={event => setResolutionNote(event.target.value)} /></label>
+              Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.</label>
+            <label>Ghi chú xác nhận<input value={resolutionNote} maxLength={500} onChange={event => setResolutionNote(event.target.value)} /></label>
           </fieldset>}
           <p>
-            {data.state} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
+            {displayCode(data.state)} · Nhân viên {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
           <button
             disabled={
@@ -339,7 +340,7 @@ function CleaningExecutionContent({
             <>
               {data.resumeCapability === "PROVISIONAL_V1" ? (
                 data.holdReason === "END_OF_SHIFT" ? (
-                  <button disabled={busy || !!pending || !!closurePending} onClick={() => void start(true)}>Resume after end of shift</button>
+                  <button disabled={busy || !!pending || !!closurePending} onClick={() => void start(true)}>Tiếp tục sau khi kết thúc ca</button>
                 ) : (<form
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -349,7 +350,7 @@ function CleaningExecutionContent({
                   <label><input type="checkbox" required checked={blockersConfirmed}
                     disabled={busy || !!pending || !!closurePending || data.blockers?.some(b => !b.sourceResolved)}
                     onChange={event => setBlockersConfirmed(event.target.checked)} />
-                    I confirm that all listed blockers have been resolved.
+                    Tôi xác nhận đã xử lý tất cả trở ngại trong danh sách.
                   </label>
                   <label>
                     Ghi chú xử lý trở ngại
@@ -387,16 +388,16 @@ function CleaningExecutionContent({
                 Mở tiến độ dọn phòng
               </Link>
               {data.reportBlockerCapability === "PROVISIONAL_V1" && <fieldset disabled={busy || !!pending || !!closurePending}>
-                <legend>Linked blocker work (optional)</legend>
-                <label>Incident ID for this room<input inputMode="numeric" value={incidentLink} onChange={e => setIncidentLink(e.target.value)} /></label>
-                <label>Material Request ID linked to this task<input inputMode="numeric" value={materialLink} onChange={e => setMaterialLink(e.target.value)} /></label>
-                <p>Source read permissions are required. Link Material Requests to this cleaning task in their linked-work section first.</p>
-                <p>After returning, select any blocker photos again before submitting.</p>
+                <legend>Công việc xử lý trở ngại liên quan (không bắt buộc)</legend>
+                <label>Mã sự cố của phòng này<input inputMode="numeric" value={incidentLink} onChange={e => setIncidentLink(e.target.value)} /></label>
+                <label>Mã yêu cầu vật tư liên quan đến công việc này<input inputMode="numeric" value={materialLink} onChange={e => setMaterialLink(e.target.value)} /></label>
+                <p>Cần quyền đọc nguồn. Liên kết yêu cầu vật tư với công việc vệ sinh này trong phần công việc liên quan trước.</p>
+                <p>Sau khi quay lại, chọn lại ảnh trở ngại trước khi gửi.</p>
                 {data.startDetails && !busy && !pending && !closurePending && ["incidents", "material-requests"].map(module => <Link key={module}
                   to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
                   state={{ cleaningBlocker: { actor: String(auth.session?.user.id), branch, task, room: data.startDetails!.roomId,
                     note: blockerNote, reason: blockerReason, incident: incidentLink, material: materialLink } }}>
-                  {module === "incidents" ? "Report room incident" : "Create material request"}
+                  {module === "incidents" ? "Báo sự cố phòng" : "Tạo yêu cầu vật tư"}
                 </Link>)}
               </fieldset>}
               {data.reportBlockerCapability === "PROVISIONAL_V1" ? (
@@ -527,7 +528,7 @@ function CleaningExecutionContent({
                     .filter((c) => c.id !== data.assigneeId)
                     .map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} · {c.openTasks} việc mở
+                        {c.name} · {displayCode(c.openTasks)} việc mở
                       </option>
                     ))}
                 </select>

@@ -15,6 +15,20 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class RoomsController(RoomDirectoryService rooms):ControllerBase
 {
+    [HttpGet("workspace-options")]
+    public async Task<IActionResult> Workspace(CancellationToken ct)
+    {
+        if (!Request.IsHttps) return Error(400, "HTTPS_REQUIRED");
+        if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out _)) return Error(401, "SESSION_INVALID");
+        try
+        {
+            var result = await rooms.WorkspaceAsync(ticket!, ct);
+            return result.Status == RoomDirectoryStatus.Success ? Ok(result.Items)
+                : Error(result.Status == RoomDirectoryStatus.SessionInvalid ? 401 : 503, result.Status.ToString());
+        }
+        catch (Exception error) when (!ct.IsCancellationRequested && error is DbException or SessionStoreUnavailableException)
+        { return Error(503, "ROOM_WORKSPACE_UNAVAILABLE"); }
+    }
     [HttpGet]
     public Task<IActionResult> List([FromQuery] RoomDirectoryQuery query,CancellationToken ct) =>
         Execute(ticket=>rooms.ListAsync(ticket,query,ct),ct);

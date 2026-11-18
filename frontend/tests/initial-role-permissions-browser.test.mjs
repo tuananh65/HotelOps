@@ -86,7 +86,7 @@ const posts = (p) =>
 test("disabled capability loads real catalog but cannot dispatch", () =>
   run({}, async (p) => {
     await p
-      .getByText("Mutation dispatch OFF pending runtime approval.")
+      .getByText("Thao tác ghi đang tắt, chờ phê duyệt vận hành.")
       .waitFor();
     assert.equal(
       await p.getByLabel("ROOM_VIEW", { exact: true }).isDisabled(),
@@ -118,7 +118,7 @@ test("review confirm success refreshes authoritative grants, unsupported admin s
       await p.getByLabel("USER_MANAGE", { exact: true }).isDisabled(),
       true,
     );
-    await p.getByRole("button", { name: "Confirm and save" }).click();
+    await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
     await p.getByText("Existing grants: 1", { exact: true }).waitFor();
     assert.equal((await posts(p)).length, 1);
     await p.getByText("ROOM_VIEW: BRANCH", { exact: true }).waitFor();
@@ -126,7 +126,7 @@ test("review confirm success refreshes authoritative grants, unsupported admin s
 test("synchronous double confirmation sends one POST", () =>
   run({ enabled: true }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm and save" }).evaluate((b) => {
+    await p.getByRole("button", { name: "Xác nhận và lưu" }).evaluate((b) => {
       b.click();
       b.click();
     });
@@ -137,12 +137,12 @@ for (const status of [403, 409])
   test("business rejection " + status + " is sanitized and no retry", () =>
     run({ enabled: true, status }, async (p) => {
       await review(p);
-      await p.getByRole("button", { name: "Confirm and save" }).click();
+      await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
       await p
         .getByText(
           status === 409
-            ? "Role changed or already configured. Reload and review."
-            : "Access denied by server.",
+            ? "Vai trò đã đổi hoặc đã cấu hình. Tải lại và xem xét."
+            : "Máy chủ từ chối quyền truy cập.",
           { exact: true },
         )
         .waitFor();
@@ -159,7 +159,7 @@ for (const s of [{ network: true }, { status: 503 }, { malformed: true }])
   test("unknown outcome locks replay " + JSON.stringify(s), () =>
     run({ enabled: true, ...s }, async (p) => {
       await review(p);
-      await p.getByRole("button", { name: "Confirm and save" }).click();
+      await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
       await p.getByText(/Outcome unknown/).waitFor();
       assert.equal(
         await p
@@ -173,8 +173,8 @@ for (const s of [{ network: true }, { status: 503 }, { malformed: true }])
 test("401 clears role snapshot and changing target cannot bypass recovery", () =>
   run({ enabled: true, status: 401 }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm and save" }).click();
-    await p.getByText("Confirmed unrestricted session required.").waitFor();
+    await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
+    await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
     await p.getByRole("button", { name: "Change role" }).click();
     assert.equal(await p.getByText("Custom 8", { exact: true }).count(), 0);
     assert.equal((await posts(p)).length, 1);
@@ -183,7 +183,7 @@ for (const operation of ["Change role", "replace"])
   test("late success discarded after " + operation, () =>
     run({ enabled: true, defer: true }, async (p) => {
       await review(p);
-      await p.getByRole("button", { name: "Confirm and save" }).click();
+      await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
       await p.waitForFunction(() =>
         window.fixture.calls.some((c) => c.method === "POST"),
       );
@@ -191,13 +191,13 @@ for (const operation of ["Change role", "replace"])
         await p.evaluate(() => window.fixture.replace());
       else await p.getByRole("button", { name: "Change role" }).click();
       await p
-        .getByText("Custom " + (operation === "replace" ? 7 : 8), {
+        .getByText("Tùy chỉnh" + (operation === "replace" ? 7 : 8), {
           exact: true,
         })
         .waitFor();
       await p.evaluate(() => window.fixture.finish());
       assert.equal(
-        await p.getByText(/Initial permissions confirmed/).count(),
+        await p.getByText(/Đã xác nhận quyền ban đầu\. Đang tải lại quyền từ máy chủ\./).count(),
         0,
       );
       assert.equal((await posts(p)).length, 1);
@@ -208,10 +208,10 @@ for (const csrfStatus of [401, 403])
   test("CSRF bootstrap " + csrfStatus + " never sends POST", () =>
     run({ enabled: true, csrfStatus }, async (p) => {
       await review(p);
-      await p.getByRole("button", { name: "Confirm and save" }).click();
+      await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
       if (csrfStatus === 401)
-        await p.getByText("Confirmed unrestricted session required.").waitFor();
-      else await p.getByText("Access denied by server.").waitFor();
+        await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
+      else await p.getByText("Máy chủ từ chối quyền truy cập.").waitFor();
       assert.equal((await posts(p)).length, 0);
     }),
   );
@@ -221,7 +221,7 @@ for (const readStatus of [403, 503])
     "read denial/unavailable " + readStatus + " is not empty editable role",
     () =>
       run({ enabled: true, readStatus }, async (p) => {
-        await p.getByText("No editable role snapshot available.").waitFor();
+        await p.getByText("Chưa có thông tin vai trò có thể chỉnh sửa.").waitFor();
         assert.equal(await p.getByRole("checkbox").count(), 0);
         assert.equal(
           await p.getByText("Loading role and catalog...").count(),
@@ -236,14 +236,14 @@ for (const unreadable of [false, true])
       { enabled: true, csrfStatus: 401, csrfUnreadable: unreadable },
       async (p) => {
         await review(p);
-        await p.getByRole("button", { name: "Confirm and save" }).click();
-        await p.getByText("Confirmed unrestricted session required.").waitFor();
+        await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
+        await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
         assert.equal(
           await p.getByLabel("ROOM_VIEW", { exact: true }).count(),
           0,
         );
         assert.equal((await posts(p)).length, 0);
-        await p.getByRole("button", { name: "Revalidate session" }).click();
+        await p.getByRole("button", { name: "Xác minh lại phiên" }).click();
         await p.getByLabel("ROOM_VIEW", { exact: true }).waitFor();
         assert.equal(
           await p.getByLabel("ROOM_VIEW", { exact: true }).isChecked(),
@@ -255,13 +255,13 @@ for (const unreadable of [false, true])
 test("unreadable POST 401 preserves uncertainty across recovery", () =>
   run({ enabled: true, status: 401, postUnreadable: true }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm and save" }).click();
-    await p.getByText("Confirmed unrestricted session required.").waitFor();
+    await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
+    await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
     assert.equal((await posts(p)).length, 1);
-    await p.getByRole("button", { name: "Revalidate session" }).click();
+    await p.getByRole("button", { name: "Xác minh lại phiên" }).click();
     await p
       .getByText(
-        "Outcome unknown. Do not replay. Verify with an authorized owner.",
+        "Chưa xác định kết quả. Không gửi lại. Nhờ người có trách nhiệm xác minh.",
       )
       .waitFor();
     assert.equal(await p.getByLabel("ROOM_VIEW", { exact: true }).count(), 0);
@@ -279,7 +279,7 @@ for (const replacement of ["session", "role"])
         },
         async (p) => {
           await review(p);
-          await p.getByRole("button", { name: "Confirm and save" }).click();
+          await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
           await p.waitForFunction(
             (phase) =>
               window.fixture.calls.some((c) =>
@@ -293,7 +293,7 @@ for (const replacement of ["session", "role"])
             await p.evaluate(() => window.fixture.replace());
           else await p.getByRole("button", { name: "Change role" }).click();
           await p
-            .getByText("Custom " + (replacement === "session" ? 7 : 8), {
+            .getByText("Tùy chỉnh" + (replacement === "session" ? 7 : 8), {
               exact: true,
             })
             .waitFor();
@@ -301,7 +301,7 @@ for (const replacement of ["session", "role"])
           await p.waitForTimeout(50);
           assert.equal(
             await p
-              .getByText("Confirmed unrestricted session required.")
+              .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.")
               .count(),
             0,
           );
@@ -318,16 +318,16 @@ for (const status of [403, 503])
       { enabled: true, csrfStatus: status, csrfUnreadable: true },
       async (p) => {
         await review(p);
-        await p.getByRole("button", { name: "Confirm and save" }).click();
+        await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
         await p
           .getByText(
             status === 403
-              ? "Access denied by server."
-              : "Initial configuration not confirmed.",
+              ? "Máy chủ từ chối quyền truy cập."
+              : "Chưa xác nhận cấu hình ban đầu.",
           )
           .waitFor();
         assert.equal(
-          await p.getByRole("button", { name: "Revalidate session" }).count(),
+          await p.getByRole("button", { name: "Xác minh lại phiên" }).count(),
           0,
         );
         assert.equal((await posts(p)).length, 0);
@@ -336,7 +336,7 @@ for (const status of [403, 503])
 
 async function start080(p) {
   await review(p);
-  await p.getByRole("button", { name: "Confirm and save" }).click();
+  await p.getByRole("button", { name: "Xác nhận và lưu" }).click();
 }
 async function settled080(p, outcome) {
   await p.waitForFunction((o) => window.operationStates.includes(o), outcome);
@@ -352,7 +352,7 @@ async function noReplay080(p) {
       // A stale editor may still let the user inspect/select permissions, but not review/save.
       await reviewButton.evaluate((button) => button.click());
       assert.equal(
-        await p.getByRole("button", { name: "Confirm and save" }).count(),
+        await p.getByRole("button", { name: "Xác nhận và lưu" }).count(),
         0,
       );
     } else {
@@ -403,7 +403,7 @@ for (const mode of ["unmount", "provider", "role"])
           await p.getByRole("button", { name: "Change role" }).click();
         await p.getByText("Custom 7", { exact: true }).waitFor();
         assert.equal(
-          await p.getByText("Confirmed unrestricted session required.").count(),
+          await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").count(),
           0,
         );
         await noReplay080(p);
@@ -446,7 +446,7 @@ test("080 different principal same role characterization", () =>
 test("080 pending duplicate blocked then CONFIRMED", () =>
   run({ enabled: true, defer: true }, async (p) => {
     await review(p);
-    await p.getByRole("button", { name: "Confirm and save" }).evaluate((b) => {
+    await p.getByRole("button", { name: "Xác nhận và lưu" }).evaluate((b) => {
       b.click();
       b.click();
     });
@@ -564,7 +564,7 @@ for (const profile of [
           await review(p);
           assert.equal(
             await p
-              .getByRole("button", { name: "Confirm and save" })
+              .getByRole("button", { name: "Xác nhận và lưu" })
               .isEnabled(),
             true,
           );
@@ -575,7 +575,7 @@ for (const profile of [
         });
         await p.getByText(/Outcome unknown/).waitFor();
         assert.equal(
-          await p.getByRole("button", { name: "Confirm and save" }).count(),
+          await p.getByRole("button", { name: "Xác nhận và lưu" }).count(),
           0,
         );
         await noReplay080(p);

@@ -137,32 +137,32 @@ async function fill(
   username = credential.username,
   password = credential.password,
 ) {
-  await page.getByLabel("Username or email").fill(username);
-  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByLabel("Tên đăng nhập hoặc email").fill(username);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(password);
 }
 async function submit(page) {
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 
 test("login render has empty required fields and no demo credentials", async () => {
   await withLogin({ reply: success() }, async (page) => {
-    assert.equal(await page.getByLabel("Username or email").inputValue(), "");
+    assert.equal(await page.getByLabel("Tên đăng nhập hoặc email").inputValue(), "");
     assert.equal(
-      await page.getByLabel("Password", { exact: true }).inputValue(),
+      await page.getByLabel("Mật khẩu", { exact: true }).inputValue(),
       "",
     );
     assert.equal(
-      await page.getByLabel("Username or email").getAttribute("required"),
+      await page.getByLabel("Tên đăng nhập hoặc email").getAttribute("required"),
       "",
     );
     assert.equal(
       await page
-        .getByLabel("Password", { exact: true })
+        .getByLabel("Mật khẩu", { exact: true })
         .getAttribute("required"),
       "",
     );
     assert.equal(
-      await page.getByLabel("Password", { exact: true }).getAttribute("type"),
+      await page.getByLabel("Mật khẩu", { exact: true }).getAttribute("type"),
       "password",
     );
     const text = await page.locator("body").textContent();
@@ -171,7 +171,7 @@ test("login render has empty required fields and no demo credentials", async () 
     );
     assert.equal(
       await page
-        .getByRole("link", { name: "Forgot password?" })
+        .getByRole("link", { name: "Quên mật khẩu?" })
         .getAttribute("href"),
       "/forgot-password",
     );
@@ -187,7 +187,7 @@ for (const [username, password] of [
     await withLogin({ reply: success() }, async (page) => {
       await fill(page, username, password);
       await submit(page);
-      assert.match(await page.getByRole("alert").textContent(), /required/);
+      assert.match(await page.getByRole("alert").textContent(), /Cần tên đăng nhập và mật khẩu/i);
       assert.equal(await page.evaluate(() => window.loginTest.calls.length), 0);
       assert.equal(await page.locator("#location").textContent(), "/login");
     });
@@ -209,7 +209,7 @@ for (const restricted of [false, true]) {
         { username: "staff", password: credential.password },
       ]);
       assert.equal(
-        await page.getByLabel("Password", { exact: true }).inputValue(),
+        await page.getByLabel("Mật khẩu", { exact: true }).inputValue(),
         "",
       );
     });
@@ -217,34 +217,34 @@ for (const restricted of [false, true]) {
 }
 
 for (const [name, reply, message] of [
-  ["401", http(401, "INVALID_CREDENTIALS"), /Invalid username or password/],
+  ["401", http(401, "INVALID_CREDENTIALS"), /Tên đăng nhập hoặc mật khẩu không đúng/i],
   [
     "403",
     http(403, "TEMPORARY_PASSWORD_EXPIRED"),
-    /temporary password has expired/,
+    /Mật khẩu tạm đã hết hạn/i,
   ],
-  ["409", http(409, "AUTHENTICATED_SESSION_EXISTS"), /session already exists/],
-  ["423", http(423, "ACCOUNT_LOCKED"), /account is locked/],
-  ["400", http(400, "VALIDATION_FAILED"), /check your username and password/],
-  ["503", http(503, "AUTH_SERVICE_UNAVAILABLE"), /currently unavailable/],
+  ["409", http(409, "AUTHENTICATED_SESSION_EXISTS"), /đã có phiên đăng nhập/i],
+  ["423", http(423, "ACCOUNT_LOCKED"), /Tài khoản đã khóa/i],
+  ["400", http(400, "VALIDATION_FAILED"), /Kiểm tra tên đăng nhập và mật khẩu/i],
+  ["503", http(503, "AUTH_SERVICE_UNAVAILABLE"), /chưa khả dụng/i],
   [
     "network",
     { ok: false, error: { kind: "network" } },
-    /could not be confirmed/,
+    /Chưa xác nhận kết quả đăng nhập/i,
   ],
-  ["busy", { ok: false, error: { kind: "busy" } }, /operation is in progress/],
-  ["stale", { ok: false, error: { kind: "stale" } }, /state changed/],
+  ["busy", { ok: false, error: { kind: "busy" } }, /thao tác xác thực khác đang chạy/i],
+  ["stale", { ok: false, error: { kind: "stale" } }, /Trạng thái xác thực đã đổi/i],
   [
     "invalid-response",
     { ok: false, error: { kind: "invalid-response" } },
-    /currently unavailable/,
+    /chưa khả dụng/i,
   ],
   [
     "cancelled",
     { ok: false, error: { kind: "cancelled" } },
-    /could not be confirmed/,
+    /Chưa xác nhận kết quả đăng nhập/i,
   ],
-  ["CSRF", http(400, "CSRF_VALIDATION_FAILED"), /security check/],
+  ["CSRF", http(400, "CSRF_VALIDATION_FAILED"), /kiểm tra bảo mật/i],
 ]) {
   test(`login ${name} displays safe error without navigation or automatic replay`, async () => {
     await withLogin({ reply }, async (page) => {
@@ -254,7 +254,7 @@ for (const [name, reply, message] of [
       assert.equal(await page.locator("#location").textContent(), "/login");
       assert.equal(await page.evaluate(() => window.loginTest.calls.length), 1);
       assert.equal(
-        await page.getByLabel("Password", { exact: true }).inputValue(),
+        await page.getByLabel("Mật khẩu", { exact: true }).inputValue(),
         "",
       );
       if (name === "423")
@@ -287,7 +287,7 @@ test("server detail/code and rejected exception cannot echo credential or token"
       const error = await page.getByRole("alert").textContent();
       assert.ok(!error.includes(credential.password));
       assert.ok(!error.includes("PRIVATE-TOKEN"));
-      assert.match(error, /currently unavailable/);
+      assert.match(error, /chưa khả dụng/i);
       assert.equal(await page.locator("#location").textContent(), "/login");
     });
   }
@@ -306,11 +306,11 @@ test("double submit is excluded synchronously and loading disables credentials",
     });
     assert.equal(await page.evaluate(() => window.loginTest.calls.length), 1);
     assert.equal(
-      await page.getByRole("button", { name: "Signing in…" }).isDisabled(),
+      await page.getByRole("button", { name: "Đang đăng nhập…" }).isDisabled(),
       true,
     );
     assert.equal(
-      await page.getByLabel("Password", { exact: true }).isDisabled(),
+      await page.getByLabel("Mật khẩu", { exact: true }).isDisabled(),
       true,
     );
     assert.equal(await page.locator("form").getAttribute("aria-busy"), "true");
@@ -324,7 +324,7 @@ test("double submit is excluded synchronously and loading disables credentials",
 test("another pending store action disables login and cannot be bypassed by submit event", async () => {
   await withLogin({ pending: "login", reply: success() }, async (page) => {
     assert.equal(
-      await page.getByRole("button", { name: "Signing in…" }).isDisabled(),
+      await page.getByRole("button", { name: "Đang đăng nhập…" }).isDisabled(),
       true,
     );
     await page
@@ -345,7 +345,7 @@ test("explicit resubmit after failure is a user action, not an automatic retry",
     await page.getByRole("alert").waitFor();
     assert.equal(await page.evaluate(() => window.loginTest.calls.length), 1);
     await page
-      .getByLabel("Password", { exact: true })
+      .getByLabel("Mật khẩu", { exact: true })
       .fill(credential.password);
     await submit(page);
     assert.equal(await page.evaluate(() => window.loginTest.calls.length), 2);

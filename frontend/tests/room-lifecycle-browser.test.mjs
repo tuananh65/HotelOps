@@ -108,7 +108,7 @@ async function run(s, fn) {
 }
 async function review(p) {
   await p
-    .getByLabel("Reason", { exact: true })
+    .getByLabel("Lý do", { exact: true })
     .fill("Valid room lifecycle reason");
   await p
     .getByRole("button", { name: "Review room change", exact: true })
@@ -161,7 +161,7 @@ for (const status of [401, 403, 412, 503])
         await p.getByRole("button", { name: "Confirm room change" }).click();
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByRole("region", { name: "Selected room" }).count(),
+          await p.getByRole("region", { name: "Phòng đã chọn" }).count(),
           0,
         );
         assert.equal(
@@ -176,7 +176,7 @@ for (const status of [401, 403, 412, 503])
           1,
         );
         if (status === 401)
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
       },
     ),
   );
@@ -187,7 +187,7 @@ for (const auth of [
   test("anonymous/restricted does not read room " + auth.status, () =>
     run({ auth, enabled: true }, async (p) => {
       await p
-        .getByText("Confirm an unrestricted session before reviewing the room.")
+        .getByText("Xác minh phiên không bị hạn chế trước khi xét duyệt phòng.")
         .waitFor();
       assert.equal(await p.evaluate(() => window.fixture.calls.length), 1);
     }),
@@ -200,11 +200,11 @@ test("late room response after session invalidation cannot restore data", () =>
       void window.fixture.revalidate();
     });
     await p
-      .getByText("Confirm an unrestricted session before reviewing the room.")
+      .getByText("Xác minh phiên không bị hạn chế trước khi xét duyệt phòng.")
       .waitFor();
     await p.evaluate(() => window.fixture.finish("read", { body: {} }));
     assert.equal(
-      await p.getByRole("region", { name: "Selected room" }).count(),
+      await p.getByRole("region", { name: "Phòng đã chọn" }).count(),
       0,
     );
   }));

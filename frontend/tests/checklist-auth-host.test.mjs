@@ -71,7 +71,7 @@ async function open(options = {}, path = "/inspections/checklists?branchId=7") {
 }
 test("default feature OFF sends no protected read", async () => {
   const p = await open({ enabled: false });
-  await p.getByText("Checklist destination is not activated.").waitFor();
+  await p.getByText("Chức năng danh sách kiểm tra chưa được kích hoạt.").waitFor();
   assert.deepEqual(await p.evaluate(() => window.calls), []);
   await p.close();
 });
@@ -93,7 +93,7 @@ for (const query of [
 ])
   test("invalid context " + query, async () => {
     const p = await open({}, "/inspections/checklists" + query);
-    await p.getByText("Invalid checklist branch context.").waitFor();
+    await p.getByText("Ngữ cảnh chi nhánh của danh sách kiểm tra không hợp lệ.").waitFor();
     assert.deepEqual(await p.evaluate(() => window.calls), []);
     await p.close();
   });
@@ -104,7 +104,7 @@ test("branch selector requires explicit valid branch before admission", async ()
   assert.deepEqual(await p.evaluate(() => window.calls), []);
   await p.getByLabel("Branch ID", { exact: true }).fill("0");
   await p.getByRole("button", { name: "Load checklists" }).click();
-  await p.getByText("Enter a valid branch ID.").waitFor();
+  await p.getByText("Nhập mã chi nhánh hợp lệ.").waitFor();
   assert.deepEqual(await p.evaluate(() => window.calls), []);
   await p.getByLabel("Branch ID", { exact: true }).fill("7");
   await p.getByRole("button", { name: "Load checklists" }).click();

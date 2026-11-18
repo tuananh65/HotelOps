@@ -37,7 +37,7 @@ test("field comparison preserves explicit null versus missing values", () => {
 test("creation values do not invent a before value", () => {
   const result = auditChanges(null, { status: "PENDING" });
   assert.equal(result[0].beforeRecorded, false);
-  assert.equal(auditValue(result[0].before, false), "Not recorded or withheld");
+  assert.equal(auditValue(result[0].before, false), "Chưa ghi nhận hoặc không được hiển thị");
 });
 test("redaction markers and nested payloads are not reconstructed as business changes", () => {
   assert.deepEqual(auditChanges({ withheld: true }, "[withheld]"), []);

@@ -18,49 +18,49 @@ export function MaintenanceResumePanel({ data, allowStart = false, allowHold = f
   const start = allowStart && data.canStart === true && data.status === "PENDING";
   const hold = allowHold && data.canHold === true && data.status === "IN_PROGRESS";
   const resumeAllowed = allowResume && data.canResume === true && (data.status === "ON_HOLD" || data.status === "IN_PROGRESS");
-  const action = start ? "start" : hold ? "hold" : "resume", verb = start ? "Start" : hold ? "Hold" : "Resume";
+  const action = start ? "start" : hold ? "hold" : "resume", verb = start ? "Bắt đầu" : hold ? "Tạm dừng" : "Tiếp tục";
   if (!session || (!start && !hold && !resumeAllowed) || typeof id !== "number"
       || !Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(actor) || actor <= 0
       || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
   async function resume() {
     if (sending.current || attempted || current.current !== session || !session) return;
-    if (hold && reason.trim().length < 10) { setMessage("Enter a hold reason with at least 10 characters."); return; }
+    if (hold && reason.trim().length < 10) { setMessage("Nhập lý do tạm dừng ít nhất 10 ký tự."); return; }
     sending.current = true; setBusy(true); setAttempted(true); setMessage("");
     const abort = new AbortController(); writer.current = abort;
     try {
       const csrfResponse = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!csrfResponse.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!csrfResponse.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await csrfResponse.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !csrf.csrfToken.trim()
-          || /[\r\n]/.test(csrf.csrfToken) || current.current !== session || abort.signal.aborted) throw Error("Session changed. Reload before retrying.");
+          || /[\r\n]/.test(csrf.csrfToken) || current.current !== session || abort.signal.aborted) throw Error("Phiên đăng nhập đã thay đổi. Tải lại trước khi thử lại.");
       const response = await fetch(`/api/maintenance-works/${id}/${action}`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
         body: JSON.stringify({ actorUserId: actor, ...(hold ? { reason: reason.trim() } : {}) }) });
-      if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload its current state."
-        : response.status === 409 ? `${verb} was not confirmed. Check your Working workday and other running work, then reload.`
-        : `${verb} was not confirmed. Reload to check your current access and work state.`);
+      if (!response.ok) throw Error(response.status === 412 ? "Công việc đã đổi. Tải lại trạng thái hiện tại."
+        : response.status === 409 ? `${verb} chưa được xác nhận. Kiểm tra ngày làm việc và công việc khác đang chạy, rồi tải lại.`
+        : `${verb} chưa được xác nhận. Tải lại để kiểm tra quyền và trạng thái công việc.`);
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.status !== (hold ? "ON_HOLD" : "IN_PROGRESS")
           || result.assigneeId !== actor || typeof result.executionETag !== "string"
           || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag)
-        throw Error(`${verb} response could not be confirmed. Reload before any further action.`);
+        throw Error(`${verb} chưa xác minh được phản hồi. Tải lại trước mọi thao tác tiếp theo.`);
       if (current.current === session && !abort.signal.aborted) {
-        const notice = `Work ${start ? "started" : hold ? "put on hold" : "resumed"}. ${hold ? "The work interval is closed; SLA time continues." : "A new work interval is open."}`;
+        const notice = `Công việc ${start ? "đã bắt đầu" : hold ? "đã tạm dừng" : "đã tiếp tục"}. ${hold ? "Khoảng làm việc đã kết thúc; thời gian SLA tiếp tục tính." : "Đã mở khoảng thời gian làm việc mới."}`;
         setMessage(notice);
         onCommitted?.(notice);
       }
     } catch (error) {
-      if (current.current === session && !abort.signal.aborted) setMessage(error instanceof Error ? error.message : `${verb} not confirmed. Reload before retrying.`);
+      if (current.current === session && !abort.signal.aborted) setMessage(error instanceof Error ? error.message : `${verb} chưa được xác nhận. Tải lại trước khi thử lại.`);
     } finally {
       if (!abort.signal.aborted) { sending.current = false; setBusy(false); setReview(false); }
     }
   }
-  return <section aria-label={`${verb} maintenance`}>
-    <p>{start ? "Accept and Start opens a work interval. A Working workday and no other running work are required." : hold ? "Hold stops the work interval. SLA time continues while work is on hold." : "Resume opens a new work interval. Start your workday first and stop any other running work."}</p>
-    {hold && <label>Hold reason and note<textarea value={reason} disabled={busy || review || attempted} onChange={e => setReason(e.target.value)} /></label>}
+  return <section aria-label={`${verb} Bảo trì`}>
+    <p>{start ? "Tiếp nhận và bắt đầu sẽ ghi nhận thời gian làm việc. Cần ngày làm việc đang hoạt động và không có công việc khác đang chạy." : hold ? "Tạm dừng sẽ kết thúc khoảng làm việc. Thời gian SLA vẫn tiếp tục tính." : "Tiếp tục mở khoảng làm việc mới. Bắt đầu ngày làm việc và dừng công việc khác đang chạy trước."}</p>
+    {hold && <label>Lý do và ghi chú tạm dừng<textarea value={reason} disabled={busy || review || attempted} onChange={e => setReason(e.target.value)} /></label>}
     {message && <p role="status">{message}</p>}
-    {!review ? <button type="button" disabled={busy || attempted || (hold && reason.trim().length < 10)} onClick={() => setReview(true)}>{verb} maintenance</button>
-      : <><p>{verb} this assigned maintenance work now?</p>{hold && <p>{reason.trim()}</p>}<button type="button" disabled={busy} onClick={() => void resume()}>Confirm {action}</button>
-        <button type="button" disabled={busy} onClick={() => setReview(false)}>Cancel</button></>}
+    {!review ? <button type="button" disabled={busy || attempted || (hold && reason.trim().length < 10)} onClick={() => setReview(true)}>{verb} Bảo trì</button>
+      : <><p>{verb} công việc bảo trì được giao này ngay bây giờ?</p>{hold && <p>{reason.trim()}</p>}<button type="button" disabled={busy} onClick={() => void resume()}>Xác nhận {action}</button>
+        <button type="button" disabled={busy} onClick={() => setReview(false)}>Hủy</button></>}
   </section>;
 }

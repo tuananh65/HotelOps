@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createHttpClient, isObject } from "../auth/http";
@@ -45,28 +46,28 @@ export function IncidentDuplicateReview({ values, onReviewed }: { values: Values
       },
     }).then(result => {
       if (!abort.signal.aborted) setLoaded({ key, page, ...(result.ok ? { data: result.data }
-        : { error: "Similar incidents could not be checked. Current incident read access is required. Reload before creating." }) });
+        : { error: "Không kiểm tra được sự cố tương tự. Cần quyền xem sự cố hiện tại. Tải lại trước khi tạo." }) });
     });
     return () => abort.abort();
   }, [key, page, revision, onReviewed]);
   const current = loaded?.key === key && loaded.page === page ? loaded : undefined;
-  return <section aria-label="Review similar incidents">
-    <h3>Review similar incidents</h3>
-    <p>Incidents not yet closed at any selected location are shown within your read access. An empty result does not prove there are no other incidents.</p>
-    {!key ? <p>Select a branch and a room, area or asset.</p> : !current ? <p role="status">Checking similar incidents…</p>
+  return <section aria-label="Xem lại sự cố tương tự">
+    <h3>Xem lại sự cố tương tự</h3>
+    <p>Hiển thị sự cố chưa đóng tại các vị trí đã chọn trong quyền xem của bạn. Kết quả trống không chứng minh không còn sự cố khác.</p>
+    {!key ? <p>Chọn chi nhánh và phòng, khu vực hoặc tài sản.</p> : !current ? <p role="status">Đang kiểm tra sự cố tương tự…</p>
       : current.error ? <p role="alert">{current.error}</p> : current.data && <>
-        {!current.data.totalCount && <p>No visible matching incidents.</p>}
+        {!current.data.totalCount && <p>Không có sự cố phù hợp được phép xem.</p>}
         <ul>{current.data.items.map(item => <li key={item.incidentId}>
-          <Link to={`/operations/incidents/${item.incidentId}`}>{item.incidentNo}: {item.incidentTitle}</Link> — {item.status}
-          <span> MSG32: Open this incident to add evidence if you have evidence permission; no new incident will be created.</span>
+          <Link to={`/operations/incidents/${item.incidentId}`}>{item.incidentNo}: {item.incidentTitle}</Link> — {displayCode(item.status)}
+          <span> MSG32: Mở sự cố này để thêm bằng chứng nếu có quyền; không tạo sự cố mới.</span>
         </li>)}</ul>
-        <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous similar incidents</button>
-        <span> Page {page} </span>
-        <button type="button" disabled={page >= current.data.totalPages} onClick={() => setPage(p => p + 1)}>Next similar incidents</button>
+        <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sự cố tương tự trước</button>
+        <span> Trang {page} </span>
+        <button type="button" disabled={page >= current.data.totalPages} onClick={() => setPage(p => p + 1)}>Sự cố tương tự tiếp theo</button>
         <label><input key={`${key}:${page}:${revision}`} type="checkbox" onChange={event => onReviewed(event.target.checked && key
           ? { key, token: current.data!.similarReviewToken } : null)} />
-          I reviewed the visible matches and want to create a new incident.</label>
+          Tôi đã xem các sự cố tương tự và muốn tạo sự cố mới.</label>
       </>}
-    <button type="button" disabled={!key} onClick={() => setRevision(r => r + 1)}>Reload similar incidents</button>
+    <button type="button" disabled={!key} onClick={() => setRevision(r => r + 1)}>Tải lại sự cố tương tự</button>
   </section>;
 }

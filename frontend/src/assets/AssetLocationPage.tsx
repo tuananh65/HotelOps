@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -66,21 +67,21 @@ export function AssetLocationPage() {
     {options && <fieldset><legend>Bộ lọc hiện tại</legend>
       {select("Chi nhánh", "branch", options.branches)}{select("Tầng", "floor", options.floors)}{select("Khu vực", "area", options.areas)}
       {select("Phòng", "room", options.rooms)}{select("Bộ phận giữ tài sản", "department", options.departments)}{select("Loại tài sản", "category", options.categories)}
-      <label>Tình trạng <select value={filters.condition} onChange={e => change("condition", e.target.value)}><option value="">Tất cả</option>{["GOOD", "FAIR", "POOR", "FAULTY"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
-      <label>Lifecycle <select value={filters.lifecycle} onChange={e => change("lifecycle", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "LOST", "RETIRED"].map(s => <option key={s}>{s}</option>)}</select></label>{" "}
-      <label>Nhóm theo <select value={filters.groupBy} onChange={e => change("groupBy", e.target.value)}>{Object.entries({ LOCATION: "Vị trí", BRANCH: "Chi nhánh", FLOOR: "Tầng", AREA: "Khu vực", ROOM: "Phòng", DEPARTMENT: "Bộ phận", CATEGORY: "Loại tài sản", CONDITION: "Tình trạng" }).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
+      <label>Tình trạng <select value={filters.condition} onChange={e => change("condition", e.target.value)}><option value="">Tất cả</option>{["GOOD", "FAIR", "POOR", "FAULTY"].map(s => <option key={s} value={s}>{displayCode(s)}</option>)}</select></label>{" "}
+      <label>Vòng đời <select value={filters.lifecycle} onChange={e => change("lifecycle", e.target.value)}><option value="">Tất cả</option>{["IN_USE", "UNDER_REPAIR", "LOST", "RETIRED"].map(s => <option key={s} value={s}>{displayCode(s)}</option>)}</select></label>{" "}
+      <label>Nhóm theo <select value={filters.groupBy} onChange={e => change("groupBy", e.target.value)}>{Object.entries({ LOCATION: "Vị trí", BRANCH: "Chi nhánh", FLOOR: "Tầng", AREA: "Khu vực", ROOM: "Phòng", DEPARTMENT: "Bộ phận", CATEGORY: "Loại tài sản", CONDITION: "Tình trạng" }).map(([key, name]) => <option key={key} value={key}>{displayCode(name)}</option>)}</select></label>
     </fieldset>}
     {result && <>
-      <p>Snapshot: {result.snapshot}. Thống kê theo vị trí hiện tại; không cộng thêm các lần di chuyển lịch sử.</p>
+      <p>Bản chụp dữ liệu: {result.snapshot}. Thống kê theo vị trí hiện tại; không cộng thêm các lần di chuyển lịch sử.</p>
       {result.missingSources.includes("LOCATION_SCOPE_INCOMPLETE") && <p role="status">Một số vị trí không có quan hệ phạm vi hợp lệ; không đưa vào kết quả. Thống kê này chưa đầy đủ.</p>}
       {group !== null ? <>
         <button onClick={() => { setResult(null); setGroup(null); setPage(1); }}>Quay lại các nhóm</button>
         <h3>Nhóm: {group}</h3>
-        <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Vị trí</th><th>Bộ phận</th><th>Loại</th><th>Tình trạng</th><th>Lifecycle</th></tr></thead>
-          <tbody>{result.assets.map(a => <tr key={a.id}><td><Link to={`/assets/${a.id}`}>{a.code}</Link></td><td>{a.name}</td><td>{a.roomName ?? a.areaName ?? "Unassigned"}</td><td>{a.departmentName ?? "N/A"}</td><td>{a.categoryName}</td><td>{a.condition}</td><td>{a.lifecycle}</td></tr>)}</tbody></table>
+        <table><thead><tr><th>Mã</th><th>Tài sản</th><th>Vị trí</th><th>Bộ phận</th><th>Loại</th><th>Tình trạng</th><th>Vòng đời</th></tr></thead>
+          <tbody>{result.assets.map(a => <tr key={a.id}><td><Link to={`/assets/${a.id}`}>{a.code}</Link></td><td>{a.name}</td><td>{a.roomName ?? a.areaName ?? "Chưa phân công"}</td><td>{a.departmentName ?? "N/A"}</td><td>{a.categoryName}</td><td>{a.condition}</td><td>{a.lifecycle}</td></tr>)}</tbody></table>
         {result.assets.length === 0 && <p>MSG10 — Không có tài sản phù hợp.</p>}
       </> : <>
-        <table><thead><tr><th>Nhóm</th><th>Tổng bản ghi</th><th>Active</th><th>Retired</th><th>Lifecycle / Tình trạng</th></tr></thead><tbody>
+        <table><thead><tr><th>Nhóm</th><th>Tổng bản ghi</th><th>Đang hoạt động</th><th>Đã ngừng sử dụng</th><th>Lifecycle / Tình trạng</th></tr></thead><tbody>
           {result.groups.map(g => <tr key={g.key}><td><button onClick={() => { setResult(null); setGroup(g.key); setPage(1); }}>{g.name}</button></td><td>{g.registeredCount}</td><td>{g.activeCount ?? "N/A"}</td><td>{g.retiredCount}</td><td>{g.states.map(s => <div key={`${s.lifecycle}-${s.condition}`}>{s.lifecycle} / {s.condition}: {s.count}</div>)}</td></tr>)}
         </tbody></table>
         {result.groups.length === 0 && <p>MSG10 — Không có nhóm phù hợp.</p>}

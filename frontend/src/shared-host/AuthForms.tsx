@@ -10,17 +10,16 @@ export { ForgotPasswordScreen };
 export function Recovery() {
   const { state, actions } = useAuth();
   if (state.status === "INITIALIZING")
-    return <p role="status">Checking your session...</p>;
+    return <p role="status">Đang kiểm tra phiên đăng nhập của bạn...</p>;
   return (
-    <section aria-label="Session recovery">
+    <section aria-label="Khôi phục phiên đăng nhập">
       <p role="alert">
-        Your session could not be confirmed. The previous operation's outcome is
-        not confirmed. No request has been retried automatically.
+        Chưa xác minh được phiên và kết quả thao tác trước. Không tự gửi lại yêu cầu.
       </p>
       <button type="button" onClick={() => void actions.revalidate()}>
-        Check session
+        Kiểm tra phiên đăng nhập
       </button>
-      <Link to="/forgot-password">Contact Administrator</Link>
+      <Link to="/forgot-password">Liên hệ quản trị viên</Link>
     </section>
   );
 }

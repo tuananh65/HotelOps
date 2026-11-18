@@ -9,30 +9,30 @@ import { MaintenanceProgressPanel } from "./MaintenanceProgressPanel";
 import { MaintenanceSubmissionPanel } from "./MaintenanceSubmissionPanel";
 import { MaintenanceResumePanel } from "./MaintenanceResumePanel";
 
-const show = (v: unknown) => typeof v === "string" || typeof v === "number" ? String(v) : "Unavailable";
-const target = (row: Values) => [row.roomNumber && `Room ${row.roomNumber}`, row.areaName,
+const show = (v: unknown) => typeof v === "string" || typeof v === "number" ? String(v) : "Chưa khả dụng";
+const target = (row: Values) => [row.roomNumber && `Phòng ${row.roomNumber}`, row.areaName,
   row.assetCode && `${row.assetCode}${row.assetName ? " ? " + row.assetName : ""}`]
-  .filter(v => typeof v === "string" && v.length > 0).join(" / ") || "Target unavailable";
+  .filter(v => typeof v === "string" && v.length > 0).join(" / ") || "Đối tượng chưa khả dụng";
 const time = (v: unknown) => {
-  if (typeof v !== "string") return "Unavailable";
+  if (typeof v !== "string") return "Chưa khả dụng";
   const date = new Date(/(?:Z|[+-]\d{2}:\d{2})$/.test(v) ? v : v + "Z");
-  return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "Chưa khả dụng" : date.toLocaleString();
 };
 
 export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false, canVerify = false, onCommitted }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean; canVerify?: boolean; onCommitted?: (message: string) => void }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
-    return <section aria-label="Maintenance work results">
-      <p>{show(data.totalCount)} matching records; page {show(data.page)} of {show(data.totalPages)}.</p>
-      {rows.length === 0 ? <p>No maintenance work matches your filters and access scope.</p> :
-        <table><thead><tr><th>Reference</th><th>Title</th><th>Source</th><th>Location / asset</th><th>Priority</th><th>Assignee</th><th>Status</th><th>Due date</th><th>Overdue</th></tr></thead>
+    return <section aria-label="Kết quả công việc bảo trì">
+      <p>{show(data.totalCount)} hồ sơ phù hợp; trang {show(data.page)} trên {show(data.totalPages)}.</p>
+      {rows.length === 0 ? <p>Không có công việc bảo trì phù hợp bộ lọc và phạm vi quyền.</p> :
+        <table><thead><tr><th>Tham chiếu</th><th>Tiêu đề</th><th>Nguồn</th><th>Vị trí / tài sản</th><th>Độ ưu tiên</th><th>Người được giao</th><th>Trạng thái</th><th>Hạn hoàn thành</th><th>Quá hạn</th></tr></thead>
           <tbody>{rows.map((row, index) => <tr key={show(row.occurrenceId ?? row.maintenanceWorkId) + ":" + index}>
             <td>{typeof row.occurrenceId === "number" && Number.isSafeInteger(row.occurrenceId) && row.occurrenceId > 0
               && typeof row.branchId === "number" && Number.isSafeInteger(row.branchId) && row.branchId > 0
               ? <Link to={`/operations/maintenance?branchId=${row.branchId}&runId=${row.occurrenceId}`}>{show(row.workNo)}</Link>
               : canDetail && typeof row.maintenanceWorkId === "number" && Number.isSafeInteger(row.maintenanceWorkId) && row.maintenanceWorkId > 0
               ? <Link to={`/operations/maintenance/${row.maintenanceWorkId}?action=A004A-036`}>{show(row.workNo)}</Link> : show(row.workNo)}</td>
-            <td>{show(row.title)}</td><td>{show(row.source)}</td><td>{target(row)}</td><td>{show(row.priorityName)}</td><td>{show(row.assigneeName ?? row.assigneeId)}</td><td>{show(row.status)}</td><td>{isObject(row.deadline) && typeof row.deadline.dueAt === "string" ? time(row.deadline.dueAt) : "N/A"}{isObject(row.deadline) && typeof row.deadline.unavailableReason === "string" && <small> ({row.deadline.unavailableReason})</small>}</td><td>{isObject(row.deadline) && row.deadline.isOverdue === true ? "Yes" : isObject(row.deadline) && row.deadline.isOverdue === false ? "No" : "N/A"}</td>
+            <td>{show(row.title)}</td><td>{show(row.source)}</td><td>{target(row)}</td><td>{show(row.priorityName)}</td><td>{show(row.assigneeName ?? row.assigneeId)}</td><td>{show(row.status)}</td><td>{isObject(row.deadline) && typeof row.deadline.dueAt === "string" ? time(row.deadline.dueAt) : "Chưa có thông tin"}{isObject(row.deadline) && typeof row.deadline.unavailableReason === "string" && <small> ({row.deadline.unavailableReason})</small>}</td><td>{isObject(row.deadline) && row.deadline.isOverdue === true ? "Có" : isObject(row.deadline) && row.deadline.isOverdue === false ? "Không" : "Chưa có thông tin"}</td>
           </tr>)}</tbody></table>}
     </section>;
   }
@@ -40,28 +40,28 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const deadline = isObject(data.deadline) ? data.deadline : null;
   const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
-  return <section aria-label="Maintenance work detail">
-    {data.submissionWorkflow === "PENDING_VERIFICATION" && <p role="status">Pending verification. The repair result is submitted and its work interval is closed. The Incident remains open until an independent verifier accepts it.</p>}
-    {data.submissionWorkflow === "UNVERIFIED" && <p role="alert">Submission evidence is inconsistent or unavailable. Verification cannot proceed until the record is reconciled.</p>}
+  return <section aria-label="Chi tiết công việc bảo trì">
+    {data.submissionWorkflow === "PENDING_VERIFICATION" && <p role="status">Đang chờ xác minh. Đã nộp kết quả sửa chữa và kết thúc khoảng làm việc. Sự cố vẫn mở đến khi người xác minh độc lập chấp nhận.</p>}
+    {data.submissionWorkflow === "UNVERIFIED" && <p role="alert">Bằng chứng nộp không nhất quán hoặc chưa khả dụng. Cần đối soát hồ sơ trước khi xác minh.</p>}
     {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
       && (data.assignmentWorkflow === "ASSIGNED" || data.assignmentWorkflow === "PENDING_ASSIGNMENT")
-      && <Link to={`/operations/incidents/${data.incidentId}?action=A004A-023`}>Open incident assignment</Link>}
+      && <Link to={`/operations/incidents/${data.incidentId}?action=A004A-023`}>Mở phân công xử lý sự cố</Link>}
     {canStart && <MaintenanceDeclinePanel onCommitted={onCommitted} key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
-    {Array.isArray(data.declines) && data.declines.length > 0 && <section aria-label="Assignment decline history">
-      <h3>Assignment declines</h3><ul>{data.declines.filter(isObject).map(row => <li key={String(row.auditId)}>
-        {time(row.occurredAt)} ? Assignee {show(row.previousAssigneeId)}: {show(row.reason)}
+    {Array.isArray(data.declines) && data.declines.length > 0 && <section aria-label="Lịch sử từ chối nhận việc">
+      <h3>Lượt từ chối nhận việc</h3><ul>{data.declines.filter(isObject).map(row => <li key={String(row.auditId)}>
+        {time(row.occurredAt)} ? Người được giao {show(row.previousAssigneeId)}: {show(row.reason)}
       </li>)}</ul></section>}
     {canVerify && <MaintenanceVerifyPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
     {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
-    {submitted && <section aria-label="Submitted maintenance snapshot">
-      <h3>Submitted result</h3>
-      <p>Submission #{show(submitted.submissionAuditId)} at {time(submitted.submittedAtUtc)}.</p>
-      <dl><dt>Diagnosis / root cause</dt><dd>{show(submitted.diagnosis)}</dd>
-        <dt>Action taken</dt><dd>{show(submitted.actionTaken)}</dd></dl>
-      <p>Review material usage below. Evidence downloads enforce current Incident access.</p>
+    {submitted && <section aria-label="Thông tin bảo trì tại thời điểm nộp">
+      <h3>Kết quả đã nộp</h3>
+      <p>Gửi kết quả #{show(submitted.submissionAuditId)} lúc {time(submitted.submittedAtUtc)}.</p>
+      <dl><dt>Chẩn đoán / nguyên nhân gốc</dt><dd>{show(submitted.diagnosis)}</dd>
+        <dt>Biện pháp đã thực hiện</dt><dd>{show(submitted.actionTaken)}</dd></dl>
+      <p>Kiểm tra sử dụng vật tư bên dưới. Tải bằng chứng cần quyền xem sự cố hiện tại.</p>
       {Array.isArray(submitted.resultAttachmentIds) && typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0 &&
         <ul>{submitted.resultAttachmentIds.filter((id): id is number => typeof id === "number" && Number.isSafeInteger(id) && id > 0).map(id =>
-          <li key={id}><a href={`/api/incidents/${data.incidentId}/evidence/${id}`}>Result evidence {id}</a></li>)}</ul>}
+          <li key={id}><a href={`/api/incidents/${data.incidentId}/evidence/${id}`}>Bằng chứng kết quả {id}</a></li>)}</ul>}
     </section>}
     {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} onCommitted={onCommitted} />}
     {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
@@ -70,46 +70,46 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
       <IncidentEvidencePanel key={data.incidentId} incidentId={data.incidentId} readOnly />}
     {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} onCommitted={onCommitted} />}
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
-    <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
-      <dt>Source</dt><dd>{show(data.source)}</dd><dt>Location / asset</dt><dd>{target(data)}</dd>
-      <dt>Priority</dt><dd>{show(data.priorityName)}</dd>
-      <dt>Instruction</dt><dd>{show(data.instruction)}</dd><dt>Planned start</dt><dd>{time(data.plannedStartAt)}</dd>
-      <dt>Planned end</dt><dd>{time(data.plannedEndAt)}</dd><dt>Actual start</dt><dd>{time(data.actualStartAt)}</dd>
-      <dt>Resolution</dt><dd>{show(data.resolutionNote)}</dd><dt>Resolved at</dt><dd>{time(data.resolvedAt)}</dd></dl>
-    <section aria-label="Maintenance deadline">
-      <h4>Due date</h4>
-      <p>{deadline?.dueAt ? time(deadline.dueAt) : "N/A"} {deadline?.source === "INCIDENT_RESOLUTION_SLA" ? "(Incident resolution SLA)" : deadline?.source === "PREVENTIVE_OCCURRENCE" ? "(Preventive occurrence)" : ""}</p>
-      <p>Overdue: {deadline?.isOverdue === true ? "Yes" : deadline?.isOverdue === false ? "No" : "N/A"}</p>
-      {deadline?.unavailableReason != null && <p role="status">Deadline information unavailable: {show(deadline.unavailableReason)}.</p>}
+    <dl><dt>Trạng thái</dt><dd>{show(data.status)}</dd><dt>Người được giao</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
+      <dt>Nguồn</dt><dd>{show(data.source)}</dd><dt>Vị trí / tài sản</dt><dd>{target(data)}</dd>
+      <dt>Độ ưu tiên</dt><dd>{show(data.priorityName)}</dd>
+      <dt>Hướng dẫn</dt><dd>{show(data.instruction)}</dd><dt>Bắt đầu dự kiến</dt><dd>{time(data.plannedStartAt)}</dd>
+      <dt>Kết thúc dự kiến</dt><dd>{time(data.plannedEndAt)}</dd><dt>Bắt đầu thực tế</dt><dd>{time(data.actualStartAt)}</dd>
+      <dt>Xử lý</dt><dd>{show(data.resolutionNote)}</dd><dt>Xử lý xong lúc</dt><dd>{time(data.resolvedAt)}</dd></dl>
+    <section aria-label="Thời hạn bảo trì">
+      <h4>Hạn hoàn thành</h4>
+      <p>{deadline?.dueAt ? time(deadline.dueAt) : "Chưa có thông tin"} {deadline?.source === "INCIDENT_RESOLUTION_SLA" ? "(SLA xử lý sự cố)" : deadline?.source === "PREVENTIVE_OCCURRENCE" ? "(Lần bảo trì định kỳ)" : ""}</p>
+      <p>Quá hạn: {deadline?.isOverdue === true ? "Có" : deadline?.isOverdue === false ? "Không" : "Chưa có thông tin"}</p>
+      {deadline?.unavailableReason != null && <p role="status">Chưa có thông tin thời hạn: {show(deadline.unavailableReason)}.</p>}
     </section>
-    <h4>Work history</h4>
-    {data.assignmentWorkflow != null && <p>Assignment workflow: {show(data.assignmentWorkflow)}.
+    <h4>Lịch sử công việc</h4>
+    {data.assignmentWorkflow != null && <p>Quy trình phân công: {show(data.assignmentWorkflow)}.
       {data.assignmentWorkflow === "UNVERIFIED" && " Triage and assignment evidence must be reconciled before accepting this work."}</p>}
-    {data.source === "INCIDENT" && <section aria-label="Incident SLA deadlines">
-      <h4>Incident SLA deadlines</h4>
-      <dl><dt>Response deadline</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.responseDeadlineAt) : "Unavailable"}</dd>
-        <dt>Resolution deadline</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.resolutionDeadlineAt) : "Unavailable"}</dd></dl>
+    {data.source === "INCIDENT" && <section aria-label="Thời hạn SLA của sự cố">
+      <h4>Thời hạn SLA của sự cố</h4>
+      <dl><dt>Hạn phản hồi</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.responseDeadlineAt) : "Chưa khả dụng"}</dd>
+        <dt>Hạn xử lý</dt><dd>{isObject(data.incidentSla) ? time(data.incidentSla.resolutionDeadlineAt) : "Chưa khả dụng"}</dd></dl>
       {(!isObject(data.incidentSla) || data.incidentSla.unavailableReason != null) && <p>
         {isObject(data.incidentSla) && data.incidentSla.unavailableReason === "INCIDENT_SLA_ACCESS_UNAVAILABLE"
-          ? "Current access does not allow viewing Incident SLA deadlines."
+          ? "Quyền hiện tại không cho phép xem thời hạn SLA sự cố."
           : isObject(data.incidentSla) && data.incidentSla.unavailableReason === "INCIDENT_SLA_INVALID"
-            ? "Recorded deadlines are inconsistent and cannot be used."
-            : "Incident SLA deadlines have not been recorded or are unavailable."}
+            ? "Thời hạn đã ghi không nhất quán và không thể sử dụng."
+            : "Thời hạn SLA sự cố chưa được ghi nhận hoặc chưa khả dụng."}
       </p>}
-      <p>Maintenance planned times do not replace Incident SLA deadlines.</p>
+      <p>Thời gian bảo trì dự kiến không thay thế thời hạn SLA sự cố.</p>
     </section>}
-    {logs.length === 0 ? <p>No work logs recorded.</p> : <ol>{logs.map((log, index) => <li key={show(log.logId) + ":" + index}>
-      {typeof log.progressPercent === "number" && Number.isInteger(log.progressPercent) && log.progressPercent >= 0 && log.progressPercent <= 100 ? `${log.progressPercent}% ? ` : ""}{time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} minutes)
+    {logs.length === 0 ? <p>Chưa có nhật ký công việc đã ghi nhận.</p> : <ol>{logs.map((log, index) => <li key={show(log.logId) + ":" + index}>
+      {typeof log.progressPercent === "number" && Number.isInteger(log.progressPercent) && log.progressPercent >= 0 && log.progressPercent <= 100 ? `${log.progressPercent}% ? ` : ""}{time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} phút)
     </li>)}</ol>}
-    <h4>Material usage</h4>
-    {data.materialUsageAvailable !== true ? <p>Material usage is unavailable: current material/inventory access and source document integrity must both be verified.</p>
-      : usages.length === 0 ? <p>No material usage recorded.</p>
-      : <table><thead><tr><th>Item ID</th><th>Used quantity</th><th>Unit ID</th><th>Base quantity</th><th>Base unit ID</th><th>Issue document</th><th>Material request</th></tr></thead>
+    <h4>Sử dụng vật tư</h4>
+    {data.materialUsageAvailable !== true ? <p>Chưa có thông tin sử dụng vật tư: cần xác minh quyền vật tư / kho và tính toàn vẹn chứng từ nguồn.</p>
+      : usages.length === 0 ? <p>Chưa ghi nhận sử dụng vật tư.</p>
+      : <table><thead><tr><th>Mã vật tư</th><th>Số lượng đã dùng</th><th>Mã đơn vị</th><th>Số lượng theo đơn vị cơ sở</th><th>Mã đơn vị cơ sở</th><th>Phiếu xuất kho</th><th>Yêu cầu vật tư</th></tr></thead>
         <tbody>{usages.map((usage, index) => <tr key={show(usage.usageId) + ":" + index}>
           <td>{show(usage.itemId)}</td><td>{show(usage.usedQty)}</td><td>{show(usage.uomId)}</td>
           <td>{show(usage.usedBaseQty)}</td><td>{show(usage.baseUomId)}</td><td>{show(usage.documentNo)}</td>
           <td>{typeof usage.requestId === "number" && Number.isSafeInteger(usage.requestId) && usage.requestId > 0
-            ? <Link to={`/operations/material-requests/${usage.requestId}?action=A004A-038`}>{usage.requestId}</Link> : "Unavailable"}</td>
+            ? <Link to={`/operations/material-requests/${usage.requestId}?action=A004A-038`}>{usage.requestId}</Link> : "Chưa khả dụng"}</td>
         </tr>)}</tbody></table>}
   </section>;
 }

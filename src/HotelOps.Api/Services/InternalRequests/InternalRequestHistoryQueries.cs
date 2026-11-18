@@ -9,7 +9,8 @@ public sealed record InternalRequestHistoryFilter(
     string? Status = null, string? Search = null, bool? Overdue = null, int Page = 1, int PageSize = 25, string? Direction = null);
 public sealed record InternalRequestHistoryRow(long Id, string Number, long BranchId, string Subject,
     string Status, long TypeId, long? PriorityId, long? ReceivingDepartmentId, DateTime? Deadline, bool Overdue,
-    long? CurrentAssigneeId, int ActiveAssignmentCount, DateTime CreatedAt = default, string TimingStatus = "INVALID_WINDOW");
+    long? CurrentAssigneeId, int ActiveAssignmentCount, DateTime CreatedAt = default, string TimingStatus = "INVALID_WINDOW",
+    string? BranchName = null, string? ReceivingDepartmentName = null, string? CurrentAssigneeName = null);
 public sealed record InternalRequestHistoryPage(IReadOnlyList<InternalRequestHistoryRow> Items, int TotalCount,
     int Page, int PageSize, DateTime SnapshotUtc);
 public sealed record InternalRequestTimelineEvent(long Id, string Type, string? OldStatus, string? NewStatus,
@@ -52,6 +53,9 @@ public static class InternalRequestHistoryQueries
         // GBR-156: strictly after deadline; Closed/Rejected/Cancelled are excluded. No deadline means not overdue.
         var rows = query.Select(r => new { Id=r.InternalRequestId, Number=r.RequestNo, r.BranchId,
             r.Subject, r.Status, r.CreatedAt, TypeId=r.RequestTypeId, r.PriorityId, r.ReceivingDepartmentId, Deadline=r.DueAt,
+            BranchName=r.Branch.BranchName, ReceivingDepartmentName=r.ReceivingDepartment!=null?r.ReceivingDepartment.DepartmentName:null,
+            CurrentAssigneeName=r.InternalRequestAssignments.Count(a=>a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=snapshotUtc)==1
+                ?r.InternalRequestAssignments.Where(a=>a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=snapshotUtc).Select(a=>a.Assignee.FullName).FirstOrDefault():null,
             Overdue=r.DueAt != null && r.DueAt > r.CreatedAt && r.DueAt < snapshotUtc && r.Status != "CLOSED" && r.Status != "REJECTED" && r.Status != "CANCELLED",
             ActiveAssignmentCount=r.InternalRequestAssignments.Count(a=>a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=snapshotUtc),
             CurrentAssigneeId=r.InternalRequestAssignments.Count(a=>a.Status=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=snapshotUtc)==1
@@ -60,7 +64,7 @@ public static class InternalRequestHistoryQueries
         var count = await rows.CountAsync(ct);
         var items = await rows.OrderBy(r => r.Deadline == null).ThenBy(r => r.Deadline).ThenBy(r => r.Id)
             .Skip((filter.Page - 1) * filter.PageSize).Take(filter.PageSize)
-            .Select(r => new InternalRequestHistoryRow(r.Id,r.Number,r.BranchId,r.Subject,r.Status,r.TypeId,r.PriorityId,r.ReceivingDepartmentId,r.Deadline,r.Overdue,r.CurrentAssigneeId,r.ActiveAssignmentCount,r.CreatedAt,"INVALID_WINDOW")).ToArrayAsync(ct);
+            .Select(r => new InternalRequestHistoryRow(r.Id,r.Number,r.BranchId,r.Subject,r.Status,r.TypeId,r.PriorityId,r.ReceivingDepartmentId,r.Deadline,r.Overdue,r.CurrentAssigneeId,r.ActiveAssignmentCount,r.CreatedAt,"INVALID_WINDOW",r.BranchName,r.ReceivingDepartmentName,r.CurrentAssigneeName)).ToArrayAsync(ct);
         return new(items.Select(r=>r with {Deadline=Utc(r.Deadline), CreatedAt=Utc(r.CreatedAt)!.Value,
             TimingStatus=InternalRequestTiming.Classify(r.Status,r.CreatedAt,r.Deadline,snapshotUtc)}).ToArray(), count, filter.Page, filter.PageSize, snapshotUtc);
     }

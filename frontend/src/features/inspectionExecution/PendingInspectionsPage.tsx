@@ -20,7 +20,7 @@ export function PendingInspectionsPage() {
     ++revision.current;
   }
   if (!parseAssignmentContext(params.toString()))
-    return <p role="alert">Invalid pending inspection destination.</p>;
+    return <p role="alert">Đích kiểm tra đang chờ không hợp lệ.</p>;
   return (
     <Queue
       key={`${branch}:${room}:${revision.current}`}
@@ -61,7 +61,7 @@ function Queue({ branch, room }: { branch: string; room: string | null }) {
             owner,
             key,
             error:
-              "Pending inspections are unavailable for this branch or your current access.",
+              "Chưa có kiểm tra đang chờ trong chi nhánh hoặc quyền hiện tại.",
           });
           if (error instanceof ApiError && error.status === 401)
             actions.invalidateSession(owner);
@@ -71,24 +71,24 @@ function Queue({ branch, room }: { branch: string; room: string | null }) {
   }, [owner, key, branch, room, page, actions]);
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
-  if (!owner) return <p role="status">Checking session…</p>;
+  if (!owner) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
   return (
     <main>
-      <h1>Pending inspections</h1>
-      <Link to="/rooms/status">Room status board</Link>
-      {!visible && <p role="status">Loading pending inspections…</p>}
+      <h1>Các lượt kiểm tra đang chờ</h1>
+      <Link to="/rooms/status">Bảng trạng thái phòng</Link>
+      {!visible && <p role="status">Đang tải các lượt kiểm tra đang chờ…</p>}
       {visible?.error && <p role="alert">{visible.error}</p>}
       {visible?.data && (
         <>
-          <p>{visible.data.totalCount} cleaning cycles awaiting inspection.</p>
+          <p>{visible.data.totalCount} chu kỳ vệ sinh chờ kiểm tra.</p>
           <ul>
             {visible.data.items.map((row) => (
               <li key={row.taskId}>
-                Room {row.roomNumber} · Cleaning cycle #{row.taskId}{" "}
+                Phòng {row.roomNumber} · Chu kỳ vệ sinh #{row.taskId}{" "}
                 <Link
                   to={`/inspections/cleaning-tasks/${row.taskId}/assign?branchId=${branch}`}
                 >
-                  Review inspection assignment
+                  Xem lại phân công kiểm tra
                 </Link>
               </li>
             ))}
@@ -97,19 +97,19 @@ function Queue({ branch, room }: { branch: string; room: string | null }) {
             disabled={page === 1}
             onClick={() => setPage((value) => value - 1)}
           >
-            Previous page
+            Trang trước
           </button>
-          <span> Page {page} </span>
+          <span> Trang {page} </span>
           <button
             disabled={page * visible.data.pageSize >= visible.data.totalCount}
             onClick={() => setPage((value) => value + 1)}
           >
-            Next page
+            Trang sau
           </button>
         </>
       )}
       <button onClick={() => setRefresh((value) => value + 1)}>
-        Refresh pending inspections
+        Tải lại các lượt kiểm tra đang chờ
       </button>
     </main>
   );

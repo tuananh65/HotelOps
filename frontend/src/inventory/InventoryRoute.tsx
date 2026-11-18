@@ -55,19 +55,18 @@ export function InventoryRoute({ mode }: { mode: "list" | "detail" }) {
     return (
       <main className="inventory-page">
         <p role="status">
-          Inventory data is hidden while your session is unconfirmed.
+          Dữ liệu kho được ẩn khi phiên chưa được xác minh.
         </p>
-        <button onClick={() => void actions.revalidate()}>Check session</button>
-        <Link to="/profile">Profile</Link>
+        <button onClick={() => void actions.revalidate()}>Kiểm tra phiên đăng nhập</button>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   if (blocked)
     return (
       <main className="inventory-page">
-        <h1>Inventory session recovery</h1>
+        <h1>Khôi phục phiên quản lý kho</h1>
         <p role="alert">
-          Inventory data has been cleared. Your session was checked; reload
-          explicitly to try again.
+          Dữ liệu kho đã ẩn. Phiên đã được kiểm tra; chủ động tải lại để thử tiếp.
         </p>
         <button
           onClick={() => {
@@ -75,16 +74,16 @@ export function InventoryRoute({ mode }: { mode: "list" | "detail" }) {
             setBlocked(false);
           }}
         >
-          Reload inventory
+          Tải lại kho vật tư
         </button>
-        <Link to="/profile">Profile</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   if (mode === "detail" && routeItemId(id) === undefined)
     return (
       <main className="inventory-page">
-        <p role="alert">Invalid item ID.</p>
-        <Link to="/inventory/items">Back to items</Link>
+        <p role="alert">Mã vật tư không hợp lệ.</p>
+        <Link to="/inventory/items">Quay lại vật tư</Link>
       </main>
     );
   return (
@@ -142,22 +141,22 @@ function InventoryRead({
 
   return (
     <main className="inventory-page">
-      <nav aria-label="Inventory navigation">
-        <Link to="/dashboard">Workspace</Link>
-        <Link to="/inventory/items">Items</Link> · <Link to="/inventory/stocktakes">Stocktakes</Link>{" | "}<Link to="/inventory/transfers">Stock transfers</Link>{" | "}<Link to="/inventory/receipts">Stock receipts</Link> | <Link to="/inventory/warehouses">Warehouses</Link> | <Link to="/inventory/catalog">Manage items</Link> · <Link to="/inventory/stock">Stock balance and ledger</Link> · <Link to="/inventory/units">Units and conversions</Link>
-        <Link to="/profile">Profile</Link>
+      <nav aria-label="Điều hướng kho">
+        <Link to="/dashboard">Không gian làm việc</Link>
+        <Link to="/inventory/items">Vật tư</Link> · <Link to="/inventory/stocktakes">Kiểm kê</Link>{" | "}<Link to="/inventory/transfers">Điều chuyển kho</Link>{" | "}<Link to="/inventory/receipts">Phiếu nhập kho</Link> | <Link to="/inventory/warehouses">Kho</Link> | <Link to="/inventory/catalog">Quản lý vật tư</Link> · <Link to="/inventory/stock">Tồn kho và sổ kho</Link> · <Link to="/inventory/units">Đơn vị và quy đổi</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </nav>
       <header>
-        <p className="inventory-eyebrow">Inventory · Read only</p>
-        <h1>{mode === "list" ? "Inventory items" : "Item detail"}</h1>
+        <p className="inventory-eyebrow">Kho vật tư · Chỉ xem</p>
+        <h1>{mode === "list" ? "Vật tư trong kho" : "Chi tiết vật tư"}</h1>
         <p>
-          Browse the item catalogue. Stock balances are available separately.
+          Tra cứu danh mục vật tư. Số dư tồn kho được xem riêng.
         </p>
       </header>
       {!valid ? (
-        <p role="alert">Invalid page number.</p>
+        <p role="alert">Số trang không hợp lệ.</p>
       ) : !result ? (
-        <p role="status">Loading items...</p>
+        <p role="status">Đang tải vật tư...</p>
       ) : !result.ok ? (
         <section>
           <p role="alert">{errorMessage(result)}</p>
@@ -168,7 +167,7 @@ function InventoryRead({
                 setAttempt((x) => x + 1);
               }}
             >
-              Retry
+              Thử lại
             </button>
           )}
         </section>
@@ -177,20 +176,20 @@ function InventoryRead({
       ) : (
         <Item item={result.data as InventoryItem} />
       )}
-      {mode === "detail" && <Link to="/inventory/items">Back to items</Link>}
+      {mode === "detail" && <Link to="/inventory/items">Quay lại vật tư</Link>}
     </main>
   );
 }
 
 function errorMessage(error: { kind: string; status?: number }) {
   if (error.status === 401)
-    return "Your session must be checked. Inventory data has been cleared.";
+    return "Cần kiểm tra phiên. Dữ liệu kho đã ẩn.";
   if (error.status === 403)
-    return "Access denied. Your account does not have access to this Inventory data.";
-  if (error.status === 404) return "Item not found.";
+    return "Tài khoản của bạn không có quyền xem dữ liệu kho này.";
+  if (error.status === 404) return "Không tìm thấy vật tư.";
   if (error.kind === "invalid-response")
-    return "The server response could not be validated.";
-  return "Inventory data is currently unavailable. Please try again.";
+    return "Không xác thực được phản hồi máy chủ.";
+  return "Dữ liệu kho hiện chưa khả dụng. Vui lòng thử lại.";
 }
 
 function Items({ page }: { page: InventoryPage }) {
@@ -198,22 +197,22 @@ function Items({ page }: { page: InventoryPage }) {
   return (
     <>
       <p>
-        {page.totalCount} items · Page {page.page} of {pages}
+        {page.totalCount} vật tư · Trang {page.page} trên {pages}
       </p>
       {page.items.length === 0 ? (
-        <p>No items found on this page.</p>
+        <p>Không tìm thấy vật tư trên trang này.</p>
       ) : (
         <div className="inventory-table">
           <table>
-            <caption>Item catalogue</caption>
+            <caption>Danh mục vật tư</caption>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Category ID</th>
-                <th>Base unit ID</th>
-                <th>Status</th>
-                <th>Details</th>
+                <th>Mã</th>
+                <th>Tên</th>
+                <th>Mã nhóm</th>
+                <th>Mã đơn vị cơ sở</th>
+                <th>Trạng thái</th>
+                <th>Chi tiết</th>
               </tr>
             </thead>
             <tbody>
@@ -223,10 +222,10 @@ function Items({ page }: { page: InventoryPage }) {
                   <td>{item.itemName}</td>
                   <td>{item.categoryId}</td>
                   <td>{item.baseUomId}</td>
-                  <td>{item.isActive ? "Active" : "Inactive"}</td>
+                  <td>{item.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</td>
                   <td>
                     <Link to={`/inventory/items/${item.itemId}`}>
-                      View {item.itemCode}
+                      Xem {item.itemCode}
                     </Link>
                   </td>
                 </tr>
@@ -235,9 +234,9 @@ function Items({ page }: { page: InventoryPage }) {
           </table>
         </div>
       )}
-      <nav aria-label="Items pagination">
-        {page.page > 1 && <Link to={`?page=${page.page - 1}`}>Previous</Link>}
-        {page.page < pages && <Link to={`?page=${page.page + 1}`}>Next</Link>}
+      <nav aria-label="Phân trang vật tư">
+        {page.page > 1 && <Link to={`?page=${page.page - 1}`}>Trước</Link>}
+        {page.page < pages && <Link to={`?page=${page.page + 1}`}>Tiếp</Link>}
       </nav>
     </>
   );
@@ -248,22 +247,22 @@ function Item({ item }: { item: InventoryItem }) {
     <section>
       <h2>{item.itemName}</h2>
       <dl>
-        <dt>Item ID</dt>
+        <dt>Mã vật tư</dt>
         <dd>{item.itemId}</dd>
-        <dt>Code</dt>
+        <dt>Mã</dt>
         <dd>{item.itemCode}</dd>
-        <dt>Category ID</dt>
+        <dt>Mã nhóm</dt>
         <dd>{item.categoryId}</dd>
-        <dt>Base unit ID</dt>
+        <dt>Mã đơn vị cơ sở</dt>
         <dd>{item.baseUomId}</dd>
-        <dt>Status</dt>
-        <dd>{item.isActive ? "Active" : "Inactive"}</dd>
-        <dt>Consumable</dt>
-        <dd>{item.isConsumable ? "Yes" : "No"}</dd>
-        <dt>Description</dt>
-        <dd>{item.description ?? "Not supplied"}</dd>
-        <dt>Specification</dt>
-        <dd>{item.specification ?? "Not supplied"}</dd>
+        <dt>Trạng thái</dt>
+        <dd>{item.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</dd>
+        <dt>Vật tư tiêu hao</dt>
+        <dd>{item.isConsumable ? "Có" : "Không"}</dd>
+        <dt>Mô tả</dt>
+        <dd>{item.description ?? "Chưa cung cấp"}</dd>
+        <dt>Thông số</dt>
+        <dd>{item.specification ?? "Chưa cung cấp"}</dd>
       </dl>
     </section>
   );

@@ -10,8 +10,8 @@ export function InspectionAssignmentDestination({ enabled = false, onOpenInspect
 }) {
   const location = useLocation();
   const context = parseAssignmentContext(location.search);
-  if (!context) return <p role="alert">Invalid assignment context. A valid branchId and optional roomId are required.</p>;
-  if (!enabled) return <p role="alert">Inspection assignment is not activated.</p>;
+  if (!context) return <p role="alert">Ngữ cảnh phân công không hợp lệ. Cần mã chi nhánh hợp lệ; mã phòng không bắt buộc.</p>;
+  if (!enabled) return <p role="alert">Phân công kiểm tra chưa được kích hoạt.</p>;
   return <InspectionAssignmentCandidate key={location.key + location.search}
     branchId={context.branchId} roomId={context.roomId}
     onOpenInspection={id => onOpenInspection(context.branchId, id)} />;

@@ -122,7 +122,7 @@ async function navigate(page, path) {
 const body = (page) => page.locator("body").innerText();
 const review = async (page, branchId = "123", roleCode = "HK_STAFF") => {
   await page
-    .getByRole("textbox", { name: "Role Code", exact: true })
+    .getByRole("textbox", { name: "Mã vai trò", exact: true })
     .fill(roleCode);
   await page
     .getByRole("textbox", { name: "Branch ID", exact: true })
@@ -344,7 +344,7 @@ test("profile-only admission, server identity and exact confirmed POST without p
     assert.ok(preview.includes("Branch ID: 123"));
     await confirm(p);
     await p
-      .getByRole("status", { name: "Confirmed role assignment" })
+      .getByRole("status", { name: "Gán vai trò đã xác nhận" })
       .waitFor();
     const write = (await posts(p))[0];
     assert.equal((await posts(p)).length, 1);
@@ -353,7 +353,7 @@ test("profile-only admission, server identity and exact confirmed POST without p
     assert.equal(write.headers["if-match"], tag);
     assert.equal((await calls(p, "/api/auth/csrf")).length, 1);
     const result = await p
-      .getByRole("status", { name: "Confirmed role assignment" })
+      .getByRole("status", { name: "Gán vai trò đã xác nhận" })
       .innerText();
     for (const value of [
       "id: 91",
@@ -407,7 +407,7 @@ for (const branch of ["1", "000123", String(Number.MAX_SAFE_INTEGER)])
         await review(p, branch);
         await confirm(p);
         await p
-          .getByRole("status", { name: "Confirmed role assignment" })
+          .getByRole("status", { name: "Gán vai trò đã xác nhận" })
           .waitFor();
         assert.equal(
           (await posts(p))[0].body,
@@ -454,7 +454,7 @@ test("StrictMode, double confirm and repeated Enter never duplicate POST", async
     assert.equal((await posts(p)).length, 1);
     await finish(p, "post", assignment());
     await p
-      .getByRole("status", { name: "Confirmed role assignment" })
+      .getByRole("status", { name: "Gán vai trò đã xác nhận" })
       .waitFor();
     assert.equal((await posts(p)).length, 1);
   });
@@ -475,7 +475,7 @@ for (const [code, message] of [
       assert.equal((await posts(p)).length, 1);
       assert.equal(
         await p
-          .getByRole("status", { name: "Confirmed role assignment" })
+          .getByRole("status", { name: "Gán vai trò đã xác nhận" })
           .count(),
         0,
       );
@@ -541,7 +541,7 @@ test("412 removes old confirmation; explicit Reload and review use fresh ETag", 
       await review(p, "456");
       await confirm(p);
       await p
-        .getByRole("status", { name: "Confirmed role assignment" })
+        .getByRole("status", { name: "Gán vai trò đã xác nhận" })
         .waitFor();
       assert.equal((await posts(p))[1].headers["if-match"], nextTag);
     },
@@ -592,7 +592,7 @@ test("unreadable POST 401 recovers session once while retaining uncertainty", as
       assert.equal((await calls(p, "/api/auth/session")).length, 2);
       assert.equal(
         await p
-          .getByRole("status", { name: "Confirmed role assignment" })
+          .getByRole("status", { name: "Gán vai trò đã xác nhận" })
           .count(),
         0,
       );
@@ -606,7 +606,7 @@ test("bootstrap failure stays NOT_DISPATCHED without automatic retry", async () 
     await review(p);
     await confirm(p);
     await p.getByRole("alert").waitFor();
-    assert.ok((await body(p)).includes("No role assignment POST was sent."));
+    assert.ok((await body(p)).includes("Không gửi yêu cầu gán vai trò."));
     assert.equal((await posts(p)).length, 0);
     assert.equal((await calls(p, "/api/auth/csrf")).length, 1);
   });
@@ -650,7 +650,7 @@ for (const reply of [
         assert.equal((await calls(p, "/api/auth/session")).length, 1);
         assert.equal(
           await p
-            .getByRole("status", { name: "Confirmed role assignment" })
+            .getByRole("status", { name: "Gán vai trò đã xác nhận" })
             .count(),
           0,
         );
@@ -700,7 +700,7 @@ for (const id of ["7", "8"])
         assert.equal((await posts(p))[0].aborted, true);
         assert.equal(
           await p
-            .getByRole("status", { name: "Confirmed role assignment" })
+            .getByRole("status", { name: "Gán vai trò đã xác nhận" })
             .count(),
           0,
         );
@@ -724,13 +724,13 @@ test("session unavailable while POST pending stays uncertain after explicit reco
       assert.ok(!(await body(p)).includes("server@example.test"));
       await finish(p, "post", assignment());
       await p
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await p.getByText(unknown, { exact: true }).waitFor();
       assert.equal((await posts(p))[0].aborted, true);
       assert.equal(
         await p
-          .getByRole("status", { name: "Confirmed role assignment" })
+          .getByRole("status", { name: "Gán vai trò đã xác nhận" })
           .count(),
         0,
       );
@@ -815,7 +815,7 @@ for (const destination of ["/profile", "/users/43/roles/assign"])
         assert.equal((await posts(p))[0].aborted, true);
         assert.equal(
           await p
-            .getByRole("status", { name: "Confirmed role assignment" })
+            .getByRole("status", { name: "Gán vai trò đã xác nhận" })
             .count(),
           0,
         );
@@ -841,13 +841,13 @@ test("confirmed assignment receipt is removed on ownership replacement", async (
       await review(p);
       await confirm(p);
       await p
-        .getByRole("status", { name: "Confirmed role assignment" })
+        .getByRole("status", { name: "Gán vai trò đã xác nhận" })
         .waitFor();
       await p.evaluate(() => window.fixture.revalidate());
       await settle(p);
       assert.equal(
         await p
-          .getByRole("status", { name: "Confirmed role assignment" })
+          .getByRole("status", { name: "Gán vai trò đã xác nhận" })
           .count(),
         0,
       );
@@ -897,7 +897,7 @@ for (const role of [
       assert.equal((await posts(p)).length, 0);
       await confirm(p);
       await p
-        .getByRole("status", { name: "Confirmed role assignment" })
+        .getByRole("status", { name: "Gán vai trò đã xác nhận" })
         .waitFor();
       assert.equal(
         (await posts(p))[0].body,
@@ -962,7 +962,7 @@ test("role normalization matches .NET Trim, preserves case and excludes FEFF", a
     );
     await confirm(p);
     await p
-      .getByRole("status", { name: "Confirmed role assignment" })
+      .getByRole("status", { name: "Gán vai trò đã xác nhận" })
       .waitFor();
     assert.equal(
       (await posts(p))[0].body,
@@ -976,7 +976,7 @@ test("editing Role Code consumes review; Enter in either field cannot POST", asy
     await ready(p);
     await review(p);
     await p
-      .getByRole("textbox", { name: "Role Code", exact: true })
+      .getByRole("textbox", { name: "Mã vai trò", exact: true })
       .fill("STOREKEEPER");
     assert.equal(
       await p
@@ -985,7 +985,7 @@ test("editing Role Code consumes review; Enter in either field cannot POST", asy
       0,
     );
     await p
-      .getByRole("textbox", { name: "Role Code", exact: true })
+      .getByRole("textbox", { name: "Mã vai trò", exact: true })
       .press("Enter");
     await p
       .getByRole("textbox", { name: "Branch ID", exact: true })
@@ -1020,7 +1020,7 @@ for (const fields of [
         assert.equal((await posts(p)).length, 1);
         assert.equal(
           await p
-            .getByRole("status", { name: "Confirmed role assignment" })
+            .getByRole("status", { name: "Gán vai trò đã xác nhận" })
             .count(),
           0,
         );
@@ -1052,7 +1052,7 @@ test("NOT_DISPATCHED requires an explicit new review and confirmation", async ()
       assert.equal((await posts(p)).length, 0);
       await confirm(p);
       await p
-        .getByRole("status", { name: "Confirmed role assignment" })
+        .getByRole("status", { name: "Gán vai trò đã xác nhận" })
         .waitFor();
       assert.equal((await posts(p)).length, 1);
     },

@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { StructureDeactivationPanel } from "../structure-deactivation/StructureDeactivationPanel";
 import { DepartmentDeactivationPanel } from "./DepartmentDeactivationPanel";
 import { RoomTypeDirectoryResults } from "./RoomTypeDirectoryResults";
@@ -37,7 +38,7 @@ function Values({ value }: { value: unknown }) {
         ))}
       </ol>
     ) : (
-      <p>No records on this page.</p>
+      <p>Không có hồ sơ trên trang này.</p>
     );
   if (object(value))
     return (
@@ -99,7 +100,7 @@ function MutationForm({
     const request = draftRequest(kind, draft, context);
     if (!request) {
       setError(
-        "Check required fields, lengths and numeric IDs. IDs accept positive safe decimal integers only.",
+        "Kiểm tra trường bắt buộc, độ dài và mã số. Mã chỉ nhận số nguyên dương trong giới hạn cho phép.",
       );
       return;
     }
@@ -116,7 +117,7 @@ function MutationForm({
   }
   return (
     <form
-      aria-label="Hotel structure change"
+      aria-label="Thay đổi cấu trúc khách sạn"
       noValidate
       onSubmit={(e) => e.preventDefault()}
     >
@@ -159,30 +160,27 @@ function MutationForm({
       ))}
       {kind.includes("Type") && (
         <p>
-          Use the ID of an eligible published checklist supplied by your
-          administrator. This screen does not create or modify checklists.
+          Dùng mã danh sách kiểm tra đã công bố hợp lệ do quản trị viên cung cấp. Màn này không tạo hoặc sửa danh sách kiểm tra.
         </p>
       )}
       {kind === "deactivateType" && (
         <p>
-          MSG33: Deactivation requires explicit confirmation. The server checks
-          active-room dependencies.
+          MSG33: Vô hiệu hóa cần xác nhận rõ ràng. Máy chủ kiểm tra phòng đang hoạt động liên quan.
         </p>
       )}
       <button type="button" onClick={preview}>
-        Review change
+        Xem lại thay đổi
       </button>
       {review && (
-        <section aria-label="Review hotel structure change">
-          <p>Branch ID: {context.branchId}</p>
-          {context.id && <p>Record ID: {context.id}</p>}
+        <section aria-label="Xem lại thay đổi cấu trúc khách sạn">
+          <p>Mã chi nhánh: {context.branchId}</p>
+          {context.id && <p>Mã hồ sơ: {context.id}</p>}
           <Values value={review} />
           <p>
-            The server checks permissions and dependencies again. Loading a
-            record does not grant permission to save it.
+            Máy chủ kiểm tra lại quyền và ràng buộc. Tải hồ sơ không cấp quyền lưu.
           </p>
           <button type="button" onClick={confirm}>
-            Confirm change
+            Xác nhận thay đổi
           </button>
         </section>
       )}
@@ -256,11 +254,11 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
     return (
       <main>
         <p role="status">
-          Your session could not be confirmed. Account data is hidden.
+          Chưa xác minh được phiên. Dữ liệu tài khoản đã ẩn.
         </p>
         {state.status !== "INITIALIZING" && (
           <button type="button" onClick={() => void actions.revalidate()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
       </main>
@@ -339,26 +337,26 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
   const pending = flow.phase === "pending";
   return (
     <main className={`hotel-workspace${readOnly && screen === "rooms" ? " room-directory-workspace" : ""}`}>
-      <h1>Hotel structure — {titles[screen]}</h1>
+      <h1>Cấu trúc khách sạn — {titles[screen]}</h1>
       {readOnly && screen === "rooms" && <p className="room-directory-intro">Tra cứu phòng theo chi nhánh, vị trí và trạng thái. Chọn phạm vi rồi tải danh sách để bắt đầu.</p>}
-      <nav aria-label="Hotel structure navigation">
-        <Link to="/profile">Profile</Link>
+      <nav aria-label="Điều hướng cấu trúc khách sạn">
+        <Link to="/profile">Hồ sơ cá nhân</Link>
         {screen === "structure" && (
-          <Link to="/branches/new">Create Branch</Link>
+          <Link to="/branches/new">Tạo chi nhánh</Link>
         )}
         {screen === "structure" && branchId && (
           <Link to={`/branches/${branchId}/edit`}>
-            Update branch information
+            Cập nhật thông tin chi nhánh
           </Link>
         )}
-        {Object.entries(canonicalStructure ? { "/hotel": "Branch structure", "/structure/floors": "Floors", "/structure/areas": "Areas", "/structure/departments": "Departments", "/structure/room-types": "Room Types", "/structure/rooms": "Rooms" }
-          : readOnly ? { "/hotel": "Branch structure", [directoryBasePath]: "Room directory" } : {
-          "/hotel": "Branch structure",
-          "/floors": "Floors",
-          "/areas": "Areas",
-          "/room-types": "Room types",
-          "/rooms": "Rooms",
-          "/departments": "Departments",
+        {Object.entries(canonicalStructure ? { "/hotel": "Cấu trúc chi nhánh", "/structure/floors": "Tầng", "/structure/areas": "Khu vực", "/structure/departments": "Bộ phận", "/structure/room-types": "Loại phòng", "/structure/rooms": "Phòng" }
+          : readOnly ? { "/hotel": "Cấu trúc chi nhánh", [directoryBasePath]: "Danh mục phòng" } : {
+          "/hotel": "Cấu trúc chi nhánh",
+          "/floors": "Tầng",
+          "/areas": "Khu vực",
+          "/room-types": "Loại phòng",
+          "/rooms": "Phòng",
+          "/departments": "Bộ phận",
         }).map(([to, label]) => (
           <Link key={to} to={branchId ? `${to}?branchId=${branchId}` : to}>
             {label}
@@ -366,18 +364,15 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         ))}
       </nav>
       {!readOnly && !canonicalStructure && <p>
-        Data and decisions come from the server. No demo identity or permission
-        graph is used.
+        Dữ liệu và quyết định từ máy chủ. Không dùng danh tính hoặc quyền giả lập.
       </p>}
       {!readOnly && !canonicalStructure && <p>
-        Branch listing, branch deactivation, floor/area deactivation, room
-        deactivation and department deactivation are outside this integration
-        slice.
+        Danh sách chi nhánh và thao tác vô hiệu hóa chi nhánh, tầng, khu vực, phòng, bộ phận chưa được tích hợp trong phần này.
       </p>}
-      <section aria-label="Hotel structure selectors">
+      <section aria-label="Chọn cấu trúc khách sạn">
         {readOnly && screen === "rooms" && <header className="room-directory-filter-heading"><h2>Bộ lọc danh mục phòng</h2><p>Phạm vi truy cập được kiểm tra theo tài khoản của bạn.</p></header>}
         <label>
-          Branch ID
+          Mã chi nhánh
           <input
             name="branchId"
             type="text"
@@ -391,32 +386,32 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           />
         </label>
         <label>
-          Action
+          Thao tác
           <select
-            aria-label="Action"
+            aria-label="Thao tác"
             value={action}
             disabled={pending}
             onChange={(e) => setAction(e.target.value as Action)}
           >
-            <option value="browse">Browse</option>
+            <option value="browse">Danh sách</option>
             {screen !== "structure" && (
               <>
-                <option value="detail">Read record</option>
-                {!readOnly && <option value="create">Create</option>}
-                {!readOnly && <option value="edit">Update</option>}
+                <option value="detail">Xem hồ sơ</option>
+                {!readOnly && <option value="create">Tạo mới</option>}
+                {!readOnly && <option value="edit">Cập nhật</option>}
               </>
             )}
             {!readOnly && screen === "roomTypes" && (
-              <option value="deactivate">Deactivate room type</option>
+              <option value="deactivate">Vô hiệu hóa loại phòng</option>
             )}
             {screen === "rooms" && (
-              <option value="history">Recorded status history</option>
+              <option value="history">Lịch sử trạng thái đã ghi nhận</option>
             )}
           </select>
         </label>
         {needsId && (
           <label>
-            Record ID
+            Mã hồ sơ
             <input
               name="recordId"
               type="text"
@@ -429,7 +424,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         )}
         {action === "history" && (
           <label>
-            History page
+            Trang lịch sử
             <input
               name="page"
               value={page}
@@ -450,26 +445,26 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                     setPage("1");
                   }}
                 />
-                All branches (server-authorized)
+                Tất cả chi nhánh được máy chủ cho phép
               </label>
             )}
             <label>
-              Active filter
+              Bộ lọc hoạt động
               <select
-                aria-label="Active filter"
+                aria-label="Bộ lọc hoạt động"
                 value={active}
                 onChange={(e) => {
                   setActive(e.target.value);
                   setPage("1");
                 }}
               >
-                <option value="">All</option>
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="">Tất cả</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
               </select>
             </label>
             <label>
-              Page
+              Trang
               <input
                 name="page"
                 inputMode="numeric"
@@ -480,9 +475,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             {screen === "structure" && (
               <>
                 <label>
-                  Structure node
+                  Mục cấu trúc
                   <select
-                    aria-label="Structure node"
+                    aria-label="Mục cấu trúc"
                     value={nodeType}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -500,14 +495,14 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                   >
                     {["branch", "floor", "area", "room", "department"].map(
                       (v) => (
-                        <option key={v}>{v}</option>
+                        <option key={v} value={v}>{displayCode(v)}</option>
                       ),
                     )}
                   </select>
                 </label>
                 {nodeType !== "branch" && (
                   <label>
-                    Node ID
+                    Mã mục
                     <input
                       name="nodeId"
                       inputMode="numeric"
@@ -518,9 +513,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                 )}
                 {["branch", "floor", "area"].includes(nodeType) && (
                   <label>
-                    Collection
+                    Bộ sưu tập
                     <select
-                      aria-label="Collection"
+                      aria-label="Bộ sưu tập"
                       value={collection}
                       onChange={(e) => {
                         setCollection(e.target.value);
@@ -533,7 +528,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                           ? ["areas", "rooms"]
                           : ["rooms"]
                       ).map((v) => (
-                        <option key={v}>{v}</option>
+                        <option key={v} value={v}>{displayCode(v)}</option>
                       ))}
                     </select>
                   </label>
@@ -543,7 +538,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
             {(screen === "roomTypes" || screen === "rooms") && (
               <>
                 <label>
-                  Search
+                  Tìm kiếm
                   <input
                     name="search"
                     value={query}
@@ -555,9 +550,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                   />
                 </label>
                 <label>
-                  Sort
+                  Sắp xếp
                   <select
-                    aria-label="Sort"
+                    aria-label="Sắp xếp"
                     value={sort}
                     onChange={(e) => setSort(e.target.value)}
                   >
@@ -565,7 +560,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                       ? ["floor", "roomNumber", "roomType", "status"]
                       : ["code", "name", "status"]
                     ).map((v) => (
-                      <option key={v}>{v}</option>
+                      <option key={v} value={v}>{displayCode(v)}</option>
                     ))}
                   </select>
                 </label>
@@ -575,14 +570,14 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                     checked={descending}
                     onChange={(e) => setDescending(e.target.checked)}
                   />
-                  Descending
+                  Giảm dần
                 </label>
               </>
             )}
             {screen === "rooms" && (
               <>
                 <label>
-                  Filter Floor ID
+                  Lọc theo mã tầng
                   <input
                     name="floorFilter"
                     value={floorFilter}
@@ -590,7 +585,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                   />
                 </label>
                 <label>
-                  Filter Area ID
+                  Lọc theo mã khu vực
                   <input
                     name="areaFilter"
                     value={areaFilter}
@@ -598,7 +593,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                   />
                 </label>
                 <label>
-                  Filter Room Type ID
+                  Lọc theo mã loại phòng
                   <input
                     name="typeFilter"
                     value={typeFilter}
@@ -606,13 +601,13 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                   />
                 </label>
                 <label>
-                  Stored status
+                  Trạng thái đã ghi nhận
                   <select
-                    aria-label="Stored status"
+                    aria-label="Trạng thái đã ghi nhận"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
-                    <option value="">All</option>
+                    <option value="">Tất cả</option>
                     {[
                       "AVAILABLE",
                       "OCCUPIED",
@@ -622,7 +617,7 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
                       "READY",
                       "OUT_OF_SERVICE",
                     ].map((v) => (
-                      <option key={v}>{v}</option>
+                      <option key={v} value={v}>{displayCode(v)}</option>
                     ))}
                   </select>
                 </label>
@@ -643,30 +638,29 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
               context && void flow.load(readKind, context, filters)
             }
           >
-            Load from server
+            Tải dữ liệu
           </button>
         )}
         {!valid && (
           <p role="status">
-            Enter a positive safe integer Branch ID, record ID when required,
-            and page. Numeric selectors accept decimal digits only.
+            Nhập mã chi nhánh, mã hồ sơ khi cần và số trang là số nguyên dương. Các ô mã chỉ nhận chữ số thập phân.
           </p>
         )}
       </section>
       {readOnly && screen === "rooms" && !snapshot && !flow.message && !flow.unknown && flow.phase !== "reading" && <section className="room-directory-initial" aria-label="Hướng dẫn tải danh sách"><h2>Danh sách phòng</h2><p>Chưa tải dữ liệu. Nhập Branch ID hoặc chọn All branches, sau đó bấm Load from server.</p></section>}
       {flow.message && <p role="alert">{flow.message}</p>}
-      {flow.phase === "reading" && <p role="status">Loading server data...</p>}
-      {pending && <p role="status">Change pending...</p>}
+      {flow.phase === "reading" && <p role="status">Đang tải dữ liệu từ máy chủ...</p>}
+      {pending && <p role="status">Thay đổi đang chờ...</p>}
       {flow.unknown && <p role="alert">{unknownHotelOutcome}</p>}
-      {action === "deactivate" && snapshot && readKind === "roomType" && (snapshot.data as ReadTypes["roomType"]).activeRooms > 0 && <section aria-label="Room type dependencies">
-        <p>MSG34: Active rooms use this room type. Change those rooms' type before deactivation.</p>
+      {action === "deactivate" && snapshot && readKind === "roomType" && (snapshot.data as ReadTypes["roomType"]).activeRooms > 0 && <section aria-label="Ràng buộc loại phòng">
+        <p>MSG34: Có phòng đang hoạt động dùng loại phòng này. Đổi loại của các phòng đó trước khi vô hiệu hóa.</p>
         <ul>{(snapshot.data as ReadTypes["roomType"]).activeRoomReferences?.map(r => <li key={r.id}>{r.roomNumber} (#{r.id})</li>)}</ul>
       </section>}
-      {snapshot && screen === "rooms" && context?.id && <Link to={`/structure/rooms/${context.id}/lifecycle?branchId=${context.branchId}`}>Deactivate / Reactivate room</Link>}
-      {snapshot && screen === "rooms" && context?.id && <Link to={`/rooms/${context.id}/departments?branchId=${context.branchId}`}>Manage explicit room departments</Link>}
+      {snapshot && screen === "rooms" && context?.id && <Link to={`/structure/rooms/${context.id}/lifecycle?branchId=${context.branchId}`}>Ngừng hoạt động / Kích hoạt lại phòng</Link>}
+      {snapshot && screen === "rooms" && context?.id && <Link to={`/rooms/${context.id}/departments?branchId=${context.branchId}`}>Quản lý bộ phận phụ trách phòng</Link>}
       {snapshot && (
-        <section aria-label="Server hotel data">
-          <h2>Server record snapshot</h2>
+        <section aria-label="Dữ liệu khách sạn từ máy chủ">
+          <h2>Bản chụp dữ liệu từ máy chủ</h2>
           {screen === "rooms" && action === "browse" ? (
             <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} basePath={directoryBasePath} />
           ) : canonicalStructure && screen === "roomTypes" && action === "browse" ? (
@@ -677,8 +671,8 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
               {(() => {
                 const page = (snapshot.data as ReadTypes["structure"])[screen as "floors" | "areas" | "departments"];
                 return page?.items.length ? <ul>{page.items.map(node => <li key={node.id}>
-                  <Link to={`/structure/${screen}/${node.id}?branchId=${branchId}`}>Open {node.name} ({node.code})</Link>
-                </li>)}</ul> : <p>MSG10: No records match these filters.</p>;
+                  <Link to={`/structure/${screen}/${node.id}?branchId=${branchId}`}>Đang mở {node.name} ({node.code})</Link>
+                </li>)}</ul> : <p>MSG10: Không có hồ sơ phù hợp bộ lọc này.</p>;
               })()}
             </>
           ) : (
@@ -687,9 +681,9 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         </section>
       )}
       {canonicalStructure && screen === "roomTypes" && action === "detail" && context?.id && snapshot &&
-        (snapshot.data as ReadTypes["roomType"]).canUpdate && <nav aria-label="Room type actions">
-          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=edit`}>Update room type</Link>
-          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=deactivate`}>Review deactivation</Link>
+        (snapshot.data as ReadTypes["roomType"]).canUpdate && <nav aria-label="Thao tác loại phòng">
+          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=edit`}>Cập nhật loại phòng</Link>
+          <Link to={`/structure/room-types/${context.id}?branchId=${context.branchId}&action=deactivate`}>Xem lại vô hiệu hóa</Link>
         </nav>}
       {canonicalStructure && (screen === "floors" || screen === "areas") && action === "detail" && context?.id && snapshot &&
         <StructureDeactivationPanel key={`${screen}:${context.branchId}:${context.id}`} kind={screen === "floors" ? "floor" : "area"}
@@ -702,15 +696,15 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
           <Link
             to={`/${screen}/${context.id}/deactivation-review?branchId=${context.branchId}`}
           >
-            Review deactivation dependencies
+            Kiểm tra ràng buộc vô hiệu hóa
           </Link>
         )}
       {(typeReadOnly || inactive) && (
-        <p>This server record is read-only in this flow.</p>
+        <p>Hồ sơ từ máy chủ chỉ được xem trong quy trình này.</p>
       )}
       {formAllowed && (
         <>
-        {canonicalStructure && screen === "departments" && <p>Changing Department Head also transfers designation authority in the same transaction. Independent mappings and work already assigned are preserved. The new Head must already have the required role, branch access and grants.</p>}
+        {canonicalStructure && screen === "departments" && <p>Đổi trưởng bộ phận đồng thời chuyển thẩm quyền chỉ định trong cùng giao dịch. Phân công độc lập và công việc đã giao được giữ nguyên. Trưởng bộ phận mới phải có đủ vai trò, quyền chi nhánh và quyền nghiệp vụ.</p>}
         <MutationForm
           key={`${key}:${snapshot?.revision ?? 0}`}
           kind={kind}
@@ -721,13 +715,12 @@ export function HotelWorkspace({ screen = "structure", readOnly = false, directo
         </>
       )}
       {flow.phase === "confirmed" && (
-        <section role="status" aria-label="Confirmed hotel change">
-          <h2>Change confirmed by the server</h2>
-          {canonicalStructure && <p>MSG08: Changes saved.</p>}
+        <section role="status" aria-label="Thay đổi khách sạn đã xác nhận">
+          <h2>Máy chủ đã xác nhận thay đổi</h2>
+          {canonicalStructure && <p>MSG08: Đã lưu thay đổi.</p>}
           <Values value={flow.receipt} />
           <p>
-            No request has been replayed. Select a different operation to
-            continue.
+            Không gửi lại yêu cầu nào. Chọn thao tác khác để tiếp tục.
           </p>
         </section>
       )}

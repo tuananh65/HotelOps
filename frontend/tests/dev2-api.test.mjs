@@ -31,6 +31,7 @@ test("all accepted legacy action IDs have a real UI contract and no actor input 
     {
       branchId: "3",
       reportedBy: 999,
+      similarReviewToken: "test-reviewed-incidents",
       incidentTitle: "Leak",
       description: "Pipe",
       discoveredAt: "2026-11-13T10:00:00Z",
@@ -78,6 +79,7 @@ test("mutation confirms server identity, uses fresh CSRF privately and exact exp
       description: "Pipe",
       discoveredAt: "2026-11-13T10:00:00Z",
       reportedBy: 999,
+      similarReviewToken: "test-reviewed-incidents",
     },
     "42",
   );
@@ -151,6 +153,8 @@ test("nested fulfillment and receipt forms preserve independent concurrency vers
     {
       expectedRowVersion: "AAAAAAAAAAA=",
       mode: "Partial",
+      receiverName: "Người nhận thử nghiệm",
+      warehouseId: 1,
       documentDate: "2026-11-13",
       lines: [{ requestLineId: 51, quantity: 2 }],
     },

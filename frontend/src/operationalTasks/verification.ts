@@ -29,7 +29,7 @@ const positive = (n: number) => Number.isSafeInteger(n) && n > 0;
 const tag = (s: string) => /^"[0-9A-F]{16}"$/.test(s);
 function route(branch: number, task: number) {
   if (!positive(branch) || !positive(task))
-    throw new Error("Invalid task identity");
+    throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}/verification`;
 }
 async function request(
@@ -99,7 +99,7 @@ export async function readVerification(
         d.actualEffortSeconds < 0,
     )
   )
-    throw new Error("Invalid verification snapshot");
+    throw new Error("Bản chụp dữ liệu xác minh không hợp lệ");
   return { data, etag };
 }
 export async function decideVerification(
@@ -124,7 +124,7 @@ export async function decideVerification(
     note.length > 4000 ||
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(note)
   )
-    throw new Error("Invalid verification decision");
+    throw new Error("Quyết định xác minh không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -132,7 +132,7 @@ export async function decideVerification(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const response = await request(url, signal, {
     method: "POST",
@@ -160,6 +160,6 @@ export async function decideVerification(
     !tag(etag) ||
     etag === snapshot.etag
   )
-    throw new Error("Verification outcome unconfirmed");
+    throw new Error("Chưa xác nhận kết quả xác minh");
   return { state, messageCode };
 }

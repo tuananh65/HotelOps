@@ -61,28 +61,28 @@ export function ReplenishmentPostFields({ record, values, onChange }: { record: 
   function change(lineId: number, field: string, value: string) {
     onChange({ ...values, confirmPostReceipt: false, receiptLines: entered.map(l => l.lineId === lineId ? { ...l, [field]: value } : l) });
   }
-  return <section aria-label="Verify and post receipt">
-    <p>Select a Draft receipt in this replenishment's receiving warehouse. Verify every line against the goods received.</p>
-    <button type="button" onClick={() => navigate(0)}>Reload Draft receipts (clears entries)</button>
-    {!current?.page && <p role="status">{current ? "Draft receipts unavailable or replenishment changed. Reload the record and check current permissions." : "Loading authorized Draft receipts..."}</p>}
-    {current?.page?.items.length === 0 && <p>No matching Draft receipts.</p>}
+  return <section aria-label="Xác minh và ghi sổ phiếu nhập">
+    <p>Chọn phiếu nhập nháp tại kho nhận của yêu cầu bổ sung này. Đối chiếu từng dòng với hàng thực nhận.</p>
+    <button type="button" onClick={() => navigate(0)}>Tải lại phiếu nhập nháp (xóa dữ liệu đang nhập)</button>
+    {!current?.page && <p role="status">{current ? "Chưa có phiếu nhập nháp hoặc yêu cầu bổ sung đã đổi. Tải lại hồ sơ và kiểm tra quyền." : "Đang tải phiếu nhập nháp được phép truy cập..."}</p>}
+    {current?.page?.items.length === 0 && <p>Không có phiếu nhập nháp phù hợp.</p>}
     {current?.page?.items.map(d => <button type="button" key={d.documentId} onClick={() => select(d)}>{d.documentNo}</button>)}
-    {current?.page?.nextAfter != null && <button type="button" onClick={() => navigate(current.page!.nextAfter!)}>Next page (clears entries)</button>}
+    {current?.page?.nextAfter != null && <button type="button" onClick={() => navigate(current.page!.nextAfter!)}>Trang tiếp (xóa dữ liệu đang nhập)</button>}
     {selected && <>
       <h3>{selected.documentNo}</h3>
-      <p>Posting increases stock for all accepted receipt lines. Only matching items credit this replenishment. Enter quantities in each line's displayed unit.</p>
+      <p>Ghi sổ tăng tồn cho mọi dòng nhập được chấp nhận. Chỉ vật tư phù hợp được ghi nhận cho yêu cầu bổ sung này. Nhập theo đơn vị hiển thị mỗi dòng.</p>
       {selected.lines.map(l => {
         const input = entered.find(e => e.lineId === l.lineId) ?? {};
         const reasonRequired = Number(input.acceptedQty) !== l.expectedQty || Number(input.rejectedQty) > 0 || Number(input.damagedQty) > 0;
-        return <fieldset key={l.lineId}><legend>{l.itemName} ({l.unitName}), expected {l.expectedQty}{l.replenishmentLineId === null ? " — stock only" : " — credits replenishment"}</legend>
-          {[['acceptedQty', 'Accepted usable'], ['rejectedQty', 'Rejected'], ['damagedQty', 'Damaged']].map(([field, label]) =>
+        return <fieldset key={l.lineId}><legend>{l.itemName} ({l.unitName}), dự kiến {l.expectedQty}{l.replenishmentLineId === null ? "— chỉ tồn kho" : "— ghi nhận vào yêu cầu bổ sung"}</legend>
+          {[['acceptedQty', "Số lượng dùng được đã chấp nhận"], ['rejectedQty', "Đã từ chối"], ['damagedQty', "Hư hỏng"]].map(([field, label]) =>
             <label key={field}>{label}<input required type="number" min="0" step="0.001" value={String(input[field] ?? "")} onChange={e => change(l.lineId, field, e.target.value)} /></label>)}
-          <label>Discrepancy reason<textarea required={reasonRequired} minLength={reasonRequired ? 3 : undefined}
+          <label>Lý do chênh lệch<textarea required={reasonRequired} minLength={reasonRequired ? 3 : undefined}
             value={String(input.discrepancyReason ?? "")} onChange={e => change(l.lineId, "discrepancyReason", e.target.value)} /></label>
         </fieldset>;
       })}
       <label><input type="checkbox" required checked={values.confirmPostReceipt === true} onChange={e => onChange({ ...values, confirmPostReceipt: e.target.checked })} />
-        I verified every line. Post this receipt and credit the matching replenishment items.</label>
+        Tôi đã kiểm tra từng dòng. Ghi sổ phiếu nhập và ghi nhận vật tư bổ sung tương ứng.</label>
     </>}
   </section>;
 }

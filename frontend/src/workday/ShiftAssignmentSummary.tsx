@@ -17,13 +17,13 @@ export function ShiftAssignmentSummary({branchId,assignmentId}:{branchId:number;
       }}).then(r=>{
         if(abort.signal.aborted)return;
         if(r.ok)setResult(r.data);
-        else {setError("Assignment unavailable or access has changed.");if(r.error.kind==="http"&&r.error.status===401)actions.invalidateSession(owner);}
+        else {setError("Không thể phân công hoặc quyền đã thay đổi.");if(r.error.kind==="http"&&r.error.status===401)actions.invalidateSession(owner);}
       });
     return()=>abort.abort();
   },[branchId,assignmentId,owner,actions]);
-  return <section aria-label="Assigned shift"><h2>Assigned shift</h2>{error?<p role="alert">{error}</p>:result?<>
-    <p>{result.name} ? {result.departmentName}; branch {branchId}</p><p>{result.shiftDate}: {result.assignmentStatus}</p>
-    {result.cancellationReason&&<p>Cancellation reason: {result.cancellationReason}</p>}
+  return <section aria-label="Ca được phân"><h2>Ca được phân</h2>{error?<p role="alert">{error}</p>:result?<>
+    <p>{result.name} ? {result.departmentName}; Chi nhánh {branchId}</p><p>{result.shiftDate}: {result.assignmentStatus}</p>
+    {result.cancellationReason&&<p>Lý do hủy: {result.cancellationReason}</p>}
     <p>{new Date(result.startUtc).toLocaleString()} ? {new Date(result.endUtc).toLocaleString()}</p>
-  </>:<p>Loading authorized assignment...</p>}</section>;
+  </>:<p>Đang tải phân công được phép truy cập...</p>}</section>;
 }

@@ -67,9 +67,9 @@ export function utcPlanTime(local: string, original: string | null = null) {
   if (!local) return null;
   if (original && local === localPlanTime(original)) return original;
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?$/.test(local))
-    throw new Error("Invalid local time");
+    throw new Error("Giờ địa phương không hợp lệ");
   const value = new Date(local + "+07:00");
-  if (!Number.isFinite(value.valueOf())) throw new Error("Invalid local time");
+  if (!Number.isFinite(value.valueOf())) throw new Error("Giờ địa phương không hợp lệ");
   return value.toISOString();
 }
 const positive = (n: number) => Number.isSafeInteger(n) && n > 0;
@@ -78,11 +78,11 @@ const controls = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/;
 const validTime = (s: string | null) =>
   s === null || (typeof s === "string" && Number.isFinite(Date.parse(s)));
 function base(branch: number) {
-  if (!positive(branch)) throw new Error("Invalid branch");
+  if (!positive(branch)) throw new Error("Chi nhánh không hợp lệ");
   return `/api/branches/${branch}/operational-tasks`;
 }
 function route(branch: number, task: number) {
-  if (!positive(task)) throw new Error("Invalid task");
+  if (!positive(task)) throw new Error("Công việc không hợp lệ");
   return base(branch) + `/${task}`;
 }
 export async function planningRequest(
@@ -114,7 +114,7 @@ export async function planningMutation(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   return planningRequest(url, signal, {
     method,
@@ -137,7 +137,7 @@ function validatePlan(p: PlanFields) {
       p.dueAt &&
       Date.parse(p.dueAt) < Date.parse(p.plannedStartAt))
   )
-    throw new Error("Invalid priority, duration or deadline");
+    throw new Error("Độ ưu tiên, thời lượng hoặc thời hạn không hợp lệ");
 }
 export async function creationOptions(
   branch: number,
@@ -145,7 +145,7 @@ export async function creationOptions(
   signal: AbortSignal,
 ): Promise<PlanningOptions> {
   if (department !== null && !positive(department))
-    throw new Error("Invalid department");
+    throw new Error("Bộ phận không hợp lệ");
   const body = await (
     await planningRequest(
       base(branch) +
@@ -165,12 +165,12 @@ export async function creationOptions(
         ),
     )
   )
-    throw new Error("Invalid planning options");
+    throw new Error("Lựa chọn lập kế hoạch không hợp lệ");
   if (
     body.recurringAvailable !== undefined &&
     typeof body.recurringAvailable !== "boolean"
   )
-    throw new Error("Invalid recurring availability");
+    throw new Error("Khả dụng của công việc định kỳ không hợp lệ");
   if (
     body.recurringAvailable === true &&
     (!Array.isArray(body.defaultExecutors) ||
@@ -179,7 +179,7 @@ export async function creationOptions(
           !r || !positive(r.id) || typeof r.name !== "string",
       ))
   )
-    throw new Error("Invalid default executors");
+    throw new Error("Người thực hiện mặc định không hợp lệ");
   return body;
 }
 export function validateTaskCreation(input: CreateTaskInput) {
@@ -216,7 +216,7 @@ export function validateTaskCreation(input: CreateTaskInput) {
       || !/^[A-Za-z0-9+/]{11}=$/.test(input.requestLink.version) || typeof input.requestLink.mandatory !== "boolean"))
     || (input.internalRequestId === null && input.requestLink !== undefined)
   )
-    throw new Error("Invalid task definition");
+    throw new Error("Định nghĩa công việc không hợp lệ");
 }
 export async function createTask(
   branch: number,
@@ -235,7 +235,7 @@ export async function createTask(
     body.messageCode !== "MSG08" ||
     !tag(etag)
   )
-    throw new Error("Task creation outcome unconfirmed");
+    throw new Error("Chưa xác nhận kết quả tạo việc");
   return {
     taskId: body.taskId as number,
     branchId: branch,
@@ -248,7 +248,7 @@ export async function readTaskPlan(
   page: number,
   signal: AbortSignal,
 ): Promise<PlanSnapshot> {
-  if (!positive(page)) throw new Error("Invalid history page");
+  if (!positive(page)) throw new Error("Trang lịch sử không hợp lệ");
   const response = await planningRequest(
     route(branch, task) + `/plan?page=${page}`,
     signal,
@@ -289,7 +289,7 @@ export async function readTaskPlan(
         (h.reason !== null && typeof h.reason !== "string"),
     )
   )
-    throw new Error("Invalid plan snapshot");
+    throw new Error("Bản chụp dữ liệu kế hoạch không hợp lệ");
   return { data, etag };
 }
 export async function changeTaskPlan(
@@ -310,7 +310,7 @@ export async function changeTaskPlan(
     reason.length > 4000 ||
     (input === null && (!snapshot.data.canCancel || reason.trim().length < 10))
   )
-    throw new Error("Invalid plan operation");
+    throw new Error("Thao tác kế hoạch không hợp lệ");
   if (input) validatePlan(input);
   const response = await planningMutation(
     path + (input ? "/plan" : "/cancel"),
@@ -329,6 +329,6 @@ export async function changeTaskPlan(
     !tag(etag) ||
     etag === snapshot.etag
   )
-    throw new Error("Plan outcome unconfirmed");
+    throw new Error("Chưa xác nhận kết quả kế hoạch");
   return body;
 }

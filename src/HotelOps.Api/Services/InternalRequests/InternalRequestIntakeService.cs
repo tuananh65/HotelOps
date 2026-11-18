@@ -75,7 +75,9 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
         foreach(var b in branches)if(!await access.AllowsAsync(ticket.UserId,b.Id,ct))throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
         await tx.CommitAsync(ct);return result;
     }
-    private Task<long[]> Candidates(long branch,long department,CancellationToken ct)=>db.Database.SqlQuery<long>($"SELECT user_id AS Value FROM dbo.department_management_access WHERE branch_id={branch} AND department_id={department} AND revoked_at IS NULL AND granted_at<=SYSUTCDATETIME() AND user_id=(SELECT manager_user_id FROM dbo.departments WHERE department_id={department} AND branch_id={branch} AND is_active=1)").OrderBy(v=>v).ToArrayAsync(ct);
+    // Department management assignments are the workflow authority. The legacy
+    // department manager field is not a DEPT_MANAGER permission grant.
+    private Task<long[]> Candidates(long branch,long department,CancellationToken ct)=>db.Database.SqlQuery<long>($"SELECT DISTINCT user_id AS Value FROM dbo.department_management_access WHERE branch_id={branch} AND department_id={department} AND revoked_at IS NULL AND granted_at<=SYSUTCDATETIME()").OrderBy(v=>v).ToArrayAsync(ct);
 
     public async Task<InternalRequestIntakeResult> CreateAsync(SessionReference ticket,long sid,InternalRequestIntakeInput input,string root,CancellationToken ct)
     {

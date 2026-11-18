@@ -59,7 +59,7 @@ export async function readDashboardOptions(
       (d) => object(d) && id(d.id) && id(d.branchId) && text(d.name),
     )
   )
-    throw new Error("Invalid dashboard options");
+    throw new Error("Lựa chọn tổng quan không hợp lệ");
   const options = v as unknown as DashboardOptions;
   const branches = new Set(options.branches.map((b) => b.id));
   if (
@@ -68,12 +68,12 @@ export async function readDashboardOptions(
       options.departments.length ||
     options.departments.some((d) => !branches.has(d.branchId))
   )
-    throw new Error("Invalid dashboard scope");
+    throw new Error("Phạm vi tổng quan không hợp lệ");
   return options;
 }
 export class DashboardFailure extends Error {
   constructor(readonly status: number) {
-    super("Dashboard request failed");
+    super("Yêu cầu tổng quan thất bại");
   }
 }
 export async function readDashboard(
@@ -140,6 +140,6 @@ export async function readDashboard(
     !Array.isArray(v.missingSources) ||
     !v.missingSources.every(text)
   )
-    throw new Error("Invalid dashboard response");
+    throw new Error("Phản hồi tổng quan không hợp lệ");
   return v as unknown as Dashboard;
 }

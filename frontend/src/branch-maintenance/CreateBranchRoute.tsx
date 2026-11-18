@@ -16,7 +16,7 @@ const blank: CreateBranchRequest = {
   email: null,
 };
 const unknownMessage =
-  "Create outcome unknown. The branch may already exist. Do not replay this request. Ask an authorized administrator to verify before starting another flow.";
+  "Chưa xác định kết quả tạo. Chi nhánh có thể đã tồn tại. Không gửi lại; nhờ quản trị viên kiểm tra trước khi bắt đầu quy trình mới.";
 function CreateForm({
   session,
   locked,
@@ -107,16 +107,16 @@ function CreateForm({
       setPhase("rejected");
       setMessage(
         outcome.error.status === 409
-          ? "Branch code already exists. Review a different code."
+          ? "Mã chi nhánh đã tồn tại. Chọn mã khác."
           : outcome.error.status === 401
-            ? "Session invalid. Check session before continuing."
+            ? "Phiên đăng nhập không hợp lệ. Kiểm tra phiên trước khi tiếp tục."
             : outcome.error.status === 403
-              ? "Server denied Create Branch."
+              ? "Máy chủ từ chối tạo chi nhánh."
               : outcome.error.status === 400
-                ? "Server rejected the branch fields. Correct them and review again."
+                ? "Máy chủ từ chối thông tin chi nhánh. Sửa và kiểm tra lại."
                 : outcome.error.status === 404
-                  ? "Create Branch endpoint unavailable."
-                  : "Create was not dispatched or confirmed. Check session and review again.",
+                  ? "Dịch vụ tạo chi nhánh chưa khả dụng."
+                  : "Chưa gửi hoặc chưa xác nhận tạo mới. Kiểm tra phiên và xem lại.",
       );
       if (outcome.error.status === 401 || outcome.error.status === 403) {
         setDenied(true);
@@ -127,18 +127,17 @@ function CreateForm({
   const created = result?.key === key ? result.data.branch : null;
   return (
     <main>
-      <h1>Create Branch</h1>
+      <h1>Tạo chi nhánh</h1>
       <p>
-        Signing in does not grant MASTER_DATA_MANAGE. Server authorization
-        applies.
+        Đăng nhập không cấp MASTER_DATA_MANAGE. Quyền do máy chủ kiểm tra.
       </p>
       <nav>
-        <Link to="/hotel">Hotel structure</Link>
+        <Link to="/hotel">Cấu trúc khách sạn</Link>
       </nav>
       {created ? (
-        <section aria-label="Created branch">
-          <h2>Branch created</h2>
-          <p>Branch ID: {created.id}</p>
+        <section aria-label="Chi nhánh đã tạo">
+          <h2>Đã tạo chi nhánh</h2>
+          <p>Mã chi nhánh: {created.id}</p>
           <dl>
             {(
               [
@@ -158,7 +157,7 @@ function CreateForm({
             ))}
           </dl>
           <Link to={`/branches/${created.id}/edit`}>
-            View branch information
+            Xem thông tin chi nhánh
           </Link>
         </section>
       ) : (
@@ -169,7 +168,7 @@ function CreateForm({
             const input = createRequest(fields);
             if (!input) {
               setMessage(
-                "Code/name/address are required. Check code, contact formats and field limits.",
+                "Mã, tên và địa chỉ là bắt buộc. Kiểm tra mã, định dạng liên hệ và giới hạn trường.",
               );
               return;
             }
@@ -218,33 +217,33 @@ function CreateForm({
             type="submit"
             disabled={phase === "saving" || locked.current || denied}
           >
-            Review create
+            Xem lại tạo mới
           </button>
         </form>
       )}
       {review?.key === key && (
-        <section aria-label="Review create branch">
+        <section aria-label="Xem lại tạo chi nhánh">
           <p>
             {review.input.code}; {review.input.name}; {review.input.address};{" "}
-            {review.input.phone ?? "(no phone)"};{" "}
-            {review.input.email ?? "(no email)"}
+            {review.input.phone ?? "(chưa có số điện thoại)"};{" "}
+            {review.input.email ?? "(chưa có email)"}
           </p>
           <button
             type="button"
             disabled={busy.current || locked.current}
             onClick={() => void confirm()}
           >
-            Confirm create
+            Xác nhận tạo mới
           </button>
         </section>
       )}
-      {phase === "saving" && <p role="status">Creating branch...</p>}
+      {phase === "saving" && <p role="status">Đang tạo chi nhánh...</p>}
       {message && <p role="alert">{message}</p>}
       <button
         disabled={phase === "saving"}
         onClick={() => void actions.revalidate()}
       >
-        Check session
+        Kiểm tra phiên đăng nhập
       </button>
     </main>
   );
@@ -261,10 +260,10 @@ export function CreateBranchRoute() {
   )
     return (
       <section>
-        <h1>Create Branch</h1>
-        <p role="alert">A confirmed unrestricted session is required.</p>
-        <Link to="/login">Sign in</Link>
-        <Link to="/change-password">Change password</Link>
+        <h1>Tạo chi nhánh</h1>
+        <p role="alert">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
+        <Link to="/login">Đăng nhập</Link>
+        <Link to="/change-password">Đổi mật khẩu</Link>
       </section>
     );
   if (!options) return <p>Đang kiểm tra quyền và SYS-PAR-10…</p>;

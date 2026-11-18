@@ -9,7 +9,7 @@ import { createUsersApi } from "./usersApi";
 import type { UserAccessReviewDto } from "./contracts";
 
 export const unknownRoleAssignmentMessage =
-  "Role assignment outcome could not be confirmed. The role may already have been assigned. Do not retry automatically. Ask an authorized administrator to verify the current role assignment before making another change.";
+  "Chưa xác nhận gán vai trò; vai trò có thể đã được gán. Không tự gửi lại. Nhờ quản trị viên kiểm tra trước khi thay đổi tiếp.";
 export function assignmentBranchId(value: string): number | null {
   const number =
     value.length > 0 && !/[^0-9]/.test(value) ? Number(value) : NaN;
@@ -155,7 +155,7 @@ export function useAssignUserRole(target: number | null) {
             etag: result.etag,
             revision: ++revision.current,
             access: access.ok ? access.data : null,
-            accessMessage: access.ok ? null : "Assigned roles could not be read. Access review requires current USER_VIEW and ROLE_MANAGE in the applicable scope.",
+            accessMessage: access.ok ? null : "Không đọc được vai trò đã gán. Cần USER_VIEW và ROLE_MANAGE còn hiệu lực trong phạm vi tương ứng.",
           },
         });
       else {
@@ -293,31 +293,31 @@ export function useAssignUserRole(target: number | null) {
 
 function failureMessage(status?: number, reason?: string): string {
   if (status === 403)
-    return "Access denied. This response does not confirm whether the account exists.";
+    return "Không có quyền truy cập. Phản hồi này không xác nhận tài khoản có tồn tại hay không.";
   if (status === 401)
-    return "Your session must be checked. Reload profile after session recovery. No role assignment request has been retried.";
-  if (status === 404) return "The server could not find this user account.";
+    return "Cần kiểm tra phiên. Tải lại hồ sơ sau khi khôi phục phiên. Không gửi lại yêu cầu gán vai trò.";
+  if (status === 404) return "Máy chủ không tìm thấy tài khoản này.";
   if (status === 412 || status === 428)
-    return "The version must be refreshed. Reload profile, review the target and destination again, then confirm a new attempt.";
+    return "Cần phiên bản mới. Tải lại hồ sơ, kiểm tra tài khoản và nơi nhận rồi xác nhận lần thử mới.";
   switch (reason) {
     case "TARGET_NOT_ACTIVE":
-      return "The server rejected the request because the target account is not active.";
+      return "Máy chủ từ chối vì tài khoản đích không hoạt động.";
     case "PRIMARY_SCOPE_CONFLICT":
-      return "The selected scope is incompatible: check current branch access and Operations Manager restrictions. Global assignment requires an existing ALL grant on the role.";
+      return "Phạm vi không tương thích: kiểm tra quyền chi nhánh và giới hạn quản lý vận hành. Gán toàn hệ thống cần quyền ALL sẵn có của vai trò.";
     case "EXISTING_ROLE_PATH_CONFLICT":
-      return "New assignment requires no existing role/branch record. Reactivation requires an existing inactive assignment. Refresh the user's access review before choosing the appropriate action.";
+      return "Gán mới yêu cầu chưa có bản ghi vai trò / chi nhánh. Kích hoạt lại cần bản ghi đã ngừng hoạt động. Tải lại quyền người dùng trước khi chọn thao tác.";
     case "LAST_DURABLE_ADMIN":
-      return "The server rejected the assignment to preserve the last durable administrator.";
+      return "Máy chủ từ chối phân công để bảo vệ quản trị viên thường trực cuối cùng.";
     case "CSRF_VALIDATION_FAILED":
-      return "The security check was rejected. No role assignment request has been retried.";
+      return "Kiểm tra bảo mật bị từ chối. Không gửi lại gán vai trò.";
     case "HTTPS_REQUIRED":
-      return "A secure HTTPS connection is required.";
+      return "Cần kết nối HTTPS an toàn.";
     case "REQUEST_TOO_LARGE":
-      return "The request exceeds the permitted size.";
+      return "Yêu cầu vượt dung lượng cho phép.";
   }
   if (status === 415)
-    return "The request format was rejected. No role assignment request has been retried.";
+    return "Định dạng yêu cầu bị từ chối. Không gửi lại gán vai trò.";
   if (status === 400)
-    return "Check the role code, branch and request version. No role assignment request has been retried.";
-  return "The request could not be completed safely. No role assignment request has been retried.";
+    return "Kiểm tra mã vai trò, chi nhánh và phiên bản yêu cầu. Không gửi lại yêu cầu gán vai trò.";
+  return "Không hoàn tất an toàn yêu cầu. Không gửi lại gán vai trò.";
 }

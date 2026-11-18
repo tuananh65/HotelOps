@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, getJson } from "../../api/dev1/client";
@@ -66,7 +67,7 @@ export default function AssignedCleaningHeader({
             {data.taskNumber} · {data.roomNumber}
           </h2>
           <p>
-            {data.recordedStatus} · Chi nhánh {data.branchId}
+            {displayCode(data.recordedStatus)} · Chi nhánh {data.branchId}
           </p>
           <Link
             to={`/cleaning/tasks/${data.id}?branchId=${branch}&execution=1`}

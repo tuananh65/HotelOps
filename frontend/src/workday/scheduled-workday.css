@@ -1,0 +1,210 @@
+.scheduled-workday {
+  max-width: 1280px;
+  margin: 0 auto;
+  color: #3c3029;
+}
+.scheduled-workday .workday-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.scheduled-workday h1 {
+  margin: 8px 0 12px;
+  font-size: 30px;
+}
+.scheduled-workday h2 {
+  margin: 12px 0 16px;
+  font-size: 21px;
+}
+.scheduled-workday p {
+  line-height: 1.65;
+}
+.scheduled-workday .workday-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #86674f;
+}
+.scheduled-workday .workday-heading p,
+.scheduled-workday .workday-muted {
+  color: #786a60;
+  font-size: 14px;
+}
+.scheduled-workday .workday-card {
+  background: white;
+  border: 1px solid #e8d8c5;
+  border-radius: 16px;
+  padding: 26px;
+  margin: 0 0 24px;
+  min-width: 0;
+}
+.scheduled-workday .workday-branch {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.scheduled-workday .workday-branch > div {
+  flex: 1;
+  min-width: 0;
+}
+.scheduled-workday .workday-branch h2 {
+  font-size: 14px;
+  color: #786a60;
+  margin: 0 0 6px;
+}
+.scheduled-workday .workday-branch-name {
+  font-weight: 600;
+  margin: 0;
+}
+.scheduled-workday .workday-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.scheduled-workday .workday-columns > section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.scheduled-workday .workday-columns > section > button {
+  margin-top: auto;
+}
+.scheduled-workday .workday-empty {
+  background: #faf7f2;
+  border: 1px dashed #e2d2be;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 8px 0 24px;
+}
+.scheduled-workday .workday-empty p {
+  color: #786a60;
+  font-size: 14px;
+  margin-bottom: 0;
+}
+.scheduled-workday label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  margin: 16px 0 22px;
+}
+.scheduled-workday select,
+.scheduled-workday textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d8bfa5;
+  border-radius: 8px;
+  background: white;
+  color: inherit;
+  font: inherit;
+  padding: 14px;
+}
+.scheduled-workday textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.scheduled-workday button {
+  border: 1px solid #dbc2a5;
+  border-radius: 8px;
+  padding: 12px 18px;
+  background: white;
+  color: #754f38;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: normal;
+}
+.scheduled-workday button.workday-primary {
+  background: #795239;
+  border-color: #795239;
+  color: white;
+  font-weight: 600;
+}
+.scheduled-workday button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.scheduled-workday button:focus-visible,
+.scheduled-workday a:focus-visible,
+.scheduled-workday summary:focus-visible {
+  outline: 3px solid #ae7d53;
+  outline-offset: 3px;
+}
+.scheduled-workday .workday-badge {
+  color: #166534;
+  background: #ecfdf3;
+  padding: 7px 12px;
+  border-radius: 20px;
+  align-self: start;
+  font-size: 13px;
+  font-weight: 600;
+}
+.scheduled-workday .workday-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin: 20px 0;
+}
+.scheduled-workday dt {
+  color: #786a60;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.scheduled-workday dd {
+  margin: 0;
+  font-weight: 600;
+}
+.scheduled-workday .workday-actions,
+.scheduled-workday .workday-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.scheduled-workday .workday-links {
+  border-top: 1px solid #e8d8c5;
+  padding-top: 20px;
+  gap: 16px 28px;
+  font-size: 14px;
+}
+.scheduled-workday .workday-review {
+  border: 2px solid #b78c65;
+  background: #fffcf7;
+}
+.scheduled-workday .workday-notice {
+  background: #fff7ed;
+  color: #92400e;
+  border-left: 4px solid #d97706;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.scheduled-workday .workday-notice-success {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #16a34a;
+}
+.scheduled-workday .workday-unscheduled summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .scheduled-workday .workday-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (max-width: 540px) {
+  .scheduled-workday .workday-card {
+    padding: 18px;
+  }
+  .scheduled-workday h1 {
+    font-size: 25px;
+  }
+  .scheduled-workday .workday-heading > svg {
+    display: none;
+  }
+  .scheduled-workday .workday-actions > button {
+    width: 100%;
+  }
+}

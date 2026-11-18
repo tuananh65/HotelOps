@@ -8,7 +8,7 @@ import {
   type BranchUpdate,
 } from "./contracts";
 const unknownMessage =
-  "Update outcome unknown. Do not replay. Ask an authorized administrator to verify the branch before opening a new flow.";
+  "Chưa xác định kết quả cập nhật. Không gửi lại. Nhờ quản trị viên kiểm tra chi nhánh trước khi mở quy trình mới.";
 const empty: BranchUpdate = {
   name: "",
   address: "",
@@ -77,12 +77,12 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
           key,
           error:
             result.error.status === 404
-              ? "Branch read endpoint unavailable or branch not found. No data loaded."
+              ? "Dịch vụ đọc chi nhánh chưa khả dụng hoặc không tìm thấy chi nhánh. Chưa tải dữ liệu."
               : result.error.status === 401
-                ? "Session invalid. Revalidate before continuing."
+                ? "Phiên đăng nhập không hợp lệ. Xác minh lại trước khi tiếp tục."
                 : result.error.status === 403
-                  ? "Server denied branch management access."
-                  : "Branch information unavailable.",
+                  ? "Máy chủ từ chối quyền quản lý chi nhánh."
+                  : "Thông tin chi nhánh chưa khả dụng.",
         });
     });
     return () => {
@@ -132,7 +132,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
       setRead({ key, data: result.data });
       setFields({ ...selected.input, reason: "" });
       setPhase("saved");
-      setMessage("Branch information updated.");
+      setMessage("Đã cập nhật thông tin chi nhánh.");
     } else if (result.outcome === "OUTCOME_UNKNOWN") {
       locked.current = true;
       setPhase("unknown");
@@ -141,39 +141,39 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
       setRead(null);
       setPhase("stale");
       setMessage(
-        "Version changed or unavailable. Read again, review the latest values, then confirm a new update.",
+        "Phiên bản đã đổi hoặc chưa khả dụng. Đọc lại, xem giá trị mới nhất rồi xác nhận cập nhật mới.",
       );
     } else {
       if ([401, 403, 404].includes(result.error.status ?? 0)) {
         setRead({
           key,
           error:
-            "Branch data cleared after server rejection. Revalidate session/access before continuing.",
+            "Dữ liệu chi nhánh đã ẩn sau khi máy chủ từ chối. Xác minh lại phiên / quyền trước khi tiếp tục.",
         });
         setFields({ ...empty });
       }
       setPhase("rejected");
       setMessage(
         result.error.status === 401
-          ? "Session invalid. Revalidate before continuing."
+          ? "Phiên đăng nhập không hợp lệ. Xác minh lại trước khi tiếp tục."
           : result.error.status === 403
-            ? "Server denied this update."
+            ? "Máy chủ từ chối cập nhật này."
             : result.error.status === 404
-              ? "Update endpoint unavailable or branch not found."
+              ? "Dịch vụ cập nhật chưa khả dụng hoặc không tìm thấy chi nhánh."
               : result.error.status === 409
-                ? "Update conflict. Review server state before another attempt."
-                : "Update was not confirmed. Correct the input or read again.",
+                ? "Xung đột cập nhật. Kiểm tra trạng thái máy chủ trước khi thử tiếp."
+                : "Chưa xác nhận cập nhật. Sửa dữ liệu hoặc đọc lại.",
       );
     }
   }
   if (!confirmed)
-    return <p role="alert">A confirmed unrestricted session is required.</p>;
+    return <p role="alert">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>;
   if (!safeId(branchId))
-    return <p role="alert">Select a positive safe branch ID.</p>;
+    return <p role="alert">Chọn mã chi nhánh là số nguyên dương hợp lệ.</p>;
   return (
-    <section aria-label="Branch information update">
-      <h1>Update branch information</h1>
-      <p>Branch metadata changes require server authorization.</p>
+    <section aria-label="Cập nhật thông tin chi nhánh">
+      <h1>Cập nhật thông tin chi nhánh</h1>
+      <p>Thay đổi thông tin chi nhánh cần máy chủ cấp quyền.</p>
       <button
         disabled={phase === "saving"}
         onClick={() => {
@@ -182,24 +182,24 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
           setAttempt((v) => v + 1);
         }}
       >
-        Read branch
+        Xem chi nhánh
       </button>
       <button
         disabled={phase === "saving"}
         onClick={() => void actions.revalidate()}
       >
-        Check session
+        Kiểm tra phiên đăng nhập
       </button>
       {read?.key === key && "error" in read && <p role="alert">{read.error}</p>}
       {!snapshot &&
         !(read?.key === key && "error" in read) &&
-        phase !== "stale" && <p role="status">Loading branch information...</p>}
+        phase !== "stale" && <p role="status">Đang tải thông tin chi nhánh...</p>}
       {snapshot && (
         <>
           <p>
-            Branch {snapshot.branch.id}: {snapshot.branch.code}; timezone{" "}
-            {snapshot.branch.timezone ?? "not provided"};{" "}
-            {snapshot.branch.isActive ? "Active" : "Inactive"}
+            Chi nhánh {snapshot.branch.id}: {snapshot.branch.code}; múi giờ{" "}
+            {snapshot.branch.timezone ?? "Chưa cung cấp"};{" "}
+            {snapshot.branch.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
           </p>
           <form
             onSubmit={(event) => {
@@ -207,7 +207,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
               if (!snapshot || busy.current || locked.current) return;
               if (!validUpdate(fields)) {
                 setMessage(
-                  "Name/address are required. Check field limits and provide a reason of at least ten characters.",
+                  "Tên và địa chỉ là bắt buộc. Kiểm tra giới hạn trường và nhập lý do ít nhất 10 ký tự.",
                 );
                 return;
               }
@@ -256,18 +256,18 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
               type="submit"
               disabled={phase === "saving" || locked.current}
             >
-              Review update
+              Xem lại cập nhật
             </button>
           </form>
         </>
       )}
       {currentReview && (
-        <section aria-label="Review branch update">
+        <section aria-label="Xem lại cập nhật chi nhánh">
           <p>
-            Branch {branchId}: {currentReview.input.name};{" "}
+            Chi nhánh {branchId}: {currentReview.input.name};{" "}
             {currentReview.input.address};{" "}
-            {currentReview.input.phone ?? "(clear phone)"};{" "}
-            {currentReview.input.email ?? "(clear email)"}; reason{" "}
+            {currentReview.input.phone ?? "(xóa số điện thoại)"};{" "}
+            {currentReview.input.email ?? "(xóa email)"}; Lý do{" "}
             {currentReview.input.reason}
           </p>
           <button
@@ -275,11 +275,11 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
             disabled={phase === "saving" || locked.current}
             onClick={() => void confirm()}
           >
-            Confirm update
+            Xác nhận cập nhật
           </button>
         </section>
       )}
-      {phase === "saving" && <p role="status">Saving...</p>}
+      {phase === "saving" && <p role="status">Đang lưu…</p>}
       {message && (
         <p role={phase === "saved" ? "status" : "alert"}>{message}</p>
       )}

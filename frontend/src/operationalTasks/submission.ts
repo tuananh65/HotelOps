@@ -23,7 +23,7 @@ const note = (s: string | null) =>
     s.length <= 4000 &&
     !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(s));
 function path(branch: number, task: number) {
-  if (!id(branch) || !id(task)) throw new Error("Invalid task identity");
+  if (!id(branch) || !id(task)) throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}`;
 }
 async function request(
@@ -84,7 +84,7 @@ export async function submitTask(
         !["PASS", "FAIL"].includes(i.outcome),
     )
   )
-    throw new Error("Invalid submission");
+    throw new Error("Gửi kết quả không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -92,7 +92,7 @@ export async function submitTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const response = await request(url + "/submit", signal, {
     method: "POST",
@@ -113,7 +113,7 @@ export async function submitTask(
     !/^"[0-9A-F]{16}"$/.test(etag) ||
     etag === current.etag
   )
-    throw new Error("Submission could not be confirmed");
+    throw new Error("Chưa xác nhận nộp kết quả");
   // The editor reloads the validated canonical progress snapshot after commit.
   return { etag };
 }
@@ -125,7 +125,7 @@ export async function readTaskSubmission(
 ): Promise<TaskSubmission> {
   const url = path(branch, task);
   if (submission !== undefined && !id(submission))
-    throw new Error("Invalid submission identity");
+    throw new Error("Định danh lần nộp không hợp lệ");
   const suffix = submission === undefined ? "" : `?submission=${submission}`;
   const data = (await (
     await request(url + "/submission" + suffix, signal)
@@ -163,6 +163,6 @@ export async function readTaskSubmission(
         f.downloadPath !== url + `/submission/evidence/${f.id}` + suffix,
     )
   )
-    throw new Error("Invalid task submission response");
+    throw new Error("Phản hồi nộp kết quả không hợp lệ");
   return data;
 }

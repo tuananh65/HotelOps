@@ -122,7 +122,7 @@ export async function assignInitialInspection(
   const current = () => {
     scope.signal.throwIfAborted();
     if (!scope.isCurrent())
-      throw new DOMException("Session or source changed", "AbortError");
+      throw new DOMException("Phiên đăng nhập hoặc dữ liệu nguồn đã thay đổi", "AbortError");
   };
   current();
   const csrf = (await getJson("/auth/csrf", scope.signal)) as {
@@ -185,7 +185,7 @@ export async function readInitialInspectionQueue(
   page: number,
   signal: AbortSignal,
 ): Promise<InitialInspectionQueue> {
-  if (!Number.isSafeInteger(page) || page < 1) throw new Error("Invalid page");
+  if (!Number.isSafeInteger(page) || page < 1) throw new Error("Trang không hợp lệ");
   const data = (
     await send(
       `/branches/${positiveId(branch)}/inspections/pending-assignment?page=${page}&pageSize=25${room === null ? "" : "&roomId=" + positiveId(room)}`,

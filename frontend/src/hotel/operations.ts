@@ -16,63 +16,63 @@ export interface Field {
   required?: boolean;
   max?: number;
 }
-const code: Field = { key: "code", label: "Code", required: true, max: 30 };
-const name: Field = { key: "name", label: "Name", required: true, max: 150 };
+const code: Field = { key: "code", label: "Mã", required: true, max: 30 };
+const name: Field = { key: "name", label: "Tên", required: true, max: 150 };
 const description: Field = {
   key: "description",
-  label: "Description",
+  label: "Mô tả",
   type: "longtext",
   max: 4000,
 };
 const reason: Field = {
   key: "reason",
-  label: "Reason",
+  label: "Lý do",
   required: true,
   max: 1000,
 };
 const floorId: Field = {
   key: "floorId",
-  label: "Floor ID",
+  label: "Mã tầng",
   type: "id",
   required: true,
 };
 const areaId: Field = {
   key: "areaId",
-  label: "Area ID (optional)",
+  label: "Mã khu vực (không bắt buộc)",
   type: "id",
 };
 const typeId: Field = {
   key: "roomTypeId",
-  label: "Room type ID",
+  label: "Mã loại phòng",
   type: "id",
   required: true,
 };
 const number: Field = {
   key: "roomNumber",
-  label: "Room number",
+  label: "Số phòng",
   required: true,
   max: 30,
 };
 const notes: Field = {
   key: "notes",
-  label: "Notes",
+  label: "Ghi chú",
   type: "longtext",
   max: 4000,
 };
 const manager: Field = {
   key: "managerUserId",
-  label: "Manager user ID (optional)",
+  label: "Mã người quản lý (không bắt buộc)",
   type: "id",
 };
 const cleaning: Field = {
   key: "standardCleaningMinutes",
-  label: "Standard cleaning minutes",
+  label: "Thời gian vệ sinh tiêu chuẩn (phút)",
   type: "id",
   required: true,
 };
 const checklist: Field = {
   key: "defaultChecklistId",
-  label: "Published default checklist ID",
+  label: "Mã danh sách kiểm tra mặc định đã công bố",
   type: "id",
   required: true,
 };
@@ -80,20 +80,20 @@ export const fields: Record<MutationKind, Field[]> = {
   createFloor: [
     code,
     { ...name, max: 100 },
-    { key: "floorNumber", label: "Floor number (optional)", type: "integer" },
+    { key: "floorNumber", label: "Số tầng (không bắt buộc)", type: "integer" },
     description,
   ],
   createArea: [
     code,
     name,
-    { ...floorId, label: "Parent floor ID (optional)", required: false },
+    { ...floorId, label: "Mã tầng cha (không bắt buộc)", required: false },
     description,
   ],
   updateFloor: [code, { ...name, max: 100 }, description, reason],
   updateArea: [
     code,
     name,
-    { ...floorId, label: "Parent floor ID (optional)", required: false },
+    { ...floorId, label: "Mã tầng cha (không bắt buộc)", required: false },
     description,
     reason,
   ],
@@ -104,13 +104,13 @@ export const fields: Record<MutationKind, Field[]> = {
     checklist,
     {
       key: "standardCapacity",
-      label: "Standard capacity (optional)",
+      label: "Sức chứa tiêu chuẩn (không bắt buộc)",
       type: "id",
     },
     description,
   ],
   updateType: [
-    { ...code, label: "Code (leave blank to keep)", required: false },
+    { ...code, label: "Mã (để trống nếu giữ nguyên)", required: false },
     name,
     cleaning,
     checklist,
@@ -123,12 +123,12 @@ export const fields: Record<MutationKind, Field[]> = {
   updateDepartment: [name, description, manager],
 };
 export const titles: Record<Screen, string> = {
-  structure: "Branch structure",
-  floors: "Floors",
-  areas: "Areas",
-  roomTypes: "Room types",
-  rooms: "Room directory",
-  departments: "Departments",
+  structure: "Cấu trúc chi nhánh",
+  floors: "Tầng",
+  areas: "Khu vực",
+  roomTypes: "Loại phòng",
+  rooms: "Danh mục phòng",
+  departments: "Bộ phận",
 };
 export function mutationFor(
   screen: Screen,
@@ -139,11 +139,11 @@ export function mutationFor(
   if (action !== "create" && action !== "edit") return null;
   const noun = {
     structure: null,
-    floors: "Floor",
-    areas: "Area",
-    roomTypes: "Type",
-    rooms: "Room",
-    departments: "Department",
+    floors: "Tầng",
+    areas: "Khu vực",
+    roomTypes: "Loại",
+    rooms: "Phòng",
+    departments: "Bộ phận",
   }[screen];
   return noun
     ? (`${action === "edit" ? "update" : "create"}${noun}` as MutationKind)

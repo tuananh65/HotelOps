@@ -52,62 +52,57 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
         );
         if (active.current && current === revision.current)
           setNotice(
-            "Copied to clipboard. This does not confirm delivery to the employee.",
+            "Đã sao chép. Chưa xác nhận đã bàn giao cho nhân viên.",
           );
       } catch {
         if (active.current && current === revision.current)
           setNotice(
-            "Clipboard copy is unavailable. Reveal the credential and hand it off securely by another method.",
+            "Không sao chép được. Hiện mật khẩu và bàn giao an toàn bằng cách khác.",
           );
       }
     }
     if (acknowledged)
       return (
-        <section aria-label="Credential handoff complete">
-          <h2>Credential handoff complete</h2>
+        <section aria-label="Đã bàn giao mật khẩu">
+          <h2>Đã bàn giao mật khẩu</h2>
           <p>
-            The credential has been removed from this page. If it is lost, use
-            an authorized credential reset process; do not create the account
-            again.
+            Mật khẩu đã xóa khỏi trang. Nếu bị mất, dùng quy trình đặt lại được cấp quyền; không tạo lại tài khoản.
           </p>
         </section>
       );
     if (!credential) return null;
     return (
-      <section aria-label="Initial credential handoff">
-        <h2>Account created — initial credential</h2>
-        <p>Employee: {credential.user.fullName}</p>
-        <p>Username: {credential.user.username}</p>
-        <p>Employee code: {credential.user.employeeCode}</p>
-        <p>Account ID: {credential.user.id}</p>
+      <section aria-label="Bàn giao mật khẩu ban đầu">
+        <h2>Đã tạo tài khoản — mật khẩu ban đầu</h2>
+        <p>Nhân viên: {credential.user.fullName}</p>
+        <p>Tên đăng nhập: {credential.user.username}</p>
+        <p>Mã nhân viên: {credential.user.employeeCode}</p>
+        <p>Mã tài khoản: {credential.user.id}</p>
         <p>
-          Expires at:{" "}
+          Hết hạn lúc:{" "}
           <time dateTime={credential.temporaryCredential.expiresAtUtc}>
             {credential.temporaryCredential.expiresAtUtc}
           </time>
         </p>
         {revealed ? (
-          <p aria-label="Initial password">
+          <p aria-label="Mật khẩu ban đầu">
             {credential.temporaryCredential.password}
           </p>
         ) : (
-          <p>Password hidden</p>
+          <p>Đã ẩn mật khẩu</p>
         )}
         <button type="button" onClick={() => setRevealed((value) => !value)}>
-          {revealed ? "Hide password" : "Reveal password"}
+          {revealed ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
         </button>
         <button type="button" onClick={() => void copy()}>
-          Copy password
+          Sao chép mật khẩu
         </button>
         {notice && <p role="status">{notice}</p>}
         <p>
-          The clipboard may retain the password after you leave this page.
-          Leaving or closing this page removes access to this credential. It
-          cannot be retrieved again here.
+          Bộ nhớ sao chép có thể giữ mật khẩu sau khi rời trang. Rời hoặc đóng trang sẽ mất quyền xem mật khẩu này; không lấy lại được tại đây.
         </p>
         <p>
-          If the credential is lost, ask an authorized administrator to arrange
-          a credential reset. Do not create the account again.
+          Nếu mất mật khẩu, nhờ quản trị viên có quyền đặt lại. Không tạo lại tài khoản.
         </p>
         <button
           type="button"
@@ -119,7 +114,7 @@ export const InitialCredentialHandoff = forwardRef<CredentialHandoffHandle>(
             setAcknowledged(true);
           }}
         >
-          I have securely handed off the credential
+          Tôi đã bàn giao mật khẩu an toàn
         </button>
       </section>
     );

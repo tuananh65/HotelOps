@@ -254,10 +254,10 @@ test("candidate explicit retry preserves original command and key with fresh CSR
   await page.locator("input[name=reason]").fill("candidate test");
   await page.locator("form button[type=button]").click();
   await expect(
-    page.getByRole("button", { name: "Retry same command" }),
+    page.getByRole("button", { name: "Thử lại cùng lệnh" }),
   ).toBeVisible();
   expect(posts).toBe(1);
-  await page.getByRole("button", { name: "Retry same command" }).click();
+  await page.getByRole("button", { name: "Thử lại cùng lệnh" }).click();
   await expect.poll(() => posts).toBe(2);
   expect(commands[0]).toBe(commands[1]);
   expect(keys[0]).toBe(keys[1]);

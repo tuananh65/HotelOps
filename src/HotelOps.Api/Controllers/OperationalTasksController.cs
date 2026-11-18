@@ -13,6 +13,15 @@ namespace HotelOps.Api.Controllers;
 [Route("api/branches/{branchId:long}/operational-tasks")]
 public sealed class OperationalTasksController(RoomTypeCreationService service):ControllerBase
 {
+    [HttpGet("~/api/operational-tasks/branches")]
+    public async Task<IActionResult> Branches(CancellationToken ct)
+    {
+        if (!Request.IsHttps) return Problem(statusCode:400,title:"HTTPS_REQUIRED");
+        if (!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid)) return Unauthorized();
+        var result = await service.OperationalTaskBranchesAsync(ticket!,sid,ct);
+        return result.Status == RoomTypeBatchStatus.Success ? Ok(result.Value)
+            : Problem(statusCode:result.Status == RoomTypeBatchStatus.SessionInvalid ? 401 : 503, title:result.Status.ToString());
+    }
     [HttpGet] public Task<IActionResult> List(long branchId,[FromQuery] OperationalTaskQuery query,CancellationToken ct)=>Read(branchId,null,query,ct);
     [HttpGet("{id:long}")] public Task<IActionResult> Detail(long branchId,long id,[FromQuery] OperationalTaskQuery query,CancellationToken ct)=>Read(branchId,id,query,ct);
     private async Task<IActionResult> Read(long branch,long? id,OperationalTaskQuery query,CancellationToken ct)

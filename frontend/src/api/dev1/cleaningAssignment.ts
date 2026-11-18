@@ -80,7 +80,7 @@ export async function readAssignmentPlan(
     search.trim().length > 150 ||
     /[\u0000-\u001f\u007f-\u009f]/.test(search)
   )
-    throw Error("Invalid planning filters");
+    throw Error("Bộ lọc lập kế hoạch không hợp lệ");
   const q = new URLSearchParams({ page: String(page), pageSize: "20" });
   if (search.trim()) q.set("search", search.trim());
   const response = await send(
@@ -184,13 +184,13 @@ export function buildAssignmentDraft(
 export function assignmentError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 400 && error.code === "INVALIDREFERENCE")
-      return "MSG03: Assignee must be active Housekeeping Staff in this branch and department, with a current planned shift. Select an eligible assignee and future UTC due time.";
+      return "MSG03: Người được giao phải là nhân viên buồng phòng đang hoạt động trong chi nhánh, bộ phận này và có ca hiện tại. Chọn người hợp lệ và hạn UTC tương lai.";
     if (error.status === 400 && error.code === "VALIDATION_FAILED")
-      return "MSG03: Check the selected assignee, future UTC due time and assignment reason, then submit the corrected values.";
+      return "MSG03: Kiểm tra người được giao, hạn UTC tương lai và lý do phân công rồi gửi lại giá trị đã sửa.";
     if (error.status === 412)
-      return "The task changed. Current assignment data has been reloaded; review it before assigning again.";
+      return "Công việc đã đổi. Phân công hiện tại đã tải lại; kiểm tra trước khi phân công tiếp.";
     if (error.status === 409)
-      return "The task is no longer available for this assignment or the operation conflicts. Review the refreshed task.";
+      return "Công việc không còn khả dụng cho phân công này hoặc thao tác xung đột. Xem dữ liệu vừa tải lại.";
     if (error.status === 401)
       return "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.";
     if (error.status === 403)

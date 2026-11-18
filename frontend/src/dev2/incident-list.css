@@ -1,0 +1,17 @@
+.incident-results { min-width: 0; max-width: 100%; }
+.incident-results .incident-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; border: 1px solid #e6d7c3; border-radius: 12px; }
+.incident-results .incident-table-scroll:focus-visible { outline: 2px solid #795239; outline-offset: 3px; }
+.incident-results .incident-table-scroll table { width: 100%; min-width: 1250px; table-layout: auto; margin: 0; }
+.incident-results .incident-table-scroll th,
+.incident-results .incident-table-scroll td { word-break: normal; overflow-wrap: normal; vertical-align: top; padding: 16px; text-align: left; }
+.incident-results .incident-table-scroll th { white-space: nowrap; }
+.incident-results .incident-table-scroll td:nth-child(1) { min-width: 200px; max-width: 260px; }
+.incident-results .incident-table-scroll td:nth-child(2) { min-width: 230px; max-width: 300px; }
+.incident-results .incident-table-scroll td:nth-child(3),
+.incident-results .incident-table-scroll td:nth-child(5) { min-width: 170px; }
+.incident-results .incident-table-scroll td:nth-child(6) { min-width: 230px; }
+.incident-results .incident-table-scroll td > p { margin: 8px 0 0; overflow-wrap: anywhere; }
+.incident-results .incident-table-scroll small { display: block; margin-top: 6px; color: #786758; }
+.incident-results .incident-reference,
+.incident-results .incident-status { white-space: nowrap; }
+.incident-results .incident-scroll-hint { font-size: .9em; color: #786758; }

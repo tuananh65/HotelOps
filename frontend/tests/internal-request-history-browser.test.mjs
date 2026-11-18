@@ -141,15 +141,15 @@ async function fixture(run) {
 test("time window shows server risk and refresh removes it after deadline change or revoked read", async () => fixture(async (page, state) => {
   state.timing = { createdAt:"2026-11-15T00:00:00Z", timingStatus:"AT_RISK" };
   await page.getByRole("button",{name:"Refresh history",exact:true}).click();
-  await page.getByRole("cell",{name:"At risk (80% or more elapsed)",exact:true}).waitFor();
+  await page.getByRole("cell",{name:"Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)",exact:true}).waitFor();
   state.timing.timingStatus = "ON_TIME";
   await page.getByRole("button",{name:"Refresh history",exact:true}).click();
-  await page.getByRole("cell",{name:"Under 80% elapsed",exact:true}).waitFor();
-  assert.equal(await page.getByText("At risk (80% or more elapsed)",{exact:true}).count(),0);
+  await page.getByRole("cell",{name:"Đã dùng dưới 80% thời gian",exact:true}).waitFor();
+  assert.equal(await page.getByText("Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)",{exact:true}).count(),0);
   state.history = 403;
   await page.getByRole("button",{name:"Refresh history",exact:true}).click();
   await page.getByRole("alert").filter({hasText:"do not have access"}).waitFor();
-  assert.equal(await page.getByText("Under 80% elapsed",{exact:true}).count(),0);
+  assert.equal(await page.getByText("Đã dùng dưới 80% thời gian",{exact:true}).count(),0);
 }));
 test("refresh denial removes previously visible history", async () => fixture(async (page, state) => {
   state.history = 403;
@@ -160,37 +160,37 @@ test("refresh denial removes previously visible history", async () => fixture(as
 
 test("escalation validates reason and stale double click never replays", async () => fixture(async(page,state)=>{
   state.escalationAllowed=true;await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Escalate request",exact:true});
-  await panel.getByRole("button",{name:"Escalate request",exact:true}).click();
-  await panel.getByText("Enter a reason of at least 10 characters without control characters.",{exact:true}).waitFor();
+  const panel=page.getByRole("region",{name:"Chuyển cấp xử lý yêu cầu",exact:true});
+  await panel.getByRole("button",{name:"Chuyển cấp xử lý yêu cầu",exact:true}).click();
+  await panel.getByText("Nhập lý do ít nhất 10 ký tự, không chứa ký tự điều khiển.",{exact:true}).waitFor();
   assert.equal(state.escalationPosts??0,0);
-  await panel.getByLabel("Escalation reason",{exact:true}).fill("Required escalation reason");
-  await panel.getByLabel("New priority",{exact:true}).selectOption("7");
-  await panel.getByRole("button",{name:"Escalate request",exact:true}).evaluate(b=>{b.click();b.click();});
-  await panel.getByText("Request changed. Reload before escalating.",{exact:true}).waitFor();
-  assert.equal(state.escalationPosts,1);assert.equal(await panel.getByLabel("Escalation reason",{exact:true}).count(),0);
+  await panel.getByLabel("Lý do chuyển cấp",{exact:true}).fill("Required escalation reason");
+  await panel.getByLabel("Độ ưu tiên mới",{exact:true}).selectOption("7");
+  await panel.getByRole("button",{name:"Chuyển cấp xử lý yêu cầu",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByText("Yêu cầu đã đổi. Tải lại trước khi chuyển cấp.",{exact:true}).waitFor();
+  assert.equal(state.escalationPosts,1);assert.equal(await panel.getByLabel("Lý do chuyển cấp",{exact:true}).count(),0);
 }));
 test("status filter has an accessible name and sends the selected value", async () => fixture(async (page) => {
   const request = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests" && new URL(r.url()).searchParams.get("status") === "SUBMITTED");
-  await page.getByLabel("Status", {exact:true}).selectOption("SUBMITTED");
+  await page.getByLabel("Trạng thái", {exact:true}).selectOption("SUBMITTED");
   await request;
   await page.getByRole("cell", { name: "PRIVATE REQUEST <script>", exact: true }).waitFor();
 }));
 
 test("At Risk filter sends server predicate and excludes Overdue selection", async () => fixture(async(page)=>{
   const first=page.waitForRequest(r=>new URL(r.url()).pathname==="/api/internal-requests"&&new URL(r.url()).searchParams.get("atRisk")==="true");
-  await page.getByLabel("At risk only",{exact:true}).check();const request=await first;
+  await page.getByLabel("Chỉ hiện có nguy cơ trễ hạn",{exact:true}).check();const request=await first;
   assert.equal(request.method(),"GET");assert.equal(new URL(request.url()).searchParams.has("overdue"),false);
   await page.getByRole("cell",{name:"PRIVATE REQUEST <script>",exact:true}).waitFor();
   const second=page.waitForRequest(r=>new URL(r.url()).pathname==="/api/internal-requests"&&new URL(r.url()).searchParams.get("overdue")==="true");
-  await page.getByLabel("Overdue only",{exact:true}).check();assert.equal(new URL((await second).url()).searchParams.has("atRisk"),false);
-  assert.equal(await page.getByLabel("At risk only",{exact:true}).isChecked(),false);
+  await page.getByLabel("Chỉ hiện quá hạn",{exact:true}).check();assert.equal(new URL((await second).url()).searchParams.has("atRisk"),false);
+  assert.equal(await page.getByLabel("Chỉ hiện có nguy cơ trễ hạn",{exact:true}).isChecked(),false);
 }));
 test("direction filter sends Sent and Received as scoped reads and clears history on denial", async () => fixture(async (page, state) => {
   for (const direction of ["SENT", "RECEIVED"]) {
     const sent = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests"
       && new URL(r.url()).searchParams.get("direction") === direction);
-    await page.getByLabel("Direction", {exact:true}).selectOption(direction);
+    await page.getByLabel("Phạm vi yêu cầu", {exact:true}).selectOption(direction);
     const request = await sent;
     assert.equal(request.method(), "GET");
     assert.equal(new URL(request.url()).searchParams.get("page"), "1");
@@ -205,7 +205,7 @@ test("direction filter sends Sent and Received as scoped reads and clears histor
 test("session revalidation removes request history before login", async () => fixture(async (page, state) => {
   state.session = 401;
   await page.evaluate(() => window.historyStore.revalidate());
-  await page.getByRole("button", { name: "Sign in", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).waitFor();
   assert.equal(await page.getByText("PRIVATE REQUEST <script>", { exact: true }).count(), 0);
 }));
 test("request notification deep link loads only the selected authorized timeline and back clears it", async () => fixture(async (page,state) => {
@@ -219,11 +219,11 @@ test("request notification deep link loads only the selected authorized timeline
   await page.goto("https://history.test/internal-requests?requestId=1");
   await page.addScriptTag({content:compiled.outputFiles[0].text});
   await page.getByRole("alert").filter({hasText:"Request unavailable"}).waitFor();
-  assert.equal(await page.getByRole("region",{name:"Request timeline",exact:true}).count(),0);
+  assert.equal(await page.getByRole("region",{name:"Dòng thời gian yêu cầu",exact:true}).count(),0);
 }));
 test("decision stale response requires reload without replay or retained details",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  const panel=page.getByRole("region",{name:"Quyết định yêu cầu",exact:true});
   await panel.getByRole("button",{name:"Accept request",exact:true}).waitFor();state.postStatus=412;
   await panel.getByRole("button",{name:"Accept request",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
@@ -232,19 +232,19 @@ test("decision stale response requires reload without replay or retained details
 }));
 test("decision double click sends once and session loss hides details while request is pending",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  const panel=page.getByRole("region",{name:"Quyết định yêu cầu",exact:true});
   const button=panel.getByRole("button",{name:"Accept request",exact:true});await button.waitFor();state.hold=true;
   const sent=page.waitForRequest(r=>r.method()==="POST"&&new URL(r.url()).pathname.endsWith("/decision"));
   await button.evaluate(b=>{b.click();b.click();});
   await sent;
   await page.waitForTimeout(100);assert.equal(state.decisionPosts,1);assert.equal(await button.isDisabled(),true);
   state.session=401;await page.evaluate(()=>window.historyStore.revalidate());
-  await page.getByRole("button",{name:"Sign in",exact:true}).waitFor();state.release?.();
+  await page.getByRole("button",{name:"Đăng nhập",exact:true}).waitFor();state.release?.();
   assert.equal(await page.getByText("PRIVATE DESCRIPTION",{exact:true}).count(),0);
 }));
 test("read access without processing authority exposes no decision action",async()=>fixture(async(page,state)=>{
   state.canDecide=false;await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  const panel=page.getByRole("region",{name:"Quyết định yêu cầu",exact:true});
   await panel.getByText("PRIVATE DESCRIPTION",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Accept request",exact:true}).count(),0);
   assert.equal(await panel.getByRole("button",{name:"Reject request",exact:true}).count(),0);
@@ -254,48 +254,48 @@ test("accept offers assignment; stale assign clears form without replay",async()
   await page.getByRole("button",{name:"IR1",exact:true}).click();
   await page.getByRole("button",{name:"Accept request",exact:true}).click();
   const panel=page.getByRole("region",{name:"Assign request handler",exact:true});
-  await panel.getByLabel("Request handler",{exact:true}).selectOption("42");state.assignmentStatus=412;
+  await panel.getByLabel("Người xử lý yêu cầu",{exact:true}).selectOption("42");state.assignmentStatus=412;
   await panel.getByRole("button",{name:"Assign request handler",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
-  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
+  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Người xử lý yêu cầu",{exact:true}).count(),0);
 }));
 
 test("accepted request assignment succeeds with ETag and CSRF then requires fresh load",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
   await page.getByRole("button",{name:"Accept request",exact:true}).click();
   const panel=page.getByRole("region",{name:"Assign request handler",exact:true});
-  await panel.getByLabel("Request handler",{exact:true}).selectOption("42");
+  await panel.getByLabel("Người xử lý yêu cầu",{exact:true}).selectOption("42");
   await panel.getByRole("button",{name:"Assign request handler",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:"MSG08: Handler assigned"}).waitFor();
   await page.getByText("Status: IN_PROGRESS",{exact:true}).waitFor();
-  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
+  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Người xử lý yêu cầu",{exact:true}).count(),0);
 }));
 
 test("route requires reason then clears old decision authority after committed response",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Route request",exact:true});
-  await panel.getByLabel("Target department",{exact:true}).selectOption("5");
-  await panel.getByRole("button",{name:"Route request",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Chuyển yêu cầu",exact:true});
+  await panel.getByLabel("Bộ phận đích",{exact:true}).selectOption("5");
+  await panel.getByRole("button",{name:"Chuyển yêu cầu",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"at least 10 characters"}).waitFor();assert.equal(state.routePosts,0);
-  await panel.getByLabel("Routing reason",{exact:true}).fill("Route to responsible team");
-  await panel.getByRole("button",{name:"Route request",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByLabel("Lý do chuyển bộ phận",{exact:true}).fill("Route to responsible team");
+  await panel.getByRole("button",{name:"Chuyển yêu cầu",exact:true}).evaluate(b=>{b.click();b.click();});
   await page.getByRole("status").filter({hasText:"MSG08: Request routed"}).waitFor();
   assert.equal(state.routePosts,1);assert.equal(await page.getByRole("button",{name:"Accept request",exact:true}).count(),0);
 }));
 
 test("stale route response hides target options and never replays mutation",async()=>fixture(async(page,state)=>{
   state.routeStatus=412;await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Route request",exact:true});
-  await panel.getByLabel("Target department",{exact:true}).selectOption("5");
-  await panel.getByLabel("Routing reason",{exact:true}).fill("Route to responsible team");
-  await panel.getByRole("button",{name:"Route request",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Chuyển yêu cầu",exact:true});
+  await panel.getByLabel("Bộ phận đích",{exact:true}).selectOption("5");
+  await panel.getByLabel("Lý do chuyển bộ phận",{exact:true}).fill("Route to responsible team");
+  await panel.getByRole("button",{name:"Chuyển yêu cầu",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
-  assert.equal(state.routePosts,1);assert.equal(await panel.getByLabel("Target department",{exact:true}).count(),0);
+  assert.equal(state.routePosts,1);assert.equal(await panel.getByLabel("Bộ phận đích",{exact:true}).count(),0);
 }));
 
 test("progress read does not grant mutation and reload denial removes private snapshot", async()=>fixture(async(page,state)=>{
   await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
-  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  const panel=page.getByRole("region",{name:"Tiến độ yêu cầu",exact:true});
   await panel.getByText("PRIVATE RESULT",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Save progress",exact:true}).count(),0);
   state.progressStatus=403;await panel.getByRole("button",{name:"Reload progress",exact:true}).click();
@@ -305,52 +305,52 @@ test("progress read does not grant mutation and reload denial removes private sn
 test("older evidence preserves unsaved progress and disappears after authority loss",async()=>fixture(async(page,state)=>{
   state.progressAllowed=true;state.evidence=true;
   await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
-  const panel=page.getByRole("region",{name:"Request progress",exact:true});
-  await panel.getByLabel("Progress note",{exact:true}).fill("Unsaved work");
+  const panel=page.getByRole("region",{name:"Tiến độ yêu cầu",exact:true});
+  await panel.getByLabel("Ghi chú tiến độ",{exact:true}).fill("Unsaved work");
   await panel.getByRole("button",{name:"Load older attachments",exact:true}).click();
   await panel.getByRole("link",{name:"older.png",exact:true}).waitFor();
   assert.equal(state.olderCursor,"2");assert.equal(state.olderReads,1);
-  assert.equal(await panel.getByLabel("Progress note",{exact:true}).inputValue(),"Unsaved work");
+  assert.equal(await panel.getByLabel("Ghi chú tiến độ",{exact:true}).inputValue(),"Unsaved work");
   assert.equal(await panel.getByRole("button",{name:"Load older attachments",exact:true}).count(),0);
   state.progressStatus=403;await panel.getByRole("button",{name:"Reload progress",exact:true}).click();
-  await panel.getByText("Progress unavailable. Reload to check current access.",{exact:true}).waitFor();
+  await panel.getByText("Chưa tải được tiến độ. Tải lại để kiểm tra quyền hiện tại.",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("link").count(),0);
 }));
 for (const denied of [true,false]) test(`older evidence rejects ${denied ? "revoked access" : "changed version"} without retaining private content`,async()=>fixture(async(page,state)=>{
   state.evidence=true;state.olderStatus=denied?403:200;state.changedEvidence=!denied;
   await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
-  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  const panel=page.getByRole("region",{name:"Tiến độ yêu cầu",exact:true});
   await panel.getByRole("button",{name:"Load older attachments",exact:true}).click();
-  await panel.getByText("Evidence or access changed. Reload progress before continuing.",{exact:true}).waitFor();
+  await panel.getByText("Bằng chứng hoặc quyền đã đổi. Tải lại tiến độ trước khi tiếp tục.",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("link").count(),0);assert.equal(state.olderReads,1);
 }));
 for(const status of [200,403,412])test(`progress ${status} uses CSRF/ETag, prevents double submit and requires reload`,async()=>fixture(async(page,state)=>{
   state.progressAllowed=true;state.progressPostStatus=status;
   await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
-  const panel=page.getByRole("region",{name:"Request progress",exact:true});
-  await panel.getByLabel("Progress percent",{exact:true}).fill("100");
-  await panel.getByLabel("Progress note",{exact:true}).fill("Updated note");
-  await panel.getByLabel("Result note",{exact:true}).fill("Updated result");
+  const panel=page.getByRole("region",{name:"Tiến độ yêu cầu",exact:true});
+  await panel.getByLabel("Phần trăm tiến độ",{exact:true}).fill("100");
+  await panel.getByLabel("Ghi chú tiến độ",{exact:true}).fill("Updated note");
+  await panel.getByLabel("Ghi chú kết quả",{exact:true}).fill("Updated result");
   state.expectProgressFile=true;
-  await panel.getByLabel("Progress attachments",{exact:true}).setInputFiles({name:"proof.png",mimeType:"image/png",buffer:Buffer.from([137,80,78,71,13,10,26,10])});
-  assert.equal(await panel.getByLabel("New deadline (UTC)",{exact:true}).count(),0);
+  await panel.getByLabel("Tệp đính kèm tiến độ",{exact:true}).setInputFiles({name:"proof.png",mimeType:"image/png",buffer:Buffer.from([137,80,78,71,13,10,26,10])});
+  assert.equal(await panel.getByLabel("Thời hạn mới (UTC)",{exact:true}).count(),0);
   await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
   if(status===200){
     await page.getByRole("status").filter({hasText:"MSG08: Progress saved"}).waitFor();
     await panel.getByText("Saved progress: 100%",{exact:true}).waitFor();
-    assert.equal(await panel.getByLabel("Result note",{exact:true}).inputValue(),"Updated result");
+    assert.equal(await panel.getByLabel("Ghi chú kết quả",{exact:true}).inputValue(),"Updated result");
   }else{
     await panel.getByRole("status").filter({hasText:status===403?"MSG02: Current authority":"Request changed"}).waitFor();
-    assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
+    assert.equal(await panel.getByLabel("Phần trăm tiến độ",{exact:true}).count(),0);
   }
   assert.equal(state.progressPosts,1);
 }));
 
 test("linked task read grants no mutation and revoked read clears target metadata",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
+  const panel=page.getByRole("region",{name:"Công việc vận hành liên quan",exact:true});
   await panel.getByRole("link",{name:"TASK7: PRIVATE LINKED TASK",exact:true}).waitFor();
-  assert.equal(await panel.getByRole("button",{name:"Link existing task",exact:true}).count(),0);
+  assert.equal(await panel.getByRole("button",{name:"Liên kết công việc hiện có",exact:true}).count(),0);
   state.linkStatus=404;await panel.getByRole("button",{name:"Reload linked tasks",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Linked tasks unavailable"}).waitFor();
   assert.equal(await panel.getByRole("link").count(),0);
@@ -358,12 +358,12 @@ test("linked task read grants no mutation and revoked read clears target metadat
 for(const status of [200,412])test(`link ${status} requires explicit mandatory flag, sends once and clears stale options`,async()=>fixture(async(page,state)=>{
   state.linkAllowed=true;state.linkPostStatus=status;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
-  await panel.getByRole("button",{name:"Link existing task",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Công việc vận hành liên quan",exact:true});
+  await panel.getByRole("button",{name:"Liên kết công việc hiện có",exact:true}).click();
   await panel.getByLabel("Open task",{exact:true}).selectOption("7");
   await panel.getByRole("button",{name:"Save task link",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Select a task and whether"}).waitFor();assert.equal(state.linkPosts??0,0);
-  await panel.getByLabel("Completion requirement",{exact:true}).selectOption("required");
+  await panel.getByLabel("Điều kiện hoàn tất",{exact:true}).selectOption("required");
   await panel.getByRole("button",{name:"Save task link",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:status===200?"MSG08: Task linked":"Request changed"}).waitFor();
   assert.equal(state.linkPosts,1);assert.equal(await panel.getByLabel("Open task",{exact:true}).count(),0);
@@ -371,34 +371,34 @@ for(const status of [200,412])test(`link ${status} requires explicit mandatory f
 test("withdrawal requires reason and stale response is not replayed",async()=>fixture(async(page,state)=>{
   state.canWithdraw=true;state.withdrawalStatus=412;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Withdraw request",exact:true});
-  await panel.getByRole("button",{name:"Withdraw request",exact:true}).click();
-  await panel.getByText("Enter a withdrawal reason.",{exact:true}).waitFor();assert.equal(state.withdrawalPosts??0,0);
-  await panel.getByLabel("Withdrawal reason",{exact:true}).fill("  No longer needed  ");
-  await panel.getByRole("button",{name:"Withdraw request",exact:true}).click();
-  await panel.getByText("Request changed. Reload before withdrawing.",{exact:true}).waitFor();
-  assert.equal(state.withdrawalPosts,1);assert.equal(await panel.getByRole("button",{name:"Withdraw request",exact:true}).count(),0);
+  const panel=page.getByRole("region",{name:"Rút yêu cầu",exact:true});
+  await panel.getByRole("button",{name:"Rút yêu cầu",exact:true}).click();
+  await panel.getByText("Nhập lý do rút yêu cầu.",{exact:true}).waitFor();assert.equal(state.withdrawalPosts??0,0);
+  await panel.getByLabel("Lý do rút yêu cầu",{exact:true}).fill("  No longer needed  ");
+  await panel.getByRole("button",{name:"Rút yêu cầu",exact:true}).click();
+  await panel.getByText("Yêu cầu đã đổi. Tải lại trước khi rút.",{exact:true}).waitFor();
+  assert.equal(state.withdrawalPosts,1);assert.equal(await panel.getByRole("button",{name:"Rút yêu cầu",exact:true}).count(),0);
 }));
 test("withdrawal double click sends once and loses authority with session",async()=>fixture(async(page,state)=>{
   state.canWithdraw=true;state.hold=true;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Withdraw request",exact:true});
-  await panel.getByLabel("Withdrawal reason",{exact:true}).fill("No longer needed");
+  const panel=page.getByRole("region",{name:"Rút yêu cầu",exact:true});
+  await panel.getByLabel("Lý do rút yêu cầu",{exact:true}).fill("No longer needed");
   const sent=page.waitForRequest(r=>r.method()==="POST"&&new URL(r.url()).pathname.endsWith("/withdrawal"));
-  await panel.getByRole("button",{name:"Withdraw request",exact:true}).evaluate(b=>{b.click();b.click();});await sent;
+  await panel.getByRole("button",{name:"Rút yêu cầu",exact:true}).evaluate(b=>{b.click();b.click();});await sent;
   state.session=401;await page.evaluate(()=>window.historyStore.revalidate());
-  await page.getByRole("button",{name:"Sign in",exact:true}).waitFor();state.release?.();
-  assert.equal(state.withdrawalPosts,1);assert.equal(await page.getByLabel("Withdrawal reason",{exact:true}).count(),0);
+  await page.getByRole("button",{name:"Đăng nhập",exact:true}).waitFor();state.release?.();
+  assert.equal(state.withdrawalPosts,1);assert.equal(await page.getByLabel("Lý do rút yêu cầu",{exact:true}).count(),0);
 }));
 
 test("incident linking requires explicit mandatory selection and never replays stale submission",async()=>fixture(async(page,state)=>{
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Linked incidents",exact:true});
-  await panel.getByRole("button",{name:"Link existing incident",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Sự cố liên quan",exact:true});
+  await panel.getByRole("button",{name:"Liên kết sự cố hiện có",exact:true}).click();
   await panel.getByLabel("Open incident",{exact:true}).selectOption("7");
   await panel.getByRole("button",{name:"Save incident link",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Select an incident and whether"}).waitFor();assert.equal(state.incidentPosts??0,0);
-  await panel.getByLabel("Completion requirement",{exact:true}).selectOption("required");
+  await panel.getByLabel("Điều kiện hoàn tất",{exact:true}).selectOption("required");
   await panel.getByRole("button",{name:"Save incident link",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
   assert.equal(state.incidentPosts,1);assert.equal(await panel.getByLabel("Open incident",{exact:true}).count(),0);
@@ -407,30 +407,30 @@ test("incident linking requires explicit mandatory selection and never replays s
 test("handover sender validates input, uses CSRF/ETag and never replays a stale write",async()=>fixture(async(page,state)=>{
   state.handoverSender=true;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Request handover",exact:true});
+  const panel=page.getByRole("region",{name:"Yêu cầu bàn giao",exact:true});
   await panel.getByRole("button",{name:"Submit handover",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Enter the required"}).waitFor();
   assert.equal(state.handoverPosts??0,0);
-  await panel.getByLabel("New handler",{exact:true}).selectOption("43");
-  await panel.getByLabel("Status summary",{exact:true}).fill("  Pending inspection  ");
+  await panel.getByLabel("Người xử lý mới",{exact:true}).selectOption("43");
+  await panel.getByLabel("Tổng hợp trạng thái",{exact:true}).fill("  Pending inspection  ");
   await panel.getByRole("button",{name:"Submit handover",exact:true}).evaluate(b=>{b.click();b.click();});
-  await panel.getByText("Request changed. Reload before deciding.",{exact:true}).waitFor();
+  await panel.getByText("Yêu cầu đã đổi. Tải lại trước khi quyết định.",{exact:true}).waitFor();
   assert.equal(state.handoverPosts,1);
   assert.deepEqual(state.handoverBody,{receiverId:43,summary:"Pending inspection",note:null});
-  assert.equal(await panel.getByLabel("New handler",{exact:true}).count(),0);
+  assert.equal(await panel.getByLabel("Người xử lý mới",{exact:true}).count(),0);
 }));
 
 test("handover receiver requires rejection reason and removes receipt after read revocation",async()=>fixture(async(page,state)=>{
   state.handoverReceiver=true;
   await page.getByRole("button",{name:"IR1",exact:true}).click();
-  const panel=page.getByRole("region",{name:"Request handover",exact:true});
+  const panel=page.getByRole("region",{name:"Yêu cầu bàn giao",exact:true});
   await panel.getByText("PRIVATE HANDOVER",{exact:true}).waitFor();
   await panel.getByRole("button",{name:"Reject handover",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Enter the required"}).waitFor();
   assert.equal(state.handoverPosts??0,0);
   state.handoverReadStatus=403;
   await panel.getByRole("button",{name:"Reload handover",exact:true}).click();
-  await panel.getByText("Handover unavailable. Reload current access and responsibility.",{exact:true}).waitFor();
+  await panel.getByText("Chưa có bàn giao. Tải lại quyền và trách nhiệm hiện tại.",{exact:true}).waitFor();
   assert.equal(await panel.getByText("PRIVATE HANDOVER",{exact:true}).count(),0);
   assert.equal(await panel.getByRole("button",{name:"Acknowledge handover",exact:true}).count(),0);
 }));
@@ -450,7 +450,7 @@ test("completion refuses contradictory permission and blocker response",async()=
   state.visibleCompletionBlockers=[{kind:"TASK",id:7,code:"MANDATORY_WORK_NOT_CLOSED"}];
   await page.getByRole("button",{name:"IR1",exact:true}).click();
   const panel=page.getByRole("region",{name:"Complete request",exact:true});
-  await panel.getByText(/Completion availability could not be loaded/).waitFor();
+  await panel.getByText(/Không tải được điều kiện hoàn tất\. Tải lại để kiểm tra quyền và trạng thái\./).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
 }));
 test("completion requires result and never replays a stale double click",async()=>fixture(async(page,state)=>{
@@ -458,11 +458,11 @@ test("completion requires result and never replays a stale double click",async()
   await page.getByRole("button",{name:"IR1",exact:true}).click();
   const panel=page.getByRole("region",{name:"Complete request",exact:true});
   await panel.getByRole("button",{name:"Complete request",exact:true}).click();
-  await panel.getByText("Enter a completion result.",{exact:true}).waitFor();assert.equal(state.completionPosts??0,0);
-  await panel.getByLabel("Completion result",{exact:true}).fill(" Finished work ");
+  await panel.getByText("Nhập kết quả hoàn tất.",{exact:true}).waitFor();assert.equal(state.completionPosts??0,0);
+  await panel.getByLabel("Kết quả hoàn tất",{exact:true}).fill(" Finished work ");
   await panel.getByRole("button",{name:"Complete request",exact:true}).evaluate(b=>{b.click();b.click();});
-  await panel.getByText("Request changed. Reload before closing.",{exact:true}).waitFor();
-  assert.equal(state.completionPosts,1);assert.equal(await panel.getByLabel("Completion result",{exact:true}).count(),0);
+  await panel.getByText("Yêu cầu đã đổi. Tải lại trước khi đóng.",{exact:true}).waitFor();
+  assert.equal(state.completionPosts,1);assert.equal(await panel.getByLabel("Kết quả hoàn tất",{exact:true}).count(),0);
 }));
 
 test("completion blockers hide mutation without disclosing target identifiers",async()=>fixture(async(page,state)=>{
@@ -471,14 +471,14 @@ test("completion blockers hide mutation without disclosing target identifiers",a
   const panel=page.getByRole("region",{name:"Complete request",exact:true});
   await panel.getByRole("status").filter({hasText:"MSG34"}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
-  assert.equal(await panel.getByLabel("Completion result",{exact:true}).count(),0);
+  assert.equal(await panel.getByLabel("Kết quả hoàn tất",{exact:true}).count(),0);
 }));
 
  test("historical task requirement is unclassified rather than optional",async()=>fixture(async(page,state)=>{
  state.legacyTask=true; await page.getByRole("button",{name:"IR1",exact:true}).click();
- const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
- await panel.getByText(/Completion requirement unclassified/).waitFor();
- assert.equal(await panel.getByText("Optional",{exact:true}).count(),0);
+ const panel=page.getByRole("region",{name:"Công việc vận hành liên quan",exact:true});
+ await panel.getByText(/Chưa phân loại điều kiện hoàn tất/).waitFor();
+ assert.equal(await panel.getByText("Không bắt buộc",{exact:true}).count(),0);
  state.linkStatus=403;await panel.getByRole("button",{name:"Reload linked tasks",exact:true}).click();
  await panel.getByRole("status").filter({hasText:"Linked tasks unavailable"}).waitFor();
  assert.equal(await panel.getByRole("link").count(),0);

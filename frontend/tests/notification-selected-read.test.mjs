@@ -56,7 +56,7 @@ test("authority replacement after CSRF prevents selected mutation", async () => 
   };
   await assert.rejects(
     markInboxRead([4, 5], new AbortController().signal, () => false),
-    /Session changed/,
+    /Phiên đăng nhập đã thay đổi/,
   );
   assert.equal(count, 1);
 });

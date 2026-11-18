@@ -120,7 +120,7 @@ export default function CleaningAssignmentScreen() {
       setCommand(c);
       void executeCommand(c);
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : "Invalid command");
+      setSaveError(e instanceof Error ? e.message : "Lệnh không hợp lệ");
     }
   }
   function load(e: FormEvent<HTMLFormElement>) {
@@ -172,10 +172,10 @@ export default function CleaningAssignmentScreen() {
   return (
     <>
       <PageHeader id={27} />
-      {creation?.cleaningCreatedId === Number(task) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Cleaning task created. {creation.cleaningRoomBlocked === true ? "MSG17: Room remains Blocked." : "Room is Pending Cleaning."} Select an assignee to continue.</p>}
+      {creation?.cleaningCreatedId === Number(task) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Đã tạo công việc vệ sinh. {creation.cleaningRoomBlocked === true ? "MSG17: Phòng vẫn bị khóa." : "Phòng đang chờ vệ sinh."} Chọn người được giao để tiếp tục.</p>}
       {committed && (
         <p role="status">
-          MSG08: Assignment {committed} saved. Notification queued for delivery.
+          MSG08: Phân công {committed} đã lưu. Thông báo đang chờ gửi.
         </p>
       )}
       {saveError && (
@@ -186,15 +186,15 @@ export default function CleaningAssignmentScreen() {
               disabled={saving}
               onClick={() => void executeCommand(command)}
             >
-              Retry same command
+              Thử lại cùng lệnh
             </button>
           )}
         </p>
       )}
-      {saving && <p role="status">Saving assignment...</p>}
+      {saving && <p role="status">Đang lưu phân công...</p>}
       <p role="status">
         {data?.assignmentCapability === "PROVISIONAL_NOT_ACCEPTED"
-          ? "Isolated development candidate. Assignment includes mandatory notification staging; delivery is asynchronous."
+          ? "Chức năng thử nghiệm độc lập. Phân công bắt buộc tạo thông báo; thông báo được gửi bất đồng bộ."
           : "Chỉ xem dữ liệu và chuẩn bị bản nháp. Chưa thể lưu phân công vì thông báo bắt buộc chưa được tích hợp."}
       </p>
       <form key={key} className="filter-bar" onSubmit={load}>

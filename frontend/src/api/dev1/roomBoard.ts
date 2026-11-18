@@ -87,7 +87,7 @@ function invalid(): never {
 }
 export function roomPage(value: string | null): number {
   const page = value === null ? 1 : positiveId(value);
-  if ((page - 1) * 20 > 2147483647) throw new Error("Invalid page");
+  if ((page - 1) * 20 > 2147483647) throw new Error("Trang không hợp lệ");
   return page;
 }
 export async function listRoomBoard(

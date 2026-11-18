@@ -1,0 +1,114 @@
+.room-workspace.room-status-board .page-header {
+  margin-bottom: 16px;
+}
+.room-status-board .page-header h1 {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  margin-bottom: 6px;
+}
+.room-status-board .page-header p {
+  margin: 0;
+}
+.room-workspace.room-status-board .room-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 12px 16px;
+  margin: 12px 0 16px;
+}
+.room-status-board .room-scope > span {
+  margin: 0;
+}
+.room-status-board .room-scope > strong {
+  font-size: 1rem;
+}
+.room-status-board .room-board-filters {
+  padding: 16px;
+  margin: 0 0 20px;
+  background: #fff;
+  border: 1px solid #e8d7c2;
+  border-radius: 14px;
+}
+.room-status-board .room-board-primary-filters {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr) auto auto;
+  align-items: end;
+  gap: 14px;
+}
+.room-status-board .room-board-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+.room-status-board .room-board-filters input,
+.room-status-board .room-board-filters select,
+.room-status-board .room-board-filters button {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+.room-status-board .room-board-advanced {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e8d7c2;
+}
+.room-status-board .room-board-advanced[hidden] {
+  display: none;
+}
+.room-status-board .room-board-advanced-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.room-status-board .room-clear-filters {
+  margin-top: 12px;
+}
+.room-status-board .room-board-results-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.room-status-board .room-board-results-heading h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+}
+.room-status-board .room-board-results-heading span {
+  color: #806b59;
+  font-size: 0.9rem;
+}
+.room-status-board .room-board-results-heading button {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+.room-workspace.room-status-board .room-stats {
+  gap: 8px;
+  margin: 16px 0;
+}
+.room-workspace.room-status-board .room-stats li {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+.room-workspace.room-status-board table {
+  min-width: 620px;
+}
+.room-workspace.room-status-board th,
+.room-workspace.room-status-board td {
+  padding: 12px;
+  min-width: 85px;
+}
+@media (max-width: 1000px) {
+  .room-status-board .room-board-primary-filters,
+  .room-status-board .room-board-advanced-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .room-status-board .room-board-primary-filters,
+  .room-status-board .room-board-advanced-fields {
+    grid-template-columns: 1fr;
+  }
+}

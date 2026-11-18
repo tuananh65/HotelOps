@@ -10,9 +10,9 @@ import { useHomeDisplay } from "./useHomeDisplay";
 const sections = [
   { title: "Nhân sự & phân quyền", icon: Users, description: "Tài khoản và quyền truy cập hệ thống.", paths: ["/users", "/roles"] },
   { title: "Khách sạn & cấu hình", icon: Building2, description: "Cấu trúc chi nhánh và danh mục vận hành.", paths: ["/hotel", "/room-directory", "/structure/work-categories", "/structure/priority-sla", "/structure/reference-data"] },
-  { title: "Vận hành & buồng phòng", icon: ClipboardCheck, description: "Theo dõi phòng, công việc và xử lý sự cố.", paths: ["/dashboard", "/rooms/status", "/rooms/turnover", "/cleaning/tasks", "/cleaning/assignment", "/rework", "/inspections/checklists", "/inspection-history", "/operational-tasks", "/operations/incidents"] },
-  { title: "Tài sản & vật tư", icon: Package, description: "Tra cứu tài sản và các yêu cầu vật tư.", paths: ["/assets", "/assets/locations", "/assets/maintenance-history", "/inventory/return-requests", "/operations/material-requests", "/operations/replenishments"] },
-  { title: "Ca làm việc", icon: Clock3, description: "Kế hoạch ca và thời gian làm việc.", paths: ["/workday", "/workday/shift-plans", "/my-time-log"] },
+  { title: "Vận hành & buồng phòng", icon: ClipboardCheck, description: "Theo dõi phòng, công việc và xử lý sự cố.", paths: ["/dashboard", "/rooms/status", "/rooms/turnover", "/cleaning/tasks", "/cleaning/assignment", "/rework", "/inspections/checklists", "/inspection-history", "/operational-tasks", "/incidents/new", "/operations/incidents", "/operations/maintenance", "/internal-requests/new", "/internal-requests"] },
+  { title: "Tài sản & vật tư", icon: Package, description: "Tra cứu tài sản và các yêu cầu vật tư.", paths: ["/assets", "/assets/locations", "/assets/maintenance-history", "/inventory/return-requests", "/material-requests/new", "/operations/material-requests", "/operations/replenishments"] },
+  { title: "Ca làm việc", icon: Clock3, description: "Kế hoạch ca và thời gian làm việc.", paths: ["/workday", "/workday/scheduled", "/workday/shift-plans", "/my-time-log", "/time-corrections", "/workday/handovers"] },
 ];
 const names: Record<string, string> = {
   "/users": "Quản lý người dùng", "/roles": "Vai trò & phân quyền", "/hotel": "Cấu trúc khách sạn",

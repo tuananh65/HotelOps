@@ -23,14 +23,14 @@ export function MaterialApprovalFields({ record, values, action, onChange }: {
     onChange({ ...values, lines: rows.map(l => ({ requestLineId: l.requestLineId,
       approvedQty: l.requestLineId === id ? value : quantities.find(q => q.requestLineId === l.requestLineId)?.approvedQty ?? "" })) });
   }
-  return <section aria-label="Material approval decision">
+  return <section aria-label="Quyết định duyệt vật tư">
     {action === "A004A-047" && rows.map((line, index) => <label key={String(line.requestLineId)}>
-      {String(line.itemName ?? `Line ${index + 1}`)} — requested {String(line.requestedQty)} {String(line.unitName ?? "")}
-      <input aria-label={`Approved quantity for line ${index + 1}`} type="number" min="0" max={Number(line.requestedQty)} step="0.001" required
+      {String(line.itemName ?? `Dòng ${index + 1}`)} — Đã yêu cầu {String(line.requestedQty)} {String(line.unitName ?? "")}
+      <input aria-label={`Số lượng duyệt cho dòng ${index + 1}`} type="number" min="0" max={Number(line.requestedQty)} step="0.001" required
         value={String(quantities.find(q => q.requestLineId === line.requestLineId)?.approvedQty ?? "")}
         onChange={event => quantity(line.requestLineId, event.target.value)} />
     </label>)}
-    <label>{action === "A004A-047" ? "Decision note (required when all quantities are zero)" : "Reason"}
+    <label>{action === "A004A-047" ? "Ghi chú quyết định (bắt buộc nếu mọi số lượng đều bằng 0)" : "Lý do"}
       <textarea required={reasonRequired} minLength={reasonRequired ? 10 : undefined}
         value={String(values.reason ?? "")} onChange={event => onChange({ ...values, reason: event.target.value })} />
     </label>

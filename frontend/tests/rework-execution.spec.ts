@@ -208,7 +208,7 @@ test("rework completion requires every note and retains same key/body for explic
   await open(page);
   await page
     .getByLabel("Ghi chú thao tác", { exact: true })
-    .fill("Submit rework");
+    .fill("Nộp kết quả làm lại");
   await page
     .getByRole("button", { name: "Complete rework", exact: true })
     .click();
@@ -250,8 +250,8 @@ test("stale rework reloads source and does not repost", async ({ page }) => {
     return r.fulfill({ status: 412, json: { title: "STALE" } });
   });
   await open(page);
-  await page.getByLabel("Remediation 8", { exact: true }).fill("Fixed");
-  await page.getByLabel("Ghi chú thao tác", { exact: true }).fill("Submit");
+  await page.getByLabel("Remediation 8", { exact: true }).fill("Đã khắc phục");
+  await page.getByLabel("Ghi chú thao tác", { exact: true }).fill("Gửi");
   const initialReads = reads;
   await page
     .getByRole("button", { name: "Complete rework", exact: true })

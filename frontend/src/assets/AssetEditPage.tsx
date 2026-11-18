@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -34,7 +35,7 @@ export function AssetEditPage() {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (bootstrap.status === 401) actions.invalidateSession(owner);
       const token = await bootstrap.json();
-      if (!bootstrap.ok || token.headerName !== "X-CSRF-TOKEN" || typeof token.csrfToken !== "string" || !token.csrfToken) throw new Error("CSRF bootstrap unavailable.");
+      if (!bootstrap.ok || token.headerName !== "X-CSRF-TOKEN" || typeof token.csrfToken !== "string" || !token.csrfToken) throw new Error("Chưa khởi tạo được bảo vệ phiên (CSRF).");
       if (current.current !== owner || abort.signal.aborted) return;
       const response = await fetch(`/api/asset-editor/${id}`, { method: "PUT", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": token.csrfToken, "If-Match": data.version },
@@ -57,12 +58,12 @@ export function AssetEditPage() {
     {error && <p role="alert">{error}</p>}
     {stale && <button disabled={busy} onClick={() => { if (window.confirm("Tải dữ liệu hiện tại và bỏ bản chỉnh sửa chưa lưu?")) setRevision(v => v + 1); }}>Tải lại</button>}
     {data && input && <form onSubmit={e => { e.preventDefault(); void save(); }}>
-      <p>Chi nhánh: {data.asset.branchName}. Vị trí: {data.asset.roomNumber ?? data.asset.areaName ?? "Unassigned"}. Bộ phận/người giữ: {data.asset.departmentName ?? "N/A"} / {data.asset.custodianName ?? "N/A"}. Tình trạng: {data.asset.conditionStatus}; lifecycle: {data.asset.lifecycleStatus}.</p>
+      <p>Chi nhánh: {data.asset.branchName}. Vị trí: {data.asset.roomNumber ?? data.asset.areaName ?? "Chưa phân công"}. Bộ phận/người giữ: {data.asset.departmentName ?? "N/A"} / {data.asset.custodianName ?? "N/A"}. Tình trạng: {displayCode(data.asset.conditionStatus)}; Vòng đời: {displayCode(data.asset.lifecycleStatus)}.</p>
       <fieldset disabled={busy || stale}><legend>Thông tin nhận dạng</legend>
         <label>Mã <input required maxLength={50} value={input.assetCode} onChange={e => field("assetCode", e.target.value)} /></label>{" "}
         <label>Tên <input required maxLength={200} value={input.assetName} onChange={e => field("assetName", e.target.value)} /></label>{" "}
         <label>Loại <select required value={input.assetTypeId} onChange={e => field("assetTypeId", Number(e.target.value))}><option value="">Chọn loại Active</option>{data.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-        {([['serialNumber', 'Serial'], ['brand', 'Hãng'], ['model', 'Model']] as const).map(([key, label]) => <label key={key}>{label} <input maxLength={100} value={input[key] ?? ""} onChange={e => field(key, e.target.value)} /></label>)}
+        {([['serialNumber', "Số sê-ri"], ['brand', 'Hãng'], ['model', "Mẫu sản phẩm"]] as const).map(([key, label]) => <label key={key}>{label} <input maxLength={100} value={input[key] ?? ""} onChange={e => field(key, e.target.value)} /></label>)}
         <label>Ngày mua <input type="date" value={input.purchaseDate ?? ""} onChange={e => field("purchaseDate", e.target.value)} /></label>{" "}
         <label>Hết bảo hành <input type="date" min={input.purchaseDate ?? undefined} value={input.warrantyExpiryDate ?? ""} onChange={e => field("warrantyExpiryDate", e.target.value)} /></label>
         <label>Mô tả <textarea value={input.description ?? ""} onChange={e => field("description", e.target.value)} /></label>

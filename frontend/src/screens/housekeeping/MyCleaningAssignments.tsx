@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -33,23 +34,23 @@ export default function MyCleaningAssignments() {
       }
       if (!abort.signal.aborted) setResult({key, data: d});
     })().catch(e => { if (!abort.signal.aborted) setError({key, message: e instanceof ApiError && e.status === 403
-      ? "Current CLEANING_VIEW and branch access are required." : "Assignments could not be loaded. Check your session, branch and connection."}); });
+      ? "Cần quyền CLEANING_VIEW và quyền chi nhánh còn hiệu lực." : "Không tải được phân công. Kiểm tra phiên đăng nhập, chi nhánh và kết nối."}); });
     return () => abort.abort();
   }, [branch, before, owner, key, retry]);
   const data = owner !== null && result?.key === key ? result.data : null;
-  return <section className="panel"><h1>My cleaning assignments</h1>
-    <Link to={'/cleaning/tasks?branchId=' + encodeURIComponent(branch)}>Supervisor monitor</Link>
+  return <section className="panel"><h1>Công việc vệ sinh được giao</h1>
+    <Link to={'/cleaning/tasks?branchId=' + encodeURIComponent(branch)}>Theo dõi của giám sát</Link>
     <form onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); setParams({view: 'mine', branchId: String(f.get('branchId') || '')}); }}>
-      <label>Branch <input name="branchId" required defaultValue={branch} key={branch} inputMode="numeric" /></label><button>Load</button>
+      <label>Chi nhánh <input name="branchId" required defaultValue={branch} key={branch} inputMode="numeric" /></label><button>Tải</button>
     </form>
-    <button onClick={() => setRetry(v => v + 1)}>Refresh</button>
+    <button onClick={() => setRetry(v => v + 1)}>Tải lại</button>
     {error?.key === key && <p role="alert">{error.message}</p>}
-    {branch && owner !== null && !data && error?.key !== key && <p role="status">Loading assignments?</p>}
+    {branch && owner !== null && !data && error?.key !== key && <p role="status">Đang tải phân công?</p>}
     {data && <><ul>{data.items.map(item => <li key={item.assignmentId}>
-      <Link to={'/cleaning/tasks/' + item.id + '?branchId=' + branch + '&assignmentId=' + item.assignmentId}>{item.taskNumber} ? Room {item.roomNumber}</Link> ? {item.recordedStatus}
-    </li>)}</ul>{data.items.length === 0 && <p>No current assignments on this page.</p>}
-      {before && <button onClick={() => setParams({view: 'mine', branchId: branch})}>Newest</button>}
-      {data.nextCursor && <button onClick={() => setParams({view: 'mine', branchId: branch, before: String(data.nextCursor)})}>Older assignments</button>}
+      <Link to={'/cleaning/tasks/' + item.id + '?branchId=' + branch + '&assignmentId=' + item.assignmentId}>{item.taskNumber} ? Phòng {item.roomNumber}</Link> ? {displayCode(item.recordedStatus)}
+    </li>)}</ul>{data.items.length === 0 && <p>Không có phân công hiện tại trên trang này.</p>}
+      {before && <button onClick={() => setParams({view: 'mine', branchId: branch})}>Mới nhất</button>}
+      {data.nextCursor && <button onClick={() => setParams({view: 'mine', branchId: branch, before: String(data.nextCursor)})}>Phân công trước đó</button>}
     </>}
   </section>;
 }

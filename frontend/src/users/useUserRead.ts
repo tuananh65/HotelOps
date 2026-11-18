@@ -53,18 +53,18 @@ export function useUserRead<T>(
 
 export function usersReadMessage(error: UsersApiError): string {
   if (error.kind === "invalid-request")
-    return "Please check the filters and numeric IDs.";
+    return "Kiểm tra bộ lọc và các mã dạng số.";
   if (error.kind === "cancelled")
-    return "The read was cancelled. You can try again.";
+    return "Đã hủy đọc dữ liệu. Bạn có thể thử lại.";
   if (error.kind === "invalid-response")
-    return "The server response could not be validated.";
+    return "Không xác thực được phản hồi máy chủ.";
   if (error.kind === "http") {
-    if (error.status === 400) return "Please check the requested filters.";
+    if (error.status === 400) return "Kiểm tra bộ lọc yêu cầu.";
     if (error.status === 401)
-      return "Your session must be checked before loading account data.";
+      return "Cần kiểm tra phiên trước khi tải dữ liệu tài khoản.";
     if (error.status === 403)
-      return "Access denied. This response does not confirm whether the account exists.";
-    if (error.status === 404) return "The requested account was not found.";
+      return "Không có quyền truy cập. Phản hồi này không xác nhận tài khoản có tồn tại hay không.";
+    if (error.status === 404) return "Không tìm thấy tài khoản yêu cầu.";
   }
-  return "Account data is currently unavailable. You can try again.";
+  return "Thông tin tài khoản hiện chưa khả dụng. Bạn có thể thử lại.";
 }

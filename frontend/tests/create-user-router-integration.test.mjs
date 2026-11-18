@@ -296,7 +296,7 @@ test("form is independent of USER_VIEW and does not infer create permission", as
 test("required, max lengths and safe IDs validate before bootstrap; six initial roles only", async () => {
   await withFlow({}, async (page) => {
     await submit(page);
-    assert.match(await visible(page), /Enter all required fields/);
+    assert.match(await visible(page), /Nhập đủ trường bắt buộc trong giới hạn cho phép; mã chi nhánh và bộ phận phải là số nguyên dương hợp lệ\./);
     assert.equal((await calls(page, "/api/auth/csrf")).length, 0);
     await fill(page);
     for (const value of ["0", "-1", "1.5", "9007199254740992", "1e2"]) {
@@ -306,7 +306,7 @@ test("required, max lengths and safe IDs validate before bootstrap; six initial 
     }
     assert.deepEqual(
       await page
-        .getByLabel("Initial role", { exact: true })
+        .getByLabel("Vai trò ban đầu", { exact: true })
         .locator("option")
         .evaluateAll((nodes) => nodes.map((n) => n.value)),
       [
@@ -321,7 +321,7 @@ test("required, max lengths and safe IDs validate before bootstrap; six initial 
     assert.equal(await page.locator('input[type="password"]').count(), 0);
     assert.equal(
       await page
-        .getByLabel("Employee code", { exact: true })
+        .getByLabel("Mã nhân viên", { exact: true })
         .getAttribute("maxlength"),
       "40",
     );
@@ -346,7 +346,7 @@ test("StrictMode, two submit events, Enter and deferred bootstrap dispatch one a
       await settle(page);
       assert.equal((await calls(page, "/api/auth/csrf")).length, 1);
       assert.equal((await calls(page, "/api/users")).length, 0);
-      await page.getByLabel("Username", { exact: true }).press("Enter");
+      await page.getByLabel("Tên đăng nhập", { exact: true }).press("Enter");
       await finish(page, "csrf", {
         body: { csrfToken: csrfSecret, headerName: "X-CSRF-TOKEN" },
       });
@@ -356,7 +356,7 @@ test("StrictMode, two submit events, Enter and deferred bootstrap dispatch one a
         request,
       );
       await finish(page, "post", created());
-      assert.match(await visible(page), /Account created — initial credential/);
+      assert.match(await visible(page), /Đã tạo tài khoản — mật khẩu ban đầu/);
       assert.equal((await calls(page, "/api/users")).length, 1);
     },
   );
@@ -383,30 +383,30 @@ test("confirmed 201 handoff: hidden, explicit reveal/copy, server expiry and ack
       new RegExp(expiry.replaceAll(".", "\\.")),
     );
     await page
-      .getByRole("button", { name: "Reveal password", exact: true })
+      .getByRole("button", { name: "Hiện mật khẩu", exact: true })
       .click();
     assert.ok((await visible(page)).includes(secret));
     await page
-      .getByRole("button", { name: "Hide password", exact: true })
+      .getByRole("button", { name: "Ẩn mật khẩu", exact: true })
       .click();
     assert.ok(!(await visible(page)).includes(secret));
     await page
-      .getByRole("button", { name: "Copy password", exact: true })
+      .getByRole("button", { name: "Sao chép mật khẩu", exact: true })
       .click();
     assert.deepEqual(await page.evaluate(() => window.clipboardWrites), [
       secret,
     ]);
     await page
       .getByRole("button", {
-        name: "I have securely handed off the credential",
+        name: "Tôi đã bàn giao mật khẩu an toàn",
         exact: true,
       })
       .click();
-    assert.match(await visible(page), /Credential handoff complete/);
+    assert.match(await visible(page), /Đã bàn giao mật khẩu/);
     assert.ok(!(await visible(page)).includes(secret));
     assert.equal(
       await page
-        .getByRole("button", { name: "Reveal password", exact: true })
+        .getByRole("button", { name: "Hiện mật khẩu", exact: true })
         .count(),
       0,
     );
@@ -423,12 +423,12 @@ test("clipboard failure stays safe and allows manual reveal", async () => {
     await fill(page);
     await submit(page);
     await page
-      .getByRole("button", { name: "Copy password", exact: true })
+      .getByRole("button", { name: "Sao chép mật khẩu", exact: true })
       .click();
-    assert.match(await visible(page), /Clipboard copy is unavailable/);
+    assert.match(await visible(page), /Không sao chép được\. Hiện mật khẩu và bàn giao an toàn bằng cách khác\./);
     assert.ok(!(await visible(page)).includes(secret));
     await page
-      .getByRole("button", { name: "Reveal password", exact: true })
+      .getByRole("button", { name: "Hiện mật khẩu", exact: true })
       .click();
     assert.ok((await visible(page)).includes(secret));
   });
@@ -499,7 +499,7 @@ test("CSRF bootstrap failure never dispatches POST", async () => {
   await withFlow({ csrf: [problem(503)] }, async (page) => {
     await fill(page);
     await submit(page);
-    assert.match(await visible(page), /No account creation request was sent/);
+    assert.match(await visible(page), /Không gửi yêu cầu tạo tài khoản\./);
     assert.equal((await calls(page, "/api/users")).length, 0);
   });
 });
@@ -601,7 +601,7 @@ test("handoff is destroyed by unavailable identity and cannot restore on recover
       await fill(page);
       await submit(page);
       await page
-        .getByRole("button", { name: "Reveal password", exact: true })
+        .getByRole("button", { name: "Hiện mật khẩu", exact: true })
         .click();
       assert.ok((await visible(page)).includes(secret));
       await page.evaluate(() => window.fixture.revalidate());
@@ -609,18 +609,18 @@ test("handoff is destroyed by unavailable identity and cannot restore on recover
       assert.ok(!(await visible(page)).includes(secret));
       assert.equal(
         await page
-          .getByRole("button", { name: "Copy password", exact: true })
+          .getByRole("button", { name: "Sao chép mật khẩu", exact: true })
           .count(),
         0,
       );
       await page
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await settle(page);
       assert.ok(!(await visible(page)).includes(secret));
       assert.equal(
         await page
-          .getByRole("button", { name: "Reveal password", exact: true })
+          .getByRole("button", { name: "Hiện mật khẩu", exact: true })
           .count(),
         0,
       );
@@ -648,9 +648,9 @@ test("Enter starts one attempt and sends selected initial role without a Users r
   await withFlow({}, async (page) => {
     await fill(page);
     await page
-      .getByLabel("Initial role", { exact: true })
+      .getByLabel("Vai trò ban đầu", { exact: true })
       .selectOption("RECEPTION");
-    await page.getByLabel("Username", { exact: true }).press("Enter");
+    await page.getByLabel("Tên đăng nhập", { exact: true }).press("Enter");
     await settle(page);
     const post = await calls(page, "/api/users");
     assert.equal(post.length, 1);
@@ -692,7 +692,7 @@ for (const stage of ["csrf", "post"]) {
         await fill(page);
         await submit(page);
         await page
-          .getByRole("main", { name: "Create account session recovery" })
+          .getByRole("main", { name: "Khôi phục phiên tạo tài khoản" })
           .waitFor();
         assert.equal(
           (await calls(page, "/api/users")).length,
@@ -726,7 +726,7 @@ test("revealed credential disappears during pending revalidation and never retur
       await fill(page);
       await submit(page);
       await page
-        .getByRole("button", { name: "Reveal password", exact: true })
+        .getByRole("button", { name: "Hiện mật khẩu", exact: true })
         .click();
       await page.evaluate(() => {
         void window.fixture.revalidate();
@@ -735,7 +735,7 @@ test("revealed credential disappears during pending revalidation and never retur
       assert.ok(!(await visible(page)).includes(secret));
       assert.equal(
         await page
-          .getByRole("button", { name: "Copy password", exact: true })
+          .getByRole("button", { name: "Sao chép mật khẩu", exact: true })
           .count(),
         0,
       );
@@ -743,7 +743,7 @@ test("revealed credential disappears during pending revalidation and never retur
       assert.ok(!(await visible(page)).includes(secret));
       assert.equal(
         await page
-          .getByRole("button", { name: "Reveal password", exact: true })
+          .getByRole("button", { name: "Hiện mật khẩu", exact: true })
           .count(),
         0,
       );
@@ -768,7 +768,7 @@ for (const [field, wrong] of Object.entries({
       assert.ok(!(await visible(page)).includes(secret));
       assert.equal(
         await page
-          .getByRole("button", { name: "Reveal password", exact: true })
+          .getByRole("button", { name: "Hiện mật khẩu", exact: true })
           .count(),
         0,
       );

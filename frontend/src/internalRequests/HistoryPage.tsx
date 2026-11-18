@@ -1,3 +1,7 @@
+import { displayCode } from "../i18n/vi";
+import { staffDate } from "./staffDate";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import "./staff-workspace.css";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -53,7 +57,7 @@ export function InternalRequestAccessLink() {
     return () => controller.abort();
   }, [owner, actions]);
   return owner && allowed === owner ? (
-    <Link to="/internal-requests">Internal requests</Link>
+    <Link to="/internal-requests">Yêu cầu nội bộ</Link>
   ) : null;
 }
 
@@ -142,10 +146,10 @@ export function InternalRequestHistoryPage() {
           key,
           error:
             e instanceof HistoryFailure && e.status === 403
-              ? "You do not have access to internal request history."
+              ? "Bạn không có quyền xem lịch sử yêu cầu nội bộ."
               : e instanceof HistoryFailure && e.status === 404
-                ? "Request unavailable or outside your current access."
-                : "History unavailable. Retry to load current data.",
+                ? "Yêu cầu chưa khả dụng hoặc ngoài quyền truy cập hiện tại."
+                : "Chưa tải được lịch sử. Thử tải lại dữ liệu hiện tại.",
         });
         if (e instanceof HistoryFailure && e.status === 401)
           actions.invalidateSession(owner);
@@ -156,16 +160,16 @@ export function InternalRequestHistoryPage() {
     owner && result?.owner === owner && result.key === key ? result : null;
   if (!owner) return null;
   return (
-    <main>
-      <h1>Internal request history</h1>
-      <InternalRequestIntakeLink />
-      <p>All dates and deadlines are UTC.</p>
-      <Link to="/dashboard">Dashboard</Link>{" "}
-      <button onClick={() => setRevision((v) => v + 1)}>Refresh history</button>
+    <main className="staff-workspace">
+      <header className="staff-heading"><div><h1>Theo dõi yêu cầu nội bộ</h1>
+      <p className="staff-subtitle">Xem yêu cầu đã gửi và công việc cần xử lý. Thời gian theo giờ Việt Nam (UTC+7).</p></div>
+      <InternalRequestIntakeLink /></header>
+      <div className="staff-toolbar"><Link to="/home">Trang chủ</Link>
+      <button onClick={() => setRevision((v) => v + 1)}>Tải lại lịch sử</button></div>
       {selected === null ? (
-        <>
+        <section className="staff-filters" aria-label="Bộ lọc yêu cầu">
           <label>
-            Search requests
+            Tìm yêu cầu
             <input
               maxLength={200}
               value={search}
@@ -178,30 +182,30 @@ export function InternalRequestHistoryPage() {
           {visible?.options && (
             <>
               <label>
-                Status
+                Trạng thái
                 <select
-                  aria-label="Status"
+                  aria-label="Trạng thái"
                   value={filters.status}
                   onChange={(e) => {
                     setFilters((v) => ({ ...v, status: e.target.value }));
                     setPage(1);
                   }}
                 >
-                  <option value="">All statuses</option>
+                  <option value="">Tất cả trạng thái</option>
                   {visible.options.statuses.map((value) => (
                     <option key={value} value={value}>
-                      {value}
+                      {displayCode(value)}
                     </option>
                   ))}
                 </select>
               </label>
               {(
                 [
-                  ["requestTypeId", "Request type", visible.options.types],
-                  ["priorityId", "Priority", visible.options.priorities],
+                  ["requestTypeId", "Loại yêu cầu", visible.options.types],
+                  ["priorityId", "Độ ưu tiên", visible.options.priorities],
                   [
                     "receivingDepartmentId",
-                    "Receiving department",
+                    "Bộ phận tiếp nhận",
                     visible.options.departments,
                   ],
                 ] as const
@@ -216,7 +220,7 @@ export function InternalRequestHistoryPage() {
                       setPage(1);
                     }}
                   >
-                    <option value="">All</option>
+                    <option value="">Tất cả</option>
                     {values.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.name}
@@ -240,22 +244,22 @@ export function InternalRequestHistoryPage() {
                   setPage(1);
                 }}
               >
-                Clear filters
+                Xóa bộ lọc
               </button>
             </>
           )}
           <label>
-            Direction
-            <select aria-label="Direction" value={filters.direction} onChange={e => {
+            Phạm vi yêu cầu
+            <select aria-label="Phạm vi yêu cầu" value={filters.direction} onChange={e => {
               setFilters(current => ({ ...current, direction: e.target.value }));
               setPage(1);
             }}>
-              <option value="">All visible requests</option>
-              <option value="SENT">Sent</option>
-              <option value="RECEIVED">Received</option>
+              <option value="">Tất cả yêu cầu được phép xem</option>
+              <option value="SENT">Đã gửi</option>
+              <option value="RECEIVED">Đã nhận</option>
             </select>
           </label>
-          <label>
+          <label className="staff-check">
             <input
               type="checkbox"
               checked={overdue}
@@ -265,43 +269,43 @@ export function InternalRequestHistoryPage() {
                 setPage(1);
               }}
             />
-            Overdue only
+            Chỉ hiện quá hạn
           </label>
-          <label>
+          <label className="staff-check">
             <input type="checkbox" checked={atRisk} onChange={e => {
               setAtRisk(e.target.checked); if(e.target.checked) setOverdue(false); setPage(1);
             }} />
-            At risk only
+            Chỉ hiện có nguy cơ trễ hạn
           </label>
-        </>
+        </section>
       ) : (
-        <button onClick={() => setSelected(null)}>Back to requests</button>
+        <button onClick={() => setSelected(null)}>Quay lại yêu cầu</button>
       )}
-      {!visible && <p role="status">Loading history…</p>}
+      {!visible && <LoadingIndicator label="Đang tải yêu cầu" />}
       {workNotice?.owner === owner && workNotice.id === selected && <p role="status">{workNotice.message}{" "}
-        {workNotice.receiptId && <Link to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}>Open my handover receipt</Link>}
+        {workNotice.receiptId && <Link to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}>Mở biên nhận bàn giao của tôi</Link>}
       </p>}
       {visible?.error && <p role="alert">{visible.error}{" "}
-        <button onClick={() => setRevision(value => value + 1)}>Reload history</button>
+        <button onClick={() => setRevision(value => value + 1)}>Tải lại lịch sử</button>
       </p>}
       {visible?.list && (
-        <section aria-label="Request list">
-          <p>{visible.list.totalCount} requests</p>
+        <section aria-label="Danh sách yêu cầu">
+          <p>{visible.list.totalCount} yêu cầu</p>
           {visible.list.totalCount === 0 ? (
-            <p role="status">MSG10: No requests match your current access and filters. Change or clear the filters to search again.</p>
+            <p role="status">MSG10: Không có yêu cầu phù hợp với quyền và bộ lọc hiện tại. Đổi hoặc xóa bộ lọc để tìm lại.</p>
           ) : (
-            <table>
+            <div className="staff-table-scroll" tabIndex={0} role="region" aria-label="Bảng yêu cầu nội bộ"><table>
               <thead>
                 <tr>
-                  <th>Request</th>
-                  <th>Subject</th>
-                  <th>Status</th>
-                  <th>Branch</th>
-                  <th>Receiving department</th>
-                  <th>Current handler</th>
-                  <th>Deadline</th>
-                  <th>Overdue</th>
-                  <th>Time window</th>
+                  <th>Yêu cầu</th>
+                  <th>Chủ đề</th>
+                  <th>Trạng thái</th>
+                  <th>Chi nhánh</th>
+                  <th>Bộ phận tiếp nhận</th>
+                  <th>Người xử lý hiện tại</th>
+                  <th>Thời hạn</th>
+                  <th>Quá hạn</th>
+                  <th>Khoảng thời gian</th>
                 </tr>
               </thead>
               <tbody>
@@ -319,62 +323,63 @@ export function InternalRequestHistoryPage() {
                       </button>
                     </td>
                     <td>{row.subject}</td>
-                    <td>{row.status}</td>
-                    <td>{row.branchId}</td>
-                    <td>{row.receivingDepartmentId ?? "Not assigned"}</td>
+                    <td><span className="staff-status">{displayCode(row.status)}</span></td>
+                    <td>{row.branchName ?? "Chưa có tên chi nhánh"}</td>
+                    <td>{row.receivingDepartmentName ?? visible.options?.departments.find(d => d.id === row.receivingDepartmentId)?.name ?? "Chưa phân công"}</td>
                     <td>
-                      {row.currentAssigneeId ?? "Unassigned or unresolved"}
+                      {row.currentAssigneeName ?? "Chưa phân công"}
                     </td>
-                    <td>{row.deadline ?? "No deadline"}</td>
-                    <td>{row.overdue ? "Yes" : "No"}</td>
-                    <td>{row.timingStatus === "AT_RISK" ? "At risk (80% or more elapsed)"
-                      : row.timingStatus === "OVERDUE" ? "Overdue"
-                      : row.timingStatus === "ON_TIME" ? "Under 80% elapsed"
-                      : row.timingStatus === "TERMINAL" ? "Finished"
-                      : "Valid creation time and deadline required"}</td>
+                    <td>{staffDate(row.deadline)}</td>
+                    <td>{row.overdue ? "Có" : "Không"}</td>
+                    <td>{row.timingStatus === "AT_RISK" ? "Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)"
+                      : row.timingStatus === "OVERDUE" ? "Quá hạn"
+                      : row.timingStatus === "ON_TIME" ? "Đã dùng dưới 80% thời gian"
+                      : row.timingStatus === "TERMINAL" ? "Đã hoàn tất"
+                      : "Cần thời điểm tạo và thời hạn hợp lệ"}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Previous page
+          <nav className="staff-pagination" aria-label="Phân trang yêu cầu"><button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            Trang trước
           </button>
-          <span> Page {page} </span>
+          <span> Trang {page} </span>
           <button
             disabled={page * 25 >= visible.list.totalCount}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next page
+            Trang sau
           </button>
+          </nav>
         </section>
       )}
       {visible?.timeline && (
-        <section aria-label="Request timeline">
-          <h2>Request {visible.timeline.requestId}</h2>
-          <InternalRequestReopenPanel id={visible.timeline.requestId} onReopened={() => { setCompletionNotice(null); refreshWork(visible.timeline!.requestId, "MSG08: Request reopened with its last handler."); }} />
-          {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
+        <section aria-label="Dòng thời gian yêu cầu">
+          <h2>Yêu cầu {visible.timeline.requestId}</h2>
+          <InternalRequestReopenPanel id={visible.timeline.requestId} onReopened={() => { setCompletionNotice(null); refreshWork(visible.timeline!.requestId, "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng."); }} />
+          {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Đã đóng yêu cầu.</p>}
           <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} onChanged={message => refreshWork(visible.timeline!.requestId, message)} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId}
-            onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Progress saved. Request remains In Progress.")} />
-          {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Request escalated.</p>}
+            onSaved={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã lưu tiến độ. Yêu cầu vẫn đang thực hiện.")} />
+          {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Đã chuyển cấp yêu cầu.</p>}
           <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
-          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={(handoverState, receiptId) => refreshWork(visible.timeline!.requestId, `MSG08: Handover ${handoverState}.`, receiptId)} />
-          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Task linked.")} />
-          <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Cleaning task linked.")} />
-          <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Incident linked.")} />
-          <InternalRequestMaterialLinksPanel key={`materials:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Material request linked.")} />
-          <h3>Events</h3>
+          <InternalRequestHandoverPanel id={visible.timeline.requestId} onSaved={(handoverState, receiptId) => refreshWork(visible.timeline!.requestId, `MSG08: Bàn giao ${handoverState}.`, receiptId)} />
+          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết công việc.")} />
+          <InternalRequestCleaningLinksPanel key={`Vệ sinh:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết công việc vệ sinh.")} />
+          <InternalRequestIncidentLinksPanel key={`Sự cố:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết sự cố.")} />
+          <InternalRequestMaterialLinksPanel key={`Vật tư:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Đã liên kết yêu cầu vật tư.")} />
+          <h3>Sự kiện</h3>
           {visible.timeline.events.length === 0 && (
-            <p>No events on this page.</p>
+            <p>Không có sự kiện trên trang này.</p>
           )}
           <ol>
             {visible.timeline.events.map((e) => (
               <li key={e.id}>
-                {e.occurredAt} — {e.type}: {e.oldStatus ?? "—"} →{" "}
-                {e.newStatus ?? "—"}; actor {e.actorId}
+                {staffDate(e.occurredAt)} — {displayCode(e.type)}: {e.oldStatus ? displayCode(e.oldStatus) : "—"} →{" "}
+                {e.newStatus ?? "—"}; Người thực hiện {e.actorId}
                 {e.note && <p>{e.note}</p>}
               </li>
             ))}
@@ -383,24 +388,24 @@ export function InternalRequestHistoryPage() {
             disabled={eventPage <= 1}
             onClick={() => setEventPage((p) => p - 1)}
           >
-            Previous events
+            Sự kiện trước
           </button>
-          <span> Page {eventPage} </span>
+          <span> Trang {eventPage} </span>
           <button
             disabled={eventPage * 25 >= visible.timeline.eventTotalCount}
             onClick={() => setEventPage((p) => p + 1)}
           >
-            Next events
+            Sự kiện tiếp theo
           </button>
-          <h3>Assignments</h3>
+          <h3>Phân công</h3>
           {visible.timeline.assignments.length === 0 && (
-            <p>No assignments on this page.</p>
+            <p>Không có phân công trên trang này.</p>
           )}
           <ol>
             {visible.timeline.assignments.map((a) => (
               <li key={a.id}>
-                Handler {a.assigneeId}; assigned by {a.assignedBy};{" "}
-                {a.assignedAt} → {a.endedAt ?? "Open"}; {a.status}
+                Người xử lý {a.assigneeId}; người phân công {a.assignedBy};{" "}
+                {staffDate(a.assignedAt)} → {a.endedAt ? staffDate(a.endedAt) : "Đang mở"}; {displayCode(a.status)}
                 {a.note && <p>{a.note}</p>}
               </li>
             ))}
@@ -409,26 +414,26 @@ export function InternalRequestHistoryPage() {
             disabled={assignmentPage <= 1}
             onClick={() => setAssignmentPage((p) => p - 1)}
           >
-            Previous assignments
+            Phân công trước
           </button>
-          <span> Page {assignmentPage} </span>
+          <span> Trang {assignmentPage} </span>
           <button
             disabled={
               assignmentPage * 25 >= visible.timeline.assignmentTotalCount
             }
             onClick={() => setAssignmentPage((p) => p + 1)}
           >
-            Next assignments
+            Phân công tiếp theo
           </button>
-          <h3>Feedback</h3>
+          <h3>Phản hồi</h3>
           {visible.timeline.feedback ? (
             <p>
               {visible.timeline.feedback.rating} —{" "}
-              {visible.timeline.feedback.comment}; submitted{" "}
-              {visible.timeline.feedback.submittedAt}
+              {visible.timeline.feedback.comment}; Đã nộp{" "}
+              {staffDate(visible.timeline.feedback.submittedAt)}
             </p>
           ) : (
-            <p>No feedback recorded.</p>
+            <p>Chưa có phản hồi đã ghi nhận.</p>
           )}
         </section>
       )}

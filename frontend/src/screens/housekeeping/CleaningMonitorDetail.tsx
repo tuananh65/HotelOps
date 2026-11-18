@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
 import { Link } from "react-router-dom";
@@ -46,11 +47,11 @@ export default function CleaningMonitorDetail({
   }, [branch, kind, id, page, retry, owner, key]);
   return (
     <>
-      <h1>Cleaning Task Detail</h1>
+      <h1>Chi tiết công việc vệ sinh</h1>
       {cancelled && <p role="status">MSG08: Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.</p>}
       {kind === "cleaning" && (
         <Link to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}>
-          Start / Reassign
+          Bắt đầu / Phân công lại
         </Link>
       )}
       {kind === "rework" && (
@@ -83,7 +84,7 @@ export default function CleaningMonitorDetail({
             {result.item.taskNumber} · {result.item.roomNumber}
           </h2>
           <p>
-            Chi nhánh {branch} · {result.item.kind} ·{" "}
+            Chi nhánh {branch} · {displayCode(result.item.kind)} ·{" "}
             {result.item.workflowState ?? result.item.recordedStatus}
           </p>
           <dl>
@@ -99,7 +100,7 @@ export default function CleaningMonitorDetail({
             <dd>{result.item.dueAtUtc ?? "—"}</dd>
             <dt>Mô tả</dt>
             <dd>{result.item.description ?? "—"}</dd>
-            <dt>Blocker</dt>
+            <dt>Trở ngại</dt>
             <dd>
               {result.item.hasUnresolvedBlocker == null
                 ? "Chưa xác định"
@@ -140,7 +141,7 @@ export default function CleaningMonitorDetail({
             </p>
           )}
           <h2>
-            Phân công {kind === "rework" ? "cleaning cycle " : ""}(
+            Phân công {kind === "rework" ? "Chu kỳ vệ sinh" : ""}(
             {result.assignmentCount})
           </h2>
           {result.assignments.length === 0 && (
@@ -149,12 +150,12 @@ export default function CleaningMonitorDetail({
           <ul>
             {result.assignments.map((r) => (
               <li key={r.id}>
-                {r.assigneeId} · {r.status} · {r.assignedAtUtc} · {r.reason}
+                {r.assigneeId} · {displayCode(r.status)} · {r.assignedAtUtc} · {r.reason}
               </li>
             ))}
           </ul>
           <h2>
-            Tiến độ {kind === "rework" ? "cleaning cycle " : ""}(
+            Tiến độ {kind === "rework" ? "Chu kỳ vệ sinh" : ""}(
             {result.progressCount})
           </h2>
           {result.progress.length === 0 && (
@@ -163,12 +164,12 @@ export default function CleaningMonitorDetail({
           <ul>
             {result.progress.map((r) => (
               <li key={r.id}>
-                {r.percent}% · {r.loggedAtUtc} · {r.status} · {r.blockerCode} ·{" "}
+                {r.percent}% · {r.loggedAtUtc} · {displayCode(r.status)} · {r.blockerCode} ·{" "}
                 {r.note}
               </li>
             ))}
           </ul>
-          <h2>Audit ({result.auditCount})</h2>
+          <h2>Nhật ký thay đổi ({result.auditCount})</h2>
           {result.audit.length === 0 && <p>Không có audit trên trang này.</p>}
           <ul>
             {result.audit.map((r) => (
@@ -193,7 +194,7 @@ export default function CleaningMonitorDetail({
             }
             onClick={() => setPage((v) => v + 1)}
           >
-            Timeline sau
+            Dòng thời gian tiếp theo
           </button>
         </>
       )}

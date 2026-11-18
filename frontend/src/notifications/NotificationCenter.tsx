@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -67,7 +68,7 @@ export function NotificationCenter() {
         setResult({
           owner,
           key,
-          error: "Notifications are unavailable. Refresh to try again.",
+          error: "Không tải được thông báo. Tải lại để thử lại.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);
@@ -81,7 +82,7 @@ export function NotificationCenter() {
     [...new URLSearchParams(query).entries()]
       .filter(([name]) => name !== "page")
       .map(([name, value]) => `${name}: ${value}`)
-      .join("; ") || "None";
+      .join("; ") || "Không có";
   const operation = write?.owner === owner ? write : null;
   async function openSource(id: number) {
     if (!owner || pending.current) return;
@@ -98,8 +99,8 @@ export function NotificationCenter() {
           owner,
           busy: false,
           message: error instanceof InboxFailure && [403, 404].includes(error.status)
-            ? "MSG02: The source is unavailable or your current permissions no longer allow access. The notification text remains visible."
-            : "Source or read confirmation is unavailable. Refresh to check current access.",
+            ? "MSG02: Nguồn chưa khả dụng hoặc bạn không còn quyền truy cập. Nội dung thông báo vẫn hiển thị."
+            : "Nguồn hoặc xác nhận đọc chưa khả dụng. Tải lại để kiểm tra quyền.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);
@@ -125,8 +126,8 @@ export function NotificationCenter() {
           owner,
           busy: false,
           message: acknowledge
-            ? "Acknowledged. Source records are unchanged."
-            : "Marked as read. Source records are unchanged.",
+            ? "Đã xác nhận. Hồ sơ nguồn không thay đổi."
+            : "Đã đánh dấu đã đọc. Hồ sơ nguồn không thay đổi.",
         });
         // Read/acknowledgment filters can remove the last row on this page.
         // Restart the filtered list so remaining matches stay reachable.
@@ -143,7 +144,7 @@ export function NotificationCenter() {
           owner,
           busy: false,
           message:
-            "Read status could not be confirmed. Refresh before trying again.",
+            "Chưa xác nhận trạng thái đã đọc. Tải lại trước khi thử lại.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);
@@ -153,16 +154,16 @@ export function NotificationCenter() {
     }
   }
   return (
-    <main aria-label="Notification center">
-      <h1>Notification center</h1>
+    <main aria-label="Trung tâm thông báo">
+      <h1>Trung tâm thông báo</h1>
       <nav>
-        <Link to="/dashboard">Dashboard</Link>{" "}
-        <Link to="/profile">Profile</Link>
+        <Link to="/dashboard">Tổng quan</Link>{" "}
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </nav>
       {owner && (
         <>
           <form
-            aria-label="Notification filters"
+            aria-label="Bộ lọc thông báo"
             onSubmit={(e) => {
               e.preventDefault();
               const p = new URLSearchParams();
@@ -188,20 +189,20 @@ export function NotificationCenter() {
               ),
             )}
             <label>
-              Read status
+              Trạng thái đã đọc
               <select
-                aria-label="Read status"
+                aria-label="Trạng thái đã đọc"
                 value={draft.unread}
                 onChange={(e) =>
                   setDraft((d) => ({ ...d, unread: e.target.value }))
                 }
               >
-                <option value="">All</option>
-                <option value="true">Unread</option>
-                <option value="false">Read</option>
+                <option value="">Tất cả</option>
+                <option value="true">Chưa đọc</option>
+                <option value="false">Đã đọc</option>
               </select>
             </label>
-            <button>Apply filters</button>
+            <button>Áp dụng bộ lọc</button>
             <button
               type="button"
               onClick={() => {
@@ -218,25 +219,25 @@ export function NotificationCenter() {
                 setRevision((n) => n + 1);
               }}
             >
-              Clear filters
+              Xóa bộ lọc
             </button>
             <label>
-              Acknowledgment status
+              Trạng thái xác nhận đã đọc
               <select
                 value={draft.acknowledged}
                 onChange={(e) =>
                   setDraft((d) => ({ ...d, acknowledged: e.target.value }))
                 }
               >
-                <option value="">All</option>
-                <option value="false">Awaiting acknowledgment</option>
-                <option value="true">Acknowledged</option>
+                <option value="">Tất cả</option>
+                <option value="false">Chờ xác nhận đã đọc</option>
+                <option value="true">Đã xác nhận</option>
               </select>
             </label>
           </form>
-          <button onClick={() => setRevision((n) => n + 1)}>Refresh</button>
-          <p aria-label="Applied notification filters">
-            Applied filters: {appliedFilters}
+          <button onClick={() => setRevision((n) => n + 1)}>Tải lại</button>
+          <p aria-label="Bộ lọc thông báo đã áp dụng">
+            Bộ lọc đã áp dụng: {appliedFilters}
           </p>
           {data?.acknowledgmentAvailable && (
             <button
@@ -263,7 +264,7 @@ export function NotificationCenter() {
                 )
               }
             >
-              Acknowledge selected
+              Xác nhận đã nhận đã chọn
             </button>
           )}
           <button
@@ -280,30 +281,29 @@ export function NotificationCenter() {
               )
             }
           >
-            Mark selected as read
+            Đánh dấu mục đã chọn đã đọc
           </button>
           <button
             disabled={!data || !!operation?.busy || data.unreadCount === 0}
             onClick={() => void mark(null)}
           >
-            Mark all as read
+            Đánh dấu tất cả đã đọc
           </button>
           {operation?.message && <p role="status">{operation.message}</p>}
           {visible?.error && <p role="alert">{visible.error}</p>}
-          {!visible && <p role="status">Loading notifications…</p>}
+          {!visible && <p role="status">Đang tải thông báo…</p>}
           {data && (
             <>
-              <p role="status" aria-label="Notification counts">
-                Unread: {data.unreadCount}. Matching: {data.totalCount}.
+              <p role="status" aria-label="Số lượng thông báo">
+                Chưa đọc: {data.unreadCount}. Matching: {data.totalCount}.
                 Snapshot: {data.snapshot}
               </p>
               {!data.acknowledgmentAvailable && (
-                <p>Acknowledging critical alerts is not yet available.</p>
+                <p>Chưa hỗ trợ xác nhận cảnh báo nghiêm trọng.</p>
               )}
               {data.items.length === 0 ? (
                 <p role="status">
-                  No matching notifications (MSG10). Change or clear the applied
-                  filters.
+                  Không có thông báo phù hợp (MSG10). Đổi hoặc xóa bộ lọc.
                 </p>
               ) : (
                 <ul>
@@ -332,39 +332,39 @@ export function NotificationCenter() {
                             )
                           }
                         />
-                        Select notification {row.id}
+                        Chọn thông báo {row.id}
                       </label>
                       <h2>{row.title}</h2>
                       <button
                         disabled={!!operation?.busy}
                         onClick={() => void openSource(row.id)}
                       >
-                        Open source
+                        Mở nguồn
                       </button>
                       <p>{row.message}</p>
                       {data.acknowledgmentAvailable && row.requiresAcknowledgment && !row.acknowledgedAt && (
                         <button disabled={!!operation?.busy} onClick={() => void mark([row.id], true)}>
-                          Acknowledge notification {row.id}
+                          Xác nhận đã nhận thông báo {row.id}
                         </button>
                       )}
                       {row.requiresAcknowledgment && !row.acknowledgedAt && (
-                        <strong>Awaiting acknowledgment</strong>
+                        <strong>Chờ xác nhận đã đọc</strong>
                       )}
                       {row.acknowledgedAt && (
                         <p>
-                          Acknowledged: <time>{row.acknowledgedAt}</time>
+                          Đã xác nhận: <time>{row.acknowledgedAt}</time>
                         </p>
                       )}
                       <p>
-                        {row.type} · {row.priority} ·{" "}
+                        {displayCode(row.type)} · {row.priority} ·{" "}
                         <time>{row.createdAt}</time> ·{" "}
-                        {row.readAt ? "Read" : "Unread"}
+                        {row.readAt ? "Đã đọc" : "Chưa đọc"}
                       </p>
                       <button
                         disabled={!!row.readAt || !!operation?.busy}
                         onClick={() => void mark(row.id)}
                       >
-                        Mark notification {row.id} as read
+                        Đánh dấu thông báo {row.id} là đã đọc
                       </button>
                     </li>
                   ))}
@@ -378,7 +378,7 @@ export function NotificationCenter() {
                   setQuery(p.toString());
                 }}
               >
-                Previous
+                Trước
               </button>
               <button
                 disabled={data.page * data.pageSize >= data.totalCount}
@@ -388,7 +388,7 @@ export function NotificationCenter() {
                   setQuery(p.toString());
                 }}
               >
-                Next
+                Tiếp
               </button>
             </>
           )}

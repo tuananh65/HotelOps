@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { createHistoryApi, HistoryError } from "./api";
 import {
@@ -225,7 +226,7 @@ export function HistoryWorkspace({
           >
             <option value="">Tất cả</option>
             {["PASS", "FAIL", "CONDITIONAL"].map((value) => (
-              <option key={value}>{value}</option>
+              <option key={value} value={value}>{displayCode(value)}</option>
             ))}
           </select>
         </label>
@@ -245,7 +246,7 @@ export function HistoryWorkspace({
             onChange={(e) => setForm({ ...form, pageSize: e.target.value })}
           >
             {[1, 10, 20, 50, 100].map((value) => (
-              <option key={value}>{value}</option>
+              <option key={value} value={value}>{displayCode(value)}</option>
             ))}
           </select>
         </label>
@@ -267,13 +268,13 @@ export function HistoryWorkspace({
               <caption>Lịch sử Inspection</caption>
               <thead>
                 <tr>
-                  <th>Inspection</th>
+                  <th>Kiểm tra</th>
                   <th>Phòng</th>
                   <th>Thời điểm ghi nhận</th>
                   <th>Người kiểm tra</th>
                   <th>Checklist lịch sử</th>
                   <th>Trạng thái / Kết quả</th>
-                  <th>Cleaning task</th>
+                  <th>Công việc vệ sinh</th>
                   <th>Lượt yêu cầu làm lại</th>
                   <th>Lỗi của lượt kiểm tra</th>
                   <th>Kiểm lại trong cleaning cycle</th>
@@ -297,7 +298,7 @@ export function HistoryWorkspace({
                       #{row.versionId} · v{row.versionNumber}
                     </td>
                     <td>
-                      {row.status} / {row.result ?? "Chưa kết luận"}
+                      {displayCode(row.status)} / {row.result ?? "Chưa kết luận"}
                     </td>
                     <td>{row.cleaningTaskId ?? "—"}</td>
                     <td>{row.reworkCount}</td>
@@ -336,7 +337,7 @@ export function HistoryWorkspace({
           <h3>Lịch sử phân công dọn phòng</h3>
           {detail.housekeepers.map((a) => (
             <p key={a.id}>
-              {a.name} (#{a.userId}) · {a.status} · {a.assignedAt} —{" "}
+              {a.name} (#{a.userId}) · {displayCode(a.status)} · {a.assignedAt} —{" "}
               {a.endedAt ?? "Chưa kết thúc"} · {a.reason}
             </p>
           ))}
@@ -356,34 +357,34 @@ export function HistoryWorkspace({
               <p>
                 {c.note} {c.at}
               </p>
-              <p>Evidence IDs: {c.evidenceIds?.join(", ") || "—"}</p>
+              <p>Mã bằng chứng: {c.evidenceIds?.join(", ") || "—"}</p>
             </article>
           ))}
-          <h3>Defects</h3>
+          <h3>Các lỗi</h3>
           {!detail.defects.length && <p>Không có defect được trả về.</p>}
           {detail.defects.map((d) => (
             <article key={d.id}>
               <h4>
-                Defect #{d.id}: {d.description}
+                Lỗi #{d.id}: {d.description}
               </h4>
               <p>
-                Criterion #{d.itemId ?? "—"} · {d.status} · Severity #
+                Tiêu chí #{d.itemId ?? "—"} · {displayCode(d.status)} · Mức độ #
                 {d.severityId ?? "—"} · {d.location}
               </p>
               <p>
                 {d.correctiveAction} {d.resolutionNote} {d.resolvedAt}
               </p>
-              <p>Evidence IDs: {d.evidenceIds?.join(", ") || "—"}</p>
+              <p>Mã bằng chứng: {d.evidenceIds?.join(", ") || "—"}</p>
             </article>
           ))}
-          <h3>Reworks</h3>
+          <h3>Công việc làm lại</h3>
           {!detail.reworks.length && <p>Không có rework được trả về.</p>}
           {detail.reworks.map((r) => (
             <article key={r.id}>
-              <h4>Rework #{r.id}</h4>
+              <h4>Làm lại #{r.id}</h4>
               <p>
-                Inspection #{r.inspectionId} · Cleaning task #{r.cleaningTaskId}{" "}
-                · Assignee #{r.assigneeId ?? "—"} · {r.status}
+                Kiểm tra #{r.inspectionId} · Công việc vệ sinh #{r.cleaningTaskId}{" "}
+                · Người được giao #{r.assigneeId ?? "—"} · {displayCode(r.status)}
               </p>
               <p>
                 {r.reason} {r.note}
@@ -402,7 +403,7 @@ export function HistoryWorkspace({
               </button>
             </article>
           ))}
-          <h3>Evidence</h3>
+          <h3>Bằng chứng</h3>
           {!detail.evidence.length && <p>Không có evidence được trả về.</p>}
           {detail.evidence.map((e) => (
             <article key={e.id}>
@@ -426,10 +427,9 @@ export function HistoryWorkspace({
 function InspectionSummary({ row }: { row: Inspection }) {
   return (
     <p>
-      Inspection #{row.id} · Phòng {row.roomNumber} (#{row.roomId}) · Chi nhánh
-      #{row.branchId} · Cleaning cycle/task #{row.cleaningTaskId ?? "—"} ·
-      Checklist #{row.versionId} v{row.versionNumber} · {row.inspectorName} (#
-      {row.inspectorId}) · {row.status} / {row.result ?? "Chưa kết luận"} ·{" "}
+      Kiểm tra #{row.id} · Phòng {row.roomNumber} (#{row.roomId}) · Chi nhánh
+      #{row.branchId} · Chu kỳ / công việc vệ sinh #{row.cleaningTaskId ?? "—"} · Danh sách kiểm tra #{row.versionId} v{row.versionNumber} · {row.inspectorName} (#
+      {row.inspectorId}) · {displayCode(row.status)} / {row.result ?? "Chưa kết luận"} ·{" "}
       {row.at}
       {" · "}Lỗi: {row.defectCount ?? "Chưa xác minh"} · Kiểm lại trong cycle: {row.reinspectionCount ?? "Chưa xác minh"}
       {" · "}Không đạt trong cycle: {row.cycleFailedInspectionCount ?? "Chưa xác minh"}

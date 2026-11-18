@@ -1,4 +1,7 @@
 export interface HistoryRow {
+  branchName?: string | null;
+  receivingDepartmentName?: string | null;
+  currentAssigneeName?: string | null;
   id: number;
   number: string;
   branchId: number;
@@ -51,7 +54,7 @@ export interface Timeline {
 }
 export class HistoryFailure extends Error {
   constructor(readonly status: number) {
-    super(`History request failed (${status}).`);
+    super(`Yêu cầu lịch sử thất bại (${status}).`);
   }
 }
 export interface HistoryOptions {
@@ -71,7 +74,7 @@ export function decodeHistoryOptions(value: unknown): HistoryOptions {
         list.every((item) => object(item) && id(item.id) && text(item.name)),
     )
   )
-    throw new Error("Invalid history options.");
+    throw new Error("Lựa chọn lịch sử không hợp lệ.");
   return value as unknown as HistoryOptions;
 }
 const object = (v: unknown): v is Record<string, unknown> =>
@@ -104,6 +107,7 @@ export function decodeHistory(v: unknown): HistoryPage {
         (r.receivingDepartmentId === null || id(r.receivingDepartmentId)) &&
         text(r.number) &&
         text(r.subject) &&
+        [r.branchName, r.receivingDepartmentName, r.currentAssigneeName].every(v => v === undefined || nullableText(v)) &&
         text(r.status) &&
         nullableDate(r.deadline) &&
         typeof r.overdue === "boolean" &&
@@ -114,7 +118,7 @@ export function decodeHistory(v: unknown): HistoryPage {
         (r.currentAssigneeId === null || id(r.currentAssigneeId)),
     )
   )
-    throw new Error("Invalid history response.");
+    throw new Error("Phản hồi lịch sử không hợp lệ.");
   return v as unknown as HistoryPage;
 }
 export function decodeTimeline(v: unknown, requestId: number): Timeline {
@@ -161,7 +165,7 @@ export function decodeTimeline(v: unknown, requestId: number): Timeline {
         date(v.feedback.submittedAt))
     )
   )
-    throw new Error("Invalid timeline response.");
+    throw new Error("Phản hồi dòng thời gian không hợp lệ.");
   return v as unknown as Timeline;
 }
 export async function readHistory(
@@ -176,6 +180,6 @@ export async function readHistory(
   });
   if (!response.ok) throw new HistoryFailure(response.status);
   if (!response.headers.get("content-type")?.includes("application/json"))
-    throw new Error("Invalid history content type.");
+    throw new Error("Định dạng lịch sử không hợp lệ.");
   return response.json();
 }

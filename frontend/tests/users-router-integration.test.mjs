@@ -344,7 +344,7 @@ test("directory renders server fields, totalCount and one StrictMode read withou
         /Matching accounts: 41/,
       );
       assert.match(
-        await page.getByRole("table", { name: "User accounts" }).innerText(),
+        await page.getByRole("table", { name: "Tài khoản người dùng" }).innerText(),
         /E42[\s\S]*staff42[\s\S]*Server Role[\s\S]*ACTIVE/,
       );
       assert.equal((await calls(page, listUrl)).length, 1);
@@ -440,7 +440,7 @@ test("startup pending and unavailable hide all accounts until explicit session r
       );
       await finish(page, "startup", unavailable);
       await page
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
       assert.equal((await calls(page, "/api/auth/session")).length, 2);
@@ -460,7 +460,7 @@ test("server pagination uses totalCount instead of current page length", async (
     },
     async (page) => {
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
-      await page.getByRole("button", { name: "Next page" }).click();
+      await page.getByRole("button", { name: "Trang sau" }).click();
       await page.getByRole("link", { name: "Page Two Target" }).waitFor();
       assert.match(await page.locator("body").innerText(), /Page 2 of 3/);
       assert.equal((await calls(page, page2)).length, 1);
@@ -481,15 +481,15 @@ test("search, primary branch, department, role, status and page size go to the s
     async (page) => {
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
       await page
-        .getByLabel("Search name, username or email")
+        .getByLabel("Tìm theo tên, tài khoản hoặc email")
         .fill("Alice & Bob");
       await page.getByLabel("Primary branch ID").fill("1");
       await page.getByLabel("Department ID").fill("2");
       await page.getByLabel("Role ID").fill("3");
       await page
-        .getByLabel("Account status", { exact: true })
+        .getByLabel("Trạng thái tài khoản", { exact: true })
         .selectOption("INACTIVE");
-      await page.getByLabel("Page size").selectOption("50");
+      await page.getByLabel("Số dòng mỗi trang").selectOption("50");
       await page
         .getByRole("button", { name: "Apply filters", exact: true })
         .click();
@@ -532,7 +532,7 @@ test("filter replacement aborts old read and late success cannot replace newer r
     },
     async (page) => {
       await heading(page, "User directory");
-      await page.getByLabel("Search name, username or email").fill("new");
+      await page.getByLabel("Tìm theo tên, tài khoản hoặc email").fill("new");
       await page
         .getByRole("button", { name: "Apply filters", exact: true })
         .click();
@@ -573,12 +573,12 @@ test("detail 200 remains visible when independent review returns 403", async () 
     },
     async (page) => {
       const minimal = page.getByRole("region", {
-        name: "Minimal account detail",
+        name: "Thông tin tài khoản cơ bản",
         exact: true,
       });
       await minimal.getByText("Minimal Target", { exact: true }).waitFor();
       await page
-        .getByRole("region", { name: "Access review", exact: true })
+        .getByRole("region", { name: "Kiểm tra quyền truy cập", exact: true })
         .getByRole("alert")
         .waitFor();
       assert.match(await minimal.innerText(), /Globally visible department/);
@@ -601,11 +601,11 @@ test("detail 403 does not prevent dedicated branch review 200 or disclose redact
     },
     async (page) => {
       await page
-        .getByRole("region", { name: "Minimal account detail", exact: true })
+        .getByRole("region", { name: "Thông tin tài khoản cơ bản", exact: true })
         .getByRole("alert")
         .waitFor();
       const review = page.getByRole("region", {
-        name: "Access review",
+        name: "Kiểm tra quyền truy cập",
         exact: true,
       });
       await review.getByText("Reviewed Target", { exact: true }).waitFor();
@@ -634,30 +634,30 @@ for (const global of [false, true]) {
       },
       async (page) => {
         await page
-          .getByRole("table", { name: "Effective permissions", exact: true })
+          .getByRole("table", { name: "Quyền có hiệu lực", exact: true })
           .waitFor();
         const review = page.getByRole("region", {
-          name: "Access review",
+          name: "Kiểm tra quyền truy cập",
           exact: true,
         });
         assert.match(
           await review.innerText(),
-          global ? /Global reviewer scope/ : /Limited branch report: 1/,
+          global ? /Phạm vi xét duyệt toàn hệ thống/ : /Limited branch report: 1/,
         );
         assert.match(
           await review
-            .getByRole("table", { name: "Assigned roles" })
+            .getByRole("table", { name: "Vai trò đã gán" })
             .innerText(),
           /Historical Role[\s\S]*false/,
         );
         assert.match(
           await review
-            .getByRole("table", { name: "Configured grants" })
+            .getByRole("table", { name: "Quyền đã cấu hình" })
             .innerText(),
           /Configured view[\s\S]*false/,
         );
         const effective = await review
-          .getByRole("table", { name: "Effective permissions" })
+          .getByRole("table", { name: "Quyền có hiệu lực" })
           .innerText();
         assert.match(
           effective,
@@ -690,8 +690,8 @@ test("review filters abort only the review read; minimal detail remains independ
     },
     async (page) => {
       await page.getByText("Minimal Target", { exact: true }).waitFor();
-      await page.getByLabel("Feature", { exact: true }).fill("ADMIN");
-      await page.getByLabel("Permission code").fill("USER_VIEW");
+      await page.getByLabel("Chức năng", { exact: true }).fill("ADMIN");
+      await page.getByLabel("Mã quyền").fill("USER_VIEW");
       await page.getByRole("button", { name: "Apply review filters" }).click();
       await page.getByText("Reviewed Target", { exact: true }).waitFor();
       assert.equal(
@@ -702,7 +702,7 @@ test("review filters abort only the review read; minimal detail remains independ
       await finish(page, "oldReview", ok(report()));
       assert.equal(
         await page
-          .getByRole("table", { name: "Effective permissions" })
+          .getByRole("table", { name: "Quyền có hiệu lực" })
           .count(),
         0,
       );
@@ -721,11 +721,11 @@ test("404 is distinct from branch-scope access denial", async () => {
     },
     async (page) => {
       await page
-        .getByRole("region", { name: "Minimal account detail", exact: true })
-        .getByText("The requested account was not found.", { exact: true })
+        .getByRole("region", { name: "Thông tin tài khoản cơ bản", exact: true })
+        .getByText("Không tìm thấy tài khoản yêu cầu.", { exact: true })
         .waitFor();
       await page
-        .getByRole("region", { name: "Access review", exact: true })
+        .getByRole("region", { name: "Kiểm tra quyền truy cập", exact: true })
         .getByText(/does not confirm whether the account exists/)
         .waitFor();
     },
@@ -810,7 +810,7 @@ test("unmount aborts reads; late data/error cannot change Profile or navigation"
     },
     async (page) => {
       await heading(page, "User account 42");
-      await page.getByRole("link", { name: "Profile", exact: true }).click();
+      await page.getByRole("link", { name: "Hồ sơ cá nhân", exact: true }).click();
       await heading(page, "Profile");
       await finish(page, "detail", ok(account()));
       await finish(page, "review", problem(401, "SESSION_INVALID"));
@@ -870,7 +870,7 @@ test("concurrent detail/review 401 share one revalidation and never restore acco
       );
       assert.equal(
         await page
-          .getByRole("region", { name: "Minimal account detail" })
+          .getByRole("region", { name: "Thông tin tài khoản cơ bản" })
           .count(),
         0,
       );
@@ -902,7 +902,7 @@ test("503 during 401 recovery needs explicit session check and never automatical
     },
     async (page) => {
       await page
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await page
         .getByRole("button", { name: "Reload users", exact: true })
@@ -953,7 +953,7 @@ for (const nextId of ["7", "8"]) {
         await settle(page);
         assert.equal(
           await page
-            .getByRole("heading", { name: "User directory", exact: true })
+            .getByRole("heading", { name: "Danh mục người dùng", exact: true })
             .count(),
           0,
         );
@@ -1011,9 +1011,9 @@ test("Login and Logout navigation remain unchanged around real Users route", asy
       await heading(page, "Sign In");
       assert.equal((await calls(page, "/api/reports/options")).length, 0);
       assert.equal((await calls(page, "/api/internal-requests?pageSize=1")).length, 0);
-      await page.getByLabel("Username or email").fill("reviewer");
-      await page.getByLabel("Password", { exact: true }).fill(secret);
-      await page.getByRole("button", { name: "Sign in", exact: true }).click();
+      await page.getByLabel("Tên đăng nhập hoặc email").fill("reviewer");
+      await page.getByLabel("Mật khẩu", { exact: true }).fill(secret);
+      await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
       await pathIs(page, "/dashboard");
       await heading(page, "Operations dashboard");
       await page.waitForFunction(() =>
@@ -1021,14 +1021,14 @@ test("Login and Logout navigation remain unchanged around real Users route", asy
           (url) => window.usersTest.calls.some((call) => call.url === url),
         ),
       );
-      assert.equal(await page.getByRole("link", { name: "Reports", exact: true }).count(), 0);
-      assert.equal(await page.getByRole("link", { name: "Internal requests", exact: true }).count(), 0);
+      assert.equal(await page.getByRole("link", { name: "Báo cáo", exact: true }).count(), 0);
+      assert.equal(await page.getByRole("link", { name: "Yêu cầu nội bộ", exact: true }).count(), 0);
       assert.equal((await calls(page, "/api/auth/session")).length, 2);
       await navigate(page, "/users");
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
-      await page.getByRole("link", { name: "Profile", exact: true }).click();
+      await page.getByRole("link", { name: "Hồ sơ cá nhân", exact: true }).click();
       await heading(page, "Profile");
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       await pathIs(page, "/login");
       await heading(page, "Sign In");
       assert.equal((await calls(page, "/api/auth/login")).length, 1);
@@ -1045,15 +1045,15 @@ test("Change Password success still navigates Profile and retains Users route ac
     },
     async (page) => {
       await heading(page, "Change Password");
-      await page.getByLabel("Current password", { exact: true }).fill(secret);
+      await page.getByLabel("Mật khẩu hiện tại", { exact: true }).fill(secret);
       await page
-        .getByLabel("New password", { exact: true })
+        .getByLabel("Mật khẩu mới", { exact: true })
         .fill(`${secret}-next`);
       await page
-        .getByLabel("Confirm new password", { exact: true })
+        .getByLabel("Xác nhận mật khẩu mới", { exact: true })
         .fill(`${secret}-next`);
       await page
-        .getByRole("button", { name: "Change password", exact: true })
+        .getByRole("button", { name: "Đổi mật khẩu", exact: true })
         .click();
       await pathIs(page, "/profile");
       await heading(page, "Profile");
@@ -1083,7 +1083,7 @@ test("a review 401 immediately removes previously confirmed minimal detail durin
       );
       assert.equal(
         await page
-          .getByRole("region", { name: "Minimal account detail", exact: true })
+          .getByRole("region", { name: "Thông tin tài khoản cơ bản", exact: true })
           .count(),
         0,
       );
@@ -1150,7 +1150,7 @@ test("092 unreadable directory 401 checks session once and requires explicit Use
 
 test("094 Users gate OFF issues no user read", async () => {
   await withUsers("/users", { usersEnabled: false }, async (page) => {
-    await page.getByText("Page not found", { exact: true }).waitFor();
+    await page.getByText("Không tìm thấy trang", { exact: true }).waitFor();
     assert.equal(
       (await calls(page)).filter((c) => c.url.startsWith("/api/users")).length,
       0,

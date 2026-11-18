@@ -61,7 +61,7 @@ export function createInspectionApi(
     const active = signal ? AbortSignal.any([signal, lifetime]) : lifetime;
     active.throwIfAborted();
     if (method !== "GET" && !strongTag(etag || ""))
-      throw new InspectionApiError(428, "Strong If-Match required");
+      throw new InspectionApiError(428, "Cần mã phiên bản If-Match chính xác");
     const headers: Record<string, string> = { Accept: "application/json" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (etag) headers["If-Match"] = etag;
@@ -77,7 +77,7 @@ export function createInspectionApi(
       try {
         token = await csrf.json();
       } catch {
-        throw new InspectionApiError(503, "CSRF unavailable");
+        throw new InspectionApiError(503, "Chưa có bảo vệ phiên (CSRF)");
       }
       const t = token as { csrfToken?: string; headerName?: string };
       if (
@@ -86,7 +86,7 @@ export function createInspectionApi(
         !t.csrfToken ||
         t.headerName !== "X-CSRF-TOKEN"
       )
-        throw new InspectionApiError(503, "CSRF unavailable");
+        throw new InspectionApiError(503, "Chưa có bảo vệ phiên (CSRF)");
       headers[t.headerName] = t.csrfToken;
     }
     active.throwIfAborted(); // Protect CSRF -> mutation dispatch gap.
@@ -106,8 +106,8 @@ export function createInspectionApi(
       throw new InspectionApiError(
         0,
         method === "GET"
-          ? "Network unavailable"
-          : "Write outcome unknown; verify before any retry",
+          ? "Không kết nối được mạng"
+          : "Chưa xác định kết quả ghi; xác minh trước mọi lần thử lại",
         method !== "GET",
       );
     }
@@ -135,7 +135,7 @@ export function createInspectionApi(
         )
           throw new InspectionApiError(
             409,
-            `MSG24: Inspection is ${body.state} and its defects can no longer be changed.`,
+            `MSG24: Kiểm tra đang ở trạng thái ${body.state} và các lỗi liên quan không còn được chỉnh sửa.`,
           );
         if (
           response.status === 400 &&
@@ -166,7 +166,7 @@ export function createInspectionApi(
         )
           throw new InspectionApiError(
             400,
-            "MSG03: Complete the missing items, save your changes, then finish inspection.",
+            "MSG03: Bổ sung mục còn thiếu, lưu thay đổi rồi hoàn tất kiểm tra.",
             false,
             { versionId: body.versionId, missingItems: body.missingItems },
           );
@@ -174,14 +174,14 @@ export function createInspectionApi(
       throw new InspectionApiError(
         response.status,
         response.status === 401
-          ? "Session invalid"
+          ? "Phiên đăng nhập không hợp lệ"
           : response.status === 403
-            ? "Resource access denied"
+            ? "Không có quyền truy cập đối tượng"
             : response.status === 412
-              ? "Stale inspection revision"
+              ? "Phiên bản kiểm tra đã cũ"
               : response.status === 428
-                ? "Missing revision"
-                : `Request failed (${response.status})`,
+                ? "Thiếu phiên bản"
+                : `Yêu cầu thất bại (${response.status})`,
         method !== "GET" && response.status >= 500,
       );
     }
@@ -199,7 +199,7 @@ export function createInspectionApi(
     } catch {
       throw new InspectionApiError(
         503,
-        "Malformed execution response",
+        "Phản hồi thực hiện không đúng định dạng",
         writing,
       );
     }
@@ -212,7 +212,7 @@ export function createInspectionApi(
         response.headers.get("ETag") || "",
       );
     } catch {
-      throw new InspectionApiError(503, "Untrusted inspection source", writing);
+      throw new InspectionApiError(503, "Nguồn kiểm tra chưa xác minh", writing);
     }
   }
   return {
@@ -265,14 +265,14 @@ export function createInspectionApi(
           new Set(data.assignees.map((a: { id: number }) => a.id)).size !==
             data.assignees.length
         )
-          throw new Error("Invalid options");
+          throw new Error("Lựa chọn không hợp lệ");
         lifetime.throwIfAborted();
         signal?.throwIfAborted();
         return { ...data, etag };
       } catch {
         throw new InspectionApiError(
           503,
-          "Authoritative rework options unavailable",
+          "Chưa có lựa chọn làm lại được máy chủ xác nhận",
         );
       }
     },
@@ -300,7 +300,7 @@ export function createInspectionApi(
       )
         throw new InspectionApiError(
           400,
-          "Choose eligible assignee, defects and a future due time",
+          "Chọn người được giao đủ điều kiện, các lỗi và thời hạn trong tương lai",
         );
       const response = await request(
         "POST",
@@ -324,14 +324,14 @@ export function createInspectionApi(
           data.state !== "PENDING_ACCEPTANCE" ||
           typeof data.notification !== "string"
         )
-          throw new Error("Invalid receipt");
+          throw new Error("Phiếu nhập không hợp lệ");
         lifetime.throwIfAborted();
         signal?.throwIfAborted();
         return data as { id: number; state: string; notification: string };
       } catch {
         throw new InspectionApiError(
           503,
-          "Rework outcome unknown; verify current state before retry",
+          "Chưa xác định kết quả làm lại; kiểm tra trạng thái trước khi thử lại",
           true,
         );
       }
@@ -379,7 +379,7 @@ export function createInspectionApi(
         loadedSource.value.branchId !== branch ||
         loadedSource.value.id !== id
       )
-        throw new InspectionApiError(400, "Invalid source scope");
+        throw new InspectionApiError(400, "Phạm vi nguồn không hợp lệ");
       return loaded(
         await request(
           "PUT",
@@ -407,13 +407,13 @@ export function createInspectionApi(
       if (!confirmed)
         throw new InspectionApiError(
           400,
-          "Confirm rejection before submitting",
+          "Xác nhận từ chối trước khi gửi",
         );
       const rejectionReason = reason(inputReason);
       if (rejectionReason.length < 10)
         throw new InspectionApiError(
           400,
-          "Rejection reason must contain at least 10 characters",
+          "Lý do từ chối cần ít nhất 10 ký tự",
         );
       const result = await loaded(
         await request(
@@ -435,7 +435,7 @@ export function createInspectionApi(
       )
         throw new InspectionApiError(
           503,
-          "Unexpected rejection response; verify current state before another action",
+          "Phản hồi từ chối bất thường; kiểm tra trạng thái trước khi thao tác tiếp",
           true,
         );
       return result;
@@ -460,7 +460,7 @@ export function createInspectionApi(
       )
         throw new InspectionApiError(
           503,
-          "Unexpected approval response; verify current state before another action",
+          "Phản hồi duyệt bất thường; kiểm tra trạng thái trước khi thao tác tiếp",
           true,
         );
       return result;
@@ -488,7 +488,7 @@ export function createInspectionApi(
       if (result.value.state !== "PENDING_CONCLUSION")
         throw new InspectionApiError(
           503,
-          "Unexpected finish state; do not retry",
+          "Trạng thái hoàn tất bất thường; không gửi lại",
           true,
         );
       return result;
@@ -511,7 +511,7 @@ export function createInspectionApi(
       if (!trustedSeverity(options, details.severityId))
         throw new InspectionApiError(
           403,
-          "Authoritative severity catalog required",
+          "Cần danh mục mức độ từ máy chủ",
         );
       if (
         !positiveId(details.itemId) ||
@@ -520,7 +520,7 @@ export function createInspectionApi(
         details.description.length > 4000 ||
         details.location.length > 250
       )
-        throw new InspectionApiError(400, "Invalid defect");
+        throw new InspectionApiError(400, "Lỗi không hợp lệ");
       optionalNote(details.description);
       if ((details.photos?.length ?? 0) > 5)
         throw new InspectionApiError(400, invalidEvidenceMessage);

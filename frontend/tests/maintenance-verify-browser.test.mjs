@@ -29,10 +29,10 @@ for(const stale of [false,true])test(`Verify binds snapshot and handles ${stale?
   });
   await page.goto('https://hotelops.test');await page.addScriptTag({content:bundle.outputFiles[0].text});
   const review=page.getByRole('button',{name:'Review closure',exact:true});await review.waitFor();assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Verification note').fill('short');assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Verification note').fill(' Repair is complete ');await review.click();assert.equal(calls.length,0);
+  await page.getByLabel("Ghi chú xác minh").fill('short');assert.equal(await review.isDisabled(),true);
+  await page.getByLabel("Ghi chú xác minh").fill(' Repair is complete ');await review.click();assert.equal(calls.length,0);
   await page.getByRole('button',{name:'Confirm closure'}).click();
-  await page.getByText(stale?'Work changed. Reload before reviewing again.':'Work and Incident closed. Room readiness is recalculated; a released Incident block does not mean the room is Ready. Reload the work detail.',{exact:true}).waitFor();
+  await page.getByText(stale?"Công việc đã đổi. Tải lại trước khi xét duyệt tiếp.":'Work and Incident closed. Room readiness is recalculated; a released Incident block does not mean the room is Ready. Reload the work detail.',{exact:true}).waitFor();
   assert.equal(calls.length,1);assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
   assert.deepEqual(calls[0].body,{actorUserId:42,note:'Repair is complete',submissionAuditId:77});
   assert.equal(await review.isDisabled(),true);

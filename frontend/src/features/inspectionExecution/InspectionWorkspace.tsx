@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import {
   createInspectionApi,
@@ -127,7 +128,7 @@ export function InspectionWorkspace({
       }
       setError(
         e.uncertain
-          ? "Write outcome unknown. Verify server state in a fresh authorized read; do not automatically retry."
+          ? "Chưa xác định kết quả ghi. Đọc mới có quyền để xác minh trạng thái máy chủ; không tự gửi lại."
           : e.message,
       );
     } else if (e instanceof Error && e.name !== "AbortError")
@@ -189,14 +190,14 @@ export function InspectionWorkspace({
             0,
           ) > 5
         )
-          throw new Error("MSG23: At most five evidence files per save.");
+          throw new Error("MSG23: Tối đa 5 tệp bằng chứng mỗi lần lưu.");
         if (
           current.value.criteria.some(
             (c) => criterionUploads[c.itemId]?.length && !outcomes[c.itemId],
           )
         )
           throw new Error(
-            "MSG03: Select Pass or Fail before saving criterion evidence.",
+            "MSG03: Chọn Đạt hoặc Không đạt trước khi lưu bằng chứng tiêu chí.",
           );
         const results: CriterionResult[] = current.value.criteria
           .filter(
@@ -228,14 +229,14 @@ export function InspectionWorkspace({
         if (!severities?.length)
           throw new InspectionApiError(
             403,
-            "Authoritative severity catalog unavailable; defect submission disabled.",
+            "Chưa có danh mục mức độ từ máy chủ; thao tác gửi lỗi bị khóa.",
           );
         const criterion = current.value.criteria.find(
           (c) => c.itemId === itemId,
         );
         if (!criterion || criterion.outcome !== "FAIL")
           throw new Error(
-            "Record a FAILED criterion result before submitting its defect.",
+            "Ghi kết quả tiêu chí không đạt trước khi gửi lỗi tương ứng.",
           );
         const files = [];
         for (const file of uploads)
@@ -263,17 +264,17 @@ export function InspectionWorkspace({
       setNotice(
         kind === "reject"
           ? result.value.effectiveReadiness === "BLOCKED"
-            ? "MSG17: Inspection failed. Cleaning rework is required; the room remains blocked. Notification delivery is pending."
-            : "Inspection failed. Cleaning rework is required. Notification delivery is pending."
+            ? "MSG17: Kiểm tra không đạt. Cần vệ sinh lại; phòng vẫn bị khóa. Thông báo đang chờ gửi."
+            : "Kiểm tra không đạt. Cần vệ sinh lại. Thông báo đang chờ gửi."
           : kind === "approve"
             ? result.value.effectiveReadiness === "BLOCKED"
-              ? "MSG17: Inspection passed and cleaning completed. The room remains blocked and cannot be used."
-              : "MSG08: Inspection passed and cleaning completed. Room readiness is READY."
+              ? "MSG17: Kiểm tra đạt và vệ sinh hoàn tất. Phòng vẫn bị khóa, chưa thể sử dụng."
+              : "MSG08: Kiểm tra đạt và vệ sinh hoàn tất. Phòng đã sẵn sàng."
             : kind === "finish"
-              ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
+              ? "Kiểm tra đã chuyển sang chờ kết luận; chưa được duyệt, chưa đạt và phòng chưa sẵn sàng."
               : kind === "defect"
-                ? "MSG08: Inspection defect saved."
-                : "Operation acknowledged by server.",
+                ? "MSG08: Đã lưu lỗi kiểm tra."
+                : "Máy chủ đã xác nhận thao tác.",
       );
     } catch (e) {
       if (!task.signal.aborted && !scope.signal.aborted) handle(e);
@@ -283,16 +284,16 @@ export function InspectionWorkspace({
     }
   }
   return (
-    <section aria-label="Inspection execution">
-      <h2>Inspection #{id}</h2>
-      <p>Branch #{branch}. Inspection execution and approval.</p>
+    <section aria-label="Thực hiện kiểm tra">
+      <h2>Kiểm tra #{id}</h2>
+      <p>Chi nhánh #{branch}. Inspection execution and approval.</p>
       {error && (
         <p role="alert" style={{ color: "#b91c1c" }}>
           {error}
         </p>
       )}
       {incomplete && current && (
-        <ul aria-label="Missing inspection items">
+        <ul aria-label="Hạng mục kiểm tra còn thiếu">
           {incomplete.missingItems.map((item) => (
             <li key={item.itemId}>
               #{item.itemId}{" "}
@@ -302,8 +303,8 @@ export function InspectionWorkspace({
               }
               :{" "}
               {item.requirement === "RESULT_REQUIRED"
-                ? "Record and save Pass or Fail for this required criterion."
-                : "Add a defect with a description for this failed criterion."}
+                ? "Ghi và lưu Đạt hoặc Không đạt cho tiêu chí bắt buộc này."
+                : "Thêm lỗi kèm mô tả cho tiêu chí không đạt này."}
             </li>
           ))}
         </ul>
@@ -311,8 +312,7 @@ export function InspectionWorkspace({
       {notice && <p role="status">{notice}</p>}
       {blocked && (
         <p role="alert">
-          This operation is blocked. Recheck the server before taking another
-          action.
+          Thao tác bị chặn. Kiểm tra lại máy chủ trước khi làm tiếp.
         </p>
       )}
       <button
@@ -323,18 +323,18 @@ export function InspectionWorkspace({
           setReload((n) => n + 1);
         }}
       >
-        Verify current state (GET)
+        Kiểm tra trạng thái hiện tại
       </button>
-      {busy && <p role="status">Processing…</p>}
+      {busy && <p role="status">Đang xử lý…</p>}
       {current && (
         <>
           <p>
-            State: <strong>{current.value.state}</strong>. Assigned version #
-            {current.value.versionId}; Room #{current.value.roomId}; Task #
+            Trạng thái: <strong>{displayCode(current.value.state)}</strong>. Assigned version #
+            {current.value.versionId}; Phòng #{current.value.roomId}; Công việc #
             {current.value.cleaningTaskId}.
           </p>
           <label>
-            Reason{" "}
+            Lý do{" "}
             <input
               value={why}
               maxLength={500}
@@ -342,31 +342,30 @@ export function InspectionWorkspace({
             />
           </label>
           <p>
-            Effective room readiness:{" "}
+            Mức sẵn sàng thực tế của phòng:{" "}
             {current.value.effectiveReadiness ?? "UNKNOWN"}.
           </p>
           {current.value.state === "PENDING_CONCLUSION" && (
-            <p aria-label="Inspection summary">
-              Passed criteria:{" "}
+            <p aria-label="Tóm tắt kiểm tra">
+              Tiêu chí đạt:{" "}
               {
                 current.value.criteria.filter((c) => c.outcome === "PASS")
                   .length
               }
-              ; failed criteria:{" "}
+              ; tiêu chí không đạt:{" "}
               {
                 current.value.criteria.filter((c) => c.outcome === "FAIL")
                   .length
               }
-              ; defects: {current.value.defects.length}.
+              ; Các lỗi: {current.value.defects.length}.
             </p>
           )}
           {current.value.notification && (
-            <p>Notification: {current.value.notification}</p>
+            <p>Thông báo: {current.value.notification}</p>
           )}
           {["PASSED", "FAILED"].includes(current.value.state) && (
             <p role="status">
-              MSG24: Inspection is {current.value.state} and its defects can no
-              longer be changed.
+              MSG24: Kiểm tra đang ở trạng thái {displayCode(current.value.state)} và các lỗi liên quan không còn được chỉnh sửa.
             </p>
           )}
           {current.value.state === "FAILED" && (
@@ -383,8 +382,7 @@ export function InspectionWorkspace({
               (c) => c.mandatory && c.outcome === "FAIL",
             ) && (
               <p role="alert">
-                MSG03: A mandatory criterion failed. Approval is unavailable.
-                Review the defects and use Reject inspection.
+                MSG03: Tiêu chí bắt buộc không đạt. Không thể duyệt. Kiểm tra lỗi và chọn Từ chối kết quả kiểm tra.
               </p>
             )}
           <button
@@ -399,20 +397,19 @@ export function InspectionWorkspace({
             }
             onClick={() => void action("approve")}
           >
-            Approve inspection
+            Duyệt kết quả kiểm tra
           </button>
           {current.value.state === "PENDING_CONCLUSION" && (
             <fieldset disabled={busy || blocked}>
-              <legend>Reject inspection</legend>
+              <legend>Từ chối kết quả kiểm tra</legend>
               {why.trim().length < 10 && (
                 <p role="alert" style={{ color: "#b91c1c" }}>
-                  MSG03: Rejection reason must contain at least 10 characters.
+                  MSG03: Lý do từ chối cần ít nhất 10 ký tự.
                 </p>
               )}
               {current.value.defects.length === 0 && (
                 <p role="alert" style={{ color: "#b91c1c" }}>
-                  MSG03: Defects: record a defect for each failed criterion
-                  before rejecting the inspection. Please check and try again.
+                  MSG03: Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ chối kiểm tra. Kiểm tra và thử lại.
                 </p>
               )}
               <label>
@@ -421,7 +418,7 @@ export function InspectionWorkspace({
                   checked={rejectConfirmed}
                   onChange={(e) => setRejectConfirmed(e.target.checked)}
                 />
-                Confirm inspection failure and require cleaning rework
+                Xác nhận kiểm tra không đạt và yêu cầu vệ sinh lại
               </label>
               <button
                 type="button"
@@ -433,7 +430,7 @@ export function InspectionWorkspace({
                 }
                 onClick={() => void action("reject")}
               >
-                Reject inspection
+                Từ chối kết quả kiểm tra
               </button>
             </fieldset>
           )}
@@ -442,9 +439,9 @@ export function InspectionWorkspace({
             disabled={busy || blocked || current.value.state !== "ASSIGNED"}
             onClick={() => void action("start")}
           >
-            Start Inspection
+            Bắt đầu kiểm tra
           </button>
-          <h3>Assigned checklist criteria</h3>
+          <h3>Tiêu chí kiểm tra được giao</h3>
           {current.value.criteria.map((c) => (
             <fieldset
               key={c.itemId}
@@ -455,7 +452,7 @@ export function InspectionWorkspace({
               </legend>
               {c.description && <p>{c.description}</p>}
               <label>
-                Result{" "}
+                Kết quả{" "}
                 <select
                   value={outcomes[c.itemId] ?? ""}
                   onChange={(e) =>
@@ -465,15 +462,15 @@ export function InspectionWorkspace({
                     }))
                   }
                 >
-                  <option value="">Not recorded</option>
-                  <option value="PASS">PASS</option>
-                  <option value="FAIL">FAIL</option>
+                  <option value="">Chưa ghi nhận</option>
+                  <option value="PASS">Đạt</option>
+                  <option value="FAIL">Không đạt</option>
                 </select>
               </label>
               <label>
-                Note{" "}
+                Ghi chú{" "}
                 <textarea
-                  aria-label="Note"
+                  aria-label="Ghi chú"
                   value={notes[c.itemId] ?? ""}
                   maxLength={4000}
                   onChange={(e) =>
@@ -482,8 +479,7 @@ export function InspectionWorkspace({
                 />
               </label>
               <label>
-                Criterion evidence #{c.itemId} (JPG, PNG, PDF; up to 10 MiB
-                each)
+                Bằng chứng theo tiêu chí #{c.itemId} (JPG, PNG, PDF; tối đa 10 MiB mỗi tệp)
                 <input
                   key={`${c.itemId}:${uploadGeneration}`}
                   type="file"
@@ -498,7 +494,7 @@ export function InspectionWorkspace({
                 />
               </label>
               {!!c.evidenceIds?.length && (
-                <p>Saved evidence files: {c.evidenceIds.length}</p>
+                <p>Tệp bằng chứng đã lưu: {c.evidenceIds.length}</p>
               )}
             </fieldset>
           ))}
@@ -507,19 +503,19 @@ export function InspectionWorkspace({
             disabled={busy || blocked || current.value.state !== "INSPECTING"}
             onClick={() => void action("save")}
           >
-            Save results
+            Lưu kết quả
           </button>
           <button
             type="button"
             disabled={busy || blocked || current.value.state !== "INSPECTING"}
             onClick={() => void action("finish")}
           >
-            Finish → PENDING_CONCLUSION
+            Hoàn tất → Chờ kết luận
           </button>
-          <h3>Defects</h3>
+          <h3>Các lỗi</h3>
           {current.value.defects.map((d) => (
             <p key={d.id}>
-              Defect #{d.id}: {d.description} — {d.status}
+              Lỗi #{d.id}: {d.description} — {displayCode(d.status)}
               <button
                 type="button"
                 disabled={
@@ -540,14 +536,13 @@ export function InspectionWorkspace({
                   setUploads([]);
                 }}
               >
-                Edit defect #{d.id}
+                Chỉnh sửa lỗi #{d.id}
               </button>
             </p>
           ))}
           {!severities?.length && (
             <p role="status">
-              Authoritative severity IDs not available; defect submission is
-              disabled. INSPECTION_PERFORM does not grant evidence read.
+              Chưa có mã mức độ từ máy chủ; thao tác gửi lỗi bị khóa. INSPECTION_PERFORM không cấp quyền xem bằng chứng.
             </p>
           )}
           <fieldset
@@ -562,32 +557,32 @@ export function InspectionWorkspace({
             }
           >
             <legend>
-              Record defect (only for previously saved FAILED criterion)
+              Ghi nhận lỗi (chỉ cho tiêu chí đã lưu là không đạt)
             </legend>
             <label>
-              Failed criterion{" "}
+              Tiêu chí không đạt{" "}
               <select
                 value={selection}
                 disabled={editingDefect !== null}
                 onChange={(e) => setSelection(e.target.value)}
               >
-                <option value="">Select</option>
+                <option value="">Chọn</option>
                 {current.value.criteria
                   .filter((c) => c.outcome === "FAIL")
                   .map((c) => (
                     <option key={c.itemId} value={c.itemId}>
-                      {c.criterion}
+                      {displayCode(c.criterion)}
                     </option>
                   ))}
               </select>
             </label>
             <label>
-              Severity{" "}
+              Mức độ{" "}
               <select
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value)}
               >
-                <option value="">Select</option>
+                <option value="">Chọn</option>
                 {severities
                   ?.filter(
                     (s) =>
@@ -601,16 +596,16 @@ export function InspectionWorkspace({
               </select>
             </label>
             <label>
-              Description{" "}
+              Mô tả{" "}
               <textarea
-                aria-label="Description"
+                aria-label="Mô tả"
                 value={description}
                 maxLength={4000}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </label>
             <label>
-              Location{" "}
+              Vị trí{" "}
               <input
                 value={location}
                 maxLength={250}
@@ -618,7 +613,7 @@ export function InspectionWorkspace({
               />
             </label>
             <label>
-              Evidence (JPG, PNG or PDF, max 5 files / 10 MiB each){" "}
+              Bằng chứng (JPG, PNG hoặc PDF, tối đa 5 tệp / 10 MiB mỗi tệp){" "}
               <input
                 type="file"
                 multiple
@@ -631,7 +626,7 @@ export function InspectionWorkspace({
               disabled={busy || blocked || !severities?.length}
               onClick={() => void action("defect")}
             >
-              {editingDefect === null ? "Record defect" : "Save defect changes"}
+              {editingDefect === null ? "Ghi nhận lỗi" : "Lưu thay đổi lỗi"}
             </button>
             {editingDefect !== null && (
               <button
@@ -643,13 +638,12 @@ export function InspectionWorkspace({
                   setUploads([]);
                 }}
               >
-                Cancel edit
+                Hủy chỉnh sửa
               </button>
             )}
           </fieldset>
           <p>
-            Evidence read/download is not available in this source increment
-            without separately verified INSPECTION_VIEW.
+            Chưa cho phép xem / tải bằng chứng nếu chưa xác minh riêng quyền INSPECTION_VIEW.
           </p>
         </>
       )}

@@ -147,7 +147,7 @@ export async function listCleaning(
   const page = positiveId(query.get("page") || "1"),
     pageSize = positiveId(query.get("pageSize") || "20");
   if (pageSize > 100 || page > Math.floor(2147483647 / pageSize))
-    throw new Error("Invalid pagination");
+    throw new Error("Phân trang không hợp lệ");
   query.set("page", String(page));
   query.set("pageSize", String(pageSize));
   const v = await getJson(`/branches/${b}/cleaning-monitor?${query}`, signal);
@@ -180,7 +180,7 @@ export async function readCleaning(
     !integer(page) ||
     page > Math.floor(2147483647 / 20)
   )
-    throw new Error("Invalid detail");
+    throw new Error("Chi tiết không hợp lệ");
   const v = await getJson(
     `/branches/${positiveId(branch)}/cleaning-monitor/${kind}/${positiveId(id)}?timelinePage=${page}&timelinePageSize=20`,
     signal,

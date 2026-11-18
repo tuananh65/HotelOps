@@ -46,7 +46,7 @@ const day = (s: string | null) =>
 const time = (s: string | null) =>
   s === null || (typeof s === "string" && Number.isFinite(Date.parse(s)));
 function base(branch: number) {
-  if (!positive(branch)) throw new Error("Invalid series branch");
+  if (!positive(branch)) throw new Error("Chi nhánh chuỗi định kỳ không hợp lệ");
   return `/api/branches/${branch}/operational-task-series`;
 }
 export function validateRecurrence(
@@ -69,14 +69,14 @@ export function validateRecurrence(
       ? !Number.isInteger(r.monthDay) || r.monthDay! < 1 || r.monthDay! > 31
       : r.monthDay !== null)
   )
-    throw new Error("Invalid recurrence rule");
+    throw new Error("Quy tắc lặp lại không hợp lệ");
   const local = new Date(Date.parse(template.dueAt) + 7 * 3600000);
   if (
     (r.rule === "WEEKLY" && !r.weekdays.includes(local.getUTCDay())) ||
     (r.rule === "MONTHLY" && r.monthDay !== local.getUTCDate()) ||
     (r.endDate !== null && r.endDate < local.toISOString().slice(0, 10))
   )
-    throw new Error("First deadline must match recurrence and end date");
+    throw new Error("Hạn đầu tiên phải phù hợp lịch lặp và ngày kết thúc");
 }
 function validateSeries(s: TaskSeries, branch: number) {
   if (
@@ -98,7 +98,7 @@ function validateSeries(s: TaskSeries, branch: number) {
     !time(s.nextDueAt) ||
     !day(s.endDate)
   )
-    throw new Error("Invalid recurring task response");
+    throw new Error("Phản hồi công việc định kỳ không hợp lệ");
   return s;
 }
 export async function createSeries(
@@ -118,7 +118,7 @@ export async function createSeries(
   const body = await r.json();
   const series = validateSeries(body?.series, branch);
   if (body.messageCode !== "MSG08" || r.headers.get("ETag") !== series.eTag)
-    throw new Error("Invalid creation receipt");
+    throw new Error("Xác nhận tạo mới không hợp lệ");
   return series;
 }
 export async function readSeries(
@@ -128,9 +128,9 @@ export async function readSeries(
   seriesId?: number,
 ): Promise<SeriesPage> {
   if (!positive(page) || page > Math.floor(2147483647 / 25))
-    throw new Error("Invalid series page");
+    throw new Error("Trang chuỗi định kỳ không hợp lệ");
   if (seriesId !== undefined && !positive(seriesId))
-    throw new Error("Invalid series identity");
+    throw new Error("Định danh chuỗi định kỳ không hợp lệ");
   const body = await (
     await planningRequest(
       base(branch) + `?page=${page}` + (seriesId ? `&series=${seriesId}` : ""),
@@ -146,13 +146,13 @@ export async function readSeries(
     !Number.isSafeInteger(body.totalCount) ||
     body.totalCount < 0
   )
-    throw new Error("Invalid series list");
+    throw new Error("Danh sách chuỗi định kỳ không hợp lệ");
   body.items.forEach((s: TaskSeries) => validateSeries(s, branch));
   if (
     seriesId !== undefined &&
     body.items.some((s: TaskSeries) => s.seriesId !== seriesId)
   )
-    throw new Error("Unexpected series identity");
+    throw new Error("Định danh chuỗi không như dự kiến");
   return body;
 }
 export async function stopSeries(
@@ -164,14 +164,14 @@ export async function stopSeries(
 ) {
   validateSeries(series, branch);
   if (taskId !== undefined && !positive(taskId))
-    throw new Error("Invalid source task");
+    throw new Error("Công việc nguồn không hợp lệ");
   if (
     !series.isActive ||
     (reason !== null &&
       (reason.length > 4000 ||
         /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(reason)))
   )
-    throw new Error("Invalid stop series request");
+    throw new Error("Yêu cầu dừng chuỗi không hợp lệ");
   const r = await planningMutation(
     base(branch) + `/${series.seriesId}/stop`,
     "POST",
@@ -187,17 +187,17 @@ export async function stopSeries(
     result.isActive ||
     r.headers.get("ETag") !== result.eTag
   )
-    throw new Error("Invalid stop series receipt");
+    throw new Error("Xác nhận dừng chuỗi không hợp lệ");
   return result;
 }
 
 export async function reactivateSeries(branch: number, series: TaskSeries, reason: string | null, signal: AbortSignal) {
   validateSeries(series, branch);
-  if(series.isActive || !reason?.trim() || reason.length > 4000) throw new Error("Reactivation reason required");
+  if(series.isActive || !reason?.trim() || reason.length > 4000) throw new Error("Cần lý do kích hoạt lại");
   const response = await planningMutation(base(branch) + `/${series.seriesId}/reactivate`, "POST", {reason}, signal, series.eTag);
   const body = await response.json();
   const result = validateSeries(body?.series, branch);
   if(body.messageCode !== "MSG08" || result.seriesId !== series.seriesId || !result.isActive || response.headers.get("ETag") !== result.eTag)
-    throw new Error("Invalid reactivation receipt");
+    throw new Error("Xác nhận kích hoạt lại không hợp lệ");
   return result;
 }

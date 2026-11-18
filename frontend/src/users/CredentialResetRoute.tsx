@@ -58,7 +58,7 @@ function ResetFlow({
       if (!valid()) return;
       if (proof.outcome !== "CONFIRMED") {
         setMessage(
-          "Administrator verification was not confirmed. No credential reset was sent.",
+          "Chưa xác minh được quản trị viên. Không gửi yêu cầu đặt lại mật khẩu.",
         );
         setPhase("idle");
         if (proof.status === 401 && proof.code !== "INVALID_CREDENTIALS")
@@ -69,7 +69,7 @@ function ResetFlow({
       if (!valid()) return;
       if (!result.ok) {
         setMessage(
-          "The server did not authorize or confirm this account for review. No reset was sent.",
+          "Máy chủ chưa cho phép hoặc xác nhận tài khoản để xét duyệt. Chưa gửi đặt lại mật khẩu.",
         );
         setPhase("idle");
         if (result.error.status === 401) sessionFailure();
@@ -109,7 +109,7 @@ function ResetFlow({
     if (result.outcome === "OUTCOME_UNKNOWN") {
       setPhase("locked");
       setMessage(
-        "Reset outcome unknown. The password may have changed and sessions may be revoked. Do not replay. Ask an authorized administrator to verify the account and arrange a separate recovery.",
+        "Chưa xác định kết quả đặt lại. Mật khẩu có thể đã đổi và phiên có thể đã thu hồi. Không gửi lại; nhờ quản trị viên kiểm tra và thực hiện khôi phục riêng.",
       );
       return;
     }
@@ -117,19 +117,19 @@ function ResetFlow({
     setPhase("idle");
     setMessage(
       result.status === 412 || result.status === 428
-        ? "User version changed. Verify again and review a fresh profile before another confirmation."
+        ? "Phiên bản người dùng đã đổi. Xác minh lại và xem hồ sơ mới trước khi xác nhận tiếp."
         : result.status === 403
-          ? "Server denied reset or requires fresh administrator verification. No reset was retried."
-          : "Reset was not confirmed. Verify again before a new explicit attempt.",
+          ? "Máy chủ từ chối đặt lại hoặc cần xác minh quản trị viên mới. Không gửi lại yêu cầu đặt lại."
+          : "Chưa xác nhận đặt lại. Xác minh lại trước lần thử mới.",
     );
     if (result.status === 401) sessionFailure();
   }
   return (
     <main>
-      <h1>Reset account credential</h1>
-      <Link to={`/users/${target}`}>Account detail</Link>
+      <h1>Đặt lại mật khẩu tài khoản</h1>
+      <Link to={`/users/${target}`}>Chi tiết tài khoản</Link>
       <p>
-        Account ID: {target}. Only the server decides reset authority. Profile
+        Mã tài khoản: {target}. Only the server decides reset authority. Profile
         access is not permission to reset.
       </p>
       {phase === "idle" && (
@@ -140,7 +140,7 @@ function ResetFlow({
           }}
         >
           <label>
-            Current administrator password
+            Mật khẩu quản trị viên hiện tại
             <input
               type="password"
               autoComplete="current-password"
@@ -149,20 +149,18 @@ function ResetFlow({
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="submit">Verify administrator and load account</button>
+          <button type="submit">Xác minh quản trị viên và tải tài khoản</button>
         </form>
       )}
       {(phase === "loading" || phase === "saving") && (
-        <p role="status">Checking request...</p>
+        <p role="status">Đang kiểm tra yêu cầu...</p>
       )}
       {review && (
-        <section aria-label="Review credential reset">
-          <p>Full name: {review.data.fullName}</p>
+        <section aria-label="Xem lại đặt lại mật khẩu">
+          <p>Họ và tên: {review.data.fullName}</p>
           <p>Email: {review.data.email}</p>
           <p>
-            A new temporary password will replace the current credential and
-            revoke all target sessions. Roles and branch memberships are
-            unchanged.
+            Mật khẩu tạm mới sẽ thay mật khẩu hiện tại và thu hồi mọi phiên của tài khoản. Vai trò và phân công chi nhánh không đổi.
           </p>
           <label>
             <input
@@ -170,29 +168,29 @@ function ResetFlow({
               checked={attested}
               onChange={(e) => setAttested(e.target.checked)}
             />
-            I verified this employee's identity using the approved procedure
+            Tôi đã xác minh danh tính nhân viên theo quy trình được duyệt
           </label>
           <button
             type="button"
             disabled={!attested}
             onClick={() => void confirm()}
           >
-            Confirm credential reset
+            Xác nhận đặt lại mật khẩu
           </button>
         </section>
       )}
       {secret && (
-        <section aria-label="Reset credential handoff">
-          <h2>Credential reset confirmed</h2>
-          <p>Account ID: {target}</p>
-          <p>Expires at: {secret.expiresAtUtc}</p>
+        <section aria-label="Bàn giao mật khẩu đặt lại">
+          <h2>Đã xác nhận đặt lại mật khẩu</h2>
+          <p>Mã tài khoản: {target}</p>
+          <p>Hết hạn lúc: {secret.expiresAtUtc}</p>
           {revealed ? (
-            <p aria-label="Temporary password">{secret.password}</p>
+            <p aria-label="Mật khẩu tạm thời">{secret.password}</p>
           ) : (
-            <p>Password hidden</p>
+            <p>Đã ẩn mật khẩu</p>
           )}
           <button type="button" onClick={() => setRevealed((v) => !v)}>
-            {revealed ? "Hide password" : "Reveal password"}
+            {revealed ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
           </button>
           <button
             type="button"
@@ -203,22 +201,21 @@ function ResetFlow({
                   await navigator.clipboard.writeText(secret.password);
                   if (valid() && version === epoch.current)
                     setMessage(
-                      "Copied. Delivery to the employee is not confirmed.",
+                      "Đã sao chép. Chưa xác nhận đã bàn giao cho nhân viên.",
                     );
                 } catch {
                   if (valid() && version === epoch.current)
                     setMessage(
-                      "Clipboard unavailable. Use a secure manual handoff.",
+                      "Không dùng được bộ nhớ sao chép. Hãy bàn giao thủ công an toàn.",
                     );
                 }
               })();
             }}
           >
-            Copy password
+            Sao chép mật khẩu
           </button>
           <p>
-            The clipboard can retain this password. Leaving removes access here;
-            it cannot be retrieved again.
+            Bộ nhớ sao chép có thể còn mật khẩu. Rời trang sẽ mất quyền xem tại đây và không lấy lại được.
           </p>
           <button
             type="button"
@@ -227,11 +224,11 @@ function ResetFlow({
               setSecret(null);
               setRevealed(false);
               setMessage(
-                "Credential removed. Do not reset the account again to recover this handoff.",
+                "Mật khẩu đã ẩn. Không đặt lại tài khoản lần nữa chỉ để lấy lại lần bàn giao này.",
               );
             }}
           >
-            I securely handed off the credential
+            Tôi đã bàn giao mật khẩu an toàn
           </button>
         </section>
       )}
@@ -275,9 +272,9 @@ export function CredentialResetRoute() {
     state.pending !== null
   )
     return (
-      <main aria-label="Reset session recovery">
+      <main aria-label="Khôi phục phiên đặt lại mật khẩu">
         <p>
-          Account data and credentials are hidden. No reset has been retried.
+          Thông tin tài khoản và mật khẩu đã ẩn. Không có yêu cầu đặt lại nào được gửi lại.
         </p>
         <button
           type="button"
@@ -294,15 +291,15 @@ export function CredentialResetRoute() {
               });
           }}
         >
-          Check session
+          Kiểm tra phiên đăng nhập
         </button>
       </main>
     );
-  if (!target) return <p role="alert">Invalid user ID</p>;
+  if (!target) return <p role="alert">Mã người dùng không hợp lệ</p>;
   if (String(target) === state.session.user.id)
     return (
       <p role="alert">
-        Use Change Password for your own account. Self reset is unavailable.
+        Dùng Đổi mật khẩu cho tài khoản của bạn. Không thể tự đặt lại theo quy trình này.
       </p>
     );
   return (

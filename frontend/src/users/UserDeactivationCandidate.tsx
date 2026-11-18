@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import {
   useEffect,
   useMemo,
@@ -89,7 +90,7 @@ export function UserDeactivationCandidate({
   )
     return (
       <p role="status">
-        Confirm an unrestricted session before reviewing deactivation.
+        Xác minh phiên không bị hạn chế trước khi xét duyệt vô hiệu hóa.
       </p>
     );
   return (
@@ -177,12 +178,12 @@ function Bound({
         setStatus(response.status);
         return;
       }
-      const blocked = preview.accountStatus !== "ACTIVE" ? "Only an Active account can be deactivated."
-        : preview.lastDurableAdministrator ? "The last durable Administrator cannot be deactivated."
-        : preview.coverageIncomplete ? "Dependencies require review before this account can be deactivated."
-        : preview.hasOpenResponsibilities ? "Resolve the account's outstanding responsibilities before deactivation." : null;
+      const blocked = preview.accountStatus !== "ACTIVE" ? "Chỉ tài khoản đang hoạt động mới được vô hiệu hóa."
+        : preview.lastDurableAdministrator ? "Không được vô hiệu hóa quản trị viên thường trực cuối cùng."
+        : preview.coverageIncomplete ? "Cần kiểm tra ràng buộc trước khi vô hiệu hóa tài khoản này."
+        : preview.hasOpenResponsibilities ? "Xử lý trách nhiệm còn tồn của tài khoản trước khi vô hiệu hóa." : null;
       setData({
-        name: `User ${userId}`,
+        name: `Người dùng ${userId}`,
         accountStatus: preview.accountStatus,
         etag: `"${preview.version}"`,
         blocked,
@@ -237,18 +238,18 @@ function Bound({
   }
   return (
     <main>
-      <h1>Deactivate user account</h1>
+      <h1>Vô hiệu hóa tài khoản người dùng</h1>
       {data && !reservation && (
-        <section aria-label="Target account">
+        <section aria-label="Tài khoản đích">
           <p>
-            {data.name}; Account ID {userId}; {data.accountStatus}
+            {data.name}; Mã tài khoản {userId}; {displayCode(data.accountStatus)}
           </p>
         </section>
       )}
       {phase === "ready" && !reservation && (
         <>
           <label>
-            Reason
+            Lý do
             <textarea
               value={reason}
               disabled={review}
@@ -260,18 +261,17 @@ function Bound({
               disabled={reason.trim().length < 10}
               onClick={() => setReview(true)}
             >
-              Review deactivation
+              Xem lại vô hiệu hóa
             </button>
           ) : (
             <>
               <p>
-                Confirm this account and reason. The server must authorize and
-                check all responsibilities.
+                Xác nhận tài khoản và lý do. Máy chủ phải kiểm tra quyền và mọi trách nhiệm.
               </p>
               <button disabled={!enabled} onClick={() => void confirm()}>
-                Confirm deactivate
+                Xác nhận vô hiệu hóa
               </button>
-              <button onClick={() => setReview(false)}>Edit reason</button>
+              <button onClick={() => setReview(false)}>Chỉnh sửa lý do</button>
             </>
           )}
         </>
@@ -279,33 +279,33 @@ function Bound({
       {phase === "blocked" && !reservation && <>
         <p role="alert">{data?.blocked}</p>
         <UserDeactivationReview userId={userId} autoLoad />
-        <button type="button" onClick={() => { setData(null); setReview(false); setPhase("loading"); }}>Review account again</button>
+        <button type="button" onClick={() => { setData(null); setReview(false); setPhase("loading"); }}>Kiểm tra lại tài khoản</button>
       </>}
       {phase === "loading" && !reservation && (
-        <p role="status">Loading account...</p>
+        <p role="status">Đang tải tài khoản...</p>
       )}
       {(reservation?.phase === "pending" ||
         (phase === "pending" && !reservation)) && (
-        <p role="status">Deactivation pending...</p>
+        <p role="status">Đang chờ vô hiệu hóa...</p>
       )}
       {phase === "confirmed" && (
-        <p role="status">Account deactivated. Server confirmation received.</p>
+        <p role="status">Máy chủ đã xác nhận vô hiệu hóa tài khoản.</p>
       )}
       {(reservation?.phase === "unknown" ||
         ["unavailable", "rejected", "unknown"].includes(phase)) && (
         <p role="alert">
           {reservation?.phase === "unknown" || phase === "unknown"
-            ? "Outcome unknown. Do not replay; ask an authorized owner to verify."
+            ? "Chưa xác định kết quả. Không gửi lại; nhờ người có trách nhiệm xác minh."
             : status === 412
-              ? "Version changed. Obtain a new read and review; no replay."
+              ? "Phiên bản đã đổi. Đọc và xét duyệt lại; không gửi lại yêu cầu cũ."
               : status === 403
-                ? "Access denied by the server."
+                ? "Máy chủ từ chối quyền truy cập."
                 : status === 409
-                  ? "Deactivation blocked by account state or responsibilities."
-                  : "Deactivation unavailable. No automatic retry."}
+                  ? "Trạng thái tài khoản hoặc trách nhiệm đang chặn vô hiệu hóa."
+                  : "Chưa thể vô hiệu hóa. Không tự gửi lại."}
         </p>
       )}
-      {status === 401 && <button onClick={recover}>Check session</button>}
+      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
     </main>
   );
 }

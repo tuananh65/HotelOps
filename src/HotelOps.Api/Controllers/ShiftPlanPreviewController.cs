@@ -8,7 +8,9 @@ namespace HotelOps.Api.Controllers;
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class ShiftPlanPreviewController(SqlSecureShiftPreview service, ShiftPlanSaveService? save = null) : ControllerBase
 {
-    [HttpPost("preview"), ValidateAntiForgeryToken, RequestSizeLimit(96 * 1024)]
+    // ApiCsrfMiddleware validates every unsafe /api request before MVC executes.
+    // ValidateAntiForgeryToken requires MVC ViewFeatures, absent in this API-only host.
+    [HttpPost("preview"), RequestSizeLimit(96 * 1024)]
     public async Task<IActionResult> Preview(long branchId, long departmentId, ShiftPreviewRequest input, CancellationToken ct)
     {
         if (!Request.IsHttps) return Failure(400);
@@ -17,7 +19,7 @@ public sealed class ShiftPlanPreviewController(SqlSecureShiftPreview service, Sh
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return Failure(503); }
         catch (Exception e) when (!ct.IsCancellationRequested) { return Failure(e is System.Data.Common.DbException or TimeoutException or HotelOps.Api.Services.Authentication.SessionStoreUnavailableException ? 503 : 500); }
     }
-    [HttpPost, ValidateAntiForgeryToken, RequestSizeLimit(96 * 1024)]
+    [HttpPost, RequestSizeLimit(96 * 1024)]
     public async Task<IActionResult> Save(long branchId, long departmentId, ShiftPreviewRequest input, CancellationToken ct)
     {
         if (!Request.IsHttps) return Failure(400);

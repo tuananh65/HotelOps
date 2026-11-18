@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { LoadingIndicator } from "../components/LoadingIndicator";
 import { NotificationUnreadBadge } from "../notifications/NotificationUnreadBadge";
 import {
   HomeNavigation,
@@ -54,6 +55,9 @@ const groups = [
       "/inspection-history",
       "/operational-tasks",
       "/operations/incidents",
+      "/operations/maintenance",
+      "/incidents/new",
+      "/internal-requests",
     ],
   },
   {
@@ -64,6 +68,7 @@ const groups = [
       "/assets",
       "/inventory",
       "/operations/material-requests",
+      "/material-requests",
       "/operations/replenishments",
     ],
   },
@@ -73,7 +78,7 @@ const groups = [
     icon: Clock3,
     prefixes: ["/workday", "/my-time-log", "/time-corrections"],
   },
-  { id: "account", label: "Cá nhân", icon: UserRound, prefixes: ["/profile"] },
+  { id: "account", label: "Cá nhân", icon: UserRound, prefixes: ["/profile", "/change-password"] },
 ];
 const matches = (path: string, prefix: string) =>
   path === prefix || path.startsWith(prefix + "/");
@@ -110,7 +115,8 @@ export function CacaoShell({ children }: { children: ReactNode }) {
             const selected =
               available.find((group) => group.id === active) ?? available[0];
             const links = paths.filter(
-              (path) => groupFor(path) === selected?.id,
+              (path) => groupFor(path) === selected?.id
+                && !(path === "/incidents/new" && paths.includes("/operations/incidents")),
             );
             return (
               <aside
@@ -160,6 +166,7 @@ export function CacaoShell({ children }: { children: ReactNode }) {
                       <NavLink
                         key={path}
                         to={path}
+                        end={path === "/workday" || path === "/internal-requests"}
                         onClick={() => setMobileRoute(null)}
                       >
                         {navigationLabels[path]}
@@ -169,13 +176,9 @@ export function CacaoShell({ children }: { children: ReactNode }) {
                       </NavLink>
                     ))}
                   </nav>
-                  {!paths.length && (
-                    <p role="status">
-                      {loading
-                        ? "Đang tải điều hướng…"
-                        : "Chưa có chức năng khả dụng."}
-                    </p>
-                  )}
+                  {!paths.length && (loading
+                    ? <LoadingIndicator compact label="Đang tải điều hướng" />
+                    : <p role="status">Chưa có chức năng khả dụng.</p>)}
                   <div className="cacao-subnav-foot">
                     <span>HotelOps</span>
                     <small>Vận hành khách sạn</small>

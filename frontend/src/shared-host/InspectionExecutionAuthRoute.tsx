@@ -41,20 +41,19 @@ export function InspectionExecutionAuthRoute() {
     branchId = positiveId(branch ?? "");
     inspectionId = positiveId(id ?? "");
   } catch {
-    return <p role="alert">Invalid inspection or branch ID.</p>;
+    return <p role="alert">Mã kiểm tra hoặc chi nhánh không hợp lệ.</p>;
   }
 
   // Do not let an authority refresh silently remount an interrupted mutation.
   // The explicit continuation starts with a new authorized read, never a write replay.
   if (approved !== state.authorityGeneration)
     return (
-      <section aria-label="Inspection session recovery">
+      <section aria-label="Khôi phục phiên kiểm tra">
         <p role="alert">
-          Session authority changed. An interrupted inspection update may
-          already have committed. No update has been retried.
+          Quyền phiên đã đổi. Cập nhật kiểm tra bị gián đoạn có thể đã lưu. Không gửi lại cập nhật.
         </p>
         <button onClick={() => setApproved(state.authorityGeneration)}>
-          Verify inspection access
+          Xác minh quyền kiểm tra
         </button>
       </section>
     );
@@ -113,12 +112,12 @@ function AdmittedInspection({
     return () => controller.abort();
   }, [actions, generation, branch, id]);
   if (admission === "pending")
-    return <p role="status">Checking inspection access...</p>;
+    return <p role="status">Đang kiểm tra quyền thực hiện kiểm tra...</p>;
   if (admission === "denied")
     return (
       <section>
-        <p role="alert">Inspection access could not be confirmed.</p>
-        <button onClick={() => void actions.revalidate()}>Check session</button>
+        <p role="alert">Không xác minh được quyền thực hiện kiểm tra.</p>
+        <button onClick={() => void actions.revalidate()}>Kiểm tra phiên đăng nhập</button>
       </section>
     );
   return (

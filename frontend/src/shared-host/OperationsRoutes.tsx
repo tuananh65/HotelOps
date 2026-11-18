@@ -37,7 +37,7 @@ import { ReceiptWorkspacePage } from "../inventory/ReceiptWorkspacePage";
 export function OperationsRoutes() {
   return (
     <>
-      <nav aria-label="Hotel operations">
+      <nav aria-label="Vận hành khách sạn">
         <HomeNavigation enabled={["/operations/incidents", "/rooms/status", "/cleaning/tasks", "/cleaning/assignment", "/rework", "/rooms/turnover"]} />
       </nav>
       <main>
@@ -96,7 +96,7 @@ export function OperationsRoutes() {
             path="/rooms/turnover"
             element={<RoomTurnoverHistoryScreen />}
           />
-          <Route path="*" element={<p role="alert">Page not found</p>} />
+          <Route path="*" element={<p role="alert">Không tìm thấy trang</p>} />
         </Routes>
       </main>
     </>

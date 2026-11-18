@@ -30,11 +30,11 @@ for(const stale of [false,true])test(`Submit validates fields, selects existing 
   });
   await page.goto('https://hotelops.test');await page.addScriptTag({content:bundle.outputFiles[0].text});
   const review=page.getByRole('button',{name:'Review submission',exact:true});await review.waitFor();assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Diagnosis / root cause').fill(' Worn seal ');assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Action taken',{exact:true}).fill(' Replaced seal ');
+  await page.getByLabel("Chẩn đoán / nguyên nhân gốc").fill(' Worn seal ');assert.equal(await review.isDisabled(),true);
+  await page.getByLabel("Biện pháp đã thực hiện",{exact:true}).fill(' Replaced seal ');
   await page.getByLabel('Use result.png as result evidence').check();await review.click();assert.equal(calls.length,0);
   await page.getByRole('button',{name:'Confirm submission'}).click();
-  await page.getByText(stale?'Work changed. Reload before submitting again.':'Result submitted for verification. Reload the work detail.',{exact:true}).waitFor();
+  await page.getByText(stale?"Công việc đã đổi. Tải lại trước khi nộp tiếp.":'Result submitted for verification. Reload the work detail.',{exact:true}).waitFor();
   assert.equal(calls.length,1);assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');
   assert.deepEqual(calls[0].body,{actorUserId:42,diagnosis:'Worn seal',actionTaken:'Replaced seal',resolutionNote:null,resultAttachmentIds:[9]});
   assert.equal(await review.isDisabled(),true);
@@ -58,11 +58,11 @@ for(const denied of [false,true])test('Maintenance evidence read '+(denied?'deni
   await page.goto('https://hotelops.test');
   await page.evaluate(denied=>{window.__maintenanceRead={plannedEndAt:'2030-01-01T00:00:00Z',incidentSla:denied?{responseDeadlineAt:null,resolutionDeadlineAt:null,unavailableReason:'INCIDENT_SLA_ACCESS_UNAVAILABLE'}:{responseDeadlineAt:'2026-11-16T09:00:00Z',resolutionDeadlineAt:'2026-11-16T12:00:00Z',unavailableReason:null}}},denied);
   await page.addScriptTag({content:readBundle.outputFiles[0].text});
-  const sla=page.getByRole('region',{name:'Incident SLA deadlines'});
+  const sla=page.getByRole('region',{name:"Thời hạn SLA của sự cố"});
   await sla.waitFor();
-  if(denied){assert.equal(await sla.locator('dd').first().innerText(),'Unavailable');await sla.getByText('Current access does not allow viewing Incident SLA deadlines.',{exact:true}).waitFor();}
+  if(denied){assert.equal(await sla.locator('dd').first().innerText(),'Unavailable');await sla.getByText("Quyền hiện tại không cho phép xem thời hạn SLA sự cố.",{exact:true}).waitFor();}
   else assert.equal(await sla.locator('dd').first().innerText(),await page.evaluate(()=>new Date('2026-11-16T09:00:00Z').toLocaleString()));
-  if(denied)await page.getByText('Incident evidence is unavailable. Reload to check current access.',{exact:true}).waitFor();
+  if(denied)await page.getByText("Bằng chứng sự cố chưa khả dụng. Tải lại để kiểm tra quyền.",{exact:true}).waitFor();
   else {await page.getByRole('link',{name:'reported.png',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'reported.png',exact:true}).getAttribute('href'),'/api/incidents/8/evidence/9');}
   assert.equal(await page.getByRole('button',{name:'Save evidence',exact:true}).count(),0);
   assert.ok(!(await page.locator('body').innerText()).includes('PRIVATE-DIAGNOSIS'));assert.deepEqual(writes,[]);

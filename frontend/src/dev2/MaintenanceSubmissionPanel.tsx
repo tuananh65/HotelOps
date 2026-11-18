@@ -28,11 +28,11 @@ export function MaintenanceSubmissionPanel({ data, onCommitted }: { data: Values
     const abort = new AbortController(); writer.current = abort;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
         || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session)
-        throw Error("Session changed. Reload before retrying.");
+        throw Error("Phiên đăng nhập đã thay đổi. Tải lại trước khi thử lại.");
       const response = await fetch(`/api/maintenance-works/${id}/submit-result`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
@@ -43,43 +43,43 @@ export function MaintenanceSubmissionPanel({ data, onCommitted }: { data: Values
         const problem: unknown = await response.json();
         if (isObject(problem) && problem.title === "Maintenance validation failed" && typeof problem.detail === "string") {
           if (!abort.signal.aborted && current.current === session) setAttempted(false);
-          throw Error(problem.detail + " Correct the result or reload the current work before reviewing again.");
+          throw Error(problem.detail + "Sửa kết quả hoặc tải lại công việc trước khi xem xét lại.");
         }
       }
-      if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before submitting again."
-        : "Submission was not confirmed. Reload and check result fields, material records, evidence and current access.");
+      if (!response.ok) throw Error(response.status === 412 ? "Công việc đã đổi. Tải lại trước khi nộp tiếp."
+        : "Chưa xác nhận nộp. Tải lại và kiểm tra kết quả, vật tư, bằng chứng và quyền hiện tại.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.incidentId !== incident
         || result.assigneeId !== actor || result.status !== "COMPLETED" || result.submissionWorkflow !== "PENDING_VERIFICATION" || typeof result.executionETag !== "string"
         || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag
         || typeof result.resolvedAt !== "string" || !Number.isFinite(Date.parse(result.resolvedAt)))
-        throw Error("Submission response could not be confirmed. Reload to check current state.");
+        throw Error("Chưa xác minh phản hồi nộp. Tải lại trạng thái hiện tại.");
       if (!abort.signal.aborted && current.current === session) {
-        const notice = "Result submitted for verification. The work interval is closed.";
+        const notice = "Đã nộp kết quả để xác minh. Khoảng làm việc đã kết thúc.";
         setMessage(notice);
         onCommitted?.(notice);
       }
     } catch (error) {
-      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Submission not confirmed. Reload.");
+      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Chưa xác nhận gửi kết quả. Vui lòng tải lại.");
     } finally {
       if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; }
     }
   }
-  return <section aria-label="Submit maintenance result">
-    <h3>Submit result for verification</h3>
-    <p>Submitting closes the current work interval. Actual end time is recorded by the server. Recorded material usage is checked against issued and returned quantities.</p>
+  return <section aria-label="Gửi kết quả bảo trì">
+    <h3>Nộp kết quả để xác minh</h3>
+    <p>Nộp sẽ kết thúc khoảng làm việc hiện tại. Máy chủ ghi giờ kết thúc thực tế. Vật tư đã dùng được đối chiếu số đã cấp và trả.</p>
     {message && <p role="status">{message}</p>}
     <fieldset disabled={busy || attempted || review}>
-      <label>Diagnosis / root cause<textarea value={diagnosis} onChange={e => setDiagnosis(e.target.value)} /></label>
-      <label>Action taken<textarea value={action} onChange={e => setAction(e.target.value)} /></label>
-      <label>Additional result notes<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
+      <label>Chẩn đoán / nguyên nhân gốc<textarea value={diagnosis} onChange={e => setDiagnosis(e.target.value)} /></label>
+      <label>Biện pháp đã thực hiện<textarea value={action} onChange={e => setAction(e.target.value)} /></label>
+      <label>Ghi chú kết quả bổ sung<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
       <IncidentEvidencePanel incidentId={incident} onBusyChange={setEvidenceBusy} selectedIds={selected.map(x => x.id)} onSelect={(item, checked) =>
         setSelected(items => checked ? [...items.filter(x => x.id !== item.id), item] : items.filter(x => x.id !== item.id))} />
     </fieldset>
-    {review ? <><p>Confirm this result and close the running interval?</p><p>{diagnosis.trim()}</p><p>{action.trim()}</p>
-      <p>{note.trim()}</p><p>Selected evidence: {selected.map(x => x.name).join(", ") || "None"}</p>
-      <button disabled={busy} onClick={() => void submit()}>Confirm submission</button>
-      <button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
-      : <button disabled={!valid || busy || attempted || evidenceBusy} onClick={() => setReview(true)}>Review submission</button>}
+    {review ? <><p>Xác nhận kết quả và kết thúc khoảng thời gian đang chạy?</p><p>{diagnosis.trim()}</p><p>{action.trim()}</p>
+      <p>{note.trim()}</p><p>Bằng chứng đã chọn: {selected.map(x => x.name).join(", ") || "Không có"}</p>
+      <button disabled={busy} onClick={() => void submit()}>Xác nhận gửi kết quả</button>
+      <button disabled={busy} onClick={() => setReview(false)}>Hủy</button></>
+      : <button disabled={!valid || busy || attempted || evidenceBusy} onClick={() => setReview(true)}>Xem lại gửi kết quả</button>}
   </section>;
 }

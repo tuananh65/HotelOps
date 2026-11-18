@@ -132,12 +132,12 @@ async function fixture(run) {
   }
 }
 async function preview(page) {
-  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  await page.getByRole("button", { name: "Xem trước", exact: true }).click();
   await page.getByText("PRIVATE REPORT ROW", { exact: true }).waitFor();
 }
 
 test("inspection actor filters are explicit and editing removes the frozen preview", async () => fixture(async (page, state) => {
-  await page.getByLabel("Report type", { exact: true }).selectOption("inspections");
+  await page.getByLabel("Loại báo cáo", { exact: true }).selectOption("inspections");
   await page.getByLabel("Housekeeper ID", { exact: true }).fill("42");
   await page.getByLabel("Inspector ID", { exact: true }).fill("43");
   await preview(page);
@@ -146,8 +146,8 @@ test("inspection actor filters are explicit and editing removes the frozen previ
   assert.equal(sent.body.housekeeperId, 42); assert.equal(sent.body.inspectorId, 43);
   await page.getByLabel("Housekeeper ID", { exact: true }).fill("44");
   assert.equal(await page.getByText("PRIVATE REPORT ROW", { exact: true }).count(), 0);
-  assert.equal(await page.getByRole("button", { name: "Export CSV", exact: true }).count(), 0);
-  await page.getByLabel("Report type", { exact: true }).selectOption("tasks");
+  assert.equal(await page.getByRole("button", { name: "Xuất CSV", exact: true }).count(), 0);
+  await page.getByLabel("Loại báo cáo", { exact: true }).selectOption("tasks");
   await preview(page);
   const task = state.calls.findLast(c => c.path.endsWith("/preview"));
   assert.equal(task.body.housekeeperId, undefined); assert.equal(task.body.inspectorId, undefined);
@@ -158,9 +158,9 @@ test("employee and receiving department filters send scoped queries and invalida
   assert.equal(state.calls.findLast(c => c.path.endsWith("/preview")).body.employeeId, 42);
   await page.getByLabel("Employee ID", { exact: true }).fill("43");
   assert.equal(await page.getByText("PRIVATE REPORT ROW", { exact: true }).count(), 0);
-  await page.getByLabel("Report type", { exact: true }).selectOption("requests");
+  await page.getByLabel("Loại báo cáo", { exact: true }).selectOption("yêu cầu");
   assert.equal(await page.getByLabel("Employee ID", { exact: true }).count(), 0);
-  await page.getByLabel("Department", { exact: true }).selectOption("7");
+  await page.getByLabel("Bộ phận", { exact: true }).selectOption("7");
   await preview(page);
   const sent = state.calls.findLast(c => c.path.endsWith("/preview"));
   assert.equal(sent.path, "/api/reports/requests/preview");
@@ -172,7 +172,7 @@ test("revoked export clears cached report and offers no download", async () =>
   fixture(async (page, state) => {
     await preview(page);
     state.exportStatus = 403;
-    await page.getByRole("button", { name: "Export CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Xuất CSV", exact: true }).click();
     await page
       .getByRole("alert")
       .filter({ hasText: "no longer available" })
@@ -183,7 +183,7 @@ test("revoked export clears cached report and offers no download", async () =>
     );
     assert.equal(
       await page
-        .getByRole("button", { name: "Export CSV", exact: true })
+        .getByRole("button", { name: "Xuất CSV", exact: true })
         .count(),
       0,
     );
@@ -193,7 +193,7 @@ test("export failure keeps frozen preview for explicit retry without auto downlo
   fixture(async (page, state) => {
     await preview(page);
     state.exportStatus = 500;
-    await page.getByRole("button", { name: "Export CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Xuất CSV", exact: true }).click();
     await page.getByRole("status").filter({ hasText: "MSG27" }).waitFor();
     assert.equal(state.downloads, 0);
     assert.equal(
@@ -202,7 +202,7 @@ test("export failure keeps frozen preview for explicit retry without auto downlo
     );
     state.exportStatus = 200;
     const downloaded = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Xuất CSV", exact: true }).click();
     const file = await downloaded;
     await file.delete();
     assert.equal(
@@ -223,7 +223,7 @@ test("session revalidation removes prior report data before new login", async ()
     await preview(page);
     state.sessionStatus = 401;
     await page.evaluate(() => window.reportTest.revalidate());
-    await page.getByRole("button", { name: "Sign in", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Đăng nhập", exact: true }).waitFor();
     assert.equal(
       await page.getByText("PRIVATE REPORT ROW", { exact: true }).count(),
       0,

@@ -14,7 +14,7 @@ const settle = (p) =>
 async function load(p, branch = "1") {
   await p.getByRole("textbox", { name: "Branch ID", exact: true }).fill(branch);
   await p
-    .getByRole("button", { name: "Load from server", exact: true })
+    .getByRole("button", { name: "Tải dữ liệu", exact: true })
     .click();
 }
 test("Branch -> Floor -> Area -> Room details uses one progressive request per click", () =>
@@ -26,7 +26,7 @@ test("Branch -> Floor -> Area -> Room details uses one progressive request per c
     await p.getByRole("button", { name: "area: Area 12", exact: true }).click();
     await p.getByRole("button", { name: "room: 101", exact: true }).click();
     await p
-      .getByRole("heading", { name: "Selected room", exact: true })
+      .getByRole("heading", { name: "Phòng đã chọn", exact: true })
       .waitFor();
     const urls = (await calls(p)).map(
       (c) => new URL(c.url, "https://offline.test"),
@@ -59,7 +59,7 @@ test("floor rooms switch and pagination preserve node/branch; filter resets page
       .getByRole("button", { name: "floor: Floor 11", exact: true })
       .click();
     await p.getByText("21 records; page 1 of 2;", { exact: false }).waitFor();
-    await p.getByRole("button", { name: "Next page", exact: true }).click();
+    await p.getByRole("button", { name: "Trang sau", exact: true }).click();
     await p
       .getByRole("button", { name: "area: Area 32", exact: true })
       .waitFor();
@@ -68,7 +68,7 @@ test("floor rooms switch and pagination preserve node/branch; filter resets page
     assert.equal(u.searchParams.get("nodeId"), "11");
     assert.equal(u.searchParams.get("page"), "2");
     await p
-      .getByRole("combobox", { name: "Active filter" })
+      .getByRole("combobox", { name: "Bộ lọc hoạt động" })
       .selectOption("false");
     await p
       .getByRole("button", { name: "area: Area 12", exact: true })
@@ -76,7 +76,7 @@ test("floor rooms switch and pagination preserve node/branch; filter resets page
     u = new URL((await calls(p)).at(-1).url, "https://offline.test");
     assert.equal(u.searchParams.get("page"), "1");
     assert.equal(u.searchParams.get("isActive"), "false");
-    await p.getByRole("button", { name: "Rooms", exact: true }).click();
+    await p.getByRole("button", { name: "Phòng", exact: true }).click();
     await p.getByRole("button", { name: "room: 101", exact: true }).waitFor();
     u = new URL((await calls(p)).at(-1).url, "https://offline.test");
     assert.equal(u.searchParams.get("nodeId"), "11");
@@ -89,13 +89,13 @@ for (const management of [false, true])
       await p.getByRole("heading", { name: "Selected branch" }).waitFor();
       assert.equal(
         await p
-          .getByRole("button", { name: "Departments", exact: true })
+          .getByRole("button", { name: "Bộ phận", exact: true })
           .count(),
         management ? 1 : 0,
       );
       if (management) {
         await p
-          .getByRole("button", { name: "Departments", exact: true })
+          .getByRole("button", { name: "Bộ phận", exact: true })
           .click();
         await p
           .getByRole("button", {
@@ -103,7 +103,7 @@ for (const management of [false, true])
             exact: true,
           })
           .click();
-        await p.getByRole("heading", { name: "Selected department" }).waitFor();
+        await p.getByRole("heading", { name: "Bộ phận đã chọn" }).waitFor();
       }
     }));
 test("empty collection shows zero count without alert", () => {
@@ -131,7 +131,7 @@ for (const status of [403, 404, 503])
         assert.equal(await p.getByText("No records on this page.").count(), 0);
         assert.equal(
           await p
-            .getByRole("region", { name: "Progressive branch structure" })
+            .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
             .count(),
           0,
         );
@@ -157,7 +157,7 @@ test("401 read revalidates and hides all protected tree data", () =>
       await p.waitForURL("**/login");
       assert.equal(
         await p
-          .getByRole("region", { name: "Progressive branch structure" })
+          .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
           .count(),
         0,
       );
@@ -215,7 +215,7 @@ test("session replacement hides completed tree and late former-owner result", ()
       await settle(p);
       assert.equal(
         await p
-          .getByRole("region", { name: "Progressive branch structure" })
+          .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
           .count(),
         0,
       );
@@ -231,7 +231,7 @@ test("read-only promotion excludes create/update navigation and mutation endpoin
       0,
     );
     await p.evaluate(() => window.fixture.navigate("/branches/42/edit"));
-    await p.getByText("Page not found", { exact: true }).waitFor();
+    await p.getByText("Không tìm thấy trang", { exact: true }).waitFor();
     assert.equal(
       (await p.evaluate(() => window.fixture.calls)).filter(
         (c) => c.method !== "GET",
@@ -260,7 +260,7 @@ test("096 composed Users -> Structure -> browser Back -> refresh stays GET-only"
       await p.getByText("No matching accounts.").waitFor();
       assert.equal(
         await p
-          .getByRole("region", { name: "Progressive branch structure" })
+          .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
           .count(),
         0,
       );
@@ -272,7 +272,7 @@ test("096 composed Users -> Structure -> browser Back -> refresh stays GET-only"
       );
       await reloadCompositionPage(p);
       await p
-        .getByRole("heading", { name: "User directory", exact: true })
+        .getByRole("heading", { name: "Danh mục người dùng", exact: true })
         .waitFor();
       await p.getByText("No matching accounts.").waitFor();
     },
@@ -295,7 +295,7 @@ test("096 late structure response after navigation to Users cannot restore forme
     await settle(p);
     assert.equal(
       await p
-        .getByRole("region", { name: "Progressive branch structure" })
+        .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
         .count(),
       0,
     );

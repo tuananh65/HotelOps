@@ -5,6 +5,14 @@ import {
   strongWorkdayTag,
   type ScheduledResult,
 } from "./scheduledContracts";
+const workdayConflictCodes = new Set([
+  "PAUSE_ALL_CLEANING_RECONCILIATION_REQUIRED",
+  "PAUSE_ALL_TASK_RECONCILIATION_REQUIRED",
+  "PAUSE_ALL_MAINTENANCE_RECONCILIATION_REQUIRED",
+  "PAUSE_ALL_REWORK_RECONCILIATION_REQUIRED",
+  "RUNNING_OCCURRENCE_REQUIRES_COMPLETION",
+  "MSG31_PAUSE_ALL_REQUIRED",
+]);
 /** In-memory, no retries. Enabled only in explicitly approved integration/test callers. */
 export function createScheduledWorkdayApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
@@ -114,13 +122,27 @@ export function createScheduledWorkdayApi(
       );
       if (signal?.aborted || !current())
         return { outcome: "OUTCOME_UNKNOWN", error: { reason: "STALE" } };
-      if (r.status !== (workdayId === undefined ? 201 : 200))
+      if (r.status !== (workdayId === undefined ? 201 : 200)) {
+        let code: string | undefined;
+        // Only extract a bounded error code; never display arbitrary server content.
+        // An unreadable problem body must not turn an observed rejection into an unknown write.
+        if (r.status === 409) {
+          try {
+            const problem: unknown = await r.json();
+            if (problem && typeof problem === "object" && "title" in problem &&
+                typeof problem.title === "string" && workdayConflictCodes.has(problem.title))
+              code = problem.title;
+          } catch { /* Preserve the HTTP rejection. */ }
+        }
+        if (signal?.aborted || !current())
+          return { outcome: "OUTCOME_UNKNOWN", error: { reason: "STALE" } };
         return {
           outcome: [400, 401, 403, 409, 412].includes(r.status)
             ? "REJECTED"
             : "OUTCOME_UNKNOWN",
-          error: { reason: "HTTP", status: r.status },
+          error: { reason: "HTTP", status: r.status, ...(code ? { code } : {}) },
         };
+      }
       if (
         r.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !==
         "application/json"

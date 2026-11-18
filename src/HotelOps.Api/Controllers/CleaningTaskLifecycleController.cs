@@ -14,6 +14,9 @@ public sealed class CleaningTaskLifecycleController(RoomTypeCreationService serv
     [HttpGet("api/branches/{branchId:long}/my-cleaning-assignments")]
     public Task<IActionResult> MyAssignments(long branchId, [FromQuery] long? before, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ListOwnCleaningAsync(ticket, sid, branchId, before, ct));
+    [HttpGet("api/branches/{branchId:long}/my-rework-assignments")]
+    public Task<IActionResult> MyReworks(long branchId, [FromQuery] long? before, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ListOwnReworksAsync(ticket, sid, branchId, before, ct));
     [HttpGet("api/branches/{branchId:long}/cleaning-task-options")]
     public Task<IActionResult> Options(long branchId, [FromQuery] long roomId, CancellationToken ct)
         => Run(false, (ticket, sid) => service.CleaningCreationOptionsAsync(ticket, sid, branchId, roomId, ct));

@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import {
   createDeactivationPreviewApi,
   type DependencyPreview,
@@ -106,9 +107,9 @@ export function StructureDeactivationPanel({
     state.session.mustChangePassword ||
     state.pending !== null
   )
-    return <p role="status">A confirmed unrestricted session is required.</p>;
+    return <p role="status">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>;
   if (!safeId(branchId) || !safeId(id) || (kind !== "floor" && kind !== "area"))
-    return <p role="alert">Choose valid branch and record IDs.</p>;
+    return <p role="alert">Chọn mã chi nhánh và hồ sơ hợp lệ.</p>;
   return (
     <Bound
       key={keyFor(identity)}
@@ -239,36 +240,35 @@ function Bound({
         dependencies: [],
         writerCoordinationRequired: false,
       });
-      setMessage("Deactivation confirmed by server.");
+      setMessage("Máy chủ đã xác nhận vô hiệu hóa.");
     } else {
       setError(result.error);
       setMessage(
         result.outcome === "OUTCOME_UNKNOWN"
-          ? "Outcome unknown. Do not replay; ask an authorized owner to verify the record."
-          : "Not confirmed. Start a new flow only after reviewing the record.",
+          ? "Chưa xác định kết quả. Không gửi lại; nhờ người có trách nhiệm xác minh hồ sơ."
+          : "Chưa xác nhận. Chỉ bắt đầu quy trình mới sau khi kiểm tra hồ sơ.",
       );
     }
   }
   return (
     <main>
-      <h1>Deactivate {kind}</h1>
+      <h1>Vô hiệu hóa {kind}</h1>
       <p>
-        Branch {branchId}. Backend decides access; selecting an ID grants no
+        Chi nhánh {branchId}. Backend decides access; selecting an ID grants no
         authority.
       </p>
       {!dispatchEnabled && (
         <p role="status">
-          Live deactivation disabled pending backend acceptance and Project
-          Leader approval.
+          Vô hiệu hóa thực tế bị khóa, chờ nghiệm thu backend và trưởng dự án phê duyệt.
         </p>
       )}
-      {loading && !reservation && <p role="status">Loading record...</p>}
+      {loading && !reservation && <p role="status">Đang tải hồ sơ...</p>}
       {error && (
         <section role="alert">
           <p>{failureMessage(error)}</p>
           {error.dependencies?.map((d) => (
             <p key={d.kind}>
-              {d.kind}: {d.count}
+              {displayCode(d.kind)}: {d.count}
             </p>
           ))}
         </section>
@@ -276,33 +276,32 @@ function Bound({
       {data && !reservation && (
         <>
           <dl>
-            <dt>Code</dt>
+            <dt>Mã</dt>
             <dd>{data.record.code}</dd>
-            <dt>Name</dt>
+            <dt>Tên</dt>
             <dd>{data.record.name}</dd>
-            <dt>Status</dt>
-            <dd>{data.record.isActive ? "Active" : "Inactive"}</dd>
-            <dt>Description</dt>
-            <dd>{data.record.description ?? "None"}</dd>
+            <dt>Trạng thái</dt>
+            <dd>{data.record.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</dd>
+            <dt>Mô tả</dt>
+            <dd>{data.record.description ?? "Không có"}</dd>
           </dl>
           <p>
-            Dependency preview is a current snapshot, not permission or a
-            reservation. The server checks dependencies again before saving.
+            Xem trước ràng buộc chỉ là dữ liệu tại thời điểm đọc, không cấp quyền hay giữ chỗ. Máy chủ kiểm tra lại trước khi lưu.
           </p>
-          <section aria-label="Dependency preview">
+          <section aria-label="Xem trước các ràng buộc">
             {data.dependencies.length === 0 ? (
               <p>
-                No blockers observed in this snapshot.
+                Không thấy trở ngại trong bản chụp dữ liệu này.
               </p>
             ) : (
               data.dependencies.map((d) => (
                 <p key={d.kind}>
-                  {d.kind}: {d.count}
+                  {displayCode(d.kind)}: {d.count}
                 </p>
               ))
             )}
           </section>
-          {data.writerCoordinationRequired && <p role="alert">Location protection migration is required before deactivation.</p>}
+          {data.writerCoordinationRequired && <p role="alert">Cần cập nhật cấu trúc bảo vệ vị trí trước khi vô hiệu hóa.</p>}
           {!locked && data.record.isActive && !data.writerCoordinationRequired && data.dependencies.length === 0 && (
             <form
               onSubmit={(e) => {
@@ -312,12 +311,12 @@ function Bound({
                   setMessage("");
                 } else
                   setMessage(
-                    "Enter a reason of 10–1000 characters without control characters.",
+                    "Nhập lý do 10–1000 ký tự, không chứa ký tự điều khiển.",
                   );
               }}
             >
               <label>
-                Reason
+                Lý do
                 <textarea
                   value={reason}
                   onChange={(e) => {
@@ -326,24 +325,24 @@ function Bound({
                   }}
                 />
               </label>
-              <button disabled={pending}>Review</button>
+              <button disabled={pending}>Xem xét</button>
             </form>
           )}
           {review && !locked && (
-            <section aria-label="Review deactivation">
-              <h2>Review deactivation</h2>
+            <section aria-label="Xem lại vô hiệu hóa">
+              <h2>Xem lại vô hiệu hóa</h2>
               <p>
                 {data.record.code} — {data.record.name}
               </p>
               <p>{review.reason}</p>
               <button disabled={pending} onClick={() => setReview(null)}>
-                Cancel review
+                Hủy xem xét
               </button>
               <button
                 disabled={!dispatchEnabled || pending || data.writerCoordinationRequired || data.dependencies.length !== 0}
                 onClick={() => void confirm()}
               >
-                Confirm deactivation
+                Xác nhận vô hiệu hóa
               </button>
             </section>
           )}
@@ -352,8 +351,8 @@ function Bound({
       {reservation && (
         <p role="status">
           {reservation.phase === "pending"
-            ? "Deactivation pending. Do not replay."
-            : "Outcome unknown. Do not replay; ask an authorized owner to verify the record."}
+            ? "Đang chờ vô hiệu hóa. Không gửi lại."
+            : "Chưa xác định kết quả. Không gửi lại; nhờ người có trách nhiệm xác minh hồ sơ."}
         </p>
       )}
       {message && !reservation && <p role="status">{message}</p>}
@@ -364,7 +363,7 @@ function Bound({
           setMessage("");
         }}
       >
-        Refresh record
+        Tải lại hồ sơ
       </button>
     </main>
   );

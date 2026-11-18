@@ -133,7 +133,7 @@ async function withProfile(scenario, run) {
       });
     }, scenario);
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
-    await page.getByRole("heading", { name: "Profile", exact: true }).waitFor();
+    await page.getByRole("heading", { name: "Hồ sơ cá nhân", exact: true }).waitFor();
     await page.evaluate(
       () =>
         new Promise((r) =>
@@ -161,8 +161,8 @@ test("confirmed profile renders only PublicSession fields and correct expiry", a
     assert.deepEqual(await page.locator("dt").allTextContents(), [
       "ID",
       "Username",
-      "Session expires",
-      "Password change required",
+      "Phiên hết hạn lúc",
+      "Cần đổi mật khẩu",
     ]);
     assert.deepEqual(await page.locator("dd").allTextContents(), [
       identity.user.id,
@@ -176,7 +176,7 @@ test("confirmed profile renders only PublicSession fields and correct expiry", a
     );
     assert.equal(
       await page
-        .getByRole("link", { name: "Change password" })
+        .getByRole("link", { name: "Đổi mật khẩu" })
         .getAttribute("href"),
       "/change-password",
     );
@@ -238,7 +238,7 @@ for (const scenario of [
       assert.ok(!text.includes(identity.user.name));
       assert.ok(!text.includes(identity.user.id));
       assert.ok(!text.includes(identity.user.username));
-      assert.match(text, /No confirmed profile/);
+      assert.match(text, /Chưa có hồ sơ đã xác minh\. Kiểm tra phiên đăng nhập\./);
       assert.deepEqual(await page.evaluate(() => window.profileTest.calls), []);
       assert.equal(await page.locator("#location").textContent(), "/profile");
     });
@@ -247,7 +247,7 @@ for (const scenario of [
 
 test("accepted logout success navigates to login only after completion", async () => {
   await withProfile({ deferred: true }, async (page) => {
-    await page.getByRole("button", { name: "Logout", exact: true }).click();
+    await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
     assert.equal(await page.locator("#location").textContent(), "/profile");
     assert.equal(await page.locator("dl").count(), 0);
     await page.evaluate((reply) => window.profileTest.finish(reply), success);
@@ -285,7 +285,7 @@ for (const [name, reply, expected] of [
 ]) {
   test(`logout ${name} is not success, hides identity and never auto-replays`, async () => {
     await withProfile({ reply }, async (page) => {
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       assert.match(await page.getByRole("alert").textContent(), expected);
       assert.equal(await page.locator("#location").textContent(), "/profile");
       assert.deepEqual(await page.evaluate(() => window.profileTest.calls), [
@@ -317,7 +317,7 @@ test("errors and rejected exceptions cannot expose secrets", async () => {
     { reject: "PRIVATE-TOKEN PRIVATE-PASSWORD" },
   ]) {
     await withProfile(scenario, async (page) => {
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       const text = await page.getByRole("alert").textContent();
       assert.ok(!/PRIVATE/.test(text));
       assert.match(text, /could not be confirmed/);
@@ -329,7 +329,7 @@ test("errors and rejected exceptions cannot expose secrets", async () => {
 test("double click is synchronously excluded and loading disables the action", async () => {
   await withProfile({ deferred: true }, async (page) => {
     await page
-      .getByRole("button", { name: "Logout", exact: true })
+      .getByRole("button", { name: "Đăng xuất", exact: true })
       .evaluate((button) => {
         button.click();
         button.click();
@@ -337,7 +337,7 @@ test("double click is synchronously excluded and loading disables the action", a
     assert.deepEqual(await page.evaluate(() => window.profileTest.calls), [
       "logout",
     ]);
-    const button = page.getByRole("button", { name: "Signing out…" });
+    const button = page.getByRole("button", { name: "Đang đăng xuất…" });
     assert.equal(await button.isDisabled(), true);
     assert.equal(await button.getAttribute("aria-busy"), "true");
     assert.equal(await page.locator("dl").count(), 0);
@@ -367,7 +367,7 @@ for (const status of [401, 403]) {
 for (const reply of [success, fail(503, "AUTH_SERVICE_UNAVAILABLE")]) {
   test(`logout response after component unmount is ignored: ok=${reply.ok}`, async () => {
     await withProfile({ deferred: true }, async (page) => {
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       await page.evaluate(() => window.profileTest.hide());
       await page.locator("#hidden").waitFor();
       await page.evaluate((value) => window.profileTest.finish(value), reply);
@@ -399,13 +399,13 @@ test("component import graph excludes mock services and storage-initializing sha
 for (const reply of [success, { ok: false, error: { kind: "network" } }]) {
   test(`real AuthStore/provider integration documents unmount limitation: ok=${reply.ok}`, async () => {
     await withProfile({ realStore: true, deferred: true }, async (page) => {
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       await page.waitForFunction(
         () => window.profileTest.snapshot().status === "INITIALIZING",
       );
       assert.equal(
         await page
-          .getByRole("heading", { name: "Profile", exact: true })
+          .getByRole("heading", { name: "Hồ sơ cá nhân", exact: true })
           .count(),
         0,
       );

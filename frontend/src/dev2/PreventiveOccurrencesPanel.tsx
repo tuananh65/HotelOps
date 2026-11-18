@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { PreventiveTechnicianSelect } from "./PreventiveTechnicianSelect";
 import { useAuth } from "../auth/AuthProvider";
@@ -50,9 +51,9 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     const abort=new AbortController();controller.current=abort;sending.current=true;setBusy(true);setMessage("");
     try{
       const response=await fetch(`/api/branches/${branchId}/preventive-occurrences/${id}/evidence`,{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
-      if(!response.ok)throw Error(`Evidence unavailable (${response.status}).`);
+      if(!response.ok)throw Error(`Bằng chứng chưa khả dụng (${response.status}).`);
       const raw: unknown=await response.json();
-      if(!Array.isArray(raw)||!raw.every(e=>isObject(e)&&positive(e.id)&&typeof e.name==="string"&&typeof e.mimeType==="string"&&positive(e.size)))throw Error("Evidence response could not be confirmed.");
+      if(!Array.isArray(raw)||!raw.every(e=>isObject(e)&&positive(e.id)&&typeof e.name==="string"&&typeof e.mimeType==="string"&&positive(e.size)))throw Error("Không xác minh được phản hồi bằng chứng.");
       if(!abort.signal.aborted&&current.current===owner)setEvidence(old=>({...old,[id]:raw as Evidence[]}));
     }catch(e){if(!abort.signal.aborted&&current.current===owner){setEvidence({});setMessage(String(e));}}
     finally{sending.current=false;if(!abort.signal.aborted&&current.current===owner)setBusy(false);}
@@ -62,11 +63,11 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     const abort = new AbortController(); controller.current = abort; sending.current=true; setBusy(true); setMessage("");
     try {
       const response=await fetch(`/api/branches/${branchId}/preventive-occurrences/${id}/history`,{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
-      if(!response.ok)throw Error(`History unavailable (${response.status}).`);
+      if(!response.ok)throw Error(`Lịch sử chưa khả dụng (${response.status}).`);
       const raw: unknown=await response.json();
       if(!isObject(raw)||!Array.isArray(raw.previousOccurrences)||!raw.previousOccurrences.every(valid)||!Array.isArray(raw.incidents)
         ||!raw.incidents.every(i=>isObject(i)&&positive(i.incidentId)&&[i.number,i.title,i.status,i.checkKey].every(x=>typeof x==="string")&&typeof i.linkedAt==="string"&&Number.isFinite(Date.parse(i.linkedAt))))
-        throw Error("History response could not be confirmed.");
+        throw Error("Không xác minh được phản hồi lịch sử.");
       if(!abort.signal.aborted&&current.current===owner)setHistory(old=>({...old,[id]:raw as History}));
     }catch(e){if(!abort.signal.aborted&&current.current===owner){setHistory({});setMessage(String(e));}}
     finally{sending.current=false;if(!abort.signal.aborted&&current.current===owner)setBusy(false);}
@@ -81,14 +82,14 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   async function change(row: Occurrence, cancel: boolean, start = false, complete = false) {
     if (!owner || owner !== mounted || sending.current || uncertain) return;
     const assigneeId = Number(assignees[row.runId]), reason = reasons[row.runId]?.trim() ?? "";
-    if (!start && !complete && (cancel ? reason.length < 10 || reason.length > 4000 : !positive(assigneeId))) { setMessage("Choose a technician, or provide a cancellation reason of at least 10 characters."); return; }
+    if (!start && !complete && (cancel ? reason.length < 10 || reason.length > 4000 : !positive(assigneeId))) { setMessage("Chọn kỹ thuật viên hoặc nhập lý do hủy ít nhất 10 ký tự."); return; }
     const results = row.checkItems.filter(c => outcomes[`${row.runId}:${c.key}`]).map(c => ({key:c.key,passed:outcomes[`${row.runId}:${c.key}`] === "PASS",note:checkNotes[`${row.runId}:${c.key}`] ?? null}));
-    if (complete && row.checkItems.some(c => c.required && !results.some(r => r.key === c.key))) { setMessage("Record every required check result."); return; }
+    if (complete && row.checkItems.some(c => c.required && !results.some(r => r.key === c.key))) { setMessage("Ghi kết quả cho tất cả hạng mục bắt buộc."); return; }
     const abort = new AbortController(); controller.current = abort; sending.current = true; setBusy(true); setMessage("");
     let submitted = false;
     try {
       const selected=complete?(uploads[row.runId]??[]):[];
-      if(selected.length>5||selected.some(f=>f.size<1||f.size>10*1024*1024||!["image/jpeg","image/png","application/pdf"].includes(f.type)))throw Error("Select at most five JPG, PNG or PDF files, up to 10 MiB each.");
+      if(selected.length>5||selected.some(f=>f.size<1||f.size>10*1024*1024||!["image/jpeg","image/png","application/pdf"].includes(f.type)))throw Error("Chọn tối đa 5 tệp JPG, PNG hoặc PDF, tối đa 10 MiB mỗi tệp.");
       const files=await Promise.all(selected.map(async file=>{
         const bytes=new Uint8Array(await file.arrayBuffer());let binary="";
         for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
@@ -96,10 +97,10 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       }));
       if(abort.signal.aborted||current.current!==owner)return;
       const bootstrap = await fetch("/api/auth/csrf", {credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
-      if (!bootstrap.ok) throw Error("Session check failed.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken)
-        || abort.signal.aborted || current.current !== owner) throw Error("Session changed. Reload.");
+        || abort.signal.aborted || current.current !== owner) throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       submitted = true;
       const response = await fetch(`/api/branches/${branchId}/preventive-occurrences/${row.runId}/${complete ? "complete" : start ? "start" : cancel ? "cancel" : "assign"}`, {
         method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
@@ -115,26 +116,26 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
         if (rejected || workday || busyWork) {
           if (!abort.signal.aborted && current.current === owner) {
             setWorkdayRequired(workday);
-            setMessage(workday ? "MSG30: Start a Working workday in this branch before starting the occurrence."
-              : busyWork ? "MSG31: Another work interval is open. Complete or pause that work before starting this occurrence."
-              : code === "MSG23" ? "Evidence was rejected. Check file content, type and size, then submit again."
-              : "Input was rejected. Check results, assignee and reason; your draft is retained for correction.");
+            setMessage(workday ? "MSG30: Bắt đầu ngày làm việc trong chi nhánh trước khi thực hiện."
+              : busyWork ? "MSG31: Có khoảng làm việc khác đang mở. Hoàn tất hoặc tạm dừng trước khi bắt đầu lần thực hiện này."
+              : code === "MSG23" ? "Bằng chứng bị từ chối. Kiểm tra nội dung, định dạng và dung lượng rồi gửi lại."
+              : "Dữ liệu bị từ chối. Kiểm tra kết quả, người được giao và lý do; bản nháp được giữ để sửa.");
           }
           return;
         }
-        throw Error(response.status === 412 ? "Occurrence changed." : `Change not confirmed (${response.status}).`);
+        throw Error(response.status === 412 ? "Lần thực hiện đã thay đổi." : `Chưa xác nhận thay đổi (${response.status}).`);
       }
       const raw: unknown = await response.json();
-      if (!valid(raw) || raw.runId !== row.runId) throw Error("Change response could not be confirmed.");
+      if (!valid(raw) || raw.runId !== row.runId) throw Error("Thay đổi không xác minh được phản hồi.");
       if (!abort.signal.aborted && current.current === owner) {
         // Assignment/status changes can remove the row from the current filter or
         // scope. Discard list pagination; detail may use the authorized response.
         setRows(runId != null ? [raw] : []); setHasMore(false); setHistory({}); setEvidence({});
         setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
-        setMessage((complete ? "Occurrence completed; work interval closed." : start ? (row.status === "ON_HOLD" ? "Occurrence resumed; new work interval opened." : "Occurrence started; work interval opened.") : cancel ? "Occurrence cancelled." : "Technician assigned.")
-          + (runId == null ? " Reload occurrences to refresh your filtered work list." : ""));
+        setMessage((complete ? "Đã hoàn tất lần thực hiện và kết thúc khoảng thời gian làm việc." : start ? (row.status === "ON_HOLD" ? "Đã tiếp tục lần thực hiện và mở khoảng thời gian làm việc mới." : "Đã bắt đầu lần thực hiện và mở khoảng thời gian làm việc.") : cancel ? "Đã hủy lần thực hiện." : "Đã phân công kỹ thuật viên.")
+          + (runId == null ? "Tải lại các lần thực hiện để cập nhật danh sách công việc đã lọc." : ""));
       }
-    } catch(e) { if (!abort.signal.aborted && current.current === owner) { setMessage(String(e)+(submitted ? " Reload before another change." : "")); if(submitted)setUncertain(true); } }
+    } catch(e) { if (!abort.signal.aborted && current.current === owner) { setMessage(String(e)+(submitted ? "Tải lại trước khi thay đổi tiếp." : "")); if(submitted)setUncertain(true); } }
     finally { sending.current=false; if(!abort.signal.aborted && current.current===owner)setBusy(false); }
   }
   async function load(more = false) {
@@ -144,7 +145,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     try {
       const filters = new URLSearchParams();
       if(filterAssignee) {
-        if(!positive(Number(filterAssignee))) throw Error("Assignee must be a positive user ID.");
+        if(!positive(Number(filterAssignee))) throw Error("Mã người được giao phải là số nguyên dương.");
         filters.set("assigneeId",filterAssignee);
       }
       if(keyword.trim()) filters.set("keyword",keyword.trim());
@@ -153,70 +154,70 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       if(overdue) filters.set("overdue",overdue);
       const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}&mine=${mine}${status ? `&status=${encodeURIComponent(status)}` : ""}&${filters.toString()}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!response.ok) throw Error(`Occurrences unavailable (${response.status}). Check current access and configuration.`);
+      if (!response.ok) throw Error(`Các lần thực hiện chưa khả dụng (${response.status}). Kiểm tra quyền và cấu hình hiện tại.`);
       const payload: unknown = await response.json();
       const raw = runId != null ? [payload] : payload;
-      if (!Array.isArray(raw) || !raw.every(valid)) throw Error("Occurrence details could not be confirmed.");
+      if (!Array.isArray(raw) || !raw.every(valid)) throw Error("Không xác minh được chi tiết lần thực hiện.");
       if (!abort.signal.aborted && current.current === owner) {
         setRows(more ? [...rows,...raw] : raw); setHasMore(runId == null && raw.length === 50);
         if (!more) {
           setUncertain(false); setWorkdayRequired(false); setAssignees({}); setReasons({}); setOutcomes({}); setCheckNotes({}); setNotes({}); setUploads({});
         }
-        if (!raw.length) setMessage("No further occurrences in your current scope.");
+        if (!raw.length) setMessage("Không còn lần thực hiện trong phạm vi hiện tại.");
       }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) { setRows([]); setMessage(String(e)); } }
     finally { sending.current = false; if (!abort.signal.aborted && current.current === owner) setBusy(false); }
   }
   if (!owner || owner !== mounted || !positive(branchId)) return null;
-  return <section aria-label="Scheduled maintenance occurrences"><h2>Scheduled maintenance</h2>
-    {runId == null && <fieldset disabled={busy}><legend>My work and branch occurrences</legend>
-      <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setFilterAssignee("");setRows([]);setHistory({});setEvidence({});}} />Assigned to me</label>
-      <label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
-        <option value="OPEN">Open work</option><option value="">All statuses</option><option value="PENDING_ASSIGNMENT">Pending assignment</option>
-        <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="ON_HOLD">On hold</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
+  return <section aria-label="Lần bảo trì theo lịch"><h2>Bảo trì theo lịch</h2>
+    {runId == null && <fieldset disabled={busy}><legend>Công việc của tôi và lần thực hiện trong chi nhánh</legend>
+      <label><input type="checkbox" checked={mine} onChange={e=>{setMine(e.target.checked);setFilterAssignee("");setRows([]);setHistory({});setEvidence({});}} />Giao cho tôi</label>
+      <label>Trạng thái<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
+        <option value="OPEN">Công việc chưa hoàn tất</option><option value="">Tất cả trạng thái</option><option value="PENDING_ASSIGNMENT">Chờ phân công</option>
+        <option value="ASSIGNED">Đã phân công</option><option value="IN_PROGRESS">Đang thực hiện</option><option value="ON_HOLD">Đang tạm dừng</option><option value="COMPLETED">Đã hoàn tất</option><option value="CANCELLED">Đã hủy</option>
       </select></label>
-      <label>Search title, occurrence or schedule ID<input maxLength={200} value={keyword} onChange={e=>{setKeyword(e.target.value);clearResults();}} /></label>
-      <label>Assignee user ID<input type="number" min="1" step="1" disabled={mine} value={filterAssignee} onChange={e=>{setFilterAssignee(e.target.value);clearResults();}} /></label>
-      <label>Due from (UTC+7)<input type="datetime-local" value={dueFrom} onChange={e=>{setDueFrom(e.target.value);clearResults();}} /></label>
-      <label>Due to (UTC+7)<input type="datetime-local" value={dueTo} onChange={e=>{setDueTo(e.target.value);clearResults();}} /></label>
-      <label>Overdue<select value={overdue} onChange={e=>{setOverdue(e.target.value);clearResults();}}><option value="">All</option><option value="true">Overdue</option><option value="false">Not overdue</option></select></label>
-      <p>Earliest due occurrences first. Branch results remain limited by your current permissions.</p>
+      <label>Tìm theo tiêu đề, mã lần thực hiện hoặc mã lịch<input maxLength={200} value={keyword} onChange={e=>{setKeyword(e.target.value);clearResults();}} /></label>
+      <label>Mã người được giao<input type="number" min="1" step="1" disabled={mine} value={filterAssignee} onChange={e=>{setFilterAssignee(e.target.value);clearResults();}} /></label>
+      <label>Hạn từ (UTC+7)<input type="datetime-local" value={dueFrom} onChange={e=>{setDueFrom(e.target.value);clearResults();}} /></label>
+      <label>Hạn đến (UTC+7)<input type="datetime-local" value={dueTo} onChange={e=>{setDueTo(e.target.value);clearResults();}} /></label>
+      <label>Quá hạn<select value={overdue} onChange={e=>{setOverdue(e.target.value);clearResults();}}><option value="">Tất cả</option><option value="true">Quá hạn</option><option value="false">Chưa quá hạn</option></select></label>
+      <p>Sắp xếp lần thực hiện đến hạn sớm nhất trước. Kết quả chi nhánh vẫn giới hạn theo quyền hiện tại.</p>
     </fieldset>}
-    <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
-    {runId == null && hasMore && !!rows.length && <button disabled={busy || uncertain} onClick={() => void load(true)}>Load more occurrences</button>}
+    <button disabled={busy} onClick={() => void load()}>{runId != null ? `Mở lần thực hiện #${runId}` : "Tải các lần thực hiện"}</button>
+    {runId == null && hasMore && !!rows.length && <button disabled={busy || uncertain} onClick={() => void load(true)}>Tải thêm lần thực hiện</button>}
     {message && <p role="status">{message}</p>}
-    {workdayRequired && <Link to={`/workday?branchId=${branchId}`}>Open my workday</Link>}
-    {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
-      <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeName ?? r.assigneeId ?? "Pending assignment"}.</p>
-      <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
-      {history[r.runId] && <section aria-label={`History of occurrence ${r.runId}`}>
-        <h3>Previous occurrences in your current scope</h3>
-        {!history[r.runId].previousOccurrences.length && <p>No previous occurrences available in your scope.</p>}
-        {history[r.runId].previousOccurrences.map(p => <details key={p.runId}><summary>{p.title} — {new Date(p.dueAt).toLocaleString()} — {p.status}</summary>
+    {workdayRequired && <Link to={`/workday?branchId=${branchId}`}>Mở ngày làm việc của tôi</Link>}
+    {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {displayCode(r.status)} — {new Date(r.dueAt).toLocaleString()}</summary>
+      <p>{r.isOverdue ? "Quá hạn" : "Chưa quá hạn"}</p><p>{r.instruction}</p><p>Lần thực hiện #{r.runId}; Lịch #{r.scheduleId}; Người được giao {r.assigneeName ?? r.assigneeId ?? "Chờ phân công"}.</p>
+      <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Tải các lần thực hiện trước và sự cố liên quan</button>
+      {history[r.runId] && <section aria-label={`Lịch sử lần thực hiện ${r.runId}`}>
+        <h3>Các lần thực hiện trước trong phạm vi hiện tại</h3>
+        {!history[r.runId].previousOccurrences.length && <p>Không có lần thực hiện trước trong phạm vi của bạn.</p>}
+        {history[r.runId].previousOccurrences.map(p => <details key={p.runId}><summary>{p.title} — {new Date(p.dueAt).toLocaleString()} — {displayCode(p.status)}</summary>
           <p>{p.instruction}</p>{p.note && <p>{p.note}</p>}
-          {p.results && <ul>{p.results.map(c => <li key={c.key}>{p.checkItems.find(i=>i.key===c.key)?.description}: {c.passed ? "Pass" : "Fail"}{c.note && ` — ${c.note}`}</li>)}</ul>}
+          {p.results && <ul>{p.results.map(c => <li key={c.key}>{p.checkItems.find(i=>i.key===c.key)?.description}: {c.passed ? "Đạt" : "Không đạt"}{c.note && ` — ${c.note}`}</li>)}</ul>}
         </details>)}
-        <h3>Linked incidents with current Incident access</h3>
-        {!history[r.runId].incidents.length && <p>No linked incidents available in your scope.</p>}
-        <ul>{history[r.runId].incidents.map(i => <li key={i.incidentId}><Link to={`/operations/incidents/${i.incidentId}?branchId=${branchId}`}>{i.number}: {i.title}</Link> — {i.status} — check {r.checkItems.find(c=>c.key===i.checkKey)?.description ?? i.checkKey}</li>)}</ul>
+        <h3>Sự cố liên quan trong phạm vi quyền xem hiện tại</h3>
+        {!history[r.runId].incidents.length && <p>Không có sự cố liên quan trong phạm vi của bạn.</p>}
+        <ul>{history[r.runId].incidents.map(i => <li key={i.incidentId}><Link to={`/operations/incidents/${i.incidentId}?branchId=${branchId}`}>{i.number}: {i.title}</Link> — {displayCode(i.status)} — kiểm tra {r.checkItems.find(c=>c.key===i.checkKey)?.description ?? i.checkKey}</li>)}</ul>
       </section>}
-      {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>{r.status === "ON_HOLD" ? "Resume occurrence" : "Start occurrence"}</button>}
-      {r.canComplete && <fieldset disabled={busy || uncertain}><legend>Record check results</legend>
-        {r.checkItems.map(c => <div key={c.key}><label>{c.description}{c.required ? " (required)" : ""}<select value={outcomes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setOutcomes({...outcomes,[`${r.runId}:${c.key}`]:e.target.value})}><option value="">Select result</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select></label>
-          <label>Check note<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label>
-          {outcomes[`${r.runId}:${c.key}`] === "FAIL" && !busy && !uncertain && <Link to={incidentUrl(r,c.key)}>Report Incident for this failed check</Link>}</div>)}
-        <label>Completion note<textarea maxLength={4000} value={notes[r.runId] ?? ""} onChange={e => setNotes({...notes,[r.runId]:e.target.value})} /></label>
-        <label>Photos or supporting files (up to five, 10 MiB each)<input type="file" multiple accept="image/jpeg,image/png,application/pdf" onChange={e=>setUploads({...uploads,[r.runId]:Array.from(e.target.files??[])})} /></label>
-        <button onClick={() => void change(r,false,false,true)}>Complete occurrence</button>
+      {r.canStart && <button disabled={busy || uncertain} onClick={() => void change(r,false,true)}>{r.status === "ON_HOLD" ? "Tiếp tục lần thực hiện" : "Bắt đầu lần thực hiện"}</button>}
+      {r.canComplete && <fieldset disabled={busy || uncertain}><legend>Ghi kết quả kiểm tra</legend>
+        {r.checkItems.map(c => <div key={c.key}><label>{c.description}{c.required ? " (required)" : ""}<select value={outcomes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setOutcomes({...outcomes,[`${r.runId}:${c.key}`]:e.target.value})}><option value="">Chọn kết quả</option><option value="PASS">Đạt</option><option value="FAIL">Không đạt</option></select></label>
+          <label>Ghi chú kiểm tra<textarea maxLength={2000} value={checkNotes[`${r.runId}:${c.key}`] ?? ""} onChange={e => setCheckNotes({...checkNotes,[`${r.runId}:${c.key}`]:e.target.value})} /></label>
+          {outcomes[`${r.runId}:${c.key}`] === "FAIL" && !busy && !uncertain && <Link to={incidentUrl(r,c.key)}>Báo sự cố cho hạng mục kiểm tra không đạt này</Link>}</div>)}
+        <label>Ghi chú hoàn tất<textarea maxLength={4000} value={notes[r.runId] ?? ""} onChange={e => setNotes({...notes,[r.runId]:e.target.value})} /></label>
+        <label>Ảnh hoặc tệp bổ trợ (tối đa 5 tệp, 10 MiB mỗi tệp)<input type="file" multiple accept="image/jpeg,image/png,application/pdf" onChange={e=>setUploads({...uploads,[r.runId]:Array.from(e.target.files??[])})} /></label>
+        <button onClick={() => void change(r,false,false,true)}>Hoàn tất lần thực hiện</button>
       </fieldset>}
-      {r.status==="COMPLETED"&&<><button disabled={busy} onClick={()=>void loadEvidence(r.runId)}>Load completion evidence</button>
+      {r.status==="COMPLETED"&&<><button disabled={busy} onClick={()=>void loadEvidence(r.runId)}>Tải bằng chứng hoàn tất</button>
         {evidence[r.runId]&&<ul>{evidence[r.runId].map(e=><li key={e.id}><a href={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/evidence/${e.id}`} download>{e.name}</a> ({Math.ceil(e.size/1024)} KiB)</li>)}</ul>}</>}
-      {r.results && <ul>{r.results.map(c => <li key={c.key}>{r.checkItems.find(i => i.key === c.key)?.description}: {c.passed ? "Pass" : "Fail"}{c.note && ` — ${c.note}`}</li>)}</ul>}
-      <p>{r.roomId ? "Room " + (r.roomNumber ?? "#" + r.roomId) : r.areaId ? (r.areaName ?? "Area #" + r.areaId) : [r.assetCode, r.assetName].filter(Boolean).join(" ? ") || "Asset #" + r.assetId}</p>
+      {r.results && <ul>{r.results.map(c => <li key={c.key}>{r.checkItems.find(i => i.key === c.key)?.description}: {c.passed ? "Đạt" : "Không đạt"}{c.note && ` — ${c.note}`}</li>)}</ul>}
+      <p>{r.roomId ? "Phòng" + (r.roomNumber ?? "#" + r.roomId) : r.areaId ? (r.areaName ?? "Khu vực #" + r.areaId) : [r.assetCode, r.assetName].filter(Boolean).join(" ? ") || "Tài sản #" + r.assetId}</p>
       <ul>{r.checkItems.map(c => <li key={c.key}>{c.description}{c.required ? " (required)" : ""}</li>)}</ul>
-      {r.performedAt && <p>Performed: {new Date(r.performedAt).toLocaleString()}</p>}{r.result && <p>{r.result}</p>}{r.note && <p>{r.note}</p>}
-      {r.canAssign && <fieldset disabled={busy || uncertain}><PreventiveTechnicianSelect url={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/technicians`} value={assignees[r.runId] ?? ""} onChange={value => setAssignees({...assignees,[r.runId]:value})} /><button onClick={() => void change(r,false)}>Assign technician</button></fieldset>}
-      {r.canCancel && <fieldset disabled={busy || uncertain}><label>Cancellation reason<textarea minLength={10} maxLength={4000} value={reasons[r.runId] ?? ""} onChange={e => setReasons({...reasons,[r.runId]:e.target.value})} /></label><button onClick={() => void change(r,true)}>Cancel occurrence</button></fieldset>}
+      {r.performedAt && <p>Thực hiện lúc: {new Date(r.performedAt).toLocaleString()}</p>}{r.result && <p>{r.result}</p>}{r.note && <p>{r.note}</p>}
+      {r.canAssign && <fieldset disabled={busy || uncertain}><PreventiveTechnicianSelect url={`/api/branches/${branchId}/preventive-occurrences/${r.runId}/technicians`} value={assignees[r.runId] ?? ""} onChange={value => setAssignees({...assignees,[r.runId]:value})} /><button onClick={() => void change(r,false)}>Phân công kỹ thuật viên</button></fieldset>}
+      {r.canCancel && <fieldset disabled={busy || uncertain}><label>Lý do hủy<textarea minLength={10} maxLength={4000} value={reasons[r.runId] ?? ""} onChange={e => setReasons({...reasons,[r.runId]:e.target.value})} /></label><button onClick={() => void change(r,true)}>Hủy lần thực hiện</button></fieldset>}
     </details>)}
   </section>;
 }

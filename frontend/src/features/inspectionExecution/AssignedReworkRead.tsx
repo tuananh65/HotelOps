@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -71,7 +72,7 @@ export function AssignedReworkRead() {
             owner,
             key,
             error:
-              "Rework is unavailable or you no longer have access. Refresh to try again.",
+              "Công việc làm lại chưa khả dụng hoặc bạn không còn quyền. Tải lại để thử tiếp.",
           });
         if (
           !abort.signal.aborted &&
@@ -122,8 +123,8 @@ export function AssignedReworkRead() {
         data.sourceETag,
         crypto.randomUUID(),
         command || {
-          note: action === "accept" ? "Accepted rework"
-            : data.state === "ON_HOLD" ? "Resumed rework after end of shift" : "Started rework",
+          note: action === "accept" ? "Kết quả làm lại đã chấp nhận"
+            : data.state === "ON_HOLD" ? "Đã tiếp tục làm lại sau khi hết ca" : "Đã bắt đầu làm lại",
         },
         {
           signal: scope.signal,
@@ -145,11 +146,11 @@ export function AssignedReworkRead() {
           key,
           error:
             error instanceof ApiError && error.code === "TIME_WORKDAY_REQUIRED"
-              ? "Start a working workday, then refresh rework before starting."
+              ? "Bắt đầu ngày làm việc, rồi tải lại công việc làm lại trước khi bắt đầu."
               : error instanceof ApiError &&
                   error.code === "TIME_INTERVAL_ALREADY_OPEN"
-                ? "Finish or pause your current work before starting this rework. Refresh to retry."
-                : "The change could not be confirmed. Refresh rework before trying again.",
+                ? "Hoàn tất hoặc tạm dừng công việc đang chạy trước khi bắt đầu làm lại. Tải lại để thử tiếp."
+                : "Chưa xác nhận thay đổi. Tải lại công việc làm lại trước khi thử tiếp.",
         });
         if (error instanceof ApiError && error.status === 401)
           actions.invalidateSession(owner);
@@ -160,57 +161,57 @@ export function AssignedReworkRead() {
     }
   }
   return (
-    <main aria-label="Assigned cleaning rework">
-      <h1>Assigned cleaning rework</h1>
-      <Link to="/notifications">Notifications</Link>
+    <main aria-label="Công việc vệ sinh lại được giao">
+      <h1>Công việc vệ sinh lại được giao</h1>
+      <Link to="/notifications">Thông báo</Link>
       <button
         disabled={!owner || busy}
         onClick={() => setRevision((v) => v + 1)}
       >
-        Refresh rework
+        Tải lại làm lại
       </button>
-      {owner && !visible && <p role="status">Loading rework...</p>}
+      {owner && !visible && <p role="status">Đang tải làm lại...</p>}
       {visible?.error && <p role="alert">{visible.error}</p>}
       {visible?.data &&
         saved?.owner === owner &&
         saved.source === `${branch}:${id}` && (
           <p role="status">
             {saved.submitted
-              ? "Rework has been submitted and is waiting for reinspection."
-              : "Rework has been saved successfully."}
+              ? "Đã nộp kết quả làm lại và đang chờ kiểm tra lại."
+              : "Đã lưu kết quả làm lại."}
           </p>
         )}
-      {busy && <p role="status">Saving rework...</p>}
+      {busy && <p role="status">Đang lưu làm lại...</p>}
       {visible?.data && (
         <>
           <p>
-            Rework #{visible.data.id}:{" "}
+            Làm lại #{visible.data.id}:{" "}
             {visible.data.state.replaceAll("_", " ").toLowerCase()}.
           </p>
           <p>
-            Room {visible.data.roomId}; failed inspection{" "}
+            Phòng {visible.data.roomId}; kiểm tra không đạt{" "}
             {visible.data.inspectionId}.
           </p>
-          <p>Due: {visible.data.dueAtUtc || "Not specified"}</p>
+          <p>Đến hạn: {visible.data.dueAtUtc || "Chưa chỉ định"}</p>
           {visible.data.conclusion && (
-            <section aria-label="Reinspection result">
-              <p>Reinspection #{visible.data.conclusion.reinspectionId}: {visible.data.conclusion.state.toLowerCase()}.</p>
-              <p>Current room readiness: {visible.data.conclusion.effectiveReadiness}.</p>
-              <p>Readiness at conclusion: {visible.data.conclusion.readinessAtConclusion}.</p>
-              <p>This rework is closed. Room availability is checked against current room conditions.</p>
+            <section aria-label="Kết quả kiểm tra lại">
+              <p>Kiểm tra lại #{visible.data.conclusion.reinspectionId}: {visible.data.conclusion.state.toLowerCase()}.</p>
+              <p>Mức sẵn sàng của phòng hiện tại: {displayCode(visible.data.conclusion.effectiveReadiness)}.</p>
+              <p>Mức sẵn sàng khi kết luận: {visible.data.conclusion.readinessAtConclusion}.</p>
+              <p>Công việc làm lại đã đóng. Khả dụng phòng được kiểm tra theo điều kiện hiện tại.</p>
             </section>
           )}
           <ul>
             {visible.data.defects.map((defect) => (
               <li key={defect.id}>
                 <p>{defect.description}</p>
-                {defect.remediation && <p>Remediation: {defect.remediation}</p>}
+                {defect.remediation && <p>Khắc phục: {defect.remediation}</p>}
                 {defect.remediationAttachmentIds.map((file) => (
                   <a
                     key={`remediation-${file}`}
                     href={`/api/branches/${visible.data!.branchId}/reworks/${visible.data!.id}/evidence/${file}`}
                   >
-                    View remediation photo {file}
+                    Xem ảnh khắc phục {file}
                   </a>
                 ))}
                 {defect.inspectionAttachmentIds.map((file) => (
@@ -218,7 +219,7 @@ export function AssignedReworkRead() {
                     key={file}
                     href={`/api/branches/${visible.data!.branchId}/reworks/${visible.data!.id}/evidence/${file}`}
                   >
-                    View defect photo {file}
+                    Xem ảnh lỗi {file}
                   </a>
                 ))}
               </li>
@@ -227,29 +228,29 @@ export function AssignedReworkRead() {
           {visible.data.capability === "ACCEPT_START" &&
             visible.data.state === "PENDING_ACCEPTANCE" && (
               <button disabled={busy} onClick={() => void execute("accept")}>
-                Accept rework
+                Tiếp nhận làm lại
               </button>
             )}
           {visible.data.capability === "ACCEPT_START" &&
             visible.data.state === "ACCEPTED" && (
               <button disabled={busy} onClick={() => void execute("start")}>
-                Start rework
+                Bắt đầu làm lại
               </button>
             )}
           {visible.data.capability === "RESUME_REWORK" &&
             visible.data.state === "ON_HOLD" && (
               <>
-                <p>Paused at end of shift. Start a working workday before resuming.</p>
+                <p>Đã tạm dừng do hết ca. Bắt đầu ngày làm việc trước khi tiếp tục.</p>
                 <button disabled={busy} onClick={() => void execute("start")}>
-                  Resume rework
+                  Tiếp tục làm lại
                 </button>
               </>
             )}
           {visible.data.capability === "READ_ONLY" && !visible.data.conclusion && (
             <p>
               {visible.data.state === "PENDING_REINSPECTION"
-                ? "Waiting for reinspection."
-                : "Further actions are currently unavailable."}
+                ? "Đang chờ kiểm tra lại."
+                : "Hiện chưa thể thực hiện thao tác tiếp theo."}
             </p>
           )}
           {visible.data.capability === "SUBMIT_REWORK" &&

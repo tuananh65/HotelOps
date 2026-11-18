@@ -55,12 +55,12 @@ export function AuditPage() {
           key,
           error:
             status === 403
-              ? "You do not have access to these audit entries."
+              ? "Bạn không có quyền xem các nhật ký này."
               : status === 404
-                ? "This audit entry is unavailable."
+                ? "Bản ghi nhật ký này chưa khả dụng."
                 : status === 400
-                  ? "Check the selected filters."
-                  : "Audit data is unavailable.",
+                  ? "Kiểm tra bộ lọc đã chọn."
+                  : "Dữ liệu nhật ký chưa khả dụng.",
         });
         if (status === 401) {
           actions.invalidateSession(owner);
@@ -106,27 +106,27 @@ export function AuditPage() {
     setQuery(params.toString());
   }
   return (
-    <main aria-label="Audit history">
-      <h1>Audit history</h1>
-      <Link to="/dashboard">Workspace</Link>
+    <main aria-label="Lịch sử thay đổi">
+      <h1>Lịch sử thay đổi</h1>
+      <Link to="/dashboard">Không gian làm việc</Link>
       {!owner ? (
-        <p role="status">Audit data is hidden while your session is checked.</p>
+        <p role="status">Dữ liệu nhật ký được ẩn trong khi kiểm tra phiên đăng nhập.</p>
       ) : (
         <>
-          <form onSubmit={apply} aria-label="Audit filters">
+          <form onSubmit={apply} aria-label="Bộ lọc lịch sử thay đổi">
             {Object.entries(draft).map(([name, value]) => (
               <label key={name}>
                 {
                   (
                     {
-                      branchId: "Branch ID",
-                      actorId: "Actor ID",
-                      entityType: "Entity type",
-                      entityId: "Record ID",
-                      action: "Action",
-                      search: "Search",
-                      from: "From (UTC)",
-                      to: "To (UTC)",
+                      branchId: "Mã chi nhánh",
+                      actorId: "Mã người thực hiện",
+                      entityType: "Loại đối tượng",
+                      entityId: "Mã hồ sơ",
+                      action: "Thao tác",
+                      search: "Tìm kiếm",
+                      from: "từ (UTC)",
+                      to: "Đến (UTC)",
                     } as Record<string, string>
                   )[name]
                 }
@@ -140,49 +140,48 @@ export function AuditPage() {
                 />
               </label>
             ))}
-            <button type="submit">Apply filters</button>
+            <button type="submit">Áp dụng bộ lọc</button>
           </form>
           {visible?.error && <p role="alert">{visible.error}</p>}
-          <p aria-label="Applied audit filters">
-            Applied filters:{" "}
+          <p aria-label="Bộ lọc nhật ký đã áp dụng">
+            Bộ lọc đã áp dụng:{" "}
             {[...new URLSearchParams(query)]
               .filter(([k]) => k !== "page" && k !== "pageSize")
               .map(([k, v]) => `${k}=${v}`)
-              .join("; ") || "All permitted audit records"}
+              .join("; ") || "Tất cả nhật ký được phép xem"}
           </p>
-          {!visible && <p role="status">Loading audit history…</p>}
+          {!visible && <p role="status">Đang tải lịch sử thay đổi…</p>}
           <button
             onClick={() => {
               setRetry((n) => n + 1);
             }}
           >
-            Refresh
+            Tải lại
           </button>
           {list && (
             <>
-              <p>{list.totalCount} entries</p>
+              <p>{list.totalCount} bản ghi</p>
               {list.items.length === 0 ? (
                 <p role="status">
-                  MSG10: No matching audit entries. Change the filters to
-                  continue.
+                  MSG10: Không có nhật ký phù hợp. Đổi bộ lọc để tiếp tục.
                 </p>
               ) : (
                 <table>
                   <thead>
                     <tr>
-                      <th>Time (UTC)</th>
-                      <th>Actor</th>
-                      <th>Action</th>
-                      <th>Record</th>
-                      <th>Summary / recorded changes</th>
-                      <th>Details</th>
+                      <th>Thời gian (UTC)</th>
+                      <th>Người thực hiện</th>
+                      <th>Thao tác</th>
+                      <th>Hồ sơ</th>
+                      <th>Tóm tắt / thay đổi đã ghi nhận</th>
+                      <th>Chi tiết</th>
                     </tr>
                   </thead>
                   <tbody>
                     {list.items.map((row) => (
                       <tr key={row.id}>
                         <td>{row.occurredAt}</td>
-                        <td>{row.actor ?? "System"}</td>
+                        <td>{row.actor ?? "Hệ thống"}</td>
                         <td>{row.action}</td>
                         <td>
                           {row.entityType} / {row.entityId}
@@ -191,14 +190,14 @@ export function AuditPage() {
                           {row.action}:{" "}
                           {row.changedFields?.length
                             ? row.changedFields.join(", ")
-                            : "Field names not recorded or withheld"}
+                            : "Tên trường chưa được ghi nhận hoặc không được hiển thị"}
                         </td>
                         <td>
                           <button onClick={() => setId(row.id)}>
-                            View entry {row.id}
+                            Xem bản ghi {row.id}
                           </button>
                           <button onClick={() => history(row)}>
-                            View record history {row.id}
+                            Xem lịch sử hồ sơ {row.id}
                           </button>
                         </td>
                       </tr>
@@ -210,61 +209,60 @@ export function AuditPage() {
                 disabled={list.page <= 1}
                 onClick={() => page(list.page - 1)}
               >
-                Previous
+                Trước
               </button>
-              <span>Page {list.page}</span>
+              <span>Trang {list.page}</span>
               <button
                 disabled={list.page * list.pageSize >= list.totalCount}
                 onClick={() => page(list.page + 1)}
               >
-                Next
+                Tiếp
               </button>
             </>
           )}
           {id !== null && (
-            <button onClick={() => setId(null)}>Back to list</button>
+            <button onClick={() => setId(null)}>Quay lại danh sách</button>
           )}
           {detail && (
-            <section aria-label="Audit entry">
+            <section aria-label="Bản ghi thay đổi">
               <h2>
                 {detail.entry.action}: {detail.entry.entityType} /{" "}
                 {detail.entry.entityId}
               </h2>
               <p>
-                {detail.entry.occurredAt} — {detail.entry.actor ?? "System"}
+                {detail.entry.occurredAt} — {detail.entry.actor ?? "Hệ thống"}
               </p>
-              <p>Sensitive and unsupported fields are withheld.</p>
+              <p>Trường nhạy cảm và chưa hỗ trợ được ẩn.</p>
               <p>{detail.provenance}</p>
-              {detail.retention && <section aria-label="Evidence retention">
-                <h3>Evidence retention</h3>
+              {detail.retention && <section aria-label="Lưu giữ bằng chứng">
+                <h3>Lưu giữ bằng chứng</h3>
                 <dl>
-                  <dt>Archive status</dt><dd>{detail.retention.archiveStatus}</dd>
-                  <dt>Archived at (UTC)</dt><dd>{detail.retention.archivedAt ?? "Not archived"}</dd>
-                  <dt>Minimum retention until (UTC)</dt><dd>{detail.retention.retentionUntil ?? "Not applicable"}</dd>
-                  <dt>Archived by</dt><dd>{detail.retention.archivedBy ?? "Not applicable"}</dd>
-                  <dt>Legal hold</dt><dd>{detail.retention.legalHold
-                    ? detail.retention.legalHoldUntil ? `Until ${detail.retention.legalHoldUntil} (UTC)` : "Indefinite"
-                    : "No additional hold recorded"}</dd>
-                  <dt>Purge eligibility</dt><dd>{detail.retention.purgeEligibility}: {detail.retention.reason}</dd>
+                  <dt>Trạng thái lưu trữ</dt><dd>{detail.retention.archiveStatus}</dd>
+                  <dt>Lưu trữ lúc (UTC)</dt><dd>{detail.retention.archivedAt ?? "Chưa lưu trữ"}</dd>
+                  <dt>Thời hạn lưu giữ tối thiểu đến (UTC)</dt><dd>{detail.retention.retentionUntil ?? "Không áp dụng"}</dd>
+                  <dt>Người lưu trữ</dt><dd>{detail.retention.archivedBy ?? "Không áp dụng"}</dd>
+                  <dt>Lưu giữ theo yêu cầu pháp lý</dt><dd>{detail.retention.legalHold
+                    ? detail.retention.legalHoldUntil ? `Đến ${detail.retention.legalHoldUntil} (UTC)` : "Không thời hạn"
+                    : "Chưa có lệnh giữ bổ sung được ghi nhận"}</dd>
+                  <dt>Điều kiện xóa dữ liệu</dt><dd>{detail.retention.purgeEligibility}: {detail.retention.reason}</dd>
                 </dl>
-                <p>Reaching the retention date does not authorize deletion. Audit logs and receipts remain preserved.</p>
+                <p>Đến hạn lưu giữ không tự cho phép xóa. Nhật ký và biên nhận vẫn được giữ.</p>
               </section>}
               <button onClick={() => history(detail.entry)}>
-                View this record's history
+                Xem lịch sử hồ sơ này
               </button>
-              <h3>Changed fields</h3>
+              <h3>Các trường đã thay đổi</h3>
               {changes.length === 0 ? (
                 <p>
-                  No comparable recorded changes. Missing or withheld values are
-                  not reconstructed.
+                  Không có thay đổi có thể đối chiếu. Không tái dựng giá trị thiếu hoặc bị ẩn.
                 </p>
               ) : (
-                <table aria-label="Field changes">
+                <table aria-label="Thay đổi các trường">
                   <thead>
                     <tr>
-                      <th>Field</th>
-                      <th>Before</th>
-                      <th>After</th>
+                      <th>Trường</th>
+                      <th>Trước</th>
+                      <th>Sau</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -282,9 +280,9 @@ export function AuditPage() {
                   </tbody>
                 </table>
               )}
-              <h3>Before</h3>
+              <h3>Trước</h3>
               <pre>{JSON.stringify(detail.before, null, 2)}</pre>
-              <h3>After</h3>
+              <h3>Sau</h3>
               <pre>{JSON.stringify(detail.after, null, 2)}</pre>
             </section>
           )}

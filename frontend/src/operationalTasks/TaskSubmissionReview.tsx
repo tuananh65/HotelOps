@@ -41,8 +41,8 @@ export function TaskSubmissionReview({
           actions.invalidateSession(owner);
         setError(
           reason instanceof TaskProgressError && reason.status === 404
-            ? "No submitted completion is available."
-            : "Submitted completion is unavailable or access has changed.",
+            ? "Chưa có kết quả hoàn tất đã nộp."
+            : "Kết quả hoàn tất đã nộp chưa khả dụng hoặc quyền đã đổi.",
         );
       });
     return () => { controller.abort(); onReady?.(false); };
@@ -51,35 +51,35 @@ export function TaskSubmissionReview({
     <section
       aria-label={
         submission && !current
-          ? `Previous completion ${submission}`
-          : "Submitted completion"
+          ? `Kết quả hoàn tất trước ${submission}`
+          : "Kết quả hoàn tất đã nộp"
       }
     >
       <h3>
-        {submission && !current ? "Previous cycle completion" : "Submitted completion"}
+        {submission && !current ? "Kết quả hoàn tất chu kỳ trước" : "Kết quả hoàn tất đã nộp"}
       </h3>
       <button onClick={() => { onReady?.(false); setReload((n) => n + 1); }}>
-        Reload submitted completion
+        Tải lại kết quả hoàn tất đã nộp
       </button>
       {error && <p>{error}</p>}
       {result && (
         <>
           <p>
-            Submitted by user {result.submittedBy} at{" "}
+            Người nộp {result.submittedBy} lúc{" "}
             <time dateTime={result.submittedAt}>{result.submittedAt}</time>
           </p>
-          <h4>Result note</h4>
+          <h4>Ghi chú kết quả</h4>
           <p style={{ whiteSpace: "pre-wrap" }}>
-            {result.resultNote || "No result note."}
+            {result.resultNote || "Chưa có ghi chú kết quả."}
           </p>
-          <h4>Handover note</h4>
+          <h4>Ghi chú bàn giao</h4>
           <p style={{ whiteSpace: "pre-wrap" }}>
-            {result.handoverNote || "No handover note."}
+            {result.handoverNote || "Chưa có ghi chú bàn giao."}
           </p>
           <ul>
             {result.criteria.map((c) => (
               <li key={c.id}>
-                {c.label}: {c.outcome ?? "Not recorded"}
+                {c.label}: {c.outcome ?? "Chưa ghi nhận"}
                 {c.note && <p>{c.note}</p>}
               </li>
             ))}

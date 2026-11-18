@@ -30,7 +30,7 @@ export function BranchManagementPage() {
   if (result.error) return <p role="alert">{result.error}</p>;
   return <section><h2>Quản lý chi nhánh</h2><p>Múi giờ hệ thống: {result.data?.timezone}</p>
     <Link to="/branches/new">Tạo chi nhánh</Link>
-    <ul>{result.data?.branches.slice((page-1)*result.data.pageSize,page*result.data.pageSize).map(b => <li key={b.id}><Link to={`/branches/${b.id}/edit`}>{b.code} — {b.name}</Link> ({b.isActive ? "Active" : "Inactive"})</li>)}</ul>
+    <ul>{result.data?.branches.slice((page-1)*result.data.pageSize,page*result.data.pageSize).map(b => <li key={b.id}><Link to={`/branches/${b.id}/edit`}>{b.code} — {b.name}</Link> ({b.isActive ? "Đang hoạt động" : "Ngừng hoạt động"})</li>)}</ul>
     <button disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Trước</button>
     <span> Trang {page} </span>
     <button disabled={!result.data||page*result.data.pageSize>=result.data.branches.length} onClick={()=>setPage(p=>p+1)}>Sau</button>

@@ -39,19 +39,19 @@ export function ReplenishmentReceiptFields({ record, values, onChange }: { recor
   const page = current?.page;
   const selected = Array.isArray(values.lines) ? values.lines.filter(isObject) : [];
   function navigate(cursor: number) { onChange({ ...values, lines: [], receiptSelectionVersion: "" }); setAfter(cursor); setRevision(v => v + 1); }
-  return <section aria-label="Link posted receipts">
-    <p>Select whole posted receipt lines. This records received quantities; it does not post stock again.</p>
-    <button type="button" onClick={() => navigate(0)}>Refresh receipt candidates</button>
-    {!page && <p role="status">{current ? "Candidates unavailable or request changed. Reload the replenishment before linking." : "Loading authorized receipt candidates…"}</p>}
-    {page?.items.length === 0 && <p>No uncredited matching receipt lines fit the remaining quantity.</p>}
+  return <section aria-label="Liên kết phiếu nhập đã ghi sổ">
+    <p>Chọn nguyên dòng phiếu nhập đã ghi sổ. Thao tác ghi số đã nhận, không ghi sổ tồn kho lần nữa.</p>
+    <button type="button" onClick={() => navigate(0)}>Tải lại phiếu nhập có thể chọn</button>
+    {!page && <p role="status">{current ? "Chưa có lựa chọn hoặc yêu cầu đã đổi. Tải lại yêu cầu bổ sung trước khi liên kết." : "Đang tải phiếu nhập có thể lựa chọn…"}</p>}
+    {page?.items.length === 0 && <p>Không có dòng phiếu nhập phù hợp chưa ghi nhận vừa với số lượng còn lại.</p>}
     {page?.items.map(c => <label key={`${c.stockDocumentLineId}:${c.replenishmentLineId}`}>
       <input type="checkbox" checked={selected.some(l => l.stockDocumentLineId === c.stockDocumentLineId)}
         onChange={e => onChange({ ...values, receiptSelectionVersion: version, lines: e.target.checked
           ? [...selected.filter(l => l.stockDocumentLineId !== c.stockDocumentLineId), { stockDocumentLineId: c.stockDocumentLineId, replenishmentLineId: c.replenishmentLineId }]
           : selected.filter(l => l.stockDocumentLineId !== c.stockDocumentLineId) })} />
-      {c.documentNo} — {c.itemName}: {c.baseQty} {c.unitName}, posted {c.postedAt}
+      {c.documentNo} — {c.itemName}: {c.baseQty} {c.unitName}, đã ghi sổ {c.postedAt}
     </label>)}
-    {page?.nextAfter != null && <button type="button" onClick={() => navigate(page.nextAfter!)}>Next receipt page (clears selection)</button>}
-    <p>Combined quantities must fit the remaining amount. The server rechecks receipt eligibility and prevents duplicate credit when saving.</p>
+    {page?.nextAfter != null && <button type="button" onClick={() => navigate(page.nextAfter!)}>Trang phiếu nhập tiếp (bỏ lựa chọn hiện tại)</button>}
+    <p>Tổng số lượng không được vượt phần còn lại. Máy chủ kiểm tra lại điều kiện phiếu nhập và ngăn ghi nhận trùng khi lưu.</p>
   </section>;
 }

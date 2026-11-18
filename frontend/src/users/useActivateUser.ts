@@ -7,7 +7,7 @@ import type { UserProfileDto } from "./userProfileContracts";
 import type { UserActivationError } from "./userActivationContracts";
 
 export const unknownActivationMessage =
-  "Account activation outcome could not be confirmed. The account may already have been activated. Do not retry automatically. Ask an authorized administrator to verify the current account status before making another change.";
+  "Chưa xác nhận kết quả kích hoạt; tài khoản có thể đã được kích hoạt. Không tự gửi lại. Nhờ quản trị viên có quyền kiểm tra trạng thái trước khi thay đổi tiếp.";
 export function activationReason(value: string): {
   reason: string;
   error?: string;
@@ -20,10 +20,10 @@ export function activationReason(value: string): {
     reason,
     error:
       reason.length < 10
-        ? "Enter a reason with at least 10 UTF-16 code units after trimming."
+        ? "Nhập lý do ít nhất 10 đơn vị ký tự UTF-16 sau khi bỏ khoảng trắng đầu và cuối."
         : new TextEncoder().encode(JSON.stringify({ reason })).byteLength >
             16384
-          ? "The serialized request must not exceed 16 KiB."
+          ? "Yêu cầu sau mã hóa không được vượt 16 KiB."
           : undefined,
   };
 }
@@ -272,23 +272,23 @@ function failureMessage(
   reason?: string | UserActivationError["reason"],
 ): string {
   if (status === 403)
-    return "Access denied. This response does not confirm whether the account exists.";
+    return "Không có quyền truy cập. Phản hồi này không xác nhận tài khoản có tồn tại hay không.";
   if (status === 401)
-    return "Your session must be checked. Reload the profile after session recovery. No activation has been retried.";
-  if (status === 404) return "The server could not find this user account.";
+    return "Cần kiểm tra phiên. Tải lại hồ sơ sau khi khôi phục phiên. Không gửi lại kích hoạt.";
+  if (status === 404) return "Máy chủ không tìm thấy tài khoản này.";
   if (status === 409)
-    return "The account state does not allow this transition. The current account status has not been confirmed.";
+    return "Trạng thái tài khoản không cho phép chuyển đổi. Chưa xác nhận trạng thái hiện tại.";
   if (status === 412 || status === 428)
-    return "The version must be refreshed. Reload profile, review the target and reason, then confirm a new attempt.";
+    return "Cần phiên bản mới. Tải lại hồ sơ, kiểm tra tài khoản và lý do rồi xác nhận lần thử mới.";
   if (reason === "CSRF_VALIDATION_FAILED")
-    return "The security check was rejected. No activation has been retried.";
+    return "Kiểm tra bảo mật bị từ chối. Không gửi lại kích hoạt.";
   if (reason === "REQUEST_TOO_LARGE" || status === 413)
-    return "The serialized request must not exceed 16 KiB.";
+    return "Yêu cầu sau mã hóa không được vượt 16 KiB.";
   if (reason === "HTTPS_REQUIRED")
-    return "A secure HTTPS connection is required.";
+    return "Cần kết nối HTTPS an toàn.";
   if (status === 415)
-    return "The request format was rejected. No activation has been retried.";
+    return "Định dạng yêu cầu bị từ chối. Không gửi lại kích hoạt.";
   if (status === 400)
-    return "Check the reason and request version. No activation has been retried.";
-  return "The request could not be completed safely. No activation has been retried.";
+    return "Kiểm tra lý do và phiên bản yêu cầu. Không gửi lại yêu cầu kích hoạt.";
+  return "Không hoàn tất an toàn yêu cầu. Không gửi lại kích hoạt.";
 }

@@ -16,30 +16,29 @@ export function AssignUserRoleFlowBoundary() {
     return <Navigate replace to="/change-password" />;
   if (state.status !== "AUTHENTICATED" || !state.session)
     return (
-      <main aria-label="Role assignment session recovery">
+      <main aria-label="Khôi phục phiên gán vai trò">
         <p role="status">
           {state.status === "INITIALIZING"
-            ? "Checking your session..."
-            : "Your session could not be confirmed."}
+            ? "Đang kiểm tra phiên đăng nhập của bạn..."
+            : "Không xác minh được phiên đăng nhập của bạn."}
         </p>
         <p>
-          Account data is hidden. A pending role assignment request may already
-          have committed. No role assignment request has been retried.
+          Thông tin tài khoản đã ẩn. Yêu cầu gán vai trò có thể đã lưu; không tự gửi lại.
         </p>
         {state.status !== "INITIALIZING" && (
           <button type="button" onClick={() => void actions.revalidate()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
-        <Link to="/profile">Profile</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   if (target === null)
     return (
       <main>
-        <h1>Invalid user ID</h1>
-        <p role="alert">A positive safe integer user ID is required.</p>
-        <Link to="/profile">Profile</Link>
+        <h1>Mã người dùng không hợp lệ</h1>
+        <p role="alert">Mã người dùng phải là số nguyên dương trong giới hạn cho phép.</p>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   return <AssignUserRolePage target={target} flow={flow} />;

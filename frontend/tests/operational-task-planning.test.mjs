@@ -204,7 +204,7 @@ test("Plan and Cancel bind current resource and strong ETag; cancellation requir
       });
     assert.equal(path, "/api/branches/1/operational-tasks/9/cancel");
     assert.equal(init.headers["If-Match"], snapshot.etag);
-    assert.deepEqual(JSON.parse(init.body), { reason: "Cancellation reason" });
+    assert.deepEqual(JSON.parse(init.body), { reason: "Lý do hủy" });
     return Response.json(
       { taskId: 9, branchId: 1, state: "CANCELLED", messageCode: "MSG08" },
       { headers: { ETag: '"0000000000000002"' } },

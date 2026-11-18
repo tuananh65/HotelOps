@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -69,10 +70,10 @@ export function TaskProgressPanel({
       actions.invalidateSession(owner);
     setError(
       reason instanceof TaskProgressError && reason.status === 403
-        ? "Only the currently assigned executor with access can update this task."
+        ? "Chỉ người thực hiện đang được giao và có quyền mới được cập nhật công việc này."
         : reason instanceof TaskProgressError && reason.status === 412
-          ? "This task changed. Reload and review it before saving again."
-          : "Progress could not be confirmed. Reload before saving again.",
+          ? "Công việc đã đổi. Tải lại và kiểm tra trước khi lưu tiếp."
+          : "Chưa xác nhận tiến độ. Tải lại trước khi lưu tiếp.",
     );
     setLocked(true);
   }
@@ -120,7 +121,7 @@ export function TaskProgressPanel({
     setMessage("");
     let evidencePrepared = false;
     try {
-      if (files.length > 5) throw new Error("Too many files");
+      if (files.length > 5) throw new Error("Vượt số lượng tệp cho phép");
       const photos = await Promise.all(files.map(uploadFile));
       controller.signal.throwIfAborted();
       evidencePrepared = true;
@@ -145,14 +146,14 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) {
         show(updated);
         setMessage(
-          "Progress saved. Reaching 100% does not complete this task.",
+          "Đã lưu tiến độ. Đạt 100% không tự hoàn tất công việc.",
         );
-        onChanged?.("Progress saved. Reaching 100% does not complete this task.");
+        onChanged?.("Đã lưu tiến độ. Đạt 100% không tự hoàn tất công việc.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
         if (!evidencePrepared || reason instanceof TaskProgressError && reason.status === 400 && reason.messageCode === "MSG23")
-          setError("MSG23: Select up to five readable PNG, JPEG or PDF files, at most 10 MiB each, then save again. Your edits are retained.");
+          setError("MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi lưu lại. Chỉnh sửa được giữ nguyên.");
         else failure(reason);
       }
     } finally {
@@ -170,7 +171,7 @@ export function TaskProgressPanel({
     )
       return;
     if (!declineReason.trim()) {
-      setError("A decline reason is required.");
+      setError("Vui lòng nhập lý do từ chối nhận việc.");
       return;
     }
     saving.current = true;
@@ -192,7 +193,7 @@ export function TaskProgressPanel({
         setItems([]);
         setDeclineReason("");
         setLocked(true);
-        setMessage("MSG19: Task declined and returned to Pending Assignment.");
+        setMessage("MSG19: Đã từ chối công việc và trả về chờ phân công.");
         onDeclined?.();
       }
     } catch (reason) {
@@ -217,7 +218,7 @@ export function TaskProgressPanel({
       } else {
         const selected = reasons.find((r) => r.id === reasonId);
         if (!selected || (selected.code === "OTHER" && !pauseNote.trim())) {
-          setError("Select a pause reason; Other requires a note.");
+          setError("Chọn lý do tạm dừng; lựa chọn Khác cần ghi chú.");
           return;
         }
         const value = await pauseTask(
@@ -232,8 +233,8 @@ export function TaskProgressPanel({
           setCurrent(value);
           setReasonId(0);
           setPauseNote("");
-          setMessage("Task paused. Working interval closed.");
-          onChanged?.("Task paused. Working interval closed.");
+          setMessage("Đã tạm dừng công việc và kết thúc khoảng làm việc.");
+          onChanged?.("Đã tạm dừng công việc và kết thúc khoảng làm việc.");
         }
       }
     } catch (reason) {
@@ -260,15 +261,15 @@ export function TaskProgressPanel({
       );
       if (!controller.signal.aborted) {
         setCurrent(updated);
-        setMessage("Task resumed. Working time is now being recorded.");
-        onChanged?.("Task resumed. Working time is now being recorded.");
+        setMessage("Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.");
+        onChanged?.("Đã tiếp tục công việc. Bắt đầu ghi nhận thời gian làm việc.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
         failure(reason);
         if (reason instanceof TaskProgressError && reason.status === 409)
           setError(
-            "Task could not be resumed. A working workday and no other open interval are required. Reload to review its current state.",
+            "Không tiếp tục được công việc. Cần ngày làm việc đang hoạt động và không có khoảng khác đang mở. Tải lại trạng thái.",
           );
       }
     } finally {
@@ -296,10 +297,10 @@ export function TaskProgressPanel({
         show(updated);
         setMessage(
           action === "accept"
-            ? "MSG08: Task accepted."
-            : "Task started. Working time is now being recorded.",
+            ? "MSG08: Đã tiếp nhận công việc."
+            : "Đã bắt đầu công việc. Đang ghi nhận thời gian làm việc.",
         );
-        onChanged?.(action === "accept" ? "MSG08: Task accepted. Start when ready." : "Task started. Working time is now being recorded.");
+        onChanged?.(action === "accept" ? "MSG08: Đã tiếp nhận công việc. Bắt đầu khi sẵn sàng." : "Đã bắt đầu công việc. Đang ghi nhận thời gian làm việc.");
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
@@ -309,14 +310,14 @@ export function TaskProgressPanel({
           reason.messageCode === "MSG30"
         )
           setError(
-            "MSG30: Start a working workday before starting this task. Reload to try again.",
+            "MSG30: Bắt đầu ngày làm việc trước khi bắt đầu công việc này. Tải lại để thử tiếp.",
           );
         else if (
           reason instanceof TaskProgressError &&
           reason.messageCode === "MSG31"
         )
           setError(
-            "MSG31: Pause, hold or complete your current work item before starting this task. Reload to try again.",
+            "MSG31: Tạm dừng hoặc hoàn tất công việc hiện tại trước khi bắt đầu công việc này. Tải lại để thử tiếp.",
           );
       }
     } finally {
@@ -341,7 +342,7 @@ export function TaskProgressPanel({
     setMessage("");
     let evidencePrepared = false;
     try {
-      if (files.length > 5) throw new Error("Too many evidence files");
+      if (files.length > 5) throw new Error("Vượt số lượng tệp bằng chứng cho phép");
       const photos = await Promise.all(files.map(uploadFile));
       controller.signal.throwIfAborted();
       evidencePrepared = true;
@@ -366,33 +367,33 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted && onChanged) {
         setLocked(true);
         setFiles([]);
-        onChanged("MSG09: Task submitted for verification. Working interval closed.");
+        onChanged("MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.");
         return;
       }
       const updated = await readTaskProgress(branch, task, controller.signal);
       if (!controller.signal.aborted) {
         show(updated);
         setMessage(
-          "MSG09: Task submitted for verification. Working interval closed.",
+          "MSG09: Đã nộp công việc để xác minh và kết thúc khoảng làm việc.",
         );
       }
     } catch (reason) {
       if (!controller.signal.aborted) {
         if (!evidencePrepared)
-          setError("MSG23: Select up to five readable PNG, JPEG or PDF files, at most 10 MiB each, then submit again. Your edits are retained.");
+          setError("MSG23: Chọn tối đa 5 tệp PNG, JPEG hoặc PDF có thể đọc, mỗi tệp tối đa 10 MiB rồi gửi lại. Chỉnh sửa được giữ nguyên.");
         else if (
           reason instanceof TaskProgressError &&
           reason.messageCode === "MSG03"
         )
           setError(
-            `MSG03: Record results for required criteria: ${reason.missingCriteria.join(", ")}.`,
+            `MSG03: Ghi kết quả cho các tiêu chí bắt buộc: ${reason.missingCriteria.join(", ")}.`,
           );
         else if (
           reason instanceof TaskProgressError &&
           reason.messageCode === "MSG23"
         )
           setError(
-            "MSG23: Evidence must be PNG, JPEG or PDF, at most 10 MB per file.",
+            "MSG23: Bằng chứng phải là PNG, JPEG hoặc PDF, tối đa 10 MB mỗi tệp.",
           );
         else failure(reason);
       }
@@ -402,29 +403,29 @@ export function TaskProgressPanel({
     }
   }
   return (
-    <section aria-label="Task progress editor">
-      <h3>Update progress</h3>
+    <section aria-label="Cập nhật tiến độ công việc">
+      <h3>Cập nhật tiến độ</h3>
       <button disabled={busy} onClick={() => setReload((n) => n + 1)}>
-        Reload progress (discard edits)
+        Tải lại tiến độ (bỏ chỉnh sửa)
       </button>
-      {busy && <p role="status">Loading or saving progress…</p>}
+      {busy && <p role="status">Đang tải hoặc lưu tiến độ…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {current?.data.state === "PENDING_VERIFICATION" && (
-        <p>Awaiting Department Head verification. Progress is locked.</p>
+        <p>Đang chờ trưởng bộ phận xác minh. Tiến độ đã khóa.</p>
       )}
       {current?.data.state === "IN_PROGRESS" && (
-        <section aria-label="Task completion">
+        <section aria-label="Hoàn tất công việc">
           <button disabled={busy || locked} onClick={() => setCompleting(true)}>
-            Complete task
+            Hoàn tất công việc
           </button>
           {completing && (
             <>
               <p>
-                Review criterion results and evidence below before submitting.
+                Kiểm tra kết quả tiêu chí và bằng chứng bên dưới trước khi gửi.
               </p>
               <label>
-                Result note
+                Ghi chú kết quả
                 <textarea
                   maxLength={4000}
                   disabled={busy || locked}
@@ -433,7 +434,7 @@ export function TaskProgressPanel({
                 />
               </label>
               <label>
-                Handover note
+                Ghi chú bàn giao
                 <textarea
                   maxLength={4000}
                   disabled={busy || locked}
@@ -442,22 +443,22 @@ export function TaskProgressPanel({
                 />
               </label>
               <button disabled={busy || locked} onClick={() => void complete()}>
-                Submit completion
+                Gửi hoàn tất
               </button>
             </>
           )}
         </section>
       )}
       {current?.data.state === "ASSIGNED" && (
-        <section aria-label="Assignment response">
+        <section aria-label="Kết quả phân công">
           <button
             disabled={busy || locked}
             onClick={() => void enter("accept")}
           >
-            Accept task
+            Tiếp nhận công việc
           </button>
           <label>
-            Decline reason
+            Lý do từ chối nhận việc
             <textarea
               maxLength={4000}
               disabled={busy || locked}
@@ -469,29 +470,29 @@ export function TaskProgressPanel({
             disabled={busy || locked || !declineReason.trim()}
             onClick={() => void decline()}
           >
-            Decline task
+            Từ chối nhận công việc
           </button>
         </section>
       )}
       {current?.data.state === "ACCEPTED" && (
         <button disabled={busy || locked} onClick={() => void enter("start")}>
-          Start task
+          Bắt đầu công việc
         </button>
       )}
       {current?.data.state === "IN_PROGRESS" && (
-        <section aria-label="Pause task controls">
+        <section aria-label="Thao tác tạm dừng công việc">
           <button disabled={busy || locked} onClick={() => void pause(true)}>
-            Load pause reasons
+            Tải lý do tạm dừng
           </button>
           <label>
-            Pause reason
+            Lý do tạm dừng
             <select
-              aria-label="Pause reason"
+              aria-label="Lý do tạm dừng"
               disabled={busy || locked}
               value={reasonId}
               onChange={(e) => setReasonId(Number(e.target.value))}
             >
-              <option value={0}>Select reason</option>
+              <option value={0}>Chọn lý do</option>
               {reasons.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.label}
@@ -500,7 +501,7 @@ export function TaskProgressPanel({
             </select>
           </label>
           <label>
-            Pause note
+            Ghi chú tạm dừng
             <textarea
               maxLength={1000}
               disabled={busy || locked}
@@ -508,25 +509,25 @@ export function TaskProgressPanel({
               onChange={(e) => setPauseNote(e.target.value)}
             />
           </label>
-          <p>Other requires a note. Maximum 1000 characters.</p>
+          <p>Lựa chọn Khác cần ghi chú, tối đa 1000 ký tự.</p>
           <button
             disabled={busy || locked || !reasonId}
             onClick={() => void pause()}
           >
-            Pause task
+            Tạm dừng công việc
           </button>
         </section>
       )}
       {current?.data.state === "PAUSED" && (
         <button disabled={busy || locked} onClick={() => void resume()}>
-          Resume task
+          Tiếp tục công việc
         </button>
       )}
       {current && (
-        <section aria-label="Saved task evidence">
-          <h4>Saved evidence</h4>
+        <section aria-label="Bằng chứng công việc đã lưu">
+          <h4>Bằng chứng đã lưu</h4>
           {current.data.evidence.length === 0 ? (
-            <p>No evidence uploaded.</p>
+            <p>Chưa tải bằng chứng lên.</p>
           ) : (
             <ul>
               {current.data.evidence.map((file) => (
@@ -544,7 +545,7 @@ export function TaskProgressPanel({
       )}
       {current && (
         <form onSubmit={save}>
-          <p>Task execution state: {current.data.state}</p>
+          <p>Trạng thái thực hiện công việc: {displayCode(current.data.state)}</p>
           <fieldset
             disabled={
               busy ||
@@ -552,9 +553,9 @@ export function TaskProgressPanel({
               !["IN_PROGRESS", "PAUSED"].includes(current.data.state)
             }
           >
-            <legend>Progress and completion criteria</legend>
+            <legend>Tiến độ và tiêu chí hoàn tất</legend>
             <label>
-              Progress (%)
+              Tiến độ (%)
               <input
                 type="number"
                 required
@@ -570,15 +571,15 @@ export function TaskProgressPanel({
               />
             </label>
             {items.length === 0 && (
-              <p>No completion criteria are configured.</p>
+              <p>Chưa cấu hình tiêu chí hoàn tất.</p>
             )}
             {items.map((item, index) => (
               <div key={item.id}>
                 <label>
                   {item.label}
-                  {item.required ? " (required for completion)" : ""}
+                  {item.required ? "(bắt buộc để hoàn tất)" : ""}
                   <select
-                    aria-label={`Criterion result: ${item.label}`}
+                    aria-label={`Kết quả tiêu chí: ${item.label}`}
                     value={item.outcome ?? ""}
                     onChange={(e) =>
                       setItems((rows) =>
@@ -594,14 +595,14 @@ export function TaskProgressPanel({
                     }
                   >
                     <option value="" disabled>
-                      Not recorded
+                      Chưa ghi nhận
                     </option>
-                    <option value="PASS">Pass</option>
-                    <option value="FAIL">Fail</option>
+                    <option value="PASS">Đạt</option>
+                    <option value="FAIL">Không đạt</option>
                   </select>
                 </label>
                 <label>
-                  Criterion note: {item.label}
+                  Ghi chú tiêu chí: {item.label}
                   <input
                     maxLength={1000}
                     disabled={item.outcome === null}
@@ -618,7 +619,7 @@ export function TaskProgressPanel({
               </div>
             ))}
             <label>
-              Progress note
+              Ghi chú tiến độ
               <input
                 maxLength={4000}
                 value={note}
@@ -626,7 +627,7 @@ export function TaskProgressPanel({
               />
             </label>
             <label>
-              Evidence files (up to 5, PNG/JPEG/PDF, 10 MB each)
+              Tệp bằng chứng (tối đa 5 tệp PNG/JPEG/PDF, 10 MB mỗi tệp)
               <input
                 ref={fileInput}
                 type="file"
@@ -635,7 +636,7 @@ export function TaskProgressPanel({
                 onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
               />
             </label>
-            <button>Save progress</button>
+            <button>Lưu tiến độ</button>
           </fieldset>
         </form>
       )}

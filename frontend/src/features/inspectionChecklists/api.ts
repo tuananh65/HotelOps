@@ -137,7 +137,7 @@ export function createChecklistApi(
         !Array.isArray(value.roomTypeIds) ||
         !/^"[A-F0-9]{64}"$/.test(etag)
       )
-        throw new Error("Invalid response");
+        throw new Error("Phản hồi không hợp lệ");
       return { value, etag };
     } catch {
       throw new ChecklistApiError(

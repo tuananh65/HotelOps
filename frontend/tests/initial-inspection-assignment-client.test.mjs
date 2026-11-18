@@ -107,7 +107,7 @@ test("session replacement during CSRF bootstrap sends no assignment", async () =
       signal: new AbortController().signal,
       isCurrent: () => current,
     }),
-    /Session or source changed/,
+    /Phiên đăng nhập hoặc dữ liệu nguồn đã thay đổi/,
   );
   assert.deepEqual(calls, ["/api/auth/csrf"]);
 });

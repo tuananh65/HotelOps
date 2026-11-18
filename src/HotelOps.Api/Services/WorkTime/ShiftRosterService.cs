@@ -12,8 +12,41 @@ public sealed record RosterShift(long Id,long TemplateId,string TemplateName,Dat
 public sealed record RosterPage(long BranchId,long DepartmentId,DateOnly From,DateOnly To,string Timezone,IReadOnlyList<RosterShift> Shifts,long? NextCursor);
 public sealed record ShiftEmployeeOption(long Id,string Name);
 public sealed record ShiftEmployeePage(long BranchId,long DepartmentId,IReadOnlyList<ShiftEmployeeOption> Employees,long? NextCursor);
+public sealed record ShiftDepartmentOption(long Id,string Name);
+public sealed record ShiftBranchOption(long Id,string Name,string Timezone,IReadOnlyList<ShiftDepartmentOption> Departments);
 public sealed class ShiftRosterService(HotelOpsDbContext db,ICurrentUserAccessor current,ISqlSessionService sessions,TimeProvider clock)
 {
+    public async Task<IReadOnlyList<ShiftBranchOption>> OptionsAsync(SessionReference ticket,long sid,CancellationToken ct)
+    {
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
+        await ValidateIdentity();
+        var departments=await db.Departments.AsNoTracking().Where(d=>d.IsActive&&d.Branch.IsActive)
+            .OrderBy(d=>d.BranchId).ThenBy(d=>d.DepartmentName)
+            .Select(d=>new{d.DepartmentId,d.DepartmentName,d.BranchId,d.Branch.BranchName,d.Branch.Timezone}).ToArrayAsync(ct);
+        var scope=new SqlShiftPreviewScopeData(db,clock);
+        var result=new List<ShiftBranchOption>();
+        foreach(var branch in departments.GroupBy(d=>d.BranchId))
+        {
+            var allowed=new List<ShiftDepartmentOption>();
+            foreach(var d in branch)
+                if(await scope.ActorScopeAsync(ticket.UserId,d.BranchId,d.DepartmentId,ct))
+                    allowed.Add(new(d.DepartmentId,d.DepartmentName));
+            if(allowed.Count>0)result.Add(new(branch.Key,branch.First().BranchName,branch.First().Timezone ?? "",allowed));
+        }
+        await ValidateIdentity();
+        await tx.CommitAsync(ct);
+        return result;
+
+        async Task ValidateIdentity()
+        {
+            if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
+                throw new InternalRequestReadException(401,"SESSION_INVALID");
+            var admission=await sessions.ValidateSessionAsync(ticket,ct);
+            if(!admission.IsValid||admission.Session?.SessionId!=sid||admission.Session.IsRestricted)
+                throw new InternalRequestReadException(401,"SESSION_INVALID");
+        }
+    }
     internal async Task Gate(SessionReference ticket,long sid,long branch,long department,CancellationToken ct)
     {
         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)

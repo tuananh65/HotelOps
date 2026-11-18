@@ -120,39 +120,39 @@ function Assignment({
   }
   const valid = source && inspector && supervisor && due && reason.trim();
   return (
-    <section aria-label="Inspection assignment">
-      <h2>Assign inspection</h2>
-      {busy && <p role="status">Loading...</p>}
+    <section aria-label="Phân công kiểm tra">
+      <h2>Phân công kiểm tra</h2>
+      {busy && <p role="status">Đang tải…</p>}
       {error && <p role="alert">{error}</p>}
-      <h3>Pending inspections</h3>
-      {!busy && !queue.pending.length && <p>No pending tasks.</p>}
+      <h3>Các lượt kiểm tra đang chờ</h3>
+      {!busy && !queue.pending.length && <p>Không có công việc đang chờ.</p>}
       {queue.pending.map((t) => (
         <button disabled={busy} key={t.taskId} onClick={() => open(t.taskId)}>
-          Room #{t.roomId} · Task #{t.taskId}
+          Phòng #{t.roomId} · Công việc #{t.taskId}
         </button>
       ))}
-      <h3>Assigned to me</h3>
+      <h3>Giao cho tôi</h3>
       {queue.assigned.map((i) => (
         <button
           key={i.inspectionId}
           onClick={() => onOpenInspection(i.inspectionId)}
         >
-          Open Inspection #{i.inspectionId}
+          Mở kiểm tra #{i.inspectionId}
         </button>
       ))}
       {source && (
         <div>
           <p>
-            Room #{source.roomId}; checklist version {source.checklistVersionId}
+            Phòng #{source.roomId}; phiên bản danh sách kiểm tra {source.checklistVersionId}
           </p>
           <fieldset disabled={busy || blocked || review}>
             <label>
-              Inspector
+              Người kiểm tra
               <select
                 value={inspector}
                 onChange={(e) => setInspector(e.target.value)}
               >
-                <option value="">Choose inspector</option>
+                <option value="">Chọn người kiểm tra</option>
                 {source.inspectors.map((p) => (
                   <option key={p.userId} value={p.userId}>
                     {p.fullName}
@@ -161,12 +161,12 @@ function Assignment({
               </select>
             </label>
             <label>
-              Responsible supervisor
+              Giám sát chịu trách nhiệm
               <select
                 value={supervisor}
                 onChange={(e) => setSupervisor(e.target.value)}
               >
-                <option value="">Explicitly choose supervisor</option>
+                <option value="">Chọn rõ người giám sát</option>
                 {source.responsibleSupervisors.map((p) => (
                   <option key={p.userId} value={p.userId}>
                     {p.fullName}
@@ -175,7 +175,7 @@ function Assignment({
               </select>
             </label>
             <label>
-              Due time
+              Thời hạn
               <input
                 type="datetime-local"
                 value={due}
@@ -183,7 +183,7 @@ function Assignment({
               />
             </label>
             <label>
-              Reason
+              Lý do
               <input
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -199,13 +199,12 @@ function Assignment({
               setConfirmed(false);
             }}
           >
-            Review assignment
+            Xem lại phân công
           </button>
           {review && (
             <div>
               <p>
-                Confirm the selected inspector, explicit responsible supervisor,
-                checklist and due time.
+                Xác nhận người kiểm tra, giám sát chịu trách nhiệm, danh sách kiểm tra và thời hạn đã chọn.
               </p>
               <label>
                 <input
@@ -214,22 +213,21 @@ function Assignment({
                   disabled={busy || blocked}
                   onChange={(e) => setConfirmed(e.target.checked)}
                 />
-                I confirm this assignment
+                Tôi xác nhận phân công này
               </label>
               <button
                 disabled={!confirmed || busy || blocked}
                 onClick={confirm}
               >
-                Confirm assignment
+                Xác nhận phân công
               </button>
             </div>
           )}
           <p>
-            Production assignment is currently unavailable; required
-            notification has not been accepted.
+            Phân công thực tế chưa khả dụng; thông báo bắt buộc chưa được chấp nhận.
           </p>
           <button disabled={busy} onClick={() => open(source.taskId)}>
-            Reload assignment source
+            Tải lại nguồn phân công
           </button>
         </div>
       )}

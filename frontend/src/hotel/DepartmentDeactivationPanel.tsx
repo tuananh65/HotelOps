@@ -5,10 +5,10 @@ import { createDepartmentDeactivationApi } from "./departmentDeactivationApi";
 
 type Review = { id: number; branchId: number; isActive: boolean; dependencies: { kind: string; count: number }[]; etag: string };
 const labels: Record<string,string> = {
-  ACTIVE_USERS: "Active employees", WAREHOUSES: "Warehouses",
-  OPEN_OR_UNPROVEN_TASKS: "Tasks whose closure is not confirmed", OPEN_INTERNAL_REQUESTS: "Open internal requests",
-  ASSETS_IN_CUSTODY: "Assets in custody", PENDING_ASSET_HANDOVERS: "Pending asset handovers",
-  OPEN_MAINTENANCE: "Open maintenance work", WORKING_WORKDAYS: "Working workdays",
+  ACTIVE_USERS: "Nhân viên đang hoạt động", WAREHOUSES: "Kho",
+  OPEN_OR_UNPROVEN_TASKS: "Công việc chưa xác nhận đóng", OPEN_INTERNAL_REQUESTS: "Mở yêu cầu nội bộ",
+  ASSETS_IN_CUSTODY: "Tài sản đang quản lý", PENDING_ASSET_HANDOVERS: "Bàn giao tài sản đang chờ",
+  OPEN_MAINTENANCE: "Mở công việc bảo trì", WORKING_WORKDAYS: "Ngày làm việc đang diễn ra",
 };
 
 export function DepartmentDeactivationPanel({ branchId, departmentId, onSaved }: { branchId: number; departmentId: number; onSaved: () => void }) {
@@ -37,7 +37,7 @@ export function DepartmentDeactivationPanel({ branchId, departmentId, onSaved }:
         });
         if (abort.signal.aborted || latest.current !== identity) return;
         if (!response.ok) {
-          setMessage(`Dependency review unavailable (${response.status}).`);
+          setMessage(`Kiểm tra ràng buộc chưa khả dụng (${response.status}).`);
           if (response.status === 401 || response.status === 403) void actions.revalidate();
           return;
         }
@@ -45,9 +45,9 @@ export function DepartmentDeactivationPanel({ branchId, departmentId, onSaved }:
         const etag = response.headers.get("ETag");
         if (!data || data.id !== departmentId || data.branchId !== branchId || typeof data.isActive !== "boolean"
           || !Array.isArray(data.dependencies) || !data.dependencies.every(d => d && typeof d.kind === "string" && Number.isSafeInteger(d.count) && d.count > 0) || !strongTag(etag))
-          throw new Error("Invalid review");
+          throw new Error("Xem xét không hợp lệ");
         if (!abort.signal.aborted && latest.current === identity) setReview({ ...data, etag });
-      } catch { if (!abort.signal.aborted && latest.current === identity) setMessage("Dependency review unavailable. Reload before continuing."); }
+      } catch { if (!abort.signal.aborted && latest.current === identity) setMessage("Chưa thể kiểm tra ràng buộc. Tải lại trước khi tiếp tục."); }
       finally { if (!abort.signal.aborted && latest.current === identity) setBusy(false); }
     })();
     return () => abort.abort();
@@ -63,33 +63,33 @@ export function DepartmentDeactivationPanel({ branchId, departmentId, onSaved }:
       setConfirmed(false);
       if (result.outcome === "CONFIRMED") {
         setReview({ ...review, isActive: false, etag: result.etag });
-        setMessage("MSG08: Department deactivated. Historical records are preserved.");
+        setMessage("MSG08: Đã vô hiệu hóa bộ phận. Giữ nguyên lịch sử.");
         onSaved();
       } else {
         setReview(null);
         setMessage(result.outcome === "OUTCOME_UNKNOWN"
-          ? "Outcome unknown. Reload the server record before attempting another change."
-          : "Change rejected or not sent. Reload dependency review; the version, permissions or dependencies may have changed.");
+          ? "Chưa xác định kết quả. Tải lại hồ sơ máy chủ trước khi thay đổi tiếp."
+          : "Thay đổi bị từ chối hoặc chưa gửi. Tải lại ràng buộc; phiên bản, quyền hoặc ràng buộc có thể đã đổi.");
         if (result.status === 401 || result.status === 403) void actions.revalidate();
       }
     } finally { pending.current = false; if (current()) setBusy(false); }
   }
 
   if (state.status !== "AUTHENTICATED" || state.pending !== null) return null;
-  return <section aria-label="Deactivate department">
-    <h2>Deactivate department</h2>
-    <button type="button" disabled={busy} onClick={() => setReload(n => n + 1)}>Refresh dependency review</button>
-    {busy && <p role="status">Loading or saving…</p>}
+  return <section aria-label="Vô hiệu hóa bộ phận">
+    <h2>Vô hiệu hóa bộ phận</h2>
+    <button type="button" disabled={busy} onClick={() => setReload(n => n + 1)}>Tải lại kiểm tra ràng buộc</button>
+    {busy && <p role="status">Đang tải hoặc lưu…</p>}
     {message && <p role="status">{message}</p>}
-    {review && !review.isActive && <p>This department is inactive and cannot be selected for new records.</p>}
-    {review && review.dependencies.length > 0 && <><p>MSG34: Resolve these dependencies before deactivation.</p>
+    {review && !review.isActive && <p>Bộ phận đã ngừng hoạt động, không được chọn cho hồ sơ mới.</p>}
+    {review && review.dependencies.length > 0 && <><p>MSG34: Xử lý các ràng buộc này trước khi vô hiệu hóa.</p>
       <ul>{review.dependencies.map(d => <li key={d.kind}>{labels[d.kind] ?? d.kind}: {d.count}</li>)}</ul></>}
     {review?.isActive && review.dependencies.length === 0 && <>
-      <p>MSG33: Deactivate this department? Existing history remains available.</p>
-      <label>Reason (10–1000 characters)<textarea minLength={10} maxLength={1000} value={reason} disabled={busy}
+      <p>MSG33: Vô hiệu hóa bộ phận này? Lịch sử vẫn khả dụng.</p>
+      <label>Lý do (10–1000 ký tự)<textarea minLength={10} maxLength={1000} value={reason} disabled={busy}
         onChange={e => { setReason(e.target.value); setConfirmed(false); }} /></label>
-      <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e => setConfirmed(e.target.checked)} />Confirm deactivation</label>
-      <button type="button" disabled={busy || !confirmed || reason.trim().length < 10} onClick={() => void deactivate()}>Deactivate</button>
+      <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e => setConfirmed(e.target.checked)} />Xác nhận vô hiệu hóa</label>
+      <button type="button" disabled={busy || !confirmed || reason.trim().length < 10} onClick={() => void deactivate()}>Vô hiệu hóa</button>
     </>}
   </section>;
 }

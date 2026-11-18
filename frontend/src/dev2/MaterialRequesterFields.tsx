@@ -12,9 +12,9 @@ export function materialRequesterReady(record: Values, actor: string, action: st
 }
 
 export function MaterialCancellationFields({ values, onChange }: { values: Values; onChange: (v: Values) => void }) {
-  return <section><label>Cancellation reason<textarea required minLength={10} value={String(values.reason ?? "")}
+  return <section><label>Lý do hủy<textarea required minLength={10} value={String(values.reason ?? "")}
     onChange={event => onChange({ ...values, reason: event.target.value })} /></label>
     <label><input type="checkbox" required checked={values.confirmCancellation === true}
       onChange={event => onChange({ ...values, confirmCancellation: event.target.checked })} />
-      I confirm cancellation of this material request.</label></section>;
+      Tôi xác nhận hủy yêu cầu vật tư này.</label></section>;
 }

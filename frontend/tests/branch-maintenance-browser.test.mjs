@@ -97,7 +97,7 @@ async function review(p) {
     .getByRole("textbox", { name: "reason", exact: true })
     .fill("Correct contact information");
   await p.getByRole("button", { name: "Review update", exact: true }).click();
-  await p.getByRole("region", { name: "Review branch update" }).waitFor();
+  await p.getByRole("region", { name: "Xem lại cập nhật chi nhánh" }).waitFor();
 }
 const writes = (p) =>
   p.evaluate(() => window.fixture.calls.filter((c) => c.method === "PUT"));
@@ -126,7 +126,7 @@ test("render, required validation, review-only, edit invalidation, double confir
       b.click();
       b.click();
     });
-    await p.getByText("Branch information updated.").waitFor();
+    await p.getByText("Đã cập nhật thông tin chi nhánh.").waitFor();
     assert.equal((await writes(p)).length, 1);
     assert.equal((await writes(p))[0].headers["if-match"], tag);
   }));
@@ -142,7 +142,7 @@ test("412 requires explicit fresh GET and new review, no replay", () =>
       0,
     );
     assert.equal((await writes(p)).length, 1);
-    await p.getByRole("button", { name: "Read branch" }).click();
+    await p.getByRole("button", { name: "Xem chi nhánh" }).click();
     await p.getByRole("textbox", { name: "name", exact: true }).waitFor();
     assert.equal(
       await p.getByRole("button", { name: "Confirm update" }).count(),
@@ -155,7 +155,7 @@ test("unknown result remains locked after successful read", () =>
     await review(p);
     await p.getByRole("button", { name: "Confirm update" }).click();
     await p.getByText("Update outcome unknown.", { exact: false }).waitFor();
-    await p.getByRole("button", { name: "Read branch" }).click();
+    await p.getByRole("button", { name: "Xem chi nhánh" }).click();
     await p.getByRole("textbox", { name: "name", exact: true }).waitFor();
     assert.equal(
       await p.getByRole("button", { name: "Review update" }).isDisabled(),
@@ -177,7 +177,7 @@ for (const auth of [{ status: 401, body: {} }, { body: session("7", true) }])
   test("anonymous/restricted cannot load branch", () =>
     pageTest({ auth }, async (p) => {
       await p
-        .getByText("A confirmed unrestricted session is required.")
+        .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.")
         .waitFor();
       assert.equal(
         (
@@ -212,7 +212,7 @@ test("branch change during write prevents stale success from publishing", () =>
       await p.getByRole("textbox", { name: "name", exact: true }).inputValue(),
       "Branch 2",
     );
-    assert.equal(await p.getByText("Branch information updated.").count(), 0);
+    assert.equal(await p.getByText("Đã cập nhật thông tin chi nhánh.").count(), 0);
     assert.equal(
       await p.getByRole("button", { name: "Review update" }).isDisabled(),
       true,
@@ -271,7 +271,7 @@ test("invalid branch URL does not request branch data", () =>
     await p.getByRole("textbox", { name: "name", exact: true }).waitFor();
     const before = await p.evaluate(() => window.fixture.calls.length);
     await p.evaluate(() => window.selectBranch("not-a-number"));
-    await p.getByText("Select a positive safe branch ID.").waitFor();
+    await p.getByText("Chọn mã chi nhánh là số nguyên dương hợp lệ.").waitFor();
     assert.equal(await p.evaluate(() => window.fixture.calls.length), before);
   }));
 test("FE02 structure navigation reaches editor; FE01 Profile remains available", () =>

@@ -27,10 +27,10 @@ for(const action of ['hold','resume','start','returned'])test(`${action} require
   await page.route('**/*',r=>r.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
   await page.goto('https://hotelops.test');await page.evaluate(v=>window.action=v,action);await page.addScriptTag({content:bundle.outputFiles[0].text});
   const verb=action==='returned'?'Resume':action[0].toUpperCase()+action.slice(1),button=page.getByRole('button',{name:`${verb} maintenance`,exact:true});await button.waitFor();
-  if(hold){assert.equal(await button.isDisabled(),true);await page.getByLabel('Hold reason and note').fill('Waiting for spare parts');}
+  if(hold){assert.equal(await button.isDisabled(),true);await page.getByLabel("Lý do và ghi chú tạm dừng").fill('Waiting for spare parts');}
   await button.click();assert.equal(await page.evaluate(()=>window.calls.length),0);
   await page.getByRole('button',{name:`Confirm ${verb.toLowerCase()}`,exact:true}).click();
-  await page.getByText(`Work ${hold?'put on hold':action==='start'?'started':'resumed'}. Reload the work detail to view the current state.`,{exact:true}).waitFor();
+  await page.getByText(`Work ${hold?"tạm dừng":action==='start'?'started':'resumed'}. Reload the work detail to view the current state.`,{exact:true}).waitFor();
   const calls=await page.evaluate(()=>window.calls);assert.equal(calls.length,1);const call=calls[0];
   assert.equal(call.url,`/api/maintenance-works/7/${verb.toLowerCase()}`);assert.equal(call.method,'POST');
   assert.equal(call.headers['If-Match'],'"0000000000000001"');assert.equal(call.headers['X-CSRF-TOKEN'],'synthetic');

@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import type { InitialRoleCode } from "./createUserContracts";
@@ -20,13 +21,13 @@ const roles: readonly InitialRoleCode[] = [
   "RECEPTION",
 ];
 const labels = {
-  employeeCode: "Employee code",
-  username: "Username",
-  fullName: "Full name",
+  employeeCode: "Mã nhân viên",
+  username: "Tên đăng nhập",
+  fullName: "Họ và tên",
   email: "Email",
-  phone: "Phone (optional)",
-  branchId: "Branch ID",
-  departmentId: "Department ID",
+  phone: "Số điện thoại (không bắt buộc)",
+  branchId: "Mã chi nhánh",
+  departmentId: "Mã bộ phận",
 } as const;
 const limits = {
   employeeCode: 40,
@@ -78,7 +79,7 @@ export function CreateUserPage({
       })
     ) {
       setValidation(
-        "Enter all required fields within their limits and positive safe integer branch and department IDs.",
+        "Nhập đủ trường bắt buộc trong giới hạn cho phép; mã chi nhánh và bộ phận phải là số nguyên dương hợp lệ.",
       );
       return;
     }
@@ -89,16 +90,15 @@ export function CreateUserPage({
   }
   return (
     <main>
-      <h1>Create user account</h1>
-      <Link to="/profile">Profile</Link>
+      <h1>Tạo tài khoản người dùng</h1>
+      <Link to="/profile">Hồ sơ cá nhân</Link>
       <p>
-        The server decides whether this account can be created and validates its
-        branch, department and initial role.
+        Máy chủ quyết định có thể tạo tài khoản và kiểm tra chi nhánh, bộ phận, vai trò ban đầu.
       </p>
       {progress.phase !== "created" && progress.phase !== "unknown" && (
-        <form aria-label="Create user account" onSubmit={submit} noValidate>
+        <form aria-label="Tạo tài khoản người dùng" onSubmit={submit} noValidate>
           <fieldset disabled={progress.phase === "pending"}>
-            <legend>Employee account</legend>
+            <legend>Tài khoản nhân viên</legend>
             {(Object.keys(labels) as (keyof typeof labels)[]).map((key) => (
               <label key={key}>
                 {labels[key]}
@@ -128,13 +128,13 @@ export function CreateUserPage({
                   }
                 />
                 {progress.phase === "rejected" && progress.error.duplicateFields?.some(field => field === key)
-                  && <span id={`create-${key}-duplicate`}>MSG35: {labels[key]} is already in use.</span>}
+                  && <span id={`create-${key}-duplicate`}>MSG35: {labels[key]} đã được sử dụng.</span>}
               </label>
             ))}
             <label>
-              Initial role
+              Vai trò ban đầu
               <select
-                aria-label="Initial role"
+                aria-label="Vai trò ban đầu"
                 value={draft.roleCode}
                 onChange={(event) =>
                   setDraft({
@@ -145,15 +145,15 @@ export function CreateUserPage({
               >
                 {roles.map((role) => (
                   <option key={role} value={role}>
-                    {role}
+                    {displayCode(role)}
                   </option>
                 ))}
               </select>
             </label>
             <button type="submit">
               {progress.phase === "pending"
-                ? "Creating account..."
-                : "Create account"}
+                ? "Đang tạo tài khoản..."
+                : "Tạo tài khoản"}
             </button>
           </fieldset>
         </form>
@@ -163,7 +163,7 @@ export function CreateUserPage({
         progress.phase === "not-dispatched") && (
         <p role="alert">
           {progress.phase === "not-dispatched"
-            ? "No account creation request was sent. "
+            ? "Không gửi yêu cầu tạo tài khoản."
             : ""}
           {createUserFailureMessage(progress.error)}
         </p>
@@ -173,9 +173,7 @@ export function CreateUserPage({
       )}
       {progress.phase === "created" && (
         <p>
-          Account creation was confirmed. If the credential is no longer
-          available on this page, ask an authorized administrator to arrange a
-          reset; do not create this account again.
+          Đã xác nhận tạo tài khoản. Nếu không còn mật khẩu trên trang này, nhờ quản trị viên đặt lại; không tạo lại tài khoản.
         </p>
       )}
       <InitialCredentialHandoff ref={handoff} />

@@ -16,10 +16,10 @@ export function EmployeeBranchRemovalPanel({user,branch,version,branches,onChang
     const abort=new AbortController();setOptions([]);setDepartment("");
     if(!replacement)return()=>abort.abort();
     void planningRequest(`/api/users/${user}/branches/${replacement}/departments`,abort.signal).then(r=>r.json()).then((body:unknown)=>{
-      if(!isObject(body)||body.userId!==user||body.branchId!==Number(replacement)||!Array.isArray(body.replacementDepartments))throw Error("Invalid replacement membership");
+      if(!isObject(body)||body.userId!==user||body.branchId!==Number(replacement)||!Array.isArray(body.replacementDepartments))throw Error("Phân công thành viên thay thế không hợp lệ");
       const options=body.replacementDepartments.flatMap(d=>isObject(d)&&typeof d.id==="number"&&Number.isSafeInteger(d.id)&&d.id>0&&typeof d.name==="string"?[{id:d.id,name:d.name}]:[]);
       if(!abort.signal.aborted)setOptions(options);
-    }).catch(e=>{if(!abort.signal.aborted){setMessage("Replacement membership unavailable. Reload before retrying.");if(e instanceof TaskProgressError&&e.status===401)actions.invalidateSession(owner);}});
+    }).catch(e=>{if(!abort.signal.aborted){setMessage("Phân công thay thế chưa khả dụng. Tải lại trước khi thử lại.");if(e instanceof TaskProgressError&&e.status===401)actions.invalidateSession(owner);}});
     return()=>abort.abort();
   },[owner,user,replacement,actions]);
   async function remove(){
@@ -28,7 +28,7 @@ export function EmployeeBranchRemovalPanel({user,branch,version,branches,onChang
     try{
       const csrf:unknown=await (await planningRequest("/api/auth/csrf",abort.signal)).json();
       if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||generation.current!==owner)
-        throw Error("Session changed; reload before saving.");
+        throw Error("Phiên đăng nhập đã thay đổi; tải lại trước khi lưu.");
       const response=await fetch(`/api/users/${user}/branches/${branch}/remove`,{method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":version},
         body:JSON.stringify({reason,...(primary?{replacementBranchId:Number(replacement),replacementDepartmentId:Number(department)}:{})})});
@@ -36,25 +36,25 @@ export function EmployeeBranchRemovalPanel({user,branch,version,branches,onChang
         if(response.status===401)throw new TaskProgressError(401);
         const problem:unknown=await response.json();
         const details=isObject(problem)&&Array.isArray(problem.dependencies)?problem.dependencies.flatMap(d=>isObject(d)&&typeof d.kind==="string"&&typeof d.count==="number"?[`${d.kind}: ${d.count}`]:[]).join("; "):"";
-        throw Error((isObject(problem)&&typeof problem.title==="string"?problem.title:"Removal rejected")+(details?": "+details:""));
+        throw Error((isObject(problem)&&typeof problem.title==="string"?problem.title:"Yêu cầu xóa bị từ chối")+(details?": "+details:""));
       }
-      if(response.status!==204)throw Error("Branch removal receipt invalid");
-      if(!abort.signal.aborted&&generation.current===owner){setMessage("MSG08: Branch access and memberships removed; history retained and employee sessions revoked.");onChanged();}
+      if(response.status!==204)throw Error("Xác nhận xóa phân quyền chi nhánh không hợp lệ");
+      if(!abort.signal.aborted&&generation.current===owner){setMessage("MSG08: Đã xóa quyền chi nhánh và phân công thành viên; giữ lịch sử và thu hồi phiên nhân viên.");onChanged();}
     }catch(e){
       if(!abort.signal.aborted&&generation.current===owner){
         if(e instanceof TaskProgressError&&e.status===401)actions.invalidateSession(owner);
-        setMessage(`${e instanceof Error?e.message:"Outcome not confirmed"}. Reload current memberships before retrying.`);
+        setMessage(`${e instanceof Error?e.message:"Chưa xác nhận kết quả"}. Tải lại phân công thành viên trước khi thử lại.`);
         // A stale version or ambiguous response must not be silently replayed.
         setConfirmed(false);
       }
     }finally{saving.current=false;if(!abort.signal.aborted&&generation.current===owner)setBusy(false);}
   }
-  return <details><summary>Remove this branch access</summary><form onSubmit={e=>{e.preventDefault();void remove();}}><fieldset disabled={busy}>
-    <p>All department memberships in this branch will end. Existing roles, grants, Head mappings and open responsibilities must be resolved first; none will be transferred automatically.</p>
-    {primary&&<><label>Replacement primary branch<select required value={replacement} onChange={e=>setReplacement(e.target.value)}><option value="">Select active branch</option>{branches.filter(b=>b.id!==branch).map(b=><option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
-      <label>Replacement primary department<select required value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Select active membership</option>{options.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label></>}
-    <label>Reason<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label>
-    <label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Confirm branch removal and employee session revocation.</label>
-    <button disabled={!confirmed}>Remove branch access</button>
+  return <details><summary>Xóa quyền chi nhánh này</summary><form onSubmit={e=>{e.preventDefault();void remove();}}><fieldset disabled={busy}>
+    <p>Mọi phân công bộ phận trong chi nhánh này sẽ kết thúc. Cần xử lý vai trò, quyền, phân công trưởng bộ phận và trách nhiệm còn mở trước; không tự điều chuyển.</p>
+    {primary&&<><label>Chi nhánh chính thay thế<select required value={replacement} onChange={e=>setReplacement(e.target.value)}><option value="">Chọn chi nhánh đang hoạt động</option>{branches.filter(b=>b.id!==branch).map(b=><option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+      <label>Bộ phận chính thay thế<select required value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Chọn phân công thành viên đang hiệu lực</option>{options.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label></>}
+    <label>Lý do<input required minLength={10} maxLength={250} value={reason} onChange={e=>setReason(e.target.value)}/></label>
+    <label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Xác nhận xóa phân quyền chi nhánh và thu hồi phiên nhân viên.</label>
+    <button disabled={!confirmed}>Xóa quyền truy cập chi nhánh</button>
   </fieldset></form>{message&&<p role="status">{message}</p>}</details>;
 }

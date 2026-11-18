@@ -49,7 +49,7 @@ export function cancellationCommand(
     text.length > 500 ||
     /[\u0000-\u001f\u007f]/.test(text)
   )
-    throw new Error("Confirmation and a reason of 10-500 characters required");
+    throw new Error("Cần xác nhận và lý do 10–500 ký tự");
   return { confirmed: true, reason: text };
 }
 export async function cancelCleaning(
@@ -62,7 +62,7 @@ export async function cancelCleaning(
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)
   )
-    throw new Error("Invalid operation key");
+    throw new Error("Mã thao tác không hợp lệ");
   const csrf = (await getJson("/auth/csrf")) as {
     headerName?: string;
     csrfToken?: string;

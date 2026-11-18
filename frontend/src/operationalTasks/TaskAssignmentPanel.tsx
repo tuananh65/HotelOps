@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -37,8 +38,8 @@ export function TaskAssignmentPanel({
     setLocked(true);
     setError(
       error instanceof TaskProgressError && error.status === 412
-        ? "The task changed. Reload assignment and review the current owner."
-        : "Assignment is unavailable or its outcome could not be confirmed. Reload before trying again.",
+        ? "Công việc đã đổi. Tải lại phân công và kiểm tra người phụ trách hiện tại."
+        : "Không thể phân công hoặc chưa xác minh được kết quả. Tải lại trước khi thử lại.",
     );
   }
   useEffect(() => {
@@ -85,7 +86,7 @@ export function TaskAssignmentPanel({
   async function save() {
     if (!snapshot || busy || locked || saving.current) return;
     if (!assignee || (snapshot.data.assigneeId !== null && !reason.trim())) {
-      setError("Select an executor and enter a reason when reassigning.");
+      setError("Chọn người thực hiện và nhập lý do khi phân công lại.");
       return;
     }
     saving.current = true;
@@ -115,25 +116,24 @@ export function TaskAssignmentPanel({
   }
   if (hidden) return null;
   return (
-    <section aria-label="Task assignment">
-      <h3>Assign or reassign task</h3>
+    <section aria-label="Phân công công việc">
+      <h3>Phân công hoặc phân công lại công việc</h3>
       <button
         disabled={busy}
         onClick={() => setQuery((q) => ({ ...q, revision: q.revision + 1 }))}
       >
-        Reload assignment
+        Tải lại phân công
       </button>
       {error && <p role="alert">{error}</p>}
       {snapshot && (
         <>
           <p>
-            Workflow: {snapshot.data.state}; current executor:{" "}
-            {snapshot.data.assigneeId ?? "Unassigned"}
+            Quy trình: {displayCode(snapshot.data.state)}; người thực hiện hiện tại:{" "}
+            {snapshot.data.assigneeId ?? "Chưa phân công"}
           </p>
           <p>
-            Workload in this branch as of {snapshot.data.asOf}. Logged time
-            today ({snapshot.data.timezone}) includes closed work intervals;
-            paused time is excluded.
+            Khối lượng công việc trong chi nhánh tính đến {snapshot.data.asOf}. Logged time
+            today ({snapshot.data.timezone}) gồm các khoảng làm việc đã kết thúc; không tính thời gian tạm dừng.
           </p>
           <form
             onSubmit={(e) => {
@@ -147,39 +147,39 @@ export function TaskAssignmentPanel({
             }}
           >
             <label>
-              Find executor
+              Tìm người thực hiện
               <input
                 maxLength={150}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </label>
-            <button disabled={busy}>Find executor</button>
+            <button disabled={busy}>Tìm người thực hiện</button>
           </form>
           <fieldset disabled={busy || locked}>
-            <legend>Select an eligible executor</legend>
+            <legend>Chọn người thực hiện đủ điều kiện</legend>
             <label>
-              Executor
+              Người thực hiện
               <select
-                aria-label="Executor"
+                aria-label="Người thực hiện"
                 value={assignee}
                 onChange={(e) => setAssignee(e.target.value)}
               >
-                <option value="">Choose executor</option>
+                <option value="">Chọn người thực hiện</option>
                 {snapshot.data.executors.map((e) => (
                   <option
                     key={e.userId}
                     value={e.userId}
                     disabled={e.userId === snapshot.data.assigneeId}
                   >
-                    {e.name} — {e.openTasks} open tasks; {e.loggedSecondsToday}{" "}
-                    seconds logged today
+                    {e.name} — {displayCode(e.openTasks)} công việc đang mở; {displayCode(e.loggedSecondsToday)}{" "}
+                    giây ghi nhận hôm nay
                   </option>
                 ))}
               </select>
             </label>
             <label>
-              Reassignment reason
+              Lý do phân công lại
               <textarea
                 maxLength={4000}
                 required={snapshot.data.assigneeId !== null}
@@ -189,25 +189,25 @@ export function TaskAssignmentPanel({
             </label>
             <button onClick={() => void save()}>
               {snapshot.data.assigneeId === null
-                ? "Assign task"
-                : "Reassign task"}
+                ? "Phân công công việc"
+                : "Phân công lại công việc"}
             </button>
           </fieldset>
-          <nav aria-label="Executor pagination">
+          <nav aria-label="Phân trang người thực hiện">
             <button
               disabled={busy || query.page === 1}
               onClick={() => setQuery((q) => ({ ...q, page: q.page - 1 }))}
             >
-              Previous executors
+              Người thực hiện trước
             </button>
             <span>
-              Page {query.page}; {snapshot.data.totalCount} eligible executors
+              Trang {query.page}; {snapshot.data.totalCount} người thực hiện đủ điều kiện
             </span>
             <button
               disabled={busy || query.page * 25 >= snapshot.data.totalCount}
               onClick={() => setQuery((q) => ({ ...q, page: q.page + 1 }))}
             >
-              Next executors
+              Người thực hiện tiếp theo
             </button>
           </nav>
         </>

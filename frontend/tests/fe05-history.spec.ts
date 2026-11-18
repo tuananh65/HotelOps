@@ -238,10 +238,10 @@ test("list/detail preserve historical results and separate defects/reworks; evid
     view.getByText("Historical criterion", { exact: false }),
   ).toBeVisible();
   await expect(
-    view.getByRole("heading", { name: "Defects", exact: true }),
+    view.getByRole("heading", { name: "Các lỗi", exact: true }),
   ).toBeVisible();
   await expect(
-    view.getByRole("heading", { name: "Reworks", exact: true }),
+    view.getByRole("heading", { name: "Công việc làm lại", exact: true }),
   ).toBeVisible();
   await expect(view.getByText(/Checklist #4 v2/).first()).toBeVisible();
   await expect(view.getByText(/Cleaner One/)).toBeVisible();

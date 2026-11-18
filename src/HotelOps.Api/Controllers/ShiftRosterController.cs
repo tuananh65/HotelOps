@@ -9,6 +9,13 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class ShiftRosterController(ShiftRosterService service,ShiftAssignmentCancellation cancellation):ControllerBase
 {
+    [HttpGet("~/api/shift-plans/options")]
+    public Task<IReadOnlyList<ShiftBranchOption>> Options(CancellationToken ct)
+    {
+        if(!Request.IsHttps)throw new InternalRequestReadException(400,"HTTPS_REQUIRED");
+        if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid)||ticket==null)throw new InternalRequestReadException(401,"SESSION_INVALID");
+        return service.OptionsAsync(ticket,sid,ct);
+    }
     [HttpGet("employees")]
     public Task<ShiftEmployeePage> Employees(long branchId,long departmentId,[FromQuery]long afterId,CancellationToken ct)
     {

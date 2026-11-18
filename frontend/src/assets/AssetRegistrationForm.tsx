@@ -24,8 +24,8 @@ export function AssetRegistrationForm({ save, busy }: { save: (input: AssetRegis
     const abort = new AbortController();
     void fetch("/api/asset-registration/catalog", { signal: abort.signal, credentials: "same-origin", cache: "no-store", redirect: "error" })
       .then(async r => { if (r.status === 401) actions.invalidateSession(owner); const value = await r.json();
-        if (!r.ok) throw Error(value.detail ?? `Registration unavailable (${r.status}).`);
-        if (!Array.isArray(value.branches) || !Array.isArray(value.departments) || !Array.isArray(value.categories)) throw Error("Invalid registration catalog.");
+        if (!r.ok) throw Error(value.detail ?? `Đăng ký chưa khả dụng (${r.status}).`);
+        if (!Array.isArray(value.branches) || !Array.isArray(value.departments) || !Array.isArray(value.categories)) throw Error("Danh mục đăng ký không hợp lệ.");
         if (!abort.signal.aborted && live.current === owner) setCatalog({ owner, data: value });
       }).catch(e => { if (!abort.signal.aborted && live.current === owner) setMessage(String(e)); });
     return () => { alive.current = false; abort.abort(); };
@@ -36,11 +36,11 @@ export function AssetRegistrationForm({ save, busy }: { save: (input: AssetRegis
     preparingRef.current = true; setPreparing(true); setMessage("");
     try {
       if (!visible.branches.some(b => b.id === Number(branch)) || !visible.departments.some(d => d.id === Number(department) && d.branchId === Number(branch))
-        || !visible.categories.some(c => c.id === Number(category)) || !fields.assetCode.trim() || !fields.assetName.trim()) throw Error("Select an authorized branch, department and category; enter code and name.");
-      if (fields.purchaseDate && fields.warrantyExpiryDate && fields.warrantyExpiryDate < fields.purchaseDate) throw Error("Warranty expiry cannot precede purchase date.");
+        || !visible.categories.some(c => c.id === Number(category)) || !fields.assetCode.trim() || !fields.assetName.trim()) throw Error("Chọn chi nhánh, bộ phận và nhóm được phép; nhập mã và tên.");
+      if (fields.purchaseDate && fields.warrantyExpiryDate && fields.warrantyExpiryDate < fields.purchaseDate) throw Error("Hạn bảo hành không được trước ngày mua.");
       const photos = await Promise.all(files.map(file => new Promise<{ name: string; mimeType: string; base64: string }>((resolve, reject) => {
-        if (!["image/jpeg", "image/png"].includes(file.type)) { reject(Error("Photos must be JPG or PNG.")); return; }
-        const reader = new FileReader(); reader.onerror = () => reject(Error("Cannot read photo."));
+        if (!["image/jpeg", "image/png"].includes(file.type)) { reject(Error("Ảnh phải là JPG hoặc PNG.")); return; }
+        const reader = new FileReader(); reader.onerror = () => reject(Error("Không đọc được ảnh."));
         reader.onload = () => resolve({ name: file.name, mimeType: file.type, base64: String(reader.result).split(",")[1] }); reader.readAsDataURL(file);
       })));
       if (!alive.current || live.current !== owner) return;
@@ -50,13 +50,13 @@ export function AssetRegistrationForm({ save, busy }: { save: (input: AssetRegis
     } catch (e) { if (alive.current && live.current === owner) setMessage(String(e)); }
     finally { preparingRef.current = false; setPreparing(false); }
   }
-  return <section><h1>Register asset</h1>{message && <p role="alert">{message}</p>}{visible && <fieldset disabled={busy || preparing}>
-    <legend>Asset details</legend><label>Branch <select value={branch} onChange={e => { setBranch(e.target.value); setDepartment(""); }}><option value="">Select</option>{visible.branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
-    <label>Custodian department <select value={department} onChange={e => setDepartment(e.target.value)}><option value="">Select</option>{visible.departments.filter(d => d.branchId === Number(branch)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
-    <label>Category <select value={category} onChange={e => setCategory(e.target.value)}><option value="">Select</option>{visible.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+  return <section><h1>Đăng ký tài sản</h1>{message && <p role="alert">{message}</p>}{visible && <fieldset disabled={busy || preparing}>
+    <legend>Chi tiết tài sản</legend><label>Chi nhánh <select value={branch} onChange={e => { setBranch(e.target.value); setDepartment(""); }}><option value="">Chọn</option>{visible.branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+    <label>Bộ phận quản lý tài sản <select value={department} onChange={e => setDepartment(e.target.value)}><option value="">Chọn</option>{visible.departments.filter(d => d.branchId === Number(branch)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+    <label>Nhóm <select value={category} onChange={e => setCategory(e.target.value)}><option value="">Chọn</option>{visible.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
     {(["assetCode", "assetName", "serialNumber", "brand", "model", "purchaseDate", "warrantyExpiryDate"] as const).map(name => <label key={name}>{name}<input type={name.endsWith("Date") ? "date" : "text"} value={fields[name]} maxLength={name === "assetCode" ? 50 : name === "assetName" ? 200 : 100} onChange={e => setFields(v => ({ ...v, [name]: e.target.value }))} /></label>)}
-    <label>Description <textarea value={fields.description} onChange={e => setFields(v => ({ ...v, description: e.target.value }))} /></label>
-    <label>Photos <input key={String(owner)} type="file" multiple accept="image/jpeg,image/png" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
-    <p>After registration, assign the asset to its first room or area.</p><button onClick={() => void submit()}>Register and assign location</button>
+    <label>Mô tả <textarea value={fields.description} onChange={e => setFields(v => ({ ...v, description: e.target.value }))} /></label>
+    <label>Ảnh <input key={String(owner)} type="file" multiple accept="image/jpeg,image/png" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
+    <p>Sau khi đăng ký, bố trí tài sản vào phòng hoặc khu vực ban đầu.</p><button onClick={() => void submit()}>Đăng ký và bố trí vị trí</button>
   </fieldset>}</section>;
 }

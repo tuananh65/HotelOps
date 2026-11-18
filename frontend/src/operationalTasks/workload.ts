@@ -122,12 +122,12 @@ export async function readWorkload(
     page > Math.floor(2147483647 / 20) ||
     (employee !== null && !id(employee))
   )
-    throw Error("Invalid workload identity");
+    throw Error("Định danh khối lượng công việc không hợp lệ");
   const params = new URLSearchParams({ page: String(page), pageSize: "20" });
   for (const key of ["from", "to", "deadlineFrom", "deadlineTo"] as const) {
     const value = filters[key];
     if (value !== undefined) {
-      if (!date(value)) throw Error("Invalid period");
+      if (!date(value)) throw Error("Khoảng thời gian không hợp lệ");
       params.set(key, value);
     }
   }
@@ -137,11 +137,11 @@ export async function readWorkload(
       filters.deadlineTo &&
       filters.deadlineTo < filters.deadlineFrom)
   )
-    throw Error("Reversed period");
+    throw Error("Khoảng thời gian bị đảo ngược");
   for (const key of ["departmentId", "employeeId", "priorityId"] as const) {
     const value = filters[key];
     if (value !== undefined) {
-      if (!id(value)) throw Error("Invalid reference");
+      if (!id(value)) throw Error("Tham chiếu không hợp lệ");
       params.set(key, String(value));
     }
   }
@@ -150,10 +150,10 @@ export async function readWorkload(
     filters.employeeId !== undefined &&
     employee !== filters.employeeId
   )
-    throw Error("Employee filter mismatch");
+    throw Error("Bộ lọc nhân viên không khớp");
   if (filters.status !== undefined) {
     if (!(taskWorkflowStates as readonly string[]).includes(filters.status))
-      throw Error("Invalid workflow");
+      throw Error("Quy trình không hợp lệ");
     params.set("status", filters.status);
   }
   if (filters.search !== undefined) {
@@ -161,17 +161,17 @@ export async function readWorkload(
       filters.search.length > 150 ||
       /[\u0000-\u001f\u007f-\u009f]/.test(filters.search)
     )
-      throw Error("Invalid search");
+      throw Error("Tìm kiếm không hợp lệ");
     params.set("search", filters.search);
   }
   if (filters.overdueOnly) params.set("overdueOnly", "true");
   if (filters.taskSet !== undefined) {
     if (!["OPEN", "OVERDUE", "CLOSED_IN_PERIOD", "EFFORT_IN_PERIOD"].includes(filters.taskSet) || employee !== null || filters.employeeId !== undefined)
-      throw Error("Invalid task population");
+      throw Error("Tập công việc không hợp lệ");
     params.set("taskSet", filters.taskSet);
   }
   if (filters.calendar !== undefined) {
-    if (filters.calendar !== "UTC" && filters.calendar !== "Asia/Ho_Chi_Minh") throw Error("Invalid calendar");
+    if (filters.calendar !== "UTC" && filters.calendar !== "Asia/Ho_Chi_Minh") throw Error("Lịch không hợp lệ");
     params.set("calendar", filters.calendar);
   }
   const response = await planningRequest(
@@ -192,7 +192,7 @@ export async function readWorkload(
     (filters.from && data.from !== filters.from) ||
     (filters.to && data.to !== filters.to)
   )
-    throw Error("Invalid workload snapshot");
+    throw Error("Bản chụp khối lượng công việc không hợp lệ");
   if (filters.taskSet) {
     if (!("taskSet" in data) || data.taskSet !== filters.taskSet || !Array.isArray(data.tasks)
       || data.tasks.length > 20 || !count(data.totalCount) || data.totalCount < data.tasks.length
@@ -207,7 +207,7 @@ export async function readWorkload(
         || filters.taskSet === "OPEN" && ["CLOSED", "CANCELLED"].includes(t.state)
         || filters.taskSet === "OVERDUE" && !t.overdue
         || filters.taskSet === "CLOSED_IN_PERIOD" && (t.state !== "CLOSED" || t.completedAt === null)))
-      throw Error("Invalid workload task population");
+      throw Error("Tập công việc tính khối lượng không hợp lệ");
   } else if (employee === null) {
     if (
       !("items" in data) ||
@@ -230,7 +230,7 @@ export async function readWorkload(
           !count(x.provisionalSeconds),
       )
     )
-      throw Error("Invalid employee workload");
+      throw Error("Khối lượng công việc nhân viên không hợp lệ");
   } else {
     if (
       !("userId" in data) ||
@@ -282,7 +282,7 @@ export async function readWorkload(
               !timed(d),
           ))
     )
-      throw Error("Invalid time-log detail");
+      throw Error("Chi tiết nhật ký thời gian không hợp lệ");
   }
   return data;
 }

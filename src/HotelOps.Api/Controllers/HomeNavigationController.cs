@@ -11,6 +11,19 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class HomeNavigationController(HomeNavigationService navigation) : ControllerBase
 {
+    [HttpGet("operation-grants")]
+    public async Task<IActionResult> OperationGrants(CancellationToken ct)
+    {
+        if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out _)) return Unauthorized();
+        var result = await navigation.OperationGrantsAsync(ticket!, ct);
+        return result.Status switch
+        {
+            UserDirectoryReadStatus.Success => Ok(new { grants = result.Value }),
+            UserDirectoryReadStatus.SessionInvalid => Unauthorized(),
+            UserDirectoryReadStatus.Forbidden => Forbid(),
+            _ => StatusCode(503)
+        };
+    }
     [HttpGet]
     public async Task<IActionResult> Read(CancellationToken ct)
     {

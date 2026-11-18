@@ -14,7 +14,7 @@ export function InspectionRoute({
   onAccessDenied?: (status: 401 | 403) => void;
 }) {
   const scope = scopeOf(context);
-  if (!scope) return <p role="alert">Inspection execution is not admitted.</p>;
+  if (!scope) return <p role="alert">Chưa cho phép thực hiện kiểm tra.</p>;
   let id: number | undefined;
   try {
     id = positiveId(initialId ?? "");
@@ -59,14 +59,14 @@ function AuthorizedExecution({
     return (
       <p role="alert">
         {denied.status === 401
-          ? "Session expired; verify access again."
-          : "Inspection permission denied in this branch."}
+          ? "Phiên đăng nhập đã hết hạn; vui lòng xác minh lại quyền truy cập."
+          : "Không có quyền kiểm tra trong chi nhánh này."}
       </p>
     );
   if (id === undefined)
     return (
       <p role="alert">
-        A valid Inspection ID is required; Directory is not integrated.
+        Cần mã kiểm tra hợp lệ; danh mục chưa được tích hợp.
       </p>
     );
   return (

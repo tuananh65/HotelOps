@@ -119,17 +119,19 @@ public sealed partial class WorkdayService(HotelOpsDbContext db, ICurrentUserAcc
                 && await db.Database.SqlQuery<int>($"SELECT 1 AS Value FROM dbo.preventive_occurrence_details WITH(HOLDLOCK) WHERE assignee_id={actor.UserId} AND workflow_status='IN_PROGRESS'").AnyAsync(ct))
                 return new(409, Code: "RUNNING_OCCURRENCE_REQUIRES_COMPLETION");
             // This also rejects additional running work after holding the single open interval.
+            // A known blocking workflow is a state conflict, not an unknown server failure.
+            // The transaction is rolled back and the employee can retry after resolving it.
             if (!await AssignedWorkdayBoundary.TasksStoppedAsync(db, actor.UserId, ct))
-                return new(503, Code: "PAUSE_ALL_TASK_RECONCILIATION_REQUIRED");
+                return new(409, Code: "PAUSE_ALL_TASK_RECONCILIATION_REQUIRED");
             if (!await AssignedWorkdayBoundary.CleaningStoppedAsync(db, actor.UserId, ct))
-                return new(503, Code: "PAUSE_ALL_CLEANING_RECONCILIATION_REQUIRED");
+                return new(409, Code: "PAUSE_ALL_CLEANING_RECONCILIATION_REQUIRED");
             if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.AssigneeId == actor.UserId
                     && w.Status == "IN_PROGRESS", ct))
-                return new(503, Code: "PAUSE_ALL_MAINTENANCE_RECONCILIATION_REQUIRED");
+                return new(409, Code: "PAUSE_ALL_MAINTENANCE_RECONCILIATION_REQUIRED");
             if (await db.CleaningReworks.AsNoTracking().AnyAsync(w => w.AssigneeUserId == actor.UserId
                     && w.Status == "IN_PROGRESS", ct)
                 && !await ReworkWorkdayBoundary.IsStoppedAsync(db, actor.UserId, ct))
-                return new(503, Code: "PAUSE_ALL_REWORK_RECONCILIATION_REQUIRED");
+                return new(409, Code: "PAUSE_ALL_REWORK_RECONCILIATION_REQUIRED");
             var day = await participant.EndWorkdayAsync(actor.UserId, branchId, workdayId, expectedVersion, ct);
             return new(200, Response(day));
         }, ct);
@@ -233,6 +235,12 @@ public sealed partial class WorkdayService(HotelOpsDbContext db, ICurrentUserAcc
             var result = await action(actor);
             if (result.Status is >= 200 and < 300)
             {
+                // Domain writes and audits have already been flushed in this transaction.
+                // SQL session admission requires an untracked context, even for saved rows.
+                // Never discard pending changes or commit them without the action saving them.
+                if (db.ChangeTracker.HasChanges())
+                    throw new InvalidOperationException("Workday action left unsaved changes before session revalidation.");
+                db.ChangeTracker.Clear();
                 // Locks preserve rows, not wall-clock validity during a long operation.
                 var finalSession = await sessions.ValidateSessionAsync(ticket, ct);
                 if (!finalSession.IsValid || finalSession.Session?.SessionId != actor.SessionId

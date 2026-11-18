@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -30,12 +31,12 @@ export function TransferDetailPage() {
         const response = await fetch(`/api/transfer-workspace/${id}`, { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
         if (response.status === 401) actions.invalidateSession(owner);
         const value = await response.json();
-        if (!response.ok) throw new Error(value.detail ?? `Transfer unavailable (${response.status}).`);
+        if (!response.ok) throw new Error(value.detail ?? `Điều chuyển chưa khả dụng (${response.status}).`);
         if (abort.signal.aborted || current.current !== owner) return;
         const key = `${owner}:${id}:${value.document.rowVersion}`;
         if (version.current !== key) setEntries(value.quantities.map((q: Quantity) => ({ transferLineId: q.lineId, receivedQty: "0", damagedQty: "0", missingQty: "0", note: "" })));
         version.current = key; setLoaded({ owner, id, data: value });
-      } catch (e) { if (!abort.signal.aborted) setMessage(e instanceof Error ? e.message : "Transfer unavailable."); }
+      } catch (e) { if (!abort.signal.aborted) setMessage(e instanceof Error ? e.message : "Điều chuyển chưa khả dụng."); }
     })();
     const refresh = () => { if (!writer.current) { setLoaded(undefined); setRevision(v => v + 1); } };
     const timer = setInterval(refresh, 30000); window.addEventListener("focus", refresh);
@@ -49,15 +50,15 @@ export function TransferDetailPage() {
     if (action === "receive" && (!selected.length || selected.some(e =>
       [e.receivedQty, e.damagedQty, e.missingQty].some(q => !/^\d+(\.\d{1,3})?$/.test(q))
       || (positive(e.damagedQty) || positive(e.missingQty)) && e.note.trim().length < 3))) {
-      setMessage("Enter positive quantities and a reason for each damaged/missing line."); return;
+      setMessage("Nhập số lượng dương và lý do cho từng dòng hỏng / thiếu."); return;
     }
-    if (action === "cancel" && reason.trim().length < 10) { setMessage("Cancellation reason requires at least 10 characters."); return; }
-    if (!window.confirm(`Confirm ${action} for ${data.document.documentNo}?`)) return;
+    if (action === "cancel" && reason.trim().length < 10) { setMessage("Lý do hủy cần ít nhất 10 ký tự."); return; }
+    if (!window.confirm(`Xác nhận ${{ dispatch: "gửi hàng", receive: "nhận hàng", cancel: "hủy" }[action]} cho ${data.document.documentNo}?`)) return;
     const abort = new AbortController(); writer.current = abort; setBusy(true); let sent = false;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       const csrf = await bootstrap.json();
-      if (!bootstrap.ok || csrf.headerName !== "X-CSRF-TOKEN" || !csrf.csrfToken) throw new Error("CSRF unavailable.");
+      if (!bootstrap.ok || csrf.headerName !== "X-CSRF-TOKEN" || !csrf.csrfToken) throw new Error("Chưa có bảo vệ phiên (CSRF).");
       if (abort.signal.aborted || current.current !== owner) return;
       sent = true;
       const path = action === "cancel" ? `/api/inventory/documents/${id}/cancel` : `/api/inventory/transfers/${id}/${action === "receive" ? "receipts" : "dispatch"}`;
@@ -65,25 +66,25 @@ export function TransferDetailPage() {
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken },
         body: JSON.stringify({ expectedRowVersion: data.document.rowVersion, reason, lines: selected }) });
       if (response.status === 401) actions.invalidateSession(owner);
-      if (!response.ok) { if (response.status < 500) sent = false; if ([401, 403].includes(response.status)) setLoaded(undefined); throw new Error((await response.json()).detail ?? `Operation failed (${response.status}).`); }
-      if (!abort.signal.aborted && current.current === owner) { setMessage(action === "dispatch" ? "MSG09: Transfer dispatched." : action === "receive" ? "MSG08/MSG18: Receipt batch recorded; reload to see the current remaining quantity." : "Transfer draft cancelled."); setLoaded(undefined); setRevision(v => v + 1); }
-    } catch (e) { if (sent) setUncertain(true); if (!abort.signal.aborted) setMessage(`${e instanceof Error ? e.message : "Operation failed."}${sent ? " Outcome unknown. Reopen and inspect the transfer before another action." : ""}`); }
+      if (!response.ok) { if (response.status < 500) sent = false; if ([401, 403].includes(response.status)) setLoaded(undefined); throw new Error((await response.json()).detail ?? `Thao tác thất bại (${response.status}).`); }
+      if (!abort.signal.aborted && current.current === owner) { setMessage(action === "dispatch" ? "MSG09: Đã gửi điều chuyển." : action === "receive" ? "MSG08/MSG18: Đã ghi nhận lô hàng; tải lại để xem số lượng còn lại." : "Đã hủy bản nháp điều chuyển."); setLoaded(undefined); setRevision(v => v + 1); }
+    } catch (e) { if (sent) setUncertain(true); if (!abort.signal.aborted) setMessage(`${e instanceof Error ? e.message : "Thao tác thất bại."}${sent ? "Chưa xác định kết quả. Mở lại và kiểm tra điều chuyển trước khi thao tác tiếp." : ""}`); }
     finally { if (writer.current === abort) { writer.current = null; setBusy(false); } }
   }
-  return <main><h1>Stock transfer</h1>{message && <p role="status">{message}</p>}
-    <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload transfer</button>
-    {data && <><p>{data.document.documentNo}: {data.document.status}; warehouse {data.document.sourceWarehouseId} → {data.document.destinationWarehouseId}.</p>
-      <table><thead><tr><th>Material / unit</th><th>Planned</th><th>Dispatched</th><th>Received</th><th>Damaged</th><th>Missing</th><th>In transit</th></tr></thead>
+  return <main><h1>Điều chuyển kho</h1>{message && <p role="status">{message}</p>}
+    <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Tải lại điều chuyển</button>
+    {data && <><p>{data.document.documentNo}: {displayCode(data.document.status)}; Kho {data.document.sourceWarehouseId} → {data.document.destinationWarehouseId}.</p>
+      <table><thead><tr><th>Vật tư / đơn vị</th><th>Theo kế hoạch</th><th>Đã gửi xử lý</th><th>Đã nhận</th><th>Hư hỏng</th><th>Thiếu</th><th>Đang vận chuyển</th></tr></thead>
         <tbody>{data.quantities.map(q => <tr key={q.lineId}><td>{q.itemName} / {q.uomName}</td><td>{q.planned}</td><td>{q.dispatched}</td><td>{q.received ?? "N/A"}</td><td>{q.damaged ?? "N/A"}</td><td>{q.missing ?? "N/A"}</td><td>{q.outstanding ?? "N/A"}</td></tr>)}</tbody></table>
       <fieldset disabled={busy || uncertain}>
-        {data.document.status === "DRAFT" && <><button onClick={() => void write("dispatch")}>Dispatch</button>
-          <label>Cancellation reason <input minLength={10} value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void write("cancel")}>Cancel draft</button></>}
+        {data.document.status === "DRAFT" && <><button onClick={() => void write("dispatch")}>Gửi xử lý</button>
+          <label>Lý do hủy <input minLength={10} value={reason} onChange={e => setReason(e.target.value)} /></label><button onClick={() => void write("cancel")}>Hủy bản nháp</button></>}
         {["IN_TRANSIT", "PARTIALLY_RECEIVED"].includes(data.document.status) && <form onSubmit={e => { e.preventDefault(); void write("receive"); }}>
-          <p>Enter this batch only. Usable received quantities increase stock; damage and missing quantities are recorded as losses.</p>
+          <p>Chỉ nhập lô này. Số lượng nhận dùng được tăng tồn kho; hỏng và thiếu được ghi nhận là hao hụt.</p>
           {entries.map(line => <fieldset key={line.transferLineId}><legend>{data.quantities.find(q => q.lineId === line.transferLineId)?.itemName}</legend>
             {(["receivedQty", "damagedQty", "missingQty"] as const).map(field => <label key={field}>{field}<input required inputMode="decimal" pattern="[0-9]+([.][0-9]{1,3})?" value={line[field]} onChange={e => setEntries(rows => rows.map(row => row.transferLineId === line.transferLineId ? { ...row, [field]: e.target.value } : row))} /></label>)}
-            <label>Damage/missing reason <input value={line.note} onChange={e => setEntries(rows => rows.map(row => row.transferLineId === line.transferLineId ? { ...row, note: e.target.value } : row))} /></label>
-          </fieldset>)}<button>Confirm received batch</button>
+            <label>Lý do hỏng / thiếu <input value={line.note} onChange={e => setEntries(rows => rows.map(row => row.transferLineId === line.transferLineId ? { ...row, note: e.target.value } : row))} /></label>
+          </fieldset>)}<button>Xác nhận lô hàng đã nhận</button>
         </form>}
       </fieldset></>}
   </main>;

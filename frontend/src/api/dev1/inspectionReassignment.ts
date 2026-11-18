@@ -31,9 +31,9 @@ const invalid = (): never => {
 export function inspectionAssignmentRejection(error: unknown): string | null {
   if (!(error instanceof ApiError)) return null;
   if (error.status === 400 && error.code === "INSPECTOR_CLEANER_CONFLICT")
-    return "MSG22: This inspector performed cleaning or rework in this cycle. Refresh and select another eligible inspector.";
+    return "MSG22: Người kiểm tra đã vệ sinh hoặc làm lại trong chu kỳ này. Tải lại và chọn người khác đủ điều kiện.";
   if (error.status === 409 && error.code === "INSPECTION_ALREADY_ASSIGNED")
-    return "MSG03: An open inspection already exists. Refresh to view it or change its inspector.";
+    return "MSG03: Đã tồn tại kiểm tra đang mở. Tải lại để xem hoặc đổi người kiểm tra.";
   if (
     [400, 503].includes(error.status) &&
     [
@@ -41,7 +41,7 @@ export function inspectionAssignmentRejection(error: unknown): string | null {
       "ORIGINAL_CHECKLIST_VERSION_UNAVAILABLE",
     ].includes(error.code)
   )
-    return "MSG03: The required published checklist is unavailable. Publish the eligible checklist before assignment; refresh to review its current version.";
+    return "MSG03: Danh sách kiểm tra đã công bố cần dùng chưa khả dụng. Công bố danh sách hợp lệ rồi tải lại phiên bản hiện tại.";
   return null;
 }
 
@@ -126,7 +126,7 @@ export async function reassignInspection(
   const current = () => {
     scope.signal.throwIfAborted();
     if (!scope.isCurrent())
-      throw new DOMException("Session or source changed", "AbortError");
+      throw new DOMException("Phiên đăng nhập hoặc dữ liệu nguồn đã thay đổi", "AbortError");
   };
   current();
   const csrf = (await getJson("/auth/csrf", scope.signal)) as {

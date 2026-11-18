@@ -28,18 +28,18 @@ export function IncidentCategoryField({ branch, value, onChange }: {
       expectedStatus: 200, decode, signal: controller.signal }).then(result => {
       if (controller.signal.aborted) return;
       setLoaded({ branch: branchId, rows: result.ok ? result.data : [],
-        message: result.ok ? (result.data.length ? "" : "No active incident categories configured.")
-          : "Category list unavailable. Current incident read access is required." });
+        message: result.ok ? (result.data.length ? "" : "Chưa cấu hình nhóm sự cố đang hoạt động.")
+          : "Chưa có danh sách nhóm. Cần quyền xem sự cố hiện tại." });
     });
     return () => controller.abort();
   }, [branchId]);
   const current = loaded?.branch === branchId ? loaded : undefined;
-  return <label>Category (optional)
+  return <label>Nhóm (không bắt buộc)
     <select name="categoryId" value={String(value ?? "")} disabled={!current?.rows.length}
       onChange={event => onChange(event.target.value)}>
-      <option value="">No category</option>
+      <option value="">Chưa có nhóm</option>
       {current?.rows.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}
     </select>
-    <small>{current?.message ?? (branchId ? "Loading categories…" : "Select a branch to load categories.")}</small>
+    <small>{current?.message ?? (branchId ? "Đang tải các nhóm…" : "Chọn chi nhánh để tải nhóm.")}</small>
   </label>;
 }

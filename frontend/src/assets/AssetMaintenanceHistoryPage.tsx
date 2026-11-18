@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -27,11 +28,11 @@ export function AssetMaintenanceHistoryPage() {
   const [page, setPage] = useState(1);
   const [history, setHistory] = useState<History | null>(null);
   const date = (value: string | null) => {
-    if (!value || !history) return "N/A";
+    if (!value || !history) return "Chưa có thông tin";
     try {
       const instant = new Date(/[zZ]|[+-]\d{2}:\d{2}$/.test(value) ? value : value + "Z");
       return new Intl.DateTimeFormat("vi-VN", { timeZone: history.timeZone, dateStyle: "short", timeStyle: "medium" }).format(instant) + " " + history.timeZone;
-    } catch { return "N/A: timezone/timestamp unavailable"; }
+    } catch { return "Chưa có thông tin múi giờ / thời điểm"; }
   };
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
@@ -80,7 +81,7 @@ export function AssetMaintenanceHistoryPage() {
     <p><Link to="/">Trang chủ</Link></p>
     {error && <p role="alert">{error}</p>}
     <label>Chi nhánh <select value={branch} onChange={e => { setBranch(e.target.value); setAfter(0); setPage(1); setHistory(null); setParams({}); }}>
-      <option value="">Chọn chi nhánh</option>{branches.map(b => <option key={b.branchId} value={b.branchId}>{b.branchName}</option>)}
+      <option value="">Chọn chi nhánh</option>{branches.map(b => <option key={b.branchId} value={b.branchId}>{displayCode(b.branchName)}</option>)}
     </select></label>{" "}
     <label>Tìm tài sản <input value={search} maxLength={200} onChange={e => { setSearch(e.target.value); setAfter(0); }} /></label>
     <ul>{assets.map(a => <li key={a.assetId}><button onClick={() => { setParams({ asset: String(a.assetId) }); setPage(1); setHistory(null); }}>{a.assetCode} — {a.assetName}</button></li>)}</ul>
@@ -93,7 +94,7 @@ export function AssetMaintenanceHistoryPage() {
     </fieldset>
     {history && <>
       <h3><Link to={`/assets/${history.asset.assetId}`}>{history.asset.assetCode} — {history.asset.assetName}</Link></h3>
-      <p>Snapshot: {date(history.snapshot)}. Kỳ: {history.filters.from} → {history.filters.to} UTC.</p>
+      <p>Bản chụp dữ liệu: {date(history.snapshot)}. Kỳ: {history.filters.from} → {history.filters.to} UTC.</p>
       <dl><dt>Số sự cố</dt><dd>{history.totals.incidentCount ?? "N/A"}</dd><dt>Số lần tái mở</dt><dd>{history.totals.recurrences ?? "N/A"}</dd>
         <dt>Thời gian giải quyết trung bình (giờ)</dt><dd>{history.totals.averageResolutionHours ?? "N/A"}</dd>
         <dt>Bảo trì định kỳ gần nhất trong tập lọc</dt><dd>{date(history.totals.lastPreventiveAt)}</dd></dl>
@@ -101,8 +102,8 @@ export function AssetMaintenanceHistoryPage() {
       {history.missingSources.length > 0 && <p role="status">Dữ liệu chưa đủ: {history.missingSources.join(", ")}</p>}
       {history.items.length === 0 && <p>MSG10 — Không có bản ghi phù hợp bộ lọc.</p>}
       {history.items.map(row => <article key={`${row.type}-${row.id}`}>
-        <h4>{row.number}: {row.title ?? "N/A"}</h4><p>{row.type} · {date(row.at)} · {row.status ?? "N/A"} · {row.technician ?? "N/A"} · {row.result ?? "N/A"}</p>
-        {row.repairs.map(r => <div key={r.maintenanceWorkId}><strong>{r.workNo}</strong> — {r.status}<p>Được giao hiện tại: {r.currentAssignee ?? "N/A"}. Người thực hiện có work log: {r.technicians.join(", ") || "N/A"}.</p><p>{date(r.actualStartAt)} → {date(r.resolvedAt)}. {r.resolutionNote}</p></div>)}
+        <h4>{row.number}: {row.title ?? "N/A"}</h4><p>{displayCode(row.type)} · {date(row.at)} · {displayCode(row.status ?? "N/A")} · {row.technician ?? "N/A"} · {row.result ?? "N/A"}</p>
+        {row.repairs.map(r => <div key={r.maintenanceWorkId}><strong>{r.workNo}</strong> — {displayCode(r.status)}<p>Được giao hiện tại: {r.currentAssignee ?? "N/A"}. Người thực hiện có work log: {r.technicians.join(", ") || "N/A"}.</p><p>{date(r.actualStartAt)} → {date(r.resolvedAt)}. {r.resolutionNote}</p></div>)}
         <h5>Vật tư đã ghi nhận sử dụng</h5>
         {row.materials.length === 0 ? <p>Chưa có bằng chứng tiêu hao hợp lệ.</p> : <ul>{row.materials.map(m => <li key={m.usageId}>{m.itemCode} — {m.itemName}: {m.quantity} {m.unit}; {m.technician}; {date(m.at)}</li>)}</ul>}
       </article>)}

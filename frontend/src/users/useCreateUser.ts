@@ -8,7 +8,7 @@ import type {
 } from "./createUserContracts";
 
 export const unknownCreationMessage =
-  "Account creation outcome could not be confirmed. The account may already exist. Do not submit this request again. Ask an authorized administrator to verify the account and arrange a credential reset if needed.";
+  "Chưa xác nhận tạo tài khoản; tài khoản có thể đã tồn tại. Không gửi lại. Nhờ quản trị viên kiểm tra và đặt lại mật khẩu nếu cần.";
 
 type Progress =
   | { phase: "idle" | "pending" | "created" | "unknown" }
@@ -129,26 +129,26 @@ export function createUserFailureMessage(error: CreateUserFailure): string {
   switch (error.reason) {
     case "INVALID_REQUEST":
     case "VALIDATION_FAILED":
-      return "Check the account fields and the branch, department and role relationship.";
+      return "Kiểm tra thông tin tài khoản và quan hệ giữa chi nhánh, bộ phận, vai trò.";
     case "CSRF_VALIDATION_FAILED":
-      return "The security check was rejected. No request has been retried automatically.";
+      return "Kiểm tra bảo mật bị từ chối. Không tự gửi lại yêu cầu.";
     case "SESSION_INVALID":
-      return "Your session must be confirmed before creating an account.";
+      return "Cần xác minh phiên trước khi tạo tài khoản.";
     case "FORBIDDEN":
-      return "Access denied. Creating an account requires server authorization.";
+      return "Không có quyền truy cập. Máy chủ phải cho phép tạo tài khoản.";
     case "PASSWORD_CHANGE_REQUIRED":
-      return "Change your password before creating an account.";
+      return "Đổi mật khẩu trước khi tạo tài khoản.";
     case "DUPLICATE":
       return error.duplicateFields?.length
-        ? `Already in use: ${error.duplicateFields.join(", ")}.`
-        : "An employee code, username or email is already in use.";
+        ? `Đã được sử dụng: ${error.duplicateFields.join(", ")}.`
+        : "Mã nhân viên, tên đăng nhập hoặc email đã được sử dụng.";
     case "LAST_DURABLE_ADMIN":
-      return "This account would prevent safe administrator access. Contact an authorized administrator.";
+      return "Tài khoản này ảnh hưởng an toàn truy cập quản trị. Liên hệ quản trị viên có quyền.";
     case "UNSUPPORTED_MEDIA_TYPE":
-      return "The server rejected the request format.";
+      return "Máy chủ từ chối định dạng yêu cầu.";
     case "CANCELLED":
-      return "The attempt was cancelled before account creation was sent.";
+      return "Đã hủy trước khi gửi yêu cầu tạo tài khoản.";
     default:
-      return "The attempt could not start account creation. No account creation request was sent.";
+      return "Không bắt đầu được tạo tài khoản. Chưa gửi yêu cầu tạo.";
   }
 }

@@ -251,7 +251,7 @@ for (const scope of ["GLOBAL", "BRANCH", "OWN"])
       async (page) => {
         await ready(page);
         assert.equal(
-          await page.getByLabel("Full name", { exact: true }).inputValue(),
+          await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
           "Server Employee",
         );
         assert.equal(await page.locator("input").count(), 3);
@@ -330,9 +330,9 @@ test("GET 401 revalidation is bounded and recovery 200 requires explicit managem
 test("form validation sends no CSRF or PATCH; controls restricted to three fields", async () => {
   await withUpdate({}, async (page) => {
     await ready(page);
-    await page.getByLabel("Full name", { exact: true }).fill(" ");
+    await page.getByLabel("Họ và tên", { exact: true }).fill(" ");
     await save(page);
-    assert.match(await body(page), /Full name and email are required/);
+    assert.match(await body(page), /Họ tên và email là bắt buộc\. Giới hạn họ tên 200, email 150, điện thoại 20 ký tự\./);
     assert.equal((await calls(page, "/api/auth/csrf")).length, 0);
     assert.equal(
       (await calls(page)).filter((c) => c.method === "PATCH").length,
@@ -377,7 +377,7 @@ test("double-submit and Enter while deferred issue one PATCH under StrictMode", 
     async (page) => {
       await ready(page);
       await page
-        .getByLabel("Full name", { exact: true })
+        .getByLabel("Họ và tên", { exact: true })
         .fill("Updated Employee");
       await page
         .getByRole("form", { name: "Update user profile" })
@@ -439,14 +439,14 @@ test("confirmed response snapshot and new ETag are used by the next explicit Sav
     async (page) => {
       await ready(page);
       await page
-        .getByLabel("Full name", { exact: true })
+        .getByLabel("Họ và tên", { exact: true })
         .fill("Updated Employee");
       await save(page);
       assert.equal(
-        await page.getByLabel("Full name", { exact: true }).inputValue(),
+        await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
         "Updated Employee",
       );
-      await page.getByLabel("Phone", { exact: true }).fill("456");
+      await page.getByLabel("Số điện thoại", { exact: true }).fill("456");
       await save(page);
       const updates = (await calls(page)).filter((c) => c.method === "PATCH");
       assert.equal(updates.length, 2);
@@ -463,7 +463,7 @@ test("412 blocks old token; explicit Reload discards draft without replay", asyn
     },
     async (page) => {
       await ready(page);
-      await page.getByLabel("Full name", { exact: true }).fill("Old Draft");
+      await page.getByLabel("Họ và tên", { exact: true }).fill("Old Draft");
       await save(page);
       assert.match(await body(page), /Reload profile, review/);
       assert.equal(
@@ -476,7 +476,7 @@ test("412 blocks old token; explicit Reload discards draft without replay", asyn
         .click();
       await ready(page);
       assert.equal(
-        await page.getByLabel("Full name", { exact: true }).inputValue(),
+        await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
         "Concurrent Editor",
       );
       assert.ok((await body(page)).includes(nextTag));
@@ -603,7 +603,7 @@ test("explicit reconciliation GET never certifies unknown PATCH or unlocks Save"
 test("refresh 403 drops the previous profile and its editable draft", async () => {
   await withUpdate({ reads: [ok(), problem(403)] }, async (page) => {
     await ready(page);
-    await page.getByLabel("Full name", { exact: true }).fill("Private Draft");
+    await page.getByLabel("Họ và tên", { exact: true }).fill("Private Draft");
     await page
       .getByRole("button", { name: "Reload profile", exact: true })
       .click();
@@ -624,7 +624,7 @@ test("target change aborts GET and masks late previous target response", async (
       await ready(page);
       await finish(page, "read", ok(42, tag, "Old Target"));
       assert.equal(
-        await page.getByLabel("Full name", { exact: true }).inputValue(),
+        await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
         "Second Target",
       );
       assert.equal(
@@ -676,7 +676,7 @@ test("identity replacement aborts old GET even for the same user ID", async () =
       await ready(page);
       await finish(page, "old", ok(42, tag, "Old Identity"));
       assert.equal(
-        await page.getByLabel("Full name", { exact: true }).inputValue(),
+        await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
         "Fresh Identity",
       );
       assert.equal(
@@ -714,7 +714,7 @@ test("pending PATCH followed by unavailable session never becomes confirmed fail
       assert.equal(await page.locator("input").count(), 0);
       await finish(page, "patch", ok());
       await page
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await settle(page);
       assert.ok((await body(page)).includes(unknown));
@@ -731,7 +731,7 @@ test("CSRF bootstrap failure leaves a not-dispatched update and never PATCHes", 
   await withUpdate({ csrf: [problem(503)] }, async (page) => {
     await ready(page);
     await save(page);
-    assert.match(await body(page), /No profile update request was sent/);
+    assert.match(await body(page), /Không gửi yêu cầu cập nhật hồ sơ\./);
     assert.equal(
       (await calls(page)).filter((c) => c.method === "PATCH").length,
       0,
@@ -762,7 +762,7 @@ test("target change during PATCH cannot publish old result into new target", asy
       await ready(page);
       await finish(page, "patch", ok(42, nextTag, "Old Mutation"));
       assert.equal(
-        await page.getByLabel("Full name", { exact: true }).inputValue(),
+        await page.getByLabel("Họ và tên", { exact: true }).inputValue(),
         "New Target",
       );
       assert.ok(

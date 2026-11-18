@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { displayCode } from "../i18n/vi";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createHttpClient, isObject } from "../auth/http";
 import { useAuth } from "../auth/AuthProvider";
@@ -38,7 +39,7 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
       const match = result.ok && String(result.data.requestId) === id && result.data.rowVersion === version
         && String(result.data.warehouseId) === warehouse;
       setLoaded({ owner, key, data: match ? result.data : undefined, message: match ? ""
-        : "Current availability could not be confirmed. Reload the request and availability before entering a partial issue." });
+        : "Chưa xác nhận số lượng khả dụng. Tải lại yêu cầu và tồn khả dụng trước khi nhập cấp một phần." });
       if (!result.ok && (result.error.kind === "stale" || result.error.kind === "http" && result.error.status === 401)) void actions.revalidate();
     });
     return () => abort.abort();
@@ -48,33 +49,33 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
   const preview = stock && Array.isArray(stock.lines) ? stock.lines.filter(isObject) : [];
   const lines = Array.isArray(record.lines) ? record.lines.filter(isObject).filter(l => l.isActive === true && Number(l.openFulfillableQty) > 0) : [];
   const entered = Array.isArray(values.lines) ? values.lines.filter(isObject) : [];
-  return <section aria-label="Issue approved materials">
-    <p>Only the remaining approved quantities can be issued. Availability is not a reservation; stock is checked again when saving.</p>
-    <label>Issuing warehouse
+  return <section aria-label="Cấp vật tư đã duyệt">
+    <p>Chỉ cấp số lượng đã duyệt còn lại. Khả dụng không phải giữ chỗ; tồn kho được kiểm tra lại khi lưu.</p>
+    <label>Kho cấp phát
       <select required value={String(values.warehouseId ?? "")} onChange={event => onChange({ ...values, warehouseId: event.target.value })}>
-        <option value="">Select approved warehouse</option>
-        <option value={warehouse}>Approved request warehouse {warehouse}</option>
+        <option value="">Chọn kho được duyệt</option>
+        <option value={warehouse}>Kho của yêu cầu đã duyệt {displayCode(warehouse)}</option>
       </select>
     </label>
-    <p>Changing the approved warehouse requires updating and reapproving the request.</p>
-    <label>Receiver name
+    <p>Đổi kho đã duyệt cần cập nhật và duyệt lại yêu cầu.</p>
+    <label>Tên người nhận
       <input required maxLength={200} value={String(values.receiverName ?? "")} onChange={event => onChange({ ...values, receiverName: event.target.value })} />
     </label>
-    <button type="button" onClick={() => setRevision(v => v + 1)}>Refresh issuing warehouse availability</button>
-    <p role="status">{current?.message ?? "Loading current availability…"}</p>
+    <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại tồn kho cấp phát</button>
+    <p role="status">{current?.message ?? "Đang tải khả dụng hiện tại…"}</p>
     {lines.map(line => {
       const available = preview.find(p => String(p.requestLineId) === String(line.requestLineId));
       const maximum = typeof available?.fulfillableQty === "number" ? Math.min(Number(line.openFulfillableQty), available.fulfillableQty) : 0;
       return <div key={String(line.requestLineId)}>
-      <p>{String(line.itemName ?? `Material ${line.itemId}`)}: approved {String(line.approvedQty)}, issued {String(line.fulfilledQty)}, remaining {String(line.openFulfillableQty)} {String(line.unitName ?? "")}.</p>
-      <p>Fulfillable now: {available?.fulfillableQty == null ? "N/A" : `${maximum} ${line.unitName ?? ""}`}.</p>
+      <p>{String(line.itemName ?? `Vật tư ${line.itemId}`)}: Đã duyệt {String(line.approvedQty)}, Đã cấp {String(line.fulfilledQty)}, Còn lại {String(line.openFulfillableQty)} {String(line.unitName ?? "")}.</p>
+      <p>Có thể cấp ngay: {available?.fulfillableQty == null ? "Chưa có thông tin" : `${maximum} ${line.unitName ?? ""}`}.</p>
       {available?.unavailableReason != null && <p>{String(available.unavailableReason)}</p>}
-      {available?.sharedItemStock === true && <p>Stock is shared with other lines of this material. Combined quantities are checked when posting.</p>}
+      {available?.sharedItemStock === true && <p>Tồn kho dùng chung với các dòng khác của vật tư này. Tổng số lượng được kiểm tra khi ghi sổ.</p>}
       {available?.fulfillableQty != null && maximum < Number(line.openFulfillableQty)
-        && <p><strong>Insufficient stock for the full remainder.</strong> Choose Partial or request replenishment.
-          {record.branchId != null && record.sourceWarehouseId != null && <Link to={`/operations/replenishments?action=A004A-056&branchId=${encodeURIComponent(String(record.branchId))}&warehouseId=${encodeURIComponent(String(record.sourceWarehouseId))}&shortageSource=material-requests&sourceRequestId=${encodeURIComponent(String(record.requestId))}`}>Create replenishment for this request</Link>}
-          {values.mode === "FullRemaining" && <button type="button" onClick={() => onChange({ ...values, mode: "Partial", lines: [] })}>Enter partial quantities</button>}</p>}
-      {values.mode === "Partial" && <label>Quantity to issue (zero skips this line)
+        && <p><strong>Tồn kho không đủ cấp toàn bộ phần còn lại.</strong> Chọn cấp một phần hoặc yêu cầu bổ sung.
+          {record.branchId != null && record.sourceWarehouseId != null && <Link to={`/operations/replenishments?action=A004A-056&branchId=${encodeURIComponent(String(record.branchId))}&warehouseId=${encodeURIComponent(String(record.sourceWarehouseId))}&shortageSource=material-requests&sourceRequestId=${encodeURIComponent(String(record.requestId))}`}>Tạo yêu cầu bổ sung cho phiếu này</Link>}
+          {values.mode === "FullRemaining" && <button type="button" onClick={() => onChange({ ...values, mode: "Partial", lines: [] })}>Nhập số lượng cấp một phần</button>}</p>}
+      {values.mode === "Partial" && <label>Số lượng cấp (nhập 0 để bỏ qua dòng này)
         <input type="number" min="0" max={maximum} step="0.001" required
           value={String(entered.find(l => String(l.requestLineId) === String(line.requestLineId))?.quantity ?? 0)}
           onChange={event => onChange({ ...values, lines: lines.map(l => ({ requestLineId: l.requestLineId,
@@ -82,6 +83,6 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
               : entered.find(e => String(e.requestLineId) === String(l.requestLineId))?.quantity ?? 0 })) })} />
       </label>}
     </div>; })}
-    {values.mode === "FullRemaining" && <p>All remaining quantities shown above will be issued together, or the transaction will fail.</p>}
+    {values.mode === "FullRemaining" && <p>Toàn bộ số lượng còn lại ở trên sẽ được cấp cùng lúc; nếu không đủ điều kiện, toàn bộ giao dịch thất bại.</p>}
   </section>;
 }

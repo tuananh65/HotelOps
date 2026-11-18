@@ -36,7 +36,7 @@ export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
       expectedStatus: 200, decode, signal: abort.signal }).then(result => {
       if (abort.signal.aborted) return;
       setLoaded(result.ok && result.data.branchId === Number(branch) ? { owner, branch, catalog: result.data }
-        : { owner, branch, error: "Material choices unavailable. Check current access and reload." });
+        : { owner, branch, error: "Chưa có lựa chọn vật tư. Kiểm tra quyền và tải lại." });
       if (!result.ok && result.error.kind === "http" && result.error.status === 401) void actions.revalidate();
     });
     return () => abort.abort();
@@ -51,45 +51,45 @@ export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
         ...(name === "sourceWarehouseId" ? { assignedApproverUserId: "" } : {}),
         ...(name === "receivingRoomId" && e.target.value ? { receivingAreaId: "" } : {}),
         ...(name === "receivingAreaId" && e.target.value ? { receivingRoomId: "" } : {}) })}>
-      <option value="">{required ? "Select an option" : "None"}</option>
+      <option value="">{required ? "Chọn một lựa chọn" : "Không có"}</option>
       {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
     </select></label>;
   }
   function updateLine(index: number, changes: Values) {
     onChange({ ...values, lines: lines.map((line, n) => n === index ? { ...line, ...changes } : line) });
   }
-  return <section aria-label="Material choices">
-    <button type="button" onClick={() => setRevision(v => v + 1)}>Reload material choices</button>
-    {!catalog && <p role="status">{current?.error ?? (branch ? "Loading material choices…" : "Select a branch first.")}</p>}
-    {selector("departmentId", "Receiving department", catalog?.departments ?? [], true)}
-    {selector("sourceWarehouseId", "Issuing warehouse", catalog?.warehouses ?? [], values.submit === true)}
-    {selector("receivingRoomId", "Receiving room (optional)", catalog?.rooms ?? [])}
-    {selector("receivingAreaId", "Receiving area (optional)", catalog?.areas ?? [])}
-    {selector("priorityId", "Priority (optional)", catalog?.priorities ?? [])}
-    {selector("incidentId", "Linked incident (optional)", catalog?.incidents ?? [])}
-    <fieldset><legend>Requested materials</legend>
+  return <section aria-label="Danh sách vật tư lựa chọn">
+    <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại danh sách vật tư lựa chọn</button>
+    {!catalog && <p role="status">{current?.error ?? (branch ? "Đang tải danh sách vật tư lựa chọn…" : "Chọn chi nhánh trước.")}</p>}
+    {selector("departmentId", "Bộ phận tiếp nhận", catalog?.departments ?? [], true)}
+    {selector("sourceWarehouseId", "Kho cấp phát", catalog?.warehouses ?? [], values.submit === true)}
+    {selector("receivingRoomId", "Phòng tiếp nhận (không bắt buộc)", catalog?.rooms ?? [])}
+    {selector("receivingAreaId", "Khu vực tiếp nhận (không bắt buộc)", catalog?.areas ?? [])}
+    {selector("priorityId", "Độ ưu tiên (không bắt buộc)", catalog?.priorities ?? [])}
+    {selector("incidentId", "Sự cố liên quan (không bắt buộc)", catalog?.incidents ?? [])}
+    <fieldset><legend>Vật tư yêu cầu</legend>
       {lines.map((line, index) => {
         const item = catalog?.items.find(i => String(i.id) === String(line.itemId));
         const persisted = historicalLineMax !== undefined && line.requestLineId != null;
-        return <fieldset key={String(line.lineNo)}><legend>Line {String(line.lineNo)}</legend>
-          {persisted && <p>To change material or unit, remove this line and add a new one. Its history is retained.</p>}
-          <label>Item<select required disabled={persisted} value={item ? String(item.id) : ""}
+        return <fieldset key={String(line.lineNo)}><legend>Dòng {String(line.lineNo)}</legend>
+          {persisted && <p>Để đổi vật tư hoặc đơn vị, xóa dòng này và thêm dòng mới. Lịch sử được giữ lại.</p>}
+          <label>Vật tư<select required disabled={persisted} value={item ? String(item.id) : ""}
             onChange={e => updateLine(index, { itemId: e.target.value, uomId: "" })}>
-            <option value="">Select material</option>{catalog?.items.map(i => <option key={i.id} value={i.id}>{i.code}: {i.name}</option>)}
+            <option value="">Chọn vật tư</option>{catalog?.items.map(i => <option key={i.id} value={i.id}>{i.code}: {i.name}</option>)}
           </select></label>
-          <label>Unit<select required disabled={persisted} value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
+          <label>Đơn vị<select required disabled={persisted} value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
             onChange={e => updateLine(index, { uomId: e.target.value })}>
-            <option value="">Select unit</option>{item?.units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            <option value="">Chọn đơn vị</option>{item?.units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select></label>
-          <label>Quantity<input type="number" min="0.001" step="0.001" required value={String(line.requestedQty ?? "")}
+          <label>Số lượng<input type="number" min="0.001" step="0.001" required value={String(line.requestedQty ?? "")}
             onChange={e => updateLine(index, { requestedQty: e.target.value })} /></label>
-          <label>Note (optional)<input value={String(line.note ?? "")} onChange={e => updateLine(index, { note: e.target.value })} /></label>
-          <button type="button" onClick={() => onChange({ ...values, lines: lines.filter((_, n) => n !== index) })}>Remove line</button>
+          <label>Ghi chú (không bắt buộc)<input value={String(line.note ?? "")} onChange={e => updateLine(index, { note: e.target.value })} /></label>
+          <button type="button" onClick={() => onChange({ ...values, lines: lines.filter((_, n) => n !== index) })}>Xóa dòng</button>
         </fieldset>;
       })}
-      {lines.length === 0 && <p>Add at least one material line to save the request.</p>}
+      {lines.length === 0 && <p>Thêm ít nhất một dòng vật tư để lưu yêu cầu.</p>}
       <button type="button" disabled={!catalog?.items.length}
-        onClick={() => onChange({ ...values, lines: [...lines, { lineNo: Math.max(historicalLineMax ?? 0, 0, ...lines.map(l => Number(l.lineNo))) + 1, itemId: "", uomId: "", requestedQty: "", note: "" }] })}>Add material</button>
+        onClick={() => onChange({ ...values, lines: [...lines, { lineNo: Math.max(historicalLineMax ?? 0, 0, ...lines.map(l => Number(l.lineNo))) + 1, itemId: "", uomId: "", requestedQty: "", note: "" }] })}>Thêm vật tư</button>
     </fieldset>
   </section>;
 }

@@ -162,7 +162,7 @@ export function createError(e: unknown) {
     if (e.status === 403)
       return "Không có quyền CLEANING_ASSIGN tại chi nhánh này.";
     if (e.status === 404) return "Không tìm thấy phòng trong chi nhánh.";
-    if (e.status === 409 && e.code === "INACTIVE") return "MSG24: Room or its required configuration is inactive. Creation was rejected.";
+    if (e.status === 409 && e.code === "INACTIVE") return "MSG24: Phòng hoặc cấu hình bắt buộc đã ngừng hoạt động. Tạo mới bị từ chối.";
     if (e.status === 409)
       return "Phòng không hợp lệ hoặc đã có công việc đang mở. Tải lại Monitor trước khi tạo tiếp.";
     if (e.status === 400)

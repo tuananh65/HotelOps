@@ -7,16 +7,16 @@ export interface ShiftDraft {
   readonly shiftDate: string;
 }
 export const issueLabels = [
-  "Invalid draft",
-  "Scope unavailable",
-  "Template unavailable",
-  "Employee unavailable",
-  "Employee department unconfirmed",
-  "Timezone unavailable",
-  "Invalid time",
-  "Existing assignment overlap",
-  "Proposed assignment overlap",
-  "Data unavailable",
+  "Bản nháp không hợp lệ",
+  "Phạm vi chưa khả dụng",
+  "Mẫu chưa khả dụng",
+  "Nhân viên chưa khả dụng",
+  "Chưa xác nhận bộ phận của nhân viên",
+  "Chưa có múi giờ",
+  "Thời gian không hợp lệ",
+  "Trùng thời gian với phân công hiện có",
+  "Trùng thời gian với phân công đề xuất",
+  "Dữ liệu chưa khả dụng",
 ] as const;
 export interface PreviewRow {
   readonly index: number;

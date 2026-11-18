@@ -140,7 +140,7 @@ async function withChange(scenario, run) {
     }, scenario);
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await page
-      .getByRole("heading", { name: "Change Password", exact: true })
+      .getByRole("heading", { name: "Đổi mật khẩu", exact: true })
       .waitFor();
     await page.evaluate(
       () =>
@@ -159,18 +159,18 @@ async function withChange(scenario, run) {
 }
 async function fill(page, input = values) {
   await page
-    .getByLabel("Current password", { exact: true })
+    .getByLabel("Mật khẩu hiện tại", { exact: true })
     .fill(input.currentPassword);
   await page
-    .getByLabel("New password", { exact: true })
+    .getByLabel("Mật khẩu mới", { exact: true })
     .fill(input.newPassword);
   await page
-    .getByLabel("Confirm new password", { exact: true })
+    .getByLabel("Xác nhận mật khẩu mới", { exact: true })
     .fill(input.confirmNewPassword);
 }
 async function submit(page) {
   await page
-    .getByRole("button", { name: "Change password", exact: true })
+    .getByRole("button", { name: "Đổi mật khẩu", exact: true })
     .click();
 }
 async function assertCleared(page) {
@@ -205,13 +205,13 @@ test("render has empty password inputs, autocomplete and no demo credentials", a
     }
     assert.equal(
       await page
-        .getByLabel("Current password", { exact: true })
+        .getByLabel("Mật khẩu hiện tại", { exact: true })
         .getAttribute("autocomplete"),
       "current-password",
     );
     assert.equal(
       await page
-        .getByLabel("New password", { exact: true })
+        .getByLabel("Mật khẩu mới", { exact: true })
         .getAttribute("autocomplete"),
       "new-password",
     );
@@ -360,12 +360,12 @@ test("double submission is synchronously excluded with pending controls", async 
     ]);
     assert.equal(
       await page
-        .getByRole("button", { name: "Changing password…" })
+        .getByRole("button", { name: "Đang đổi mật khẩu…" })
         .isDisabled(),
       true,
     );
     assert.equal(
-      await page.getByLabel("Current password", { exact: true }).isDisabled(),
+      await page.getByLabel("Mật khẩu hiện tại", { exact: true }).isDisabled(),
       true,
     );
     assert.equal(await page.locator("form").getAttribute("aria-busy"), "true");
@@ -476,7 +476,7 @@ for (const restricted of [false, true]) {
           );
           assert.equal(
             await page
-              .getByRole("heading", { name: "Change Password", exact: true })
+              .getByRole("heading", { name: "Đổi mật khẩu", exact: true })
               .count(),
             0,
           );
@@ -491,7 +491,7 @@ for (const restricted of [false, true]) {
             expected,
           );
           await page
-            .getByRole("heading", { name: "Change Password", exact: true })
+            .getByRole("heading", { name: "Đổi mật khẩu", exact: true })
             .waitFor();
           assert.equal(
             await page.locator("#location").textContent(),

@@ -24,11 +24,11 @@ function IntegratedDashboard() {
     <>
       <AuthRouteHost />
       {state.status === "AUTHENTICATED" && state.session && (
-        <nav aria-label="Integrated modules">
-          <Link to="/hotel">Hotel structure</Link>
+        <nav aria-label="Các phân hệ tích hợp">
+          <Link to="/hotel">Cấu trúc khách sạn</Link>
           {workdayReadEnabled &&
             !state.session.mustChangePassword &&
-            state.pending === null && <Link to="/workday">Workday</Link>}
+            state.pending === null && <Link to="/workday">Ngày làm việc</Link>}
         </nav>
       )}
     </>

@@ -62,14 +62,14 @@ for (const failure of [503, 412, "unknown"] as const)
       await page.goto("/tests/fixtures/inspection-assignment.html");
       await page.getByRole("button", { name: "Room #3 · Task #2" }).click();
       await page
-        .getByRole("combobox", { name: "Inspector", exact: true })
+        .getByRole("combobox", { name: "Người kiểm tra", exact: true })
         .selectOption("5");
       await page
-        .getByRole("combobox", { name: "Responsible supervisor", exact: true })
+        .getByRole("combobox", { name: "Giám sát chịu trách nhiệm", exact: true })
         .selectOption("6");
-      await page.getByLabel("Due time").fill("2030-01-01T12:00");
+      await page.getByLabel("Thời hạn").fill("2030-01-01T12:00");
       await page
-        .getByLabel("Reason", { exact: true })
+        .getByLabel("Lý do", { exact: true })
         .fill("Explicit assignment");
       await page.getByRole("button", { name: "Review assignment" }).click();
       const confirm = page.getByRole("button", {
@@ -77,7 +77,7 @@ for (const failure of [503, 412, "unknown"] as const)
         exact: true,
       });
       await expect(confirm).toBeDisabled();
-      await page.getByLabel("I confirm this assignment").check();
+      await page.getByLabel("Tôi xác nhận phân công này").check();
       await confirm.click();
       await expect(page.getByRole("alert")).toContainText(
         failure === 503
@@ -129,23 +129,23 @@ for (const nextStatus of [200, 404, 412])
     });
     await page.goto('/tests/fixtures/inspection-assignment.html');
     await page.getByRole('button', { name: /Task #2$/ }).click();
-    await page.getByRole('combobox', { name: 'Inspector', exact: true }).selectOption('5');
-    await page.getByRole('combobox', { name: 'Responsible supervisor', exact: true }).selectOption('6');
-    await page.getByLabel('Due time').fill('2030-01-01T12:00');
-    await page.getByLabel('Reason', { exact: true }).fill('Previous task reason');
+    await page.getByRole('combobox', { name: "Người kiểm tra", exact: true }).selectOption('5');
+    await page.getByRole('combobox', { name: "Giám sát chịu trách nhiệm", exact: true }).selectOption('6');
+    await page.getByLabel("Thời hạn").fill('2030-01-01T12:00');
+    await page.getByLabel("Lý do", { exact: true }).fill('Previous task reason');
     await page.getByRole('button', { name: 'Review assignment' }).click();
-    await page.getByLabel('I confirm this assignment').check();
+    await page.getByLabel("Tôi xác nhận phân công này").check();
     await page.getByRole('button', { name: /Task #8$/ }).click();
     await expect(page.getByRole('button', { name: 'Confirm assignment', exact: true })).toHaveCount(0);
     if (nextStatus === 200) {
-      await expect(page.getByLabel('Due time')).toHaveValue('');
-      await expect(page.getByLabel('Reason', { exact: true })).toHaveValue('');
-      await expect(page.getByRole('combobox', { name: 'Inspector', exact: true })).toHaveValue('');
-      await expect(page.getByRole('combobox', { name: 'Responsible supervisor', exact: true })).toHaveValue('');
+      await expect(page.getByLabel("Thời hạn")).toHaveValue('');
+      await expect(page.getByLabel("Lý do", { exact: true })).toHaveValue('');
+      await expect(page.getByRole('combobox', { name: "Người kiểm tra", exact: true })).toHaveValue('');
+      await expect(page.getByRole('combobox', { name: "Giám sát chịu trách nhiệm", exact: true })).toHaveValue('');
       await expect(page.getByRole('button', { name: 'Review assignment' })).toBeDisabled();
     } else {
       await expect(page.getByRole('alert')).toBeVisible();
-      await expect(page.getByLabel('Due time')).toHaveCount(0);
+      await expect(page.getByLabel("Thời hạn")).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Reload assignment source' })).toHaveCount(0);
     }
     expect(posts).toBe(0);
@@ -165,7 +165,7 @@ for (const status of [401,403,404,409,412]) test('direct-open context failure ' 
   await page.goto(destination + '?branchId=1&roomId=3');
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('button', {name:/Task #/})).toHaveCount(0);
-  await expect(page.getByLabel('Due time')).toHaveCount(0);
+  await expect(page.getByLabel("Thời hạn")).toHaveCount(0);
 });
 test('multiple candidates require selection; Back reloads clean room context', async ({page}) => {
   let optionReads=0, posts=0;
@@ -180,13 +180,13 @@ test('multiple candidates require selection; Back reloads clean room context', a
   await expect(page.getByRole('button',{name:/Task #/})).toHaveCount(2);
   expect(optionReads).toBe(0);
   await page.getByRole('button',{name:/Task #2$/}).click();
-  await page.getByLabel('Reason',{exact:true}).fill('Old room reason');
+  await page.getByLabel("Lý do",{exact:true}).fill('Old room reason');
   await page.getByRole('link',{name:'Other room'}).click();
-  await expect(page.getByText('No pending tasks.')).toBeVisible();
-  await expect(page.getByLabel('Due time')).toHaveCount(0);
+  await expect(page.getByText("Không có công việc đang chờ.")).toBeVisible();
+  await expect(page.getByLabel("Thời hạn")).toHaveCount(0);
   await page.goBack();
   await expect(page.getByRole('button',{name:/Task #/})).toHaveCount(2);
-  await expect(page.getByLabel('Reason',{exact:true})).toHaveCount(0);
+  await expect(page.getByLabel("Lý do",{exact:true})).toHaveCount(0);
   expect(optionReads).toBe(1); expect(posts).toBe(0);
 });
 test('task options for mismatched room fail closed', async ({page}) => {
@@ -194,7 +194,7 @@ test('task options for mismatched room fail closed', async ({page}) => {
   await page.goto(destination+'?branchId=1&roomId=3');
   await page.getByRole('button',{name:/Task #2$/}).click();
   await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.getByLabel('Due time')).toHaveCount(0);
+  await expect(page.getByLabel("Thời hạn")).toHaveCount(0);
 });
 
 test('destination preserves UUID and room context; source reload creates a new intent', async ({page}) => {
@@ -223,19 +223,19 @@ test('destination preserves UUID and room context; source reload creates a new i
   await page.goto(destination+'?branchId=1&roomId=3');
   await page.getByRole('button',{name:/Task #2$/}).click();
   for(let attempt=0;attempt<2;attempt++) {
-    await page.getByRole('combobox',{name:'Inspector',exact:true}).selectOption('5');
-    await page.getByRole('combobox',{name:'Responsible supervisor',exact:true}).selectOption('6');
-    await page.getByLabel('Due time').fill('2030-01-01T12:00');
-    await page.getByLabel('Reason',{exact:true}).fill('Combined source review');
+    await page.getByRole('combobox',{name:"Người kiểm tra",exact:true}).selectOption('5');
+    await page.getByRole('combobox',{name:"Giám sát chịu trách nhiệm",exact:true}).selectOption('6');
+    await page.getByLabel("Thời hạn").fill('2030-01-01T12:00');
+    await page.getByLabel("Lý do",{exact:true}).fill('Combined source review');
     await page.getByRole('button',{name:'Review assignment'}).click();
-    await page.getByLabel('I confirm this assignment').check();
+    await page.getByLabel("Tôi xác nhận phân công này").check();
     await page.getByRole('button',{name:'Confirm assignment',exact:true}).click();
     await expect(page.getByRole('alert')).toContainText('mandatory notification');
     await expect(page.getByRole('button',{name:'Confirm assignment',exact:true})).toBeDisabled();
     expect(keys).toHaveLength(attempt+1);
     if(attempt===0) {
       await page.getByRole('button',{name:'Reload assignment source'}).click();
-      await expect(page.getByLabel('Reason',{exact:true})).toHaveValue('');
+      await expect(page.getByLabel("Lý do",{exact:true})).toHaveValue('');
     }
   }
   expect(keys[0]).not.toBe(keys[1]);

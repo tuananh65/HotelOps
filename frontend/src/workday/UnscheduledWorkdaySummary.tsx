@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
 import { useAuth } from "../auth/AuthProvider";
@@ -22,14 +23,14 @@ export function UnscheduledWorkdaySummary({branchId,workdayId}:{branchId:number;
         if(abort.signal.aborted)return;
         if(r.ok)setResult(r.data);
         else {
-          setError("This workday is unavailable or you no longer have access.");
+          setError("Ngày làm việc chưa khả dụng hoặc bạn không còn quyền.");
           if(r.error.kind === "http" && r.error.status === 401) actions.invalidateSession(owner);
         }
       });
     return()=>abort.abort();
   },[branchId,workdayId,owner,actions]);
-  return <section aria-label="Unscheduled workday notification"><h2>Unscheduled workday {workdayId}</h2>
-    {error?<p role="alert">{error}</p>:result?<><p>Employee {result.employeeId}; branch {branchId}; department {result.departmentId}.</p>
-      <p>{result.status}: {result.startedAt}{result.endedAt?` — ${result.endedAt}`:""}</p><p>Reason: {result.reason}</p></>:<p>Loading authorized workday...</p>}
+  return <section aria-label="Thông báo ngày làm việc ngoài kế hoạch"><h2>Ngày làm việc ngoài kế hoạch {workdayId}</h2>
+    {error?<p role="alert">{error}</p>:result?<><p>Nhân viên {result.employeeId}; Chi nhánh {branchId}; Bộ phận {result.departmentId}.</p>
+      <p>{displayCode(result.status)}: {result.startedAt}{result.endedAt?` — ${result.endedAt}`:""}</p><p>Lý do: {result.reason}</p></>:<p>Đang tải ngày làm việc được phép truy cập...</p>}
   </section>;
 }

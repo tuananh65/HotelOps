@@ -93,7 +93,7 @@ const list = (items) => ({
 });
 async function review(p) {
   await p
-    .getByLabel("Reason", { exact: true })
+    .getByLabel("Lý do", { exact: true })
     .fill("Valid department closure reason");
   await p
     .getByRole("button", { name: "Review deactivation", exact: true })
@@ -125,7 +125,7 @@ test("observed ACTIVE account blocks confirmation and scopes query", () =>
   run({ enabled: true, users: { body: list([item]) } }, async (p) => {
     await p.getByText("Visible employee", { exact: true }).waitFor();
     await p
-      .getByLabel("Reason", { exact: true })
+      .getByLabel("Lý do", { exact: true })
       .fill("Valid department closure reason");
     assert.ok(
       await p.getByRole("button", { name: "Review deactivation" }).isDisabled(),
@@ -146,21 +146,21 @@ test("observed ACTIVE account blocks confirmation and scopes query", () =>
   }));
 test("Users 403 preserves Department without implying zero", () =>
   run({ users: { status: 403, body: {} } }, async (p) => {
-    await p.getByText(/Account review denied/).waitFor();
+    await p.getByText(/Máy chủ từ chối xem xét tài khoản; điều này không có nghĩa là không còn người dùng hoạt động\./).waitFor();
     assert.equal(
       await p.getByRole("heading", { name: "Scoped department" }).count(),
       1,
     );
-    assert.equal(await p.getByText(/Server-visible total/).count(), 0);
+    assert.equal(await p.getByText(/Tổng số được phép xem/).count(), 0);
   }));
 test("Users 401 clears snapshot with explicit recovery", () =>
   run({ users: { status: 401, body: {} } }, async (p) => {
-    await p.getByRole("button", { name: "Check session" }).waitFor();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
     assert.equal(
       await p.getByRole("heading", { name: "Scoped department" }).count(),
       0,
     );
-    assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+    assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
   }));
 for (const bad of [
   { ...item, department: { ...item.department, id: 9 } },
@@ -172,7 +172,7 @@ for (const bad of [
       bad.department.id,
     () =>
       run({ users: { body: list([bad]) } }, async (p) => {
-        await p.getByText(/Account coverage unavailable/).waitFor();
+        await p.getByText(/Chưa kiểm tra được phạm vi tài khoản; chưa thể kết luận đã hết ràng buộc\./).waitFor();
         assert.equal(
           await p.getByText("Visible employee", { exact: true }).count(),
           0,
@@ -182,7 +182,7 @@ for (const bad of [
 test("inactive Department has no controls or account request", () =>
   run({ inactive: true }, async (p) => {
     await p.getByText(/already inactive/).waitFor();
-    assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+    assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
     assert.equal(
       await p.evaluate(
         () =>
@@ -215,7 +215,7 @@ test("synthetic confirmed response has one POST", () =>
     await p
       .getByRole("button", { name: "Confirm department deactivation" })
       .click();
-    await p.getByText("Server confirmed department deactivation.").waitFor();
+    await p.getByText("Máy chủ đã xác nhận vô hiệu hóa bộ phận.").waitFor();
     const posts = await p.evaluate(() =>
       window.fixture.calls.filter((c) => c.method === "POST"),
     );
@@ -225,7 +225,7 @@ test("synthetic confirmed response has one POST", () =>
       reason: "Valid department closure reason",
       confirmation: true,
     });
-    assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+    assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
   }));
 for (const status of [401, 403, 412, 503])
   test("mutation " + status + " clears snapshot without replay", () =>
@@ -266,7 +266,7 @@ test("late branch response cannot restore accounts", () =>
       (body) => window.fixture.finish("old", { body }),
       list([item]),
     );
-    await p.getByText(/No visible active accounts/).waitFor();
+    await p.getByText(/Không thấy tài khoản đang hoạt động\. Điều này không xác nhận đã hết mọi ràng buộc\./).waitFor();
     assert.equal(
       await p.getByText("Visible employee", { exact: true }).count(),
       0,

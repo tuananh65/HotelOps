@@ -88,19 +88,19 @@ export function decodeRecord(
 }
 export function failureMessage(e: Failure): string {
   if (e.reason === "DISABLED")
-    return "Live deactivation is disabled pending backend acceptance and Project Leader approval.";
-  if (e.status === 401) return "Session invalid. Revalidate before continuing.";
+    return "Vô hiệu hóa thực tế bị khóa, chờ nghiệm thu backend và trưởng dự án phê duyệt.";
+  if (e.status === 401) return "Phiên đăng nhập không hợp lệ. Xác minh lại trước khi tiếp tục.";
   if (e.status === 403)
-    return "Server denied access. No permission is inferred from this screen.";
+    return "Máy chủ từ chối truy cập. Màn hình này không tự cấp quyền.";
   if (e.status === 412)
-    return "Version changed. Refresh and review again; no automatic replay.";
+    return "Phiên bản đã đổi. Tải lại và xét duyệt; không tự gửi lại.";
   if (e.status === 409)
     return e.code === "STRUCTURE_DEPENDENCIES_EXIST"
-      ? "Dependencies block deactivation."
-      : "Conflict: record cannot be deactivated.";
+      ? "Các ràng buộc đang chặn vô hiệu hóa."
+      : "Xung đột: không thể vô hiệu hóa hồ sơ.";
   if (e.status === 503)
     return e.code === "STRUCTURE_WRITER_COORDINATION_REQUIRED"
-      ? "Writer coordination has not been accepted. Deactivation unavailable."
-      : "Service unavailable. Deactivation outcome may be unknown.";
-  return "Operation unavailable. No automatic retry.";
+      ? "Chưa chấp nhận cơ chế phối hợp ghi. Không thể vô hiệu hóa."
+      : "Dịch vụ chưa khả dụng. Kết quả vô hiệu hóa có thể chưa xác định.";
+  return "Thao tác chưa khả dụng. Không tự gửi lại.";
 }

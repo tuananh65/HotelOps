@@ -13,7 +13,7 @@ public enum CleaningMonitorStatus { Success, SessionInvalid, Forbidden, NotFound
 public sealed record CleaningMonitorResult(CleaningMonitorStatus Status, object? Value = null);
 
 /// <summary>UC037 read subset. Does not cancel work, derive room lifecycle or write business/audit data.</summary>
-public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAccessor current,
+public sealed partial class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
 {
     internal static bool SupervisorCanMonitor(IEnumerable<PermissionGrantPath> sameRoleGrants, long branch, DateTime now) =>
@@ -236,7 +236,9 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             LEFT JOIN dbo.reference_values b ON b.reference_id=ub.blocker_type_id
             WHERE r.branch_id=@branch
             """;
-        return db.Database.SqlQueryRaw<MonitorRow>(sql, new SqlParameter("@branch", branchId),
+        // EF formats raw SQL when parameters are supplied; JSON's literal braces
+        // must not be interpreted as composite-format placeholders.
+        return db.Database.SqlQueryRaw<MonitorRow>(sql.Replace("{", "{{").Replace("}", "}}"), new SqlParameter("@branch", branchId),
             new SqlParameter("@now", SqlDbType.DateTime2) { Value = now });
     }
 

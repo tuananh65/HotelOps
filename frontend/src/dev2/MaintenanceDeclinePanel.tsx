@@ -21,40 +21,40 @@ export function MaintenanceDeclinePanel({ data, onCommitted }: { data: Values; o
     const abort = new AbortController(); writer.current = abort;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
         || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session)
-        throw Error("Session changed. Reload before retrying.");
+        throw Error("Phiên đăng nhập đã thay đổi. Tải lại trước khi thử lại.");
       const response = await fetch(`/api/maintenance-works/${id}/decline`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
         body: JSON.stringify({ reason: reason.trim() })
       });
-      if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before declining again."
-        : "Decline was not confirmed. Reload and check your assignment.");
+      if (!response.ok) throw Error(response.status === 412 ? "Công việc đã đổi. Tải lại trước khi từ chối tiếp."
+        : "Chưa xác nhận từ chối. Tải lại và kiểm tra phân công.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.workflow !== "PENDING_ASSIGNMENT"
         || typeof result.auditId !== "number" || !Number.isSafeInteger(result.auditId) || result.auditId <= 0
         || typeof result.declinedAt !== "string" || Number.isNaN(Date.parse(result.declinedAt)))
-        throw Error("Decline response could not be confirmed. Reload to check current state.");
+        throw Error("Chưa xác minh được phản hồi từ chối. Tải lại trạng thái hiện tại.");
       if (!abort.signal.aborted && current.current === session) {
-        const notice = "Assignment declined. The work is pending assignment.";
+        const notice = "Đã từ chối nhận việc. Công việc đang chờ phân công.";
         setMessage(notice);
         setReason("");
         onCommitted?.(notice);
       }
     } catch (error) {
-      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Decline not confirmed. Reload.");
+      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Chưa xác nhận từ chối nhận việc. Vui lòng tải lại.");
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
-  return <section aria-label="Decline maintenance assignment">
-    <h3>Decline assignment</h3>
-    <p>Declining clears your current assignment. SLA deadlines and room blocks remain unchanged.</p>
+  return <section aria-label="Từ chối nhận phân công bảo trì">
+    <h3>Từ chối nhận phân công</h3>
+    <p>Từ chối sẽ bỏ phân công hiện tại của bạn. Thời hạn SLA và lệnh khóa phòng giữ nguyên.</p>
     {message && <p role="status">{message}</p>}
-    <label>Decline reason<textarea maxLength={2000} disabled={busy || attempted || review} value={reason} onChange={e => setReason(e.target.value)} /></label>
-    {review ? <><p>Decline this assignment and notify the Maintenance Lead?</p><p>{reason.trim()}</p>
-      <button disabled={busy} onClick={() => void submit()}>Confirm decline</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
-      : <button disabled={reason.trim().length < 10 || busy || attempted} onClick={() => setReview(true)}>Review decline</button>}
+    <label>Lý do từ chối nhận việc<textarea maxLength={2000} disabled={busy || attempted || review} value={reason} onChange={e => setReason(e.target.value)} /></label>
+    {review ? <><p>Từ chối phân công này và thông báo cho trưởng bảo trì?</p><p>{reason.trim()}</p>
+      <button disabled={busy} onClick={() => void submit()}>Xác nhận từ chối nhận việc</button><button disabled={busy} onClick={() => setReview(false)}>Hủy</button></>
+      : <button disabled={reason.trim().length < 10 || busy || attempted} onClick={() => setReview(true)}>Xem lại từ chối nhận việc</button>}
   </section>;
 }

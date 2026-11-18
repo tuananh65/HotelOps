@@ -163,18 +163,18 @@ async function writes(p) {
   return (await calls(p)).filter((c) => c.method !== "GET");
 }
 async function ready(p) {
-  await p.getByRole("heading", { name: /Hotel structure —/ }).waitFor();
+  await p.getByRole("heading", { name: /Cấu trúc khách sạn —/ }).waitFor();
 }
 async function load(p) {
   await p
-    .getByRole("button", { name: "Load from server", exact: true })
+    .getByRole("button", { name: "Tải dữ liệu", exact: true })
     .click();
   await settle(p);
 }
 async function select(p, action, id) {
   await ready(p);
   await p
-    .getByRole("combobox", { name: "Action", exact: true })
+    .getByRole("combobox", { name: "Thao tác", exact: true })
     .selectOption(action);
   if (id) await p.locator('input[name="recordId"]').fill(String(id));
 }
@@ -183,7 +183,7 @@ async function fill(p, kind) {
     if (key === "branchId" || key === "confirmation" || value === null)
       continue;
     const input = p
-      .getByRole("form", { name: "Hotel structure change" })
+      .getByRole("form", { name: "Thay đổi cấu trúc khách sạn" })
       .locator(`[name="${key}"]`);
     if (await input.count()) await input.fill(String(value));
   }
@@ -261,7 +261,7 @@ for (const invalid of ["0", "-1", "1e3", "1.5", "9007199254740992", " 1 "])
       await ready(p);
       await p.locator('input[name="branchId"]').fill(invalid);
       assert.equal(
-        await p.getByRole("button", { name: "Load from server" }).isDisabled(),
+        await p.getByRole("button", { name: "Tải dữ liệu" }).isDisabled(),
         true,
       );
       assert.equal(
@@ -283,8 +283,8 @@ for (const [path, expected] of [
       await p
         .getByRole("region", {
           name: path.startsWith("/hotel")
-            ? "Progressive branch structure"
-            : "Server hotel data",
+            ? "Cấu trúc chi nhánh theo từng cấp"
+            : "Dữ liệu khách sạn từ máy chủ",
         })
         .waitFor();
       assert.ok((await p.locator("body").innerText()).includes(expected));
@@ -306,7 +306,7 @@ for (const [screen, collection] of [
       async (p) => {
         await ready(p);
         await load(p);
-        await p.getByRole("region", { name: "Server hotel data" }).waitFor();
+        await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).waitFor();
         const c = (await calls(p)).find((c) => c.url.includes("/structure"));
         assert.equal(
           new URL(c.url, "http://test.local").searchParams.get("collection"),
@@ -334,7 +334,7 @@ for (const [kind, id, url, dto] of mutationCases) {
     await withHotel(`/${screen}?branchId=1`, {}, async (p) => {
       await select(p, action, action === "create" ? null : id);
       if (action !== "create") await load(p);
-      await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+      await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
       await fill(p, kind);
       await review(p);
       assert.equal((await writes(p)).length, 0);
@@ -342,7 +342,7 @@ for (const [kind, id, url, dto] of mutationCases) {
         .getByRole("region", { name: "Review hotel structure change" })
         .waitFor();
       await confirm(p);
-      await p.getByRole("status", { name: "Confirmed hotel change" }).waitFor();
+      await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).waitFor();
       const c = (await writes(p))[0];
       assert.equal((await writes(p)).length, 1);
       assert.equal(c.url, url);
@@ -383,7 +383,7 @@ test("review edits and Enter cannot dispatch; synchronous double confirm sends o
         status: 201,
         body: { ...editable, name: "Edited Floor" },
       });
-      await p.getByRole("status", { name: "Confirmed hotel change" }).waitFor();
+      await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).waitFor();
     },
   );
 });
@@ -402,7 +402,7 @@ for (const reply of [
         await load(p);
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByRole("region", { name: "Server hotel data" }).count(),
+          await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).count(),
           0,
         );
         assert.equal((await writes(p)).length, 0);
@@ -431,20 +431,20 @@ for (const reply of [
       async (p) => {
         await select(p, "edit", 11);
         await load(p);
-        await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+        await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
         await fill(p, "updateFloor");
         await review(p);
         await confirm(p);
         await p
           .getByText(
-            "The change could not be confirmed. It may already have been saved. Do not retry automatically. Ask an authorized administrator to verify the record before making another change.",
+            "Chưa xác nhận thay đổi; có thể đã lưu. Không tự gửi lại. Nhờ quản trị viên kiểm tra hồ sơ trước khi thay đổi tiếp.",
             { exact: true },
           )
           .waitFor();
         await load(p);
-        await p.getByRole("region", { name: "Server hotel data" }).waitFor();
+        await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).waitFor();
         assert.equal(
-          await p.getByRole("form", { name: "Hotel structure change" }).count(),
+          await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
           0,
         );
         assert.equal((await writes(p)).length, 1);
@@ -475,18 +475,18 @@ test("412 clears version and requires fresh read/review before another PUT", asy
     async (p) => {
       await select(p, "edit", 11);
       await load(p);
-      await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+      await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
       await fill(p, "updateFloor");
       await review(p);
       await confirm(p);
       await p.getByRole("alert").waitFor();
       assert.equal(
-        await p.getByRole("form", { name: "Hotel structure change" }).count(),
+        await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
         0,
       );
       assert.equal((await writes(p)).length, 1);
       await load(p);
-      await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+      await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
       assert.equal(
         await p.locator('input[name="name"]').inputValue(),
         "Fresh Floor",
@@ -496,7 +496,7 @@ test("412 clears version and requires fresh read/review before another PUT", asy
         .fill("Review the refreshed floor");
       await review(p);
       await confirm(p);
-      await p.getByRole("status", { name: "Confirmed hotel change" }).waitFor();
+      await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).waitFor();
       assert.equal((await writes(p))[1].headers["if-match"], nextTag);
     },
   );
@@ -520,12 +520,12 @@ for (const id of ["7", "8"])
         assert.equal((await writes(p))[0].aborted, true);
         assert.equal(
           await p
-            .getByRole("status", { name: "Confirmed hotel change" })
+            .getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" })
             .count(),
           0,
         );
         assert.equal(
-          await p.getByRole("form", { name: "Hotel structure change" }).count(),
+          await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
           0,
         );
       },
@@ -542,7 +542,7 @@ test("branch change aborts old GET; late branch data remains hidden", async () =
       await finish(p, "read", { body: structure() });
       assert.equal(
         await p
-          .getByRole("region", { name: "Progressive branch structure" })
+          .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
           .count(),
         0,
       );
@@ -568,7 +568,7 @@ test("navigation aborts mutation; late success cannot publish in accepted Profil
       assert.equal(new URL(p.url()).pathname, "/profile");
       assert.equal((await writes(p))[0].aborted, true);
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed hotel change" }).count(),
+        await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).count(),
         0,
       );
     },
@@ -598,7 +598,7 @@ test("UC013 selects a floor node and child collection using server contract", as
         .getByRole("button", { name: "floor: Server Floor", exact: true })
         .click();
       await p
-        .getByRole("region", { name: "Progressive branch structure" })
+        .getByRole("region", { name: "Cấu trúc chi nhánh theo từng cấp" })
         .waitFor();
       const c = (await calls(p))
         .filter((c) => c.url.includes("/structure"))
@@ -614,7 +614,7 @@ test("UC023 recorded history is fetched through constructed scoped URL", async (
   await withHotel("/rooms?branchId=1", {}, async (p) => {
     await select(p, "history", 15);
     await load(p);
-    await p.getByRole("region", { name: "Server hotel data" }).waitFor();
+    await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).waitFor();
     assert.ok(
       (await p.locator("body").innerText()).includes(
         "RECORDED_STATUS_EVENTS_ONLY",
@@ -632,7 +632,7 @@ test("global room read remains subject to backend denial without local permissio
     async (p) => {
       await ready(p);
       await p
-        .getByRole("checkbox", { name: "All branches (server-authorized)" })
+        .getByRole("checkbox", { name: "Tất cả chi nhánh được máy chủ cho phép" })
         .check();
       await load(p);
       await p.getByRole("alert").waitFor();
@@ -641,7 +641,7 @@ test("global room read remains subject to backend denial without local permissio
       assert.equal(q.get("allBranches"), "true");
       assert.equal(q.has("branchId"), false);
       assert.equal(
-        await p.getByRole("region", { name: "Server hotel data" }).count(),
+        await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).count(),
         0,
       );
     },
@@ -656,7 +656,7 @@ test("new entry still renders accepted Users routes", async () => {
     assert.equal(new URL(p.url()).pathname, "/users");
     assert.equal((await writes(p)).length, 0);
     assert.equal(
-      await p.getByRole("heading", { name: /Hotel structure/ }).count(),
+      await p.getByRole("heading", { name: /Cấu trúc khách sạn/ }).count(),
       0,
     );
   });
@@ -680,20 +680,20 @@ test("pending write and session unavailability stay unknown after manual session
       await p.evaluate(() => window.fixture.revalidate());
       await settle(p);
       assert.equal(
-        await p.getByRole("form", { name: "Hotel structure change" }).count(),
+        await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
         0,
       );
       await finish(p, "post", { status: 201, body: editable });
       await p
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await ready(p);
       assert.equal(
-        await p.getByRole("form", { name: "Hotel structure change" }).count(),
+        await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
         0,
       );
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed hotel change" }).count(),
+        await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).count(),
         0,
       );
       assert.equal((await writes(p))[0].aborted, true);
@@ -713,7 +713,7 @@ test("room type active-room blocker is rejected without bypass or replay", async
     async (p) => {
       await select(p, "deactivate", 14);
       await load(p);
-      await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+      await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
       await fill(p, "deactivateType");
       await review(p);
       await confirm(p);
@@ -721,7 +721,7 @@ test("room type active-room blocker is rejected without bypass or replay", async
       assert.ok((await p.locator("body").innerText()).includes("active rooms"));
       assert.equal((await writes(p)).length, 1);
       assert.equal(
-        await p.getByRole("status", { name: "Confirmed hotel change" }).count(),
+        await p.getByRole("status", { name: "Thay đổi khách sạn đã xác nhận" }).count(),
         0,
       );
     },
@@ -730,7 +730,7 @@ test("room type active-room blocker is rejected without bypass or replay", async
 
 test("dashboard exposes FE02 without changing accepted AuthRouteHost", async () => {
   await withHotel("/dashboard", {}, async (p) => {
-    await p.getByRole("link", { name: "Hotel structure", exact: true }).click();
+    await p.getByRole("link", { name: "Cấu trúc khách sạn", exact: true }).click();
     await ready(p);
     assert.equal(new URL(p.url()).pathname, "/hotel");
     assert.equal(
@@ -755,17 +755,17 @@ for (const result of [
       async (p) => {
         await select(p, "edit", 11);
         await load(p);
-        await p.getByRole("form", { name: "Hotel structure change" }).waitFor();
+        await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).waitFor();
         await fill(p, "updateFloor");
         await review(p);
         await confirm(p);
         await settle(p);
         assert.equal(
-          await p.getByRole("form", { name: "Hotel structure change" }).count(),
+          await p.getByRole("form", { name: "Thay đổi cấu trúc khách sạn" }).count(),
           0,
         );
         assert.equal(
-          await p.getByRole("region", { name: "Server hotel data" }).count(),
+          await p.getByRole("region", { name: "Dữ liệu khách sạn từ máy chủ" }).count(),
           0,
         );
         assert.equal((await writes(p)).length, 1);
@@ -791,14 +791,14 @@ for (const [kind, , url] of mutationCases.filter(([kind]) => ["createFloor", "cr
       await fill(p, kind); await review(p);
       assert.equal((await writes(p)).length, 0);
       await confirm(p);
-      await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+      await p.getByRole("heading", { name: "Máy chủ đã xác nhận thay đổi", exact: true }).waitFor();
       const sent = await writes(p);
       assert.equal(sent.length, 1);
       assert.equal(sent[0].url, url);
       assert.equal(sent[0].headers["x-csrf-token"], secret);
       if (update) assert.equal(sent[0].headers["if-match"], tag);
       assert.ok((await p.locator("body").innerText()).includes("MSG08"));
-      assert.equal(await p.getByRole("link", { name: "Review deactivation dependencies" }).count(), 0);
+      assert.equal(await p.getByRole("link", { name: "Kiểm tra ràng buộc vô hiệu hóa" }).count(), 0);
     });
   });
 }
@@ -809,7 +809,7 @@ for (const [kind, id, url] of mutationCases.filter(([kind]) => ["createType", "u
       await select(p, kind === "createType" ? "create" : kind === "updateType" ? "edit" : "deactivate", kind === "createType" ? null : id);
       if (kind !== "createType") await load(p);
       await fill(p, kind); await review(p); await confirm(p);
-      await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+      await p.getByRole("heading", { name: "Máy chủ đã xác nhận thay đổi", exact: true }).waitFor();
       const sent = await writes(p);
       assert.equal(sent.length, 1); assert.equal(sent[0].url, url);
       assert.equal(sent[0].headers["x-csrf-token"], secret);
@@ -824,7 +824,7 @@ test("UC019 canonical preflight lists active rooms and prevents confirmation", a
     responses: { "GET /api/room-types/14": [{ body: { ...typeItem, activeRooms: 1,
       activeRoomReferences: [{ id: 15, roomNumber: "101" }] }, headers: { ETag: tag } }] } }, async p => {
     await select(p, "deactivate", 14); await load(p);
-    const dependencies = p.getByRole("region", { name: "Room type dependencies" });
+    const dependencies = p.getByRole("region", { name: "Ràng buộc loại phòng" });
     await dependencies.waitFor();
     assert.ok((await dependencies.innerText()).includes("101"));
     assert.equal(await p.getByRole("button", { name: "Review change", exact: true }).count(), 0);
@@ -837,13 +837,13 @@ test("UC024 canonical creation remains available alongside UC025 update", async 
     await fill(p, "createDepartment"); await review(p);
     assert.equal((await writes(p)).length, 0);
     await confirm(p);
-    await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+    await p.getByRole("heading", { name: "Máy chủ đã xác nhận thay đổi", exact: true }).waitFor();
     const sent = await writes(p);
     assert.equal(sent.length, 1);
     assert.equal(sent[0].url, "/api/branches/1/departments");
     assert.equal(sent[0].headers["x-csrf-token"], secret);
     assert.deepEqual(JSON.parse(sent[0].body), requests.createDepartment);
-    assert.equal(await p.getByRole("option", { name: "Update", exact: true }).count(), 1);
+    assert.equal(await p.getByRole("option", { name: "Cập nhật", exact: true }).count(), 1);
     assert.ok((await p.locator("body").innerText()).includes("MSG08"));
   });
 });
@@ -851,16 +851,16 @@ test("UC024 canonical creation remains available alongside UC025 update", async 
 test("UC023 canonical read-only directory preserves effective readiness and scoped navigation", async () => {
   await withHotel("/room-directory?branchId=1", { canonical: true }, async (p) => {
     await load(p);
-    const results = p.getByRole("region", { name: "Room directory results", exact: true });
+    const results = p.getByRole("region", { name: "Kết quả danh mục phòng", exact: true });
     await results.getByRole("table").waitFor();
     assert.ok((await results.innerText()).includes("BLOCKED"));
-    assert.equal(await p.getByRole("option", { name: "Create", exact: true }).count(), 0);
-    assert.equal(await p.getByRole("option", { name: "Update", exact: true }).count(), 0);
+    assert.equal(await p.getByRole("option", { name: "Tạo mới", exact: true }).count(), 0);
+    assert.equal(await p.getByRole("option", { name: "Cập nhật", exact: true }).count(), 0);
     await results.getByRole("link", { name: "Read room 101 in branch 1", exact: true }).click();
     assert.ok(p.url().includes("/room-directory/15?branchId=1"));
     await load(p);
     assert.ok((await calls(p)).some(c => c.url === "/api/rooms/15?branchId=1"));
-    await p.getByRole("combobox", { name: "Action", exact: true }).selectOption("history");
+    await p.getByRole("combobox", { name: "Thao tác", exact: true }).selectOption("history");
     await load(p);
     assert.ok((await calls(p)).some(c => c.url === "/api/rooms/15/history?branchId=1&page=1&pageSize=20"));
     assert.equal((await writes(p)).length, 0);
@@ -871,7 +871,7 @@ test("UC023 directory rows open scoped detail and recorded history without enter
   await withHotel("/rooms?branchId=1", {}, async (p) => {
     await load(p);
     const results = p.getByRole("region", {
-      name: "Room directory results",
+      name: "Kết quả danh mục phòng",
       exact: true,
     });
     await results.getByRole("table").waitFor();
@@ -884,7 +884,7 @@ test("UC023 directory rows open scoped detail and recorded history without enter
     assert.ok(
       (await calls(p)).some((c) => c.url === "/api/rooms/15?branchId=1"),
     );
-    await p.getByRole("link", { name: "Rooms", exact: true }).click();
+    await p.getByRole("link", { name: "Phòng", exact: true }).click();
     await load(p);
     await p
       .getByRole("link", {
@@ -894,7 +894,7 @@ test("UC023 directory rows open scoped detail and recorded history without enter
       .click();
     assert.equal(
       await p
-        .getByRole("combobox", { name: "Action", exact: true })
+        .getByRole("combobox", { name: "Thao tác", exact: true })
         .inputValue(),
       "history",
     );
@@ -960,7 +960,7 @@ test("UC023 empty results have no detail links and changing branch hides previou
       await p.locator('input[name="branchId"]').fill("2");
       assert.equal(
         await p
-          .getByRole("region", { name: "Room directory results", exact: true })
+          .getByRole("region", { name: "Kết quả danh mục phòng", exact: true })
           .count(),
         0,
       );
@@ -978,7 +978,7 @@ test("UC025 canonical update preserves confirmation, CSRF and ETag", async () =>
     await fill(p, "updateDepartment"); await review(p);
     assert.equal((await writes(p)).length, 0);
     await confirm(p);
-    await p.getByRole("heading", { name: "Change confirmed by the server", exact: true }).waitFor();
+    await p.getByRole("heading", { name: "Máy chủ đã xác nhận thay đổi", exact: true }).waitFor();
     const sent = await writes(p);
     assert.equal(sent.length, 1);
     assert.equal(sent[0].url, "/api/branches/1/departments/13");
@@ -994,7 +994,7 @@ for (const [kind,id,url] of mutationCases.filter(([kind])=>['createRoom','update
   await withHotel('/structure/rooms?branchId=1'+(update?'':'&action=create'),{canonical:true},async p=>{
    if(update){await select(p,'edit',id);await load(p);}
    await fill(p,kind);await review(p);assert.equal((await writes(p)).length,0);
-   await confirm(p);await p.getByRole('heading',{name:'Change confirmed by the server',exact:true}).waitFor();
+   await confirm(p);await p.getByRole('heading',{name:"Máy chủ đã xác nhận thay đổi",exact:true}).waitFor();
    const sent=await writes(p);assert.equal(sent.length,1);assert.equal(sent[0].url,url);
    assert.equal(sent[0].headers['x-csrf-token'],secret);
    if(update)assert.equal(sent[0].headers['if-match'],tag);
@@ -1016,7 +1016,7 @@ test('UC020/021 canonical directory preserves scoped room detail links',async()=
 test('UC142 canonical table exposes SRS columns and scoped detail navigation',async()=>{
  await withHotel('/structure/room-types?branchId=1',{canonical:true},async p=>{
   await load(p);
-  const table=p.getByRole('table',{name:'Room types returned by the server'});await table.waitFor();
+  const table=p.getByRole('table',{name:"Loại phòng từ máy chủ"});await table.waitFor();
   for(const name of ['Code','Name','Branch','Active rooms','Status']) assert.equal(await table.getByRole('columnheader',{name,exact:true}).count(),1);
   assert.equal(await table.getByRole('link').first().getAttribute('href'),`/structure/room-types/${typeItem.details.id}?branchId=1`);
   await table.getByRole('link').first().click();await p.waitForURL(`**/structure/room-types/${typeItem.details.id}?branchId=1`);
@@ -1025,11 +1025,11 @@ test('UC142 canonical table exposes SRS columns and scoped detail navigation',as
 });
 test('UC142 canonical empty list retains server-applied filters',async()=>{
  await withHotel('/structure/room-types?branchId=1',{canonical:true,responses:{'GET /api/room-types':[{body:{...roomTypes,items:[],total:0,search:'NoMatch',isActive:false}}]}},async p=>{
-  await p.getByLabel('Search',{exact:true}).fill('NoMatch');
-  await p.getByLabel('Active filter',{exact:true}).selectOption('false');
-  await load(p);await p.getByText(/MSG10: No room types/).waitFor();
-  const filters=await p.getByLabel('Applied room type filters').innerText();
-  assert.match(filters,/NoMatch/);assert.match(filters,/Inactive/);assert.match(filters,/Branch: 1/);
+  await p.getByLabel("Tìm kiếm",{exact:true}).fill('NoMatch');
+  await p.getByLabel("Bộ lọc hoạt động",{exact:true}).selectOption('false');
+  await load(p);await p.getByText(/MSG10: Không có loại phòng phù hợp bộ lọc trên trang này\./).waitFor();
+  const filters=await p.getByLabel("Bộ lọc loại phòng đã áp dụng").innerText();
+  assert.match(filters,/NoMatch/);assert.match(filters,/Ngừng hoạt động/);assert.match(filters,/Branch: 1/);
   assert.equal((await writes(p)).length,0);
  });
 });

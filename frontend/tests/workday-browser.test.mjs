@@ -9,7 +9,7 @@ const bundle = await build({
     loader: "tsx",
     resolveDir: process.cwd(),
     contents: `
-import React,{StrictMode,useState} from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter,Routes,Route}from'react-router-dom';
+import React,{StrictMode,useState} from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter,Routes,Route,Link}from'react-router-dom';
 import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';
 import{WorkdayReadPanel}from'./src/workday/WorkdayReadPanel';import{HotelRouteHost}from'./src/hotel/HotelRouteHost';
 const calls=[],waiting=new Map();let sessions=[...(window.scenario.sessions??[{body:${JSON.stringify(session())}}])];
@@ -18,14 +18,15 @@ window.fetch=async(url,init)=>{const call={url,method:init.method,credentials:in
 init.signal?.addEventListener('abort',()=>{call.aborted=true},{once:true});
 let r;if(url==='/api/auth/session')r=sessions.shift();else r=window.scenario.responses?.[url]??(url.endsWith('own-shifts')?{body:[${JSON.stringify(shift())}]}:{body:${JSON.stringify(day())}});
 if(r?.deferred)return new Promise(resolve=>waiting.set(r.deferred,[...(waiting.get(r.deferred)??[]),resolve]));if(!r)throw Error('Missing response');return respond(r)};
-const store=createAuthStore(createAuthApi(window.fetch));function App(){const[branch,setBranch]=useState(1);window.changeBranch=setBranch;return <Routes><Route path='/workday' element={<WorkdayReadPanel branchId={branch}/>}/><Route path='*' element={<HotelRouteHost/>}/></Routes>}
+const store=createAuthStore(createAuthApi(window.fetch));function App(){const[branch,setBranch]=useState(1);window.changeBranch=setBranch;return <><Link to='/profile'>Hồ sơ</Link><Routes><Route path='/workday' element={<WorkdayReadPanel branchId={branch}/>}/><Route path='*' element={<HotelRouteHost/>}/></Routes></>}
 const host=<App/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
-window.fixture={calls,finish:(key,r)=>waiting.get(key).shift()(respond(r)),revalidate:()=>store.revalidate(),navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};
+window.fixture={calls,finish:(key,r)=>{const pending=waiting.get(key)??[];waiting.delete(key);pending.forEach(resolve=>resolve(respond(r)))},revalidate:()=>store.revalidate(),navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};
 `,
   },
   bundle: true,
   write: false,
   format: "iife",
+  outfile: ".test-output/workday-panel.js",
   jsx: "automatic",
   define: { "process.env.NODE_ENV": '"development"', "import.meta.env": "{}" },
 });
@@ -63,7 +64,9 @@ async function withPage(scenario, run) {
           },
         });
     }, scenario);
-    await p.addScriptTag({ content: bundle.outputFiles[0].text });
+    for (const output of bundle.outputFiles)
+      if (output.path.endsWith(".css")) await p.addStyleTag({ content: output.text });
+    await p.addScriptTag({ content: bundle.outputFiles.find(f => f.path.endsWith(".js")).text });
     await run(p);
     assert.deepEqual(errors, []);
     assert.ok(!(await p.locator("body").innerText()).includes(secret));
@@ -79,9 +82,9 @@ async function withPage(scenario, run) {
 }
 const path = (branch, op) => `/api/branches/${branch}/workdays/${op}`;
 const shiftsSection = (p) =>
-  p.getByRole("region", { name: "Ca được phân công trong ngày", exact: true });
+  p.getByRole("region", { name: "Ca có thể bắt đầu hôm nay", exact: true });
 const currentSection = (p) =>
-  p.getByRole("region", { name: "Workday hiện tại", exact: true });
+  p.getByRole("region", { name: "Ca đang làm", exact: true });
 const settle = (p) =>
   p.evaluate(
     () =>
@@ -94,7 +97,7 @@ test("own-shifts 403 does not block current 200", () =>
     async (p) => {
       await shiftsSection(p).getByRole("alert").waitFor();
       await currentSection(p)
-        .getByText("Workday 20,", { exact: false })
+        .locator('a[href="/workday/handovers?workdayId=20"]')
         .waitFor();
     },
   ));
@@ -103,7 +106,7 @@ test("current 403 does not hide authorized shifts", () =>
     { responses: { [path(1, "current")]: { status: 403, body: {} } } },
     async (p) => {
       await currentSection(p).getByRole("alert").waitFor();
-      await shiftsSection(p).getByText("Ca 11:", { exact: false }).waitFor();
+      await shiftsSection(p).locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
     },
   ));
 test("both 403 expose no workday or shift data", () =>
@@ -117,9 +120,9 @@ test("both 403 expose no workday or shift data", () =>
     async (p) => {
       await shiftsSection(p).getByRole("alert").waitFor();
       await currentSection(p).getByRole("alert").waitFor();
-      assert.equal(await p.getByText("Ca 11:", { exact: false }).count(), 0);
+      assert.equal(await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').count(), 0);
       assert.equal(
-        await p.getByText("Workday 20,", { exact: false }).count(),
+        await p.locator('a[href="/workday/handovers?workdayId=20"]').count(),
         0,
       );
     },
@@ -128,8 +131,8 @@ test("authorized shifts remain visible with current 204", () =>
   withPage(
     { responses: { [path(1, "current")]: { status: 204 } } },
     async (p) => {
-      await shiftsSection(p).getByText("Ca 11:", { exact: false }).waitFor();
-      await currentSection(p).getByText("Không có workday đang làm.").waitFor();
+      await shiftsSection(p).locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
+      await currentSection(p).getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").waitFor();
     },
   ));
 for (const pending of ["current", "own-shifts"])
@@ -142,9 +145,7 @@ for (const pending of ["current", "own-shifts"])
         const ready =
           pending === "current" ? shiftsSection(p) : currentSection(p);
         await ready
-          .getByText(pending === "current" ? "Ca 11:" : "Workday 20,", {
-            exact: false,
-          })
+          .locator(pending === "current" ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]' : 'a[href="/workday/handovers?workdayId=20"]')
           .waitFor();
         await waiting.getByRole("status").waitFor();
         await p.evaluate(() =>
@@ -166,9 +167,7 @@ for (const pending of ["current", "own-shifts"])
           before,
         );
         await ready
-          .getByText(pending === "current" ? "Ca 11:" : "Workday 20,", {
-            exact: false,
-          })
+          .locator(pending === "current" ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]' : 'a[href="/workday/handovers?workdayId=20"]')
           .waitFor();
       },
     ));
@@ -185,19 +184,19 @@ for (const status of [404, 503])
         await currentSection(p).getByRole("alert").waitFor();
         await shiftsSection(p).getByRole("alert").waitFor();
         assert.equal(
-          await p.getByText("Không có workday đang làm.").count(),
+          await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").count(),
           0,
         );
         assert.equal(
-          await p.getByText("Không có ca đủ điều kiện trong ngày.").count(),
+          await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
           0,
         );
       },
     ));
 test("normal own shifts/current render, no rowversion exposed", () =>
   withPage({}, async (p) => {
-    await p.getByText("Workday 20,", { exact: false }).waitFor();
-    await p.getByText("Ca 11:", { exact: false }).waitFor();
+    await p.locator('a[href="/workday/handovers?workdayId=20"]').waitFor();
+    await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
     assert.ok(!(await p.locator("body").innerText()).includes("AAAAAAAAAAE="));
   }));
 test("empty shifts and explicit current 204", () =>
@@ -209,8 +208,8 @@ test("empty shifts and explicit current 204", () =>
       },
     },
     async (p) => {
-      await p.getByText("Không có workday đang làm.").waitFor();
-      await p.getByText("Không có ca đủ điều kiện trong ngày.").waitFor();
+      await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").waitFor();
+      await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").waitFor();
     },
   ));
 for (const status of [401, 403, 404, 503])
@@ -227,7 +226,7 @@ for (const status of [401, 403, 404, 503])
       async (p) => {
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByText("Không có ca đủ điều kiện trong ngày.").count(),
+          await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
           0,
         );
         assert.equal(
@@ -265,10 +264,10 @@ test("branch change hides data and ignores late current", () =>
         window.fixture.calls.some((c) => c.url.endsWith("/current")),
       );
       await p.evaluate(() => window.changeBranch(2));
-      await p.getByText("Workday 22,", { exact: false }).waitFor();
+      await p.locator('a[href="/workday/handovers?workdayId=22"]').waitFor();
       await p.evaluate((r) => window.fixture.finish("old", { body: r }), day());
       assert.equal(
-        await p.getByText("Workday 20,", { exact: false }).count(),
+        await p.locator('a[href="/workday/handovers?workdayId=20"]').count(),
         0,
       );
     },
@@ -296,7 +295,7 @@ test("identity replacement cannot publish old identity data", () =>
           };
           return window.fixture.revalidate();
         },
-        { s: { ...shift(), shiftId: 88 }, d: { ...day(), workdayId: 99 } },
+        { s: { ...shift(), shiftId: 88, shiftAssignmentId: 88 }, d: { ...day(), workdayId: 99 } },
       );
       await p
         .getByText("Chưa xác nhận phiên đăng nhập không hạn chế.")
@@ -306,22 +305,22 @@ test("identity replacement cannot publish old identity data", () =>
         (d) => window.fixture.finish("oldCurrent", { body: d }),
         day(),
       );
-      await p.getByText("Workday 99,", { exact: false }).waitFor();
-      await p.getByText("Ca 88:", { exact: false }).waitFor();
+      await p.locator('a[href="/workday/handovers?workdayId=99"]').waitFor();
+      await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=88"]').waitFor();
       await settle(p);
       assert.equal(
-        await p.getByText("Không có ca đủ điều kiện trong ngày.").count(),
+        await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
         0,
       );
       assert.equal(
-        await p.getByText("Workday 20,", { exact: false }).count(),
+        await p.locator('a[href="/workday/handovers?workdayId=20"]').count(),
         0,
       );
     },
   ));
 test("FE01 and FE02 navigation delegates to accepted hosts", () =>
   withPage({}, async (p) => {
-    await p.getByText("Workday 20,", { exact: false }).waitFor();
+    await p.locator('a[href="/workday/handovers?workdayId=20"]').waitFor();
     await p.getByRole("link", { name: "Hồ sơ", exact: true }).click();
     await p
       .getByRole("heading", { name: /hồ sơ|profile/i })
@@ -371,7 +370,7 @@ test("current 404 is unavailable even after valid empty shifts", () =>
     },
     async (p) => {
       await p.getByRole("alert").waitFor();
-      assert.equal(await p.getByText("Không có workday đang làm.").count(), 0);
+      assert.equal(await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").count(), 0);
     },
   ));
 test("unmount ignores late read; existing profile remains", () =>
@@ -389,7 +388,7 @@ test("unmount ignores late read; existing profile remains", () =>
         day(),
       );
       assert.equal(
-        await p.getByText("Workday 20,", { exact: false }).count(),
+        await p.locator('a[href="/workday/handovers?workdayId=20"]').count(),
         0,
       );
     },

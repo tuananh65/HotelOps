@@ -36,14 +36,14 @@ function ConfirmationForm({
   }
   return (
     <form
-      aria-label="Activate user account"
+      aria-label="Kích hoạt tài khoản người dùng"
       onSubmit={(e) => e.preventDefault()}
       noValidate
     >
       <fieldset disabled={disabled}>
-        <legend>Activation reason</legend>
+        <legend>Lý do kích hoạt</legend>
         <label>
-          Reason
+          Lý do
           <textarea
             name="reason"
             required
@@ -58,17 +58,16 @@ function ConfirmationForm({
           />
         </label>
         <button type="button" onClick={preview}>
-          Review activation
+          Xem lại kích hoạt
         </button>
         {review !== null && (
-          <section aria-label="Review activation">
+          <section aria-label="Xem lại kích hoạt">
             <p>
-              Review the target account above and this reason before sending the
-              request:
+              Kiểm tra tài khoản đích bên trên và lý do này trước khi gửi:
             </p>
             <p>{review}</p>
             <button type="button" onClick={confirm}>
-              Confirm activation
+              Xác nhận kích hoạt
             </button>
           </section>
         )}
@@ -91,50 +90,45 @@ export function ActivateUserPage({
   );
   return (
     <main>
-      <h1>Activate user account {target}</h1>
-      <Link to="/profile">Profile</Link>
+      <h1>Kích hoạt tài khoản người dùng {target}</h1>
+      <Link to="/profile">Hồ sơ cá nhân</Link>
       <p>
-        The server verifies the account state and activation permission at the
-        time of activation. Loading a profile does not grant activation
-        permission, including for your own account.
+        Máy chủ kiểm tra trạng thái tài khoản và quyền ngay khi kích hoạt. Tải hồ sơ không cấp quyền kích hoạt, kể cả tài khoản của bạn.
       </p>
       <p>
-        Activation does not reset passwords, lockout or credential expiry, and
-        does not restore revoked sessions.
+        Kích hoạt không đặt lại mật khẩu, trạng thái khóa hay hạn mật khẩu, và không khôi phục phiên đã thu hồi.
       </p>
       {progress.phase === "unknown" && (
         <>
           <p role="alert">{unknownActivationMessage}</p>
           <p>
-            A subsequent management GET confirms only profile data and version.
-            It does not prove that activation committed. Activation remains
-            disabled in this flow.
+            Việc tải lại chỉ xác nhận hồ sơ và phiên bản, không xác nhận kích hoạt thành công. Thao tác kích hoạt vẫn bị khóa tại đây.
           </p>
         </>
       )}
       {progress.phase === "confirmed" && (
         <p role="status">
-          Activation confirmed by the server. Account ID: {target}.
+          Máy chủ đã xác nhận kích hoạt. Mã tài khoản: {target}.
           accountStatus: ACTIVE.
         </p>
       )}
       {progress.phase === "pending" && (
-        <p role="status">Activation pending...</p>
+        <p role="status">Đang chờ kích hoạt...</p>
       )}
       {progress.message && (
         <p role="alert">
           {progress.phase === "not-dispatched"
-            ? "No activation request was sent. "
+            ? "Không gửi yêu cầu kích hoạt."
             : ""}
           {progress.message}
         </p>
       )}
       {flow.error && <p role="alert">{flow.error}</p>}
-      {flow.loading && <p role="status">Loading profile...</p>}
+      {flow.loading && <p role="status">Đang tải hồ sơ cá nhân...</p>}
       {snapshot && (
-        <section aria-label="Server management snapshot">
-          <p>Account ID: {snapshot.profile.id}</p>
-          <p>Full name: {snapshot.profile.fullName}</p>
+        <section aria-label="Bản chụp thông tin quản lý từ máy chủ">
+          <p>Mã tài khoản: {snapshot.profile.id}</p>
+          <p>Họ và tên: {snapshot.profile.fullName}</p>
           <p>Email: {snapshot.profile.email}</p>
           {!locked && (
             <ConfirmationForm
@@ -150,7 +144,7 @@ export function ActivateUserPage({
         disabled={flow.loading || progress.phase === "pending"}
         onClick={flow.reload}
       >
-        Reload profile
+        Tải lại hồ sơ cá nhân
       </button>
     </main>
   );

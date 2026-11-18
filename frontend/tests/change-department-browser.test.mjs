@@ -116,11 +116,11 @@ test("Review then two synchronous confirms yields exactly one PUT and confirmed 
         b.click();
       });
     await p
-      .getByText("Department change confirmed. Target sessions revoked.")
+      .getByText("Đã xác nhận chuyển bộ phận. Các phiên của tài khoản đã bị thu hồi.")
       .waitFor();
     assert.equal(await puts(p), 1);
     assert.equal(
-      await p.getByRole("region", { name: "Server scope" }).count(),
+      await p.getByRole("region", { name: "Phạm vi máy chủ cho phép" }).count(),
       0,
     );
   }));
@@ -153,11 +153,11 @@ for (const status of [401, 403, 409, 412, 503])
           0,
         );
         assert.equal(
-          await p.getByRole("region", { name: "Server scope" }).count(),
+          await p.getByRole("region", { name: "Phạm vi máy chủ cho phép" }).count(),
           0,
         );
         if (status === 401)
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
       },
     ),
   );
@@ -169,7 +169,7 @@ for (const auth of [
     "anonymous/restricted sends no department request " + JSON.stringify(auth),
     () =>
       run({ auth, enabled: true }, async (p) => {
-        await p.getByText("Confirm an unrestricted session.").waitFor();
+        await p.getByText("Xác minh phiên đăng nhập không bị hạn chế.").waitFor();
         assert.equal(await puts(p), 0);
         assert.equal(await p.evaluate(() => window.fixture.calls.length), 1);
       }),
@@ -185,7 +185,7 @@ test("late mutation cannot restore identity after session invalidation", () =>
       window.fixture.scenario.auth = { status: 401 };
       void window.fixture.revalidate();
     });
-    await p.getByText("Confirm an unrestricted session.").waitFor();
+    await p.getByText("Xác minh phiên đăng nhập không bị hạn chế.").waitFor();
     await p.evaluate(() =>
       window.fixture.finish("put", {
         body: {
@@ -198,7 +198,7 @@ test("late mutation cannot restore identity after session invalidation", () =>
     );
     assert.equal(
       await p
-        .getByText("Department change confirmed. Target sessions revoked.")
+        .getByText("Đã xác nhận chuyển bộ phận. Các phiên của tài khoản đã bị thu hồi.")
         .count(),
       0,
     );
@@ -229,7 +229,7 @@ test("target replacement hides previous review and ignores late PUT", () =>
     );
     assert.equal(
       await p
-        .getByText("Department change confirmed. Target sessions revoked.")
+        .getByText("Đã xác nhận chuyển bộ phận. Các phiên của tài khoản đã bị thu hồi.")
         .count(),
       0,
     );
@@ -255,7 +255,7 @@ test("unmount ignores late response", () =>
     });
     assert.equal(
       await p
-        .getByText("Department change confirmed. Target sessions revoked.")
+        .getByText("Đã xác nhận chuyển bộ phận. Các phiên của tài khoản đã bị thu hồi.")
         .count(),
       0,
     );
@@ -266,9 +266,9 @@ test("unreadable CSRF401 exposes explicit session recovery without PUT or retry"
     await review(p);
     await p.getByRole("button", { name: "Confirm department change" }).click();
     await p
-      .getByText("Session invalid. Revalidate before a new review.")
+      .getByText("Phiên đăng nhập không hợp lệ. Xác minh lại trước khi xét duyệt.")
       .waitFor();
-    await p.getByRole("button", { name: "Check session" }).waitFor();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
     assert.equal(
       await p.getByText("User 42; Branch 1; Department 2").count(),
       0,
@@ -279,7 +279,7 @@ test("unreadable CSRF401 exposes explicit session recovery without PUT or retry"
       ),
       0,
     );
-    await p.getByRole("button", { name: "Check session" }).click();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
     await p.getByText("User 42; Branch 1; Department 2").waitFor();
     assert.equal(
       await p.evaluate(

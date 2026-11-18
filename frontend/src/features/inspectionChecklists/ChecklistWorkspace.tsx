@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { ChecklistCollection } from "./ChecklistCollection";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -140,7 +141,7 @@ function BranchWorkspace({
           }}
         >
           <label>
-            ID checklist
+            Mã danh sách kiểm tra
             <input
               required
               inputMode="numeric"
@@ -318,7 +319,7 @@ function ChecklistDetail({
             .map((v) => (
               <article key={v.id}>
                 <h3>
-                  Phiên bản {v.number} — {v.status}
+                  Phiên bản {v.number} — {displayCode(v.status)}
                 </h3>
                 <p>
                   {v.usedByInspection

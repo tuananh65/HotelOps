@@ -58,8 +58,8 @@ async function run(s, fn) {
   }
 }
 async function review(p, code = "CUSTOM_X") {
-  await p.getByLabel("Role code", { exact: true }).fill(code);
-  await p.getByLabel("Role name", { exact: true }).fill("Custom name");
+  await p.getByLabel("Mã vai trò", { exact: true }).fill(code);
+  await p.getByLabel("Tên vai trò", { exact: true }).fill("Custom name");
   await p.getByRole("button", { name: "Review metadata" }).click();
 }
 test("OFF allows review but no CSRF/POST", () =>
@@ -88,7 +88,7 @@ test("create refreshes authoritative detail", () =>
 test("required fields before review", () =>
   run({}, async (p) => {
     await p.getByRole("button", { name: "Review metadata" }).click();
-    await p.getByText("Required code/name or metadata is invalid.").waitFor();
+    await p.getByText("Mã, tên hoặc thông tin bắt buộc không hợp lệ.").waitFor();
     assert.equal(
       await p.getByRole("button", { name: "Confirm create" }).count(),
       0,
@@ -127,7 +127,7 @@ test("unknown locks replay", () =>
   }));
 test("edit custom form validates but never PATCH", () =>
   run({ edit: true, enabled: true }, async (p) => {
-    await p.getByLabel("Role name", { exact: true }).fill("Changed name");
+    await p.getByLabel("Tên vai trò", { exact: true }).fill("Changed name");
     await p.getByRole("button", { name: "Review metadata" }).click();
     await p.getByText("Metadata valid; update remains fail-closed.").waitFor();
     assert.equal(
@@ -144,10 +144,10 @@ test("edit custom form validates but never PATCH", () =>
 test("system role edit protected", () =>
   run({ edit: true, system: true, enabled: true }, async (p) => {
     await p
-      .getByText("System role protected. No metadata changes allowed.")
+      .getByText("Vai trò hệ thống được bảo vệ. Không được đổi thông tin.")
       .waitFor();
     assert.equal(
-      await p.getByLabel("Role name", { exact: true }).isDisabled(),
+      await p.getByLabel("Tên vai trò", { exact: true }).isDisabled(),
       true,
     );
   }));
@@ -159,13 +159,13 @@ test("session replacement hides late create result", () =>
       window.fixture.calls.some((c) => c.method === "POST"),
     );
     await p.evaluate(() => window.fixture.replace());
-    await p.getByLabel("Role code", { exact: true }).waitFor();
+    await p.getByLabel("Mã vai trò", { exact: true }).waitFor();
     await p.evaluate(() => window.fixture.finish());
     assert.equal(await p.getByText(/Created custom role/).count(), 0);
   }));
 test("restricted no create", () =>
   run({ restricted: true }, async (p) => {
-    await p.getByText("Confirmed unrestricted session required.").waitFor();
+    await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
     assert.equal((await p.evaluate(() => window.fixture.calls)).length, 1);
   }));
 
@@ -177,7 +177,7 @@ test("invariant Unicode code confirms Create and refreshes without replay", () =
       .getByText("Created custom role 12. Authoritative detail refreshed.")
       .waitFor();
     await p
-      .getByRole("region", { name: "Authoritative role" })
+      .getByRole("region", { name: "Vai trò được máy chủ xác nhận" })
       .getByText("STRAßE — Custom name")
       .waitFor();
     const calls = await p.evaluate(() => window.fixture.calls);
@@ -193,18 +193,18 @@ for (const unreadable of [false, true])
     run({ enabled: true, csrfStatus: 401, unreadable }, async (p) => {
       await review(p);
       await p.getByRole("button", { name: "Confirm create" }).click();
-      await p.getByText("Confirmed unrestricted session required.").waitFor();
-      assert.equal(await p.getByLabel("Role code", { exact: true }).count(), 0);
+      await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
+      assert.equal(await p.getByLabel("Mã vai trò", { exact: true }).count(), 0);
       let calls = await p.evaluate(() => window.fixture.calls);
       assert.equal(calls.filter((c) => c.method === "POST").length, 0);
       assert.equal(
         calls.filter((c) => c.url === "/api/auth/session").length,
         1,
       );
-      await p.getByRole("button", { name: "Revalidate session" }).click();
-      await p.getByLabel("Role code", { exact: true }).waitFor();
+      await p.getByRole("button", { name: "Xác minh lại phiên" }).click();
+      await p.getByLabel("Mã vai trò", { exact: true }).waitFor();
       assert.equal(
-        await p.getByLabel("Role code", { exact: true }).inputValue(),
+        await p.getByLabel("Mã vai trò", { exact: true }).inputValue(),
         "",
       );
       calls = await p.evaluate(() => window.fixture.calls);
@@ -222,12 +222,12 @@ for (const status of [403, 503])
       await p
         .getByText(
           status === 403
-            ? "Global administration access denied."
-            : "Operation not confirmed. Check input and server availability.",
+            ? "Không có quyền quản trị toàn hệ thống."
+            : "Chưa xác nhận thao tác. Kiểm tra dữ liệu nhập và kết nối máy chủ.",
         )
         .waitFor();
       assert.equal(
-        await p.getByRole("button", { name: "Revalidate session" }).count(),
+        await p.getByRole("button", { name: "Xác minh lại phiên" }).count(),
         0,
       );
       const calls = await p.evaluate(() => window.fixture.calls);

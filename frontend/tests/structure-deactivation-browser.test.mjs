@@ -60,8 +60,8 @@ async function run(s, fn) {
 }
 async function review(p) {
   await p.getByText("Protected 42", { exact: true }).waitFor();
-  await p.getByLabel("Reason", { exact: true }).fill("Retire unused floor");
-  await p.getByRole("button", { name: "Review", exact: true }).click();
+  await p.getByLabel("Lý do", { exact: true }).fill("Retire unused floor");
+  await p.getByRole("button", { name: "Xem xét", exact: true }).click();
 }
 test("default OFF permits review but no dispatch", () =>
   run({}, async (p) => {
@@ -89,10 +89,10 @@ for (const status of [409, 412, 503])
       assert.match(
         text,
         status === 409
-          ? /Dependencies/
+          ? /Các ràng buộc/
           : status === 412
             ? /Version changed/
-            : /Writer coordination/,
+            : /Chưa chấp nhận cơ chế phối hợp ghi\. Không thể vô hiệu hóa\./,
       );
       assert.equal(
         (await p.evaluate(() => window.fixture.calls)).filter(
@@ -105,8 +105,8 @@ for (const status of [409, 412, 503])
 test("reason validation precedes review", () =>
   run({}, async (p) => {
     await p.getByText("Protected 42", { exact: true }).waitFor();
-    await p.getByLabel("Reason", { exact: true }).fill("short");
-    await p.getByRole("button", { name: "Review", exact: true }).click();
+    await p.getByLabel("Lý do", { exact: true }).fill("short");
+    await p.getByRole("button", { name: "Xem xét", exact: true }).click();
     await p.getByText(/Enter a reason/).waitFor();
     assert.equal(
       await p.getByRole("button", { name: "Confirm deactivation" }).count(),
@@ -151,7 +151,7 @@ test("branch change ignores late previous record", () =>
 test("restricted session sends no protected GET", () =>
   run({ restricted: true }, async (p) => {
     await p
-      .getByText("A confirmed unrestricted session is required.")
+      .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.")
       .waitFor();
     assert.equal(
       (await p.evaluate(() => window.fixture.calls)).filter((c) =>
@@ -173,7 +173,7 @@ test("session replacement clears pending review", () =>
 test("anonymous session sends no record request", () =>
   run({ anonymous: true }, async (p) => {
     await p
-      .getByText("A confirmed unrestricted session is required.")
+      .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.")
       .waitFor();
     assert.equal(
       (await p.evaluate(() => window.fixture.calls)).filter((c) =>
@@ -234,7 +234,7 @@ test("unknown POST cannot repeat after component remount", () =>
         document.querySelector("textarea") ||
         document.body.textContent.includes("Outcome unknown"),
     );
-    if (await p.getByLabel("Reason", { exact: true }).count()) {
+    if (await p.getByLabel("Lý do", { exact: true }).count()) {
       await review(p);
       await p.getByRole("button", { name: "Confirm deactivation" }).click();
       await p.getByText(/Outcome unknown/).waitFor();
@@ -252,8 +252,8 @@ const posts = (p) =>
     () => window.fixture.calls.filter((c) => c.method === "POST").length,
   );
 async function confirm(p) {
-  await p.getByLabel("Reason", { exact: true }).fill("Retire unused structure");
-  await p.getByRole("button", { name: "Review", exact: true }).click();
+  await p.getByLabel("Lý do", { exact: true }).fill("Retire unused structure");
+  await p.getByRole("button", { name: "Xem xét", exact: true }).click();
   await p.getByRole("button", { name: "Confirm deactivation" }).click();
 }
 for (const kind of ["floor", "area"])
@@ -291,7 +291,7 @@ for (const kind of ["floor", "area"])
             }
             await p.getByText(/Outcome unknown/).waitFor();
             assert.equal(
-              await p.getByLabel("Reason", { exact: true }).count(),
+              await p.getByLabel("Lý do", { exact: true }).count(),
               0,
             );
             assert.equal(
@@ -328,8 +328,8 @@ for (const transition of ["revalidate", "provider", "remount"])
         await p.evaluate(() => window.fixture.mount(false));
         await p.evaluate(() => window.fixture.mount(true));
       }
-      await p.getByText("Deactivation pending. Do not replay.").waitFor();
-      assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+      await p.getByText("Đang chờ vô hiệu hóa. Không gửi lại.").waitFor();
+      assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
       await p.evaluate(() => window.fixture.finish());
       await p.getByText(/Outcome unknown/).waitFor();
       assert.equal(await posts(p), 1);
@@ -349,7 +349,7 @@ test("reservation isolates branch, floor/area kind, record ID and principal", ()
       await p.getByText(/Outcome unknown/).waitFor();
       await p.evaluate(() => window.fixture.target(42, "floor", 11));
       await p.getByText(/Outcome unknown/).waitFor();
-      assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+      assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
     }
     await p.evaluate(() => window.fixture.provider("8"));
     await confirm(p);
@@ -358,7 +358,7 @@ test("reservation isolates branch, floor/area kind, record ID and principal", ()
     await p.evaluate(() => window.fixture.provider("7"));
     await p.getByText(/Outcome unknown/).waitFor();
     assert.equal(await posts(p), 5);
-    assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+    assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
   }));
 
 test("old principal late 401 cannot modify replacement editor or start recovery", () =>
@@ -368,7 +368,7 @@ test("old principal late 401 cannot modify replacement editor or start recovery"
       window.fixture.calls.some((c) => c.method === "POST"),
     );
     await p.evaluate(() => window.fixture.provider("8"));
-    await p.getByLabel("Reason", { exact: true }).fill("New principal reason");
+    await p.getByLabel("Lý do", { exact: true }).fill("New principal reason");
     const sessions = await p.evaluate(
       () =>
         window.fixture.calls.filter((c) => c.url === "/api/auth/session")
@@ -379,7 +379,7 @@ test("old principal late 401 cannot modify replacement editor or start recovery"
     await p.evaluate(() => window.fixture.provider("7"));
     await p.getByText(/Outcome unknown/).waitFor();
     await p.evaluate(() => window.fixture.provider("8"));
-    await p.getByLabel("Reason", { exact: true }).waitFor();
+    await p.getByLabel("Lý do", { exact: true }).waitFor();
     assert.equal(await p.getByRole("alert").count(), 0);
     assert.equal(
       await p.evaluate(
@@ -400,9 +400,9 @@ test("CSRF reservation across remount releases only after proven non-dispatch", 
     );
     await p.evaluate(() => window.fixture.mount(false));
     await p.evaluate(() => window.fixture.mount(true));
-    await p.getByText("Deactivation pending. Do not replay.").waitFor();
+    await p.getByText("Đang chờ vô hiệu hóa. Không gửi lại.").waitFor();
     await p.evaluate(() => window.fixture.finish());
-    await p.getByLabel("Reason", { exact: true }).waitFor();
+    await p.getByLabel("Lý do", { exact: true }).waitFor();
     assert.equal(await posts(p), 0);
     await p.evaluate(() => {
       window.fixture.scenario.waitCsrf = false;
@@ -421,12 +421,12 @@ for (const status of [401, 403, 412])
       assert.match(
         await p.getByRole("alert").innerText(),
         status === 401
-          ? /Session invalid/
+          ? /Phiên đăng nhập không hợp lệ/
           : status === 403
-            ? /Server denied access/
+            ? /Máy chủ từ chối truy cập\. Màn hình này không tự cấp quyền\./
             : /Version changed/,
       );
       await p.evaluate(() => window.fixture.replace());
-      await p.getByLabel("Reason", { exact: true }).waitFor();
+      await p.getByLabel("Lý do", { exact: true }).waitFor();
       assert.equal(await posts(p), 1);
     }));

@@ -65,33 +65,33 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
     const candidate = current.data.items.find(c => String(c.itemId) === sourceItemId);
     if (candidate && lines.length === 0) select(candidate);
   }, [current, key, source, sourceItemId, lines.length]);
-  return <section aria-label="Create replenishment from shortages">
-    <label>Branch ID<input required type="number" min="1" step="1" value={branch} onChange={e => reset({ ...values, branchId: e.target.value })} /></label>
-    <label>Receiving warehouse ID<input required type="number" min="1" step="1" value={warehouse} onChange={e => reset({ ...values, warehouseId: e.target.value })} /></label>
-    <label>Supplier (optional)<input maxLength={200} value={String(values.supplierName ?? "")} onChange={e => onChange({ ...values, supplierName: e.target.value })} /></label>
-    <label>Expected date (optional)<input type="date" value={String(values.expectedOn ?? "")} onChange={e => onChange({ ...values, expectedOn: e.target.value })} /></label>
-    <label>Shortage source<select value={source} onChange={e => { setSource(e.target.value); setPage(1); }}>
-      <option value="low-stock">Below minimum stock</option><option value="material-requests">Approved material requests</option>
+  return <section aria-label="Tạo yêu cầu bổ sung từ thiếu hụt">
+    <label>Mã chi nhánh<input required type="number" min="1" step="1" value={branch} onChange={e => reset({ ...values, branchId: e.target.value })} /></label>
+    <label>Mã kho tiếp nhận<input required type="number" min="1" step="1" value={warehouse} onChange={e => reset({ ...values, warehouseId: e.target.value })} /></label>
+    <label>Nhà cung cấp (không bắt buộc)<input maxLength={200} value={String(values.supplierName ?? "")} onChange={e => onChange({ ...values, supplierName: e.target.value })} /></label>
+    <label>Ngày dự kiến (không bắt buộc)<input type="date" value={String(values.expectedOn ?? "")} onChange={e => onChange({ ...values, expectedOn: e.target.value })} /></label>
+    <label>Nguồn thiếu hụt<select value={source} onChange={e => { setSource(e.target.value); setPage(1); }}>
+      <option value="low-stock">Dưới mức tồn tối thiểu</option><option value="material-requests">Yêu cầu vật tư đã duyệt</option>
     </select></label>
-    <p>Material demand includes only requests you can currently read. Quantities use base units; these figures do not reserve stock.</p>
-    {source === "material-requests" && sourceRequestId && <p>Showing authorized shortages for request {sourceRequestId}.
-      <button type="button" onClick={() => reset({ ...values, sourceRequestId: "" })}>Show all visible requests</button></p>}
-    <button type="button" onClick={() => { reset(values); setRevision(r => r + 1); }}>Refresh shortages and clear selection</button>
-    {!current?.data && <p role="status">{current ? "Shortages unavailable. Check your current grants and warehouse scope." : "Enter branch and warehouse to load authorized shortages."}</p>}
-    {current?.data?.items.length === 0 && <p>No visible shortages.</p>}
+    <p>Nhu cầu vật tư chỉ gồm yêu cầu bạn được xem. Số lượng theo đơn vị cơ sở; số liệu không giữ chỗ tồn kho.</p>
+    {source === "material-requests" && sourceRequestId && <p>Thiếu hụt được phép xem của yêu cầu {sourceRequestId}.
+      <button type="button" onClick={() => reset({ ...values, sourceRequestId: "" })}>Hiện tất cả yêu cầu được phép xem</button></p>}
+    <button type="button" onClick={() => { reset(values); setRevision(r => r + 1); }}>Tải lại thiếu hụt và bỏ lựa chọn</button>
+    {!current?.data && <p role="status">{current ? "Chưa có thiếu hụt. Kiểm tra quyền và phạm vi kho." : "Nhập chi nhánh và kho để tải thiếu hụt được phép xem."}</p>}
+    {current?.data?.items.length === 0 && <p>Không có thiếu hụt được phép xem.</p>}
     {current?.data?.items.map((c, index) => <div key={index}>
-      {String(c.itemName || `Item ${c.itemId}`)}, base unit {String(c.unitName || c.baseUomId)}{c.requestNo != null && `, request ${String(c.requestNo)}`}:
+      {String(c.itemName || `Vật tư ${c.itemId}`)}, Đơn vị cơ sở {String(c.unitName || c.baseUomId)}{c.requestNo != null && `, yêu cầu ${String(c.requestNo)}`}:
       {" "}{String(source === "low-stock" ? c.deficitToMinimum : c.remainingBaseQty)}
       <button type="button" disabled={c.existingActiveReplenishmentId != null} onClick={() => select(c)}>
-        {c.existingActiveReplenishmentId != null ? "Already covered" : "Select item"}</button>
+        {c.existingActiveReplenishmentId != null ? "Đã có trong phạm vi" : "Chọn vật tư"}</button>
       {positive(c.existingActiveReplenishmentId) && <Link to={`/operations/replenishments/${encodeURIComponent(String(c.existingActiveReplenishmentId))}`}>
-        Open existing replenishment
+        Mở yêu cầu bổ sung hiện có
       </Link>}
     </div>)}
-    <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
-    <button type="button" disabled={!current?.data || page * 20 >= current.data.total} onClick={() => setPage(p => p + 1)}>Next</button>
+    <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Trước</button>
+    <button type="button" disabled={!current?.data || page * 20 >= current.data.total} onClick={() => setPage(p => p + 1)}>Tiếp</button>
     {lines.map(l => <div key={String(l.itemId)}>
-      <label>{String(l.itemName || `Item ${l.itemId}`)} unit
+      <label>{String(l.itemName || `Vật tư ${l.itemId}`)} Đơn vị
         <select value={String(l.inputUomId)} onChange={e => {
           const unit = (Array.isArray(l.units) ? l.units.filter(isObject) : []).find(u => String(u.uomId) === e.target.value);
           if (!unit) return;
@@ -101,12 +101,12 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
           {(Array.isArray(l.units) ? l.units.filter(isObject) : []).map(u => <option key={String(u.uomId)} value={String(u.uomId)}>{String(u.unitName)}</option>)}
         </select>
       </label>
-      <label>Requested quantity<input type="number" required min="0.001" step="0.001" value={String(l.inputQty)} onChange={e => onChange({ ...values,
+      <label>Số lượng yêu cầu<input type="number" required min="0.001" step="0.001" value={String(l.inputQty)} onChange={e => onChange({ ...values,
         lines: lines.map(x => x.itemId === l.itemId ? { ...x, inputQty: e.target.value,
           requestedBaseQty: replenishmentBaseQuantity(e.target.value, x.factorToBase) } : x) })} /></label>
-      <p>{l.requestedBaseQty == null ? "Enter a positive quantity converting exactly to at most three decimal places in base units." : `Equivalent: ${l.requestedBaseQty} ${l.unitName}.`}</p>
-      <button type="button" onClick={() => onChange({ ...values, lines: lines.filter(x => x.itemId !== l.itemId) })}>Remove</button>
+      <p>{l.requestedBaseQty == null ? "Nhập số lượng dương quy đổi chính xác ra đơn vị cơ sở với tối đa 3 chữ số thập phân." : `Equivalent: ${l.requestedBaseQty} ${l.unitName}.`}</p>
+      <button type="button" onClick={() => onChange({ ...values, lines: lines.filter(x => x.itemId !== l.itemId) })}>Xóa</button>
     </div>)}
-    <p>The server rechecks shortage, source access and duplicate coverage atomically when creating the request.</p>
+    <p>Máy chủ kiểm tra thiếu hụt, quyền nguồn và trùng phạm vi trong cùng giao dịch khi tạo yêu cầu.</p>
   </section>;
 }

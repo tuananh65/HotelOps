@@ -152,7 +152,7 @@ test("replacement authority during CSRF bootstrap cannot send conclusion", async
       ...scope(),
       isCurrent: () => current,
     }),
-    /Session or source changed/,
+    /Phiên đăng nhập hoặc dữ liệu nguồn đã thay đổi/,
   );
   assert.equal(calls, 1);
 });

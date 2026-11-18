@@ -15,30 +15,29 @@ export function UpdateUserFlowBoundary() {
     return <Navigate replace to="/change-password" />;
   if (state.status !== "AUTHENTICATED" || !state.session)
     return (
-      <main aria-label="Update profile session recovery">
+      <main aria-label="Khôi phục phiên cập nhật hồ sơ">
         <p role="status">
           {state.status === "INITIALIZING"
-            ? "Checking your session..."
-            : "Your session could not be confirmed."}
+            ? "Đang kiểm tra phiên đăng nhập của bạn..."
+            : "Không xác minh được phiên đăng nhập của bạn."}
         </p>
         <p>
-          Profile data is hidden. Any pending update may already have been
-          saved. No update has been retried.
+          Hồ sơ đã ẩn. Cập nhật đang chờ có thể đã lưu. Không gửi lại cập nhật.
         </p>
         {state.status !== "INITIALIZING" && (
           <button type="button" onClick={() => void actions.revalidate()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
-        <Link to="/profile">Profile</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   if (target === null)
     return (
       <main>
-        <h1>Invalid user ID</h1>
-        <p role="alert">A positive safe integer user ID is required.</p>
-        <Link to="/profile">Profile</Link>
+        <h1>Mã người dùng không hợp lệ</h1>
+        <p role="alert">Mã người dùng phải là số nguyên dương trong giới hạn cho phép.</p>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   return <UpdateUserPage target={target} flow={flow} />;

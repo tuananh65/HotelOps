@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -6,11 +7,11 @@ interface Item { incidentId: number; code: string; title: string; state: string 
 interface View { requestId: number; branchId: number; version: string; canLink: boolean; items: Item[]; total: number; page: number; candidates: boolean }
 const validVersion = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9+/]{11}=$/.test(v);
 const canClassify = (item: Item) => item.mandatory === null;
-class Failure extends Error { constructor(readonly status: number) { super("Linked work unavailable"); } }
+class Failure extends Error { constructor(readonly status: number) { super("Công việc liên quan chưa khả dụng"); } }
 async function json(path: string, signal: AbortSignal, init?: RequestInit): Promise<unknown> {
   const response = await fetch(path, { ...init, credentials: "same-origin", cache: "no-store", redirect: "error", signal });
   if (!response.ok) throw new Failure(response.status);
-  if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Invalid response");
+  if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Phản hồi không hợp lệ");
   return response.json();
 }
 export function InternalRequestIncidentLinksPanel({ id, onLinked }: { id: number; onLinked?: () => void }) {
@@ -31,9 +32,9 @@ export function InternalRequestIncidentLinksPanel({ id, onLinked }: { id: number
         || !Number.isSafeInteger(v.total) || v.total < 0 || !Array.isArray(v.items) || v.items.length > 25 || v.items.length > v.total
         || v.items.some(t => !Number.isSafeInteger(t.incidentId) || t.incidentId <= 0 || typeof t.code !== "string" || typeof t.title !== "string"
           || !(t.state === null || typeof t.state === "string") || !(t.mandatory === null || typeof t.mandatory === "boolean") || typeof t.path !== "string"
-          || t.path !== `/operations/incidents/${t.incidentId}`)) throw new Error("Invalid linked work response");
+          || t.path !== `/operations/incidents/${t.incidentId}`)) throw new Error("Phản hồi công việc liên quan không hợp lệ");
       if (!abort.signal.aborted) setLoaded({ owner, key, view: v });
-    }).catch(e => { if (!abort.signal.aborted) { setMessage("Linked incidents unavailable. Reload to check current access."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner!); } });
+    }).catch(e => { if (!abort.signal.aborted) { setMessage("Chưa có sự cố liên quan. Tải lại quyền hiện tại."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner!); } });
     return () => abort.abort();
   }, [id, owner, candidates, page, revision, key, actions]);
   const view = owner && loaded?.owner === owner && loaded.key === key ? loaded.view : null;
@@ -42,42 +43,42 @@ export function InternalRequestIncidentLinksPanel({ id, onLinked }: { id: number
     const abort = controller.current;
     if (!owner || !view?.canLink || (!candidates && !legacy) || !abort || abort.signal.aborted || sending.current) return;
     const incidentId = Number(selected);
-    if (!view.items.some(t => t.incidentId === incidentId && (candidates || canClassify(t))) || !["required", "optional"].includes(mandatory)) { setMessage("Select an incident and whether it is required for completion."); return; }
+    if (!view.items.some(t => t.incidentId === incidentId && (candidates || canClassify(t))) || !["required", "optional"].includes(mandatory)) { setMessage("Chọn sự cố và xác định có bắt buộc để hoàn tất hay không."); return; }
     sending.current = true; setBusy(true); setMessage("");
     try {
       const csrf = await json("/api/auth/csrf", abort.signal) as { csrfToken?: unknown; headerName?: unknown };
-      if (csrf?.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted) throw new Error("Security check failed");
+      if (csrf?.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted) throw new Error("Kiểm tra bảo mật thất bại");
       const raw = await json(`/api/internal-requests/${id}/linked-incidents${legacy ? "/completion-requirement" : ""}`, abort.signal, { method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": `"${view.version}"` },
         body: JSON.stringify({ incidentId, mandatory: mandatory === "required" }) }) as { requestId?: unknown; incidentId?: unknown; mandatory?: unknown; version?: unknown };
-      if (raw.requestId !== id || raw.incidentId !== incidentId || raw.mandatory !== (mandatory === "required") || !validVersion(raw.version)) throw new Error("Link not confirmed");
-      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Incident linked. View linked incidents to see the saved record."); onLinked?.(); }
-    } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload linked incidents before saving." : "Link not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
+      if (raw.requestId !== id || raw.incidentId !== incidentId || raw.mandatory !== (mandatory === "required") || !validVersion(raw.version)) throw new Error("Chưa xác nhận liên kết");
+      if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Đã liên kết sự cố. Mở danh sách sự cố liên quan để xem."); onLinked?.(); }
+    } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Yêu cầu đã đổi. Tải lại sự cố liên quan trước khi lưu." : "Chưa xác nhận liên kết. Tải lại trước khi thử lại."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
   }
   if (!owner) return null;
-  return <section aria-label="Linked incidents"><h3>Linked incidents</h3>
-    <p>Only incidents you can currently view are listed. Linking work does not close the request.</p>
+  return <section aria-label="Sự cố liên quan"><h3>Sự cố liên quan</h3>
+    <p>Chỉ liệt kê sự cố bạn được xem. Liên kết công việc không đóng yêu cầu.</p>
     {message && <p role="status">{message}</p>}
-    <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload linked incidents</button>
-    {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked incidents</button>}
-    {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing incident</button>}
-    {!candidates && view?.canLink && <Link to={`/operations/incidents?action=A004A-021&branchId=${view.branchId}&internalRequestId=${id}&sourceVersion=${encodeURIComponent(view.version)}`}>Create linked incident</Link>}
+    <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Tải lại sự cố liên quan</button>
+    {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>Xem sự cố liên quan</button>}
+    {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Liên kết sự cố hiện có</button>}
+    {!candidates && view?.canLink && <Link to={`/operations/incidents?action=A004A-021&branchId=${view.branchId}&internalRequestId=${id}&sourceVersion=${encodeURIComponent(view.version)}`}>Tạo sự cố liên quan</Link>}
     {view && <>
-      {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} incidents on this page.</p>}
-      <ul>{view.items.map(t => <li key={t.incidentId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}
-        {!candidates && <span> — {t.mandatory === null ? "Completion requirement unclassified" : t.mandatory ? "Required for completion" : "Optional"}</span>}
-        {!candidates && view.canLink && canClassify(t) && <button disabled={busy} onClick={() => { setSelected(String(t.incidentId)); setMandatory(""); }}>Set completion requirement for {t.code}</button>}</li>)}</ul>
-      <button disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Previous incidents</button><span> Page {page} </span>
-      <button disabled={busy || page * 25 >= view.total} onClick={() => setPage(p => p + 1)}>Next incidents</button>
+      {view.items.length === 0 && <p>Không có mục được phép xem {candidates ? "open" : "linked"} sự cố trên trang này.</p>}
+      <ul>{view.items.map(t => <li key={t.incidentId}><Link to={t.path}>{t.code}: {t.title}</Link> — {displayCode(t.state ?? "Trạng thái chưa khả dụng")}
+        {!candidates && <span> — {t.mandatory === null ? "Chưa phân loại điều kiện hoàn tất" : t.mandatory ? "Bắt buộc để hoàn tất" : "Không bắt buộc"}</span>}
+        {!candidates && view.canLink && canClassify(t) && <button disabled={busy} onClick={() => { setSelected(String(t.incidentId)); setMandatory(""); }}>Đặt điều kiện hoàn tất cho {t.code}</button>}</li>)}</ul>
+      <button disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Sự cố trước</button><span> Trang {page} </span>
+      <button disabled={busy || page * 25 >= view.total} onClick={() => setPage(p => p + 1)}>Sự cố tiếp theo</button>
       {(candidates || legacy) && view.canLink && <div aria-busy={busy}>
-        {candidates && <label>Open incident<select aria-label="Open incident" disabled={busy} value={selected} onChange={e => setSelected(e.target.value)}><option value="">Select incident</option>
+        {candidates && <label>Mở sự cố<select aria-label="Mở sự cố" disabled={busy} value={selected} onChange={e => setSelected(e.target.value)}><option value="">Chọn sự cố</option>
           {view.items.map(t => <option key={t.incidentId} value={t.incidentId}>{t.code}: {t.title}</option>)}</select></label>}
-        {legacy && <p>Set the completion requirement for {legacy.code}: {legacy.title}. Save whether this linked work is required before the request can be completed.</p>}
-        <label>Completion requirement<select aria-label="Completion requirement" disabled={busy} value={mandatory} onChange={e => setMandatory(e.target.value)}><option value="">Select requirement</option>
-          <option value="required">Required for completion</option><option value="optional">Optional</option></select></label>
-        <button disabled={busy} onClick={() => void link()}>{legacy ? "Save completion requirement" : "Save incident link"}</button>
-        {legacy && <button disabled={busy} onClick={() => { setSelected(""); setMandatory(""); }}>Cancel classification</button>}
+        {legacy && <p>Đặt điều kiện hoàn tất cho {legacy.code}: {legacy.title}. Save whether this linked work is required before the request can be completed.</p>}
+        <label>Điều kiện hoàn tất<select aria-label="Điều kiện hoàn tất" disabled={busy} value={mandatory} onChange={e => setMandatory(e.target.value)}><option value="">Chọn điều kiện</option>
+          <option value="required">Bắt buộc để hoàn tất</option><option value="optional">Không bắt buộc</option></select></label>
+        <button disabled={busy} onClick={() => void link()}>{legacy ? "Lưu điều kiện hoàn tất" : "Lưu liên kết sự cố"}</button>
+        {legacy && <button disabled={busy} onClick={() => { setSelected(""); setMandatory(""); }}>Hủy phân loại</button>}
       </div>}
     </>}
   </section>;

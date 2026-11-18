@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
 import { ApiError } from "../../api/dev1/client";
@@ -61,7 +62,7 @@ export function InspectionReassignmentForm({
       .catch((error) => {
         if (!abort.signal.aborted) {
           setMessage(
-            "Changing inspector is unavailable for this inspection or your current access.",
+            "Không thể đổi người kiểm tra với hồ sơ hoặc quyền hiện tại.",
           );
           if (error instanceof ApiError && error.status === 401)
             actions.invalidateSession(owner);
@@ -105,7 +106,7 @@ export function InspectionReassignmentForm({
       );
       if (!scope.signal.aborted && isCurrent())
         setMessage(
-          "MSG08: Inspector changed successfully. Refresh to review the current assignment.",
+          "MSG08: Đã đổi người kiểm tra. Tải lại phân công hiện tại.",
         );
     } catch (error) {
       if (!scope.signal.aborted && isCurrent()) {
@@ -113,8 +114,8 @@ export function InspectionReassignmentForm({
           inspectionAssignmentRejection(error) ??
             (error instanceof ApiError &&
             [400, 403, 409, 412, 428].includes(error.status)
-              ? "Change rejected. Refresh the current assignment before trying again."
-              : "Change outcome is unconfirmed. Refresh to inspect the assignment; no automatic retry was sent."),
+              ? "Thay đổi bị từ chối. Tải lại phân công hiện tại trước khi thử lại."
+              : "Chưa xác nhận thay đổi. Tải lại để kiểm tra phân công; không tự gửi lại."),
         );
         if (error instanceof ApiError && error.status === 401)
           actions.invalidateSession(owner);
@@ -130,12 +131,12 @@ export function InspectionReassignmentForm({
   }
   if (!owner) return null;
   return (
-    <section aria-label="Change inspector">
-      <h2>Change inspector</h2>
+    <section aria-label="Thay đổi người kiểm tra">
+      <h2>Thay đổi người kiểm tra</h2>
       {message && <p role="status">{message}</p>}
       {data && (
         <p>
-          Current inspector #{data.inspectorId}. State: {data.state}. Checklist
+          Người kiểm tra hiện tại #{data.inspectorId}. State: {displayCode(data.state)}. Checklist
           and deadline remain unchanged.
         </p>
       )}
@@ -147,14 +148,14 @@ export function InspectionReassignmentForm({
           }}
         >
           <fieldset disabled={busy || review}>
-            <label htmlFor={`reassign-inspector-${id}`}>New inspector</label>
+            <label htmlFor={`reassign-inspector-${id}`}>Người kiểm tra mới</label>
             <select
               id={`reassign-inspector-${id}`}
               required
               value={inspector}
               onChange={(e) => setInspector(e.target.value)}
             >
-              <option value="">Select inspector</option>
+              <option value="">Chọn người kiểm tra</option>
               {data.inspectors.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -162,7 +163,7 @@ export function InspectionReassignmentForm({
               ))}
             </select>
             <label>
-              Change reason
+              Lý do thay đổi
               <input
                 required
                 maxLength={500}
@@ -170,12 +171,12 @@ export function InspectionReassignmentForm({
                 onChange={(e) => setReason(e.target.value)}
               />
             </label>
-            <button type="submit">Review inspector change</button>
+            <button type="submit">Xem lại đổi người kiểm tra</button>
           </fieldset>
           {review && (
             <div>
               <p>
-                Change to{" "}
+                Thay đổi đến{" "}
                 {data.inspectors.find((p) => p.id === Number(inspector))?.name}:{" "}
                 {reason}
               </p>
@@ -184,14 +185,14 @@ export function InspectionReassignmentForm({
                 disabled={busy}
                 onClick={() => void submit()}
               >
-                Confirm inspector change
+                Xác nhận đổi người kiểm tra
               </button>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => setReview(false)}
               >
-                Edit change
+                Chỉnh sửa thay đổi
               </button>
             </div>
           )}
@@ -199,8 +200,7 @@ export function InspectionReassignmentForm({
       )}
       {data && !data.canReassign && (
         <p>
-          No eligible alternative inspector is available with your current
-          access.
+          Không có người kiểm tra thay thế đủ điều kiện với quyền hiện tại.
         </p>
       )}
       <button
@@ -208,7 +208,7 @@ export function InspectionReassignmentForm({
         disabled={busy}
         onClick={() => setRefresh((v) => v + 1)}
       >
-        Refresh inspector options
+        Tải lại lựa chọn người kiểm tra
       </button>
     </section>
   );

@@ -29,8 +29,8 @@ function BoundPrioritySlaPage() {
     const controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setMessage("");
     try {
       const result=await fetch("/api/reference-data/priority-sla",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal});
-      if(!result.ok)throw Error("Priority configuration unavailable ("+result.status+"). A global administrator MASTER_DATA_MANAGE grant is required.");
-      const data: unknown=await result.json();if(!Array.isArray(data)||!data.every(valid))throw Error("Configuration response could not be confirmed.");
+      if(!result.ok)throw Error("Cấu hình ưu tiên chưa khả dụng ("+result.status+"). Cần quyền MASTER_DATA_MANAGE của quản trị viên toàn hệ thống.");
+      const data: unknown=await result.json();if(!Array.isArray(data)||!data.every(valid))throw Error("Không xác minh được phản hồi cấu hình.");
       if(!controller.signal.aborted&&current.current===owner){setRows(data);setLoaded(true);setSelected(null);setUncertain(false);}
     }catch(e){if(!controller.signal.aborted&&current.current===owner){setRows([]);setLoaded(false);setSelected(null);setMessage(String(e));}}
     finally{sending.current=false;if(!controller.signal.aborted&&current.current===owner)setBusy(false);}
@@ -40,9 +40,9 @@ function BoundPrioritySlaPage() {
     const controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setMessage("");let submitted=false;
     try {
       const first=await fetch("/api/auth/csrf",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal});
-      if(!first.ok)throw Error("Session validation failed.");
+      if(!first.ok)throw Error("Xác minh phiên đăng nhập thất bại.");
       const csrf: unknown=await first.json();
-      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Session changed. Reload.");
+      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       submitted=true;
       const result=await fetch("/api/reference-data/priority-sla/"+selected.id,{method:"PUT",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":selected.version},
@@ -52,28 +52,28 @@ function BoundPrioritySlaPage() {
         const code=isObject(problem)&&typeof problem.code==="string"?problem.code:null;
         if(result.status===400&&code!==null&&["INVALID_PRIORITY_SLA"].includes(code)){
           if(!controller.signal.aborted&&current.current===owner){
-            setMessage(code==="MSG35"?"MSG35: This code already exists. Correct it and save again.":"The input was rejected. Correct the required fields and save again.");
+            setMessage(code==="MSG35"?"MSG35: Mã đã tồn tại. Sửa và lưu lại.":"Dữ liệu nhập bị từ chối. Sửa trường bắt buộc và lưu lại.");
           }
           return;
         }
-        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Save was not confirmed.");
+        throw Error(isObject(problem)&&typeof problem.title==="string"?problem.title:"Chưa xác nhận lưu.");
       }
-      const data: unknown=await result.json();if(!valid(data)||data.id!==selected.id)throw Error("Save response could not be confirmed.");
-      if(!controller.signal.aborted&&current.current===owner){setRows(old=>old.map(r=>r.id===data.id?data:r));setSelected(null);setMessage("Saved. Future triage uses these targets; existing incident deadlines remain unchanged.");}
-    }catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e)+" Reload before retrying.");if(submitted)setUncertain(true);}}
+      const data: unknown=await result.json();if(!valid(data)||data.id!==selected.id)throw Error("Không xác minh được phản hồi lưu.");
+      if(!controller.signal.aborted&&current.current===owner){setRows(old=>old.map(r=>r.id===data.id?data:r));setSelected(null);setMessage("Đã lưu. Tiếp nhận sau này dùng thời hạn này; hạn sự cố hiện có giữ nguyên.");}
+    }catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e)+"Tải lại trước khi thử lại.");if(submitted)setUncertain(true);}}
     finally{sending.current=false;if(!controller.signal.aborted&&current.current===owner)setBusy(false);}
   }
   if(!owner)return null;
-  return <section><h2>Priority labels and SLA targets</h2><p>Changes apply to later triage. Existing incident deadlines and historical processing cycles stay unchanged.</p>
-    <button disabled={busy} onClick={()=>void load()}>Load priorities</button>{message&&<p role="status">{message}</p>}
-    {loaded&&<table><thead><tr><th>Code</th><th>Label</th><th>Order</th><th>Response minutes</th><th>Resolution minutes</th><th>Configuration</th><th>Action</th></tr></thead>
-      <tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.label}</td><td>{r.order}</td><td>{r.responseMinutes??"Not configured"}</td><td>{r.resolutionMinutes??"Not configured"}</td><td>{r.configured?"Active":"Unavailable"}</td>
-        <td><button disabled={busy||uncertain} onClick={()=>{setSelected(r);setLabel(r.label);setResponse(r.responseMinutes?.toString()??"");setResolution(r.resolutionMinutes?.toString()??"");}}>Edit</button></td></tr>)}</tbody></table>}
+  return <section><h2>Nhãn ưu tiên và thời hạn SLA</h2><p>Thay đổi áp dụng cho lần tiếp nhận sau. Thời hạn sự cố và chu kỳ xử lý trước giữ nguyên.</p>
+    <button disabled={busy} onClick={()=>void load()}>Tải độ ưu tiên</button>{message&&<p role="status">{message}</p>}
+    {loaded&&<table><thead><tr><th>Mã</th><th>Nhãn</th><th>Thứ tự</th><th>Số phút phản hồi</th><th>Số phút xử lý</th><th>Cấu hình</th><th>Thao tác</th></tr></thead>
+      <tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.label}</td><td>{r.order}</td><td>{r.responseMinutes??"Chưa cấu hình"}</td><td>{r.resolutionMinutes??"Chưa cấu hình"}</td><td>{r.configured?"Đang hoạt động":"Chưa khả dụng"}</td>
+        <td><button disabled={busy||uncertain} onClick={()=>{setSelected(r);setLabel(r.label);setResponse(r.responseMinutes?.toString()??"");setResolution(r.resolutionMinutes?.toString()??"");}}>Chỉnh sửa</button></td></tr>)}</tbody></table>}
     {selected&&<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy||uncertain}><legend>{selected.code}</legend>
-      <label>Label<input required maxLength={150} value={label} onChange={e=>setLabel(e.target.value)} /></label>
-      <label>Response target (minutes)<input required type="number" min="1" max="2147483647" step="1" value={response} onChange={e=>setResponse(e.target.value)} /></label>
-      <label>Resolution target (minutes)<input required type="number" min="1" max="2147483647" step="1" value={resolution} onChange={e=>setResolution(e.target.value)} /></label>
-      <button>Save</button><button type="button" onClick={()=>setSelected(null)}>Cancel</button>
+      <label>Nhãn<input required maxLength={150} value={label} onChange={e=>setLabel(e.target.value)} /></label>
+      <label>Thời hạn phản hồi mục tiêu (phút)<input required type="number" min="1" max="2147483647" step="1" value={response} onChange={e=>setResponse(e.target.value)} /></label>
+      <label>Thời hạn xử lý mục tiêu (phút)<input required type="number" min="1" max="2147483647" step="1" value={resolution} onChange={e=>setResolution(e.target.value)} /></label>
+      <button>Lưu</button><button type="button" onClick={()=>setSelected(null)}>Hủy</button>
     </fieldset></form>}
   </section>;
 }

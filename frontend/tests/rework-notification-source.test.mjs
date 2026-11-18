@@ -161,7 +161,7 @@ test("identity changes at source, CSRF or read completion cannot release a navig
       return stage==="source"?Response.json({path:"/internal-requests?requestId=42"})
         :stage==="csrf"?Response.json({csrfToken:"fixture",headerName:"X-CSRF-TOKEN"}):new Response(null,{status:204});
     };
-    await assert.rejects(openInboxSource(7,new AbortController().signal,()=>current),/Session changed/);
+    await assert.rejects(openInboxSource(7,new AbortController().signal,()=>current),/Phiên đăng nhập đã thay đổi/);
     assert.equal(calls.length,changedAt==="source"?1:changedAt==="csrf"?2:3);
   }
 });

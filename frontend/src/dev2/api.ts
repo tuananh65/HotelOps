@@ -2,12 +2,13 @@ import { createHttpClient, isObject } from "../auth/http";
 import { createAuthApi } from "../auth/authApi";
 import type { ApiResult } from "../auth/contracts";
 import type { Field, Operation, Values } from "./contracts";
+import { fieldLabel } from "../i18n/vi";
 
 export function positiveId(value: unknown): number {
   if (typeof value !== "string" && typeof value !== "number")
-    throw Error("A positive numeric ID is required.");
+    throw Error("Mã định danh phải là số nguyên dương.");
   if (!/^[1-9]\d*$/.test(String(value)) || !Number.isSafeInteger(Number(value)))
-    throw Error("A safe positive numeric ID is required.");
+    throw Error("Mã định danh phải là số nguyên dương trong giới hạn cho phép.");
   return Number(value);
 }
 export function payload(
@@ -23,16 +24,16 @@ export function payload(
     }
     const value = values[f.name] ?? f.default;
     if (value === "" || value === null || value === undefined) {
-      if (!f.optional) throw Error(`${f.name} is required.`);
+      if (!f.optional) throw Error(`${fieldLabel(f.name)} là bắt buộc.`);
       continue;
     }
     if (f.fields) {
       if (!Array.isArray(value))
-        throw Error(`${f.name} must contain line entries.`);
+        throw Error(`${fieldLabel(f.name)} phải có các dòng dữ liệu.`);
       if (!f.optional && value.length === 0)
-        throw Error(`${f.name} needs at least one line.`);
+        throw Error(`${fieldLabel(f.name)} cần ít nhất một dòng.`);
       result[f.name] = value.map((v) => {
-        if (!isObject(v)) throw Error("Invalid line.");
+        if (!isObject(v)) throw Error("Dòng không hợp lệ.");
         return payload(f.fields!, v, actor);
       });
     } else if (/^(long|int|decimal)/.test(f.type)) {
@@ -41,15 +42,15 @@ export function payload(
         !Number.isFinite(number) ||
         (/^(long|int)/.test(f.type) && !Number.isSafeInteger(number))
       )
-        throw Error(`${f.name} must be a valid number.`);
+        throw Error(`${fieldLabel(f.name)} phải là số hợp lệ.`);
       if ((f.name.endsWith("Id") || f.name === "id") && number <= 0)
-        throw Error(`${f.name} must be positive.`);
+        throw Error(`${fieldLabel(f.name)} phải lớn hơn 0.`);
       result[f.name] = number;
     } else if (f.type.startsWith("bool")) result[f.name] = value === true;
     else if (f.type.startsWith("DateTime")) {
       const date = new Date(String(value));
       if (Number.isNaN(date.getTime()))
-        throw Error(`${f.name} must be a valid date/time.`);
+        throw Error(`${fieldLabel(f.name)} phải là ngày giờ hợp lệ.`);
       result[f.name] = date.toISOString();
     } else result[f.name] = String(value);
   }
@@ -81,26 +82,26 @@ export function createDev2Api(
       data = payload(operation.fields, values, actor);
       if (operation.id === "A004A-021") {
         if (typeof values.similarReviewToken !== "string" || !values.similarReviewToken || values.similarReviewToken.length > 4096)
-          throw Error("Review similar incidents before creating a new incident.");
+          throw Error("Xem sự cố tương tự trước khi tạo sự cố mới.");
         data.similarReviewToken = values.similarReviewToken;
         if (values.occurrenceLink != null) {
           if (!isObject(values.occurrenceLink) || typeof values.occurrenceLink.version !== "string"
             || !/^"[0-9A-F]{16}"$/.test(values.occurrenceLink.version) || typeof values.occurrenceLink.failedCheckKey !== "string"
             || !values.occurrenceLink.failedCheckKey || values.occurrenceLink.failedCheckKey.length > 64)
-            throw Error("Invalid occurrence link.");
+            throw Error("Liên kết lần thực hiện không hợp lệ.");
           data.occurrenceLink = { runId: positiveId(values.occurrenceLink.runId), version: values.occurrenceLink.version, failedCheckKey: values.occurrenceLink.failedCheckKey };
         }
         if (values.files != null) {
           if (!Array.isArray(values.files) || values.files.length > 5 || values.files.some(f => !isObject(f)
             || typeof f.name !== "string" || typeof f.mimeType !== "string" || typeof f.base64 !== "string"))
-            throw Error("Invalid incident evidence.");
+            throw Error("Bằng chứng sự cố không hợp lệ.");
           data.files = values.files;
         }
       }
       if (["A004A-021", "A004A-043"].includes(operation.id) && (values.internalRequestId != null || values.requestLink != null)) {
         if (!isObject(values.requestLink) || typeof values.requestLink.version !== "string"
           || !/^[A-Za-z0-9+/]{11}=$/.test(values.requestLink.version) || typeof values.requestLink.mandatory !== "boolean")
-          throw Error("Loaded source version and explicit completion requirement are required.");
+          throw Error("Cần phiên bản nguồn đã tải và điều kiện hoàn tất rõ ràng.");
         data.internalRequestId = positiveId(values.internalRequestId);
         data.requestLink = { version: values.requestLink.version, mandatory: values.requestLink.mandatory };
       }

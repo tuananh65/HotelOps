@@ -123,6 +123,9 @@ public sealed class IncidentClassificationService(HotelOpsDbContext db, TimeProv
         if (severity.ValueCode == "CRITICAL" && !await NotificationAcknowledgmentStore.InstalledAsync(db, ct))
             throw new InternalRequestReadException(503, "NOTIFICATION_ACKNOWLEDGMENT_STORAGE_UNAVAILABLE");
         var before = await ReadAsync(id, ct);
+        if (before.CategoryId == input.CategoryId && incident.SeverityId == input.SeverityId
+            && before.AffectsRoomReadiness == input.AffectsRoomReadiness)
+            throw new ValidationException("Thông tin phân loại không thay đổi. Không cần lưu lại.");
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var entry = new IncidentEvent { IncidentId=id, EventType="CLASSIFIED", FromStatus=incident.Status, ToStatus=incident.Status,
             ActorId=ticket.UserId, OccurredAt=now, Note="Incident classification updated." };

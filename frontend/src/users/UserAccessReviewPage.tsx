@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useCallback, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
@@ -18,11 +19,11 @@ function Account({ account }: { account: UserAccountDetailDto }) {
         Username: account.username,
         "Full name": account.fullName,
         Email: account.email,
-        Phone: account.phone ?? "Not supplied",
+        Phone: account.phone ?? "Chưa cung cấp",
         "Account status": account.accountStatus,
         "Primary branch":
-          account.primaryBranch?.name ?? "Not provided in this response",
-        Department: account.department?.name ?? "Not provided in this response",
+          account.primaryBranch?.name ?? "Không có trong phản hồi này",
+        Department: account.department?.name ?? "Không có trong phản hồi này",
       }).map(([label, value]) => (
         <div key={label}>
           <dt>{label}</dt>
@@ -45,7 +46,7 @@ function Table({
     <section>
       <h3>{label}</h3>
       {rows.length === 0 ? (
-        <p>MSG10: No records match the applied filters.</p>
+        <p>MSG10: Không có hồ sơ phù hợp bộ lọc đã áp dụng.</p>
       ) : (
         <table>
           <caption>{label}</caption>
@@ -76,59 +77,57 @@ function Report({ report }: { report: UserAccessReviewDto }) {
   return (
     <>
       <p>
-        Evaluated at{" "}
+        Thời điểm đánh giá{" "}
         <time dateTime={report.evaluatedAtUtc}>{report.evaluatedAtUtc}</time>
       </p>
       <p>
         {report.reviewerScope.isGlobal
-          ? "Global reviewer scope"
-          : `Limited branch report: ${report.reviewerScope.branchIds.join(", ")}`}
+          ? "Phạm vi xét duyệt toàn hệ thống"
+          : `Báo cáo giới hạn chi nhánh: ${report.reviewerScope.branchIds.join(", ")}`}
       </p>
       <p>
-        This server report is not authorization to execute an operation. OWN
-        still requires verified resource ownership.
+        Báo cáo này không cấp quyền thực hiện thao tác. Phạm vi OWN vẫn cần xác minh sở hữu đối tượng.
       </p>
-      <section aria-label="Access review account">
-        <h3>Access review account</h3>
+      <section aria-label="Tài khoản cần kiểm tra quyền">
+        <h3>Tài khoản cần kiểm tra quyền</h3>
         <Account account={report.account} />
       </section>
       <p>
-        Assigned records can include inactive or historical entries. Effective
-        permissions are listed separately.
+        Hồ sơ phân công có thể gồm mục ngừng hoạt động hoặc lịch sử. Quyền có hiệu lực được liệt kê riêng.
       </p>
       <Table
         label="Assigned roles"
         columns={[
-          "Assignment ID",
-          "Role ID",
-          "Role",
-          "Branch ID",
-          "Assignment active",
-          "Role active",
-          "Assigned UTC",
-          "Expires UTC",
+          "Mã phân công",
+          "Mã vai trò",
+          "Vai trò",
+          "Mã chi nhánh",
+          "Phân công đang hiệu lực",
+          "Vai trò đang hoạt động",
+          "Thời điểm phân công (UTC)",
+          "Hết hạn (UTC)",
         ]}
         rows={report.assignedRoles.map((role) => [
           role.assignmentId,
           role.roleId,
           `${role.code} — ${role.name}`,
-          role.branchId ?? "Unbound",
+          role.branchId ?? "Chưa gắn phạm vi",
           String(role.assignmentActive),
           String(role.roleActive),
           role.assignedAtUtc,
-          role.expiresAtUtc ?? "None",
+          role.expiresAtUtc ?? "Không có",
         ])}
       />
       <Table
         label="Branch memberships"
         columns={[
-          "Branch ID",
-          "Code",
-          "Name",
-          "Access level",
-          "Branch active",
-          "Granted UTC",
-          "Revoked UTC",
+          "Mã chi nhánh",
+          "Mã",
+          "Tên",
+          "Mức truy cập",
+          "Chi nhánh đang hoạt động",
+          "Cấp lúc (UTC)",
+          "Thu hồi lúc (UTC)",
         ]}
         rows={report.branchMemberships.map((member) => [
           member.branchId,
@@ -137,49 +136,49 @@ function Report({ report }: { report: UserAccessReviewDto }) {
           member.accessLevel,
           String(member.branchActive),
           member.grantedAtUtc,
-          member.revokedAtUtc ?? "None",
+          member.revokedAtUtc ?? "Không có",
         ])}
       />
       <Table
         label="Configured grants"
         columns={[
-          "Permission",
-          "Feature",
-          "Configured scope",
-          "Assignment ID",
-          "Role",
-          "Branch ID",
-          "Effective",
+          "Quyền",
+          "Chức năng",
+          "Phạm vi đã cấu hình",
+          "Mã phân công",
+          "Vai trò",
+          "Mã chi nhánh",
+          "Có hiệu lực",
         ]}
         rows={report.configuredGrants.map((grant) => [
           `${grant.permissionCode} — ${grant.permissionName}`,
-          grant.feature ?? "Not supplied",
+          grant.feature ?? "Chưa cung cấp",
           grant.configuredScope,
           grant.assignmentId,
           grant.roleCode,
-          grant.branchId ?? "Unbound",
+          grant.branchId ?? "Chưa gắn phạm vi",
           String(grant.isEffective),
         ])}
       />
       {report.departmentMembershipsAvailable ? <Table label="Department memberships"
-        columns={["Branch ID", "Department ID", "Department", "Active", "Granted UTC", "Revoked UTC"]}
+        columns={["Mã chi nhánh", "Mã bộ phận", "Bộ phận", "Đang hoạt động", "Cấp lúc (UTC)", "Thu hồi lúc (UTC)"]}
         rows={report.departmentMemberships.map(m => [m.branchId, m.departmentId, `${m.code} — ${m.name}`,
-          String(m.departmentActive), m.grantedAtUtc, m.revokedAtUtc ?? "None"])} />
-        : <p>Department membership storage is unavailable. A primary department is not proof of membership or management authority.</p>}
+          String(m.departmentActive), m.grantedAtUtc, m.revokedAtUtc ?? "Không có"])} />
+        : <p>Dữ liệu phân công bộ phận chưa khả dụng. Bộ phận chính không chứng minh tư cách thành viên hoặc quyền quản lý.</p>}
       <Table
         label="Effective permissions"
-        columns={["Permission", "Feature", "Server sources"]}
+        columns={["Quyền", "Chức năng", "Nguồn từ máy chủ"]}
         rows={report.effectivePermissions.map((permission) => [
           `${permission.code} — ${permission.name}`,
-          permission.feature ?? "Not supplied",
+          permission.feature ?? "Chưa cung cấp",
           <ul>
             {permission.sources.map((source, index) => (
               <li key={index}>
-                Assignment {source.assignmentId}; role {source.roleCode}; scope{" "}
-                {source.scope}; branch {source.branchId ?? "Unbound"};{" "}
+                Phân công {source.assignmentId}; Vai trò {displayCode(source.roleCode)}; Phạm vi{" "}
+                {source.scope}; Chi nhánh {source.branchId ?? "Chưa gắn phạm vi"};{" "}
                 {source.requiresResourceOwnership
-                  ? "Resource ownership required"
-                  : "Resource ownership not required by this source"}
+                  ? "Cần sở hữu đối tượng"
+                  : "Nguồn này không yêu cầu sở hữu đối tượng"}
               </li>
             ))}
           </ul>,
@@ -210,9 +209,9 @@ function UserReads({
     (signal: AbortSignal) => api.getEffectiveAccess(userId, query, signal),
     [api, userId, query],
   );
-  const detail = useUserRead(`detail:${userId}`, loadDetail);
+  const detail = useUserRead(`Chi tiết:${userId}`, loadDetail);
   const review = useUserRead(
-    `review:${userId}:${JSON.stringify(query)}`,
+    `Xem xét:${userId}:${JSON.stringify(query)}`,
     loadReview,
   );
   function filter(event: FormEvent) {
@@ -225,27 +224,27 @@ function UserReads({
   return (
     <main>
       <header>
-        <h1>User account {userId}</h1>
-        <Link to="/users">User directory</Link>
-        <Link to="/profile">Profile</Link>
+        <h1>Tài khoản người dùng {userId}</h1>
+        <Link to="/users">Danh mục người dùng</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
         {accountManagementEnabled && <>
-          <Link to={`/users/${userId}/edit`}>Update account</Link>
-          <Link to={`/users/${userId}/reset-credential`}>Reset credential</Link>
-          <Link to={`/users/${userId}/branches/add`}>Add branch membership</Link>
-          <Link to={`/users/${userId}/departments`}>Department memberships</Link>
-          <Link to={`/users/${userId}/deactivate`}>Deactivate account</Link>
+          <Link to={`/users/${userId}/edit`}>Cập nhật tài khoản</Link>
+          <Link to={`/users/${userId}/reset-credential`}>Đặt lại mật khẩu</Link>
+          <Link to={`/users/${userId}/branches/add`}>Thêm phân quyền chi nhánh</Link>
+          <Link to={`/users/${userId}/departments`}>Phân công bộ phận</Link>
+          <Link to={`/users/${userId}/deactivate`}>Vô hiệu hóa tài khoản</Link>
         </>}
         {roleAssignmentEnabled && (
-          <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>
+          <Link to={`/users/${userId}/roles/assign`}>Phân công vai trò</Link>
         )}
         {accountActivationEnabled && (
-          <Link to={`/users/${userId}/activate`}>Activate account</Link>
+          <Link to={`/users/${userId}/activate`}>Kích hoạt tài khoản</Link>
         )}
       </header>
-      <section aria-label="Minimal account detail">
-        <h2>Minimal account detail</h2>
+      <section aria-label="Thông tin tài khoản cơ bản">
+        <h2>Thông tin tài khoản cơ bản</h2>
         {detail.result === null ? (
-          <p role="status">Loading account detail...</p>
+          <p role="status">Đang tải chi tiết tài khoản...</p>
         ) : detail.result.ok ? (
           <>
             <Account account={detail.result.data} />
@@ -254,17 +253,17 @@ function UserReads({
           <>
             <p role="alert">{usersReadMessage(detail.result.error)}</p>
             <button type="button" onClick={detail.reload}>
-              Retry detail
+              Tải lại chi tiết
             </button>
           </>
         )}
       </section>
       {accountManagementEnabled && <UserDeactivationReview userId={userId} />}
-      <section aria-label="Access review">
-        <h2>Access review</h2>
-        <form onSubmit={filter} aria-label="Access review filters">
+      <section aria-label="Kiểm tra quyền truy cập">
+        <h2>Kiểm tra quyền truy cập</h2>
+        <form onSubmit={filter} aria-label="Bộ lọc kiểm tra quyền">
           <label>
-            Feature
+            Chức năng
             <input
               value={draft.feature}
               maxLength={60}
@@ -274,7 +273,7 @@ function UserReads({
             />
           </label>
           <label>
-            Permission code
+            Mã quyền
             <input
               value={draft.permissionCode}
               maxLength={100}
@@ -283,18 +282,18 @@ function UserReads({
               }
             />
           </label>
-          <button type="submit">Apply review filters</button>
+          <button type="submit">Áp dụng bộ lọc xét duyệt</button>
         </form>
-        <p>Applied feature: {query.feature?.trim() || "All"}; permission: {query.permissionCode?.trim() || "All"}.</p>
+        <p>Chức năng đã áp dụng: {query.feature?.trim() || "Tất cả"}; Quyền: {query.permissionCode?.trim() || "Tất cả"}.</p>
         {review.result === null ? (
-          <p role="status">Loading access review...</p>
+          <p role="status">Đang tải kiểm tra quyền truy cập...</p>
         ) : review.result.ok ? (
           <Report report={review.result.data} />
         ) : (
           <>
             <p role="alert">{usersReadMessage(review.result.error)}</p>
             <button type="button" onClick={review.reload}>
-              Retry review
+              Thử xét duyệt lại
             </button>
           </>
         )}
@@ -317,9 +316,9 @@ export function UserAccessReviewPage({
   if (!Number.isSafeInteger(numeric) || numeric <= 0)
     return (
       <main>
-        <h1>Invalid user ID</h1>
-        <p role="alert">A positive safe integer user ID is required.</p>
-        <Link to="/users">User directory</Link>
+        <h1>Mã người dùng không hợp lệ</h1>
+        <p role="alert">Mã người dùng phải là số nguyên dương trong giới hạn cho phép.</p>
+        <Link to="/users">Danh mục người dùng</Link>
       </main>
     );
   return (

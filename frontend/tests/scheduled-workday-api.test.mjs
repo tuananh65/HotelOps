@@ -12,7 +12,7 @@ const compiled = await build({
   write: false,
   format: "esm",
 });
-const { createScheduledWorkdayApi, strongWorkdayTag } = await import(
+const { createScheduledWorkdayApi, strongWorkdayTag, scheduledMessage } = await import(
   "data:text/javascript;base64," +
     Buffer.from(compiled.outputFiles[0].text).toString("base64")
 );
@@ -33,6 +33,33 @@ const response = (v, status = 200) =>
   Response.json(v, { status, headers: { ETag: tag } });
 const csrf = () =>
   response({ headerName: "X-CSRF-TOKEN", csrfToken: "synthetic-token" });
+test("end with running cleaning work is a known rejection with Vietnamese guidance and can be retried", async () => {
+  let blocked = true;
+  let posts = 0;
+  const api = createScheduledWorkdayApi(async (url) => {
+    if (url.endsWith('/csrf')) return csrf();
+    posts++;
+    return blocked ? response({ title: 'PAUSE_ALL_CLEANING_RECONCILIATION_REQUIRED' }, 409) : response(body(true));
+  }, true);
+  const rejected = await api.end(1, 20, 10, tag, () => true);
+  assert.equal(rejected.outcome, 'REJECTED');
+  assert.equal(rejected.error.code, 'PAUSE_ALL_CLEANING_RECONCILIATION_REQUIRED');
+  assert.match(scheduledMessage(rejected), /công việc dọn phòng/);
+  assert.doesNotMatch(scheduledMessage(rejected), /Chưa xác định|PAUSE_ALL/);
+  assert.equal(posts, 1);
+  blocked = false;
+  assert.equal((await api.end(1, 20, 10, tag, () => true)).outcome, 'CONFIRMED');
+  assert.equal(posts, 2);
+});
+test("malformed conflict bodies retain rejection without exposing server text", async () => {
+  for (const problem of ['not json', JSON.stringify({title:'<script>secret</script>'})]) {
+    const api = createScheduledWorkdayApi(async url => url.endsWith('/csrf') ? csrf() : new Response(problem, {status:409}), true);
+    const result = await api.end(1,20,10,tag,()=>true);
+    assert.equal(result.outcome,'REJECTED');
+    assert.equal(result.error.code,undefined);
+    assert.doesNotMatch(scheduledMessage(result),/secret|script/);
+  }
+});
 for (const op of ["start", "end"])
   test(op + " exact request and confirmed DTO", async () => {
     const calls = [];

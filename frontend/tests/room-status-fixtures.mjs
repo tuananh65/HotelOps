@@ -6,6 +6,7 @@ export const room = {
   area: { id: 3, code: "E", name: "East" },
   roomType: { id: 4, code: "STD", name: "Standard" },
   operationalStatusCode: "DIRTY",
+  effectiveReadiness: "PENDING_CLEANING",
   isActive: true,
 };
 export const board = {
@@ -14,6 +15,7 @@ export const board = {
   pageSize: 20,
   totalCount: 21,
   statusCounts: [{ operationalStatusCode: "DIRTY", count: 21 }],
+  effectiveReadinessCounts: { PENDING_CLEANING: 21 },
 };
 export const source = {
   type: "CLEANING_TASK",
@@ -22,6 +24,8 @@ export const source = {
 };
 export const detail = {
   room,
+  currentCycle: null,
+  effectiveBlocks: [],
   description: "Recorded room",
   currentStatusEvidence: {
     availability: "RECORDED",

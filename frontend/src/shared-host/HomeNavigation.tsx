@@ -11,35 +11,44 @@ import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
 export const navigationLabels: Record<string, string> = {
-  "/inventory/return-requests": "Material returns",
-  "/assets/maintenance-history": "Asset maintenance history",
-  "/assets/locations": "Assets by location",
-  "/assets": "Assets",
-  "/structure/priority-sla": "Priority SLA",
-  "/operations/material-requests": "Material requests",
-  "/operations/replenishments": "Replenishments",
-  "/inspection-history": "Inspection history",
-  "/inspections/checklists": "Inspection checklists",
-  "/cleaning/tasks": "Cleaning tasks",
-  "/cleaning/assignment": "Cleaning assignment",
-  "/rework": "Rework",
-  "/rooms/turnover": "Turnover history",
-  "/workday/shift-plans": "Shift planning",
-  "/profile": "Profile",
-  "/notifications": "Notifications",
-  "/users": "Users",
-  "/hotel": "Structure",
-  "/room-directory": "Room directory",
-  "/dashboard": "Dashboard",
-  "/audit": "Audit history",
-  "/rooms/status": "Room status board",
-  "/roles": "Roles and permissions",
-  "/structure/work-categories": "Work categories",
-  "/structure/reference-data": "Reference data",
-  "/operations/incidents": "Incidents",
-  "/operational-tasks": "Operational tasks",
-  "/workday": "Workday",
-  "/my-time-log": "My Time Log",
+  "/operations/maintenance": "Công việc bảo trì",
+  "/incidents/new": "Báo sự cố",
+  "/material-requests/new": "Tạo yêu cầu vật tư",
+  "/internal-requests": "Theo dõi & xử lý yêu cầu nội bộ",
+  "/internal-requests/new": "Tạo yêu cầu nội bộ",
+  "/change-password": "Đổi mật khẩu",
+  "/workday/scheduled": "Bắt đầu / kết thúc ca",
+  "/workday/handovers": "Bàn giao ca",
+  "/time-corrections": "Đề nghị điều chỉnh thời gian",
+  "/inventory/return-requests": "Hoàn trả vật tư",
+  "/assets/maintenance-history": "Lịch sử bảo trì tài sản",
+  "/assets/locations": "Tài sản theo vị trí",
+  "/assets": "Tài sản",
+  "/structure/priority-sla": "Thời hạn SLA theo độ ưu tiên",
+  "/operations/material-requests": "Theo dõi yêu cầu vật tư",
+  "/operations/replenishments": "Bổ sung vật tư",
+  "/inspection-history": "Lịch sử kiểm tra",
+  "/inspections/checklists": "Danh sách kiểm tra phòng",
+  "/cleaning/tasks": "Công việc buồng phòng",
+  "/cleaning/assignment": "Phân công vệ sinh",
+  "/rework": "Xử lý công việc làm lại",
+  "/rooms/turnover": "Lịch sử luân chuyển phòng",
+  "/workday/shift-plans": "Lập kế hoạch ca",
+  "/profile": "Hồ sơ cá nhân",
+  "/notifications": "Thông báo",
+  "/users": "Người dùng",
+  "/hotel": "Cấu trúc khách sạn",
+  "/room-directory": "Danh mục phòng",
+  "/dashboard": "Tổng quan",
+  "/audit": "Lịch sử thay đổi",
+  "/rooms/status": "Trạng thái phòng",
+  "/roles": "Vai trò và quyền hạn",
+  "/structure/work-categories": "Nhóm công việc",
+  "/structure/reference-data": "Dữ liệu danh mục",
+  "/operations/incidents": "Sự cố",
+  "/operational-tasks": "Công việc được giao",
+  "/workday": "Lịch ca & ngày làm việc",
+  "/my-time-log": "Nhật ký thời gian của tôi",
 };
 const labels = navigationLabels;
 export const ShellNavigationContext = createContext(false);
@@ -66,13 +75,14 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
     if (!owner) return;
     let controller: AbortController | null = null;
     let generation = 0;
+    let running = false;
     const refresh = async () => {
-      controller?.abort();
+      if (running) return;
+      running = true;
       controller = new AbortController();
       const signal = controller.signal;
       const revision = ++generation;
-      setResult(null);
-      setFinished(null);
+      let succeeded = false;
       try {
         const response = await fetch("/api/auth/navigation", {
           credentials: "same-origin",
@@ -97,12 +107,18 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
           )
         )
           return;
-        if (!signal.aborted && revision === generation)
+        if (!signal.aborted && revision === generation) {
           setResult({ owner, paths: [...new Set(body.paths as string[])] });
+          succeeded = true;
+        }
       } catch {
         /* Authorization unavailable: keep links hidden. */
       } finally {
-        if (!signal.aborted && revision === generation) setFinished(owner);
+        running = false;
+        if (!signal.aborted && revision === generation) {
+          if (!succeeded) setResult(null);
+          setFinished(owner);
+        }
       }
     };
     void refresh();
@@ -125,7 +141,7 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
       !!owner && finished !== owner,
     );
   return (
-    <span aria-label="Authorized home navigation">
+    <span aria-label="Điều hướng trang chủ theo quyền">
       {visible
         .filter((path) => !enabled || enabled.includes(path))
         .map((path) => (

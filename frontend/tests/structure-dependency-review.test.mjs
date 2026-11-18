@@ -101,10 +101,10 @@ for (const kind of ["floor", "area"])
   );
 test("empty dependencies do not approve mutation", () =>
   run({ empty: true }, async (p) => {
-    await p.getByText("No dependencies were reported by this read.").waitFor();
+    await p.getByText("Lần đọc này không ghi nhận ràng buộc.").waitFor();
     await p
       .getByText(
-        "Dependencies may change after this read. An empty list does not approve deactivation.",
+        "Ràng buộc có thể đổi sau khi đọc. Danh sách trống không đồng nghĩa được phép vô hiệu hóa.",
       )
       .waitFor();
   }));
@@ -116,7 +116,7 @@ for (const status of [401, 403, 404, 503])
         await p.getByRole("alert").waitFor();
         assert.equal(
           await p
-            .getByRole("region", { name: "Location dependencies" })
+            .getByRole("region", { name: "Ràng buộc vị trí" })
             .count(),
           0,
         );
@@ -127,7 +127,7 @@ for (const status of [401, 403, 404, 503])
               .getByRole("button", { name: "Refresh dependencies" })
               .isDisabled(),
           );
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
         }
       },
     ),
@@ -182,7 +182,7 @@ test("session invalidation clears data and aborts read", () =>
     await p.waitForURL(/\/login/);
     await p.evaluate(() => window.fixture.finish("old", { body: {} }));
     assert.equal(
-      await p.getByRole("region", { name: "Location dependencies" }).count(),
+      await p.getByRole("region", { name: "Ràng buộc vị trí" }).count(),
       0,
     );
     assert.equal((await reads(p))[0].aborted, true);
@@ -210,7 +210,7 @@ test("manual refresh discards snapshot before new denial", () =>
     await p.getByRole("button", { name: "Refresh dependencies" }).click();
     await p.getByRole("alert").waitFor();
     assert.equal(
-      await p.getByRole("region", { name: "Location dependencies" }).count(),
+      await p.getByRole("region", { name: "Ràng buộc vị trí" }).count(),
       0,
     );
     assert.equal((await reads(p)).length, 2);
@@ -234,17 +234,17 @@ test("floor detail links to server-authorized dependency review", () =>
     {},
     async (p) => {
       await p
-        .getByRole("combobox", { name: "Action", exact: true })
+        .getByRole("combobox", { name: "Thao tác", exact: true })
         .selectOption("detail");
       await p
         .getByRole("textbox", { name: "Record ID", exact: true })
         .fill("11");
       await p
-        .getByRole("button", { name: "Load from server", exact: true })
+        .getByRole("button", { name: "Tải dữ liệu", exact: true })
         .click();
       await p
         .getByRole("link", {
-          name: "Review deactivation dependencies",
+          name: "Kiểm tra ràng buộc vô hiệu hóa",
           exact: true,
         })
         .click();

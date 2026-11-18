@@ -144,7 +144,7 @@ test("required validation, normalized review, edit invalidation and double confi
     ]);
     assert.ok(
       (
-        await p.getByRole("region", { name: "Created branch" }).innerText()
+        await p.getByRole("region", { name: "Chi nhánh đã tạo" }).innerText()
       ).includes("Asia/Ho_Chi_Minh"),
     );
   }));
@@ -162,7 +162,7 @@ for (const [status, message] of [
         await p.getByRole("button", { name: "Confirm create" }).click();
         await p.getByText(message, { exact: false }).waitFor();
         assert.equal(
-          await p.getByRole("region", { name: "Created branch" }).count(),
+          await p.getByRole("region", { name: "Chi nhánh đã tạo" }).count(),
           0,
         );
         assert.equal((await posts(p)).length, 1);
@@ -191,7 +191,7 @@ for (const create of [
         true,
       );
       await p
-        .getByRole("button", { name: "Check session", exact: true })
+        .getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true })
         .click();
       await p.getByRole("button", { name: "Review create" }).waitFor();
       assert.equal(
@@ -200,7 +200,7 @@ for (const create of [
       );
       assert.equal((await posts(p)).length, 1);
       assert.equal(
-        await p.getByRole("region", { name: "Created branch" }).count(),
+        await p.getByRole("region", { name: "Chi nhánh đã tạo" }).count(),
         0,
       );
     }));
@@ -208,7 +208,7 @@ for (const auth of [{ status: 401, body: {} }, { body: session("7", true) }])
   test("anonymous/restricted never bootstrap create or POST", () =>
     pageTest({ auth }, async (p) => {
       await p
-        .getByText("A confirmed unrestricted session is required.")
+        .getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.")
         .waitFor();
       assert.equal((await posts(p)).length, 0);
       assert.equal(
@@ -236,7 +236,7 @@ test("session replacement during POST hides prior identity result", () =>
     );
     await settle(p);
     assert.equal(
-      await p.getByRole("region", { name: "Created branch" }).count(),
+      await p.getByRole("region", { name: "Chi nhánh đã tạo" }).count(),
       0,
     );
     assert.equal(
@@ -286,7 +286,7 @@ test("Hotel Structure navigation reaches Create; Update and FE12 OFF routes pres
         "New branch",
       );
       await p.evaluate(() => window.fixture.navigate("/workday"));
-      await p.getByRole("heading", { name: "HotelOps workspace" }).waitFor();
+      await p.getByRole("heading", { name: "Không gian làm việc HotelOps" }).waitFor();
       assert.equal(
         (
           await p.evaluate(() =>

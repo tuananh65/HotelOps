@@ -36,33 +36,33 @@ export function UserDeactivationReview({ userId, autoLoad = false }: { userId: n
         });
         const data = response.ok ? decodeUserDeactivationPreview(await response.json(), userId) : null;
         if (active) setResult({ session, userId, data, error: data ? "" : response.status === 403
-          ? "You cannot review deactivation dependencies for this account."
-          : "The dependency review is unavailable. No account change has been made." });
+          ? "Bạn không được kiểm tra ràng buộc vô hiệu hóa tài khoản này."
+          : "Chưa kiểm tra được ràng buộc. Chưa thay đổi tài khoản." });
       } catch {
-        if (active) setResult({ session, userId, data: null, error: "Unable to load the dependency review. No account change has been made." });
+        if (active) setResult({ session, userId, data: null, error: "Không tải được kiểm tra ràng buộc. Chưa thay đổi tài khoản." });
       }
     })();
     return () => { active = false; controller.abort(); };
   }, [userId, state.session, state.status, state.pending, reload]);
   if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session) return null;
   const current = result?.session === state.session && result.userId === userId ? result : undefined;
-  return <section aria-label="Account deactivation dependencies">
-    <h2>Work to resolve before deactivation</h2>
-    {reload === 0 ? <p>Review assigned work before requesting an account status change.</p>
-      : !current ? <p role="status">Loading dependencies…</p> : current.data ? <>
-      {current.data.lastDurableAdministrator && <p role="alert">This account is the last durable Administrator and cannot be deactivated.</p>}
+  return <section aria-label="Các ràng buộc khi vô hiệu hóa tài khoản">
+    <h2>Công việc cần xử lý trước khi vô hiệu hóa</h2>
+    {reload === 0 ? <p>Kiểm tra công việc được giao trước khi yêu cầu đổi trạng thái tài khoản.</p>
+      : !current ? <p role="status">Đang tải các ràng buộc…</p> : current.data ? <>
+      {current.data.lastDurableAdministrator && <p role="alert">Đây là quản trị viên thường trực cuối cùng và không được vô hiệu hóa.</p>}
       {current.data.workItems.length > 0 ? <>
-        <p>Ask the responsible lead to reassign or hand over these items before deactivation.</p>
+        <p>Nhờ người phụ trách phân công lại hoặc bàn giao các mục này trước khi vô hiệu hóa.</p>
         <ul>{current.data.workItems.map(w => <li key={`${w.kind}:${w.id}`}>
-          {w.kind.replaceAll("_", " ")} #{w.id} — Branch {w.branchId}
+          {w.kind.replaceAll("_", " ")} #{w.id} — Chi nhánh {w.branchId}
         </li>)}</ul>
-      </> : <p>No open work is listed within your current management scope.</p>}
-      {current.data.hasRestrictedWork && <p>Additional responsibilities exist outside your management scope. Contact an authorized Administrator.</p>}
-      {current.data.hasMore && <p>The first 200 items are shown. Resolve these items and refresh to continue.</p>}
-      {current.data.hasOpenResponsibilities && current.data.workItems.length === 0 && <p>Other account responsibilities must be resolved before deactivation.</p>}
-      {current.data.coverageIncomplete && <p>Deactivation remains unavailable until all dependency checks can be completed.</p>}
-      <p>This review does not grant access to the underlying work records.</p>
+      </> : <p>Không có công việc đang mở trong phạm vi quản lý hiện tại.</p>}
+      {current.data.hasRestrictedWork && <p>Còn trách nhiệm ngoài phạm vi quản lý của bạn. Liên hệ quản trị viên có quyền.</p>}
+      {current.data.hasMore && <p>Hiển thị 200 mục đầu tiên. Xử lý và tải lại để tiếp tục.</p>}
+      {current.data.hasOpenResponsibilities && current.data.workItems.length === 0 && <p>Cần xử lý các trách nhiệm khác của tài khoản trước khi vô hiệu hóa.</p>}
+      {current.data.coverageIncomplete && <p>Chỉ có thể vô hiệu hóa sau khi hoàn tất mọi kiểm tra ràng buộc.</p>}
+      <p>Xét duyệt này không cấp quyền xem hồ sơ công việc bên dưới.</p>
     </> : <p role="alert">{current.error}</p>}
-    <button type="button" onClick={() => setReload(n => n + 1)}>{reload === 0 ? "Review dependencies" : "Refresh dependencies"}</button>
+    <button type="button" onClick={() => setReload(n => n + 1)}>{reload === 0 ? "Xem lại các ràng buộc" : "Tải lại các ràng buộc"}</button>
   </section>;
 }

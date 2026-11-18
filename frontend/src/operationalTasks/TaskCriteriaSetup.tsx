@@ -52,10 +52,10 @@ export function TaskCriteriaSetup({
       setLocked(true);
       setError(
         e instanceof TaskProgressError && e.status === 403
-          ? "You do not have permission to define criteria for this task."
+          ? "Bạn không có quyền định nghĩa tiêu chí cho công việc này."
           : e instanceof TaskProgressError && e.status === 409
-            ? "Criteria already exist or the task has not started. Existing criteria were not replaced."
-            : "Setup could not be confirmed. Refresh the task before trying again; the request was not retried.",
+            ? "Tiêu chí đã tồn tại hoặc công việc chưa bắt đầu. Tiêu chí hiện có không bị thay thế."
+            : "Chưa xác nhận thiết lập. Tải lại công việc trước khi thử lại; yêu cầu chưa được gửi lại.",
       );
     } finally {
       inFlight.current = false;
@@ -63,30 +63,28 @@ export function TaskCriteriaSetup({
     }
   }
   return (
-    <section aria-label="Task criteria setup">
+    <section aria-label="Thiết lập tiêu chí công việc">
       {!open ? (
         <button onClick={() => setOpen(true)}>
-          Set up completion criteria
+          Thiết lập tiêu chí hoàn tất
         </button>
       ) : (
         <>
-          <h3>Set up completion criteria</h3>
+          <h3>Thiết lập tiêu chí hoàn tất</h3>
           <p>
-            For an existing started task without criteria. Definitions are
-            permanent after setup. Task management permission is checked when
-            saving.
+            Dành cho công việc đã bắt đầu nhưng chưa có tiêu chí. Tiêu chí cố định sau khi thiết lập. Quyền quản lý công việc được kiểm tra khi lưu.
           </p>
           {error && <p role="alert">{error}</p>}
           {saved ? (
-            <p role="status">Completion criteria initialized.</p>
+            <p role="status">Đã khởi tạo tiêu chí hoàn tất.</p>
           ) : (
             <form onSubmit={submit}>
               <fieldset disabled={busy || locked}>
-                <legend>Criterion definitions</legend>
+                <legend>Định nghĩa tiêu chí</legend>
                 {items.map((item, index) => (
                   <div key={index}>
                     <label>
-                      Criterion {index + 1}
+                      Tiêu chí {index + 1}
                       <input
                         required
                         maxLength={250}
@@ -114,7 +112,7 @@ export function TaskCriteriaSetup({
                           )
                         }
                       />
-                      Required criterion {index + 1}
+                      Tiêu chí bắt buộc {index + 1}
                     </label>
                     <button
                       type="button"
@@ -123,7 +121,7 @@ export function TaskCriteriaSetup({
                         setItems((rows) => rows.filter((_, n) => n !== index))
                       }
                     >
-                      Remove criterion {index + 1}
+                      Xóa tiêu chí {index + 1}
                     </button>
                   </div>
                 ))}
@@ -134,10 +132,10 @@ export function TaskCriteriaSetup({
                     setItems((rows) => [...rows, { label: "", required: true }])
                   }
                 >
-                  Add criterion
+                  Thêm tiêu chí
                 </button>
                 <label>
-                  Setup reason
+                  Lý do thiết lập
                   <input
                     required
                     minLength={10}
@@ -146,7 +144,7 @@ export function TaskCriteriaSetup({
                     onChange={(e) => setReason(e.target.value)}
                   />
                 </label>
-                <button>Initialize criteria</button>
+                <button>Khởi tạo tiêu chí</button>
               </fieldset>
             </form>
           )}

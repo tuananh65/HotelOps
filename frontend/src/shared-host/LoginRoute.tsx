@@ -97,16 +97,16 @@ function LoginNavigation({
     return <Navigate replace to={target.path} />;
   if (failed || state.status === "ERROR_UNAVAILABLE")
     return (
-      <section aria-label="Session recovery">
+      <section aria-label="Khôi phục phiên đăng nhập">
         <p role="alert">
-          Your session could not be confirmed. No destination has been restored.
+          Chưa xác minh được phiên. Chưa khôi phục trang đích.
         </p>
         <button type="button" onClick={restore}>
-          Check session
+          Kiểm tra phiên đăng nhập
         </button>
       </section>
     );
   if (waiting || state.status === "INITIALIZING")
-    return <p role="status">Checking your session...</p>;
+    return <p role="status">Đang kiểm tra phiên đăng nhập của bạn...</p>;
   return <SignInScreen />;
 }

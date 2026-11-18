@@ -53,39 +53,39 @@ export function ReinspectionOriginalPage() {
     loaded.id === id
       ? loaded.data
       : null;
-  if (!owner) return <p role="status">Checking session...</p>;
+  if (!owner) return <p role="status">Đang kiểm tra phiên đăng nhập...</p>;
   return (
     <main>
-      <h1>Original inspection</h1>
+      <h1>Lần kiểm tra ban đầu</h1>
       <Link to={`/reinspections/${branch}/${id}/execution`}>
-        Return to reinspection
+        Quay lại kiểm tra lại
       </Link>
       {error && (
         <p role="alert">
-          The original inspection is unavailable or you no longer have access.
+          Kiểm tra ban đầu chưa khả dụng hoặc bạn không còn quyền.
         </p>
       )}
-      {!data && !error && <p role="status">Loading original inspection...</p>}
+      {!data && !error && <p role="status">Đang tải lần kiểm tra ban đầu...</p>}
       {data && (
         <>
           <p>
-            Inspection #{data.id} — Failed. Inspector #{data.inspectorId}.
+            Kiểm tra #{data.id} — Không đạt. Người kiểm tra #{data.inspectorId}.
             Checklist version #{data.versionId}.
           </p>
           <p>{data.summary}</p>
-          <section aria-label="Original checklist results">
-            <h2>Checklist results</h2>
+          <section aria-label="Kết quả kiểm tra ban đầu">
+            <h2>Kết quả kiểm tra</h2>
             {data.criteria.map((c) => (
               <section key={c.itemId}>
                 <h3>{c.criterion}</h3>
                 <p>{c.description}</p>
-                <p>Result: {c.outcome ?? "Not recorded"}</p>
+                <p>Kết quả: {c.outcome ?? "Chưa ghi nhận"}</p>
                 <p>{c.note}</p>
               </section>
             ))}
           </section>
-          <section aria-label="Original defects">
-            <h2>Defects</h2>
+          <section aria-label="Các lỗi ban đầu">
+            <h2>Các lỗi</h2>
             {data.defects.map((d) => (
               <section key={d.id}>
                 <h3>{d.description}</h3>
@@ -97,15 +97,15 @@ export function ReinspectionOriginalPage() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Defect #{d.id} photo #{file}
+                      Lỗi #{d.id} ảnh #{file}
                     </a>
                   </p>
                 ))}
               </section>
             ))}
           </section>
-          <section aria-label="Original inspection evidence">
-            <h2>Inspection evidence</h2>
+          <section aria-label="Bằng chứng kiểm tra ban đầu">
+            <h2>Bằng chứng kiểm tra</h2>
             {data.evidence.map((e) => (
               <p key={e.id}>
                 <a

@@ -32,7 +32,7 @@ function BoundWorkCategoriesPage() {
   function clear() {setLoaded(false);setRows([]);setDepartments([]);setEditing(false);setHasMore(false);}
   useEffect(() => {clear();setMessage("");return () => abort.current?.abort();},[owner]);
   function endpoint(id?: number) {
-    if(branch && !positive(Number(branch))) throw Error("Enter a valid branch ID.");
+    if(branch && !positive(Number(branch))) throw Error("Nhập mã chi nhánh hợp lệ.");
     return "/api/work-categories" + (id ? "/" + id : "") + (branch ? "?branchId=" + Number(branch) : "");
   }
   async function load(more = false) {
@@ -41,10 +41,10 @@ function BoundWorkCategoriesPage() {
     try {
       const url=endpoint() + (branch ? "&" : "?") + "afterId=" + (more ? rows.at(-1)?.id ?? 0 : 0);
       const response=await fetch(url,{credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal});
-      if(!response.ok) throw Error("Category catalog unavailable (" + response.status + "). Check current administrator grant and scope.");
+      if(!response.ok) throw Error("Danh mục nhóm chưa khả dụng (" + response.status + "). Kiểm tra quyền và phạm vi quản trị hiện tại.");
       const value: unknown=await response.json();
       if(!isObject(value)||!Array.isArray(value.items)||!value.items.every(valid)||!Array.isArray(value.departments)
-        ||!value.departments.every(d=>isObject(d)&&positive(d.id)&&typeof d.name==="string")) throw Error("Invalid catalog response.");
+        ||!value.departments.every(d=>isObject(d)&&positive(d.id)&&typeof d.name==="string")) throw Error("Phản hồi danh mục không hợp lệ.");
       if(!controller.signal.aborted&&current.current===owner) {setRows(more?[...rows,...value.items]:value.items);setDepartments(value.departments as Department[]);setLoaded(true);setHasMore(value.items.length===100);setEditing(false);setUncertain(false);}
     } catch(e) {if(!controller.signal.aborted&&current.current===owner){clear();setMessage(String(e));}}
     finally {sending.current=false;if(!controller.signal.aborted&&current.current===owner)setBusy(false);}
@@ -57,9 +57,9 @@ function BoundWorkCategoriesPage() {
     const controller=new AbortController();abort.current=controller;sending.current=true;setBusy(true);setMessage("");let submitted=false;
     try {
       const response=await fetch("/api/auth/csrf",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal});
-      if(!response.ok)throw Error("Session validation failed.");
+      if(!response.ok)throw Error("Xác minh phiên đăng nhập thất bại.");
       const csrf: unknown=await response.json();
-      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Session changed. Reload.");
+      if(!isObject(csrf)||csrf.headerName!=="X-CSRF-TOKEN"||typeof csrf.csrfToken!=="string"||!/^[\x21-\x7e]+$/.test(csrf.csrfToken)||current.current!==owner)throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       const url=endpoint(selected?.id);submitted=true;
       const saved=await fetch(url,{method:selected?"PUT":"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,...(selected?{"If-Match":selected.version}:{})},
@@ -73,36 +73,36 @@ function BoundWorkCategoriesPage() {
           "NEW_CATEGORY_MUST_BE_ACTIVE","ACTIVE_DEPARTMENT_REQUIRED"
         ].includes(code)){
           if(!controller.signal.aborted&&current.current===owner){
-            setMessage(code==="MSG35"?"MSG35: This category code already exists. Enter another code and save again.":"Category input was rejected. Check the required fields, department and deactivation confirmation.");
+            setMessage(code==="MSG35"?"MSG35: Mã nhóm đã tồn tại. Nhập mã khác và lưu lại.":"Thông tin nhóm bị từ chối. Kiểm tra trường bắt buộc, bộ phận và xác nhận vô hiệu hóa.");
           }
           return;
         }
-        throw Error(isObject(error)&&typeof error.title==="string"?error.title:"Save was not confirmed ("+saved.status+").");
+        throw Error(isObject(error)&&typeof error.title==="string"?error.title:"Chưa xác nhận lưu ("+saved.status+").");
       }
-      const value: unknown=await saved.json();if(!valid(value))throw Error("Save response could not be confirmed.");
-      if(!controller.signal.aborted&&current.current===owner){clear();setMessage("Category saved. Reload the catalog to continue.");}
+      const value: unknown=await saved.json();if(!valid(value))throw Error("Không xác minh được phản hồi lưu.");
+      if(!controller.signal.aborted&&current.current===owner){clear();setMessage("Đã lưu nhóm. Tải lại danh mục để tiếp tục.");}
     } catch(e){if(!controller.signal.aborted&&current.current===owner){setMessage(String(e));if(submitted)setUncertain(true);}}
     finally{sending.current=false;if(!controller.signal.aborted&&current.current===owner)setBusy(false);}
   }
   if(!owner)return null;
-  return <section><h2>Work categories</h2>
-    <label>Branch ID (blank for global categories)<input disabled={busy} type="number" min="1" value={branch} onChange={e=>{setBranch(e.target.value);clear();}} /></label>
-    <p>Global categories require a global administrator grant. Branch categories require branch access and belong to a department in that branch.</p>
-    <button disabled={busy} onClick={()=>void load()}>Load categories</button>
+  return <section><h2>Nhóm công việc</h2>
+    <label>Mã chi nhánh (để trống với nhóm dùng chung)<input disabled={busy} type="number" min="1" value={branch} onChange={e=>{setBranch(e.target.value);clear();}} /></label>
+    <p>Nhóm dùng chung cần quyền quản trị toàn hệ thống. Nhóm chi nhánh cần quyền chi nhánh và phải thuộc bộ phận trong chi nhánh đó.</p>
+    <button disabled={busy} onClick={()=>void load()}>Tải các nhóm</button>
     {message&&<p role="status">{message}</p>}
-    {loaded&&<><button disabled={busy||uncertain} onClick={()=>edit(null)}>Create category</button>
-      {!rows.length?<p>No categories in this scope.</p>:<table><thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Usage</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.name}</td><td>{r.isActive?"Active":"Inactive"}</td><td>{r.usageCount}</td><td><button disabled={busy||uncertain} onClick={()=>edit(r)}>Edit</button></td></tr>)}</tbody></table>}
-      {hasMore&&<button disabled={busy||uncertain} onClick={()=>void load(true)}>Load more</button>}
+    {loaded&&<><button disabled={busy||uncertain} onClick={()=>edit(null)}>Tạo nhóm</button>
+      {!rows.length?<p>Không có nhóm trong phạm vi này.</p>:<table><thead><tr><th>Mã</th><th>Tên</th><th>Trạng thái</th><th>Sử dụng</th><th>Thao tác</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.code}</td><td>{r.name}</td><td>{r.isActive?"Đang hoạt động":"Ngừng hoạt động"}</td><td>{r.usageCount}</td><td><button disabled={busy||uncertain} onClick={()=>edit(r)}>Chỉnh sửa</button></td></tr>)}</tbody></table>}
+      {hasMore&&<button disabled={busy||uncertain} onClick={()=>void load(true)}>Tải thêm</button>}
     </>}
-    {editing&&<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy||uncertain}><legend>{selected?"Edit category":"Create category"}</legend>
-      {selected&&selected.usageCount>0&&<p>Used categories retain their code, name and description. You can change their active status.</p>}
-      <label>Code<input required maxLength={40} readOnly={!!selected?.usageCount} value={code} onChange={e=>setCode(e.target.value)} /></label>
-      <label>Name<input required maxLength={150} readOnly={!!selected?.usageCount} value={name} onChange={e=>setName(e.target.value)} /></label>
-      <label>Description<textarea maxLength={4000} readOnly={!!selected?.usageCount} value={description} onChange={e=>setDescription(e.target.value)} /></label>
-      {branch&&<label>Department<select required disabled={selected!==null} value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Choose department</option>{departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
-      {selected&&<label><input type="checkbox" checked={active} onChange={e=>{setActive(e.target.checked);setConfirmed(false);}} />Active</label>}
-      {!active&&<label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} />Confirm deactivation. Existing tasks retain this category.</label>}
-      <button type="submit">Save</button><button type="button" onClick={()=>setEditing(false)}>Cancel</button>
+    {editing&&<form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy||uncertain}><legend>{selected?"Chỉnh sửa nhóm":"Tạo nhóm"}</legend>
+      {selected&&selected.usageCount>0&&<p>Nhóm đã sử dụng giữ mã, tên và mô tả. Có thể đổi trạng thái hoạt động.</p>}
+      <label>Mã<input required maxLength={40} readOnly={!!selected?.usageCount} value={code} onChange={e=>setCode(e.target.value)} /></label>
+      <label>Tên<input required maxLength={150} readOnly={!!selected?.usageCount} value={name} onChange={e=>setName(e.target.value)} /></label>
+      <label>Mô tả<textarea maxLength={4000} readOnly={!!selected?.usageCount} value={description} onChange={e=>setDescription(e.target.value)} /></label>
+      {branch&&<label>Bộ phận<select required disabled={selected!==null} value={department} onChange={e=>setDepartment(e.target.value)}><option value="">Chọn bộ phận</option>{departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>}
+      {selected&&<label><input type="checkbox" checked={active} onChange={e=>{setActive(e.target.checked);setConfirmed(false);}} />Đang hoạt động</label>}
+      {!active&&<label><input required type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} />Xác nhận vô hiệu hóa. Công việc hiện có giữ nguyên nhóm này.</label>}
+      <button type="submit">Lưu</button><button type="button" onClick={()=>setEditing(false)}>Hủy</button>
     </fieldset></form>}
   </section>;
 }

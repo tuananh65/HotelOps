@@ -208,18 +208,18 @@ async function finish(page, url, reply) {
   await settle(page);
 }
 async function login(page) {
-  await page.getByLabel("Username or email").fill(" staff ");
-  await page.getByLabel("Password", { exact: true }).fill(secret);
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByLabel("Tên đăng nhập hoặc email").fill(" staff ");
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(secret);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 async function password(page) {
-  await page.getByLabel("Current password", { exact: true }).fill(secret);
-  await page.getByLabel("New password", { exact: true }).fill(`${secret}-next`);
+  await page.getByLabel("Mật khẩu hiện tại", { exact: true }).fill(secret);
+  await page.getByLabel("Mật khẩu mới", { exact: true }).fill(`${secret}-next`);
   await page
-    .getByLabel("Confirm new password", { exact: true })
+    .getByLabel("Xác nhận mật khẩu mới", { exact: true })
     .fill(`${secret}-next`);
   await page
-    .getByRole("button", { name: "Change password", exact: true })
+    .getByRole("button", { name: "Đổi mật khẩu", exact: true })
     .click();
 }
 async function remember(page, selector) {
@@ -333,7 +333,7 @@ for (const restricted of [false, true]) {
       async (page) => {
         await heading(page, "Confirmed Staff");
         await page
-          .getByRole("link", { name: "Change password", exact: true })
+          .getByRole("link", { name: "Đổi mật khẩu", exact: true })
           .waitFor();
         assert.ok(
           !(
@@ -362,7 +362,7 @@ for (const route of [
       await heading(page, "Sign In");
       assert.equal(
         await page
-          .getByText("This business screen is not integrated yet.")
+          .getByText("Màn nghiệp vụ này chưa được tích hợp.")
           .count(),
         0,
       );
@@ -375,7 +375,7 @@ test("restricted business URL cannot render business placeholder", async () => {
     await heading(page, "Change Password");
     assert.equal(
       await page
-        .getByText("This business screen is not integrated yet.")
+        .getByText("Màn nghiệp vụ này chưa được tích hợp.")
         .count(),
       0,
     );
@@ -386,7 +386,7 @@ test("authenticated business URL shows only unintegrated placeholder", async () 
     await heading(page, "HotelOps workspace");
     assert.equal(
       await page
-        .getByText("This business screen is not integrated yet.")
+        .getByText("Màn nghiệp vụ này chưa được tích hợp.")
         .count(),
       1,
     );
@@ -402,10 +402,10 @@ for (const [label, failure] of [
       "/dashboard",
       { sessions: [failure, ok()] },
       async (page) => {
-        await page.getByRole("button", { name: "Check session" }).waitFor();
+        await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
         assert.equal(await page.getByRole("heading").count(), 0);
         assert.equal((await calls(page, "/api/auth/session")).length, 1);
-        await page.getByRole("button", { name: "Check session" }).click();
+        await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
         await heading(page, "HotelOps workspace");
         assert.equal((await calls(page, "/api/auth/session")).length, 2);
       },
@@ -430,7 +430,7 @@ for (const delayed of [false, true]) {
             await settle(page);
             await sameNode(page, "form");
             assert.equal(
-              await page.getByLabel("Username or email").inputValue(),
+              await page.getByLabel("Tên đăng nhập hoặc email").inputValue(),
               " staff ",
             );
             await finish(page, "/api/auth/login", ok(restricted));
@@ -471,7 +471,7 @@ for (const delayed of [false, true]) {
         }
         await page
           .getByRole("alert")
-          .filter({ hasText: "Invalid username or password." })
+          .filter({ hasText: "Tên đăng nhập hoặc mật khẩu không đúng." })
           .waitFor();
         await sameNode(page, "form");
         assert.equal((await calls(page, "/api/auth/login")).length, 1);
@@ -486,7 +486,7 @@ for (const delayed of [false, true]) {
       async (page) => {
         await heading(page, "Confirmed Staff");
         await remember(page, "section.panel");
-        await page.getByRole("button", { name: "Logout", exact: true }).click();
+        await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
         if (delayed) {
           await settle(page);
           await sameNode(page, "section.panel");
@@ -585,11 +585,11 @@ for (const [label, failure] of [
       async (page) => {
         await heading(page, "Confirmed Staff");
         await remember(page, "section.panel");
-        await page.getByRole("button", { name: "Logout", exact: true }).click();
+        await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
         await settle(page);
         await sameNode(page, "section.panel");
         await finish(page, "/api/auth/logout", failure);
-        await page.getByRole("button", { name: "Check session" }).waitFor();
+        await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
         await sameNode(page, "section.panel");
         assert.equal(
           await page.getByRole("heading", { name: "Confirmed Staff" }).count(),
@@ -600,7 +600,7 @@ for (const [label, failure] of [
           /not confirmed|could not be confirmed/,
         );
         await pathIs(page, "/profile");
-        await page.getByRole("button", { name: "Check session" }).click();
+        await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
         await heading(page, "Confirmed Staff");
         assert.equal((await calls(page, "/api/auth/logout")).length, 1);
         assert.equal((await calls(page, "/api/auth/session")).length, 2);
@@ -626,23 +626,23 @@ for (const path of ["/dev/screens", "/dev/design-system"]) {
 test("forgot password shows instruction only after identifier confirmation without recovery request", async () => {
   await withRouter("/forgot-password", {}, async (page) => {
     await heading(page, "Forgot Password");
-    const identifier = page.getByRole("textbox", { name: "Username or email" });
+    const identifier = page.getByRole("textbox", { name: "Tên đăng nhập hoặc email" });
     const instruction =
       "For password assistance, contact your Administrator through your usual internal support channel.";
     assert.equal(await identifier.count(), 1);
     assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
 
-    await page.getByRole("button", { name: "Show instructions" }).click();
+    await page.getByRole("button", { name: "Hiện hướng dẫn" }).click();
     await page
       .getByRole("alert")
-      .filter({ hasText: "Enter your username or email." })
+      .filter({ hasText: "Nhập tên đăng nhập hoặc email." })
       .waitFor();
     assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
 
     const identifierLogs = [];
     page.on("console", (message) => identifierLogs.push(message.text()));
     await identifier.fill("private-identifier@example.test");
-    await page.getByRole("button", { name: "Show instructions" }).click();
+    await page.getByRole("button", { name: "Hiện hướng dẫn" }).click();
     await page.getByRole("status").filter({ hasText: instruction }).waitFor();
     assert.equal(await identifier.inputValue(), "");
     assert.ok(
@@ -704,7 +704,7 @@ test("revalidation 401 removes confirmed identity and guards back/forward histor
     });
     await settle(page);
     assert.equal(
-      await page.getByRole("heading", { name: "HotelOps workspace" }).count(),
+      await page.getByRole("heading", { name: "Không gian làm việc HotelOps" }).count(),
       0,
     );
     await finish(page, "/api/auth/session", anonymous);
@@ -726,7 +726,7 @@ test("late login response after user navigation cannot hijack informational rout
   await withRouter("/login", { login: deferred }, async (page) => {
     await heading(page, "Sign In");
     await login(page);
-    await page.getByRole("link", { name: "Forgot password?" }).click();
+    await page.getByRole("link", { name: "Quên mật khẩu?" }).click();
     await pathIs(page, "/forgot-password");
     await finish(page, "/api/auth/login", ok());
     await pathIs(page, "/forgot-password");
@@ -741,7 +741,7 @@ test("an unresolved logout remains pending with identity hidden and no revocatio
     { sessions: [ok()], logout: deferred },
     async (page) => {
       await heading(page, "Confirmed Staff");
-      await page.getByRole("button", { name: "Logout", exact: true }).click();
+      await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       await settle(page);
       await pathIs(page, "/profile");
       assert.equal(
@@ -771,7 +771,7 @@ test("session GET 403 is unavailable rather than proof of anonymous or deleted i
     async (page) => {
       await heading(page, "Confirmed Staff");
       await page.evaluate(() => window.routerTest.revalidate());
-      await page.getByRole("button", { name: "Check session" }).waitFor();
+      await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
       assert.equal(
         await page.evaluate(() => window.routerTest.snapshot().status),
         "ERROR_UNAVAILABLE",
@@ -781,7 +781,7 @@ test("session GET 403 is unavailable rather than proof of anonymous or deleted i
         await page.getByRole("heading", { name: "Confirmed Staff" }).count(),
         0,
       );
-      await page.getByRole("button", { name: "Check session" }).click();
+      await page.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
       await heading(page, "Confirmed Staff");
       assert.equal((await calls(page, "/api/auth/logout")).length, 0);
     },

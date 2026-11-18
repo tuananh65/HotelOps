@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 // Unmounted historical business harness; canonical shared read-only route is unchanged.
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
@@ -16,10 +17,10 @@ import {
 type Trail = { type: StructureNode; id: number; label: string };
 type Request = { owner: PublicSession; query: StructureQuery; trail: Trail[] };
 const heading = {
-  floors: "Floors",
-  areas: "Areas",
-  rooms: "Rooms",
-  departments: "Departments",
+  floors: "Tầng",
+  areas: "Khu vực",
+  rooms: "Phòng",
+  departments: "Bộ phận",
 };
 const singular = {
   floors: "floor",
@@ -62,11 +63,11 @@ export function StandaloneBranchStructureTree() {
     return (
       <main>
         <p role="status">
-          Your session could not be confirmed. Structure data is hidden.
+          Chưa xác minh được phiên. Dữ liệu cấu trúc đã ẩn.
         </p>
         {state.status !== "INITIALIZING" && (
           <button onClick={() => void actions.revalidate()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
       </main>
@@ -149,23 +150,22 @@ export function StandaloneBranchStructureTree() {
             : data?.selectedDepartment;
   return (
     <main className="hotel-workspace">
-      <h1>Hotel structure — Branch structure</h1>
-      <nav aria-label="Hotel structure navigation">
-        <Link to="/profile">Profile</Link>
-        <Link to="/branches/new">Create Branch</Link>
+      <h1>Cấu trúc khách sạn — Cấu trúc chi nhánh</h1>
+      <nav aria-label="Điều hướng cấu trúc khách sạn">
+        <Link to="/profile">Hồ sơ cá nhân</Link>
+        <Link to="/branches/new">Tạo chi nhánh</Link>
         {decimalId(branch) && (
           <Link to={`/branches/${decimalId(branch)}/edit`}>
-            Update branch information
+            Cập nhật thông tin chi nhánh
           </Link>
         )}
-        <Link to="/floors">Floors</Link>
-        <Link to="/areas">Areas</Link>
-        <Link to="/rooms">Rooms</Link>
-        <Link to="/room-types">Room types</Link>
+        <Link to="/floors">Tầng</Link>
+        <Link to="/areas">Khu vực</Link>
+        <Link to="/rooms">Phòng</Link>
+        <Link to="/room-types">Loại phòng</Link>
       </nav>
       <p>
-        Browse one server-authorized collection page at a time. Counts do not
-        imply all children are loaded.
+        Xem từng trang dữ liệu được máy chủ cho phép. Số đếm không có nghĩa đã tải toàn bộ mục con.
       </p>
       <form
         onSubmit={(event) => {
@@ -174,7 +174,7 @@ export function StandaloneBranchStructureTree() {
         }}
       >
         <label>
-          Branch ID
+          Mã chi nhánh
           <input
             name="branchId"
             inputMode="numeric"
@@ -186,13 +186,13 @@ export function StandaloneBranchStructureTree() {
           />
         </label>
         <button disabled={!decimalId(branch) || flow.phase === "reading"}>
-          Load from server
+          Tải dữ liệu
         </button>
       </form>
       <label>
-        Active filter
+        Bộ lọc hoạt động
         <select
-          aria-label="Active filter"
+          aria-label="Bộ lọc hoạt động"
           value={active}
           onChange={(event) => {
             setActive(event.target.value);
@@ -207,43 +207,42 @@ export function StandaloneBranchStructureTree() {
               });
           }}
         >
-          <option value="">All</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
+          <option value="">Tất cả</option>
+          <option value="true">Đang hoạt động</option>
+          <option value="false">Ngừng hoạt động</option>
         </select>
       </label>
-      {flow.phase === "reading" && <p role="status">Loading server data...</p>}
+      {flow.phase === "reading" && <p role="status">Đang tải dữ liệu từ máy chủ...</p>}
       {flow.message && <p role="alert">{flow.message}</p>}
       {raw && !data && (
         <p role="alert">
-          Structure response does not match the selected context. No data
-          displayed.
+          Phản hồi cấu trúc không khớp ngữ cảnh đã chọn. Không hiển thị dữ liệu.
         </p>
       )}
       {data && selected && (
-        <section aria-label="Progressive branch structure">
-          <nav aria-label="Structure path">
+        <section aria-label="Cấu trúc chi nhánh theo từng cấp">
+          <nav aria-label="Đường dẫn cấu trúc">
             <button onClick={() => ancestor(-1)}>
-              Branch: {data.branch.name}
+              Chi nhánh: {data.branch.name}
             </button>
             {selected.trail.map((node, index) => (
               <button key={node.type + node.id} onClick={() => ancestor(index)}>
-                {node.type}: {node.label}
+                {displayCode(node.type)}: {node.label}
               </button>
             ))}
           </nav>
-          <section aria-label="Selected node details">
-            <h2>Selected {data.nodeType}</h2>
+          <section aria-label="Chi tiết mục đã chọn">
+            <h2>Đã chọn {data.nodeType}</h2>
             <dl>
               {Object.entries(details ?? {}).map(([field, value]) => (
                 <div key={field}>
                   <dt>{field}</dt>
-                  <dd>{value === null ? "Not provided" : String(value)}</dd>
+                  <dd>{value === null ? "Chưa cung cấp" : String(value)}</dd>
                 </div>
               ))}
             </dl>
           </section>
-          <nav aria-label="Available collections">
+          <nav aria-label="Bộ sưu tập khả dụng">
             {collectionsFor(data.nodeType as StructureNode)
               .filter((collection) =>
                 data.availableCollections.includes(collection),
@@ -265,18 +264,17 @@ export function StandaloneBranchStructureTree() {
           </nav>
           {page && data.collection && (
             <section
-              aria-label={`${heading[data.collection as StructureCollection]} page`}
+              aria-label={`${heading[data.collection as StructureCollection]} Trang`}
             >
               <h2>{heading[data.collection as StructureCollection]}</h2>
               <p>
-                {page.totalCount} records; page {page.page} of{" "}
-                {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}; page
-                size {page.pageSize}.
+                {page.totalCount} hồ sơ; trang {page.page} trên{" "}
+                {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}; Số dòng mỗi trang {page.pageSize}.
               </p>
               {page.items.length === 0 ? (
-                <p>No records on this page.</p>
+                <p>Không có hồ sơ trên trang này.</p>
               ) : (
-                <ul aria-label="Structure nodes">
+                <ul aria-label="Các mục cấu trúc">
                   {page.items.map((item) => {
                     const label =
                       "roomNumber" in item ? item.roomNumber : item.name;
@@ -294,7 +292,7 @@ export function StandaloneBranchStructureTree() {
                           {singular[data.collection as StructureCollection]}:{" "}
                           {label}
                         </button>
-                        <span> — {item.isActive ? "Active" : "Inactive"}</span>
+                        <span> — {item.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
                       </li>
                     );
                   })}
@@ -309,7 +307,7 @@ export function StandaloneBranchStructureTree() {
                   })
                 }
               >
-                Previous page
+                Trang trước
               </button>
               <button
                 disabled={page.page * page.pageSize >= page.totalCount}
@@ -320,7 +318,7 @@ export function StandaloneBranchStructureTree() {
                   })
                 }
               >
-                Next page
+                Trang sau
               </button>
             </section>
           )}

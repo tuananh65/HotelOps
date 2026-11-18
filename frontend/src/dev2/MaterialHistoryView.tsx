@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
@@ -8,77 +9,73 @@ const stamp = (v: unknown) => typeof v === "string" && Number.isFinite(Date.pars
 
 export function MaterialHistoryView({ record }: { record: Values }) {
   const cycles = rows(record.cycles);
-  const events: Event[] = [{ key: "created", title: "Request created", at: record.createdAt, actor: record.requesterId }];
-  for (const cycle of cycles) events.push({ key: `cycle-${cycle.approvalCycleId}`, title: `Submitted for review — revision ${cycle.revisionNo}`,
+  const events: Event[] = [{ key: "created", title: "Đã tạo yêu cầu", at: record.createdAt, actor: record.requesterId }];
+  for (const cycle of cycles) events.push({ key: `cycle-${cycle.approvalCycleId}`, title: `Đã gửi xét duyệt — phiên bản ${cycle.revisionNo}`,
     at: cycle.submittedAt, actor: cycle.submittedBy });
   for (const decision of rows(record.decisions)) events.push({ key: `decision-${decision.approvalId}`,
     title: String(decision.decision), at: decision.decidedAt, actor: decision.approverId, note: decision.note,
     lines: rows(cycles.find(c => c.approvalCycleId === decision.approvalCycleId)?.lines) });
   for (const batch of rows(record.fulfillments)) events.push({ key: `issue-${batch.fulfillmentId}`,
-    title: `Issue ${batch.fulfillmentNo} (${batch.status})`, at: batch.fulfilledAt, actor: batch.fulfilledBy,
-    fulfillment: batch.fulfillmentId, lines: rows(batch.lines), note: batch.receiverName == null ? "Receiver name: N/A (not recorded)" : `Receiver name: ${batch.receiverName}` });
+    title: `Xuất kho ${batch.fulfillmentNo} (${displayCode(batch.status)})`, at: batch.fulfilledAt, actor: batch.fulfilledBy,
+    fulfillment: batch.fulfillmentId, lines: rows(batch.lines), note: batch.receiverName == null ? "Tên người nhận: Chưa ghi nhận" : `Tên người nhận: ${batch.receiverName}` });
   const returns = new Map<unknown, Values[]>();
   for (const line of rows(record.returns)) returns.set(line.documentId, [...(returns.get(line.documentId) ?? []), line]);
   for (const [id, lines] of returns) {
     const receipt = lines[0];
-    events.push({ key: `return-created-${id}`, title: `Return ${receipt.documentNo} created (${receipt.status})`,
+    events.push({ key: `return-created-${id}`, title: `Hoàn trả ${receipt.documentNo} đã tạo (${displayCode(receipt.status)})`,
       at: receipt.createdAt, actor: null });
     if (receipt.postedAt != null || receipt.status === "POSTED" || receipt.status === "REVERSED")
-      events.push({ key: `return-posted-${id}`, title: `Return ${receipt.documentNo} posting (${receipt.status})`,
+      events.push({ key: `return-posted-${id}`, title: `Hoàn trả ${receipt.documentNo} ghi sổ (${displayCode(receipt.status)})`,
         at: receipt.postedAt, actor: receipt.postedBy, returnLines: lines });
   }
-  if (record.remainderClosedAt != null) events.push({ key: "remainder", title: "Unissued remainder closed",
+  if (record.remainderClosedAt != null) events.push({ key: "remainder", title: "Đã đóng phần còn lại chưa cấp",
     at: record.remainderClosedAt, actor: record.remainderClosedBy, note: record.remainderCloseReason });
   events.sort((a, b) => (stamp(a.at) ?? Infinity) - (stamp(b.at) ?? Infinity) || a.key.localeCompare(b.key));
-  return <section aria-label="Material request business history">
-    <h2>Workflow history</h2>
-    <p>Current status: <strong>{String(record.rawStatus)}</strong>. Times below are recorded business timestamps in UTC.</p>
+  return <section aria-label="Lịch sử xử lý yêu cầu vật tư">
+    <h2>Lịch sử quy trình</h2>
+    <p>Trạng thái hiện tại: <strong>{String(record.rawStatus)}</strong>. Times below are recorded business timestamps in UTC.</p>
     <ol>{events.map(event => <li key={event.key}>
       <strong>{event.title}</strong>{" — "}
-      {stamp(event.at) == null ? <span>Timestamp unavailable</span> : <time dateTime={String(event.at)}>{new Date(String(event.at)).toISOString()}</time>}
-      {event.actor != null && <span> · User {String(event.actor)}</span>}
+      {stamp(event.at) == null ? <span>Chưa có thời điểm</span> : <time dateTime={String(event.at)}>{new Date(String(event.at)).toISOString()}</time>}
+      {event.actor != null && <span> · Người dùng {String(event.actor)}</span>}
       {event.note != null && <p>{String(event.note)}</p>}
       {event.returnLines && <ul>{event.returnLines.map(line => <li key={String(line.returnLineId ?? line.originalIssueLineId)}>
-        {String(line.itemName ?? line.itemId ?? "Material unavailable")}: recorded quantity {String(line.actualQty ?? "N/A")},
-        damaged {String(line.damagedQty ?? "N/A")} {String(line.unitName ?? "Unit unavailable")};
-        original issue line {String(line.originalIssueLineId)}.
+        {String(line.itemName ?? line.itemId ?? "Vật tư chưa khả dụng")}: số lượng đã ghi nhận {String(line.actualQty ?? "N/A")}, Hư hỏng {String(line.damagedQty ?? "N/A")} {String(line.unitName ?? "Đơn vị chưa khả dụng")}; dòng phiếu xuất gốc {String(line.originalIssueLineId)}.
       </li>)}</ul>}
       {event.lines && event.lines.length > 0 && <ul>{event.lines.map((line, index) => <li key={`${line.requestLineId}:${index}`}>
-        Material {String(line.itemId)}, unit {String(line.uomId)}: {event.fulfillment != null
-          ? `issued ${line.issuedQty}` : `requested ${line.requestedQty}; approved ${line.approvedQty ?? "not recorded"}`}
+        Vật tư {String(line.itemId)}, Đơn vị {String(line.uomId)}: {event.fulfillment != null
+          ? `Đã cấp ${line.issuedQty}` : `Đã yêu cầu ${line.requestedQty}; Đã duyệt ${line.approvedQty ?? "Chưa ghi nhận"}`}
       </li>)}</ul>}
-      {event.fulfillment != null && <Link to={`/operations/material-requests/${encodeURIComponent(String(record.requestId))}?action=A004A-042&fulfillmentId=${encodeURIComponent(String(event.fulfillment))}`}>Open fulfillment receipt</Link>}
+      {event.fulfillment != null && <Link to={`/operations/material-requests/${encodeURIComponent(String(record.requestId))}?action=A004A-042&fulfillmentId=${encodeURIComponent(String(event.fulfillment))}`}>Mở biên nhận cấp phát</Link>}
     </li>)}</ol>
-    {record.rawStatus === "CANCELLED" && <p>Request cancelled: {String(record.cancellationReason ?? "Reason unavailable")}.
+    {record.rawStatus === "CANCELLED" && <p>Đã hủy yêu cầu: {String(record.cancellationReason ?? "Lý do chưa khả dụng")}.
       A separate cancellation timestamp is not available in this response.</p>}
-    <h3>Current quantities</h3>
+    <h3>Số lượng hiện tại</h3>
     <ul>{rows(record.lines).filter(l => l.isActive === true).map(line => <li key={String(line.requestLineId)}>
-      {String(line.itemName ?? line.itemId)}: approved {String(line.approvedQty ?? "N/A")}, issued {String(line.fulfilledQty)},
-      remaining {String(line.historicalRemainingQty ?? "N/A")} {String(line.unitName ?? line.uomId)};
-      currently open to fulfill {String(line.openFulfillableQty)}.
+      {String(line.itemName ?? line.itemId)}: Đã duyệt {String(line.approvedQty ?? "N/A")}, Đã cấp {String(line.fulfilledQty)}, Còn lại {String(line.historicalRemainingQty ?? "N/A")} {String(line.unitName ?? line.uomId)}; hiện đang mở để cấp phát {String(line.openFulfillableQty)}.
     </li>)}</ul>
-    <h3>Return documents</h3>
+    <h3>Chứng từ hoàn trả</h3>
     <ul>{rows(record.fulfillments).filter(f => f.status === "ISSUED" && typeof f.stockDocumentId === "number").map(f => <li key={String(f.fulfillmentId)}>
-      <Link to={`/inventory/issues/${f.stockDocumentId}/return`}>Return unused materials from {String(f.fulfillmentNo)}</Link> (current return permission and recipient eligibility required)
+      <Link to={`/inventory/issues/${f.stockDocumentId}/return`}>Trả vật tư chưa dùng từ {String(f.fulfillmentNo)}</Link> (cần quyền hoàn trả hiện tại và người nhận đủ điều kiện)
     </li>)}</ul>
-    <p>Return quantities describe their source documents. Draft, cancelled or reversed returns do not imply available stock or reduce the request's historical issued quantity.</p>
+    <p>Số lượng hoàn trả phản ánh chứng từ nguồn. Phiếu nháp, đã hủy hoặc đã đảo không có nghĩa là tồn khả dụng và không giảm số đã cấp trong lịch sử.</p>
     {rows(record.returns).length ? <ul>{rows(record.returns).map((receipt, index) => <li key={`${receipt.documentId}:${receipt.originalIssueLineId}:${index}`}>
-      <Link to={`/inventory/returns/${encodeURIComponent(String(receipt.documentId))}`}>{String(receipt.documentNo)}</Link> — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
-    </li>)}</ul> : <p>No linked return documents recorded.</p>}
-    <p><Link to="/inventory/return-requests">My returns and authorized warehouse queues</Link></p>
-    {record.incidentId != null && <section aria-label="Linked incident">
-      <h3>Linked incident</h3>
+      <Link to={`/inventory/returns/${encodeURIComponent(String(receipt.documentId))}`}>{String(receipt.documentNo)}</Link> — {displayCode(receipt.status)}; dòng phiếu xuất gốc {String(receipt.originalIssueLineId)}.
+    </li>)}</ul> : <p>Chưa có chứng từ hoàn trả liên quan đã ghi nhận.</p>}
+    <p><Link to="/inventory/return-requests">Hoàn trả của tôi và hàng đợi kho được phép truy cập</Link></p>
+    {record.incidentId != null && <section aria-label="Sự cố liên quan">
+      <h3>Sự cố liên quan</h3>
       {isObject(record.linkedIncident) ? <p>
         <Link to={`/operations/incidents/${encodeURIComponent(String(record.linkedIncident.incidentId))}`}>{String(record.linkedIncident.incidentNo)}</Link>
-        {" "}{String(record.linkedIncident.title)} — {String(record.linkedIncident.status)}
-      </p> : <p>Incident details unavailable in your current incident viewing scope. The historical link is retained.</p>}
+        {" "}{String(record.linkedIncident.title)} — {displayCode(record.linkedIncident.status)}
+      </p> : <p>Không xem được chi tiết sự cố trong phạm vi hiện tại. Liên kết lịch sử vẫn giữ lại.</p>}
     </section>}
-    <h3>Linked internal requests</h3>
-    {record.linkedWorkAvailable !== true ? <p>Linked internal request information is unavailable.</p>
-      : rows(record.linkedInternalRequests).length === 0 ? <p>No linked internal requests in your current viewing scope.</p>
+    <h3>Yêu cầu nội bộ liên quan</h3>
+    {record.linkedWorkAvailable !== true ? <p>Chưa có thông tin yêu cầu nội bộ liên quan.</p>
+      : rows(record.linkedInternalRequests).length === 0 ? <p>Không có yêu cầu nội bộ liên quan trong phạm vi xem hiện tại.</p>
       : <ul>{rows(record.linkedInternalRequests).map(request => <li key={String(request.requestId)}>
         <Link to={`/internal-requests?requestId=${encodeURIComponent(String(request.requestId))}`}>{String(request.requestNo)}</Link>
-        {" "}{String(request.status)}; {request.mandatory === true ? "mandatory material dependency" : "optional material dependency"}.
+        {" "}{displayCode(request.status)}; {request.mandatory === true ? "ràng buộc vật tư bắt buộc" : "ràng buộc vật tư không bắt buộc"}.
       </li>)}</ul>}
   </section>;
 }

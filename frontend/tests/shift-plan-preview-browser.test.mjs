@@ -129,7 +129,7 @@ test("multi-row preview uses exact immutable drafts and server intervals", () =>
     assert.equal(calls[0].drafts[1].employeeId, 8);
     assert.match(
       await p.locator("body").innerText(),
-      /Server revalidation required/,
+      /Cần máy chủ xác minh lại\. Bản xem trước không phải dữ liệu giao dịch đồng nhất, phiên bản hoặc quyền lưu\./,
     );
   }));
 test("invalid date never invokes adapter", () =>
@@ -155,10 +155,10 @@ test("existing and proposed overlaps rendered without save authority", () =>
       await add(p);
       await p.getByRole("button", { name: "Preview assignments" }).click();
       await p
-        .getByText("Existing assignment overlap", { exact: true })
+        .getByText("Trùng thời gian với phân công hiện có", { exact: true })
         .waitFor();
       await p
-        .getByText("Proposed assignment overlap", { exact: true })
+        .getByText("Trùng thời gian với phân công đề xuất", { exact: true })
         .waitFor();
     },
   ));
@@ -229,7 +229,7 @@ for (const auth of [
 ])
   test("anonymous/restricted no draft or preview " + auth.status, () =>
     run({ enabled: true, auth }, async (p) => {
-      await p.getByText("Confirmed unrestricted session required.").waitFor();
+      await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
       assert.equal(
         await p.getByLabel("employeeId", { exact: true }).count(),
         0,

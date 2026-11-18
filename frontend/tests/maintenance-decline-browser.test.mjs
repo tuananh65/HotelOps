@@ -25,7 +25,7 @@ for (const stale of [false, true]) test('Decline '+(stale?'stale version':'succe
   });
   await page.goto('https://hotelops.test');await page.addScriptTag({content:bundle.outputFiles[0].text});
   const review=page.getByRole('button',{name:'Review decline',exact:true});await review.waitFor();assert.equal(await review.isDisabled(),true);
-  await page.getByLabel('Decline reason',{exact:true}).fill('Cannot safely take this assignment');await review.click();assert.equal(calls.length,0);
+  await page.getByLabel("Lý do từ chối nhận việc",{exact:true}).fill('Cannot safely take this assignment');await review.click();assert.equal(calls.length,0);
   await page.getByRole('button',{name:'Confirm decline',exact:true}).click();
   await page.getByRole('status').filter({hasText:stale?'Work changed.':'Assignment declined.'}).waitFor();
   assert.equal(calls.length,1);assert.equal(calls[0].method,'POST');assert.equal(calls[0].headers['if-match'],'"0000000000000001"');assert.equal(calls[0].headers['x-csrf-token'],'synthetic');

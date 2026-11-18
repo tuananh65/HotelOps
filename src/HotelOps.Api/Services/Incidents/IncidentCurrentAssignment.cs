@@ -15,7 +15,14 @@ internal static class IncidentCurrentAssignment
                 && !i.IncidentEvents.Any(e=>e.EventType=="REOPENED" && e.OccurredAt>other.CreatedAt))==1
             && (!activeOnly || w.Status=="PENDING" || w.Status=="IN_PROGRESS" || w.Status=="ON_HOLD")));
 
-    internal sealed record Row(long IncidentId,long? AssigneeId,string? AssigneeName,long? DepartmentId,string? DepartmentName);
+    internal sealed class Row
+    {
+        public long IncidentId { get; init; }
+        public long? AssigneeId { get; init; }
+        public string? AssigneeName { get; init; }
+        public long? DepartmentId { get; init; }
+        public string? DepartmentName { get; init; }
+    }
     internal static IQueryable<Row> Query(HotelOpsDbContext db)
     {
         var current=db.MaintenanceWorks.AsNoTracking().Where(w=>w.IncidentId!=null && !w.PreventiveMaintenanceRuns.Any()
@@ -27,6 +34,8 @@ internal static class IncidentCurrentAssignment
                 || (w.Status=="COMPLETED" && w.Incident!.Status=="RESOLVED")
                 || (w.Status=="CLOSED" && w.Incident!.Status=="CLOSED")
                 || (w.Status=="CANCELLED" && w.Incident!.Status=="CANCELLED")))
-            .Select(w=>new Row(w.IncidentId!.Value,w.AssigneeId,w.Assignee==null?null:w.Assignee.FullName,w.DepartmentId,w.Department==null?null:w.Department.DepartmentName));
+            .Select(w=>new Row { IncidentId=w.IncidentId!.Value, AssigneeId=w.AssigneeId,
+                AssigneeName=w.Assignee==null?null:w.Assignee.FullName, DepartmentId=w.DepartmentId,
+                DepartmentName=w.Department==null?null:w.Department.DepartmentName });
     }
 }

@@ -38,10 +38,10 @@ export function RequestReworkForm({
       onDenied(e.status);
     setError(
       e instanceof InspectionApiError && e.uncertain
-        ? "Write outcome unknown. Reload options to verify; do not automatically retry."
+        ? "Chưa xác định kết quả ghi. Tải lại lựa chọn để xác minh; không tự gửi lại."
         : e instanceof Error
           ? e.message
-          : "Rework unavailable",
+          : "Làm lại chưa khả dụng",
     );
     setOptions(null);
   }
@@ -111,34 +111,34 @@ export function RequestReworkForm({
     }
   }
   return (
-    <section aria-label="Request cleaning rework">
-      <h3>Request cleaning rework</h3>
+    <section aria-label="Yêu cầu vệ sinh lại">
+      <h3>Yêu cầu vệ sinh lại</h3>
       {error && <p role="alert">{error}</p>}
-      {busy && <p role="status">Loading or saving rework...</p>}
+      {busy && <p role="status">Đang tải hoặc lưu kết quả làm lại...</p>}
       <button
         type="button"
         disabled={busy}
         onClick={() => setReload((v) => v + 1)}
       >
-        Reload rework options
+        Tải lại lựa chọn làm lại
       </button>
       {receipt ? (
         <p role="status">
-          Rework #{receipt.id} is pending acceptance.{" "}
+          Làm lại #{receipt.id} đang chờ tiếp nhận.{" "}
           {receipt.notification === "PENDING_DELIVERY"
-            ? "The assignee notification is queued for delivery."
+            ? "Thông báo cho người được giao đang chờ gửi."
             : receipt.notification === "DELIVERED"
-              ? "The assignee has been notified."
-              : "Assignee notification delivery has not been confirmed."}
+              ? "Đã thông báo cho người được giao."
+              : "Chưa xác nhận thông báo đã đến người được giao."}
         </p>
       ) : options?.existingReworkId ? (
         <p role="alert">
-          MSG03: Open rework #{options.existingReworkId} already exists.
+          MSG03: Mở làm lại #{options.existingReworkId} đã tồn tại.
         </p>
       ) : (
         options && (
           <fieldset disabled={busy}>
-            <legend>Defects, assignee and due time</legend>
+            <legend>Lỗi, người được giao và thời hạn</legend>
             {options.defects.map((d) => (
               <label key={d.id}>
                 <input
@@ -156,27 +156,27 @@ export function RequestReworkForm({
               </label>
             ))}
             <label>
-              Housekeeper
+              Nhân viên buồng phòng
               <select
                 value={assignee}
                 onChange={(e) => setAssignee(e.target.value)}
               >
-                <option value="">Select eligible housekeeper</option>
+                <option value="">Chọn nhân viên buồng phòng đủ điều kiện</option>
                 {options.assignees.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}
-                    {a.originalCleaner ? " (original cleaner)" : ""}
+                    {a.originalCleaner ? "(nhân viên vệ sinh ban đầu)" : ""}
                   </option>
                 ))}
               </select>
             </label>
             {!options.assignees.length && (
               <p role="status">
-                No eligible housekeeper is currently available.
+                Hiện không có nhân viên buồng phòng đủ điều kiện.
               </p>
             )}
             <label>
-              Rework due time
+              Thời hạn làm lại
               <input
                 type="datetime-local"
                 value={due}
@@ -184,7 +184,7 @@ export function RequestReworkForm({
               />
             </label>
             <label>
-              Rework reason
+              Lý do làm lại
               <input
                 maxLength={500}
                 value={reason}
@@ -196,7 +196,7 @@ export function RequestReworkForm({
               disabled={!assignee || !selected.length || !due || !reason.trim()}
               onClick={() => void save()}
             >
-              Save rework request
+              Lưu yêu cầu làm lại
             </button>
           </fieldset>
         )

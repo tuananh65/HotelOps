@@ -22,7 +22,7 @@ test("scoped filters, cookies, GET and cancellation; untrusted extra params omit
       floorId: "2",
       areaId: "3",
       roomTypeId: "4",
-      operationalStatusCode: "DIRTY",
+      effectiveReadiness: "PENDING_CLEANING",
       search: "A",
     }))
       assert.equal(q.get(k), v);
@@ -41,7 +41,7 @@ test("scoped filters, cookies, GET and cancellation; untrusted extra params omit
           floorId: "2",
           areaId: "3",
           roomTypeId: "4",
-          status: "DIRTY",
+          readiness: "PENDING_CLEANING",
           search: " A ",
           allBranches: "true",
           actorId: "9",
@@ -66,7 +66,7 @@ test("invalid filters fail before network", async () => {
     { roomTypeId: "0" },
     { page: "0" },
     { page: "2147483647" },
-    { status: "BLOCKED" },
+    { readiness: "NOT_A_READINESS" },
     { search: "x".repeat(201) },
   ])
     await assert.rejects(
@@ -160,7 +160,7 @@ test("rejects records contradicting filters, counters or remaining page size", a
     [{ floorId: "9" }, board],
     [{ areaId: "9" }, board],
     [{ roomTypeId: "9" }, board],
-    [{ status: "READY" }, board],
+    [{ readiness: "READY" }, board],
     [{}, { ...board, totalCount: 0, statusCounts: [] }],
     [{}, { ...board, items: [room, room] }],
     [

@@ -149,16 +149,16 @@ export class InspectionAssignmentClient {
 }
 export function assignmentError(e: unknown) {
   if (e instanceof ApiError) {
-    if (e.status === 401) return "Your session expired. Sign in again.";
+    if (e.status === 401) return "Phiên đã hết hạn. Đăng nhập lại.";
     if (e.status === 403)
-      return "You cannot assign inspections in this branch.";
-    if (e.status === 404) return "The room or task is no longer available in this branch.";
+      return "Bạn không được phân công kiểm tra trong chi nhánh này.";
+    if (e.status === 404) return "Phòng hoặc công việc không còn khả dụng trong chi nhánh này.";
     if (e.status === 503)
-      return "Assignment is unavailable until mandatory notification is accepted.";
+      return "Chưa thể phân công cho đến khi thông báo bắt buộc được chấp nhận.";
     if (e.status === 412 || e.status === 409)
-      return "The assignment source changed. Reload before continuing.";
+      return "Nguồn phân công đã đổi. Tải lại trước khi tiếp tục.";
     if (e.status === 0 || e.status >= 500)
-      return "The outcome is unconfirmed. Reload; do not retry automatically.";
+      return "Chưa xác nhận kết quả. Tải lại; không tự gửi lại.";
   }
-  return "Review the assignment input or reload.";
+  return "Kiểm tra dữ liệu phân công hoặc tải lại.";
 }

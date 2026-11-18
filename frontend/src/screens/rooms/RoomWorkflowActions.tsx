@@ -54,7 +54,6 @@ export default function RoomWorkflowActions({
         <Link to={current.href}>Tạo công việc vệ sinh</Link>
       ) : (
         <>
-          <button disabled>Tạo công việc vệ sinh</button>
           <p>{current?.error || "Đang kiểm tra quyền và phòng…"}</p>
           {current?.error && (
             <button
@@ -75,12 +74,10 @@ export default function RoomWorkflowActions({
           >
             Phân công kiểm tra phòng
           </Link>
-        ) : (
-          <button disabled>Assign room inspection</button>
-        )}
+        ) : null}
       </p>
       <p>
-        <Link to={`/operations/incidents?action=A004A-021&branchId=${branch}&roomId=${room}`}>Report an incident for this room</Link>
+        <Link to={`/operations/incidents?action=A004A-021&branchId=${branch}&roomId=${room}`}>Báo sự cố cho phòng này</Link>
       </p>
       <p>
         Chức năng đích kiểm tra lại quyền và điều kiện nghiệp vụ trước khi thực

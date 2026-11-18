@@ -41,7 +41,7 @@ export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
     ++revision.current;
   }
   if (!enabled)
-    return <p role="alert">Checklist destination is not activated.</p>;
+    return <p role="alert">Chức năng danh sách kiểm tra chưa được kích hoạt.</p>;
   if (state.status === "INITIALIZING" || state.status === "ERROR_UNAVAILABLE")
     return <Recovery />;
   if (state.status === "RESTRICTED")
@@ -51,7 +51,7 @@ export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
   if (!search) return <ChecklistBranchSelection />;
   const branch = checklistBranch(search);
   if (branch === null)
-    return <p role="alert">Invalid checklist branch context.</p>;
+    return <p role="alert">Ngữ cảnh chi nhánh của danh sách kiểm tra không hợp lệ.</p>;
   const key = JSON.stringify([revision.current, state.session.user.id, branch]);
   return (
     <AdmittedChecklist
@@ -68,15 +68,15 @@ function ChecklistBranchSelection() {
   const navigate = useNavigate();
   const [branch, setBranch] = useState("");
   const [error, setError] = useState("");
-  return <form aria-label="Select checklist branch" onSubmit={event => {
+  return <form aria-label="Chọn chi nhánh của danh sách kiểm tra" onSubmit={event => {
     event.preventDefault();
     const id = checklistBranch(`?branchId=${encodeURIComponent(branch)}`);
-    if (id === null) { setError("Enter a valid branch ID."); return; }
+    if (id === null) { setError("Nhập mã chi nhánh hợp lệ."); return; }
     navigate(`/inspections/checklists?branchId=${id}`);
   }}>
-    <h1>Inspection checklists</h1>
-    <label>Branch ID<input inputMode="numeric" value={branch} onChange={event => setBranch(event.target.value)} /></label>
-    <button>Load checklists</button>
+    <h1>Danh sách kiểm tra phòng</h1>
+    <label>Mã chi nhánh<input inputMode="numeric" value={branch} onChange={event => setBranch(event.target.value)} /></label>
+    <button>Tải danh sách kiểm tra</button>
     {error && <p role="alert">{error}</p>}
   </form>;
 }
@@ -120,12 +120,12 @@ function AdmittedChecklist({
     return () => controller.abort();
   }, [branch, actions, generation]);
   if (admission === "pending")
-    return <p role="status">Checking checklist access...</p>;
+    return <p role="status">Đang kiểm tra quyền truy cập danh sách kiểm tra...</p>;
   if (admission === "denied")
     return (
       <section>
-        <p role="alert">Checklist access could not be confirmed.</p>
-        <button onClick={() => void actions.revalidate()}>Check session</button>
+        <p role="alert">Không xác minh được quyền truy cập danh sách kiểm tra.</p>
+        <button onClick={() => void actions.revalidate()}>Kiểm tra phiên đăng nhập</button>
       </section>
     );
   return (

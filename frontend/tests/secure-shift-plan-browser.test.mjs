@@ -150,7 +150,7 @@ for (const status of [401, 403, 503])
           0,
         );
         if (status === 401) {
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
           assert.equal(
             await p
               .getByRole("button", { name: "Preview assignments" })
@@ -173,7 +173,7 @@ test("Save unavailable never claims failure certainty or retries", () =>
       await p.getByRole("button", { name: "Confirm save plan" }).click();
       await p
         .getByText(
-          "Save outcome unknown. Do not replay; verify with an authorized owner.",
+          "Chưa xác định kết quả lưu. Không gửi lại; nhờ người có trách nhiệm xác minh.",
         )
         .waitFor();
       assert.equal((await posts(p)).length, 2);
@@ -197,7 +197,7 @@ test("late Save after session replacement cannot publish receipt", () =>
       window.fixture.scenario.auth = { status: 401 };
       void window.fixture.revalidate();
     });
-    await p.getByText("Confirmed unrestricted session required.").waitFor();
+    await p.getByText("Cần phiên đăng nhập đã xác minh và không bị hạn chế.").waitFor();
     await p.evaluate(() =>
       window.fixture.finish("save", {
         status: 201,
@@ -220,7 +220,7 @@ for (const status of [401, 403, 503])
       await p.getByRole("alert").waitFor();
       assert.equal((await posts(p)).length, 0);
       assert.equal(
-        await p.getByRole("button", { name: "Check session" }).count(),
+        await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).count(),
         status === 401 ? 1 : 0,
       );
     }),

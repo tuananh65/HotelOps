@@ -21,10 +21,10 @@ export function IncidentCancellationPanel({ data, onCommitted, onReload }: { dat
     const abort = new AbortController(); active.current = abort;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string" || !/^[\x21-\x7e]+$/.test(csrf.csrfToken)
-        || current.current !== owner || abort.signal.aborted) throw Error("Session changed. Reload.");
+        || current.current !== owner || abort.signal.aborted) throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       const response = await fetch(`/api/incidents/${id}/cancel-triage`, { method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag },
         body: JSON.stringify({ kind, reason: reason.trim(), originalIncidentId: kind === "DUPLICATE" ? originalId : null }) });
@@ -32,32 +32,32 @@ export function IncidentCancellationPanel({ data, onCommitted, onReload }: { dat
         const problem: unknown = await response.json();
         if (isObject(problem) && problem.title === "Invalid cancellation" && !abort.signal.aborted && current.current === owner) {
           setAttempted(false);
-          setMessage({ owner, text: typeof problem.detail === "string" ? problem.detail : "Check cancellation type, original incident and reason." });
+          setMessage({ owner, text: typeof problem.detail === "string" ? problem.detail : "Kiểm tra loại hủy, sự cố gốc và lý do." });
           return;
         }
       }
-      if (!response.ok) throw Error(response.status === 412 ? "Incident changed. Reload before retrying." : "Cancellation was not confirmed. Check current permissions, original incident and Pending Triage status, then reload.");
+      if (!response.ok) throw Error(response.status === 412 ? "Sự cố đã thay đổi. Tải lại trước khi thử lại." : "Chưa xác nhận hủy. Kiểm tra quyền, sự cố gốc và trạng thái chờ tiếp nhận, rồi tải lại.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.incidentId !== id || result.status !== "CANCELLED" || typeof result.eventId !== "number" || !Number.isSafeInteger(result.eventId) || result.eventId <= 0)
-        throw Error("Cancellation response could not be confirmed. Reload.");
+        throw Error("Chưa xác minh được kết quả hủy. Vui lòng tải lại.");
       if (!abort.signal.aborted && current.current === owner) {
-        const notice = "Incident cancelled. Its effective blocks were removed; room readiness was recalculated. Reporter notification is queued subject to current access.";
+        const notice = "Đã hủy sự cố, gỡ lệnh khóa hiệu lực của sự cố và tính lại mức sẵn sàng của phòng. Thông báo cho người báo đang chờ gửi theo quyền hiện tại.";
         setMessage({ owner, text: notice }); onCommitted?.(notice);
       }
-    } catch (e) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: e instanceof Error ? e.message : "Cancellation not confirmed. Reload." }); }
+    } catch (e) { if (!abort.signal.aborted && current.current === owner) setMessage({ owner, text: e instanceof Error ? e.message : "Chưa xác nhận hủy. Vui lòng tải lại." }); }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); setReview(false); } }
   }
   if (!owner || data.canCancelTriage !== true || typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0 || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
-  return <section aria-label="Cancel incident during Triage"><h3>Cancel as Duplicate / Invalid</h3>
+  return <section aria-label="Hủy sự cố khi tiếp nhận"><h3>Hủy do trùng lặp / không hợp lệ</h3>
     <fieldset disabled={busy || attempted || review}>
-      <label>Cancellation type<select value={kind} onChange={e => setKind(e.target.value)}><option value="INVALID">Invalid</option><option value="DUPLICATE">Duplicate</option></select></label>
-      {kind === "DUPLICATE" && <label>Original incident ID<input inputMode="numeric" value={original} onChange={e => setOriginal(e.target.value)} /></label>}
-      <label>Reason (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>
+      <label>Loại hủy<select value={kind} onChange={e => setKind(e.target.value)}><option value="INVALID">Không hợp lệ</option><option value="DUPLICATE">Trùng lặp</option></select></label>
+      {kind === "DUPLICATE" && <label>Mã sự cố gốc<input inputMode="numeric" value={original} onChange={e => setOriginal(e.target.value)} /></label>}
+      <label>Lý do (ít nhất 10 ký tự)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>
     </fieldset>
     {message?.owner === owner && <p role="status">{message.text}</p>}
-    {attempted && onReload && <button disabled={busy} onClick={onReload}>Reload incident</button>}
-    {review ? <><p>MSG33: Cancel this incident as {kind.toLowerCase()}{originalId ? `, referencing original incident ${originalId}` : ""}? Only its effective room blocks will be removed. Other blocks and cleaning requirements remain.</p>
-      <button disabled={busy} onClick={() => void submit()}>Confirm incident cancellation</button><button disabled={busy} onClick={() => setReview(false)}>Keep incident</button></>
-      : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Review cancellation</button>}
+    {attempted && onReload && <button disabled={busy} onClick={onReload}>Tải lại sự cố</button>}
+    {review ? <><p>MSG33: Hủy sự cố này theo loại {kind.toLowerCase()}{originalId ? `, tham chiếu sự cố gốc ${originalId}` : ""}? Chỉ bỏ lệnh khóa còn hiệu lực của sự cố này. Lệnh khóa khác và yêu cầu vệ sinh vẫn giữ nguyên.</p>
+      <button disabled={busy} onClick={() => void submit()}>Xác nhận hủy sự cố</button><button disabled={busy} onClick={() => setReview(false)}>Giữ sự cố</button></>
+      : <button disabled={!valid || busy || attempted} onClick={() => setReview(true)}>Xem lại hủy</button>}
   </section>;
 }

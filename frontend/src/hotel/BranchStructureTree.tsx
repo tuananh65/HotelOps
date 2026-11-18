@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 ﻿import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -15,10 +16,10 @@ import {
 type Trail = { type: StructureNode; id: number; label: string };
 type Request = { owner: PublicSession; query: StructureQuery; trail: Trail[] };
 const heading = {
-  floors: "Floors",
-  areas: "Areas",
-  rooms: "Rooms",
-  departments: "Departments",
+  floors: "Tầng",
+  areas: "Khu vực",
+  rooms: "Phòng",
+  departments: "Bộ phận",
 };
 const singular = {
   floors: "floor",
@@ -58,7 +59,7 @@ export function BranchStructureTree() {
           && item.id > 0 && typeof item.code === "string" && typeof item.name === "string" && typeof item.isActive === "boolean")
           || new Set(items.map(item => item.id)).size !== items.length) throw new Error();
         if (!abort.signal.aborted) setBranchOptions({ owner, items });
-      } catch { if (!abort.signal.aborted) setBranchError("Authorized branches could not be loaded. Refresh or check your session."); }
+      } catch { if (!abort.signal.aborted) setBranchError("Không tải được chi nhánh được phép truy cập. Tải lại hoặc kiểm tra phiên đăng nhập."); }
     })();
     return () => abort.abort();
   }, [owner, optionsReload]);
@@ -82,11 +83,11 @@ export function BranchStructureTree() {
     return (
       <main>
         <p role="status">
-          Your session could not be confirmed. Structure data is hidden.
+          Chưa xác minh được phiên. Dữ liệu cấu trúc đã ẩn.
         </p>
         {state.status !== "INITIALIZING" && (
           <button onClick={() => void actions.revalidate()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
       </main>
@@ -169,22 +170,21 @@ export function BranchStructureTree() {
             : data?.selectedDepartment;
   return (
     <main className="hotel-workspace">
-      <h1>Hotel structure — Branch structure</h1>
-      <nav aria-label="Hotel structure navigation">
-        <Link to="/profile">Profile</Link>
-        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}&action=create`}>Add Floor</Link>
-        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}&action=create`}>Add Area</Link>
-        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}`}>Manage Floors</Link>
-        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}`}>Manage Areas</Link>
-        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}&action=create`}>Add Department</Link>
-        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}`}>Departments</Link>
-        <Link to={`/structure/room-types?branchId=${encodeURIComponent(branch)}`}>Room Types</Link>
-        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}&action=create`}>Add Room</Link>
-        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}`}>Manage Rooms</Link>
+      <h1>Cấu trúc khách sạn — Cấu trúc chi nhánh</h1>
+      <nav aria-label="Điều hướng cấu trúc khách sạn">
+        <Link to="/profile">Hồ sơ cá nhân</Link>
+        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm tầng</Link>
+        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm khu vực</Link>
+        <Link to={`/structure/floors?branchId=${encodeURIComponent(branch)}`}>Quản lý tầng</Link>
+        <Link to={`/structure/areas?branchId=${encodeURIComponent(branch)}`}>Quản lý khu vực</Link>
+        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm bộ phận</Link>
+        <Link to={`/structure/departments?branchId=${encodeURIComponent(branch)}`}>Bộ phận</Link>
+        <Link to={`/structure/room-types?branchId=${encodeURIComponent(branch)}`}>Loại phòng</Link>
+        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}&action=create`}>Thêm phòng</Link>
+        <Link to={`/structure/rooms?branchId=${encodeURIComponent(branch)}`}>Quản lý phòng</Link>
       </nav>
       <p>
-        Browse one server-authorized collection page at a time. Counts do not
-        imply all children are loaded.
+        Xem từng trang dữ liệu được máy chủ cho phép. Số đếm không có nghĩa đã tải toàn bộ mục con.
       </p>
       <form
         onSubmit={(event) => {
@@ -193,25 +193,25 @@ export function BranchStructureTree() {
         }}
       >
         <label>
-          Branch
+          Chi nhánh
           <select name="branchId" value={branch} disabled={branchOptions?.owner !== owner}
             onChange={event => { setBranch(event.target.value); setRequest(null); }}>
-            <option value="">Choose an authorized branch</option>
+            <option value="">Chọn chi nhánh được phép truy cập</option>
             {branchOptions?.owner === owner && branchOptions.items.map(item => <option key={item.id} value={item.id}>
               {item.code} ? {item.name}{item.isActive ? "" : " (Inactive)"}
             </option>)}
           </select>
         </label>
         <button disabled={!decimalId(branch) || branchOptions?.owner !== owner || !branchOptions.items.some(item => String(item.id) === branch) || flow.phase === "reading"}>
-          Load from server
+          Tải dữ liệu
         </button>
       </form>
       {branchError && <p role="alert">{branchError}</p>}
-      <button type="button" onClick={() => setOptionsReload(value => value + 1)}>Refresh authorized branches</button>
+      <button type="button" onClick={() => setOptionsReload(value => value + 1)}>Tải lại chi nhánh được phép truy cập</button>
       <label>
-        Active filter
+        Bộ lọc hoạt động
         <select
-          aria-label="Active filter"
+          aria-label="Bộ lọc hoạt động"
           value={active}
           onChange={(event) => {
             setActive(event.target.value);
@@ -226,49 +226,48 @@ export function BranchStructureTree() {
               });
           }}
         >
-          <option value="">All</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
+          <option value="">Tất cả</option>
+          <option value="true">Đang hoạt động</option>
+          <option value="false">Ngừng hoạt động</option>
         </select>
       </label>
-      {flow.phase === "reading" && <p role="status">Loading server data...</p>}
+      {flow.phase === "reading" && <p role="status">Đang tải dữ liệu từ máy chủ...</p>}
       {flow.message && <p role="alert">{flow.message}</p>}
       {raw && !data && (
         <p role="alert">
-          Structure response does not match the selected context. No data
-          displayed.
+          Phản hồi cấu trúc không khớp ngữ cảnh đã chọn. Không hiển thị dữ liệu.
         </p>
       )}
       {data && selected && (
-        <section aria-label="Progressive branch structure">
-          <p aria-label="Applied structure filters">Branch: {data.branch.code}; status: {selected.query.isActive === "" ? "All" : selected.query.isActive === "true" ? "Active" : "Inactive"}; collection: {data.collection ?? "Selected node"}.</p>
-          <nav aria-label="Structure path">
+        <section aria-label="Cấu trúc chi nhánh theo từng cấp">
+          <p aria-label="Bộ lọc cấu trúc đã áp dụng">Chi nhánh: {data.branch.code}; Trạng thái: {selected.query.isActive === "" ? "Tất cả" : selected.query.isActive === "true" ? "Đang hoạt động" : "Ngừng hoạt động"}; Bộ sưu tập: {data.collection ?? "Mục đã chọn"}.</p>
+          <nav aria-label="Đường dẫn cấu trúc">
             <button onClick={() => ancestor(-1)}>
-              Branch: {data.branch.name}
+              Chi nhánh: {data.branch.name}
             </button>
             {selected.trail.map((node, index) => (
               <button key={node.type + node.id} onClick={() => ancestor(index)}>
-                {node.type}: {node.label}
+                {displayCode(node.type)}: {node.label}
               </button>
             ))}
           </nav>
-          {data.visibility === "management" && <nav aria-label="Selected node management">
-            {data.nodeType === "branch" && <Link to={`/structure/branches/${data.branch.id}/edit`}>Update branch information</Link>}
+          {data.visibility === "management" && <nav aria-label="Quản lý mục đã chọn">
+            {data.nodeType === "branch" && <Link to={`/structure/branches/${data.branch.id}/edit`}>Cập nhật thông tin chi nhánh</Link>}
             {(data.nodeType === "floor" || data.nodeType === "area") && selected.query.nodeId &&
-              <Link to={`/structure/${data.nodeType}s/${selected.query.nodeId}?branchId=${data.branch.id}`}>Manage selected {data.nodeType}</Link>}
+              <Link to={`/structure/${data.nodeType}s/${selected.query.nodeId}?branchId=${data.branch.id}`}>Quản lý mục đã chọn {data.nodeType}</Link>}
           </nav>}
-          <section aria-label="Selected node details">
-            <h2>Selected {data.nodeType}</h2>
+          <section aria-label="Chi tiết mục đã chọn">
+            <h2>Đã chọn {data.nodeType}</h2>
             <dl>
               {Object.entries(details ?? {}).map(([field, value]) => (
                 <div key={field}>
                   <dt>{field}</dt>
-                  <dd>{value === null ? "Not provided" : String(value)}</dd>
+                  <dd>{value === null ? "Chưa cung cấp" : String(value)}</dd>
                 </div>
               ))}
             </dl>
           </section>
-          <nav aria-label="Available collections">
+          <nav aria-label="Bộ sưu tập khả dụng">
             {collectionsFor(data.nodeType as StructureNode)
               .filter((collection) =>
                 data.availableCollections.includes(collection),
@@ -290,18 +289,17 @@ export function BranchStructureTree() {
           </nav>
           {page && data.collection && (
             <section
-              aria-label={`${heading[data.collection as StructureCollection]} page`}
+              aria-label={`${heading[data.collection as StructureCollection]} Trang`}
             >
               <h2>{heading[data.collection as StructureCollection]}</h2>
               <p>
-                {page.totalCount} records; page {page.page} of{" "}
-                {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}; page
-                size {page.pageSize}.
+                {page.totalCount} hồ sơ; trang {page.page} trên{" "}
+                {Math.max(1, Math.ceil(page.totalCount / page.pageSize))}; Số dòng mỗi trang {page.pageSize}.
               </p>
               {page.items.length === 0 ? (
-                <p>MSG10: No records match the applied filters on this page.</p>
+                <p>MSG10: Không có hồ sơ phù hợp bộ lọc trên trang này.</p>
               ) : (
-                <ul aria-label="Structure nodes">
+                <ul aria-label="Các mục cấu trúc">
                   {page.items.map((item) => {
                     const label =
                       "roomNumber" in item ? item.roomNumber : item.name;
@@ -319,7 +317,7 @@ export function BranchStructureTree() {
                           {singular[data.collection as StructureCollection]}:{" "}
                           {label}
                         </button>
-                        <span> — {item.isActive ? "Active" : "Inactive"}</span>
+                        <span> — {item.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
                       </li>
                     );
                   })}
@@ -334,7 +332,7 @@ export function BranchStructureTree() {
                   })
                 }
               >
-                Previous page
+                Trang trước
               </button>
               <button
                 disabled={page.page * page.pageSize >= page.totalCount}
@@ -345,7 +343,7 @@ export function BranchStructureTree() {
                   })
                 }
               >
-                Next page
+                Trang sau
               </button>
             </section>
           )}

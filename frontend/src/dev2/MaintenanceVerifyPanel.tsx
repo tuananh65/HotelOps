@@ -23,11 +23,11 @@ export function MaintenanceVerifyPanel({ data, onCommitted }: { data: Values; on
     const abort = new AbortController(); writer.current = abort;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
         || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session)
-        throw Error("Session changed. Reload before retrying.");
+        throw Error("Phiên đăng nhập đã thay đổi. Tải lại trước khi thử lại.");
       const response = await fetch(`/api/maintenance-works/${id}/verify`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
@@ -37,31 +37,31 @@ export function MaintenanceVerifyPanel({ data, onCommitted }: { data: Values; on
         const problem: unknown = await response.json();
         if (isObject(problem) && problem.title === "Maintenance validation failed" && typeof problem.detail === "string") {
           if (!abort.signal.aborted && current.current === session) setAttempted(false);
-          throw Error(problem.detail + " Correct the result or reload the current work before reviewing again.");
+          throw Error(problem.detail + "Sửa kết quả hoặc tải lại công việc trước khi xem xét lại.");
         }
       }
-      if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before reviewing again."
-        : "Closure was not confirmed. Reload and check reviewer access, evidence and material usage.");
+      if (!response.ok) throw Error(response.status === 412 ? "Công việc đã đổi. Tải lại trước khi xét duyệt tiếp."
+        : "Chưa xác nhận đóng. Tải lại và kiểm tra quyền xác minh, bằng chứng và sử dụng vật tư.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.assigneeId !== owner || result.status !== "CLOSED"
         || typeof result.executionETag !== "string" || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag)
-        throw Error("Closure response could not be confirmed. Reload to check current state.");
+        throw Error("Chưa xác minh được phản hồi đóng. Tải lại trạng thái hiện tại.");
       if (!abort.signal.aborted && current.current === session) {
-        const notice = "Work and Incident closed. Room readiness is recalculated; a released Incident block does not mean the room is Ready.";
+        const notice = "Đã đóng công việc và sự cố. Mức sẵn sàng phòng được tính lại; bỏ khóa sự cố không đồng nghĩa phòng sẵn sàng.";
         setMessage(notice);
         onCommitted?.(notice);
       }
     } catch (error) {
-      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Closure not confirmed. Reload.");
+      if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Chưa xác nhận đóng hồ sơ. Vui lòng tải lại.");
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
-  return <section aria-label="Verify maintenance result">
-    <h3>Accept and close</h3>
-    <p>Review the submitted result, evidence and materials before closing. Other room blocks remain effective.</p>
+  return <section aria-label="Xác minh kết quả bảo trì">
+    <h3>Chấp nhận và đóng</h3>
+    <p>Kiểm tra kết quả, bằng chứng và vật tư trước khi đóng. Lệnh khóa phòng khác vẫn hiệu lực.</p>
     {message && <p role="status">{message}</p>}
-    <label>Verification note<textarea disabled={busy || attempted || review} value={note} onChange={e => setNote(e.target.value)} /></label>
-    {review ? <><p>Accept this submitted result and close the maintenance work and Incident?</p><p>{note.trim()}</p>
-      <button disabled={busy} onClick={() => void submit()}>Confirm closure</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
-      : <button disabled={note.trim().length < 10 || busy || attempted} onClick={() => setReview(true)}>Review closure</button>}
+    <label>Ghi chú xác minh<textarea disabled={busy || attempted || review} value={note} onChange={e => setNote(e.target.value)} /></label>
+    {review ? <><p>Chấp nhận kết quả đã nộp và đóng công việc bảo trì cùng sự cố?</p><p>{note.trim()}</p>
+      <button disabled={busy} onClick={() => void submit()}>Xác nhận đóng hồ sơ</button><button disabled={busy} onClick={() => setReview(false)}>Hủy</button></>
+      : <button disabled={note.trim().length < 10 || busy || attempted} onClick={() => setReview(true)}>Xem lại đóng hồ sơ</button>}
   </section>;
 }

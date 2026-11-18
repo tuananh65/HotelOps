@@ -7,7 +7,7 @@ import {
 } from "./shiftPlanPreview";
 export class ShiftPlanApiError extends Error {
   constructor(readonly status?: number) {
-    super("Shift plan unavailable");
+    super("Kế hoạch ca chưa khả dụng");
   }
 }
 export type ShiftPlanSaveOutcome =

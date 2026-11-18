@@ -26,7 +26,7 @@ export function ChangeDepartmentFlow({
   const latest = useRef(identity);
   latest.current = identity;
   if (state.status !== "AUTHENTICATED" || !state.session)
-    return <p role="status">Confirm an unrestricted session.</p>;
+    return <p role="status">Xác minh phiên đăng nhập không bị hạn chế.</p>;
   return (
     <Bound
       key={key(identity)}
@@ -121,20 +121,19 @@ function Bound({
   }
   return (
     <main>
-      <h1>Change department</h1>
+      <h1>Thay đổi bộ phận</h1>
       <p>
-        Same primary branch only. Existing role history blocks this restricted
-        V1. Dispatch remains disabled until acceptance.
+        Chỉ cùng chi nhánh chính. Lịch sử vai trò đang chặn phiên bản giới hạn này. Thao tác gửi bị khóa đến khi được chấp nhận.
       </p>
       {review && (
-        <section aria-label="Server scope">
+        <section aria-label="Phạm vi máy chủ cho phép">
           <p>
-            User {review.data.userId}; Branch {review.data.branchId}; Department{" "}
+            Người dùng {review.data.userId}; Chi nhánh {review.data.branchId}; Bộ phận{" "}
             {review.data.departmentId}
           </p>
         </section>
       )}
-      {phase === "loading" && <p role="status">Loading department review...</p>}
+      {phase === "loading" && <p role="status">Đang tải thông tin xét duyệt bộ phận...</p>}
       {phase === "ready" && (
         <form
           onSubmit={(e) => {
@@ -143,50 +142,50 @@ function Bound({
           }}
         >
           <label>
-            Destination Department ID
+            Mã bộ phận đích
             <input
-              aria-label="Destination Department ID"
+              aria-label="Mã bộ phận đích"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             />
           </label>
-          <button disabled={!valid}>Review change</button>
+          <button disabled={!valid}>Xem lại thay đổi</button>
         </form>
       )}
       {phase === "review" && (
         <section>
           <p>
-            Confirm destination Department {destination}. The server verifies
+            Xác nhận bộ phận đích {destination}. The server verifies
             scope and all dependencies.
           </p>
-          <button onClick={() => setPhase("ready")}>Back</button>
+          <button onClick={() => setPhase("ready")}>Quay lại</button>
           <button disabled={!enabled} onClick={() => void confirm()}>
-            Confirm department change
+            Xác nhận chuyển bộ phận
           </button>
         </section>
       )}
-      {phase === "pending" && <p role="status">Department change pending...</p>}
+      {phase === "pending" && <p role="status">Đang chờ chuyển bộ phận...</p>}
       {phase === "confirmed" && (
         <p role="status">
-          Department change confirmed. Target sessions revoked.
+          Đã xác nhận chuyển bộ phận. Các phiên của tài khoản đã bị thu hồi.
         </p>
       )}
       {["error", "unknown"].includes(phase) && (
         <p role="alert">
           {phase === "unknown"
-            ? "Outcome unknown. Do not replay; ask an authorized owner to verify."
+            ? "Chưa xác định kết quả. Không gửi lại; nhờ người có trách nhiệm xác minh."
             : status === 401
-              ? "Session invalid. Revalidate before a new review."
+              ? "Phiên đăng nhập không hợp lệ. Xác minh lại trước khi xét duyệt."
               : status === 403
-                ? "Access denied."
+                ? "Không có quyền truy cập."
                 : status === 412
-                  ? "Version changed. Start a new review; do not replay."
+                  ? "Phiên bản đã đổi. Bắt đầu xét duyệt mới; không gửi lại yêu cầu cũ."
                   : status === 409
-                    ? "Scope, role or open-work conflict. No change confirmed."
-                    : "Department change unavailable. No change confirmed."}
+                    ? "Xung đột phạm vi, vai trò hoặc công việc đang mở. Chưa xác nhận thay đổi."
+                    : "Chưa thể chuyển bộ phận. Chưa xác nhận thay đổi."}
         </p>
       )}
-      {status === 401 && <button onClick={recover}>Check session</button>}
+      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
     </main>
   );
 }

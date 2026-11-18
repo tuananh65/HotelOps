@@ -24,7 +24,7 @@ export function RevokeUserRoleCandidate({
   if (state.status !== "AUTHENTICATED" || state.pending !== null || !state.session)
     return (
       <p role="status">
-        Confirm an unrestricted session before reviewing a role.
+        Xác minh phiên không bị hạn chế trước khi xét duyệt vai trò.
       </p>
     );
   return (
@@ -165,62 +165,61 @@ function Bound({
   }
   return (
     <main>
-      <h1>Revoke user role</h1>
+      <h1>Thu hồi vai trò người dùng</h1>
       <p>
-        Revocation changes effective access and signs the account out of all sessions.
+        Thu hồi sẽ đổi quyền có hiệu lực và đăng xuất mọi phiên của tài khoản.
       </p>
       {data && (
-        <section aria-label="Role to revoke">
+        <section aria-label="Vai trò cần thu hồi">
           <p>
-            {data.name}: {data.role}; Branch {data.branch ?? "unbound"}
+            {data.name}: {data.role}; Chi nhánh {data.branch ?? "unbound"}
           </p>
-          <p>Assignment ID: {assignmentId}</p>
+          <p>Mã phân công: {assignmentId}</p>
         </section>
       )}
       {phase === "ready" && !review && (
-        <button onClick={() => setReview(true)}>Review revocation</button>
+        <button onClick={() => setReview(true)}>Xem lại thu hồi quyền</button>
       )}
       {phase === "ready" && review && (
         <>
           <p>
-            Review this exact assignment. The server decides whether revocation
-            is permitted.
+            Kiểm tra đúng phân công này. Máy chủ quyết định có được thu hồi hay không.
           </p>
           <button disabled={!dispatchEnabled} onClick={() => void confirm()}>
-            Confirm revoke
+            Xác nhận thu hồi
           </button>
         </>
       )}
-      {phase === "loading" && <p role="status">Loading server review...</p>}
-      {phase === "pending" && <p role="status">Revocation pending...</p>}
+      {phase === "loading" && <p role="status">Đang tải thông tin xét duyệt từ máy chủ...</p>}
+      {phase === "pending" && <p role="status">Đang chờ thu hồi quyền...</p>}
       {phase === "confirmed" && (
         <p role="status">
-          Role revoked and target sessions invalidated.
+          Đã thu hồi vai trò và vô hiệu hóa phiên của tài khoản.
         </p>
       )}
       {["unavailable", "rejected", "unknown", "blocked"].includes(phase) && (
         <p role="alert">
           {phase === "blocked"
-            ? "Open responsibilities prevent revocation. Arrange an authorized handover before a new review."
+            ? "Trách nhiệm chưa hoàn tất đang chặn thu hồi quyền. Bàn giao hợp lệ trước khi xét duyệt lại."
             : phase === "unknown"
-              ? "Outcome unknown. Do not replay; ask an authorized owner to verify."
+              ? "Chưa xác định kết quả. Không gửi lại; nhờ người có trách nhiệm xác minh."
               : status === 412
-                ? "Version changed. Reload and review in a new flow; no replay."
+                ? "Phiên bản đã đổi. Tải lại và xét duyệt theo quy trình mới; không gửi lại yêu cầu cũ."
                 : status === 403
-                  ? "Access denied by the server."
+                  ? "Máy chủ từ chối quyền truy cập."
                   : status === 503
-                    ? "Revocation unavailable. Responsibility checks could not be completed."
-                    : "Could not confirm revocation. No automatic retry."}
+                    ? "Chưa thể thu hồi. Chưa hoàn tất kiểm tra trách nhiệm."
+                    : "Chưa xác nhận thu hồi quyền. Không tự gửi lại."}
         </p>
       )}
-      {phase === "blocked" && dependencies.length > 0 && <section aria-label="Work preventing revocation">
-        <h2>Open responsibilities</h2>
+      {phase === "blocked" && dependencies.length > 0 && <section aria-label="Công việc đang chặn thu hồi quyền">
+        <h2>Trách nhiệm chưa hoàn tất</h2>
         <ul>{dependencies.map(d => <li key={d}>{d.replaceAll("_", " ")}</li>)}</ul>
-        {dependencies.length === 200 && <p>First 200 dependencies shown. Resolve them before reviewing again.</p>}
-        <p>These identifiers do not grant access to the underlying records.</p>
+        {dependencies.length === 200 && <p>Hiển thị 200 ràng buộc đầu tiên. Xử lý chúng trước khi kiểm tra lại.</p>}
+        <p>Các mã này không cấp quyền truy cập hồ sơ bên dưới.</p>
       </section>}
-      <Link to={`/users/${userId}`}>Return to account and review current access</Link>
-      {status === 401 && <button onClick={recover}>Check session</button>}
+      <Link to={`/users/${userId}`}>Quay lại tài khoản và kiểm tra quyền hiện tại</Link>
+      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
     </main>
   );
 }

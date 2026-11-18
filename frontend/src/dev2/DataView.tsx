@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import { label } from "./contracts";
+import { fieldValue } from "../i18n/vi";
 
 const destinations: Record<string, string> = {
   assetId: "assets",
@@ -43,19 +44,19 @@ function Scalar({ name, value }: { name: string; value: unknown }) {
     return <Link to={`/operations/${target}/${value}`}>{String(value)}</Link>;
   return (
     <span>
-      {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+      {fieldValue(name, value)}
     </span>
   );
 }
 export function DataView({
   data,
-  title = "Result",
+  title = "Kết quả",
 }: {
   data: unknown;
   title?: string;
 }) {
   if (Array.isArray(data)) {
-    if (!data.length) return <p>No records.</p>;
+    if (!data.length) return <p>Không có dữ liệu.</p>;
     if (!data.every(isObject))
       return (
         <ul>
@@ -98,7 +99,7 @@ export function DataView({
             .map(([k, v]) => (
               <details key={`${i}:${k}`}>
                 <summary>
-                  Record {i + 1}: {label(k)}
+                  Hồ sơ {i + 1}: {label(k)}
                 </summary>
                 <DataView data={v} title={label(k)} />
               </details>

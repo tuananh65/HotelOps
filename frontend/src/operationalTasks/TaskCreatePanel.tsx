@@ -93,7 +93,7 @@ export function TaskCreatePanel({
           setHidden(true);
         else
           setError(
-            "Task creation options are unavailable. Reload to try again.",
+            "Chưa có lựa chọn tạo việc. Tải lại để thử tiếp.",
           );
       });
     return () => controller.abort();
@@ -108,7 +108,7 @@ export function TaskCreatePanel({
     };
     try {
       if (source && !pending && !["required", "optional"].includes(mandatory)) {
-        setError("Choose whether this task is required for request completion."); return;
+        setError("Chọn công việc này có bắt buộc để hoàn tất yêu cầu hay không."); return;
       }
       submission = pending ?? {
         assign,
@@ -142,7 +142,7 @@ export function TaskCreatePanel({
           criteria.some((c) => !c.label.trim()))
       ) {
         setError(
-          "Complete the required fields; deadline must not precede planned start.",
+          "Nhập đủ trường bắt buộc; thời hạn không được trước thời điểm bắt đầu dự kiến.",
         );
         return;
       }
@@ -151,7 +151,7 @@ export function TaskCreatePanel({
         validateRecurrence(submission.input, submission.recurrence);
     } catch {
       setError(
-        "Check task fields, unique completion criteria and planning dates. Recurring work also requires an eligible executor and a first deadline matching its schedule.",
+        "Kiểm tra trường công việc, tiêu chí hoàn tất không trùng và ngày kế hoạch. Công việc định kỳ cần người thực hiện hợp lệ và hạn đầu khớp lịch.",
       );
       return;
     }
@@ -192,11 +192,11 @@ export function TaskCreatePanel({
       ) {
         setPending(null);
         setError(
-          "Task was not created. Check your scope, category, location, criteria and planning fields.",
+          "Chưa tạo công việc. Kiểm tra phạm vi, nhóm, vị trí, tiêu chí và kế hoạch.",
         );
       } else
         setError(
-          "Creation could not be confirmed. Check the outcome using the same request before creating another task.",
+          "Chưa xác nhận tạo mới. Kiểm tra kết quả của cùng yêu cầu trước khi tạo công việc khác.",
         );
     } finally {
       saving.current = false;
@@ -205,23 +205,23 @@ export function TaskCreatePanel({
   }
   if (hidden) return null;
   return (
-    <section aria-label="Create operational task">
-      <h2>Create operational task</h2>
+    <section aria-label="Tạo công việc vận hành">
+      <h2>Tạo công việc vận hành</h2>
       {error && <p role="alert">{error}</p>}
       {pending && (
         <>
           <p>
-            Creation reference: {pending.recurrence ? "SERIES-" : "TASK-"}
+            Mã tham chiếu tạo mới: {pending.recurrence ? "SERIES-" : "TASK-"}
             {pending.input.requestKey.replaceAll("-", "").toUpperCase()}
           </p>
           <button disabled={busy} onClick={() => void save(pending.assign)}>
-            Check creation outcome
+            Kiểm tra kết quả tạo mới
           </button>
         </>
       )}
       {!options && !pending && (
         <button onClick={() => setRevision((n) => n + 1)}>
-          Reload creation options
+          Tải lại lựa chọn tạo mới
         </button>
       )}
       {options && (
@@ -232,13 +232,13 @@ export function TaskCreatePanel({
           }}
         >
           <fieldset disabled={busy || pending !== null}>
-            <legend>Task definition</legend>
-            {source && <><p>Linked to request {source.requestId}. The request stays open after creation.</p>
-              <label>Request completion requirement<select aria-label="Request completion requirement" required value={mandatory} onChange={e => setMandatory(e.target.value)}>
-                <option value="">Select requirement</option><option value="required">Required for completion</option><option value="optional">Optional</option>
+            <legend>Định nghĩa công việc</legend>
+            {source && <><p>Liên kết với yêu cầu {source.requestId}. The request stays open after creation.</p>
+              <label>Điều kiện hoàn tất yêu cầu<select aria-label="Điều kiện hoàn tất yêu cầu" required value={mandatory} onChange={e => setMandatory(e.target.value)}>
+                <option value="">Chọn điều kiện</option><option value="required">Bắt buộc để hoàn tất</option><option value="optional">Không bắt buộc</option>
               </select></label></>}
             <label>
-              Task title
+              Tiêu đề công việc
               <input
                 required
                 maxLength={200}
@@ -247,9 +247,9 @@ export function TaskCreatePanel({
               />
             </label>
             <label>
-              Department
+              Bộ phận
               <select
-                aria-label="Department"
+                aria-label="Bộ phận"
                 required
                 value={department}
                 onChange={(e) => {
@@ -258,7 +258,7 @@ export function TaskCreatePanel({
                   setRecurrence((r) => ({ ...r, defaultAssigneeId: 0 }));
                 }}
               >
-                <option value="">Choose department</option>
+                <option value="">Chọn bộ phận</option>
                 {options.departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -267,14 +267,14 @@ export function TaskCreatePanel({
               </select>
             </label>
             <label>
-              Work category
+              Nhóm công việc
               <select
-                aria-label="Work category"
+                aria-label="Nhóm công việc"
                 required
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="">Choose category</option>
+                <option value="">Chọn nhóm</option>
                 {options.categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -283,27 +283,26 @@ export function TaskCreatePanel({
               </select>
             </label>
             <p>
-              Cleaning, incident and material requests use their dedicated
-              workflows.
+              Vệ sinh, sự cố và yêu cầu vật tư sử dụng quy trình riêng.
             </p>
             <label>
-              Location type
+              Loại vị trí
               <select
-                aria-label="Location type"
+                aria-label="Loại vị trí"
                 value={locationType}
                 onChange={(e) => {
                   setLocationType(e.target.value);
                   setLocation("");
                 }}
               >
-                <option value="department">Department only</option>
-                <option value="room">Room</option>
-                <option value="area">Area</option>
+                <option value="department">Chỉ trong bộ phận</option>
+                <option value="room">Phòng</option>
+                <option value="area">Khu vực</option>
               </select>
             </label>
             {locationType !== "department" && (
               <label>
-                Location ID
+                Mã vị trí
                 <input
                   required
                   inputMode="numeric"
@@ -314,18 +313,18 @@ export function TaskCreatePanel({
               </label>
             )}
             <label>
-              Task description
+              Mô tả công việc
               <textarea
-                aria-label="Task description"
+                aria-label="Mô tả công việc"
                 maxLength={4000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </label>
             <label>
-              Expected outcome
+              Kết quả mong đợi
               <textarea
-                aria-label="Expected outcome"
+                aria-label="Kết quả mong đợi"
                 required
                 maxLength={4000}
                 value={outcome}
@@ -333,11 +332,11 @@ export function TaskCreatePanel({
               />
             </label>
             <fieldset>
-              <legend>Completion criteria</legend>
+              <legend>Tiêu chí hoàn tất</legend>
               {criteria.map((criterion, index) => (
                 <div key={index}>
                   <label>
-                    Criterion {index + 1}
+                    Tiêu chí {index + 1}
                     <input
                       required
                       maxLength={250}
@@ -365,7 +364,7 @@ export function TaskCreatePanel({
                         )
                       }
                     />
-                    Mandatory criterion {index + 1}
+                    Tiêu chí bắt buộc {index + 1}
                   </label>
                   <button
                     type="button"
@@ -374,7 +373,7 @@ export function TaskCreatePanel({
                       setCriteria((rows) => rows.filter((_, i) => i !== index))
                     }
                   >
-                    Remove criterion {index + 1}
+                    Xóa tiêu chí {index + 1}
                   </button>
                 </div>
               ))}
@@ -388,7 +387,7 @@ export function TaskCreatePanel({
                   ])
                 }
               >
-                Add criterion
+                Thêm tiêu chí
               </button>
             </fieldset>
             <TaskPlanFields
@@ -403,7 +402,7 @@ export function TaskCreatePanel({
                   checked={repeat}
                   onChange={(e) => setRepeat(e.target.checked)}
                 />
-                Repeat task
+                Lặp công việc
               </label>
             )}
             {repeat && (
@@ -413,7 +412,7 @@ export function TaskCreatePanel({
                 executors={options.defaultExecutors ?? []}
               />
             )}
-            <button>{repeat ? "Save recurring series" : "Save task"}</button>
+            <button>{repeat ? "Lưu chuỗi công việc định kỳ" : "Lưu công việc"}</button>
             <button
               type="button"
               disabled={repeat}
@@ -421,7 +420,7 @@ export function TaskCreatePanel({
                 if (e.currentTarget.form?.reportValidity()) void save(true);
               }}
             >
-              Save and assign
+              Lưu và phân công
             </button>
           </fieldset>
         </form>

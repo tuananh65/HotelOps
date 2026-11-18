@@ -166,7 +166,7 @@ export async function mutateRework(
   validateReworkCommand(action, command);
   scope?.signal.throwIfAborted();
   if (scope && !scope.isCurrent())
-    throw new DOMException("Invalid current rework action", "AbortError");
+    throw new DOMException("Thao tác làm lại hiện tại không hợp lệ", "AbortError");
   const csrf = (await getJson("/auth/csrf", scope?.signal)) as {
     headerName?: string;
     csrfToken?: string;
@@ -179,7 +179,7 @@ export async function mutateRework(
     throw new ApiError(502, "INVALID_CSRF_RESPONSE");
   scope?.signal.throwIfAborted();
   if (scope && !scope.isCurrent())
-    throw new DOMException("Session changed", "AbortError");
+    throw new DOMException("Phiên đăng nhập đã thay đổi", "AbortError");
   const response = await send(
     `/branches/${b}/reworks/${r}/${action}`,
     scope?.signal,

@@ -82,7 +82,7 @@ test("entry rejects invalid action, state or version before network", async (t) 
         action,
         signal,
       ),
-      /Invalid task entry/,
+      /Chuyển trạng thái bắt đầu công việc không hợp lệ/,
     );
   assert.equal(mock.mock.callCount(), 0);
 });
@@ -100,7 +100,7 @@ test("prestart progress is readable but cannot be saved", async (t) => {
         { percent: 40, items: [], note: null },
         signal,
       ),
-      /Invalid task progress input/,
+      /Dữ liệu tiến độ công việc không hợp lệ/,
     );
     assert.equal(mock.mock.callCount(), 1);
     mock.mock.restore();
@@ -118,7 +118,7 @@ test("entry rejects a successful HTTP response without changed state and version
     );
     await assert.rejects(
       enterTask(2, 4, current, "accept", signal),
-      /could not be confirmed/,
+      /Chưa xác nhận bắt đầu công việc/,
     );
     mock.mock.restore();
   }

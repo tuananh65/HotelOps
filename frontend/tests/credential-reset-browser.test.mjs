@@ -91,9 +91,9 @@ async function run(s, fn, path = "/users/42/reset-credential") {
 }
 const calls = (p) => p.evaluate(() => window.fixture.calls);
 async function prepare(p) {
-  await p.getByLabel("Current administrator password").fill("ADMIN-PASSWORD");
+  await p.getByLabel("Mật khẩu quản trị viên hiện tại").fill("ADMIN-PASSWORD");
   await p
-    .getByRole("button", { name: "Verify administrator and load account" })
+    .getByRole("button", { name: "Xác minh quản trị viên và tải tài khoản" })
     .click();
   await p.getByRole("region", { name: "Review credential reset" }).waitFor();
 }
@@ -126,15 +126,15 @@ test("real route success: proof then correlated ETag review, confirmation, secre
     );
     await confirm(p);
     await p
-      .getByRole("heading", { name: "Credential reset confirmed" })
+      .getByRole("heading", { name: "Đã xác nhận đặt lại mật khẩu" })
       .waitFor();
     assert.ok(!(await p.locator("body").innerText()).includes(secret));
-    await p.getByRole("button", { name: "Reveal password" }).click();
-    assert.equal(await p.getByLabel("Temporary password").innerText(), secret);
-    await p.getByRole("button", { name: "Copy password" }).click();
+    await p.getByRole("button", { name: "Hiện mật khẩu" }).click();
+    assert.equal(await p.getByLabel("Mật khẩu tạm thời").innerText(), secret);
+    await p.getByRole("button", { name: "Sao chép mật khẩu" }).click();
     assert.deepEqual(await p.evaluate(() => window.copied), [secret]);
     await p
-      .getByRole("button", { name: "I securely handed off the credential" })
+      .getByRole("button", { name: "Tôi đã bàn giao mật khẩu an toàn" })
       .click();
     assert.ok(!(await p.locator("body").innerText()).includes(secret));
     assert.equal(
@@ -193,9 +193,9 @@ for (const reset of [
     run({ reset }, async (p) => {
       await prepare(p);
       await confirm(p);
-      await p.getByText(/Reset outcome unknown/).waitFor();
+      await p.getByText(/Chưa xác định kết quả đặt lại\. Mật khẩu có thể đã đổi và phiên có thể đã thu hồi\. Không gửi lại; nhờ quản trị viên kiểm tra và thực hiện khôi phục riêng\./).waitFor();
       assert.equal(
-        await p.getByLabel("Current administrator password").count(),
+        await p.getByLabel("Mật khẩu quản trị viên hiện tại").count(),
         0,
       );
       assert.equal(
@@ -227,10 +227,10 @@ test("proof failure never loads target or resets", () =>
     { proof: { status: 403, body: { detail: "PRIVATE-DETAIL" } } },
     async (p) => {
       await p
-        .getByLabel("Current administrator password")
+        .getByLabel("Mật khẩu quản trị viên hiện tại")
         .fill("ADMIN-PASSWORD");
       await p
-        .getByRole("button", { name: "Verify administrator and load account" })
+        .getByRole("button", { name: "Xác minh quản trị viên và tải tài khoản" })
         .click();
       await p.getByRole("alert").waitFor();
       assert.equal(
@@ -238,7 +238,7 @@ test("proof failure never loads target or resets", () =>
         0,
       );
       assert.equal(
-        await p.getByLabel("Current administrator password").inputValue(),
+        await p.getByLabel("Mật khẩu quản trị viên hiện tại").inputValue(),
         "",
       );
     },
@@ -247,27 +247,27 @@ test("401 clears data; target change cannot bypass explicit session gate; failed
   run({ reset: { status: 401 }, auth: undefined }, async (p) => {
     await prepare(p);
     await confirm(p);
-    await p.getByRole("main", { name: "Reset session recovery" }).waitFor();
+    await p.getByRole("main", { name: "Khôi phục phiên đặt lại mật khẩu" }).waitFor();
     await p.evaluate(() =>
       window.fixture.navigate("/users/43/reset-credential"),
     );
     await settle(p);
     assert.equal(
-      await p.getByLabel("Current administrator password").count(),
+      await p.getByLabel("Mật khẩu quản trị viên hiện tại").count(),
       0,
     );
     await p.evaluate(() => (window.fixture.s.auth = { network: true }));
-    await p.getByRole("button", { name: "Check session", exact: true }).click();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true }).click();
     await settle(p);
     assert.equal(
-      await p.getByLabel("Current administrator password").count(),
+      await p.getByLabel("Mật khẩu quản trị viên hiện tại").count(),
       0,
     );
     await p.evaluate(
       () => (window.fixture.s.auth = { body: window.fixture.session }),
     );
-    await p.getByRole("button", { name: "Check session", exact: true }).click();
-    await p.getByLabel("Current administrator password").waitFor();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập", exact: true }).click();
+    await p.getByLabel("Mật khẩu quản trị viên hiện tại").waitFor();
     assert.equal(
       (await calls(p)).filter((c) => c.url.endsWith("/reset-credential"))
         .length,
@@ -305,7 +305,7 @@ for (const change of ["target", "session", "unmount"])
       assert.ok(!(await p.locator("body").innerText()).includes(secret));
       assert.equal(
         await p
-          .getByRole("region", { name: "Reset credential handoff" })
+          .getByRole("region", { name: "Bàn giao mật khẩu đặt lại" })
           .count(),
         0,
       );
@@ -338,9 +338,9 @@ test("account detail link opens real reset route without treating read as reset 
     {},
     async (p) => {
       await p
-        .getByRole("link", { name: "Reset credential", exact: true })
+        .getByRole("link", { name: "Đặt lại mật khẩu", exact: true })
         .click();
-      await p.getByLabel("Current administrator password").waitFor();
+      await p.getByLabel("Mật khẩu quản trị viên hiện tại").waitFor();
       assert.equal(
         (await calls(p)).filter((c) => c.method === "POST").length,
         0,
@@ -354,14 +354,14 @@ test("clipboard rejection retains manual handoff without leaking exception", () 
     await prepare(p);
     await confirm(p);
     await p
-      .getByRole("heading", { name: "Credential reset confirmed" })
+      .getByRole("heading", { name: "Đã xác nhận đặt lại mật khẩu" })
       .waitFor();
-    await p.getByRole("button", { name: "Copy password" }).click();
+    await p.getByRole("button", { name: "Sao chép mật khẩu" }).click();
     await p
-      .getByText("Clipboard unavailable. Use a secure manual handoff.")
+      .getByText("Không dùng được bộ nhớ sao chép. Hãy bàn giao thủ công an toàn.")
       .waitFor();
-    await p.getByRole("button", { name: "Reveal password" }).click();
-    assert.equal(await p.getByLabel("Temporary password").innerText(), secret);
+    await p.getByRole("button", { name: "Hiện mật khẩu" }).click();
+    assert.equal(await p.getByLabel("Mật khẩu tạm thời").innerText(), secret);
   }));
 test("wrong administrator password does not invalidate session or load target", () =>
   run(
@@ -376,17 +376,17 @@ test("wrong administrator password does not invalidate session or load target", 
       },
     },
     async (p) => {
-      await p.getByLabel("Current administrator password").fill("wrong");
+      await p.getByLabel("Mật khẩu quản trị viên hiện tại").fill("wrong");
       await p
-        .getByRole("button", { name: "Verify administrator and load account" })
+        .getByRole("button", { name: "Xác minh quản trị viên và tải tài khoản" })
         .click();
       await p.getByRole("alert").waitFor();
       assert.equal(
-        await p.getByRole("main", { name: "Reset session recovery" }).count(),
+        await p.getByRole("main", { name: "Khôi phục phiên đặt lại mật khẩu" }).count(),
         0,
       );
       assert.equal(
-        await p.getByLabel("Current administrator password").inputValue(),
+        await p.getByLabel("Mật khẩu quản trị viên hiện tại").inputValue(),
         "",
       );
       assert.equal(

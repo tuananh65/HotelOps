@@ -15,7 +15,7 @@ function options(v:unknown):BranchAssignmentOption[]|undefined{
 }
 
 export const unknownMembershipMessage =
-  "Branch membership addition outcome could not be confirmed. The membership may already have been created. Do not retry automatically. Ask an authorized administrator to verify the current membership before making another change.";
+  "Chưa xác nhận kết quả thêm phân quyền chi nhánh; phân quyền có thể đã được tạo. Không tự gửi lại. Nhờ quản trị viên kiểm tra trước khi thay đổi tiếp.";
 export function destinationBranchId(value: string): number | null {
   const number =
     value.length > 0 && !/[^0-9]/.test(value) ? Number(value) : NaN;
@@ -126,7 +126,7 @@ export function useAddUserBranch(target: number | null) {
       )
         return;
       if (result.ok&&!destinations.ok){
-        setRead({owner,target,generation,kind:"error",message:"Available branch/department assignments could not be loaded. Reload to refresh your authorization."});
+        setRead({owner,target,generation,kind:"error",message:"Không tải được phân công chi nhánh / bộ phận. Tải lại để cập nhật quyền truy cập."});
         if(destinations.error.kind==="http")recover(destinations.error.status);
         return;
       }
@@ -278,35 +278,35 @@ export function useAddUserBranch(target: number | null) {
 
 function failureMessage(status?: number, reason?: string): string {
   if (status === 403)
-    return "Access denied. This response does not confirm whether the account exists.";
+    return "Không có quyền truy cập. Phản hồi này không xác nhận tài khoản có tồn tại hay không.";
   if (status === 401)
-    return "Your session must be checked. Reload profile after session recovery. No membership request has been retried.";
-  if (status === 404) return "The server could not find this user account.";
+    return "Cần kiểm tra phiên. Tải lại hồ sơ sau khi khôi phục phiên. Không gửi lại yêu cầu phân công thành viên.";
+  if (status === 404) return "Máy chủ không tìm thấy tài khoản này.";
   if (status === 412 || status === 428)
-    return "The version must be refreshed. Reload profile, review the target and destination again, then confirm a new attempt.";
+    return "Cần phiên bản mới. Tải lại hồ sơ, kiểm tra tài khoản và nơi nhận rồi xác nhận lần thử mới.";
   switch (reason) {
     case "TARGET_NOT_ACTIVE":
-      return "The server rejected the request because the target account is not active.";
+      return "Máy chủ từ chối vì tài khoản đích không hoạt động.";
     case "MEMBERSHIP_EXISTS":
-      return "A membership already exists, possibly a previously revoked membership. This flow cannot regrant it.";
+      return "Phân công thành viên đã tồn tại, có thể đã bị thu hồi trước đó. Không thể cấp lại tại đây.";
     case "EXISTING_ROLE_PATH_CONFLICT":
-      return "An existing destination role path prevents adding this membership. This flow cannot repair roles.";
+      return "Vai trò hiện có ở chi nhánh đích đang chặn thêm phân công. Không thể sửa vai trò trong quy trình này.";
     case "OPERATIONS_MANAGER_SCOPE_CONFLICT":
-      return "The Operations Manager scope constraint prevents adding this membership.";
+      return "Giới hạn phạm vi quản lý vận hành đang chặn thêm phân công thành viên.";
     case "BRANCH_UNAVAILABLE":
-      return "The destination branch is unavailable. Check the Branch ID.";
+      return "Chi nhánh đích chưa khả dụng. Kiểm tra mã chi nhánh.";
     case "DEPARTMENT_UNAVAILABLE":
-      return "Select an active department belonging to the destination branch.";
+      return "Chọn bộ phận đang hoạt động thuộc chi nhánh đích.";
     case "CSRF_VALIDATION_FAILED":
-      return "The security check was rejected. No membership request has been retried.";
+      return "Kiểm tra bảo mật bị từ chối. Không gửi lại phân công thành viên.";
     case "HTTPS_REQUIRED":
-      return "A secure HTTPS connection is required.";
+      return "Cần kết nối HTTPS an toàn.";
     case "REQUEST_TOO_LARGE":
-      return "The request exceeds the permitted size.";
+      return "Yêu cầu vượt dung lượng cho phép.";
   }
   if (status === 415)
-    return "The request format was rejected. No membership request has been retried.";
+    return "Định dạng yêu cầu bị từ chối. Không gửi lại phân công thành viên.";
   if (status === 400)
-    return "Check the destination and request version. No membership request has been retried.";
-  return "The request could not be completed safely. No membership request has been retried.";
+    return "Kiểm tra nơi tiếp nhận và phiên bản yêu cầu. Không gửi lại yêu cầu phân công thành viên.";
+  return "Không hoàn tất an toàn yêu cầu. Không gửi lại phân công thành viên.";
 }

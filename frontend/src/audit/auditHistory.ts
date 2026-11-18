@@ -51,7 +51,7 @@ export function auditChanges(before: unknown, after: unknown) {
 }
 export function auditValue(value: Scalar | undefined, recorded: boolean) {
   return !recorded
-    ? "Not recorded or withheld"
+    ? "Chưa ghi nhận hoặc không được hiển thị"
     : value === null
       ? "null"
       : String(value);

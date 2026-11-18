@@ -18,14 +18,14 @@ export function TaskPlanFields({
   return (
     <>
       <label>
-        Priority
+        Độ ưu tiên
         <select
-          aria-label="Priority"
+          aria-label="Độ ưu tiên"
           required
           value={value.priority}
           onChange={(e) => onChange({ ...value, priority: e.target.value })}
         >
-          <option value="">Choose priority</option>
+          <option value="">Chọn độ ưu tiên</option>
           {priorities.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -33,9 +33,9 @@ export function TaskPlanFields({
           ))}
         </select>
       </label>
-      <p>Planning times use Asia/Ho_Chi_Minh (UTC+07:00).</p>
+      <p>Thời gian kế hoạch theo giờ Việt Nam (UTC+07:00).</p>
       <label>
-        Planned start
+        Bắt đầu dự kiến
         <input
           type="datetime-local"
           step="0.001"
@@ -44,7 +44,7 @@ export function TaskPlanFields({
         />
       </label>
       <label>
-        Deadline
+        Thời hạn
         <input
           type="datetime-local"
           step="0.001"
@@ -53,7 +53,7 @@ export function TaskPlanFields({
         />
       </label>
       <label>
-        Expected duration (minutes)
+        Thời lượng dự kiến (phút)
         <input
           type="number"
           min="1"

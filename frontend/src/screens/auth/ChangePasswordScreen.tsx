@@ -7,36 +7,36 @@ function unmetPasswordItems(current: string, next: string): string[] {
   // Match server UTF-16 char categories; advisory feedback never grants success.
   const units = next.split("");
   const items: string[] = [];
-  if (next.length < 8 || next.length > 256) items.push("Use 8 to 256 characters.");
-  if (!units.some(c => /\p{Lu}/u.test(c))) items.push("Add an uppercase letter.");
-  if (!units.some(c => /\p{Ll}/u.test(c))) items.push("Add a lowercase letter.");
-  if (!units.some(c => /\p{Nd}/u.test(c))) items.push("Add a digit.");
-  if (!units.some(c => /[\p{P}\p{S}]/u.test(c))) items.push("Add a special character.");
-  if (units.some(c => /\p{Cc}/u.test(c))) items.push("Remove control characters.");
-  if (current === next) items.push("Choose a password different from your current password.");
+  if (next.length < 8 || next.length > 256) items.push("Dùng 8–256 ký tự.");
+  if (!units.some(c => /\p{Lu}/u.test(c))) items.push("Thêm một chữ cái viết hoa.");
+  if (!units.some(c => /\p{Ll}/u.test(c))) items.push("Thêm một chữ cái viết thường.");
+  if (!units.some(c => /\p{Nd}/u.test(c))) items.push("Thêm một chữ số.");
+  if (!units.some(c => /[\p{P}\p{S}]/u.test(c))) items.push("Thêm một ký tự đặc biệt.");
+  if (units.some(c => /\p{Cc}/u.test(c))) items.push("Loại bỏ ký tự điều khiển.");
+  if (current === next) items.push("Chọn mật khẩu khác mật khẩu hiện tại.");
   return items;
 }
 
 function changePasswordMessage(error: AuthError): string {
   if (error.kind === "busy")
-    return "Another authentication operation is in progress. Please wait before trying again.";
+    return "Một thao tác xác thực khác đang chạy. Vui lòng chờ trước khi thử lại.";
   if (error.kind === "stale")
-    return "Authentication state changed. Password change was not confirmed. Please check your session.";
+    return "Trạng thái xác thực đã đổi. Chưa xác nhận đổi mật khẩu. Vui lòng kiểm tra phiên đăng nhập.";
   if (error.kind === "http") {
     if (error.status === 400 && error.code === "CURRENT_PASSWORD_INVALID")
-      return "The current password is incorrect.";
+      return "Mật khẩu hiện tại không đúng.";
     if (error.status === 400 && error.code === "PASSWORD_POLICY_VIOLATION")
-      return "The new password does not meet the server password policy. Use 8–256 characters with uppercase, lowercase, a digit and a special character; no control characters; choose a password different from your current password.";
+      return "Mật khẩu mới chưa đạt chính sách: 8–256 ký tự gồm chữ hoa, chữ thường, số và ký tự đặc biệt; không có ký tự điều khiển và phải khác mật khẩu hiện tại.";
     if (error.status === 400 && error.code === "VALIDATION_FAILED")
-      return "Please check all password fields and confirmation.";
+      return "Kiểm tra các ô mật khẩu và xác nhận mật khẩu.";
     if (error.status === 400 && error.code === "CSRF_VALIDATION_FAILED")
-      return "The security check could not be completed. Password change was not confirmed. Please check your session.";
+      return "Chưa hoàn tất kiểm tra bảo mật. Chưa xác nhận đổi mật khẩu. Kiểm tra phiên đăng nhập.";
     if (error.status === 401)
-      return "Your session is no longer valid. Please sign in again before changing your password.";
+      return "Phiên không còn hợp lệ. Đăng nhập lại trước khi đổi mật khẩu.";
     if (error.status === 409 && error.code === "AUTH_STATE_CHANGED")
-      return "Authentication state changed. Password change was not confirmed. Please check your session.";
+      return "Trạng thái xác thực đã đổi. Chưa xác nhận đổi mật khẩu. Vui lòng kiểm tra phiên đăng nhập.";
   }
-  return "Password change could not be confirmed. Authentication is currently unavailable. Please check your session before trying again.";
+  return "Chưa xác nhận đổi mật khẩu. Dịch vụ xác thực chưa khả dụng. Kiểm tra phiên trước khi thử lại.";
 }
 
 export default function ChangePasswordScreen() {
@@ -67,11 +67,11 @@ export default function ChangePasswordScreen() {
       !newPassword.length ||
       !confirmNewPassword.length
     ) {
-      setError("All password fields are required.");
+      setError("Vui lòng nhập đầy đủ các ô mật khẩu.");
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      setError("The new password and confirmation must match.");
+      setError("Mật khẩu mới và xác nhận phải giống nhau.");
       return;
     }
     submitting.current = true;
@@ -94,7 +94,7 @@ export default function ChangePasswordScreen() {
     } catch {
       if (mounted.current)
         setError(
-          "Password change could not be confirmed. Authentication is currently unavailable. Please check your session before trying again.",
+          "Chưa xác nhận đổi mật khẩu. Dịch vụ xác thực chưa khả dụng. Kiểm tra phiên trước khi thử lại.",
         );
     } finally {
       submitting.current = false;
@@ -115,23 +115,23 @@ export default function ChangePasswordScreen() {
     <div className="auth">
       <aside className="auth-art">
         <h1>
-          Hotel operations.
+          Vận hành khách sạn.
           <br />
-          One connected workspace.
+          Không gian làm việc kết nối.
         </h1>
       </aside>
       <main className="auth-panel">
-        <h1>Change Password</h1>
-        <p>Use 8–256 characters with uppercase, lowercase, a digit and a special character. The password must differ from your current password and contain no control characters. Requirements are checked by the server.</p>
+        <h1>Đổi mật khẩu</h1>
+        <p>Dùng 8–256 ký tự gồm chữ hoa, chữ thường, số và ký tự đặc biệt. Mật khẩu phải khác mật khẩu hiện tại, không có ký tự điều khiển. Máy chủ kiểm tra các yêu cầu này.</p>
         {!confirmed && (
           <p role="status">
-            A confirmed session is required to change your password.
+            Cần xác minh phiên đăng nhập trước khi đổi mật khẩu.
           </p>
         )}
         <form noValidate onSubmit={submit} aria-busy={pending}>
           <div className="form-grid">
             <label htmlFor="change-current">
-              Current password
+              Mật khẩu hiện tại
               <input
                 id="change-current"
                 name="currentPassword"
@@ -145,7 +145,7 @@ export default function ChangePasswordScreen() {
               />
             </label>
             <label htmlFor="change-new">
-              New password
+              Mật khẩu mới
               <input
                 id="change-new"
                 name="newPassword"
@@ -159,7 +159,7 @@ export default function ChangePasswordScreen() {
               />
             </label>
             <label htmlFor="change-confirm">
-              Confirm new password
+              Xác nhận mật khẩu mới
               <input
                 id="change-confirm"
                 name="confirmNewPassword"
@@ -180,7 +180,7 @@ export default function ChangePasswordScreen() {
           )}
           <div className="form-actions">
             <button className="primary" type="submit" disabled={disabled}>
-              {pending ? "Changing password…" : "Change password"}
+              {pending ? "Đang đổi mật khẩu…" : "Đổi mật khẩu"}
             </button>
           </div>
         </form>

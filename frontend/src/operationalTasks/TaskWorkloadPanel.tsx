@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -72,8 +73,8 @@ export function TaskWorkloadPanel({
           setDenied(true);
         setError(
           error instanceof TaskProgressError && error.status === 400
-            ? "Check the reference IDs and dates. Use an ordered period; hotel-calendar queries allow at most 366 days."
-            : "Workload is unavailable. Reload after checking your filters and access.",
+            ? "Kiểm tra mã tham chiếu và ngày. Khoảng thời gian phải đúng thứ tự; truy vấn lịch khách sạn tối đa 366 ngày."
+            : "Chưa có khối lượng công việc. Kiểm tra bộ lọc, quyền rồi tải lại.",
         );
       })
       .finally(() => {
@@ -96,7 +97,7 @@ export function TaskWorkloadPanel({
       if (form[key]) {
         const n = Number(form[key]);
         if (!/^[1-9]\d*$/.test(form[key]) || !Number.isSafeInteger(n)) {
-          setError("Reference IDs must be positive whole numbers.");
+          setError("Các mã tham chiếu phải là số nguyên dương.");
           return;
         }
         filters[key] = n;
@@ -111,11 +112,11 @@ export function TaskWorkloadPanel({
   if (denied)
     return (
       <p role="status">
-        Workload requires an authorized Department Head or Operations Manager.
+        Xem khối lượng công việc cần trưởng bộ phận hoặc quản lý vận hành có quyền.
       </p>
     );
   if (!query)
-    return <button onClick={load}>Review workload and time logs</button>;
+    return <button onClick={load}>Xem lại khối lượng công việc và nhật ký thời gian</button>;
   const page = result && "items" in result ? result : null;
   const detail = result && "userId" in result ? result : null;
   const taskPage = result && "taskSet" in result ? result : null;
@@ -127,9 +128,9 @@ export function TaskWorkloadPanel({
   const field = (key: keyof Omit<typeof form, "overdueOnly">, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
   return (
-    <section aria-label="Task workload">
-      <h3>Workload and time logs</h3>
-      <p>Period calendar: {initialFilters?.calendar ?? "Asia/Ho_Chi_Minh"}.</p>
+    <section aria-label="Khối lượng công việc">
+      <h3>Khối lượng công việc và nhật ký thời gian</h3>
+      <p>Lịch kỳ: {initialFilters?.calendar ?? "Asia/Ho_Chi_Minh"}.</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -137,7 +138,7 @@ export function TaskWorkloadPanel({
         }}
       >
         <label>
-          Workload from
+          Khối lượng từ ngày
           <input
             type="date"
             value={form.from}
@@ -145,7 +146,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload to
+          Khối lượng đến ngày
           <input
             type="date"
             value={form.to}
@@ -153,7 +154,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload department ID
+          Mã bộ phận theo dõi khối lượng
           <input
             inputMode="numeric"
             pattern="[1-9][0-9]*"
@@ -162,7 +163,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload employee ID
+          Mã nhân viên theo dõi khối lượng
           <input
             inputMode="numeric"
             pattern="[1-9][0-9]*"
@@ -172,7 +173,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload priority ID
+          Mã độ ưu tiên công việc
           <input
             inputMode="numeric"
             pattern="[1-9][0-9]*"
@@ -181,13 +182,13 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload status
+          Trạng thái công việc
           <select
-            aria-label="Workload status"
+            aria-label="Trạng thái công việc"
             value={form.status}
             onChange={(e) => field("status", e.target.value)}
           >
-            <option value="">All workflows</option>
+            <option value="">Tất cả quy trình</option>
             {taskWorkflowStates.map((s) => (
               <option key={s} value={s}>
                 {s.replaceAll("_", " ")}
@@ -196,7 +197,7 @@ export function TaskWorkloadPanel({
           </select>
         </label>
         <label>
-          Deadline from
+          Thời hạn từ
           <input
             type="date"
             value={form.deadlineFrom}
@@ -204,7 +205,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Deadline to
+          Thời hạn đến
           <input
             type="date"
             value={form.deadlineTo}
@@ -212,7 +213,7 @@ export function TaskWorkloadPanel({
           />
         </label>
         <label>
-          Workload search
+          Tìm công việc theo khối lượng
           <input
             maxLength={150}
             value={form.search}
@@ -227,34 +228,33 @@ export function TaskWorkloadPanel({
               setForm((f) => ({ ...f, overdueOnly: e.target.checked }))
             }
           />
-          Overdue only
+          Chỉ hiện quá hạn
         </label>
-        <button disabled={busy}>Apply workload filters</button>
+        <button disabled={busy}>Áp dụng bộ lọc khối lượng công việc</button>
       </form>
-      {busy && <p role="status">Loading workload…</p>}
+      {busy && <p role="status">Đang tải khối lượng công việc…</p>}
       {error && <p role="alert">{error}</p>}
       <button
         disabled={busy}
         onClick={() => setQuery((q) => q && { ...q, revision: q.revision + 1 })}
       >
-        Reload workload
+        Tải lại khối lượng công việc
       </button>
       {result && (
         <p>
-          Dates {result.from} through {result.to} ({result.calendar ?? "Asia/Ho_Chi_Minh"}).
-          Snapshot {result.asOf}. Durations are seconds within this period.
+          Ngày {result.from} đến {result.to} ({result.calendar ?? "Asia/Ho_Chi_Minh"}). Bản chụp dữ liệu {result.asOf}. Durations are seconds within this period.
         </p>
       )}
       {taskPage && (
-        <section aria-label="Matching workload tasks">
-          <h4>Tasks matching {taskPage.taskSet?.replaceAll("_", " ")}</h4>
-          <p>{taskPage.totalCount} matching tasks, including tasks without a current assignee.</p>
-          {taskPage.messageCode === "MSG10" && <p role="status">MSG10: No tasks match these filters.</p>}
-          <table aria-label="Matching tasks">
-            <thead><tr><th>Task</th><th>State</th><th>Current assignee</th><th>Deadline</th><th>Closed at</th></tr></thead>
+        <section aria-label="Công việc phù hợp với bộ lọc khối lượng">
+          <h4>Công việc phù hợp {taskPage.taskSet?.replaceAll("_", " ")}</h4>
+          <p>{taskPage.totalCount} công việc phù hợp, gồm cả công việc chưa được phân công.</p>
+          {taskPage.messageCode === "MSG10" && <p role="status">MSG10: Không có công việc phù hợp bộ lọc.</p>}
+          <table aria-label="Công việc phù hợp">
+            <thead><tr><th>Công việc</th><th>Trạng thái</th><th>Người được giao hiện tại</th><th>Thời hạn</th><th>Đóng lúc</th></tr></thead>
             <tbody>{taskPage.tasks.map(t => <tr key={t.taskId}>
               <td><Link to={`/operational-tasks?branchId=${branch}&taskId=${t.taskId}`}>{t.code}: {t.title}</Link></td>
-              <td>{t.state}</td><td>{t.currentAssigneeId ?? "No current assignment"}</td>
+              <td>{displayCode(t.state)}</td><td>{t.currentAssigneeId ?? "Chưa có phân công hiện tại"}</td>
               <td>{t.deadline ?? "—"}{t.overdue && " · Overdue"}</td><td>{t.completedAt ?? "—"}</td>
             </tr>)}</tbody>
           </table>
@@ -263,18 +263,18 @@ export function TaskWorkloadPanel({
       {page && (
         <>
           {page.messageCode === "MSG10" && (
-            <p role="status">MSG10: No workload matches these filters.</p>
+            <p role="status">MSG10: Không có khối lượng công việc phù hợp bộ lọc.</p>
           )}
-          <table aria-label="Employee workload">
+          <table aria-label="Khối lượng công việc của nhân viên">
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Open tasks</th>
-                <th>Overdue</th>
-                <th>Closed in period</th>
-                <th>Closed effort (s)</th>
-                <th>Provisional open (s)</th>
-                <th>Details</th>
+                <th>Nhân viên</th>
+                <th>Công việc đang mở</th>
+                <th>Quá hạn</th>
+                <th>Đóng trong kỳ</th>
+                <th>Thời gian thực hiện đã kết thúc (giây)</th>
+                <th>Thời gian đang chạy tạm tính (giây)</th>
+                <th>Chi tiết</th>
               </tr>
             </thead>
             <tbody>
@@ -296,7 +296,7 @@ export function TaskWorkloadPanel({
                         )
                       }
                     >
-                      Time logs for {u.name}
+                      Nhật ký thời gian của {u.name}
                     </button>
                   </td>
                 </tr>
@@ -304,30 +304,28 @@ export function TaskWorkloadPanel({
             </tbody>
           </table>
           <p>
-            Closed counts distinct tasks with an accepted completion by that
-            employee in the period. Reopening preserves previous completions and
-            recorded effort.
+            Số đã đóng đếm công việc riêng biệt có kết quả được chấp nhận của nhân viên trong kỳ. Mở lại vẫn giữ kết quả hoàn tất và thời gian trước đó.
           </p>
         </>
       )}
       {detail && (
-        <section aria-label="Employee time log">
+        <section aria-label="Nhật ký thời gian nhân viên">
           <h4>{detail.name}</h4>
           <button
             onClick={() =>
               setQuery((q) => q && { ...q, employee: null, page: 1 })
             }
           >
-            Back to employee workload
+            Quay lại khối lượng công việc của nhân viên
           </button>
-          <table aria-label="Employee tasks">
+          <table aria-label="Công việc của nhân viên">
             <thead>
               <tr>
-                <th>Task</th>
-                <th>Department</th>
-                <th>Priority</th>
-                <th>Deadline</th>
-                <th>State</th>
+                <th>Công việc</th>
+                <th>Bộ phận</th>
+                <th>Độ ưu tiên</th>
+                <th>Thời hạn</th>
+                <th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -346,20 +344,20 @@ export function TaskWorkloadPanel({
                     {t.deadline ?? "—"}
                     {t.overdue && " · Overdue"}
                   </td>
-                  <td>{t.state}</td>
+                  <td>{displayCode(t.state)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <table aria-label="Task work intervals">
+          <table aria-label="Khoảng thời gian thực hiện công việc">
             <thead>
               <tr>
-                <th>Interval</th>
-                <th>Task</th>
-                <th>Start UTC</th>
-                <th>End UTC</th>
-                <th>Closed (s)</th>
-                <th>Provisional (s)</th>
+                <th>Khoảng thời gian</th>
+                <th>Công việc</th>
+                <th>Thời điểm bắt đầu (UTC)</th>
+                <th>Thời điểm kết thúc (UTC)</th>
+                <th>Đã kết thúc (giây)</th>
+                <th>Tạm tính (giây)</th>
               </tr>
             </thead>
             <tbody>
@@ -368,25 +366,25 @@ export function TaskWorkloadPanel({
                   <td>{i.intervalId}</td>
                   <td>{i.taskId}</td>
                   <td>{i.start}</td>
-                  <td>{i.end ?? "Open"}</td>
+                  <td>{i.end ?? "Đang mở"}</td>
                   <td>{i.closedSeconds}</td>
                   <td>{i.provisionalSeconds}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <h4>Workday / shift time — separate from task effort</h4>
+          <h4>Thời gian ngày làm việc / ca — tách biệt với thời gian thực hiện công việc</h4>
           {detail.shifts === null ? (
-            <p>Shift time is unavailable without current SHIFT_VIEW access.</p>
+            <p>Không có thời gian ca nếu thiếu quyền SHIFT_VIEW hiện tại.</p>
           ) : (
-            <table aria-label="Separate workday time">
+            <table aria-label="Thời gian ngày làm việc riêng">
               <thead>
                 <tr>
-                  <th>Hotel date</th>
-                  <th>Start UTC</th>
-                  <th>End UTC</th>
-                  <th>Closed (s)</th>
-                  <th>Provisional (s)</th>
+                  <th>Ngày tại khách sạn</th>
+                  <th>Thời điểm bắt đầu (UTC)</th>
+                  <th>Thời điểm kết thúc (UTC)</th>
+                  <th>Đã kết thúc (giây)</th>
+                  <th>Tạm tính (giây)</th>
                 </tr>
               </thead>
               <tbody>
@@ -394,7 +392,7 @@ export function TaskWorkloadPanel({
                   <tr key={d.workdayId}>
                     <td>{d.workDate}</td>
                     <td>{d.start}</td>
-                    <td>{d.end ?? "Working"}</td>
+                    <td>{d.end ?? "Đang làm việc"}</td>
                     <td>{d.closedSeconds}</td>
                     <td>{d.provisionalSeconds}</td>
                   </tr>
@@ -403,15 +401,14 @@ export function TaskWorkloadPanel({
             </table>
           )}
           <p>
-            Task, interval and workday tables are paginated independently using
-            the page below; task filters do not turn shift duration into effort.
+            Bảng công việc, khoảng làm việc và ngày làm việc phân trang riêng bên dưới; bộ lọc công việc không biến thời gian ca thành thời gian thực hiện.
           </p>
         </section>
       )}
       <p>
-        Page {query.page};{" "}
+        Trang {query.page};{" "}
         {page
-          ? `${total} employees`
+          ? `${total} Nhân viên`
           : detail
             ? `${detail.taskCount} tasks, ${detail.intervalCount} intervals, ${detail.shiftCount ?? "unavailable"} workdays`
             : ""}
@@ -420,13 +417,13 @@ export function TaskWorkloadPanel({
         disabled={busy || query.page <= 1}
         onClick={() => setQuery((q) => q && { ...q, page: q.page - 1 })}
       >
-        Previous workload page
+        Trang khối lượng công việc trước
       </button>
       <button
         disabled={busy || !result || query.page * 20 >= total}
         onClick={() => setQuery((q) => q && { ...q, page: q.page + 1 })}
       >
-        Next workload page
+        Trang khối lượng công việc tiếp theo
       </button>
     </section>
   );

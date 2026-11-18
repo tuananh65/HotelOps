@@ -1,6 +1,13 @@
 import { ShiftPlanApiError, type SavePlanAdapter } from "./shiftPlanApi";
-import { ShiftEmployeePicker } from "./ShiftEmployeePicker";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import {
+  ShiftPlanningContext,
+  usePlanningBusy,
+  usePlanningChoices,
+  localDate,
+  planningDateTime,
+} from "./shiftPlanningData";
 import { useAuth } from "../auth/AuthProvider";
 import {
   decodePreview,
@@ -27,7 +34,9 @@ export function ShiftPlanPreviewPanel({
     state.pending !== null ||
     state.session.mustChangePassword
   )
-    return <p role="alert">Confirmed unrestricted session required.</p>;
+    return (
+      <p role="alert">Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
+    );
   return (
     <Bound
       key={`${identityKey(state.session)}:${adapter ? identityKey(adapter) : 0}:${saveAdapter ? identityKey(saveAdapter) : 0}`}
@@ -55,21 +64,30 @@ function Bound({
   recover: () => void;
   onSaved?: () => void;
 }) {
+  const planning = useContext(ShiftPlanningContext);
+  const choices = usePlanningChoices(planning?.scope);
   const [drafts, setDrafts] = useState<readonly ShiftDraft[]>([]),
     [fields, setFields] = useState({
       employeeId: "",
-      branchId: "",
-      departmentId: "",
+      branchId: String(planning?.scope.branchId ?? ""),
+      departmentId: String(planning?.scope.departmentId ?? ""),
       templateId: "",
-      shiftDate: "",
+      shiftDate: localDate(),
     });
   const [preview, setPreview] = useState<Preview | null>(null),
     [message, setMessage] = useState(""),
+    [messageSucceeded, setMessageSucceeded] = useState(false),
     [pending, setPending] = useState(false);
   const [saveReview, setSaveReview] = useState(false),
     [sessionBlocked, setSessionBlocked] = useState(false);
   const saveAttempted = useRef(false);
   const [canStartNew, setCanStartNew] = useState(false);
+  usePlanningBusy("plan", pending);
+  const reportDrafts = planning?.reportDrafts;
+  useEffect(() => {
+    reportDrafts?.(drafts.length > 0);
+    return () => reportDrafts?.(false);
+  }, [reportDrafts, drafts.length]);
   const epoch = useRef(0),
     alive = useRef(true),
     busy = useRef(false),
@@ -92,6 +110,7 @@ function Bound({
     setPreview(null);
   }, [adapter]);
   function invalidate() {
+    setMessageSucceeded(false);
     setSaveReview(false);
     epoch.current++;
     abort.current?.abort();
@@ -102,9 +121,10 @@ function Bound({
   }
   async function run() {
     if (!adapter || busy.current || sessionBlocked) return;
+    setMessageSucceeded(false);
     const snapshot = draftSnapshot(drafts);
     if (!snapshot) {
-      setMessage("Add valid drafts before preview.");
+      setMessage("Thêm bản nháp hợp lệ trước khi xem trước.");
       return;
     }
     busy.current = true;
@@ -126,7 +146,7 @@ function Bound({
       if (result) setPreview(result);
       else
         setMessage(
-          "Preview unavailable: invalid server result. No permission to save.",
+          "Không xem trước được: phản hồi máy chủ không hợp lệ. Không được phép lưu.",
         );
     } catch (error) {
       if (current()) {
@@ -135,7 +155,9 @@ function Bound({
           setDrafts([]);
           setPreview(null);
         }
-        setMessage("Preview unavailable. No automatic retry.");
+        setMessage(
+          "Không kiểm tra được phân công. Vui lòng tải lại danh sách hoặc kiểm tra kết nối.",
+        );
       }
     } finally {
       if (current()) {
@@ -157,6 +179,7 @@ function Bound({
     const snapshot = draftSnapshot(drafts);
     if (!snapshot) return;
     saveAttempted.current = true;
+    setMessageSucceeded(false);
     busy.current = true;
     setPending(true);
     setSaveReview(false);
@@ -174,19 +197,23 @@ function Bound({
       setPreview(null);
       setDrafts([]);
       if (result.ok) {
+        setMessageSucceeded(true);
         setCanStartNew(true);
-        setMessage(`MSG08: ${result.createdAssignments} assignments saved; ${result.createdShifts} new shifts created. Employee notifications queued.`);
+        setMessage(
+          `Đã lưu ${result.createdAssignments} phân công; ${result.createdShifts} ca mới đã tạo. Thông báo nhân viên đang chờ gửi.`,
+        );
         onSaved?.();
-      }
-      else {
-        setCanStartNew(result.outcome !== "OUTCOME_UNKNOWN" && result.status !== 401);
+      } else {
+        setCanStartNew(
+          result.outcome !== "OUTCOME_UNKNOWN" && result.status !== 401,
+        );
         if (result.status === 401) setSessionBlocked(true);
         setMessage(
           result.outcome === "OUTCOME_UNKNOWN"
-            ? "Save outcome unknown. Do not replay; verify with an authorized owner."
+            ? "Chưa xác định được kết quả lưu. Kiểm tra mục Lịch đã phân trước khi lập lại để tránh trùng ca."
             : result.status === 409
-              ? "MSG03: Assignment conflict. Reload the roster: an employee may already be assigned, a cancellation may exist, or the dated shift may differ from the current definition."
-              : "Shift plan was not confirmed. No automatic retry.",
+              ? "Có phân công bị trùng hoặc đã thay đổi. Tải lại danh sách ca: nhân viên có thể đã được giao, phân công đã hủy hoặc ca theo ngày khác định nghĩa hiện tại."
+              : "Chưa xác nhận kế hoạch ca. Không tự gửi lại.",
         );
       }
     } catch {
@@ -194,7 +221,7 @@ function Bound({
         setPreview(null);
         setDrafts([]);
         setMessage(
-          "Save outcome unknown. Do not replay; verify with an authorized owner.",
+          "Chưa xác định được kết quả lưu. Kiểm tra mục Lịch đã phân trước khi lập lại để tránh trùng ca.",
         );
       }
     } finally {
@@ -204,149 +231,331 @@ function Bound({
       }
     }
   }
+  const locked = pending || sessionBlocked || saveAttempted.current;
+  const employees = choices.data?.employees ?? [],
+    templates = choices.data?.templates ?? [];
+  const employeeName = (id: number) =>
+    employees.find((e) => e.id === id)?.name ?? "Nhân viên đã chọn";
+  const templateName = (id: number) =>
+    templates.find((t) => t.id === id)?.name ?? "Ca đã chọn";
   return (
-    <section aria-label="Shift plan preview">
-      <h1>Plan shift assignments</h1>
-      <p>
-        Add employees to future shifts, then preview and save. An existing dated
-        shift keeps its schedule and staffing requirement. Cancelled assignments stay in history.
-      </p>
+    <section className="shift-card" aria-label="Lập phân công ca">
+      <div className="shift-section-heading">
+        <div>
+          <h2>Phân công nhân viên</h2>
+          <p>Thêm từng người vào ca, sau đó kiểm tra toàn bộ danh sách.</p>
+        </div>
+        <span className="shift-badge">{drafts.length} phân công đang soạn</span>
+      </div>
       {!adapter && (
-        <p role="alert">
-          Authorized preview adapter unavailable. Public preview contract
-          pending.
+        <p role="alert">Chức năng lập phân công hiện chưa khả dụng.</p>
+      )}
+      <button
+        className="shift-quiet"
+        disabled={locked || choices.loading || drafts.length > 0}
+        onClick={choices.reload}
+      >
+        Cập nhật danh sách ca và nhân viên
+      </button>
+      {choices.loading && (
+        <LoadingIndicator label="Đang tải mẫu ca và nhân viên" />
+      )}
+      {choices.error && (
+        <div className="shift-notice" role="alert">
+          {choices.error}{" "}
+          <button disabled={locked} onClick={choices.reload}>
+            Tải lại danh sách
+          </button>
+        </div>
+      )}
+      {choices.data && !employees.length && (
+        <p className="shift-notice">
+          Bộ phận này chưa có nhân viên đủ điều kiện phân ca. Cần khai báo nhân
+          viên thuộc bộ phận trước khi lập kế hoạch.
+        </p>
+      )}
+      {choices.data && !templates.length && (
+        <p className="shift-notice">
+          Chi nhánh chưa có mẫu ca đang hoạt động. Mở mục Mẫu ca để tạo trước.
         </p>
       )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (
+            locked ||
+            !planning ||
+            !employees.some((e) => e.id === Number(fields.employeeId)) ||
+            !templates.some((t) => t.id === Number(fields.templateId))
+          )
+            return;
           const draft = {
             employeeId: Number(fields.employeeId),
-            branchId: Number(fields.branchId),
-            departmentId: Number(fields.departmentId),
+            branchId: planning.scope.branchId,
+            departmentId: planning.scope.departmentId,
             templateId: Number(fields.templateId),
             shiftDate: fields.shiftDate,
           };
-          if (sessionBlocked || saveAttempted.current) return;
           if (!draftSnapshot([draft]) || drafts.length >= 500) {
             setMessage(
-              "Use positive safe IDs and a real calendar date; maximum 500 drafts.",
+              "Kiểm tra ngày làm việc và danh sách phân công. Mỗi lần lưu tối đa 500 phân công.",
+            );
+            return;
+          }
+          if (
+            drafts.some(
+              (d) =>
+                d.employeeId === draft.employeeId &&
+                d.templateId === draft.templateId &&
+                d.shiftDate === draft.shiftDate,
+            )
+          ) {
+            setMessage(
+              "Nhân viên này đã có trong danh sách cho cùng ca và ngày.",
             );
             return;
           }
           invalidate();
           setDrafts((v) => [...v, draft]);
+          setFields((v) => ({ ...v, employeeId: "" }));
         }}
       >
-        {(
-          [
-            "employeeId",
-            "branchId",
-            "departmentId",
-            "templateId",
-            "shiftDate",
-          ] as const
-        ).map((name) => (
-          <label key={name}>
-            {name}
+        <fieldset
+          className="shift-form-grid"
+          disabled={locked || choices.loading || !choices.data}
+        >
+          <label>
+            Ngày làm việc
             <input
-              disabled={pending || sessionBlocked || saveAttempted.current}
-              aria-label={name}
-              value={fields[name]}
+              required
+              type="date"
+              min={localDate()}
+              value={fields.shiftDate}
               onChange={(e) => {
                 invalidate();
-                setFields((v) => ({ ...v, [name]: e.target.value }));
+                setFields((v) => ({ ...v, shiftDate: e.target.value }));
               }}
             />
           </label>
-        ))}
-        <ShiftEmployeePicker branchId={fields.branchId} departmentId={fields.departmentId}
-          disabled={pending || sessionBlocked || saveAttempted.current}
-          onSelect={id => { invalidate(); setFields(v => ({ ...v, employeeId: id })); }} />
-        <button disabled={pending || sessionBlocked || saveAttempted.current}>Add draft</button>
-      </form>
-      <ol>
-        {drafts.map((d, i) => (
-          <li key={i}>
-            Employee {d.employeeId}; Branch {d.branchId}; Department{" "}
-            {d.departmentId}; Template {d.templateId}; Date {d.shiftDate}
-            <button
-              disabled={sessionBlocked || saveAttempted.current}
-              onClick={() => {
+          <label>
+            Ca làm việc
+            <select
+              aria-label="Ca làm việc"
+              required
+              value={fields.templateId}
+              onChange={(e) => {
                 invalidate();
-                setDrafts((v) => v.filter((_, n) => n !== i));
+                setFields((v) => ({ ...v, templateId: e.target.value }));
               }}
             >
-              Remove draft {i + 1}
-            </button>
-          </li>
-        ))}
-      </ol>
-      <button
-        disabled={
-          !adapter ||
-          !drafts.length ||
-          pending ||
-          sessionBlocked ||
-          saveAttempted.current
-        }
-        onClick={() => void run()}
-      >
-        Preview assignments
-      </button>
-      {pending && <p role="status">Loading preview...</p>}
-      {message && <p role="alert">{message}</p>}
-      {canStartNew && !pending && !sessionBlocked && <button onClick={() => {
-        saveAttempted.current = false; setCanStartNew(false); invalidate(); setDrafts([]);
-        setFields(v => ({ ...v, employeeId: "" }));
-      }}>Plan another assignment</button>}
-      {sessionBlocked && <button onClick={recover}>Check session</button>}
+              <option value="">Chọn ca làm việc</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} · {t.start.slice(0, 5)} – {t.end.slice(0, 5)}
+                  {t.crossesMidnight ? " (hôm sau)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nhân viên
+            <select
+              aria-label="Nhân viên"
+              required
+              value={fields.employeeId}
+              onChange={(e) => {
+                invalidate();
+                setFields((v) => ({ ...v, employeeId: e.target.value }));
+              }}
+            >
+              <option value="">Chọn nhân viên</option>
+              {employees.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="shift-primary"
+            disabled={!employees.length || !templates.length}
+          >
+            Thêm vào danh sách
+          </button>
+        </fieldset>
+      </form>
+      <div className="shift-draft-heading">
+        <h3>Danh sách chờ lưu</h3>
+        {drafts.length > 0 && (
+          <button
+            className="shift-quiet"
+            disabled={locked}
+            onClick={() => {
+              invalidate();
+              setDrafts([]);
+            }}
+          >
+            Xóa danh sách
+          </button>
+        )}
+      </div>
+      {!drafts.length ? (
+        <p className="shift-empty-small">
+          Chưa có phân công. Chọn ngày, ca và nhân viên ở phía trên.
+        </p>
+      ) : (
+        <div className="shift-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nhân viên</th>
+                <th>Ca làm việc</th>
+                <th>Ngày</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {drafts.map((d, i) => (
+                <tr key={`${d.employeeId}:${d.templateId}:${d.shiftDate}`}>
+                  <td>
+                    <strong>{employeeName(d.employeeId)}</strong>
+                  </td>
+                  <td>{templateName(d.templateId)}</td>
+                  <td>{d.shiftDate.split("-").reverse().join("/")}</td>
+                  <td>
+                    <button
+                      className="shift-quiet"
+                      aria-label={`Xóa phân công ${i + 1}`}
+                      disabled={locked}
+                      onClick={() => {
+                        invalidate();
+                        setDrafts((v) => v.filter((_, n) => n !== i));
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className="shift-actions">
+        <button
+          className="shift-primary"
+          disabled={!adapter || !drafts.length || locked}
+          onClick={() => void run()}
+        >
+          Kiểm tra phân công
+        </button>
+        {pending && <LoadingIndicator compact label="Đang xử lý kế hoạch ca" />}
+      </div>
+      {message && (
+        <p
+          className={`shift-notice${messageSucceeded ? " shift-notice-success" : ""}`}
+          role={messageSucceeded ? "status" : "alert"}
+        >
+          {message}
+        </p>
+      )}
+      {canStartNew && !pending && !sessionBlocked && (
+        <button
+          onClick={() => {
+            saveAttempted.current = false;
+            setCanStartNew(false);
+            invalidate();
+            setDrafts([]);
+            setFields((v) => ({ ...v, employeeId: "" }));
+          }}
+        >
+          Lập phân công khác
+        </button>
+      )}
+      {sessionBlocked && (
+        <button onClick={recover}>Kiểm tra phiên đăng nhập</button>
+      )}
+      {preview && (
+        <section
+          className="shift-review"
+          aria-label="Kết quả kiểm tra phân công"
+        >
+          <h3>Kết quả kiểm tra</h3>
+          <p>
+            Giờ hiển thị theo chi nhánh. Hệ thống kiểm tra lại xung đột khi lưu.
+          </p>
+          <ul>
+            {preview.rows.map((r) => (
+              <li key={r.index}>
+                <strong>
+                  {employeeName(drafts[r.index].employeeId)} ·{" "}
+                  {templateName(drafts[r.index].templateId)}
+                </strong>
+                <p>
+                  {r.startUtc
+                    ? planningDateTime(r.startUtc, planning?.scope.timezone)
+                    : "Chưa xác định giờ bắt đầu"}
+                  {r.endUtc &&
+                    ` — ${planningDateTime(r.endUtc, planning?.scope.timezone)}`}
+                </p>
+                {r.issues.length ? (
+                  <ul>
+                    {r.issues.map((issue) => (
+                      <li key={issue}>{issueLabels[issue]}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="shift-success">Hợp lệ để tiếp tục</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {saveAdapter &&
         preview &&
         !sessionBlocked &&
         !saveAttempted.current &&
         preview.rows.every((r) => r.issues.length === 0) && (
-          <>
-            <button disabled={pending} onClick={() => setSaveReview(true)}>
-              Review save
+          <div className="shift-save">
+            <button
+              className="shift-primary"
+              disabled={pending}
+              onClick={() => setSaveReview(true)}
+            >
+              Tiếp tục lưu kế hoạch
             </button>
             {saveReview && (
-              <>
-                <p>Confirm these assignments. Existing assignments and scheduled times will be preserved.</p>
-                <button disabled={pending} onClick={() => void savePlan()}>
-                  Confirm save plan
-                </button>
-              </>
+              <div
+                className="shift-confirm"
+                role="region"
+                aria-label="Xác nhận lưu kế hoạch"
+              >
+                <h3>Lưu {drafts.length} phân công?</h3>
+                <p>
+                  {planning?.scope.departmentName} ·{" "}
+                  {planning?.scope.branchName}. Nhân viên sẽ được thông báo sau
+                  khi lưu thành công.
+                </p>
+                <div className="shift-actions">
+                  <button
+                    className="shift-primary"
+                    disabled={pending}
+                    onClick={() => void savePlan()}
+                  >
+                    Xác nhận lưu kế hoạch
+                  </button>
+                  <button
+                    disabled={pending}
+                    onClick={() => setSaveReview(false)}
+                  >
+                    Quay lại kiểm tra
+                  </button>
+                </div>
+              </div>
             )}
-          </>
+          </div>
         )}
-      {preview && (
-        <section aria-label="Preview results">
-          <p role="status">
-            Server revalidation required. This preview is not an atomic
-            snapshot, version or permission to save.
-          </p>
-          <ol>
-            {preview.rows.map((r) => (
-              <li key={r.index}>
-                Draft {r.index + 1}: {r.startUtc ?? "No confirmed interval"}{" "}
-                {r.endUtc && <>to {r.endUtc}</>}
-                {r.issues.length ? (
-                  <ul>
-                    {r.issues.map((issue) => (
-                      <li key={issue}>MSG03: {issueLabels[issue]}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>
-                    No diagnostic issues reported. Revalidation still required.
-                  </p>
-                )}
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
     </section>
   );
 }

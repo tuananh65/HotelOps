@@ -38,7 +38,7 @@ function ProfileForm({
       (phone?.length ?? 0) > 20
     ) {
       setValidation(
-        "Full name and email are required. Maximum lengths are 200, 150 and 20 for full name, email and phone.",
+        "Họ tên và email là bắt buộc. Giới hạn họ tên 200, email 150, điện thoại 20 ký tự.",
       );
       return;
     }
@@ -52,11 +52,11 @@ function ProfileForm({
     void save(patch);
   }
   return (
-    <form aria-label="Update user profile" onSubmit={submit} noValidate>
+    <form aria-label="Cập nhật hồ sơ người dùng" onSubmit={submit} noValidate>
       <fieldset disabled={disabled}>
-        <legend>Profile fields</legend>
+        <legend>Các trường hồ sơ</legend>
         <label>
-          Full name
+          Họ và tên
           <input
             name="fullName"
             value={draft.fullName}
@@ -84,9 +84,9 @@ function ProfileForm({
             }
           />
         </label>
-        {emailInUse && <p id="profile-email-duplicate" role="alert">MSG35: Email is already in use.</p>}
+        {emailInUse && <p id="profile-email-duplicate" role="alert">MSG35: Email đã được sử dụng.</p>}
         <label>
-          Phone
+          Số điện thoại
           <input
             name="phone"
             value={draft.phone}
@@ -97,7 +97,7 @@ function ProfileForm({
             }
           />
         </label>
-        <button type="submit">Save profile</button>
+        <button type="submit">Lưu hồ sơ cá nhân</button>
       </fieldset>
       {validation && <p role="alert">{validation}</p>}
     </form>
@@ -118,43 +118,40 @@ export function UpdateUserPage({
     progress.phase === "unknown";
   return (
     <main>
-      <h1>Update user profile {target}</h1>
-      <Link to="/profile">Profile</Link>
-      <p>MSG03: Role assignments and account activation are managed separately from personal information.</p>
-      <Link to={`/users/${target}/reset-credential`}>Reset forgotten password</Link>
+      <h1>Cập nhật hồ sơ người dùng {target}</h1>
+      <Link to="/profile">Hồ sơ cá nhân</Link>
+      <p>MSG03: Gán vai trò và kích hoạt tài khoản được quản lý riêng với thông tin cá nhân.</p>
+      <Link to={`/users/${target}/reset-credential`}>Đặt lại mật khẩu bị quên</Link>
       <p>
-        The server checks authorization for each request. Loading a profile does
-        not grant permission to save changes.
+        Máy chủ kiểm tra quyền cho từng yêu cầu. Tải hồ sơ không cấp quyền lưu thay đổi.
       </p>
       {progress.phase === "unknown" && (
         <>
           <p role="alert">{unknownProfileMessage}</p>
           <p>
-            A subsequent read only confirms the current profile. It does not
-            prove that the earlier update committed. Saving remains disabled in
-            this flow.
+            Việc tải lại chỉ xác nhận hồ sơ hiện tại, không xác nhận cập nhật trước đã lưu. Thao tác lưu vẫn bị khóa tại đây.
           </p>
         </>
       )}
       {progress.phase === "updated" && (
-        <p role="status">MSG08: Profile update confirmed by the server.</p>
+        <p role="status">MSG08: Máy chủ đã xác nhận cập nhật hồ sơ.</p>
       )}
-      {progress.phase === "saving" && <p role="status">Saving profile...</p>}
+      {progress.phase === "saving" && <p role="status">Đang lưu hồ sơ cá nhân...</p>}
       {progress.error && (
         <p role="alert">
           {progress.phase === "not-dispatched"
-            ? "No profile update request was sent. "
+            ? "Không gửi yêu cầu cập nhật hồ sơ."
             : ""}
           {profileFailureMessage(progress.error)}
         </p>
       )}
       {flow.error && <p role="alert">{profileFailureMessage(flow.error)}</p>}
-      {flow.loading && <p role="status">Loading profile...</p>}
+      {flow.loading && <p role="status">Đang tải hồ sơ cá nhân...</p>}
       {snapshot && (
-        <section aria-label="Server profile snapshot">
-          <p>Account ID: {snapshot.profile.id}</p>
+        <section aria-label="Bản chụp hồ sơ từ máy chủ">
+          <p>Mã tài khoản: {snapshot.profile.id}</p>
           <p>
-            Version: <code>{snapshot.etag}</code>
+            Phiên bản: <code>{snapshot.etag}</code>
           </p>
           <ProfileForm
             key={snapshot.revision}
@@ -170,7 +167,7 @@ export function UpdateUserPage({
         !progress.error &&
         progress.phase !== "unknown" && (
           <p>
-            Reload the profile to confirm access and load a current version.
+            Tải lại hồ sơ để xác nhận quyền và lấy phiên bản hiện tại.
           </p>
         )}
       <button
@@ -178,7 +175,7 @@ export function UpdateUserPage({
         disabled={flow.loading || progress.phase === "saving"}
         onClick={flow.reload}
       >
-        Reload profile
+        Tải lại hồ sơ cá nhân
       </button>
     </main>
   );

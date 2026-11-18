@@ -151,7 +151,7 @@ async function selectBranch(p, id) {
 for (const flag of ["missing", "false", "TRUE"])
   test(`flag ${flag} blocks route and navigation without requests`, () =>
     pageTest({ flag }, async (p) => {
-      await p.getByRole("heading", { name: "HotelOps workspace" }).waitFor();
+      await p.getByRole("heading", { name: "Không gian làm việc HotelOps" }).waitFor();
       assert.equal(
         await p.getByRole("textbox", { name: "Branch ID" }).count(),
         0,
@@ -162,14 +162,14 @@ for (const flag of ["missing", "false", "TRUE"])
       });
       await p.waitForURL("**/dashboard");
       assert.equal(
-        await p.getByRole("link", { name: "Workday", exact: true }).count(),
+        await p.getByRole("link", { name: "Ngày làm việc", exact: true }).count(),
         0,
       );
       assert.equal((await workCalls(p)).length, 0);
     }));
 test("flag ON exposes dashboard link; route waits for explicit branch", () =>
   pageTest({ route: "/dashboard" }, async (p) => {
-    await p.getByRole("link", { name: "Workday", exact: true }).click();
+    await p.getByRole("link", { name: "Ngày làm việc", exact: true }).click();
     await p.getByRole("textbox", { name: "Branch ID" }).waitFor();
     assert.equal((await workCalls(p)).length, 0);
     await selectBranch(p, "3");
@@ -315,7 +315,7 @@ test("canonical scheduled route admits review only after explicit branch selecti
   assert.equal((await workCalls(p)).length,0);
   await selectBranch(p,"2");
   await p.getByText("Working day 202",{exact:true}).waitFor();
-  await p.getByRole("button",{name:"End workday",exact:true}).click();
+  await p.getByRole("button",{name:"Kết thúc ngày làm việc",exact:true}).click();
   await p.getByRole("region",{name:"Review scheduled workday"}).waitFor();
   assert.equal(await p.evaluate(()=>window.calls.filter(c=>c.method==="POST"||c.url.endsWith("/csrf")).length),0);
  }));
@@ -325,8 +325,8 @@ for (const status of [200,403,401]) {
   '/api/branches/2/workdays/202/unscheduled-summary':{status,body:status===200?{employeeId:77,reason:'Emergency coverage',workday:{workdayId:202,branchId:2,departmentId:3,isUnscheduled:true,shiftAssignmentId:null,status:'WORKING',startedAtUtc:'2026-11-16T08:00:00Z',endedAtUtc:null}}:{detail:secret}}
  }},async p=>{
   if(status===200) await p.getByText('Reason: Emergency coverage',{exact:true}).waitFor();
-  else if(status===401) {await p.waitForURL('**/login**');assert.equal(await p.getByRole('region',{name:'Unscheduled workday notification'}).count(),0);}
-  else await p.getByText('This workday is unavailable or you no longer have access.',{exact:true}).waitFor();
+  else if(status===401) {await p.waitForURL('**/login**');assert.equal(await p.getByRole('region',{name:"Thông báo ngày làm việc ngoài kế hoạch"}).count(),0);}
+  else await p.getByText("Ngày làm việc chưa khả dụng hoặc bạn không còn quyền.",{exact:true}).waitFor();
   assert.equal((await workCalls(p)).length,1);
  }));
 }

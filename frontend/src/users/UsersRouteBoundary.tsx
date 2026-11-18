@@ -89,14 +89,13 @@ export function UsersRouteBoundary() {
   if (state.status === "RESTRICTED")
     return <Navigate replace to="/change-password" />;
   if (state.status === "INITIALIZING" || checking)
-    return <p role="status">Checking your session...</p>;
+    return <p role="status">Đang kiểm tra phiên đăng nhập của bạn...</p>;
   if (blocked || state.status === "ERROR_UNAVAILABLE" || context === null) {
     return (
-      <main aria-label="Users session recovery">
-        <h1>Users session recovery</h1>
+      <main aria-label="Khôi phục phiên người dùng">
+        <h1>Khôi phục phiên người dùng</h1>
         <p role="alert">
-          Account data is hidden. A Users request or session check could not
-          confirm access. No Users request has been retried automatically.
+          Thông tin tài khoản đã ẩn do chưa xác minh được quyền truy cập hoặc phiên đăng nhập. Không tự gửi lại yêu cầu.
         </p>
         {state.status === "AUTHENTICATED" && context !== null ? (
           <button
@@ -106,14 +105,14 @@ export function UsersRouteBoundary() {
               setBlocked(false);
             }}
           >
-            Reload users
+            Tải lại người dùng
           </button>
         ) : (
           <button type="button" onClick={() => void checkSession()}>
-            Check session
+            Kiểm tra phiên đăng nhập
           </button>
         )}
-        <Link to="/profile">Profile</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </main>
     );
   }

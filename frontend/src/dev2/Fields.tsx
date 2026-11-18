@@ -1,5 +1,6 @@
 import type { Field, Values } from "./contracts";
 import { label } from "./contracts";
+import { displayCode } from "../i18n/vi";
 
 export function defaults(fields: Field[], source: Values = {}): Values {
   const values: Values = {};
@@ -56,10 +57,10 @@ export function Fields({
                   onChange({ ...values, [f.name]: e.target.value })
                 }
               >
-                <option value="">Choose {label(f.name).toLowerCase()}</option>
+                <option value="">Chọn {label(f.name).toLowerCase()}</option>
                 {f.options.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {displayCode(option)}
                   </option>
                 ))}
               </select>
@@ -70,7 +71,7 @@ export function Fields({
             <label key={name}>
               {label(f.name)}
               <input name={name} value={actor} readOnly aria-readonly="true" />
-              <small>Current authenticated user</small>
+              <small>Người dùng đang đăng nhập</small>
             </label>
           );
         if (f.fields) {
@@ -81,11 +82,11 @@ export function Fields({
             <fieldset key={name}>
               <legend>
                 {label(f.name)}
-                {f.optional ? " (optional)" : ""}
+                {f.optional ? " (không bắt buộc)" : ""}
               </legend>
               {rows.map((row, i) => (
                 <fieldset key={i}>
-                  <legend>Line {i + 1}</legend>
+                  <legend>Dòng {i + 1}</legend>
                   <Fields
                     fields={f.fields!}
                     values={row}
@@ -107,7 +108,7 @@ export function Fields({
                       })
                     }
                   >
-                    Remove line {i + 1}
+                    Xóa dòng {i + 1}
                   </button>
                 </fieldset>
               ))}
@@ -123,7 +124,7 @@ export function Fields({
                   })
                 }
               >
-                Add {label(f.name).toLowerCase()} line
+                Thêm {label(f.name).toLowerCase()} Dòng
               </button>
             </fieldset>
           );
@@ -134,10 +135,10 @@ export function Fields({
           number = /^(long|int|decimal)/.test(f.type);
         const value = values[f.name] ?? f.default ?? "";
         if(f.type === "bool?" && f.optional) return <label key={name}>
-          {label(f.name)} (optional)
+          {label(f.name)} (không bắt buộc)
           <select name={name} value={value===true?"true":value===false?"false":""}
             onChange={e=>onChange({...values,[f.name]:e.target.value===""?"":e.target.value==="true"})}>
-            <option value="">All</option><option value="true">Yes</option><option value="false">No</option>
+            <option value="">Tất cả</option><option value="true">Có</option><option value="false">Không</option>
           </select>
         </label>;
         const display =
@@ -145,7 +146,7 @@ export function Fields({
         return (
           <label key={name}>
             {label(f.name)}
-            {f.optional ? " (optional)" : " *"}
+            {f.optional ? " (không bắt buộc)" : " *"}
             <input
               name={name}
               type={
@@ -182,8 +183,7 @@ export function Fields({
             />
             {f.name.includes("RowVersion") && (
               <small>
-                Use the latest version returned by the record. A stale version
-                is rejected.
+                Dùng phiên bản mới nhất từ hồ sơ. Phiên bản cũ sẽ bị từ chối.
               </small>
             )}
           </label>

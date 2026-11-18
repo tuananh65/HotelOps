@@ -33,7 +33,7 @@ export function DepartmentDeactivationCandidate({
   )
     return (
       <p role="status">
-        Confirm an unrestricted session before reviewing a department.
+        Xác minh phiên không bị hạn chế trước khi xét duyệt bộ phận.
       </p>
     );
   return (
@@ -195,34 +195,33 @@ function Bound({
   }
   return (
     <main>
-      <h1>Department deactivation review</h1>
+      <h1>Xem xét vô hiệu hóa bộ phận</h1>
       <p>
-        Business activation remains blocked. These reads are not permission or
-        complete dependency clearance.
+        Kích hoạt nghiệp vụ vẫn bị khóa. Dữ liệu đọc không thay thế quyền hoặc xác nhận đã hết ràng buộc.
       </p>
       {data && (
         <>
-          <section aria-label="Selected department">
+          <section aria-label="Bộ phận đã chọn">
             <h2>{data.department.name}</h2>
             <p>
-              Branch {data.department.branchId}; Department {data.department.id}
-              ; {data.department.isActive ? "Active" : "Inactive"}
+              Chi nhánh {data.department.branchId}; Bộ phận {data.department.id}
+              ; {data.department.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
             </p>
           </section>
-          <section aria-label="Active account observations">
-            <h2>Active accounts visible to you</h2>
+          <section aria-label="Thông tin tài khoản đang hoạt động">
+            <h2>Tài khoản đang hoạt động bạn được phép xem</h2>
             {accounts.kind === "loading" ? (
-              <p role="status">Loading scoped accounts...</p>
+              <p role="status">Đang tải tài khoản trong phạm vi...</p>
             ) : accounts.kind === "unavailable" ? (
               <p>
                 {accounts.status === 403
-                  ? "Account review denied by server; this does not mean zero active users."
-                  : "Account coverage unavailable; no clearance can be inferred."}
+                  ? "Máy chủ từ chối xem xét tài khoản; điều này không có nghĩa là không còn người dùng hoạt động."
+                  : "Chưa kiểm tra được phạm vi tài khoản; chưa thể kết luận đã hết ràng buộc."}
               </p>
             ) : (
               <>
                 <p>
-                  Server-visible total: {accounts.total}. First page only;
+                  Tổng số được phép xem: {accounts.total}. First page only;
                   authorization scope may omit other accounts.
                 </p>
                 {accounts.items.length ? (
@@ -235,43 +234,41 @@ function Bound({
                   </ul>
                 ) : (
                   <p>
-                    No visible active accounts. This is not complete dependency
-                    clearance.
+                    Không thấy tài khoản đang hoạt động. Điều này không xác nhận đã hết mọi ràng buộc.
                   </p>
                 )}
               </>
             )}
             {observedUsers && (
               <p role="alert">
-                Resolve observed active accounts before confirming deactivation.
+                Xử lý các tài khoản hoạt động đã ghi nhận trước khi xác nhận vô hiệu hóa.
               </p>
             )}
           </section>
-          <section aria-label="Remaining dependency review">
-            <h2>Owner verification required</h2>
+          <section aria-label="Kiểm tra ràng buộc còn lại">
+            <h2>Cần người có trách nhiệm xác minh</h2>
             <ul>
               {[
-                "Warehouses",
-                "Open tasks",
-                "Open internal requests",
-                "Assets in custody",
+                "Kho",
+                "Công việc đang mở",
+                "Mở yêu cầu nội bộ",
+                "Tài sản đang quản lý",
               ].map((name) => (
                 <li key={name}>
-                  {name}: not verified; reader and writer acceptance required.
+                  {name}: chưa xác minh; cần chấp nhận cả quyền đọc và ghi.
                 </li>
               ))}
             </ul>
           </section>
           {!data.department.isActive && (
             <p>
-              This department is already inactive; no deactivation controls are
-              available.
+              Bộ phận đã ngừng hoạt động; không có thao tác vô hiệu hóa.
             </p>
           )}
           {phase === "ready" && data.department.isActive && (
             <>
               <label>
-                Reason
+                Lý do
                 <textarea
                   value={reason}
                   disabled={review}
@@ -285,46 +282,45 @@ function Bound({
                   }
                   onClick={() => setReview(true)}
                 >
-                  Review deactivation
+                  Xem lại vô hiệu hóa
                 </button>
               ) : (
                 <>
                   <p>
-                    Confirm this department and reason. Server must revalidate
-                    every dependency in its transaction.
+                    Xác nhận bộ phận và lý do. Máy chủ kiểm tra lại mọi ràng buộc trong giao dịch.
                   </p>
                   <button
                     disabled={!enabled || observedUsers}
                     onClick={() => void confirm()}
                   >
-                    Confirm department deactivation
+                    Xác nhận vô hiệu hóa bộ phận
                   </button>
-                  <button onClick={() => setReview(false)}>Edit reason</button>
+                  <button onClick={() => setReview(false)}>Chỉnh sửa lý do</button>
                 </>
               )}
             </>
           )}
         </>
       )}
-      {phase === "loading" && <p role="status">Loading department...</p>}
-      {phase === "pending" && <p role="status">Department change pending...</p>}
+      {phase === "loading" && <p role="status">Đang tải bộ phận...</p>}
+      {phase === "pending" && <p role="status">Đang chờ chuyển bộ phận...</p>}
       {phase === "confirmed" && (
-        <p role="status">Server confirmed department deactivation.</p>
+        <p role="status">Máy chủ đã xác nhận vô hiệu hóa bộ phận.</p>
       )}
       {["unavailable", "rejected", "unknown"].includes(phase) && (
         <p role="alert">
           {phase === "unknown"
-            ? "Outcome unknown. Do not replay; verify with an authorized owner."
+            ? "Chưa xác định kết quả. Không gửi lại; xác minh với người có trách nhiệm."
             : status === 412
-              ? "Department version changed. Obtain a fresh read and review in a new flow."
+              ? "Phiên bản bộ phận đã đổi. Tải lại và bắt đầu xét duyệt mới."
               : status === 403
-                ? "Department access denied by server."
+                ? "Máy chủ từ chối truy cập bộ phận."
                 : status === 409
-                  ? "Dependencies or department state prevent deactivation."
-                  : "Department review or deactivation unavailable. No automatic retry."}
+                  ? "Ràng buộc hoặc trạng thái bộ phận không cho phép vô hiệu hóa."
+                  : "Chưa thể xét duyệt hoặc vô hiệu hóa bộ phận. Không tự gửi lại."}
         </p>
       )}
-      {status === 401 && <button onClick={recover}>Check session</button>}
+      {status === 401 && <button onClick={recover}>Kiểm tra phiên đăng nhập</button>}
     </main>
   );
 }

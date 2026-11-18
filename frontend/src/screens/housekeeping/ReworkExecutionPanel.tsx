@@ -1,3 +1,4 @@
+import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../api/dev1/client";
@@ -142,9 +143,9 @@ export default function ReworkExecutionPanel({
   }
   return (
     <>
-      <h1>Rework execution</h1>
+      <h1>Thực hiện làm lại</h1>
       <Link to={`/cleaning/tasks?branchId=${branch}&kind=rework`}>
-        Cleaning Monitor
+        Theo dõi vệ sinh
       </Link>
       {notice && <p role="status">{notice}</p>}
       {error && <p role="alert">{error}</p>}
@@ -152,18 +153,18 @@ export default function ReworkExecutionPanel({
       {data && (
         <>
           <p>
-            {data.state} · Phòng {data.roomId} · Nhân viên {data.assigneeId} ·
+            {displayCode(data.state)} · Phòng {data.roomId} · Nhân viên {data.assigneeId} ·
             Hạn UTC {data.dueAtUtc || "—"}
           </p>
           <p>
-            Inspection {data.inspectionId} · Cycle {data.cleaningTaskId} ·
+            Kiểm tra {data.inspectionId} · Chu kỳ {data.cleaningTaskId} ·
             {data.sourceAuthority}
           </p>
           <form key={data.sourceETag} onSubmit={submit}>
             <fieldset disabled={busy || !!pending}>
               {data.defects.map((d) => (
                 <section key={d.id}>
-                  <h2>Defect {d.id}</h2>
+                  <h2>Lỗi {d.id}</h2>
                   <p>{d.description}</p>
                   {[
                     ...d.inspectionAttachmentIds,
@@ -181,7 +182,7 @@ export default function ReworkExecutionPanel({
                   {action === "complete" ? (
                     <>
                       <label>
-                        Remediation {d.id}
+                        Khắc phục {d.id}
                         <textarea
                           name={`defect-${d.id}`}
                           required
@@ -212,10 +213,10 @@ export default function ReworkExecutionPanel({
                   </label>
                   <button className="primary">
                     {action === "accept"
-                      ? "Accept rework"
+                      ? "Tiếp nhận làm lại"
                       : action === "start"
-                        ? data?.state === "ON_HOLD" ? "Resume rework" : "Start rework"
-                        : "Complete rework"}
+                        ? data?.state === "ON_HOLD" ? "Tiếp tục làm lại" : "Bắt đầu làm lại"
+                        : "Hoàn tất làm lại"}
                   </button>
                 </>
               )}

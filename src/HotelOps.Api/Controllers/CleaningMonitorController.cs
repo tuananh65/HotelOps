@@ -14,6 +14,10 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class CleaningMonitorController(CleaningMonitorService service) : ControllerBase
 {
+    [HttpGet("options")]
+    public Task<IActionResult> Options(long branchId, CancellationToken ct)
+        => Execute((ticket, sessionId) => service.OptionsAsync(ticket, sessionId, branchId, ct));
+
     [HttpGet]
     public Task<IActionResult> List(long branchId, [FromQuery] CleaningMonitorQuery query, CancellationToken ct)
         => Execute((ticket, sessionId) => service.ListAsync(ticket, sessionId, branchId, query, ct));

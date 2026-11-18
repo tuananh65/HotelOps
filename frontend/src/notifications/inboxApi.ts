@@ -20,7 +20,7 @@ export interface Inbox {
 }
 export class InboxFailure extends Error {
   constructor(readonly status: number) {
-    super("Notification request failed");
+    super("Yêu cầu thông báo thất bại");
   }
 }
 const request = async (
@@ -67,7 +67,7 @@ export async function readInbox(
               typeof r.acknowledgedAt === "string"))),
     )
   )
-    throw new Error("Invalid inbox response");
+    throw new Error("Phản hồi hộp thư không hợp lệ");
   return data;
 }
 export async function markInboxRead(
@@ -78,7 +78,7 @@ export async function markInboxRead(
 ): Promise<void> {
   const ids = Array.isArray(id) ? [...new Set(id)] : null;
   if (action === "acknowledge" && !ids)
-    throw new Error("Invalid acknowledgment selection");
+    throw new Error("Lựa chọn xác nhận đã đọc không hợp lệ");
   if (
     (Array.isArray(id) &&
       (id.length < 1 ||
@@ -86,7 +86,7 @@ export async function markInboxRead(
         id.some((n) => !Number.isSafeInteger(n) || n <= 0))) ||
     (typeof id === "number" && (!Number.isSafeInteger(id) || id <= 0))
   )
-    throw new Error("Invalid notification selection");
+    throw new Error("Lựa chọn thông báo không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     !csrf ||
@@ -94,8 +94,8 @@ export async function markInboxRead(
     !csrf.csrfToken ||
     csrf.headerName !== "X-CSRF-TOKEN"
   )
-    throw new Error("Invalid CSRF response");
-  if (signal.aborted || !stillCurrent()) throw new Error("Session changed");
+    throw new Error("Phản hồi CSRF không hợp lệ");
+  if (signal.aborted || !stillCurrent()) throw new Error("Phiên đăng nhập đã thay đổi");
   await request(
     action === "acknowledge"
       ? "/api/notifications/acknowledge"
@@ -124,7 +124,7 @@ export async function openInboxSource(
   stillCurrent: () => boolean,
 ): Promise<string> {
   const check = () => {
-    if (signal.aborted || !stillCurrent()) throw new Error("Session changed");
+    if (signal.aborted || !stillCurrent()) throw new Error("Phiên đăng nhập đã thay đổi");
   };
   check();
   const path = await resolveInboxSource(id, signal);
@@ -139,15 +139,15 @@ export async function resolveInboxSource(
   signal: AbortSignal,
 ): Promise<string> {
   if (!Number.isSafeInteger(id) || id <= 0)
-    throw new Error("Invalid notification identifier");
+    throw new Error("Mã thông báo không hợp lệ");
   const data = await (
     await request(`/api/notifications/${id}/source`, signal)
   ).json();
   if (typeof data?.path !== "string")
-    throw new Error("Invalid notification source");
+    throw new Error("Nguồn thông báo không hợp lệ");
   const cancellation = /^\/notifications\/([1-9][0-9]*)\/(?:cleaning-cancellation|asset-condition|asset-handover)$/.exec(data.path);
   if (cancellation) {
-    if (Number(cancellation[1]) !== id) throw new Error("Invalid notification source");
+    if (Number(cancellation[1]) !== id) throw new Error("Nguồn thông báo không hợp lệ");
     return data.path;
   }
   const ids =
@@ -186,6 +186,6 @@ export async function resolveInboxSource(
       data.path,
     );
   if (!ids || !ids.slice(1).every((id) => Number.isSafeInteger(Number(id))))
-    throw new Error("Invalid notification source");
+    throw new Error("Nguồn thông báo không hợp lệ");
   return data.path;
 }

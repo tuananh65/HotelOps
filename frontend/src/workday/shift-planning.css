@@ -1,0 +1,298 @@
+.shift-planning {
+  max-width: 1280px;
+  margin: 0 auto;
+  color: var(--brown-900, #352b24);
+}
+.shift-planning [hidden] {
+  display: none !important;
+}
+.shift-planning .shift-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.shift-planning .shift-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--brown-600, #7c5c3e);
+  margin: 0 0 8px;
+}
+.shift-planning h1 {
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+.shift-planning h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+.shift-planning h3 {
+  font-size: 16px;
+  margin: 0;
+}
+.shift-planning p {
+  margin: 8px 0 16px;
+  line-height: 1.6;
+}
+.shift-planning .shift-heading p:last-child,
+.shift-planning .shift-section-heading p {
+  color: #776759;
+  margin-bottom: 0;
+}
+.shift-planning .shift-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--brown-200, #dfcbb0);
+  border-radius: 14px;
+  padding: 24px;
+  min-width: 0;
+}
+.shift-planning .shift-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+}
+.shift-planning label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+}
+.shift-planning input,
+.shift-planning select,
+.shift-planning textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-weight: 400;
+  min-height: 44px;
+  border: 1px solid #d9c8b8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #352b24;
+}
+.shift-planning input[type="checkbox"] {
+  width: 18px;
+  min-height: 18px;
+  align-self: start;
+}
+.shift-planning button {
+  border: 1px solid #d9c8b8;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #fff;
+  color: #624831;
+  min-height: 42px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.shift-planning button:hover:not(:disabled) {
+  background: #faf6f1;
+}
+.shift-planning button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.shift-planning select:disabled {
+  background: #f7f3ee;
+  opacity: 1;
+}
+.shift-planning :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid #c5a681;
+  outline-offset: 3px;
+}
+.shift-planning .shift-primary {
+  background: #785239;
+  color: white;
+  border-color: #785239;
+  font-weight: 600;
+}
+.shift-planning .shift-primary:hover:not(:disabled) {
+  background: #624831;
+}
+.shift-planning .shift-quiet {
+  border-color: transparent;
+  background: transparent;
+  min-height: 36px;
+}
+.shift-planning .shift-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+  border-bottom: 1px solid #dfcbb0;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+.shift-planning .shift-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border-color: transparent;
+}
+.shift-planning .shift-tabs button[aria-pressed="true"] {
+  background: #f1e7d9;
+  color: #49382b;
+  font-weight: 700;
+}
+.shift-planning .shift-section-heading,
+.shift-planning .shift-draft-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.shift-planning .shift-badge {
+  padding: 7px 12px;
+  background: #faf6f1;
+  border-radius: 20px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.shift-planning fieldset {
+  border: 0;
+  padding: 0;
+  margin: 16px 0;
+  display: grid;
+  gap: 16px;
+}
+.shift-planning .shift-form-grid {
+  grid-template-columns: 1fr 1.3fr 1.3fr;
+  align-items: end;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #eee5dc;
+}
+.shift-planning .shift-form-grid button {
+  justify-self: start;
+}
+.shift-planning .shift-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #eee5dc;
+  border-radius: 10px;
+}
+.shift-planning table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  table-layout: auto;
+  margin: 0;
+}
+.shift-planning th,
+.shift-planning td {
+  text-align: left;
+  vertical-align: top;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee5dc;
+  overflow-wrap: normal;
+  word-break: normal;
+  font-size: 14px;
+}
+.shift-planning th {
+  background: #faf6f1;
+  color: #776759;
+  font-size: 12px;
+  font-weight: 600;
+}
+.shift-planning tr:last-child td {
+  border-bottom: 0;
+}
+.shift-planning .shift-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.shift-planning .shift-notice {
+  background: #fbf5e9;
+  border-left: 3px solid #c5a681;
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin: 20px 0;
+}
+.shift-planning .shift-hint {
+  font-size: 13px;
+  color: #776759;
+  margin-bottom: 0;
+}
+.shift-planning .shift-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: #776759;
+}
+.shift-planning .shift-empty h2 {
+  margin-top: 16px;
+}
+.shift-planning .shift-empty-small {
+  padding: 28px 20px;
+  background: #faf8f5;
+  border: 1px dashed #dfcbb0;
+  border-radius: 10px;
+  color: #776759;
+  text-align: center;
+}
+.shift-planning .shift-review {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #eee5dc;
+}
+.shift-planning .shift-review > ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.shift-planning .shift-review > ul > li {
+  border: 1px solid #eee5dc;
+  border-radius: 8px;
+  padding: 16px;
+}
+.shift-planning .shift-success {
+  color: #377353;
+  font-size: 13px;
+}
+.shift-planning .shift-notice-success {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #86efac;
+  border-left-color: #16a34a;
+}
+.shift-planning .shift-save {
+  margin-top: 20px;
+}
+.shift-planning .shift-confirm {
+  background: #faf6f1;
+  padding: 20px;
+  margin-top: 16px;
+  border-radius: 10px;
+}
+@media (max-width: 760px) {
+  .shift-planning .shift-grid,
+  .shift-planning .shift-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .shift-planning .shift-card {
+    padding: 18px;
+  }
+  .shift-planning h1 {
+    font-size: 24px;
+  }
+  .shift-planning .shift-tabs {
+    gap: 4px;
+  }
+  .shift-planning .shift-tabs button {
+    padding: 10px;
+    font-size: 13px;
+  }
+  .shift-planning .shift-heading > svg {
+    display: none;
+  }
+}

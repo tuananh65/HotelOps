@@ -9,7 +9,7 @@ import type {
 } from "./userProfileContracts";
 
 export const unknownProfileMessage =
-  "Profile update outcome could not be confirmed. Changes may already have been saved. Do not retry this update automatically. Ask an authorized administrator to verify the current profile before making another change.";
+  "Chưa xác nhận cập nhật hồ sơ; thay đổi có thể đã lưu. Không tự gửi lại. Nhờ quản trị viên kiểm tra hồ sơ hiện tại trước khi thay đổi tiếp.";
 type Snapshot = { profile: UserProfileDto; etag: string; revision: number };
 type Read = { owner: PublicSession; target: number; attempt: number } & (
   | { kind: "loading" }
@@ -261,26 +261,26 @@ export function useUpdateUserProfile(target: number | null) {
 export function profileFailureMessage(error: UserProfileError): string {
   switch (error.reason) {
     case "FORBIDDEN":
-      return "Access denied. This response does not confirm whether the account exists.";
+      return "Không có quyền truy cập. Phản hồi này không xác nhận tài khoản có tồn tại hay không.";
     case "NOT_FOUND":
-      return "The server could not find this user account.";
+      return "Máy chủ không tìm thấy tài khoản này.";
     case "SESSION_INVALID":
-      return "Your session must be checked. Reload the profile after session recovery.";
+      return "Cần kiểm tra phiên. Tải lại hồ sơ sau khi khôi phục phiên.";
     case "PASSWORD_CHANGE_REQUIRED":
-      return "Change your password before updating a user profile.";
+      return "Đổi mật khẩu trước khi cập nhật hồ sơ người dùng.";
     case "EMAIL_IN_USE":
-      return "Email is already in use. Choose another email.";
+      return "Email đã được sử dụng. Chọn email khác.";
     case "LAST_DURABLE_ADMIN":
-      return "This change would prevent safe administrator access. Contact an authorized administrator.";
+      return "Thay đổi này ảnh hưởng an toàn truy cập quản trị. Liên hệ quản trị viên có quyền.";
     case "STALE_VERSION":
     case "IF_MATCH_REQUIRED":
-      return "The profile version must be refreshed. Click Reload profile, review the current data and decide whether to save a new change.";
+      return "Cần tải phiên bản hồ sơ mới. Chọn Tải lại hồ sơ, kiểm tra dữ liệu rồi quyết định lưu thay đổi mới.";
     case "CSRF_VALIDATION_FAILED":
-      return "The security check was rejected. No update has been retried.";
+      return "Kiểm tra bảo mật bị từ chối. Không gửi lại cập nhật.";
     case "VALIDATION_FAILED":
     case "INVALID_REQUEST":
-      return "Check the full name, email and phone fields. The server validates email format.";
+      return "Kiểm tra họ tên, email và điện thoại. Máy chủ kiểm tra định dạng email.";
     default:
-      return "The profile request could not be completed safely. No update has been retried.";
+      return "Không hoàn tất an toàn yêu cầu hồ sơ. Không gửi lại cập nhật.";
   }
 }

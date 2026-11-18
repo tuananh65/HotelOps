@@ -24,7 +24,7 @@ export function UnscheduledStartForm({branchId, disabled, current, onBusy, onSta
       }}).then(r=>{
         if(controller.signal.aborted || !current()) return;
         if(r.ok){setDepartments(r.data);if(r.data.length===1)setDepartment(String(r.data[0].departmentId));}
-        else {setMessage("Verified department memberships unavailable.");if(r.error.kind==="http"&&r.error.status===401)invalidate();}
+        else {setMessage("Chưa có phân công bộ phận đã xác minh.");if(r.error.kind==="http"&&r.error.status===401)invalidate();}
       });
     return ()=>{mounted.current=false;controller.abort();abort.current?.abort();};
   },[branchId,current]);
@@ -39,17 +39,17 @@ export function UnscheduledStartForm({branchId, disabled, current, onBusy, onSta
       if(result.error.status===401)invalidate();}
     busy.current=false;
   }
-  return <section aria-label="Unscheduled start">
-    <h2>Start without a shift</h2>
-    {departments.length===0&&<p>No verified department membership is available for this branch.</p>}
-    <label>Department<select value={department} disabled={disabled} onChange={e=>{setReview(false);setDepartment(e.target.value);}}>
-      <option value="">Choose verified department</option>{departments.map(d=><option key={d.departmentId} value={d.departmentId}>{d.code} — {d.name}</option>)}
+  return <section aria-label="Bắt đầu ngoài kế hoạch">
+    <h2>Bắt đầu ngoài kế hoạch ca</h2>
+    {departments.length===0&&<p>Không có phân công bộ phận đã xác minh cho chi nhánh này.</p>}
+    <label>Bộ phận<select aria-label="Bộ phận" value={department} disabled={disabled} onChange={e=>{setReview(false);setDepartment(e.target.value);}}>
+      <option value="">Chọn bộ phận đã xác minh</option>{departments.map(d=><option key={d.departmentId} value={d.departmentId}>{d.code} — {d.name}</option>)}
     </select></label>
-    <label>Reason<textarea value={reason} maxLength={1000} disabled={disabled} onChange={e=>{setReview(false);setReason(e.target.value);}}/></label>
-    <button disabled={disabled||!valid} onClick={()=>setReview(true)}>Review unscheduled start</button>
-    {review&&<div><p>Start in {departments.find(d=>d.departmentId===Number(department))?.name}? The authorized Department Head will be notified.</p>
-      <p>{reason}</p><button disabled={disabled||!valid} onClick={()=>void confirm()}>Confirm unscheduled start</button>
-      <button disabled={disabled} onClick={()=>setReview(false)}>Cancel review</button></div>}
+    <label>Lý do<textarea value={reason} maxLength={1000} disabled={disabled} onChange={e=>{setReview(false);setReason(e.target.value);}}/></label>
+    <button disabled={disabled||!valid} onClick={()=>setReview(true)}>Xem lại thông tin bắt đầu ngoài ca</button>
+    {review&&<div><p>Bắt đầu trong {departments.find(d=>d.departmentId===Number(department))?.name}? Trưởng bộ phận có quyền sẽ nhận thông báo.</p>
+      <p>{reason}</p><button disabled={disabled||!valid} onClick={()=>void confirm()}>Xác nhận bắt đầu ngoài ca</button>
+      <button disabled={disabled} onClick={()=>setReview(false)}>Hủy xem xét</button></div>}
     {message&&<p role="status">{message}</p>}
   </section>;
 }

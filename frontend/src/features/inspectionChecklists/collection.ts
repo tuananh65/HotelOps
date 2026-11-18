@@ -110,6 +110,6 @@ export function validateCollection(
         ),
     )
   )
-    throw new Error("Invalid collection response");
+    throw new Error("Phản hồi bộ sưu tập không hợp lệ");
   return value;
 }

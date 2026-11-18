@@ -5,26 +5,26 @@ import type { AuthError } from "../../auth/authStore";
 
 function loginMessage(error: AuthError): string {
   if (error.kind === "busy")
-    return "Another authentication operation is in progress. Please wait before trying again.";
+    return "Một thao tác xác thực khác đang chạy. Vui lòng chờ trước khi thử lại.";
   if (error.kind === "stale")
-    return "Authentication state changed. Please check your session before trying again.";
+    return "Trạng thái xác thực đã đổi. Kiểm tra phiên đăng nhập trước khi thử lại.";
   if (error.kind === "http") {
     if (error.status === 401 && error.code === "INVALID_CREDENTIALS")
-      return "Invalid username or password.";
+      return "Tên đăng nhập hoặc mật khẩu không đúng.";
     if (error.status === 423 && error.code === "ACCOUNT_LOCKED")
       return error.lockedUntil
-        ? `Your account is temporarily locked until ${new Date(error.lockedUntil).toLocaleString()} (local time).`
-        : "Your account is locked. Please contact your Administrator.";
+        ? `Tài khoản tạm khóa đến ${new Date(error.lockedUntil).toLocaleString()} (giờ địa phương).`
+        : "Tài khoản đã khóa. Liên hệ quản trị viên.";
     if (error.status === 403 && error.code === "TEMPORARY_PASSWORD_EXPIRED")
-      return "Your temporary password has expired. Please contact your Administrator.";
+      return "Mật khẩu tạm đã hết hạn. Liên hệ quản trị viên.";
     if (error.status === 409 && error.code === "AUTHENTICATED_SESSION_EXISTS")
-      return "A signed-in session already exists. Please check your session before trying again.";
+      return "Đã có phiên đăng nhập. Kiểm tra phiên trước khi thử lại.";
     if (error.status === 400 && error.code === "VALIDATION_FAILED")
-      return "Please check your username and password and submit again.";
+      return "Kiểm tra tên đăng nhập và mật khẩu rồi gửi lại.";
     if (error.status === 400 && error.code === "CSRF_VALIDATION_FAILED")
-      return "The security check could not be completed. Please check your session before trying again.";
+      return "Chưa hoàn tất kiểm tra bảo mật. Kiểm tra phiên trước khi thử lại.";
   }
-  return "Authentication is currently unavailable. The sign-in result could not be confirmed. Please try again later.";
+  return "Dịch vụ xác thực chưa khả dụng. Chưa xác nhận kết quả đăng nhập. Vui lòng thử lại sau.";
 }
 
 export default function SignInScreen() {
@@ -49,7 +49,7 @@ export default function SignInScreen() {
     const required = { username: !username.trim(), password: !password.trim() };
     setMissing(required);
     if (required.username || required.password) {
-      setError("Username and password are required.");
+      setError("Cần tên đăng nhập và mật khẩu.");
       return;
     }
     submitting.current = true;
@@ -67,7 +67,7 @@ export default function SignInScreen() {
       // Never render raw exceptions or submitted values, including from a rejected adapter.
       if (mounted.current)
         setError(
-          "Authentication is currently unavailable. The sign-in result could not be confirmed. Please try again later.",
+          "Dịch vụ xác thực chưa khả dụng. Chưa xác nhận kết quả đăng nhập. Vui lòng thử lại sau.",
         );
     } finally {
       submitting.current = false;
@@ -84,25 +84,25 @@ export default function SignInScreen() {
   return (
     <div className="auth">
       <aside className="auth-art">
-        <span className="eyebrow">DUC VUONG SAIGON HOTEL</span>
+        <span className="eyebrow">KHÁCH SẠN ĐỨC VƯỢNG SÀI GÒN</span>
         <h1>
-          Hotel operations.
+          Vận hành khách sạn.
           <br />
-          One connected workspace.
+          Không gian làm việc kết nối.
         </h1>
-        <small>BUI VIEN / CAO THANG</small>
+        <small>BÙI VIỆN / CAO THẮNG</small>
       </aside>
       <main className="auth-panel">
         <Link to="/login" className="auth-wordmark">
-          HOTEL<span>OPS</span>
+          Hotel<span>Ops</span>
         </Link>
-        <span className="eyebrow">STAFF PORTAL</span>
-        <h1>Sign In</h1>
-        <p>Welcome back. Sign in to your hotel workspace.</p>
+        <span className="eyebrow">CỔNG NHÂN VIÊN</span>
+        <h1>Đăng nhập</h1>
+        <p>Chào mừng bạn trở lại. Đăng nhập để bắt đầu làm việc.</p>
         <form noValidate onSubmit={submit} aria-busy={pending}>
           <div className="form-grid">
             <label htmlFor="login-username">
-              Username or email
+              Tên đăng nhập hoặc email
               <input
                 id="login-username"
                 name="username"
@@ -115,10 +115,10 @@ export default function SignInScreen() {
                 onChange={(event) => { setUsername(event.target.value); setMissing(value => ({ ...value, username: false })); }}
                 disabled={pending}
               />
-              {missing.username && <span>Username or email is required.</span>}
+              {missing.username && <span>Vui lòng nhập tên đăng nhập hoặc email.</span>}
             </label>
             <label htmlFor="login-password">
-              Password
+              Mật khẩu
               <input
                 id="login-password"
                 name="password"
@@ -132,7 +132,7 @@ export default function SignInScreen() {
                 onChange={(event) => { setPassword(event.target.value); setMissing(value => ({ ...value, password: false })); }}
                 disabled={pending}
               />
-              {missing.password && <span>Password is required.</span>}
+              {missing.password && <span>Vui lòng nhập mật khẩu.</span>}
             </label>
           </div>
           {error && (
@@ -142,12 +142,12 @@ export default function SignInScreen() {
           )}
           <div className="form-actions">
             <button className="primary" type="submit" disabled={pending}>
-              {pending ? "Signing in…" : "Sign in"}
+              {pending ? "Đang đăng nhập…" : "Đăng nhập"}
             </button>
           </div>
         </form>
         <Link className="forgot" to="/forgot-password">
-          Forgot password?
+          Quên mật khẩu?
         </Link>
       </main>
     </div>

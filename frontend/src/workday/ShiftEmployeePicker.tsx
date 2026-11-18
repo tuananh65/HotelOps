@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
@@ -46,9 +47,9 @@ export function ShiftEmployeePicker({ branchId, departmentId, disabled, onSelect
       if (controller.signal.aborted || attempt !== generation.current) return;
       if (result.ok) {
         setPage(result.data);
-        if (!result.data.employees.length) setMessage("No active employees with current membership in this department.");
+        if (!result.data.employees.length) setMessage("Không có nhân viên đang hoạt động có phân công hiệu lực trong bộ phận này.");
       } else {
-        setMessage("Employee list unavailable. Current department authority and SHIFT_MANAGE are required.");
+        setMessage("Chưa có danh sách nhân viên. Cần thẩm quyền bộ phận và SHIFT_MANAGE hiện tại.");
         if (result.error.kind === "http" && result.error.status === 401) actions.invalidateSession(owner);
       }
     } finally {
@@ -56,16 +57,16 @@ export function ShiftEmployeePicker({ branchId, departmentId, disabled, onSelect
     }
   }
   return <fieldset disabled={disabled || pending}>
-    <legend>Employees in the selected branch and department</legend>
-    <button type="button" disabled={!safeId(Number(branchId)) || !safeId(Number(departmentId))} onClick={() => void load()}>Load employees</button>
+    <legend>Nhân viên thuộc chi nhánh và bộ phận đã chọn</legend>
+    <button type="button" disabled={!safeId(Number(branchId)) || !safeId(Number(departmentId))} onClick={() => void load()}>Tải nhân viên</button>
     {page && <>
-      <label>Choose employee<select value="" onChange={e => onSelect(e.target.value)}>
-        <option value="">Select an employee</option>
-        {page.employees.map(e => <option key={e.id} value={e.id}>{e.name} (#{e.id})</option>)}
+      <label>Chọn nhân viên<select value="" onChange={e => onSelect(e.target.value)}>
+        <option value="">Chọn nhân viên</option>
+        {page.employees.map(e => <option key={e.id} value={e.id}>{e.name} (#{displayCode(e.id)})</option>)}
       </select></label>
-      {page.nextCursor !== null && <button type="button" onClick={() => void load(page.nextCursor!)}>Next employees</button>}
+      {page.nextCursor !== null && <button type="button" onClick={() => void load(page.nextCursor!)}>Nhân viên tiếp theo</button>}
     </>}
-    {pending && <p role="status">Loading employees...</p>}
+    {pending && <p role="status">Đang tải nhân viên...</p>}
     {message && <p role="status">{message}</p>}
   </fieldset>;
 }

@@ -212,7 +212,7 @@ test("server snapshot requires no USER_VIEW; explicit confirmation and exact CSR
       0,
     );
     await confirm(p);
-    await p.getByText(/Activation confirmed by the server/).waitFor();
+    await p.getByText(/Máy chủ đã xác nhận kích hoạt\. Mã tài khoản:/).waitFor();
     const mutations = (await calls(p)).filter((c) => c.method === "PATCH");
     assert.equal(mutations.length, 1);
     assert.equal(mutations[0].url, "/api/users/42/activate");
@@ -257,7 +257,7 @@ for (const reason of ["😀😀😀😀😀", "a".repeat(16371)])
       await ready(p);
       await review(p, reason);
       await confirm(p);
-      await p.getByText(/Activation confirmed by the server/).waitFor();
+      await p.getByText(/Máy chủ đã xác nhận kích hoạt\. Mã tài khoản:/).waitFor();
       assert.equal(
         (await calls(p)).filter((c) => c.method === "PATCH")[0].body,
         JSON.stringify({ reason }),
@@ -269,10 +269,10 @@ test("StrictMode, Enter and double confirmation send at most one PATCH", async (
     await ready(p);
     assert.equal((await calls(p, "/api/users/42/profile")).length, 1);
     await p
-      .getByRole("textbox", { name: "Reason", exact: true })
+      .getByRole("textbox", { name: "Lý do", exact: true })
       .fill("Account approved");
     await p
-      .getByRole("textbox", { name: "Reason", exact: true })
+      .getByRole("textbox", { name: "Lý do", exact: true })
       .press("Enter");
     assert.equal(
       (await calls(p)).filter((c) => c.method === "PATCH").length,
@@ -294,7 +294,7 @@ test("StrictMode, Enter and double confirmation send at most one PATCH", async (
       body: { userId: 42, accountStatus: "ACTIVE" },
       headers: { ETag: nextTag },
     });
-    await p.getByText(/Activation confirmed by the server/).waitFor();
+    await p.getByText(/Máy chủ đã xác nhận kích hoạt\. Mã tài khoản:/).waitFor();
     assert.equal(
       (await calls(p)).filter((c) => c.method === "PATCH").length,
       1,
@@ -306,7 +306,7 @@ test("editing after review invalidates confirmation", async () => {
     await ready(p);
     await review(p);
     await p
-      .getByRole("textbox", { name: "Reason", exact: true })
+      .getByRole("textbox", { name: "Lý do", exact: true })
       .fill("Changed reason");
     assert.equal(
       await p
@@ -394,7 +394,7 @@ test("412 requires explicit Reload, fresh target review and new confirmation", a
       assert.ok((await body(p)).includes("Changed Server Name"));
       assert.equal(
         await p
-          .getByRole("textbox", { name: "Reason", exact: true })
+          .getByRole("textbox", { name: "Lý do", exact: true })
           .inputValue(),
         "",
       );
@@ -404,7 +404,7 @@ test("412 requires explicit Reload, fresh target review and new confirmation", a
       );
       await review(p, "Reviewed fresh target");
       await confirm(p);
-      await p.getByText(/Activation confirmed by the server/).waitFor();
+      await p.getByText(/Máy chủ đã xác nhận kích hoạt\. Mã tài khoản:/).waitFor();
       assert.equal(
         (await calls(p)).filter((c) => c.method === "PATCH")[1].headers[
           "if-match"
@@ -615,7 +615,7 @@ async function navigate(page, path) {
 }
 const body = (page) => page.locator("body").innerText();
 const review = async (page, reason = "Account approved") => {
-  await page.getByRole("textbox", { name: "Reason", exact: true }).fill(reason);
+  await page.getByRole("textbox", { name: "Lý do", exact: true }).fill(reason);
   await page
     .getByRole("button", { name: "Review activation", exact: true })
     .click();

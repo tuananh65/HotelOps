@@ -10,6 +10,23 @@ import {
 } from "./scheduledContracts";
 import { safeId, type OwnShift, type OwnWorkday } from "./contracts";
 import { UnscheduledStartForm } from "./UnscheduledStartForm";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+
+const dateTime = (value: string) =>
+  new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+const shiftLabel = (shift: OwnShift) =>
+  `${dateTime(shift.scheduledStartAtUtc)} – ${new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(shift.scheduledEndAtUtc))}`;
 const keys = new WeakMap<object, number>();
 let generation = 0;
 function key(x: object) {
@@ -19,9 +36,13 @@ function key(x: object) {
 /** Scheduled Start/End integration; server independently authorizes every mutation. */
 export function ScheduledWorkdayPanel({
   branchId,
+  branchName,
+  onBusyChange,
   dispatchEnabled = false,
 }: {
   branchId: number;
+  branchName?: string;
+  onBusyChange?: (busy: boolean) => void;
   dispatchEnabled?: boolean;
 }) {
   const { state, actions } = useAuth();
@@ -45,9 +66,9 @@ export function ScheduledWorkdayPanel({
   )
     return (
       <section>
-        <p>Confirmed unrestricted session required.</p>
+        <p>Cần phiên đăng nhập đã xác minh và không bị hạn chế.</p>
         <button onClick={() => void actions.revalidate()}>
-          Revalidate session
+          Xác minh lại phiên
         </button>
       </section>
     );
@@ -55,18 +76,19 @@ export function ScheduledWorkdayPanel({
     return (
       <section>
         <p role="alert">
-          Session invalid. Revalidate before reading or changing workday.
+          Phiên đăng nhập không hợp lệ. Xác minh lại trước khi xem hoặc thay đổi
+          ngày làm việc.
         </p>
         <button onClick={() => void actions.revalidate()}>
-          Revalidate session
+          Xác minh lại phiên
         </button>
       </section>
     );
-  if (!safeId(branchId)) return <p role="alert">Choose a valid branch ID.</p>;
+  if (!safeId(branchId)) return <p role="alert">Chọn mã chi nhánh hợp lệ.</p>;
   return (
     <Bound
       key={key(binding)}
-      {...{ branchId, dispatchEnabled, current }}
+      {...{ branchId, branchName, onBusyChange, dispatchEnabled, current }}
       invalidate={() => setInvalidIdentity(identity)}
       revalidate={() => void actions.revalidate()}
     />
@@ -79,12 +101,16 @@ type Review = {
 };
 function Bound({
   branchId,
+  branchName,
+  onBusyChange,
   dispatchEnabled,
   current,
   revalidate,
   invalidate,
 }: {
   branchId: number;
+  branchName?: string;
+  onBusyChange?: (busy: boolean) => void;
   dispatchEnabled: boolean;
   current: () => boolean;
   revalidate: () => void;
@@ -109,6 +135,10 @@ function Bound({
     [locked, setLocked] = useState(false);
   const [receipt, setReceipt] = useState<ScheduledWorkdayResponse | null>(null);
   const [review, setReview] = useState<Review | null>(null);
+  useEffect(() => {
+    onBusyChange?.(pending || locked || review !== null);
+    return () => onBusyChange?.(false);
+  }, [onBusyChange, pending, locked, review]);
   const reviewed = useRef<Review | null>(null);
   function clearReview() {
     reviewed.current = null;
@@ -155,8 +185,16 @@ function Bound({
         invalidateSession();
         return;
       }
-      if (r.ok) setShifts(r.data);
-      else setShiftError(`Assigned shifts unavailable: ${r.error}.`);
+      if (r.ok) {
+        setShifts(r.data);
+        if (r.data.length === 1)
+          setSelection(String(r.data[0].shiftAssignmentId));
+      } else
+        setShiftError(
+          r.error === "forbidden"
+            ? "Bạn chưa được phép xem ca tại chi nhánh này."
+            : "Chưa tải được ca làm việc. Vui lòng thử tải lại.",
+        );
     });
     void read.current(branchId, abort.signal).then((r) => {
       if (!active || !current() || invalid.current) return;
@@ -167,7 +205,12 @@ function Bound({
       if (r.ok) {
         setDay(r.data);
         if (!uncertain.current) busy.current = false;
-      } else setDayError(`Current workday unavailable: ${r.error}.`);
+      } else
+        setDayError(
+          r.error === "forbidden"
+            ? "Bạn chưa được phép ghi nhận ca tại chi nhánh này."
+            : "Chưa tải được trạng thái làm việc. Vui lòng thử tải lại.",
+        );
     });
     return () => {
       active = false;
@@ -182,8 +225,13 @@ function Bound({
   const endAllowed =
     !!day &&
     day.branchId === branchId &&
-    (day.isUnscheduled ? day.shiftAssignmentId === null : safeId(day.shiftAssignmentId)) &&
-    (day.openInterval === null || ["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind)) &&
+    (day.isUnscheduled
+      ? day.shiftAssignmentId === null
+      : safeId(day.shiftAssignmentId)) &&
+    (day.openInterval === null ||
+      ["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(
+        day.openInterval.workItemKind,
+      )) &&
     strongWorkdayTag(`"${day.rowVersion}"`);
   function prepare(operation: "start" | "end") {
     if (
@@ -196,6 +244,7 @@ function Bound({
     )
       return;
     const next = { operation, shift: selected, day };
+    setReceipt(null);
     reviewed.current = next;
     setReview(next);
     setMessage("");
@@ -248,7 +297,9 @@ function Bound({
       setReceipt(result.data);
       setDay(undefined);
       setMessage(
-        `MSG08: ${operation === "start" ? "Start" : "End"} confirmed. Refreshing authoritative snapshot.`,
+        operation === "start"
+          ? "Đã ghi nhận bắt đầu ca thành công."
+          : "Đã ghi nhận kết thúc ca thành công.",
       );
       setRefresh((n) => n + 1);
     } else {
@@ -266,174 +317,277 @@ function Bound({
     return (
       <section>
         <p role="alert">
-          Session invalid. Revalidate before reading or changing workday.
+          Phiên đăng nhập không hợp lệ. Xác minh lại trước khi xem hoặc thay đổi
+          ngày làm việc.
         </p>
-        <button onClick={revalidate}>Revalidate session</button>
+        <button onClick={revalidate}>Xác minh lại phiên</button>
       </section>
     );
   return (
-    <main>
-      <h1>Workday</h1>
-      <p>
-        Branch {branchId}. Server confirms access and assignment eligibility.
-      </p>
+    <div className="workday-content">
       {!dispatchEnabled && (
-        <p>Mutation dispatch disabled pending runtime approval.</p>
+        <p className="workday-notice">
+          Chức năng ghi nhận ca hiện chưa khả dụng.
+        </p>
+      )}
+      <div className="workday-columns">
+        <section className="workday-card" aria-label="Ca được phân">
+          <span className="workday-eyebrow">01 · CA HÔM NAY</span>
+          <h2>Ca được phân</h2>
+          <p className="workday-muted">
+            Giờ Việt Nam (UTC+7). Các ca ngày khác không hiển thị trong danh
+            sách bắt đầu hôm nay.
+          </p>
+          {shiftError ? (
+            <p role="alert">{shiftError}</p>
+          ) : shifts === null ? (
+            <LoadingIndicator label="Đang tải ca làm việc" />
+          ) : shifts.length === 0 ? (
+            <div className="workday-empty">
+              <strong>Hôm nay chưa có ca có thể bắt đầu</strong>
+              <p>
+                Ca đã bắt đầu hoặc đã kết thúc sẽ không xuất hiện ở đây. Nếu bạn
+                được phân ca vào ngày khác, hãy quay lại đúng ngày.
+              </p>
+            </div>
+          ) : (
+            <label>
+              Ca đã lên lịch
+              <select
+                aria-label="Ca đã lên lịch"
+                value={selection}
+                disabled={pending || locked || !!day}
+                onChange={(e) => {
+                  clearReview();
+                  setSelection(e.target.value);
+                }}
+              >
+                <option value="">Chọn ca làm việc</option>
+                {shifts.map((s) => (
+                  <option key={s.shiftAssignmentId} value={s.shiftAssignmentId}>
+                    {shiftLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button
+            className="workday-primary"
+            disabled={!dispatchEnabled || !startAllowed || pending || locked}
+            onClick={() => prepare("start")}
+          >
+            Bắt đầu ca đã phân
+          </button>
+          {day && (
+            <p className="workday-muted">
+              Bạn đang làm việc. Hãy kết thúc ca hiện tại trước khi bắt đầu ca
+              khác.
+            </p>
+          )}
+        </section>
+        <section className="workday-card" aria-label="Ngày làm việc hiện tại">
+          <span className="workday-eyebrow">02 · TRẠNG THÁI LÀM VIỆC</span>
+          <h2>Ngày làm việc hiện tại</h2>
+          {dayError ? (
+            <p role="alert">{dayError}</p>
+          ) : day === undefined ? (
+            <LoadingIndicator label="Đang tải trạng thái làm việc" />
+          ) : day === null ? (
+            <div className="workday-empty">
+              <strong>Chưa bắt đầu ca</strong>
+              <p>
+                Chọn ca được phân rồi bấm Bắt đầu ca đã phân để ghi nhận giờ vào
+                làm.
+              </p>
+            </div>
+          ) : (
+            <>
+              <span className="workday-badge">Đang làm việc</span>
+              <dl className="workday-facts">
+                <div>
+                  <dt>Bắt đầu lúc</dt>
+                  <dd>{dateTime(day.startedAtUtc)}</dd>
+                </div>
+                <div>
+                  <dt>Hình thức</dt>
+                  <dd>
+                    {day.isUnscheduled
+                      ? "Ngoài kế hoạch ca"
+                      : "Theo ca được phân"}
+                  </dd>
+                </div>
+              </dl>
+              <p>
+                Kiểm tra công việc còn mở và bàn giao nếu cần trước khi kết thúc
+                ca.
+              </p>
+              {day.openInterval && (
+                <p className="workday-notice" role="alert">
+                  {[
+                    "TASK",
+                    "CLEANING",
+                    "REWORK",
+                    "MAINTENANCE",
+                    "OCCURRENCE",
+                  ].includes(day.openInterval.workItemKind)
+                    ? "Bạn còn công việc đang chạy. Khi kết thúc ca, hệ thống sẽ tạm dừng công việc với lý do hết ca. Hãy hoàn tất bàn giao bắt buộc trước."
+                    : "Công việc đang chạy chưa hỗ trợ tạm dừng. Vui lòng hoàn tất công việc trước khi kết thúc ca."}
+                </p>
+              )}
+              {day.openInterval?.workItemKind === "OCCURRENCE" && (
+                <Link
+                  to={`/operations/maintenance?branchId=${branchId}&runId=${day.openInterval.workItemId}`}
+                >
+                  Mở công việc bảo trì định kỳ
+                </Link>
+              )}
+            </>
+          )}
+          <button
+            className="workday-secondary"
+            disabled={!dispatchEnabled || !endAllowed || pending || locked}
+            onClick={() => prepare("end")}
+          >
+            {day?.openInterval
+              ? "Tạm dừng tất cả và kết thúc ngày làm việc"
+              : "Kết thúc ngày làm việc"}
+          </button>
+        </section>
+      </div>
+      {dispatchEnabled &&
+        day === null &&
+        shifts !== null &&
+        shifts.length === 0 &&
+        !shiftError &&
+        !dayError && (
+          <details className="workday-card workday-unscheduled">
+            <summary>Làm việc ngoài kế hoạch ca</summary>
+            <p>
+              Chỉ dùng khi hôm nay không có ca được phân. Bạn cần chọn bộ phận
+              và ghi rõ lý do.
+            </p>
+            <UnscheduledStartForm
+              branchId={branchId}
+              current={current}
+              disabled={pending || locked}
+              invalidate={invalidateSession}
+              onBusy={(value) => {
+                busy.current = value;
+                setPending(value);
+              }}
+              onUnknown={() => {
+                uncertain.current = true;
+                setLocked(true);
+              }}
+              onStarted={(value) => {
+                setMessage("Đã bắt đầu ngày làm việc ngoài kế hoạch.");
+                setReceipt(value);
+                setDay(undefined);
+                setPending(false);
+                setRefresh((n) => n + 1);
+              }}
+            />
+          </details>
+        )}
+      {review && (
+        <section
+          className="workday-card workday-review"
+          aria-label="Xem lại ngày làm việc theo ca"
+        >
+          <h2>
+            {review.operation === "start"
+              ? "Xác nhận bắt đầu ca"
+              : "Xác nhận kết thúc ca"}
+          </h2>
+          {branchName && <p>{branchName}</p>}
+          <p>
+            {review.operation === "start"
+              ? `Ca đã chọn: ${shiftLabel(review.shift!)}`
+              : `Đã bắt đầu lúc: ${dateTime(review.day!.startedAtUtc)}`}
+          </p>
+          <p>
+            Thời gian thực tế được ghi nhận khi bạn xác nhận.
+            {review.operation === "end" &&
+              review.day?.openInterval &&
+              " Công việc đang chạy sẽ được tạm dừng. Nếu không thể tạm dừng, ca làm việc vẫn tiếp tục."}
+          </p>
+          <div className="workday-actions">
+            <button
+              className="workday-primary"
+              disabled={pending || locked || !dispatchEnabled}
+              onClick={() => void confirm()}
+            >
+              {review.operation === "start"
+                ? "Xác nhận bắt đầu ca"
+                : "Xác nhận kết thúc ngày làm việc"}
+            </button>
+            <button disabled={pending} onClick={clearReview}>
+              Quay lại
+            </button>
+          </div>
+        </section>
+      )}
+      {pending && <LoadingIndicator label="Đang ghi nhận ca làm việc" />}
+      {message && (
+        <p
+          className={`workday-notice${receipt ? " workday-notice-success" : ""}`}
+          role={receipt ? "status" : "alert"}
+        >
+          {message}
+        </p>
       )}
       {receipt && (
-        <section aria-label="Confirmed workday result">
-          <h2>Recorded workday</h2>
-          <p>
-            Workday {receipt.workdayId}: {receipt.status}
-          </p>
-          <p>
-            Server start:{" "}
-            <time dateTime={receipt.startedAtUtc}>{receipt.startedAtUtc}</time>
-          </p>
-          {receipt.endedAtUtc && (
-            <p>
-              Server end:{" "}
-              <time dateTime={receipt.endedAtUtc}>{receipt.endedAtUtc}</time>
-            </p>
-          )}
-          <p>
-            {receipt.isUnscheduled ? "Unscheduled workday" : `Assignment ${receipt.shiftAssignmentId}`}; Branch {receipt.branchId}.
-            This is not task effort or payroll time.
-          </p>
-        </section>
-      )}
-      {dispatchEnabled && <UnscheduledStartForm branchId={branchId} current={current}
-        disabled={day!==null||pending||locked||!!shifts?.length} invalidate={invalidateSession}
-        onBusy={value=>{busy.current=value;setPending(value);}}
-        onUnknown={()=>{uncertain.current=true;setLocked(true);}}
-        onStarted={value=>{setMessage("MSG08: Unscheduled workday started.");setReceipt(value);setDay(undefined);setPending(false);setRefresh(n=>n+1);}}
-      />}
-      <section aria-label="Assigned shifts">
-        <h2>Assigned shifts</h2>
-        {shiftError ? (
-          <p role="alert">{shiftError}</p>
-        ) : shifts === null ? (
-          <p>Loading shifts...</p>
-        ) : shifts.length === 0 ? (
-          <p>No assigned shifts.</p>
-        ) : (
-          <label>
-            Scheduled shift
-            <select
-              aria-label="Scheduled shift"
-              value={selection}
-              disabled={pending || locked}
-              onChange={(e) => {
-                clearReview();
-                setSelection(e.target.value);
-              }}
-            >
-              <option value="">Choose shift</option>
-              {shifts.map((s) => (
-                <option key={s.shiftAssignmentId} value={s.shiftAssignmentId}>
-                  {s.shiftDate} — {s.scheduledStartAtUtc}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </section>
-      <section aria-label="Current workday">
-        <h2>Current workday</h2>
-        {dayError ? (
-          <p role="alert">{dayError}</p>
-        ) : day === undefined ? (
-          <p>Loading current workday...</p>
-        ) : day === null ? (
-          <p>No current working day.</p>
-        ) : (
-          <>
-            <p>Working day {day.workdayId}</p>
-            <p>Before ending, review open items and arrange a shift handover when responsibility must pass to another employee.</p>
-            {day.openInterval && (
-              <p role="alert">
-                {["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind)
-                  ? "MSG31: Work is running. Review any required handover before ending. Pause All will pause or hold it with End of Shift, close its interval and end this workday together."
-                  : "MSG31: End blocked: this work item has no supported Pause/Hold transition."}
-              </p>
-            )}
-            {day.openInterval?.workItemKind === "OCCURRENCE" && <p><Link to={`/operations/maintenance?branchId=${branchId}&runId=${day.openInterval.workItemId}`}>Open running preventive occurrence</Link></p>}
-            {day.isUnscheduled && (
-              <p>Unscheduled workday. End uses the current workday version.</p>
-            )}
-          </>
-        )}
-      </section>
-      <button
-        disabled={!dispatchEnabled || !startAllowed || pending || locked}
-        onClick={() => prepare("start")}
-      >
-        Start scheduled workday
-      </button>
-      <button
-        disabled={!dispatchEnabled || !endAllowed || pending || locked}
-        onClick={() => prepare("end")}
-      >
-        {day?.openInterval && ["TASK", "CLEANING", "REWORK", "MAINTENANCE", "OCCURRENCE"].includes(day.openInterval.workItemKind) ? "Pause All and end workday" : "End workday"}
-      </button>
-      {review && (
-        <section aria-label="Review scheduled workday">
+        <section
+          className="workday-card"
+          aria-label="Kết quả ngày làm việc đã xác nhận"
+        >
           <h2>
-            {review.operation === "start" ? "Review start" : "Review end"}
+            {receipt.status === "ENDED" ? "Đã kết thúc ca" : "Đã bắt đầu ca"}
           </h2>
-          <p>
-            Branch {branchId}; Department{" "}
-            {review.operation === "start"
-              ? review.shift!.departmentId
-              : review.day!.departmentId}
-          </p>
-          {review.operation === "start" ? (
-            <p>
-              Assignment {review.shift!.shiftAssignmentId}; Date{" "}
-              {review.shift!.shiftDate}; Scheduled{" "}
-              {review.shift!.scheduledStartAtUtc} to{" "}
-              {review.shift!.scheduledEndAtUtc}
-            </p>
-          ) : (
-            <p>
-              Workday {review.day!.workdayId}; Date {review.day!.workDate};
-              Started {review.day!.startedAtUtc}
-            </p>
-          )}
-          <p>
-            Actual time is determined by the server.
-            {review.operation === "end" && review.day?.openInterval
-              ? " The running work will be paused or held with End of Shift and its interval closed. If pausing fails, the workday stays Working."
-              : " This does not reassign work or close task intervals."}
-          </p>
-          <button
-            disabled={pending || locked || !dispatchEnabled}
-            onClick={() => void confirm()}
-          >
-            {review.operation === "start"
-              ? "Confirm scheduled start"
-              : "Confirm workday end"}
-          </button>
-          <button disabled={pending} onClick={clearReview}>
-            Cancel review
-          </button>
+          <dl className="workday-facts">
+            <div>
+              <dt>Giờ bắt đầu</dt>
+              <dd>
+                <time dateTime={receipt.startedAtUtc}>
+                  {dateTime(receipt.startedAtUtc)}
+                </time>
+              </dd>
+            </div>
+            {receipt.endedAtUtc && (
+              <div>
+                <dt>Giờ kết thúc</dt>
+                <dd>
+                  <time dateTime={receipt.endedAtUtc}>
+                    {dateTime(receipt.endedAtUtc)}
+                  </time>
+                </dd>
+              </div>
+            )}
+          </dl>
         </section>
       )}
-      {pending && <p role="status">Submitting once...</p>}
-      {message && <p role="status">{message}</p>}
-      <button
-        disabled={pending}
-        onClick={() => {
-          clearReview();
-          setRefresh((n) => n + 1);
-        }}
-      >
-        Refresh snapshot
-      </button>
-      <button disabled={pending} onClick={revalidate}>
-        Revalidate session
-      </button>
-      {locked && <p>Refresh does not unlock replay of an unknown mutation.</p>}
-    </main>
+      <div className="workday-actions">
+        <button
+          disabled={pending}
+          onClick={() => {
+            clearReview();
+            setRefresh((n) => n + 1);
+          }}
+        >
+          Tải lại dữ liệu
+        </button>
+        {locked && (
+          <button disabled={pending} onClick={revalidate}>
+            Kiểm tra lại phiên đăng nhập
+          </button>
+        )}
+      </div>
+      {locked && (
+        <p className="workday-notice">
+          Kết quả thao tác chưa rõ. Hãy kiểm tra trạng thái hiện tại hoặc liên
+          hệ quản lý trước khi thao tác lại.
+        </p>
+      )}
+    </div>
   );
 }

@@ -151,7 +151,7 @@ for (const status of [401, 403, 412, 503])
         await p.getByRole("button", { name: "Confirm revoke" }).click();
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByRole("region", { name: "Role to revoke" }).count(),
+          await p.getByRole("region", { name: "Vai trò cần thu hồi" }).count(),
           0,
         );
         assert.equal(
@@ -166,7 +166,7 @@ for (const status of [401, 403, 412, 503])
           1,
         );
         if (status === 401)
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
       },
     ),
   );
@@ -179,7 +179,7 @@ for (const auth of [
     () =>
       run({ auth, enabled: true }, async (p) => {
         await p
-          .getByText("Confirm an unrestricted session before reviewing a role.")
+          .getByText("Xác minh phiên không bị hạn chế trước khi xét duyệt vai trò.")
           .waitFor();
         assert.equal(await p.evaluate(() => window.fixture.calls.length), 1);
       }),
@@ -195,7 +195,7 @@ test("late mutation after session invalidation cannot restore protected data", (
       void window.fixture.revalidate();
     });
     await p
-      .getByText("Confirm an unrestricted session before reviewing a role.")
+      .getByText("Xác minh phiên không bị hạn chế trước khi xét duyệt vai trò.")
       .waitFor();
     await p.evaluate(() => window.fixture.finish("delete", { status: 204 }));
     assert.equal(
@@ -255,7 +255,7 @@ test("open responsibilities block confirmation without leaking server details", 
       await p.getByRole("button", { name: "Confirm revoke" }).click();
       await p
         .getByText(
-          "Open responsibilities prevent revocation. Arrange an authorized handover before a new review.",
+          "Trách nhiệm chưa hoàn tất đang chặn thu hồi quyền. Bàn giao hợp lệ trước khi xét duyệt lại.",
         )
         .waitFor();
       assert.equal(

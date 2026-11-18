@@ -7,9 +7,9 @@ export function IncidentMaintenanceLinks({ data }: { data: Values }) {
   const rows = data.maintenanceWorks;
   if (!rows.every(r => isObject(r) && typeof r.workId === "number" && Number.isSafeInteger(r.workId) && r.workId > 0
     && typeof r.workNo === "string" && typeof r.status === "string"))
-    return <p role="alert">Related maintenance work could not be read. Reload the incident.</p>;
-  return <section aria-label="Incident maintenance history"><h3>Maintenance progress and processing history</h3>
-    <p>Open a work record to see its progress, work logs and processing details within your current access scope. Previous processing cycles remain separate.</p>
+    return <p role="alert">Không đọc được bảo trì liên quan. Tải lại sự cố.</p>;
+  return <section aria-label="Lịch sử bảo trì sự cố"><h3>Tiến độ và lịch sử xử lý bảo trì</h3>
+    <p>Mở công việc để xem tiến độ, nhật ký và chi tiết xử lý trong phạm vi quyền. Các chu kỳ xử lý trước được tách riêng.</p>
     <ul>{(rows as Values[]).map(row => <li key={String(row.workId)}>
       <Link to={"/operations/maintenance/" + row.workId + "?action=A004A-036"}>{String(row.workNo)}</Link>
       {" — " + String(row.status)}

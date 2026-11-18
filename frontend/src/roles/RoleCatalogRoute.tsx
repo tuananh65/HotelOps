@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -41,14 +42,14 @@ export function RoleCatalogRoute({
   )
     return (
       <section>
-        <p>Session not confirmed.</p>
+        <p>Chưa xác nhận phiên đăng nhập.</p>
         <button onClick={() => void actions.revalidate()}>
-          Revalidate session
+          Xác minh lại phiên
         </button>
       </section>
     );
   if (mode !== "list" && mode !== "catalog" && !/^[1-9][0-9]*$/.test(roleId))
-    return <p role="alert">Invalid role ID.</p>;
+    return <p role="alert">Mã vai trò không hợp lệ.</p>;
   return (
     <Catalog
       key={key(binding)}
@@ -68,17 +69,17 @@ function ErrorView({
     <section role="alert">
       <p>
         {error.status === 401
-          ? "Session invalid. Revalidate before continuing."
+          ? "Phiên đăng nhập không hợp lệ. Xác minh lại trước khi tiếp tục."
           : error.status === 403
-            ? "Access denied by server."
+            ? "Máy chủ từ chối quyền truy cập."
             : error.status === 404
-              ? "Role not found."
+              ? "Không tìm thấy vai trò."
               : error.status === 503
-                ? "Catalog unavailable."
-                : "Catalog could not be loaded."}
+                ? "Danh mục chưa khả dụng."
+                : "Không tải được danh mục."}
       </p>
       {error.status === 401 && (
-        <button onClick={revalidate}>Revalidate session</button>
+        <button onClick={revalidate}>Xác minh lại phiên</button>
       )}
     </section>
   );
@@ -137,13 +138,13 @@ function Catalog({
   const r = result?.binding === request ? result.value : null,
     g = composition?.binding === request ? composition.value : null;
   const pagination = (total: number) => (
-    <nav aria-label="Pagination">
+    <nav aria-label="Phân trang">
       <button disabled={p === 1} onClick={() => setP((n) => n - 1)}>
-        Previous
+        Trước
       </button>
-      <span>Page {p}</span>
+      <span>Trang {p}</span>
       <button disabled={p * 25 >= total} onClick={() => setP((n) => n + 1)}>
-        Next
+        Tiếp
       </button>
     </nav>
   );
@@ -151,21 +152,21 @@ function Catalog({
     <main>
       <h1>
         {mode === "list"
-          ? "Role directory"
+          ? "Danh mục vai trò"
           : mode === "detail"
-            ? "Role detail"
+            ? "Chi tiết vai trò"
             : mode === "catalog"
-              ? "Permission catalog"
-              : "Permission matrix"}
+              ? "Danh mục quyền"
+              : "Ma trận quyền"}
       </h1>
       <nav>
-        <Link to="/profile">Profile</Link>
-        <Link to="/roles">Roles</Link>
-        <Link to="/permissions">Permission catalog</Link>
-        {creationEnabled && r?.ok && <Link to="/roles/new">Create custom role</Link>}
+        <Link to="/profile">Hồ sơ cá nhân</Link>
+        <Link to="/roles">Vai trò</Link>
+        <Link to="/permissions">Danh mục quyền</Link>
+        {creationEnabled && r?.ok && <Link to="/roles/new">Tạo vai trò tùy chỉnh</Link>}
       </nav>
       <p>
-        Role and permission access requires current server authorization.
+        Xem vai trò và quyền cần được máy chủ cho phép hiện tại.
       </p>
       {mode === "list" && (
         <form
@@ -176,7 +177,7 @@ function Catalog({
           }}
         >
           <label>
-            Search roles
+            Tìm vai trò
             <input
               maxLength={100}
               value={draft}
@@ -184,25 +185,25 @@ function Catalog({
             />
           </label>
           <label>
-            Role status
+            Trạng thái vai trò
             <select
-              aria-label="Role status"
+              aria-label="Trạng thái vai trò"
               value={active}
               onChange={(e) => {
                 setP(1);
                 setActive(e.target.value);
               }}
             >
-              <option value="">All</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              <option value="">Tất cả</option>
+              <option value="true">Đang hoạt động</option>
+              <option value="false">Ngừng hoạt động</option>
             </select>
           </label>
-          <button>Search</button>
+          <button>Tìm kiếm</button>
         </form>
       )}
       {!r ? (
-        <p role="status">Loading catalog...</p>
+        <p role="status">Đang tải danh mục...</p>
       ) : !r.ok ? (
         <ErrorView error={r} revalidate={revalidate} />
       ) : mode === "list" ? (
@@ -211,19 +212,18 @@ function Catalog({
           return (
             <>
               <p>
-                Assigned users: distinct ACTIVE employed nondeleted accounts
-                with currently active assignments; not effective-access count.
+                Người dùng được gán: tài khoản đang hoạt động, đang làm việc, chưa xóa và còn phân công hiệu lực; không phải số người có quyền truy cập thực tế.
               </p>
-              {!d.items.length && <p>No roles found.</p>}
+              {!d.items.length && <p>Không tìm thấy vai trò.</p>}
               <ul>
                 {d.items.map((x) => (
                   <li key={x.roleId}>
                     <Link to={`/roles/${x.roleId}`}>
-                      {x.roleCode} — {x.roleName}
+                      {displayCode(x.roleCode)} — {x.roleName}
                     </Link>{" "}
-                    {x.isActive ? "Active" : "Inactive"};{" "}
-                    {x.isSystemRole ? "System" : "Custom"}; users{" "}
-                    {x.assignedUserCount}; grants {x.permissionGrantCount}
+                    {x.isActive ? "Đang hoạt động" : "Ngừng hoạt động"};{" "}
+                    {x.isSystemRole ? "Hệ thống" : "Tùy chỉnh"}; Người dùng{" "}
+                    {x.assignedUserCount}; Quyền được cấp {x.permissionGrantCount}
                   </li>
                 ))}
               </ul>
@@ -237,28 +237,28 @@ function Catalog({
           return (
             <>
               <h2>
-                {d.role.roleCode} — {d.role.roleName}
+                {displayCode(d.role.roleCode)} — {d.role.roleName}
               </h2>
               <p>{d.role.description}</p>
               <p>
-                {d.role.isActive ? "Active" : "Inactive"};{" "}
+                {d.role.isActive ? "Đang hoạt động" : "Ngừng hoạt động"};{" "}
                 {d.role.isSystemRole
-                  ? "System role — protected"
-                  : "Custom role"}
+                  ? "Vai trò hệ thống — được bảo vệ"
+                  : "Vai trò tùy chỉnh"}
                 .
               </p>
-              <Link to={`/roles/${roleId}/permissions`}>Permission matrix</Link>
-              {creationEnabled && d.role.isActive && <Link to={`/roles/${roleId}/permissions/edit`}>Configure permissions</Link>}
-              {creationEnabled && !d.role.isSystemRole && <Link to={`/roles/${roleId}/edit`}>Edit role metadata</Link>}
-              {creationEnabled && !d.role.isSystemRole && d.role.isActive && <Link to={`/roles/${roleId}/deactivate`}>Deactivate role</Link>}
+              <Link to={`/roles/${roleId}/permissions`}>Ma trận quyền</Link>
+              {creationEnabled && d.role.isActive && <Link to={`/roles/${roleId}/permissions/edit`}>Cấu hình quyền</Link>}
+              {creationEnabled && !d.role.isSystemRole && <Link to={`/roles/${roleId}/edit`}>Chỉnh sửa thông tin vai trò</Link>}
+              {creationEnabled && !d.role.isSystemRole && d.role.isActive && <Link to={`/roles/${roleId}/deactivate`}>Vô hiệu hóa vai trò</Link>}
               <ul>
                 {d.grants.map((x) => (
                   <li key={x.rolePermissionId}>
-                    {x.permission.permissionCode}: {x.dataScope}
+                    {x.permission.permissionCode}: {displayCode(x.dataScope)}
                   </li>
                 ))}
               </ul>
-              {!d.grants.length && <p>No grants.</p>}
+              {!d.grants.length && <p>Chưa có quyền được cấp.</p>}
             </>
           );
         })()
@@ -267,7 +267,7 @@ function Catalog({
           const d = r.data as Page<PermissionDto>;
           return (
             <>
-              {!d.items.length && <p>No permissions found.</p>}
+              {!d.items.length && <p>Không tìm thấy quyền.</p>}
               {[...new Set(d.items.map((x) => x.moduleCode))].map((module) => (
                 <section key={module}>
                   <h2>{module}</h2>
@@ -286,7 +286,7 @@ function Catalog({
           );
         })()
       ) : !g ? (
-        <p role="status">Loading grants...</p>
+        <p role="status">Đang tải quyền được cấp...</p>
       ) : !g.ok ? (
         <ErrorView error={g} revalidate={revalidate} />
       ) : (
@@ -295,11 +295,10 @@ function Catalog({
           return (
             <>
               <p>
-                Catalog and grants are separate current read snapshots; no
-                aggregate ETag or write authority.
+                Danh mục và quyền là các bản đọc riêng; không cung cấp phiên bản tổng hợp hoặc quyền ghi.
               </p>
-              {creationEnabled && <Link to={`/roles/${roleId}/permissions/edit`}>Configure permissions</Link>}
-              {!d.items.length && <p>No permissions found.</p>}
+              {creationEnabled && <Link to={`/roles/${roleId}/permissions/edit`}>Cấu hình quyền</Link>}
+              {!d.items.length && <p>Không tìm thấy quyền.</p>}
               {[...new Set(d.items.map((x) => x.moduleCode))].map((module) => (
                 <section key={module}>
                   <h2>{module}</h2>
@@ -313,8 +312,8 @@ function Catalog({
                         <p key={x.permissionId}>
                           {x.permissionCode} — {x.permissionName}:{" "}
                           {found.length
-                            ? `Granted (${found.map((a) => a.dataScope).join(", ")})`
-                            : "Not Granted"}
+                            ? `Đã cấp (${found.map((a) => a.dataScope).join(", ")})`
+                            : "Chưa cấp quyền"}
                         </p>
                       );
                     })}

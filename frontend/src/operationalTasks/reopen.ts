@@ -39,7 +39,7 @@ const validText = (s: string, min = 1) =>
   !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(s);
 function route(branch: number, task: number) {
   if (!positive(branch) || !positive(task))
-    throw new Error("Invalid task identity");
+    throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}/reopen`;
 }
 export async function readReopen(
@@ -54,7 +54,7 @@ export async function readReopen(
     search.length > 150 ||
     /[\u0000-\u001f\u007f-\u009f]/.test(search)
   )
-    throw new Error("Invalid executor filters");
+    throw new Error("Bộ lọc người thực hiện không hợp lệ");
   const response = await planningRequest(
     route(branch, task) + `?page=${page}&search=${encodeURIComponent(search)}`,
     signal,
@@ -105,7 +105,7 @@ export async function readReopen(
         !validText(e.instructions),
     )
   )
-    throw new Error("Invalid reopen snapshot");
+    throw new Error("Bản chụp dữ liệu mở lại không hợp lệ");
   return { data, etag };
 }
 export async function reopenTask(
@@ -129,7 +129,7 @@ export async function reopenTask(
     !validText(reason, 10) ||
     !validText(instructions)
   )
-    throw new Error("Invalid reopen request");
+    throw new Error("Yêu cầu mở lại không hợp lệ");
   const response = await planningMutation(
     url,
     "POST",
@@ -148,6 +148,6 @@ export async function reopenTask(
     !tag(etag) ||
     etag === snapshot.etag
   )
-    throw new Error("Reopen outcome unconfirmed");
+    throw new Error("Chưa xác nhận kết quả mở lại");
   return body;
 }

@@ -25,46 +25,45 @@ export type Values = Record<string, unknown>;
 export const modules = [
   {
     id: "incidents",
-    name: "Incidents",
+    name: "Sự cố",
     list: "A004A-022",
     detail: "A004A-023",
     create: "A004A-021",
   },
   {
     id: "maintenance",
-    name: "Maintenance Works",
+    name: "Công việc bảo trì",
     list: "A004A-035",
     detail: "A004A-036",
     create: "A004A-024",
   },
   {
     id: "material-requests",
-    name: "Material Requests",
+    name: "Yêu cầu vật tư",
     list: "A004A-037",
     detail: "A004A-038",
     create: "A004A-043",
   },
   {
     id: "inventory",
-    name: "Inventory",
+    name: "Kho vật tư",
     list: "inventory:Stock",
     detail: "inventory:Document",
     create: "inventory:CreateReceipt",
   },
   {
     id: "assets",
-    name: "Assets",
+    name: "Tài sản",
     list: "A004A-009",
     detail: "A004A-010",
     create: "A004A-014",
   },
   {
     id: "replenishments",
-    name: "Replenishments",
+    name: "Bổ sung vật tư",
     list: "A004A-052",
     detail: "A004A-053",
     create: "A004A-056",
   },
 ] as const;
-export const label = (key: string) =>
-  key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (x) => x.toUpperCase());
+export { fieldLabel as label } from "../i18n/vi";

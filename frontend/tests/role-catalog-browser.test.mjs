@@ -69,7 +69,7 @@ test("real list then detail then permission matrix", () =>
     await p.getByRole("heading", { name: "ROLE_1 — Role 1" }).waitFor();
     await p.getByText("ROOM_VIEW_1: BRANCH", { exact: true }).waitFor();
     await p
-      .getByRole("link", { name: "Permission matrix", exact: true })
+      .getByRole("link", { name: "Ma trận quyền", exact: true })
       .click();
     await p
       .getByText("ROOM_VIEW_1 — View 1: Granted (BRANCH)", { exact: true })
@@ -84,7 +84,7 @@ test("real list then detail then permission matrix", () =>
   }));
 test("empty directory", () =>
   run({ empty: true }, async (p) => {
-    await p.getByText("No roles found.").waitFor();
+    await p.getByText("Không tìm thấy vai trò.").waitFor();
   }));
 for (const status of [401, 403, 404, 503])
   test("safe error " + status, () =>
@@ -97,7 +97,7 @@ for (const status of [401, 403, 404, 503])
       assert.match(
         await p.getByRole("alert").innerText(),
         status === 401
-          ? /Session invalid/
+          ? /Phiên đăng nhập không hợp lệ/
           : status === 403
             ? /Access denied/
             : status === 404
@@ -150,8 +150,8 @@ test("filter replacement hides stale role results", () =>
     await p.waitForFunction(() =>
       window.fixture.calls.some((c) => c.url.startsWith("/api/roles?")),
     );
-    await p.getByLabel("Search roles").fill("Role");
-    await p.getByRole("button", { name: "Search", exact: true }).click();
+    await p.getByLabel("Tìm vai trò").fill("Vai trò");
+    await p.getByRole("button", { name: "Tìm kiếm", exact: true }).click();
     await p.getByRole("link", { name: "ROLE_1 — Role 1" }).waitFor();
     await p.evaluate(() => window.fixture.finish());
     assert.equal(await p.getByText(/OLD PRIVATE/).count(), 0);
@@ -183,13 +183,13 @@ for (const path of [
           );
           assert.equal(
             (await p
-              .getByRole("button", { name: "Revalidate session" })
+              .getByRole("button", { name: "Xác minh lại phiên" })
               .count()) > 0,
             status === 401,
           );
           if (status === 401) {
             await p
-              .getByRole("button", { name: "Revalidate session" })
+              .getByRole("button", { name: "Xác minh lại phiên" })
               .first()
               .click();
             await p.waitForFunction(

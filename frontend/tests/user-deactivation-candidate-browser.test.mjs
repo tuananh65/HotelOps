@@ -107,7 +107,7 @@ async function run(s, fn) {
   }
 }
 async function review(p) {
-  await p.getByLabel("Reason", { exact: true }).fill("Valid departure reason");
+  await p.getByLabel("Lý do", { exact: true }).fill("Valid departure reason");
   await p
     .getByRole("button", { name: "Review deactivation", exact: true })
     .click();
@@ -126,7 +126,7 @@ test("unknown outcome cannot dispatch a second PATCH after remount", () =>
         document.querySelector("textarea") ||
         document.body.textContent.includes("Outcome unknown."),
     );
-    if (await p.getByLabel("Reason", { exact: true }).count()) {
+    if (await p.getByLabel("Lý do", { exact: true }).count()) {
       await review(p);
       await p.getByRole("button", { name: "Confirm deactivate" }).click();
       await p.getByText("Outcome unknown.", { exact: false }).waitFor();
@@ -140,7 +140,7 @@ test("unknown outcome cannot dispatch a second PATCH after remount", () =>
   }));
 test("default OFF reason review cannot dispatch", () =>
   run({}, async (p) => {
-    await p.getByLabel("Reason").waitFor();
+    await p.getByLabel("Lý do").waitFor();
     assert.ok(
       await p.getByRole("button", { name: "Review deactivation" }).isDisabled(),
     );
@@ -166,7 +166,7 @@ test("synthetic success sends one confirmed attempt and removes controls", () =>
     await review(p);
     await p.getByRole("button", { name: "Confirm deactivate" }).click();
     await p
-      .getByText("Account deactivated. Server confirmation received.")
+      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
       .waitFor();
     assert.equal(
       await p.getByRole("button", { name: "Confirm deactivate" }).count(),
@@ -188,7 +188,7 @@ for (const status of [401, 403, 412, 503])
         await p.getByRole("button", { name: "Confirm deactivate" }).click();
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByRole("region", { name: "Target account" }).count(),
+          await p.getByRole("region", { name: "Tài khoản đích" }).count(),
           0,
         );
         assert.equal(
@@ -203,7 +203,7 @@ for (const status of [401, 403, 412, 503])
           1,
         );
         if (status === 401)
-          await p.getByRole("button", { name: "Check session" }).waitFor();
+          await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
       },
     ),
   );
@@ -217,7 +217,7 @@ for (const auth of [
       run({ auth, enabled: true }, async (p) => {
         await p
           .getByText(
-            "Confirm an unrestricted session before reviewing deactivation.",
+            "Xác minh phiên không bị hạn chế trước khi xét duyệt vô hiệu hóa.",
           )
           .waitFor();
         assert.equal(await p.evaluate(() => window.fixture.calls.length), 1);
@@ -237,7 +237,7 @@ test("late response after session invalidation cannot restore account or reason"
     });
     await p
       .getByText(
-        "Confirm an unrestricted session before reviewing deactivation.",
+        "Xác minh phiên không bị hạn chế trước khi xét duyệt vô hiệu hóa.",
       )
       .waitFor();
     await p.evaluate(() =>
@@ -247,10 +247,10 @@ test("late response after session invalidation cannot restore account or reason"
       }),
     );
     assert.equal(
-      await p.getByRole("region", { name: "Target account" }).count(),
+      await p.getByRole("region", { name: "Tài khoản đích" }).count(),
       0,
     );
-    assert.equal(await p.getByLabel("Reason").count(), 0);
+    assert.equal(await p.getByLabel("Lý do").count(), 0);
     assert.equal(
       await p.getByText("Account deactivated.", { exact: false }).count(),
       0,
@@ -279,7 +279,7 @@ test("two synchronous confirms produce one PATCH and no queued replay", () =>
       }),
     );
     await p
-      .getByText("Account deactivated. Server confirmation received.")
+      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
       .waitFor();
     assert.equal(
       await p.evaluate(
@@ -329,11 +329,11 @@ for (const fault of [
           await p.evaluate((s) => window.fixture.replace(s), session);
         } else {
           await p.evaluate(() => window.fixture.target(43));
-          await p.getByLabel("Reason", { exact: true }).waitFor();
+          await p.getByLabel("Lý do", { exact: true }).waitFor();
           await p.evaluate(() => window.fixture.target(42));
         }
         await unknownText(p).waitFor();
-        assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+        assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
         assert.equal(await patchCount(p), 1);
         if (replacement !== "target")
           assert.equal(
@@ -361,7 +361,7 @@ for (const replacement of ["remount", "provider", "revalidation"])
         await p.evaluate((s) => window.fixture.replace(s), session);
       } else await p.evaluate(() => window.fixture.revalidate());
       await p.getByText("Deactivation pending...").waitFor();
-      assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+      assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
       await p.evaluate(() =>
         window.fixture.finish("patch", {
           status: 200,
@@ -394,7 +394,7 @@ test("unknown operation isolates principal and target, restores lock on return",
     assert.equal(await patchCount(p), 3);
     await p.evaluate((s) => window.fixture.replace(s), session);
     await unknownText(p).waitFor();
-    assert.equal(await p.getByLabel("Reason", { exact: true }).count(), 0);
+    assert.equal(await p.getByLabel("Lý do", { exact: true }).count(), 0);
     assert.equal(await patchCount(p), 3);
   }));
 
@@ -409,7 +409,7 @@ test("old pending response cannot overwrite or recover replacement principal", (
       user: { id: "8", username: "other", name: "Other" },
     });
     await p
-      .getByLabel("Reason", { exact: true })
+      .getByLabel("Lý do", { exact: true })
       .fill("Independent new reason");
     const authReads = await p.evaluate(
       () =>
@@ -426,9 +426,9 @@ test("old pending response cannot overwrite or recover replacement principal", (
       ...session,
       user: { id: "8", username: "other", name: "Other" },
     });
-    await p.getByLabel("Reason", { exact: true }).waitFor();
+    await p.getByLabel("Lý do", { exact: true }).waitFor();
     assert.equal(
-      await p.getByRole("button", { name: "Check session" }).count(),
+      await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).count(),
       0,
     );
     assert.equal(
@@ -456,14 +456,14 @@ test("CSRF pending across remount never dispatches stale PATCH and releases only
         body: { headerName: "X-CSRF-TOKEN", csrfToken: "SYNTHETIC-CSRF" },
       }),
     );
-    await p.getByLabel("Reason", { exact: true }).waitFor();
+    await p.getByLabel("Lý do", { exact: true }).waitFor();
     assert.equal(await patchCount(p), 0);
     await p.evaluate(() => {
       window.fixture.scenario.csrf = undefined;
     });
     await confirm(p);
     await p
-      .getByText("Account deactivated. Server confirmation received.")
+      .getByText("Máy chủ đã xác nhận vô hiệu hóa tài khoản.")
       .waitFor();
     assert.equal(await patchCount(p), 1);
   }));
@@ -471,8 +471,8 @@ test("CSRF pending across remount never dispatches stale PATCH and releases only
 test("definitive 401 keeps explicit session recovery and never replays PATCH", () =>
   run({ enabled: true, mutation: { status: 401, body: {} } }, async (p) => {
     await confirm(p);
-    await p.getByRole("button", { name: "Check session" }).click();
-    await p.getByLabel("Reason", { exact: true }).waitFor();
+    await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
+    await p.getByLabel("Lý do", { exact: true }).waitFor();
     assert.equal(await patchCount(p), 1);
     assert.equal(
       await p.evaluate(

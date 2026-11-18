@@ -192,7 +192,7 @@ async function review(page) {
     .getByLabel("Result for defect #9", { exact: true })
     .selectOption("FIXED");
   await page
-    .getByLabel("Conclusion reason", { exact: true })
+    .getByLabel("Lý do kết luận", { exact: true })
     .fill("Checked remediation");
   await page
     .getByRole("button", { name: "Review conclusion", exact: true })
@@ -221,7 +221,7 @@ test("canonical original link is read only and clears private source on session 
       0,
     );
     await page
-      .getByRole("link", { name: "Return to reinspection", exact: true })
+      .getByRole("link", { name: "Quay lại kiểm tra lại", exact: true })
       .click();
     await page.getByText("PRIVATE-REMEDIATION", { exact: false }).waitFor();
     await page
@@ -315,7 +315,7 @@ test("canonical reinspection requires every decision and confirms blocked result
       .click();
     await page
       .getByText(
-        "Result: select Fixed or Not Fixed. Please check and try again.",
+        "Kết quả: chọn Đã khắc phục hoặc Chưa khắc phục. Kiểm tra và thử lại.",
         { exact: true },
       )
       .waitFor();
@@ -336,7 +336,7 @@ test("canonical reinspection requires every decision and confirms blocked result
     assert.equal(
       await page
         .getByText(
-          "Result: select Fixed or Not Fixed. Please check and try again.",
+          "Kết quả: chọn Đã khắc phục hoặc Chưa khắc phục. Kiểm tra và thử lại.",
           { exact: true },
         )
         .count(),
@@ -346,10 +346,10 @@ test("canonical reinspection requires every decision and confirms blocked result
       .getByRole("button", { name: "Confirm conclusion", exact: true })
       .click();
     await page
-      .getByText("Reinspection has been saved successfully.", { exact: true })
+      .getByText("Đã lưu kết quả kiểm tra lại.", { exact: true })
       .waitFor();
     await page
-      .getByText("The room remains blocked (MSG17).", { exact: true })
+      .getByText("Phòng vẫn bị khóa (MSG17).", { exact: true })
       .waitFor();
     assert.equal(state.posts.length, 1);
     assert.equal(state.posts[0].defects[0].fixed, true);
@@ -368,7 +368,7 @@ test("unknown conclusion outcome locks form and hides raw server detail", async 
     await page
       .getByRole("button", { name: "Confirm conclusion", exact: true })
       .click();
-    await page.getByText(/Conclusion outcome is unconfirmed/).waitFor();
+    await page.getByText(/Chưa xác nhận kết luận\. Không gửi kết luận khác; kiểm tra hồ sơ hiện tại\./).waitFor();
     assert.equal(await page.getByText("PRIVATE-SQL-ERROR").count(), 0);
     assert.equal(
       await page

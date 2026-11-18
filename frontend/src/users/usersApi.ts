@@ -30,7 +30,7 @@ function requireValue<T>(
   value: unknown,
   accepts: (input: unknown) => input is T,
 ): T {
-  if (!accepts(value)) throw new Error("Invalid users response");
+  if (!accepts(value)) throw new Error("Phản hồi người dùng không hợp lệ");
   return value;
 }
 const text: Decoder<string> = (value) =>
@@ -61,14 +61,14 @@ const nullable =
 const array =
   <T>(decode: Decoder<T>): Decoder<T[]> =>
   (value) => {
-    if (!Array.isArray(value)) throw new Error("Invalid users response");
+    if (!Array.isArray(value)) throw new Error("Phản hồi người dùng không hợp lệ");
     return value.map(decode);
   };
 
 // Required fields are decoded and copied; arbitrary server extensions never escape.
 function record<T>(shape: { [K in keyof T]: Decoder<T[K]> }): Decoder<T> {
   return (value) => {
-    if (!object(value)) throw new Error("Invalid users response");
+    if (!object(value)) throw new Error("Phản hồi người dùng không hợp lệ");
     const result = {} as T;
     for (const key of Object.keys(shape) as (keyof T)[])
       result[key] = shape[key](value[key as string]);
@@ -82,7 +82,7 @@ const utc: Decoder<string> = (value) => {
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,7})?Z$/.exec(
       result,
     );
-  if (!parts) throw new Error("Invalid users response");
+  if (!parts) throw new Error("Phản hồi người dùng không hợp lệ");
   const [year, month, day, hour, minute, second] = parts.slice(1).map(Number);
   const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -96,7 +96,7 @@ const utc: Decoder<string> = (value) => {
     minute > 59 ||
     second > 59
   )
-    throw new Error("Invalid users response");
+    throw new Error("Phản hồi người dùng không hợp lệ");
   return result;
 };
 
@@ -194,12 +194,12 @@ const limitedText =
   (max: number): Decoder<string> =>
   (value) => {
     const result = text(value);
-    if (result.length > max) throw new Error("Invalid users query");
+    if (result.length > max) throw new Error("Truy vấn người dùng không hợp lệ");
     return result;
   };
 const status: Decoder<string> = (value) => {
   if (value !== "ACTIVE" && value !== "INACTIVE")
-    throw new Error("Invalid users query");
+    throw new Error("Truy vấn người dùng không hợp lệ");
   return value;
 };
 const listQuery = {
@@ -224,7 +224,7 @@ function queryString(
     !object(value) ||
     Object.keys(value).some((key) => !Object.hasOwn(shape, key))
   )
-    throw new Error("Invalid users query");
+    throw new Error("Truy vấn người dùng không hợp lệ");
   const params = new URLSearchParams();
   for (const key of Object.keys(shape))
     if (value[key] !== undefined)
@@ -335,7 +335,7 @@ export function createUsersApi(
           const page = query.page ?? 1,
             pageSize = query.pageSize ?? 20;
           if ((page - 1) * pageSize > int32Max)
-            throw new Error("Invalid users query");
+            throw new Error("Truy vấn người dùng không hợp lệ");
           return `/api/users${suffix}`;
         },
         directory,

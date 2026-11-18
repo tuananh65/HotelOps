@@ -103,21 +103,21 @@ test("a concurrent conclusion displays scoped MSG24 and requires fresh read befo
     return route.fulfill({ json: current(), headers: { ETag: etag } });
   });
   await render(page);
-  await page.getByLabel("Failed criterion").selectOption("17");
-  await page.getByRole("combobox", { name: /^Severity/ }).selectOption("617");
-  await page.getByLabel("Description", { exact: true }).fill("Stain");
-  await page.getByLabel("Location", { exact: true }).fill("Bed");
+  await page.getByLabel("Tiêu chí không đạt").selectOption("17");
+  await page.getByRole("combobox", { name: /^Mức độ/ }).selectOption("617");
+  await page.getByLabel("Mô tả", { exact: true }).fill("Stain");
+  await page.getByLabel("Vị trí", { exact: true }).fill("Bed");
   await page
-    .getByRole("button", { name: "Record defect", exact: true })
+    .getByRole("button", { name: "Ghi nhận lỗi", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "MSG24: Inspection is FAILED" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Record defect", exact: true }),
+    page.getByRole("button", { name: "Ghi nhận lỗi", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Verify current state (GET)", exact: true })
+    .getByRole("button", { name: "Kiểm tra trạng thái hiện tại", exact: true })
     .click();
   await expect(
     page.getByText(
@@ -126,7 +126,7 @@ test("a concurrent conclusion displays scoped MSG24 and requires fresh read befo
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Record defect", exact: true }),
+    page.getByRole("button", { name: "Ghi nhận lỗi", exact: true }),
   ).toBeDisabled();
   expect(writes).toBe(1);
 });
@@ -165,7 +165,7 @@ test("scoped read and no premature READY or implicit conclusion", async ({
   await render(page);
   await expect(page.getByText(/State:/)).toContainText("ASSIGNED");
   await expect(
-    page.getByRole("button", { name: "Approve inspection", exact: true }),
+    page.getByRole("button", { name: "Duyệt kết quả kiểm tra", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByText("Effective room readiness: UNKNOWN."),
@@ -193,19 +193,19 @@ test("pending conclusion without defects explains MSG03 and cannot reject", asyn
   });
   await render(page);
   await page
-    .getByLabel("Reason", { exact: true })
+    .getByLabel("Lý do", { exact: true })
     .fill("Needs cleaning rework");
   await page
-    .getByLabel("Confirm inspection failure and require cleaning rework")
+    .getByLabel("Xác nhận kiểm tra không đạt và yêu cầu vệ sinh lại")
     .check();
   await expect(
     page.getByText(
-      "MSG03: Defects: record a defect for each failed criterion before rejecting the inspection. Please check and try again.",
+      "MSG03: Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ chối kiểm tra. Kiểm tra và thử lại.",
       { exact: true },
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Reject inspection", exact: true }),
+    page.getByRole("button", { name: "Từ chối kết quả kiểm tra", exact: true }),
   ).toBeDisabled();
   expect(writes).toEqual([]);
 });
@@ -301,11 +301,11 @@ test("session replacement during CSRF bootstrap prevents old write dispatch", as
   });
   await render(page);
   await expect(
-    page.getByRole("button", { name: "Start Inspection", exact: true }),
+    page.getByRole("button", { name: "Bắt đầu kiểm tra", exact: true }),
   ).toBeEnabled();
-  await page.getByLabel("Reason", { exact: true }).fill("Start");
+  await page.getByLabel("Lý do", { exact: true }).fill("Bắt đầu");
   await page
-    .getByRole("button", { name: "Start Inspection", exact: true })
+    .getByRole("button", { name: "Bắt đầu kiểm tra", exact: true })
     .click();
   await expect.poll(() => csrfSeen).toBe(true);
   await page.evaluate((c) => (window as any).renderHost(c, "42"), {
@@ -313,12 +313,12 @@ test("session replacement during CSRF bootstrap prevents old write dispatch", as
     sessionKey: "replacement",
   });
   await expect(
-    page.getByRole("button", { name: "Start Inspection", exact: true }),
+    page.getByRole("button", { name: "Bắt đầu kiểm tra", exact: true }),
   ).toBeEnabled();
   release();
   await page.waitForTimeout(100);
   expect(writes).toBe(0);
-  await expect(page.getByLabel("Reason", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Lý do", { exact: true })).toHaveValue("");
 });
 test("401 closes scope and 403 does not invalidate session", async ({
   page,
@@ -392,39 +392,39 @@ test("start, save FAIL, record private evidence and finish stop at Pending Concl
   });
   await render(page);
   await expect(
-    page.getByRole("button", { name: "Start Inspection", exact: true }),
+    page.getByRole("button", { name: "Bắt đầu kiểm tra", exact: true }),
   ).toBeEnabled();
-  await page.getByLabel("Reason", { exact: true }).fill("Inspection fixture");
+  await page.getByLabel("Lý do", { exact: true }).fill("Inspection fixture");
   await page
-    .getByRole("button", { name: "Start Inspection", exact: true })
+    .getByRole("button", { name: "Bắt đầu kiểm tra", exact: true })
     .click();
   await expect(page.getByText(/State:/)).toContainText("INSPECTING");
-  await page.getByRole("combobox", { name: /^Result/ }).selectOption("FAIL");
-  await page.getByRole("button", { name: "Save results", exact: true }).click();
+  await page.getByRole("combobox", { name: /^Kết quả/ }).selectOption("FAIL");
+  await page.getByRole("button", { name: "Lưu kết quả", exact: true }).click();
   await expect(
-    page.getByLabel("Failed criterion").locator("option[value='17']"),
+    page.getByLabel("Tiêu chí không đạt").locator("option[value='17']"),
   ).toHaveCount(1);
   await expect(
-    page.getByRole("button", { name: "Record defect", exact: true }),
+    page.getByRole("button", { name: "Ghi nhận lỗi", exact: true }),
   ).toBeDisabled();
   // Catalog arrives with the authorized execution response, not a host-injected ID.
   Object.assign(current, {
     severities: [{ id: 617, code: "MAJOR", name: "Fixture major" }],
   });
   await page
-    .getByRole("button", { name: "Verify current state (GET)", exact: true })
+    .getByRole("button", { name: "Kiểm tra trạng thái hiện tại", exact: true })
     .click();
-  await page.getByLabel("Failed criterion").selectOption("17");
-  await page.getByRole("combobox", { name: /^Severity/ }).selectOption("617");
-  await page.getByLabel("Description", { exact: true }).fill("Stain");
-  await page.getByLabel("Location", { exact: true }).fill("Bed");
-  await page.getByLabel(/Evidence \(JPG/).setInputFiles({
+  await page.getByLabel("Tiêu chí không đạt").selectOption("17");
+  await page.getByRole("combobox", { name: /^Mức độ/ }).selectOption("617");
+  await page.getByLabel("Mô tả", { exact: true }).fill("Stain");
+  await page.getByLabel("Vị trí", { exact: true }).fill("Bed");
+  await page.getByLabel(/Bằng chứng \(JPG, PNG hoặc PDF, tối đa 5 tệp / 10 MiB mỗi tệp\)/).setInputFiles({
     name: "evidence.png",
     mimeType: "image/png",
     buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
   });
   await page
-    .getByRole("button", { name: "Record defect", exact: true })
+    .getByRole("button", { name: "Ghi nhận lỗi", exact: true })
     .click();
   await expect
     .poll(() => writes.filter((w) => w.path.endsWith("/defects")).length)
@@ -471,11 +471,11 @@ for (const status of [412, 428, 503, "network"] as const) {
     });
     await render(page);
     await expect(
-      page.getByRole("button", { name: "Start Inspection", exact: true }),
+      page.getByRole("button", { name: "Bắt đầu kiểm tra", exact: true }),
     ).toBeEnabled();
-    await page.getByLabel("Reason", { exact: true }).fill("Start fixture");
+    await page.getByLabel("Lý do", { exact: true }).fill("Start fixture");
     await page
-      .getByRole("button", { name: "Start Inspection", exact: true })
+      .getByRole("button", { name: "Bắt đầu kiểm tra", exact: true })
       .click();
     await expect(
       page.getByText("This operation is blocked.", { exact: false }),
@@ -485,10 +485,10 @@ for (const status of [412, 428, 503, "network"] as const) {
     expect(writes).toBe(1);
     expect(reads).toBe(before);
     await page
-      .getByRole("button", { name: "Verify current state (GET)", exact: true })
+      .getByRole("button", { name: "Kiểm tra trạng thái hiện tại", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Start Inspection", exact: true }),
+      page.getByRole("button", { name: "Bắt đầu kiểm tra", exact: true }),
     ).toBeEnabled();
     expect(reads).toBeGreaterThan(before);
     expect(writes).toBe(1);

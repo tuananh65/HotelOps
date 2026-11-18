@@ -21,7 +21,7 @@ export async function getJson(
   base = import.meta.env.VITE_DEV1_API_BASE_URL || "/api",
 ): Promise<unknown> {
   if (!path.startsWith("/") || path.startsWith("//"))
-    throw new Error("Invalid API path");
+    throw new Error("Đường dẫn API không hợp lệ");
   let response: Response;
   try {
     response = await fetch(`${apiBase(base)}${path}`, {

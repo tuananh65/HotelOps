@@ -100,7 +100,7 @@ export default function CleaningCancellationPanel({
       <h2>Hủy công việc vệ sinh</h2>
       {message && <p role="status">{message}</p>}
       {!options && message && !busy && !pending.current && (
-        <button type="button" onClick={() => setReload(v => v + 1)}>Reload cancellation conditions</button>
+        <button type="button" onClick={() => setReload(v => v + 1)}>Tải lại điều kiện hủy</button>
       )}
       {options?.capability === "UNAVAILABLE" && (
         options.blocker === "TASK_ALREADY_STARTED" || options.blocker === "TASK_HAS_EXECUTION_HISTORY" ? (
@@ -125,8 +125,8 @@ export default function CleaningCancellationPanel({
               onChange={(e) => setReason(e.target.value)}
             />
           </label>
-          <p id="cleaning-cancellation-reason-policy">Reason: 10-500 characters after trimming.</p>
-          <p>MSG33: Confirm cancellation of this cleaning task?</p>
+          <p id="cleaning-cancellation-reason-policy">Lý do: 10–500 ký tự, không tính khoảng trắng đầu và cuối.</p>
+          <p>MSG33: Xác nhận hủy công việc vệ sinh này?</p>
           <label>
             <input
               type="checkbox"

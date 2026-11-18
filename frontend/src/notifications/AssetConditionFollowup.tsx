@@ -29,13 +29,13 @@ export function AssetConditionFollowup() {
     return () => abort.abort();
   }, [id, owner, actions]);
   const visible = owner && result?.owner === owner && result.id === id ? result : null;
-  return <main><h1>Review asset condition</h1><Link to="/notifications">Notifications</Link>
-    {!visible ? <p>Verifying access...</p> : visible.failed ? <p role="alert">Asset follow-up is unavailable. Your access may have changed.</p>
+  return <main><h1>Xem lại tình trạng tài sản</h1><Link to="/notifications">Thông báo</Link>
+    {!visible ? <p>Đang xác minh quyền truy cập…</p> : visible.failed ? <p role="alert">Chưa thể theo dõi tiếp tài sản. Quyền của bạn có thể đã thay đổi.</p>
       : visible.data && <><h2>{visible.data.assetName}</h2><dl>
-        <dt>Asset</dt><dd>{visible.data.assetId}</dd><dt>Branch</dt><dd>{visible.data.branchId}</dd>
-        <dt>Condition when Incident closed</dt><dd>{visible.data.conditionAtClosure}</dd>
-        <dt>Current condition</dt><dd>{visible.data.currentCondition}</dd>
-        <dt>Incident closed</dt><dd>{new Date(visible.data.closedAtUtc).toLocaleString()}</dd></dl>
-        <p>Review this asset through the authorized asset condition workflow. Closing an Incident does not update its condition automatically.</p></>}
+        <dt>Tài sản</dt><dd>{visible.data.assetId}</dd><dt>Chi nhánh</dt><dd>{visible.data.branchId}</dd>
+        <dt>Tình trạng khi đóng sự cố</dt><dd>{visible.data.conditionAtClosure}</dd>
+        <dt>Tình trạng hiện tại</dt><dd>{visible.data.currentCondition}</dd>
+        <dt>Đã đóng sự cố</dt><dd>{new Date(visible.data.closedAtUtc).toLocaleString()}</dd></dl>
+        <p>Xem tài sản qua quy trình tình trạng tài sản được cấp quyền. Đóng sự cố không tự đổi tình trạng tài sản.</p></>}
   </main>;
 }

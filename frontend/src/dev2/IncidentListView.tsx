@@ -1,15 +1,16 @@
 ﻿import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
+import "./incident-list.css";
 
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
-const show = (v: unknown) => typeof v === "string" && v.trim() ? v : "N/A";
+const show = (v: unknown) => typeof v === "string" && v.trim() ? v : "Chưa có thông tin";
 const time = (v: unknown) => {
-  if (typeof v !== "string" || !/(?:Z|[+-]\d{2}:\d{2})$/.test(v)) return "N/A";
+  if (typeof v !== "string" || !/(?:Z|[+-]\d{2}:\d{2})$/.test(v)) return "Chưa có thời hạn";
   const date = new Date(v);
-  return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("en-GB", {
+  return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("vi-VN", {
     timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium"
-  }).format(date) : "N/A";
+  }).format(date) : "Chưa có thời hạn";
 };
 
 export function IncidentListView({ data, canDetail }: { data: Values; canDetail: boolean }) {
@@ -18,27 +19,27 @@ export function IncidentListView({ data, canDetail }: { data: Values; canDetail:
     || !data.items.every(r => isObject(r) && positive(r.incidentId) && positive(r.branchId)
       && typeof r.incidentNo === "string" && typeof r.incidentTitle === "string" && typeof r.status === "string"
       && (r.isOverdue === null || typeof r.isOverdue === "boolean")))
-    return <p role="alert">Incident results could not be read. Reload the list.</p>;
+    return <p role="alert">Không đọc được danh sách sự cố. Vui lòng tải lại.</p>;
   const rows = data.items as Values[];
-  const labels: Record<string, string> = { branchId: "Branch", departmentId: "Work department", roomId: "Room", areaId: "Area", assetId: "Asset", categoryId: "Category", severityId: "Severity", priorityId: "Priority", status: "Status", assigneeId: "Assignee", overdue: "Overdue", detectedFrom: "Detected from", detectedTo: "Detected to", keyword: "Keyword" };
+  const labels: Record<string, string> = { branchId: "Chi nhánh", departmentId: "Bộ phận thực hiện", roomId: "Phòng", areaId: "Khu vực", assetId: "Tài sản", categoryId: "Nhóm", severityId: "Mức độ", priorityId: "Độ ưu tiên", status: "Trạng thái", assigneeId: "Người được giao", overdue: "Quá hạn", detectedFrom: "Phát hiện từ", detectedTo: "Phát hiện đến", keyword: "Từ khóa" };
   const filters = isObject(data.appliedFilters) ? Object.entries(data.appliedFilters).filter(([key, value]) => key in labels && value !== null && value !== undefined && value !== "") : [];
-  return <section aria-label="Incident results">
-    <p>Applied filters: {filters.length ? filters.map(([key, value]) => labels[key] + ": " + String(value)).join("; ") : "None"}.</p>
-    <p>{data.totalCount} matching incidents; page {data.page}. Times shown in UTC+7.</p>
-    <p>{data.sortOrder === "RESOLUTION_DEADLINE_ASC" ? "Ordered by resolution deadline, earliest first; missing deadlines last."
-      : data.sortOrder === "REPORTED_AT_DESC" ? "SLA ordering unavailable. Most recently reported incidents first." : "Ordering unavailable."}
-      {" "}Status evaluated at {time(data.evaluatedAtUtc)}.</p>
-    {rows.length === 0 ? <p>No incidents match the submitted filters and your access scope.</p> :
-      <div style={{ overflowX: "auto" }}><table><thead><tr>
-        <th>Reference / title</th><th>Branch / location / asset</th><th>Category</th><th>Severity / priority</th>
-        <th>Status</th><th>Work department</th><th>Current assignee</th><th>Response deadline</th><th>Resolution deadline</th><th>Overdue</th>
+  const statuses: Record<string, string> = { OPEN: "Đang mở", IN_PROGRESS: "Đang xử lý", RESOLVED: "Đã xử lý", CLOSED: "Đã đóng", CANCELLED: "Đã hủy" };
+  return <section className="incident-results" aria-label="Danh sách sự cố">
+    <p><strong>{data.totalCount} sự cố</strong> · Trang {data.page} · Giờ Việt Nam (UTC+7)</p>
+    {filters.some(([key]) => key === "keyword") && <p>Từ khóa: {String(data.appliedFilters && isObject(data.appliedFilters) ? data.appliedFilters.keyword : "")}</p>}
+    {rows.length === 0 ? <p>Không có sự cố phù hợp với bộ lọc và phạm vi được xem.</p> : <>
+      <p className="incident-scroll-hint">Bấm mã sự cố để xem chi tiết. Cuộn ngang để xem toàn bộ bảng.</p>
+      <div className="incident-table-scroll" role="region" aria-label="Bảng sự cố, có thể cuộn ngang" tabIndex={0}><table><thead><tr>
+        <th>Sự cố</th><th>Vị trí / tài sản</th><th>Phân loại</th>
+        <th>Trạng thái</th><th>Phân công</th><th>Thời hạn</th><th>Quá hạn</th>
       </tr></thead><tbody>{rows.map(r => <tr key={String(r.incidentId)}>
-        <td>{canDetail ? <Link to={"/operations/incidents/" + r.incidentId + "?branchId=" + r.branchId + "&action=A004A-023"}>{show(r.incidentNo)}</Link> : show(r.incidentNo)}<br />{show(r.incidentTitle)}</td>
-        <td>{[r.branchName, r.roomNumber, r.areaName, r.assetName].filter(v => typeof v === "string" && v.trim()).join(" / ") || "N/A"}</td>
-        <td>{show(r.categoryName)}</td><td>{show(r.severityName)} / {show(r.priorityName)}</td><td>{show(r.status)}</td>
-        <td>{show(r.departmentName)}</td><td>{r.assignmentUnavailableReason === "UNASSIGNED" ? "Unassigned" : show(r.assigneeName)}</td>
-        <td>{time(r.responseDeadlineAt)}</td><td>{time(r.resolutionDeadlineAt)}{r.slaUnavailableReason != null && <small> SLA data unavailable or incomplete.</small>}</td>
-        <td>{r.isOverdue === true ? "Overdue" : r.isOverdue === false ? "No" : "N/A"}</td>
-      </tr>)}</tbody></table></div>}
+        <td><span className="incident-reference">{canDetail ? <Link to={"/operations/incidents/" + r.incidentId + "?branchId=" + r.branchId + "&action=A004A-023"}>{show(r.incidentNo)}</Link> : show(r.incidentNo)}</span><p>{show(r.incidentTitle)}</p></td>
+        <td>{typeof r.roomNumber === "string" && <strong>Phòng {r.roomNumber}</strong>}{typeof r.areaName === "string" && <div>{r.areaName}</div>}<div>{show(r.assetName)}</div><small>{show(r.branchName)}</small></td>
+        <td><div>Nhóm: {show(r.categoryName)}</div><div>Mức độ: {show(r.severityName)}</div><div>Ưu tiên: {show(r.priorityName)}</div></td>
+        <td><span className="incident-status">{statuses[String(r.status)] ?? show(r.status)}</span></td>
+        <td><div>{r.assignmentUnavailableReason === "UNASSIGNED" ? "Chưa phân công" : show(r.assigneeName)}</div><small>{show(r.departmentName)}</small></td>
+        <td><div>Phản hồi: {time(r.responseDeadlineAt)}</div><div>Xử lý: {time(r.resolutionDeadlineAt)}</div>{r.slaUnavailableReason != null && <small>Thời hạn SLA chưa đầy đủ hoặc chưa khả dụng.</small>}</td>
+        <td>{r.isOverdue === true ? "Đã quá hạn" : r.isOverdue === false ? "Không" : "Chưa xác định"}</td>
+      </tr>)}</tbody></table></div></>}
   </section>;
 }

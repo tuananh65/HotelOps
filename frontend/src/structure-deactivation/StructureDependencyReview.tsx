@@ -38,10 +38,10 @@ export function StructureDependencyReview({ kind }: { kind: StructureKind }) {
     state.pending !== null
   )
     return (
-      <p role="status">Confirm your session before reviewing dependencies.</p>
+      <p role="status">Xác minh phiên đăng nhập trước khi kiểm tra ràng buộc.</p>
     );
   if (!branchId || !id)
-    return <p role="alert">Choose valid branch and location IDs.</p>;
+    return <p role="alert">Chọn mã chi nhánh và vị trí hợp lệ.</p>;
   return (
     <Review
       key={identityKey(identity)}
@@ -51,13 +51,13 @@ export function StructureDependencyReview({ kind }: { kind: StructureKind }) {
   );
 }
 const labels: Record<string, string> = {
-  ACTIVE_ROOM: "Active rooms",
-  ACTIVE_CHILD_AREA: "Active child areas",
-  ACTIVE_ASSET: "Active assets",
-  OPEN_INCIDENT: "Open incidents",
-  OPEN_OPERATIONAL_TASK: "Open tasks",
-  TASK_COMPLETION_CONTRACT_UNRESOLVED: "Tasks requiring completion review",
-  OPEN_MAINTENANCE_WORK: "Open maintenance work",
+  ACTIVE_ROOM: "Phòng đang hoạt động",
+  ACTIVE_CHILD_AREA: "Khu vực con đang hoạt động",
+  ACTIVE_ASSET: "Tài sản đang hoạt động",
+  OPEN_INCIDENT: "Sự cố đang mở",
+  OPEN_OPERATIONAL_TASK: "Công việc đang mở",
+  TASK_COMPLETION_CONTRACT_UNRESOLVED: "Công việc cần xét duyệt hoàn tất",
+  OPEN_MAINTENANCE_WORK: "Mở công việc bảo trì",
 };
 function Review({
   kind,
@@ -96,28 +96,27 @@ function Review({
   }, [api, kind, branchId, id, current, reload]);
   return (
     <main>
-      <h1>Review {kind} dependencies</h1>
-      <Link to={`/${kind}s?branchId=${branchId}`}>Back to locations</Link>
+      <h1>Xem xét {kind} Các ràng buộc</h1>
+      <Link to={`/${kind}s?branchId=${branchId}`}>Quay lại vị trí</Link>
       <p>
-        This review does not deactivate the location. Deactivation remains
-        unavailable pending backend acceptance.
+        Xét duyệt này không vô hiệu hóa vị trí. Thao tác vẫn bị khóa chờ nghiệm thu backend.
       </p>
-      {loading && <p role="status">Loading dependencies...</p>}
+      {loading && <p role="status">Đang tải các ràng buộc...</p>}
       {error && (
         <p role="alert">
           {error.status === 401
-            ? "Session invalid. Check your session before continuing."
+            ? "Phiên đăng nhập không hợp lệ. Kiểm tra phiên trước khi tiếp tục."
             : error.status === 403
-              ? "You do not have access to review this location."
-              : "Dependency review is unavailable. No action was performed."}
+              ? "Bạn không có quyền xét duyệt vị trí này."
+              : "Chưa thể kiểm tra ràng buộc. Chưa thực hiện thao tác nào."}
         </p>
       )}
       {data && (
-        <section aria-label="Location dependencies">
+        <section aria-label="Ràng buộc vị trí">
           <h2>{data.record.name}</h2>
           <p>
             {data.record.code} / Branch {data.record.branchId} /{" "}
-            {data.record.isActive ? "Active" : "Inactive"}
+            {data.record.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
           </p>
           {data.dependencies.length ? (
             <ul>
@@ -128,11 +127,10 @@ function Review({
               ))}
             </ul>
           ) : (
-            <p>No dependencies were reported by this read.</p>
+            <p>Lần đọc này không ghi nhận ràng buộc.</p>
           )}
           <p>
-            Dependencies may change after this read. An empty list does not
-            approve deactivation.
+            Ràng buộc có thể đổi sau khi đọc. Danh sách trống không đồng nghĩa được phép vô hiệu hóa.
           </p>
         </section>
       )}
@@ -140,10 +138,10 @@ function Review({
         disabled={loading || error?.status === 401}
         onClick={() => setReload((value) => value + 1)}
       >
-        Refresh dependencies
+        Tải lại các ràng buộc
       </button>
       {error?.status === 401 && (
-        <button onClick={revalidate}>Check session</button>
+        <button onClick={revalidate}>Kiểm tra phiên đăng nhập</button>
       )}
     </main>
   );

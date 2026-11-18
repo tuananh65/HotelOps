@@ -59,7 +59,7 @@ export interface ReportSnapshot {
 }
 export class ReportFailure extends Error {
   constructor(readonly status: number) {
-    super(`Report request failed (${status}).`);
+    super(`Yêu cầu báo cáo thất bại (${status}).`);
   }
 }
 const object = (v: unknown): v is Record<string, unknown> =>
@@ -98,7 +98,7 @@ export function decodeOptions(v: unknown): ReportOptions {
         object(d) && id(d.id) && id(d.branchId) && typeof d.name === "string",
     )
   )
-    throw new Error("Invalid report options");
+    throw new Error("Lựa chọn báo cáo không hợp lệ");
   const result = v as unknown as ReportOptions;
   const branches = new Set(result.branches.map((b) => b.id));
   if (
@@ -107,7 +107,7 @@ export function decodeOptions(v: unknown): ReportOptions {
       result.departments.length ||
     result.departments.some((d) => !branches.has(d.branchId))
   )
-    throw new Error("Invalid report scope");
+    throw new Error("Phạm vi báo cáo không hợp lệ");
   return result;
 }
 export function decodeSnapshot(
@@ -159,7 +159,7 @@ export function decodeSnapshot(
         ),
     )
   )
-    throw new Error("Invalid report snapshot");
+    throw new Error("Bản chụp dữ liệu báo cáo không hợp lệ");
   const result = v as unknown as ReportSnapshot;
   if (
     result.sections.reduce((n, s) => n + s.rows.length, 0) !==
@@ -172,10 +172,10 @@ export function decodeSnapshot(
           (x) => x === null || typeof x === "string",
         )))
   )
-    throw new Error("Invalid report rows");
+    throw new Error("Dòng báo cáo không hợp lệ");
   for (const field of ["housekeeperId", "inspectorId", "employeeId", "type", "floorId", "roomTypeId", "roomId", "areaId", "categoryId", "severityId", "warehouseId", "itemId", "condition"] as const) {
     if (query[field] !== undefined && result.appliedFilters?.[field] !== String(query[field]))
-      throw new Error("Unconfirmed report filter");
+      throw new Error("Bộ lọc báo cáo chưa được xác nhận");
   }
   return result;
 }
@@ -195,7 +195,7 @@ export function createReportApi(
         typeof token.csrfToken !== "string" ||
         !token.csrfToken
       )
-        throw new Error("CSRF unavailable");
+        throw new Error("Chưa có bảo vệ phiên (CSRF)");
       headers["X-CSRF-TOKEN"] = token.csrfToken;
       headers["Content-Type"] = "application/json";
     }
@@ -231,7 +231,7 @@ export function createReportApi(
         (query.housekeeperId !== undefined && (!id(query.housekeeperId) || key !== "inspections")) ||
         (query.inspectorId !== undefined && (!id(query.inspectorId) || key !== "inspections"))
       )
-        throw new Error("Invalid report filters");
+        throw new Error("Bộ lọc báo cáo không hợp lệ");
       return decodeSnapshot(
         await (await request(`/api/reports/${key}/preview`, query)).json(),
         key,
@@ -245,7 +245,7 @@ export function createReportApi(
         !["csv", "xlsx", "pdf"].includes(format) ||
         !snapshot.exportFormats.includes(format)
       )
-        throw new Error("Invalid export identity");
+        throw new Error("Định danh bản xuất không hợp lệ");
       const response = await request(
         `/api/reports/snapshots/${snapshot.snapshotId}/export`,
         { format },
@@ -260,10 +260,10 @@ export function createReportApi(
           ? "text/csv"
           : format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       )
-        throw new Error(`Invalid ${format.toUpperCase()} response`);
+        throw new Error(`Không hợp lệ ${format.toUpperCase()} Phản hồi`);
       const blob = await response.blob();
       signal.throwIfAborted();
-      if (blob.size > 100 * 1024 * 1024) throw new Error("Export too large");
+      if (blob.size > 100 * 1024 * 1024) throw new Error("Dữ liệu xuất vượt giới hạn");
       return { blob, name: `${snapshot.key}-${snapshot.snapshotId}.${format}` };
     },
   };

@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
@@ -44,13 +45,13 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
     try {
       const response = await fetch(`/api/maintenance-works/${id}/material-availability?page=${next}&pageSize=20`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!response.ok) throw Error("Material availability is unavailable. Current inventory and material request access are required.");
+      if (!response.ok) throw Error("Vật tư khả dụng chưa tải được. Cần quyền kho và yêu cầu vật tư hiện tại.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.page !== next || result.pageSize !== 20 || !Number.isSafeInteger(result.total)
         || typeof result.total !== "number" || result.total < 0 || !Array.isArray(result.items)
         || result.items.length > 20 || !result.items.every(validLine)
         || new Set(result.items.map(x => x.stockDocumentLineId)).size !== result.items.length)
-        throw Error("Material availability could not be confirmed.");
+        throw Error("Không xác minh được vật tư khả dụng.");
       if (!abort.signal.aborted && current.current === session) {
         setLines(result.items); setPage(next); setTotal(result.total);
         const refreshed = result.items as Line[];
@@ -62,7 +63,7 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) {
         setLines([]); setPage(0); setTotal(0);
-        setMaterialMessage(error instanceof Error ? error.message : "Material availability unavailable.");
+        setMaterialMessage(error instanceof Error ? error.message : "Vật tư khả dụng chưa khả dụng.");
       }
     } finally { if (!abort.signal.aborted) setLoading(false); }
   }
@@ -73,11 +74,11 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
     let dispatched = false;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
         || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session)
-        throw Error("Session changed. Reload before retrying.");
+        throw Error("Phiên đăng nhập đã thay đổi. Tải lại trước khi thử lại.");
       dispatched = true;
       const response = await fetch(`/api/maintenance-works/${id}/logs`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
@@ -90,10 +91,10 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
           // The server rejected the command. Permit corrections, but never retry
           // an ambiguous transport/server failure or reuse a stale ETag.
           if (!abort.signal.aborted && current.current === session) setAttempted(false);
-          throw Error("Progress was rejected. Check notes, units and quantities. Load issued materials again to refresh availability, correct the entries and review before saving.");
+          throw Error("Tiến độ bị từ chối. Kiểm tra ghi chú, đơn vị và số lượng. Tải lại vật tư đã cấp, sửa dữ liệu và xem lại trước khi lưu.");
         }
-        throw Error(response.status === 412 ? "Work changed. Reload before recording progress again."
-          : "Progress was not confirmed. Reload and check current access, source documents and remaining quantities.");
+        throw Error(response.status === 412 ? "Công việc đã đổi. Tải lại trước khi ghi tiến độ tiếp."
+          : "Chưa xác nhận tiến độ. Tải lại và kiểm tra quyền, chứng từ nguồn và số lượng còn lại.");
       }
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.loggedBy !== actor || !positiveId(result.logId)
@@ -104,54 +105,54 @@ export function MaintenanceProgressPanel({ data, allowMaterials, onCommitted }: 
         || !selected.every(s => (result.materialUsages as unknown[]).filter(u => isObject(u)
           && u.stockDocumentLineId === s.line.stockDocumentLineId && u.uomId === s.uomId
           && u.usedQty === Number(s.quantity) && u.maintenanceWorkId === id && u.maintenanceWorkLogId === result.logId).length === 1))
-        throw Error("Progress response could not be confirmed. Reload to check current records.");
+        throw Error("Chưa xác minh được phản hồi tiến độ. Tải lại hồ sơ hiện tại.");
       if (!abort.signal.aborted && current.current === session) {
-        const notice = "Progress recorded. Reaching 100% does not submit or close the work.";
+        const notice = "Đã ghi tiến độ. Đạt 100% không tự nộp hoặc đóng công việc.";
         setMessage(notice);
         onCommitted?.(notice);
       }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) {
         if (!dispatched) setAttempted(false);
-        setMessage(error instanceof Error ? error.message : "Progress not confirmed. Reload.");
+        setMessage(error instanceof Error ? error.message : "Chưa xác nhận tiến độ. Vui lòng tải lại.");
       }
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
-  return <section aria-label="Maintenance progress">
-    <h3>Record progress and materials</h3>
-    <p>Actual effort comes from work intervals. Materials must come from eligible posted issue lines for this incident.</p>
+  return <section aria-label="Tiến độ bảo trì">
+    <h3>Ghi tiến độ và vật tư sử dụng</h3>
+    <p>Thời gian thực tế tính từ các khoảng làm việc. Vật tư phải lấy từ dòng cấp phát đã ghi sổ và hợp lệ với sự cố này.</p>
     {message && <p role="status">{message}</p>}
     <fieldset disabled={busy || attempted || review}>
-      {data.progressPercentAvailable === true && <label>Progress (%)<input type="number" min="0" max="100" step="1" value={percent} onChange={e => setPercent(e.target.value)} /></label>}
-      {data.progressPercentAvailable !== true && <p>Percentage tracking is unavailable. You can still record notes.</p>}
-      <p>Reaching 100% does not submit or close the work.</p>
-      <label>Progress note<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
-      <p>Include your diagnosis and actions taken in the progress note.</p>
+      {data.progressPercentAvailable === true && <label>Tiến độ (%)<input type="number" min="0" max="100" step="1" value={percent} onChange={e => setPercent(e.target.value)} /></label>}
+      {data.progressPercentAvailable !== true && <p>Chưa theo dõi được phần trăm. Bạn vẫn có thể ghi chú.</p>}
+      <p>Đạt 100% không tự nộp kết quả hoặc đóng công việc.</p>
+      <label>Ghi chú tiến độ<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
+      <p>Ghi chẩn đoán và biện pháp đã thực hiện vào ghi chú tiến độ.</p>
       {allowMaterials ? <>
-        <button disabled={loading} onClick={() => void load(1)}>Load issued materials</button>
+        <button disabled={loading} onClick={() => void load(1)}>Tải vật tư đã cấp</button>
         {materialMessage && <p role="status">{materialMessage}</p>}
-        {loading && <p>Loading eligible issue lines…</p>}
-        {page > 0 && <><p>{total} eligible lines. Page {page}.</p>
-          {lines.length === 0 && <p>No eligible issued materials in this page.</p>}
-          {lines.map(line => <p key={line.stockDocumentLineId}>{line.documentNo}, line {line.lineNo}, item {line.itemId}: {line.remainingBaseQty} remaining (base unit {line.baseUomId}).
+        {loading && <p>Đang tải dòng cấp phát hợp lệ…</p>}
+        {page > 0 && <><p>{total} dòng hợp lệ. Trang {page}.</p>
+          {lines.length === 0 && <p>Không có vật tư đã cấp hợp lệ trên trang này.</p>}
+          {lines.map(line => <p key={line.stockDocumentLineId}>{line.documentNo}, Dòng {line.lineNo}, Vật tư {line.itemId}: {line.remainingBaseQty} còn lại (đơn vị cơ sở {line.baseUomId}).
             <button disabled={loading || line.remainingBaseQty <= 0 || selected.some(s => s.line.stockDocumentLineId === line.stockDocumentLineId)}
-              onClick={() => setSelected(items => [...items, { line, uomId: line.allowedUoms[0].uomId, quantity: "" }])}>Add line {line.lineNo} from {line.documentNo}</button></p>)}
-          <button disabled={loading || page <= 1} onClick={() => void load(page - 1)}>Previous materials</button>
-          <button disabled={loading || page * 20 >= total} onClick={() => void load(page + 1)}>Next materials</button>
+              onClick={() => setSelected(items => [...items, { line, uomId: line.allowedUoms[0].uomId, quantity: "" }])}>Thêm dòng {line.lineNo} từ {line.documentNo}</button></p>)}
+          <button disabled={loading || page <= 1} onClick={() => void load(page - 1)}>Vật tư trước</button>
+          <button disabled={loading || page * 20 >= total} onClick={() => void load(page + 1)}>Vật tư tiếp theo</button>
         </>}
-      </> : <p>Material selection is unavailable. You can record a progress note.</p>}
+      </> : <p>Chưa chọn được vật tư. Bạn vẫn có thể ghi chú tiến độ.</p>}
       {selected.map(s => <div key={s.line.stockDocumentLineId}>
-        <p>{s.line.documentNo}, line {s.line.lineNo}, item {s.line.itemId}</p>
-        <label>Unit for line {s.line.stockDocumentLineId}<select aria-label={`Unit for line ${s.line.stockDocumentLineId}`} value={s.uomId} onChange={e => setSelected(items => items.map(x => x === s ? { ...x, uomId: Number(e.target.value) } : x))}>
-          {s.line.allowedUoms.map(u => <option key={u.uomId} value={u.uomId}>Unit {u.uomId} ({u.conversionFactor} base units)</option>)}
+        <p>{s.line.documentNo}, Dòng {s.line.lineNo}, Vật tư {s.line.itemId}</p>
+        <label>Đơn vị của dòng {s.line.stockDocumentLineId}<select aria-label={`Đơn vị của dòng ${s.line.stockDocumentLineId}`} value={s.uomId} onChange={e => setSelected(items => items.map(x => x === s ? { ...x, uomId: Number(e.target.value) } : x))}>
+          {s.line.allowedUoms.map(u => <option key={u.uomId} value={u.uomId}>Đơn vị {displayCode(u.uomId)} ({displayCode(u.conversionFactor)} đơn vị cơ sở)</option>)}
         </select></label>
-        <label>Used quantity for line {s.line.stockDocumentLineId}<input inputMode="decimal" value={s.quantity} onChange={e => setSelected(items => items.map(x => x === s ? { ...x, quantity: e.target.value } : x))} /></label>
-        {!validSelection(s) && <p>Enter a positive quantity with at most three decimal places within the remaining base quantity ({s.line.remainingBaseQty}).</p>}
-        <button onClick={() => setSelected(items => items.filter(x => x !== s))}>Remove line {s.line.stockDocumentLineId}</button>
+        <label>Số lượng đã dùng của dòng {s.line.stockDocumentLineId}<input inputMode="decimal" value={s.quantity} onChange={e => setSelected(items => items.map(x => x === s ? { ...x, quantity: e.target.value } : x))} /></label>
+        {!validSelection(s) && <p>Nhập số lượng dương tối đa 3 chữ số thập phân, không vượt số lượng cơ sở còn lại ({s.line.remainingBaseQty}).</p>}
+        <button onClick={() => setSelected(items => items.filter(x => x !== s))}>Xóa dòng {s.line.stockDocumentLineId}</button>
       </div>)}
     </fieldset>
-    {review ? <><p>Record this progress note and {selected.length} material usage line(s)?</p><p>{note.trim()}</p>
-      <button disabled={busy} onClick={() => void save()}>Confirm progress</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
-      : <button disabled={!valid || busy || attempted || loading} onClick={() => setReview(true)}>Review progress</button>}
+    {review ? <><p>Ghi nhận tiến độ này và {selected.length} dòng sử dụng vật tư?</p><p>{note.trim()}</p>
+      <button disabled={busy} onClick={() => void save()}>Xác nhận tiến độ</button><button disabled={busy} onClick={() => setReview(false)}>Hủy</button></>
+      : <button disabled={!valid || busy || attempted || loading} onClick={() => setReview(true)}>Xem lại tiến độ</button>}
   </section>;
 }

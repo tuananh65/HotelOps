@@ -127,6 +127,21 @@ for (const status of [400, 401, 403, 500, 503])
       assert.equal(h.calls.length, 2);
     },
   );
+test("Save accepts assignments added to an existing shift without creating a new shift", async () => {
+  const h = harness(
+    () =>
+      json(
+        { createdShifts: 0, createdAssignments: 1, notificationCount: 1 },
+        201,
+      ),
+    undefined,
+    true,
+  );
+  const result = await h.api.save(drafts, signal());
+  assert.equal(result.ok, true);
+  assert.equal(result.createdShifts, 0);
+  assert.equal(result.createdAssignments, 1);
+});
 for (const value of [
   { ...preview, requiresServerRevalidation: false },
   { ...preview, rows: [] },
@@ -170,7 +185,7 @@ test("Save network uncertainty has no replay", async () => {
   assert.equal(JSON.stringify(r).includes(secret), false);
 });
 for (const value of [
-  { createdShifts: 0, createdAssignments: 1, notificationCount: 1 },
+  { createdShifts: -1, createdAssignments: 1, notificationCount: 1 },
   { createdShifts: 1, createdAssignments: 2, notificationCount: 1 },
   { createdShifts: 1, createdAssignments: 1, notificationCount: 0 },
 ])

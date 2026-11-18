@@ -41,14 +41,14 @@ test("inspection snapshots must confirm each requested actor filter", () => {
   const data = { ...snapshot(), key: "inspections", appliedFilters: { housekeeperId: "42", inspectorId: "43" } };
   const filters = { ...query, housekeeperId: 42, inspectorId: 43 };
   assert.equal(decodeSnapshot(data, "inspections", filters).key, "inspections");
-  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: null }, "inspections", filters), /Unconfirmed report filter/);
-  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: { housekeeperId: "43", inspectorId: "43" } }, "inspections", filters), /Unconfirmed report filter/);
+  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: null }, "inspections", filters), /Bộ lọc báo cáo chưa được xác nhận/);
+  assert.throws(() => decodeSnapshot({ ...data, appliedFilters: { housekeeperId: "43", inspectorId: "43" } }, "inspections", filters), /Bộ lọc báo cáo chưa được xác nhận/);
 });
 test("employee filter requires matching snapshot attribution", () => {
   const data = { ...snapshot(), appliedFilters: { employeeId: "42" } };
   assert.equal(decodeSnapshot(data, "tasks", { ...query, employeeId: 42 }).key, "tasks");
-  assert.throws(() => decodeSnapshot(data, "tasks", { ...query, employeeId: 43 }), /Unconfirmed report filter/);
-  assert.throws(() => decodeSnapshot(snapshot(), "tasks", { ...query, employeeId: 42 }), /Unconfirmed report filter/);
+  assert.throws(() => decodeSnapshot(data, "tasks", { ...query, employeeId: 43 }), /Bộ lọc báo cáo chưa được xác nhận/);
+  assert.throws(() => decodeSnapshot(snapshot(), "tasks", { ...query, employeeId: 42 }), /Bộ lọc báo cáo chưa được xác nhận/);
 });
 test("XLSX requires advertised capability and preserves format and MIME", async () => {
   const report = snapshot();

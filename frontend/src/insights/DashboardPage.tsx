@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { DashboardSourceRecords } from "./DashboardSourceRecords";
 import { HomeNavigation } from "../shared-host/HomeNavigation";
 import { DashboardFilters } from "./DashboardFilters";
@@ -15,29 +16,29 @@ import {
 } from "./dashboardApi";
 
 const sources: Record<string, string> = {
-  "rooms.effective_readiness": "Effective room readiness",
-  "rooms.operational_status": "Recorded room status",
-  "cleaning_tasks.status": "Cleaning tasks",
-  "operational_tasks.status/priority_id": "Operational tasks / priority",
-  "operational_tasks.workflow_status/priority_id": "Task workflow / priority",
-  "incidents.status/severity_id": "Open incidents / severity",
-  "maintenance_works.status": "Maintenance work",
-  "low_stock.warehouse_id": "Low stock by warehouse",
-  "preventive_occurrences.workflow_status": "Preventive occurrences",
-  "stock_movements.category": "Stock movements by item category / base unit",
+  "rooms.effective_readiness": "Mức sẵn sàng thực tế của phòng",
+  "rooms.operational_status": "Trạng thái phòng đã ghi nhận",
+  "cleaning_tasks.status": "Công việc vệ sinh",
+  "operational_tasks.status/priority_id": "Công việc vận hành / độ ưu tiên",
+  "operational_tasks.workflow_status/priority_id": "Quy trình / độ ưu tiên công việc",
+  "incidents.status/severity_id": "Sự cố đang mở / mức độ",
+  "maintenance_works.status": "Công việc bảo trì",
+  "low_stock.warehouse_id": "Tồn thấp theo kho",
+  "preventive_occurrences.workflow_status": "Lần bảo trì định kỳ",
+  "stock_movements.category": "Biến động kho theo nhóm vật tư / đơn vị cơ sở",
 };
 const quantities: Record<string, string> = {
-  netStockMovement: "Net stock movement",
-  stockReceived: "Stock received", stockIssued: "Stock issued", transferLosses: "Transfer losses",
-  outstandingApproved: "Outstanding approved materials",
-  openReplenishment: "Open replenishment",
+  netStockMovement: "Biến động kho ròng",
+  stockReceived: "Đã nhập kho", stockIssued: "Đã xuất kho", transferLosses: "Hao hụt điều chuyển",
+  outstandingApproved: "Vật tư đã duyệt còn chờ cấp",
+  openReplenishment: "Mở bổ sung vật tư",
 };
 function RoomLinks({ filters, status }: { filters: Dashboard["filters"]; status?: string }) {
   return <>{filters.branchIds.map(branch => {
     const params = new URLSearchParams({ branchId: String(branch), isActive: "true" });
     if (filters.departmentId !== null) params.set("departmentId", String(filters.departmentId));
     if (status) params.set("readiness", status);
-    return <span key={branch}> <Link to={"/rooms/status?" + params}>Rooms in branch {branch}</Link></span>;
+    return <span key={branch}> <Link to={"/rooms/status?" + params}>Phòng trong chi nhánh {branch}</Link></span>;
   })}</>;
 }
 export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
@@ -77,10 +78,10 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
           key,
           error:
             status === 403
-              ? "You do not have access to this dashboard scope."
+              ? "Bạn không có quyền xem phạm vi tổng quan này."
               : status === 400
-                ? "Check the selected filters."
-                : "Dashboard data is unavailable. No zero values have been substituted.",
+                ? "Kiểm tra bộ lọc đã chọn."
+                : "Dữ liệu tổng quan chưa khả dụng. Không thay dữ liệu thiếu bằng số 0.",
         });
         if (status === 401) actions.invalidateSession(owner);
       });
@@ -90,17 +91,17 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
     owner && result?.owner === owner && result.key === key ? result : null;
   const data = visible?.data;
   return (
-    <main aria-label="Operations dashboard">
-      <h1>{roomsOnly ? "Room readiness dashboard" : "Operations dashboard"}</h1>
+    <main aria-label="Tổng quan vận hành">
+      <h1>{roomsOnly ? "Tổng quan mức sẵn sàng của phòng" : "Tổng quan vận hành"}</h1>
       <nav>
-        <Link to={roomsOnly ? "/dashboard" : "/dashboard/rooms"}>{roomsOnly ? "Operations dashboard" : "Room readiness dashboard"}</Link>{" "}
+        <Link to={roomsOnly ? "/dashboard" : "/dashboard/rooms"}>{roomsOnly ? "Tổng quan vận hành" : "Tổng quan mức sẵn sàng của phòng"}</Link>{" "}
         <ReportAccessLink />{" "}
         <InternalRequestAccessLink />{" "}
         <HomeNavigation />
       </nav>
       {!owner ? (
         <p role="status">
-          Dashboard data is hidden while your session is checked.
+          Dữ liệu tổng quan được ẩn trong khi kiểm tra phiên.
         </p>
       ) : (
         <>
@@ -113,81 +114,78 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
               setRetry((n) => n + 1);
             }}
           />
-          <button onClick={() => setRetry((n) => n + 1)}>Refresh</button>
+          <button onClick={() => setRetry((n) => n + 1)}>Tải lại</button>
           {visible?.error && <p role="alert">{visible.error}</p>}
-          {!visible && <p role="status">Loading dashboard…</p>}
+          {!visible && <p role="status">Đang tải tổng quan…</p>}
           {data && (
             <>
               <p>
-                Snapshot (UTC):{" "}
+                Bản chụp dữ liệu (UTC):{" "}
                 <time dateTime={data.snapshot}>{data.snapshot}</time>
               </p>
               <p>
-                Branches: {data.filters.branchIds.join(", ") || "None"};
-                department: {data.filters.departmentId ?? "All permitted"}.
+                Chi nhánh: {data.filters.branchIds.join(", ") || "Không có"}; Bộ phận: {data.filters.departmentId ?? "Tất cả trong phạm vi được phép"}.
               </p>
               <p>
-                Period (UTC): {data.filters.from} to {data.filters.to}. Applies
+                Khoảng thời gian (UTC): {data.filters.from} đến {data.filters.to}. Applies
                 to inspection cycles, stock movements, task effort and tasks closed in period. Room readiness and open or overdue
                 tasks show current status at the snapshot time.
               </p>
               {data.missingSources.length > 0 && (
                 <>
                 <p role="status">
-                  MSG29: Incomplete dashboard: some indicators are unavailable.
-                  Recorded room status is not a verified effective-readiness
-                  decision.
+                  MSG29: Tổng quan chưa đầy đủ: một số chỉ số chưa khả dụng. Trạng thái phòng đã ghi không thay thế kết luận sẵn sàng thực tế đã xác minh.
                 </p>
-                <ul aria-label="Unavailable dashboard sources">
+                <ul aria-label="Nguồn tổng quan chưa khả dụng">
                   {data.missingSources.map((source, index) => <li key={`${index}:${source}`}>{source}</li>)}
                 </ul>
                 </>
               )}
-              {!roomsOnly && <nav aria-label="Dashboard drill-down">
+              {!roomsOnly && <nav aria-label="Chi tiết từ bảng tổng quan">
                 {["incidents", "occurrences", "stock", "requests", "replenishment", "transfers"].map(kind =>
-                  <button key={kind} onClick={() => { setMetric(undefined); setSource(kind); }}>View {kind} records</button>)}
+                  <button key={kind} onClick={() => { setMetric(undefined); setSource(kind); }}>Xem {kind} Hồ sơ</button>)}
               </nav>}
               {!roomsOnly && source && <DashboardSourceRecords key={source + key + metric} source={source} metric={metric} filters={data.filters} close={() => setSource(null)} />}
-              <section aria-label="Dashboard indicators">
+              <section aria-label="Chỉ số tổng quan">
                 <dl>
                   {data.metrics.map((m) => (
                     <div key={m.key}>
                       <dt>{m.label}</dt>
                       <dd>
                         <span>{m.value === null
-                          ? "N/A"
+                          ? "Chưa có thông tin"
                           : `${m.value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${m.unit}`}</span>
-                        {!roomsOnly && m.value !== null && metricSources[m.key] && <button onClick={() => { setSource(metricSources[m.key]); setMetric(m.key); }}>View source records</button>}
+                        {!roomsOnly && m.value !== null && metricSources[m.key] && <button onClick={() => { setSource(metricSources[m.key]); setMetric(m.key); }}>Xem hồ sơ nguồn</button>}
                         {m.value !== null && ["activeRooms", "readyRooms", "readyRatio"].includes(m.key) && <RoomLinks filters={data.filters} status={m.key === "activeRooms" ? undefined : "READY"} />}
                         {m.value !== null && dashboardWorkloadLink(data.filters, m.key) && (
-                          <> <Link to={dashboardWorkloadLink(data.filters, m.key)!}>Review workload</Link></>
+                          <> <Link to={dashboardWorkloadLink(data.filters, m.key)!}>Xem lại khối lượng công việc</Link></>
                         )}
                       </dd>
                     </div>
                   ))}
                 </dl>
               </section>
-              <section aria-label="Status distributions">
-                <h2>Status distributions</h2>
+              <section aria-label="Phân bố trạng thái">
+                <h2>Phân bố trạng thái</h2>
                 {data.distributions.length === 0 ? (
-                  <p>No matching status records.</p>
+                  <p>Không có hồ sơ trạng thái phù hợp.</p>
                 ) : (
                   <table>
                     <thead>
                       <tr>
-                        <th>Category</th>
-                        <th>Recorded status / ID</th>
-                        <th>Priority / severity ID</th>
-                        <th>Share of active rooms</th><th>Count</th>
+                        <th>Nhóm</th>
+                        <th>Trạng thái đã ghi nhận / mã</th>
+                        <th>Mã độ ưu tiên / mức độ</th>
+                        <th>Tỷ lệ phòng đang hoạt động</th><th>Số lượng</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.distributions.map((d, i) => (
                         <tr key={i}>
-                          <td>{sources[d.source] ?? "Other status records"}</td>
-                          <td>{d.status}</td>
+                          <td>{sources[d.source] ?? "Hồ sơ ở trạng thái khác"}</td>
+                          <td>{displayCode(d.status)}</td>
                           <td>{d.severity ?? "—"}</td>
-                          <td>{d.source === "rooms.effective_readiness" && (data.metrics.find(m => m.key === "activeRooms")?.value ?? 0) > 0 ? ((100 * d.count) / data.metrics.find(m => m.key === "activeRooms")!.value!).toFixed(2) + "%" : "N/A"}</td>
+                          <td>{d.source === "rooms.effective_readiness" && (data.metrics.find(m => m.key === "activeRooms")?.value ?? 0) > 0 ? ((100 * d.count) / data.metrics.find(m => m.key === "activeRooms")!.value!).toFixed(2) + "%" : "Chưa có thông tin"}</td>
                           <td>{d.count}{d.source === "rooms.effective_readiness" && <RoomLinks filters={data.filters} status={d.status} />}</td>
                         </tr>
                       ))}
@@ -195,31 +193,31 @@ export function DashboardPage({ roomsOnly = false }: { roomsOnly?: boolean }) {
                   </table>
                 )}
               </section>
-              {!roomsOnly && <section aria-label="Material quantities">
-                <h2>Material quantities</h2>
-                {!!data.categoryQuantities?.length && <table aria-label="Received and issued by item category"><thead><tr>
-                  <th>Item category</th><th>Warehouse</th><th>Base unit</th><th>Received</th><th>Issued</th>
+              {!roomsOnly && <section aria-label="Số lượng vật tư">
+                <h2>Số lượng vật tư</h2>
+                {!!data.categoryQuantities?.length && <table aria-label="Nhập và xuất theo nhóm vật tư"><thead><tr>
+                  <th>Nhóm vật tư</th><th>Kho</th><th>Đơn vị cơ sở</th><th>Đã nhận</th><th>Đã cấp</th>
                 </tr></thead><tbody>{data.categoryQuantities.map((q, i) => <tr key={i}>
                   <td>{q.categoryId}</td><td>{q.warehouseId}</td><td>{q.uomId}</td><td>{q.received}</td><td>{q.issued}</td>
                 </tr>)}</tbody></table>}
-                <p>Quantities stay separate by item, unit and warehouse.</p>
+                <p>Số lượng được tách riêng theo vật tư, đơn vị và kho.</p>
                 {data.quantities.length === 0 ? (
-                  <p>No matching material quantities.</p>
+                  <p>Không có số lượng vật tư phù hợp.</p>
                 ) : (
                   <table>
                     <thead>
                       <tr>
-                        <th>Category</th>
-                        <th>Item category</th><th>Item ID</th>
-                        <th>Unit ID</th>
-                        <th>Warehouse ID</th>
-                        <th>Quantity</th>
+                        <th>Nhóm</th>
+                        <th>Nhóm vật tư</th><th>Mã vật tư</th>
+                        <th>Mã đơn vị</th>
+                        <th>Mã kho</th>
+                        <th>Số lượng</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.quantities.map((q, i) => (
                         <tr key={i}>
-                          <td>{quantities[q.kind] ?? "Other quantity"} <button onClick={() => { setSource(q.kind === "outstandingApproved" ? "requests" : q.kind === "openReplenishment" ? "replenishment" : q.kind === "transferLosses" ? "transfers" : "stock"); setMetric(q.kind); }}>View source</button></td>
+                          <td>{quantities[q.kind] ?? "Số lượng khác"} <button onClick={() => { setSource(q.kind === "outstandingApproved" ? "requests" : q.kind === "openReplenishment" ? "replenishment" : q.kind === "transferLosses" ? "transfers" : "stock"); setMetric(q.kind); }}>Xem nguồn</button></td>
                           <td>{q.categoryId ?? "N/A"}</td><td>{q.itemId}</td>
                           <td>{q.uomId}</td>
                           <td>{q.warehouseId ?? "—"}</td>

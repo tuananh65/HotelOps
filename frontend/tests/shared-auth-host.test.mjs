@@ -147,16 +147,16 @@ async function pageAt(path, status) {
 
 test("canonical incident workspace hides write actions and other modules", async () => {
   const p = await pageAt("/operations/incidents?branchId=7&action=A004A-021", "AUTHENTICATED");
-  await p.getByLabel("Action", { exact: true }).waitFor();
-  assert.equal(await p.getByRole("link", { name: "Create", exact: true }).count(), 0);
+  await p.getByLabel("Thao tác", { exact: true }).waitFor();
+  assert.equal(await p.getByRole("link", { name: "Tạo mới", exact: true }).count(), 0);
   assert.equal(await p.locator('option[value="A004A-021"]').count(), 0);
   assert.equal(await p.locator('nav[aria-label="Operations"] a').count(), 1);
   assert.ok((await p.evaluate(() => window.methods ?? [])).every(method => method === "GET"));
   await p.evaluate(() => window.fixture.set("EXPIRED_INVALID"));
-  await p.getByLabel("Action", { exact: true }).waitFor({ state: "hidden" });
+  await p.getByLabel("Thao tác", { exact: true }).waitFor({ state: "hidden" });
   await p.close();
   const denied = await pageAt("/operations/material-requests", "AUTHENTICATED");
-  await denied.getByText("This destination is not activated.", { exact: true }).waitFor();
+  await denied.getByText("Chức năng đích chưa được kích hoạt.", { exact: true }).waitFor();
   assert.deepEqual(await denied.evaluate(() => window.calls), []);
   await denied.close();
 });
@@ -169,10 +169,10 @@ test("inspection history admission denial never mounts the history workspace", a
       window.businessReply = { status, body: {} };
       window.fixture.set("AUTHENTICATED");
     }, status);
-    await p.getByText("Inspection history is unavailable or access has changed.", { exact: true }).waitFor();
+    await p.getByText("Lịch sử kiểm tra chưa khả dụng hoặc quyền đã đổi.", { exact: true }).waitFor();
     assert.ok((await p.evaluate(() => window.calls)).every(path => destination.includes("/42")
       ? path === "/api/inspection-history/42?branchId=7" : path.startsWith("/api/inspection-history?branchId=7&")));
-    assert.equal(await p.getByRole("heading", { name: "Defects", exact: true }).count(), 0);
+    assert.equal(await p.getByRole("heading", { name: "Các lỗi", exact: true }).count(), 0);
     await p.close();
   }
   }
@@ -182,7 +182,7 @@ test("inspection history validates destination before any business read", async 
   for (const path of ["/inspection-history/0?branchId=7", "/inspection-history/42?branchId=7&branchId=8", "/inspection-history/42?branchId=7&extra=1",
     "/inspection-history?branchId=0", "/inspection-history?branchId=7&branchId=8", "/inspection-history?branchId=7&extra=1"]) {
     const p = await pageAt(path, "AUTHENTICATED");
-    await p.getByText("Invalid inspection history destination.", { exact: true }).waitFor();
+    await p.getByText("Đích lịch sử kiểm tra không hợp lệ.", { exact: true }).waitFor();
     assert.deepEqual(await p.evaluate(() => window.calls), []);
     await p.close();
   }
@@ -199,7 +199,7 @@ test("reinspection assignment renders eligible inspector and hides source on ses
     } };
     window.fixture.set("AUTHENTICATED");
   });
-  await p.getByLabel("Inspector", { exact: true }).selectOption("7");
+  await p.getByLabel("Người kiểm tra", { exact: true }).selectOption("7");
   await p.getByRole("heading", { name: "Room 701", exact: true }).waitFor();
   await p.evaluate(() => window.fixture.set("EXPIRED_INVALID"));
   await p.getByRole("heading", { name: "Room 701", exact: true }).waitFor({ state: "hidden" });
@@ -258,9 +258,9 @@ for (const phase of ["csrf", "mutation"])
         return send(url, init);
       };
     }, phase);
-    await p.getByLabel("Reason", { exact: true }).fill("Start inspection");
+    await p.getByLabel("Lý do", { exact: true }).fill("Start inspection");
     await p
-      .getByRole("button", { name: "Start Inspection", exact: true })
+      .getByRole("button", { name: "Bắt đầu kiểm tra", exact: true })
       .click();
     await p.waitForFunction(
       () => typeof window.releaseInspection === "function",
@@ -268,7 +268,7 @@ for (const phase of ["csrf", "mutation"])
     const reads = await p.evaluate(() => window.calls.length);
     await p.evaluate(() => window.fixture.set("AUTHENTICATED"));
     await p
-      .getByRole("button", { name: "Verify inspection access", exact: true })
+      .getByRole("button", { name: "Xác minh quyền kiểm tra", exact: true })
       .waitFor();
     await p.evaluate(() => window.releaseInspection());
     await p.evaluate(
@@ -292,7 +292,7 @@ for (const phase of ["csrf", "mutation"])
       0,
     );
     await p
-      .getByRole("button", { name: "Verify inspection access", exact: true })
+      .getByRole("button", { name: "Xác minh quyền kiểm tra", exact: true })
       .click();
     await p
       .getByRole("heading", { name: "Inspection #42", exact: true })
@@ -339,7 +339,7 @@ test("canonical inspection mounts only after scoped API admission and requires e
   const before = await p.evaluate(() => window.calls.length);
   await p.evaluate(() => window.fixture.set("AUTHENTICATED"));
   await p
-    .getByRole("button", { name: "Verify inspection access", exact: true })
+    .getByRole("button", { name: "Xác minh quyền kiểm tra", exact: true })
     .waitFor();
   assert.equal(
     await p
@@ -349,7 +349,7 @@ test("canonical inspection mounts only after scoped API admission and requires e
   );
   assert.equal(await p.evaluate(() => window.calls.length), before);
   await p
-    .getByRole("button", { name: "Verify inspection access", exact: true })
+    .getByRole("button", { name: "Xác minh quyền kiểm tra", exact: true })
     .click();
   await p
     .getByRole("heading", { name: "Inspection #42", exact: true })
@@ -370,7 +370,7 @@ for (const status of [403, 503])
       .waitFor();
     assert.equal(
       await p
-        .getByRole("button", { name: "Start Inspection", exact: true })
+        .getByRole("button", { name: "Bắt đầu kiểm tra", exact: true })
         .count(),
       0,
     );
@@ -383,7 +383,7 @@ for (const status of [403, 503])
 test("canonical inspection invalid route IDs never read protected resources", async () => {
   const p = await pageAt("/inspections/0/42/execution", "AUTHENTICATED");
   await p
-    .getByText("Invalid inspection or branch ID.", { exact: true })
+    .getByText("Mã kiểm tra hoặc chi nhánh không hợp lệ.", { exact: true })
     .waitFor();
   assert.deepEqual(await p.evaluate(() => window.calls), []);
   await p.close();
@@ -417,14 +417,14 @@ for (const path of [
       assert.deepEqual(await p.evaluate(() => window.calls), []);
       assert.equal(
         await p
-          .getByRole("heading", { name: "User directory", exact: true })
+          .getByRole("heading", { name: "Danh mục người dùng", exact: true })
           .count(),
         0,
       );
       assert.equal(
         await p
           .getByRole("heading", {
-            name: "Hotel structure — Branch structure",
+            name: "Cấu trúc khách sạn — Cấu trúc chi nhánh",
             exact: true,
           })
           .count(),
@@ -437,22 +437,22 @@ for (const path of [
 
 test("canonical operations navigation reaches integrated Users and Structure reads", async () => {
   const p = await pageAt("/rooms/status", "AUTHENTICATED");
-  await p.getByRole("link", { name: "Users", exact: true }).click();
+  await p.getByRole("link", { name: "Người dùng", exact: true }).click();
   await p
-    .getByRole("heading", { name: "User directory", exact: true })
+    .getByRole("heading", { name: "Danh mục người dùng", exact: true })
     .waitFor();
   await p.waitForFunction(() =>
     window.calls.some((url) => url.startsWith("/api/users")),
   );
-  await p.getByRole("link", { name: "Workspace", exact: true }).click();
+  await p.getByRole("link", { name: "Không gian làm việc", exact: true }).click();
   await p.getByRole("link", { name: "Structure", exact: true }).click();
   await p
     .getByRole("heading", {
-      name: "Hotel structure — Branch structure",
+      name: "Cấu trúc khách sạn — Cấu trúc chi nhánh",
       exact: true,
     })
     .waitFor();
-  assert.equal(await p.getByText("Page not found", { exact: true }).count(), 0);
+  assert.equal(await p.getByText("Không tìm thấy trang", { exact: true }).count(), 0);
   await p.close();
 });
 
@@ -496,7 +496,7 @@ for (const status of [
     else if (status === "RESTRICTED") await p.waitForURL("**/change-password");
     else
       await p
-        .getByRole("main", { name: "Activation session recovery" })
+        .getByRole("main", { name: "Khôi phục phiên kích hoạt" })
         .waitFor();
     assert.equal(
       (await p.evaluate(() => window.calls)).some((url) =>
@@ -580,16 +580,16 @@ test("bootstrap fail closed and explicit recovery", async () => {
   await p.getByText("Checking your session...").waitFor();
   assert.equal(await p.getByRole("navigation").count(), 0);
   await p.evaluate(() => window.fixture.set("ERROR_UNAVAILABLE"));
-  await p.getByRole("button", { name: "Check session" }).click();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
   await p.getByRole("navigation").waitFor();
   await p.close();
 });
 test("anonymous deep link then login restores default only", async () => {
   const p = await pageAt("/rooms/status?branchId=7", "ANONYMOUS");
-  await p.getByRole("heading", { name: "Sign In", exact: true }).waitFor();
-  await p.getByLabel("Username or email").fill("staff");
-  await p.getByLabel("Password", { exact: true }).fill("synthetic");
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
+  await p.getByRole("heading", { name: "Đăng nhập", exact: true }).waitFor();
+  await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+  await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic");
+  await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await p.getByRole("navigation").waitFor();
   assert.equal(new URL(p.url()).pathname, "/rooms/status");
   await p.close();
@@ -597,15 +597,15 @@ test("anonymous deep link then login restores default only", async () => {
 test("restricted cannot render operations; profile logout removes protected navigation", async () => {
   const p = await pageAt("/rooms/status", "RESTRICTED");
   await p
-    .getByRole("heading", { name: "Change Password", exact: true })
+    .getByRole("heading", { name: "Đổi mật khẩu", exact: true })
     .waitFor();
   assert.equal(await p.getByRole("navigation").count(), 0);
   await p.evaluate(() => {
     window.fixture.set("AUTHENTICATED");
     window.fixture.navigate("/profile");
   });
-  await p.getByRole("button", { name: "Logout", exact: true }).click();
-  await p.getByRole("heading", { name: "Sign In", exact: true }).waitFor();
+  await p.getByRole("button", { name: "Đăng xuất", exact: true }).click();
+  await p.getByRole("heading", { name: "Đăng nhập", exact: true }).waitFor();
   await p.close();
 });
 for (const path of [
@@ -620,9 +620,9 @@ for (const path of [
 ])
   test("existing operations route preserved " + path, async () => {
     const p = await pageAt(path, "AUTHENTICATED");
-    await p.getByRole("navigation", { name: "Hotel operations" }).waitFor();
+    await p.getByRole("navigation", { name: "Vận hành khách sạn" }).waitFor();
     assert.equal(
-      await p.getByText("Page not found", { exact: true }).count(),
+      await p.getByText("Không tìm thấy trang", { exact: true }).count(),
       0,
     );
     await p.close();
@@ -649,9 +649,9 @@ for (const destination of [
       "/login?" + new URLSearchParams({ returnTo: destination }),
       "ANONYMOUS",
     );
-    await p.getByLabel("Username or email").fill("staff");
-    await p.getByLabel("Password", { exact: true }).fill("synthetic");
-    await p.getByRole("button", { name: "Sign in", exact: true }).click();
+    await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+    await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic");
+    await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
     await p.waitForURL(origin + destination);
     assert.equal(await p.evaluate(() => window.revalidationCalls), 1);
     await p.close();
@@ -679,14 +679,14 @@ test("failed revalidation does not restore destination; explicit recovery requir
     "ANONYMOUS",
   );
   await p.evaluate(() => (window.revalidationMode = "fail"));
-  await p.getByLabel("Username or email").fill("staff");
-  await p.getByLabel("Password", { exact: true }).fill("synthetic");
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
-  await p.getByRole("button", { name: "Check session" }).waitFor();
+  await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+  await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic");
+  await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
   assert.equal(await p.getByRole("navigation").count(), 0);
   assert.equal(new URL(p.url()).pathname, "/login");
   await p.evaluate(() => (window.revalidationMode = "success"));
-  await p.getByRole("button", { name: "Check session" }).click();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
   await p.waitForURL(origin + "/rework?branchId=7");
   await p.close();
 });
@@ -696,9 +696,9 @@ test("post-login revalidation blocks destination until completion", async () => 
     "ANONYMOUS",
   );
   await p.evaluate(() => (window.revalidationMode = "defer"));
-  await p.getByLabel("Username or email").fill("staff");
-  await p.getByLabel("Password", { exact: true }).fill("synthetic");
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
+  await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+  await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic");
+  await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await p.waitForFunction(() => !!window.finishRevalidation);
   assert.equal(await p.getByRole("navigation").count(), 0);
   await p.evaluate(() => window.finishRevalidation());
@@ -722,10 +722,10 @@ async function realLoginPage(replies) {
   await p.goto(
     origin + "/login?" + new URLSearchParams({ returnTo: "/profile" }),
   );
-  await p.getByRole("heading", { name: "Sign In", exact: true }).waitFor();
-  await p.getByLabel("Username or email").fill("staff");
-  await p.getByLabel("Password", { exact: true }).fill("synthetic-only");
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
+  await p.getByRole("heading", { name: "Đăng nhập", exact: true }).waitFor();
+  await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+  await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic-only");
+  await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   return p;
 }
 function repliesAfterLogin(last) {
@@ -767,10 +767,10 @@ test("real AuthApi/store revalidation 401 denies restoration and explicit GET re
   });
   r["/api/auth/session"].push({ status: 200, body: realSession });
   const p = await realLoginPage(r);
-  await p.getByRole("button", { name: "Check session" }).waitFor();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
   assert.equal(new URL(p.url()).pathname, "/login");
   assert.equal(await p.getByRole("navigation").count(), 0);
-  await p.getByRole("button", { name: "Check session" }).click();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).click();
   await p.waitForURL(origin + "/profile");
   assert.equal(
     (await p.evaluate(() => window.calls)).filter(
@@ -794,9 +794,9 @@ function loginUrl(destination) {
   return "/login?" + new URLSearchParams({ returnTo: destination });
 }
 async function signIn(p) {
-  await p.getByLabel("Username or email").fill("staff");
-  await p.getByLabel("Password", { exact: true }).fill("synthetic");
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
+  await p.getByLabel("Tên đăng nhập hoặc email").fill("staff");
+  await p.getByLabel("Mật khẩu", { exact: true }).fill("synthetic");
+  await p.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 test("031 query A to B before login uses B", async () => {
   const p = await pageAt(loginUrl("/profile"), "ANONYMOUS");
@@ -857,7 +857,7 @@ test("031 real same-account session replacement invalidates old GET without repl
     });
     window.finishRealRevalidation();
   });
-  await p.getByRole("button", { name: "Check session" }).waitFor();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
   assert.equal(new URL(p.url()).pathname, "/login");
   assert.equal(
     (await p.evaluate(() => window.calls)).filter(
@@ -881,7 +881,7 @@ test("031 real logout during pending revalidation cannot restore protected desti
     await window.realStore.logout();
     window.finishRealRevalidation();
   });
-  await p.getByRole("button", { name: "Check session" }).waitFor();
+  await p.getByRole("button", { name: "Kiểm tra phiên đăng nhập" }).waitFor();
   assert.equal(new URL(p.url()).pathname, "/login");
   assert.equal(await p.getByRole("navigation").count(), 0);
   assert.equal(
@@ -945,14 +945,14 @@ test("canonical audit reads list and redacted detail then hides data on authorit
     };
   }, row);
   await p.getByRole("button", { name: "View entry 71" }).click();
-  await p.getByRole("region", { name: "Audit entry" }).waitFor();
+  await p.getByRole("region", { name: "Bản ghi thay đổi" }).waitFor();
   assert.match(await p.locator("main").innerText(), /READY/);
   assert.ok(
     (await p.evaluate(() => window.calls)).includes("/api/audit-logs/71"),
   );
   await p.evaluate(() => window.fixture.set("ERROR_UNAVAILABLE"));
   await p
-    .getByRole("region", { name: "Audit entry" })
+    .getByRole("region", { name: "Bản ghi thay đổi" })
     .waitFor({ state: "hidden" });
   assert.doesNotMatch(
     await p.locator("body").innerText(),
@@ -1010,7 +1010,7 @@ test("audit 401 invalidates the current authority without automatic business rep
   assert.equal(calls.length, 1);
   assert.equal(
     await p
-      .getByRole("heading", { name: "Audit history", exact: true })
+      .getByRole("heading", { name: "Lịch sử thay đổi", exact: true })
       .count(),
     0,
   );
@@ -1066,7 +1066,7 @@ test("dashboard renders unknown metrics and precise quantities with explicit fil
   assert.match(content, /N\/A/);
   assert.match(content, /Incomplete dashboard/);
   assert.doesNotMatch(content, /INTERNAL-CONTRACT-DETAIL/);
-  await p.getByLabel("Branch", { exact: true }).selectOption("7");
+  await p.getByLabel("Chi nhánh", { exact: true }).selectOption("7");
   await p.getByRole("button", { name: "Apply filters", exact: true }).click();
   await p.waitForFunction(() =>
     window.calls.includes("/api/dashboards/operations?branchId=7"),
@@ -1114,7 +1114,7 @@ test("dashboard rejects numeric quantities instead of rounding", async () => {
   }, dashboardFixture);
   await p.getByRole("alert").waitFor();
   assert.equal(
-    await p.getByRole("region", { name: "Dashboard indicators" }).count(),
+    await p.getByRole("region", { name: "Chỉ số tổng quan" }).count(),
     0,
   );
   await p.close();
@@ -1160,8 +1160,8 @@ test("dashboard late 401 cannot invalidate replacement authority", async () => {
 
 test("dashboard dropdowns restrict departments and clear selection when branch changes", async () => {
   const p = await pageAt("/dashboard", "AUTHENTICATED");
-  await p.getByLabel("Branch", { exact: true }).selectOption("7");
-  const department = p.getByLabel("Department", { exact: true });
+  await p.getByLabel("Chi nhánh", { exact: true }).selectOption("7");
+  const department = p.getByLabel("Bộ phận", { exact: true });
   assert.deepEqual(
     await department
       .locator("option")
@@ -1175,7 +1175,7 @@ test("dashboard dropdowns restrict departments and clear selection when branch c
       "/api/dashboards/operations?branchId=7&departmentId=11",
     ),
   );
-  await p.getByLabel("Branch", { exact: true }).selectOption("8");
+  await p.getByLabel("Chi nhánh", { exact: true }).selectOption("8");
   assert.equal(await department.inputValue(), "");
   assert.deepEqual(
     await department
@@ -1199,9 +1199,9 @@ test("dashboard rejects foreign department options, supports explicit retry and 
     };
     window.fixture.set("AUTHENTICATED");
   });
-  await p.getByRole("button", { name: "Retry filters" }).waitFor();
+  await p.getByRole("button", { name: "Tải lại bộ lọc" }).waitFor();
   assert.equal(
-    await p.getByLabel("Branch", { exact: true }).isDisabled(),
+    await p.getByLabel("Chi nhánh", { exact: true }).isDisabled(),
     true,
   );
   assert.doesNotMatch(
@@ -1215,7 +1215,7 @@ test("dashboard rejects foreign department options, supports explicit retry and 
     1,
   );
   await p.evaluate(() => (window.dashboardOptions.departments = []));
-  await p.getByRole("button", { name: "Retry filters" }).click();
+  await p.getByRole("button", { name: "Tải lại bộ lọc" }).click();
   await p
     .getByRole("option", { name: "OLD-SCOPE (B7)", exact: true })
     .waitFor({ state: "attached" });
@@ -1286,7 +1286,7 @@ test("notification center marks read through CSRF and refreshes only after succe
   await p
     .getByRole("button", { name: "Mark notification 71 as read", exact: true })
     .click();
-  await p.getByText("Marked as read. Source records are unchanged.").waitFor();
+  await p.getByText("Đã đánh dấu đã đọc. Hồ sơ nguồn không thay đổi.").waitFor();
   await p.waitForFunction(() => document.body.innerText.includes("Unread: 0"));
   assert.equal(
     await p
@@ -1358,11 +1358,11 @@ test("notification uncertain write is not replayed and current 401 expires autho
     window.fixture.set("AUTHENTICATED");
   }, notificationFixture);
   await p
-    .getByRole("button", { name: "Mark all as read", exact: true })
+    .getByRole("button", { name: "Đánh dấu tất cả đã đọc", exact: true })
     .click();
   await p
     .getByText(
-      "Read status could not be confirmed. Refresh before trying again.",
+      "Chưa xác nhận trạng thái đã đọc. Tải lại trước khi thử lại.",
     )
     .waitFor();
   assert.equal(
@@ -1376,7 +1376,7 @@ test("notification uncertain write is not replayed and current 401 expires autho
   await p.evaluate(() => {
     window.fetch = async () => new Response("{}", { status: 401 });
   });
-  await p.getByRole("button", { name: "Refresh", exact: true }).click();
+  await p.getByRole("button", { name: "Tải lại", exact: true }).click();
   await p.waitForURL("**/login**");
   await p.close();
 });
@@ -1417,7 +1417,7 @@ test("initial assignment hides source and eligible inspectors on session loss", 
     window.businessReply = { status: 200, headers: { ETag: '\"0123456789ABCDEF\"' }, body: { taskId: 12, branchId: 7, roomId: 11, roomNumber: "PRIVATE-ROOM", taskETag: '\"0123456789ABCDEF\"', cycleETag: '\"0123456789ABCDEF\"', checklistVersionId: 55, checklistName: "PRIVATE-CHECKLIST", versionNo: 1, existingInspectionId: null, existingInspectorId: null, inspectors: [{ id: 7, name: "PRIVATE-INSPECTOR" }], canAssign: true, unavailableReason: null } };
     window.fixture.set("AUTHENTICATED");
   });
-  await p.getByLabel("Inspector", { exact: true }).waitFor();
+  await p.getByLabel("Người kiểm tra", { exact: true }).waitFor();
   await p.evaluate(() => window.fixture.set("ANONYMOUS"));
   await p.waitForURL("**/login?*");
   assert.equal(await p.getByText(/PRIVATE-/).count(), 0);

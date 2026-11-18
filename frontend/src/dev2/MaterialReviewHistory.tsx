@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -54,27 +55,27 @@ export function MaterialReviewHistory({ record }: { record: Values }) {
   const current = loaded?.owner === owner && loaded.key === key ? loaded : undefined;
   const currentStock = stock?.owner === owner && stock.key === stockKey ? stock : undefined;
   const rows = current?.page?.items.filter(r => String(r.requestId) !== String(record.requestId)).slice(0, 5) ?? [];
-  return <section aria-label="Recent material requests for review">
-    <h3>Current stock preview</h3>
+  return <section aria-label="Yêu cầu vật tư gần đây để xét duyệt">
+    <h3>Xem trước tồn kho hiện tại</h3>
     {currentStock?.data ? <MaterialAvailabilityView data={currentStock.data} />
-      : <p role="status">{currentStock ? "Stock unavailable. Independent inventory permission and current review authority are required; no stock has been reserved." : "Loading authorized stock preview…"}</p>}
-    <h3>Recent requests for the same material</h3>
-    <p>Up to five newest other requests by this requester in this branch, within your current MR_VIEW scope. Historical quantities do not reserve stock.</p>
-    <label>Material<select value={itemId} onChange={e => setSelected(e.target.value)}>
+      : <p role="status">{currentStock ? "Chưa có tồn kho. Cần quyền kho riêng và thẩm quyền xét duyệt hiện tại; chưa giữ chỗ tồn nào." : "Đang tải bản xem trước tồn kho được phép truy cập…"}</p>}
+    <h3>Yêu cầu gần đây cho cùng vật tư</h3>
+    <p>Tối đa 5 yêu cầu khác mới nhất của người này trong chi nhánh và quyền MR_VIEW hiện tại. Số lượng lịch sử không giữ chỗ tồn kho.</p>
+    <label>Vật tư<select value={itemId} onChange={e => setSelected(e.target.value)}>
       {items.map(l => <option key={String(l.itemId)} value={String(l.itemId)}>{String(l.itemName ?? l.itemId)}</option>)}
     </select></label>
-    <button type="button" onClick={() => setRevision(r => r + 1)}>Refresh review context</button>
-    {!current ? <p role="status">Loading recent requests…</p> : !current.page ? <p role="alert">Recent requests unavailable. Check your current read access and retry.</p>
-      : rows.length === 0 ? <p>No other matching requests visible.</p> : <table>
-        <thead><tr><th>Request</th><th>Created</th><th>Status</th><th>Quantities by unit</th></tr></thead>
+    <button type="button" onClick={() => setRevision(r => r + 1)}>Tải lại thông tin xét duyệt</button>
+    {!current ? <p role="status">Đang tải yêu cầu gần đây…</p> : !current.page ? <p role="alert">Chưa tải được yêu cầu gần đây. Kiểm tra quyền xem và thử lại.</p>
+      : rows.length === 0 ? <p>Không có yêu cầu phù hợp khác được phép xem.</p> : <table>
+        <thead><tr><th>Yêu cầu</th><th>Đã tạo</th><th>Trạng thái</th><th>Số lượng theo đơn vị</th></tr></thead>
         <tbody>{rows.map(r => <tr key={String(r.requestId)}>
           <td><Link to={`/operations/material-requests/${encodeURIComponent(String(r.requestId))}`}>{String(r.requestNo)}</Link></td>
-          <td>{String(r.createdAt)}</td><td>{String(r.status)}</td>
+          <td>{String(r.createdAt)}</td><td>{displayCode(r.status)}</td>
           <td>{(Array.isArray(r.quantities) ? r.quantities.filter(isObject) : []).map(l => <p key={String(l.requestLineId)}>
-            {String(l.itemName)}: requested {String(l.requestedQty)}, approved {String(l.approvedQty ?? "Not approved")}, issued {String(l.fulfilledQty)} {String(l.unitName)}
+            {String(l.itemName)}: Đã yêu cầu {String(l.requestedQty)}, Đã duyệt {String(l.approvedQty ?? "Chưa duyệt")}, Đã cấp {String(l.fulfilledQty)} {String(l.unitName)}
           </p>)}</td>
         </tr>)}</tbody>
       </table>}
-    <Link to={`/operations/material-requests?branchId=${encodeURIComponent(branch)}&requesterId=${encodeURIComponent(requester)}&itemId=${encodeURIComponent(itemId)}`}>Open all matching requests and filters</Link>
+    <Link to={`/operations/material-requests?branchId=${encodeURIComponent(branch)}&requesterId=${encodeURIComponent(requester)}&itemId=${encodeURIComponent(itemId)}`}>Mở tất cả yêu cầu phù hợp và bộ lọc</Link>
   </section>;
 }

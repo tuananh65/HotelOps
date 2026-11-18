@@ -445,7 +445,7 @@ test("next action passes room context to registered UC028 without mutations", as
   );
   await link.click();
   await expect(page).toHaveURL(/\/cleaning\/tasks\/new\?branchId=7&roomId=11$/);
-  await expect(page.getByText("Page not found", { exact: true })).toHaveCount(
+  await expect(page.getByText("Không tìm thấy trang", { exact: true })).toHaveCount(
     0,
   );
   await expect(

@@ -10,7 +10,7 @@ const instant = (v: unknown) => typeof v === "string" && /Z$/.test(v) && Number.
 const option = (v: unknown): v is Option => isObject(v) && positive(v.priorityId) && typeof v.name === "string"
   && instant(v.responseDeadlineAt) && instant(v.resolutionDeadlineAt) && typeof v.targetVersion === "string" && /^[0-9A-F]{16}$/.test(v.targetVersion);
 const utc = (v: string) => v && Number.isFinite(Date.parse(v + "+07:00")) ? new Date(v + "+07:00").toISOString() : undefined;
-const displayTime = (v: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(v));
+const displayTime = (v: string) => new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(v));
 export function IncidentTriagePanel({ data, onCommitted, onReload }: { data: Values; onCommitted?: (notice: string) => void; onReload?: () => void }) {
   const { state } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
@@ -27,10 +27,10 @@ export function IncidentTriagePanel({ data, onCommitted, onReload }: { data: Val
   const chosen = choices.find(o => String(o.priorityId) === priority);
   const id = data.incidentId, tag = data.triageETag;
   if (owner && positive(id) && data.triageUnavailableReason === "APPROVED_SLA_TARGETS_REQUIRED")
-    return <section aria-label="Triage incident"><p role="status">Triage is unavailable until approved response and resolution SLA targets are configured for an active priority.</p>
-      {onReload && <button onClick={onReload}>Reload incident and SLA options</button>}</section>;
+    return <section aria-label="Tiếp nhận sự cố"><p role="status">Chưa thể tiếp nhận: cần cấu hình thời hạn phản hồi và xử lý SLA đã được duyệt cho một mức ưu tiên đang hoạt động.</p>
+      {onReload && <button onClick={onReload}>Tải lại sự cố và cấu hình SLA</button>}</section>;
   if (owner && positive(id) && data.assignmentWorkflow === "PENDING_TRIAGE" && (!positive(data.categoryId) || !positive(data.severityId)))
-    return <p role="status">MSG03: Category and severity are required before triage. <a href="#incident-classification">Open Classify incident</a>.</p>;
+    return <p role="status">MSG03: Cần chọn nhóm và mức độ trước khi tiếp nhận sự cố. <a href="#incident-classification">Mở phần phân loại sự cố</a>.</p>;
   if (!owner || !positive(actor) || !positive(id) || !positive(data.severityId) || data.canTriage !== true
     || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
   const changed = !!chosen && ((response !== "" && Date.parse(utc(response) ?? "") !== Date.parse(chosen.responseDeadlineAt))
@@ -43,10 +43,10 @@ export function IncidentTriagePanel({ data, onCommitted, onReload }: { data: Val
     const session = owner, abort = new AbortController(); active.current = abort;
     try {
       const bootstrap = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
-      if (!bootstrap.ok) throw Error("Session check failed. Reload before retrying.");
+      if (!bootstrap.ok) throw Error("Không xác minh được phiên đăng nhập. Tải lại trước khi thử lại.");
       const csrf: unknown = await bootstrap.json();
       if (!isObject(csrf) || csrf.headerName !== "X-CSRF-TOKEN" || typeof csrf.csrfToken !== "string"
-        || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session) throw Error("Session changed. Reload.");
+        || !/^[\x21-\x7e]+$/.test(csrf.csrfToken) || abort.signal.aborted || current.current !== session) throw Error("Phiên đăng nhập đã thay đổi. Vui lòng tải lại.");
       const res = await fetch(`/api/incidents/${id}/triage`, { method: "PATCH", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
         body: JSON.stringify({ actorUserId: actor, severityId: data.severityId, priorityId: chosen.priorityId,
@@ -57,37 +57,37 @@ export function IncidentTriagePanel({ data, onCommitted, onReload }: { data: Val
         if (isObject(problem) && problem.title === "Incident triage validation failed"
           && !abort.signal.aborted && current.current === session) {
           setAttempted(false);
-          setMessage(typeof problem.detail === "string" ? problem.detail : "Check priority, deadlines and initial action plan.");
+          setMessage(typeof problem.detail === "string" ? problem.detail : "Kiểm tra độ ưu tiên, thời hạn và kế hoạch xử lý ban đầu.");
           return;
         }
       }
-      if (!res.ok) throw Error(res.status === 412 ? "Incident or SLA targets changed. Reload before trying again." : "Triage was not confirmed. Reload and check current access and classification.");
+      if (!res.ok) throw Error(res.status === 412 ? "Sự cố hoặc cấu hình SLA đã thay đổi. Tải lại trước khi thử lại." : "Chưa xác nhận tiếp nhận. Tải lại và kiểm tra quyền, phân loại hiện tại.");
       const result: unknown = await res.json();
       if (!isObject(result) || result.incidentId !== id || result.priorityId !== chosen.priorityId || result.severityId !== data.severityId
         || result.status !== "OPEN" || typeof result.triageETag !== "string" || !/^"[0-9A-F]{16}"$/.test(result.triageETag) || result.triageETag === tag
         || !isObject(result.sla) || !instant(result.sla.responseDeadlineAt) || !instant(result.sla.resolutionDeadlineAt)
         || Date.parse(String(result.sla.responseDeadlineAt)) !== Date.parse(utc(response) ?? chosen.responseDeadlineAt)
         || Date.parse(String(result.sla.resolutionDeadlineAt)) !== Date.parse(utc(resolution) ?? chosen.resolutionDeadlineAt))
-        throw Error("Triage response could not be confirmed. Reload to check the current record.");
-      if (!abort.signal.aborted && current.current === session) { setSaved(true); setMessage("Triage saved. The incident is pending assignment."); onCommitted?.("Triage saved. The incident is pending assignment."); }
-    } catch (e) { if (!abort.signal.aborted && current.current === session) setMessage(e instanceof Error ? e.message : "Triage not confirmed. Reload."); }
+        throw Error("Chưa xác minh được phản hồi tiếp nhận. Tải lại hồ sơ hiện tại.");
+      if (!abort.signal.aborted && current.current === session) { setSaved(true); setMessage("Đã lưu thông tin tiếp nhận. Sự cố đang chờ phân công."); onCommitted?.("Đã lưu thông tin tiếp nhận. Sự cố đang chờ phân công."); }
+    } catch (e) { if (!abort.signal.aborted && current.current === session) setMessage(e instanceof Error ? e.message : "Chưa xác nhận tiếp nhận sự cố. Vui lòng tải lại."); }
     finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }
   }
-  return <section aria-label="Triage incident">
-    <h3>Triage incident</h3>
+  return <section aria-label="Tiếp nhận sự cố">
+    <h3>Tiếp nhận sự cố</h3>
     <fieldset disabled={busy || attempted || review}>
-      <label>Priority<select aria-label="Priority" value={priority} onChange={e => { setPriority(e.target.value); setResponse(""); setResolution(""); setReason(""); }}>
-        <option value="">Select priority</option>{choices.map(o => <option key={o.priorityId} value={o.priorityId}>{o.name}</option>)}</select></label>
-      {chosen && <p>Default response deadline: {displayTime(chosen.responseDeadlineAt)}; resolution deadline: {displayTime(chosen.resolutionDeadlineAt)} (Asia/Ho_Chi_Minh, UTC+7).</p>}
-      <label>Initial action plan<textarea value={plan} onChange={e => setPlan(e.target.value)} /></label>
-      <label>Override response deadline (UTC+7, optional)<input type="datetime-local" step="1" value={response} onChange={e => setResponse(e.target.value)} /></label>
-      <label>Override resolution deadline (UTC+7, optional)<input type="datetime-local" step="1" value={resolution} onChange={e => setResolution(e.target.value)} /></label>
-      {changed && <label>Reason for changing deadlines (at least 10 characters)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>}
+      <label>Độ ưu tiên<select aria-label="Độ ưu tiên" value={priority} onChange={e => { setPriority(e.target.value); setResponse(""); setResolution(""); setReason(""); }}>
+        <option value="">Chọn độ ưu tiên</option>{choices.map(o => <option key={o.priorityId} value={o.priorityId}>{o.name}</option>)}</select></label>
+      {chosen && <p>Hạn phản hồi mặc định: {displayTime(chosen.responseDeadlineAt)}; hạn xử lý: {displayTime(chosen.resolutionDeadlineAt)} (giờ Việt Nam, UTC+7).</p>}
+      <label>Kế hoạch xử lý ban đầu<textarea value={plan} onChange={e => setPlan(e.target.value)} /></label>
+      <label>Điều chỉnh hạn phản hồi (UTC+7, không bắt buộc)<input type="datetime-local" step="1" value={response} onChange={e => setResponse(e.target.value)} /></label>
+      <label>Điều chỉnh hạn xử lý (UTC+7, không bắt buộc)<input type="datetime-local" step="1" value={resolution} onChange={e => setResolution(e.target.value)} /></label>
+      {changed && <label>Lý do đổi thời hạn (ít nhất 10 ký tự)<textarea value={reason} onChange={e => setReason(e.target.value)} /></label>}
     </fieldset>
     {message && <p role="status">{message}</p>}
-    {attempted && !saved && onReload && <button disabled={busy} onClick={onReload}>Reload incident and SLA options</button>}
-    {saved ? <Link to={`/operations/incidents/${id}?action=A004A-023`}>Reload incident to assign</Link>
-      : review ? <><p>Confirm priority, deadlines and initial action plan?</p><button disabled={busy} onClick={() => void save()}>Confirm triage</button><button disabled={busy} onClick={() => setReview(false)}>Cancel</button></>
-      : <button disabled={!valid || attempted || busy} onClick={() => setReview(true)}>Review triage</button>}
+    {attempted && !saved && onReload && <button disabled={busy} onClick={onReload}>Tải lại sự cố và cấu hình SLA</button>}
+    {saved ? <Link to={`/operations/incidents/${id}?action=A004A-023`}>Tải lại sự cố để phân công</Link>
+      : review ? <><p>Xác nhận độ ưu tiên, thời hạn và kế hoạch xử lý ban đầu?</p><button disabled={busy} onClick={() => void save()}>Xác nhận tiếp nhận</button><button disabled={busy} onClick={() => setReview(false)}>Hủy</button></>
+      : <button disabled={!valid || attempted || busy} onClick={() => setReview(true)}>Xem lại thông tin tiếp nhận</button>}
   </section>;
 }

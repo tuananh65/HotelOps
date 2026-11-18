@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { strongBranchTag } from "./contracts";
@@ -27,7 +28,7 @@ export function BranchDeactivationReview({ branchId }: { branchId: number }) {
       const value = await response.json() as Review;
       if (value.branchId !== branchId || !Array.isArray(value.states)) throw new Error("Dữ liệu phụ thuộc không hợp lệ.");
       const version=response.headers.get("ETag");
-      if(!strongBranchTag(version))throw new Error("Native branch version required.");
+      if(!strongBranchTag(version))throw new Error("Cần phiên bản chi nhánh từ máy chủ.");
       if (!abort.signal.aborted && current.current === owner) setResult({ owner, id: branchId, value,version });
     })().catch(e => { if (!abort.signal.aborted && current.current === owner) setResult({ owner, id: branchId,
       error: e instanceof Error ? e.message : "Không đọc được phụ thuộc." }); });
@@ -41,12 +42,12 @@ export function BranchDeactivationReview({ branchId }: { branchId: number }) {
       const csrf=await fetch("/api/auth/csrf",{credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal});
       if(csrf.status===401)actions.invalidateSession(owner);
       const token=await csrf.json();
-      if(!csrf.ok||token.headerName!=="X-CSRF-TOKEN"||typeof token.csrfToken!=="string"||!token.csrfToken)throw new Error("CSRF unavailable.");
+      if(!csrf.ok||token.headerName!=="X-CSRF-TOKEN"||typeof token.csrfToken!=="string"||!token.csrfToken)throw new Error("Chưa có bảo vệ phiên (CSRF).");
       if(abort.signal.aborted||current.current!==owner)return;
       const response=await fetch(`/api/branches/${branchId}/deactivate`,{method:"POST",credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
         headers:{"Content-Type":"application/json","X-CSRF-TOKEN":token.csrfToken,"If-Match":visible.version},body:JSON.stringify({confirmation:true,reason:reason.trim()})});
       if(response.status===401)actions.invalidateSession(owner);
-      if(!response.ok){const p=await response.json().catch(()=>null);throw new Error(p?.title??`Deactivate failed (${response.status}).`);}
+      if(!response.ok){const p=await response.json().catch(()=>null);throw new Error(p?.title??`Vô hiệu hóa thất bại (${response.status}).`);}
       if(!abort.signal.aborted&&current.current===owner){setResult(null);setConfirmed(false);setMessage("MSG08 — Chi nhánh đã Inactive. Tải lại thông tin chi nhánh trước thao tác tiếp theo.");}
     }catch(e){if(!abort.signal.aborted&&current.current===owner){setResult(null);setConfirmed(false);setMessage((e instanceof Error?e.message:"Kết quả chưa xác định.")+" Kiểm tra lại dữ liệu trước khi thử lại.");}}
     finally{if(writer.current===abort){writer.current=null;setBusy(false);}}
@@ -57,14 +58,14 @@ export function BranchDeactivationReview({ branchId }: { branchId: number }) {
     {visible?.error && <p role="alert">{visible.error}</p>}
     {visible?.value && <><p>Phòng Active: {visible.value.activeRooms}; kho còn tồn: {visible.value.warehousesWithNonzeroStock}</p>
       <ul>{visible.value.states.filter(s => s.classification !== "CLOSED").map(s =>
-        <li key={`${s.kind}:${s.status}`}>{s.kind}: {s.status ?? "N/A"} — {s.count} ({s.classification})</li>)}</ul>
+        <li key={`${s.kind}:${s.status}`}>{displayCode(s.kind)}: {displayCode(s.status ?? "N/A")} — {s.count} ({s.classification})</li>)}</ul>
       {!visible.value.canDeactivate && <p role="alert">MSG34 — Chưa cho phép Deactivate: {visible.value.coordination}.
         {visible.value.hasUnresolvedStates && " Còn trạng thái hoặc phạm vi phụ thuộc chưa được chứng minh."}</p>}
       {visible.value.canDeactivate&&<form onSubmit={e=>{e.preventDefault();void deactivate();}}><fieldset disabled={busy}>
         <legend>MSG33 — Xác nhận Deactivate chi nhánh</legend>
         <label>Lý do<textarea required minLength={10} maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)}/></label>
         <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Tôi xác nhận vô hiệu hóa chi nhánh; giữ nguyên lịch sử.</label>
-        <button disabled={!confirmed||reason.trim().length<10} type="submit">Deactivate</button>
+        <button disabled={!confirmed||reason.trim().length<10} type="submit">Vô hiệu hóa</button>
       </fieldset></form>}
     </>}
   </section>;

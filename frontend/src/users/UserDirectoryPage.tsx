@@ -1,3 +1,4 @@
+import { displayCode } from "../i18n/vi";
 import { useCallback, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import type { UserDirectoryQuery } from "./contracts";
@@ -52,27 +53,27 @@ export function UserDirectoryPage({
     });
   }
   const appliedFilters = [
-    query.search?.trim() ? "Search: " + query.search.trim() : null,
-    query.branchId ? "Primary branch: " + query.branchId : null,
-    query.departmentId ? "Department: " + query.departmentId : null,
-    query.roleId ? "Role: " + query.roleId : null,
-    query.accountStatus ? "Status: " + query.accountStatus : null,
+    query.search?.trim() ? "Tìm kiếm:" + query.search.trim() : null,
+    query.branchId ? "Chi nhánh chính:" + query.branchId : null,
+    query.departmentId ? "Bộ phận:" + query.departmentId : null,
+    query.roleId ? "Vai trò:" + query.roleId : null,
+    query.accountStatus ? "Trạng thái:" + query.accountStatus : null,
   ]
     .filter(Boolean)
     .join("; ");
   return (
     <main className="user-directory">
       <header>
-        <h1>User directory</h1>
+        <h1>Danh mục người dùng</h1>
         {accountManagementEnabled && (
-          <Link to="/users/new">Create user account</Link>
+          <Link to="/users/new">Tạo tài khoản người dùng</Link>
         )}
-        <Link to="/dashboard">Workspace</Link>
-        <Link to="/profile">Profile</Link>
+        <Link to="/dashboard">Không gian làm việc</Link>
+        <Link to="/profile">Hồ sơ cá nhân</Link>
       </header>
-      <form onSubmit={apply} aria-label="Directory filters">
+      <form onSubmit={apply} aria-label="Bộ lọc danh mục">
         <label>
-          Search name, username or email
+          Tìm theo tên, tài khoản hoặc email
           <input
             value={draft.search}
             maxLength={200}
@@ -84,10 +85,10 @@ export function UserDirectoryPage({
         {(["branchId", "departmentId", "roleId"] as const).map((key) => (
           <label key={key}>
             {key === "branchId"
-              ? "Primary branch ID"
+              ? "Mã chi nhánh chính"
               : key === "departmentId"
-                ? "Department ID"
-                : "Role ID"}
+                ? "Mã bộ phận"
+                : "Mã vai trò"}
             <input
               inputMode="numeric"
               value={draft[key]}
@@ -98,23 +99,23 @@ export function UserDirectoryPage({
           </label>
         ))}
         <label>
-          Account status
+          Trạng thái tài khoản
           <select
-            aria-label="Account status"
+            aria-label="Trạng thái tài khoản"
             value={draft.accountStatus}
             onChange={(event) =>
               setDraft({ ...draft, accountStatus: event.target.value })
             }
           >
-            <option value="">All statuses</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang hoạt động</option>
+            <option value="INACTIVE">Ngừng hoạt động</option>
           </select>
         </label>
         <label>
-          Page size
+          Số dòng mỗi trang
           <select
-            aria-label="Page size"
+            aria-label="Số dòng mỗi trang"
             value={draft.pageSize}
             onChange={(event) =>
               setDraft({ ...draft, pageSize: event.target.value })
@@ -122,12 +123,12 @@ export function UserDirectoryPage({
           >
             {[20, 50, 100].map((size) => (
               <option key={size} value={size}>
-                {size}
+                {displayCode(size)}
               </option>
             ))}
           </select>
         </label>
-        <button type="submit">Apply filters</button>
+        <button type="submit">Áp dụng bộ lọc</button>
         <button
           type="button"
           onClick={() => {
@@ -142,37 +143,37 @@ export function UserDirectoryPage({
             setQuery({ page: 1, pageSize: 20 });
           }}
         >
-          Clear filters
+          Xóa bộ lọc
         </button>
       </form>
-      <p aria-label="Applied filters">
-        Applied filters: {appliedFilters || "None"}
+      <p aria-label="Bộ lọc đã áp dụng">
+        Bộ lọc đã áp dụng: {appliedFilters || "Không có"}
       </p>
       {result === null ? (
-        <p role="status">Loading accounts...</p>
+        <p role="status">Đang tải tài khoản...</p>
       ) : !result.ok ? (
         <section>
           <p role="alert">{usersReadMessage(result.error)}</p>
           <button type="button" onClick={reload}>
-            Retry directory
+            Tải lại danh mục
           </button>
         </section>
       ) : (
         <div
           className={`user-directory-workspace${selected ? " has-selection" : ""}`}
         >
-          <section aria-label="Directory results">
-            <p>Matching accounts: {result.data.totalCount}</p>
+          <section aria-label="Kết quả danh mục">
+            <p>Tài khoản phù hợp: {result.data.totalCount}</p>
             <table>
-              <caption>User accounts</caption>
+              <caption>Tài khoản người dùng</caption>
               <thead>
                 <tr>
                   {[
-                    "User account",
-                    "Branch / department",
-                    "Roles",
-                    "Account status",
-                    "Details",
+                    "Tài khoản người dùng",
+                    "Chi nhánh / bộ phận",
+                    "Vai trò",
+                    "Trạng thái tài khoản",
+                    "Chi tiết",
                   ].map((label) => (
                     <th key={label} scope="col">
                       {label}
@@ -201,8 +202,8 @@ export function UserDirectoryPage({
                       <small>{item.email}</small>
                     </td>
                     <td>
-                      {item.primaryBranch?.name ?? "Not supplied"}
-                      <small>{item.department?.name ?? "Not supplied"}</small>
+                      {item.primaryBranch?.name ?? "Chưa cung cấp"}
+                      <small>{item.department?.name ?? "Chưa cung cấp"}</small>
                     </td>
                     <td>
                       {item.roles.length ? (
@@ -210,31 +211,31 @@ export function UserDirectoryPage({
                           {item.roles.map((role, index) => (
                             <li key={`${role.id}-${index}`}>
                               {role.code} — {role.name} (
-                              {role.branch?.name ?? "Branch not supplied"})
+                              {role.branch?.name ?? "Chưa cung cấp chi nhánh"})
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        "None returned"
+                        "Không có dữ liệu trả về"
                       )}
                     </td>
                     <td>
                       <span
                         className={`user-account-status ${item.accountStatus === "ACTIVE" ? "active" : "inactive"}`}
                       >
-                        {item.accountStatus}
+                        {displayCode(item.accountStatus)}
                       </span>
                     </td>
                     <td>
                       <button
                         type="button"
-                        aria-label={`Quick view ${item.fullName}`}
+                        aria-label={`Xem nhanh ${item.fullName}`}
                         aria-expanded={selectedId === item.id}
                         onClick={() =>
                           setSelectedId(selectedId === item.id ? null : item.id)
                         }
                       >
-                        Quick view
+                        Xem nhanh
                       </button>
                     </td>
                   </tr>
@@ -242,10 +243,10 @@ export function UserDirectoryPage({
               </tbody>
             </table>
             {result.data.items.length === 0 && (
-              <p role="status">MSG10: No records match the applied filters.</p>
+              <p role="status">MSG10: Không có hồ sơ phù hợp bộ lọc đã áp dụng.</p>
             )}
             <p>
-              Page {result.data.page} of{" "}
+              Trang {result.data.page} trên{" "}
               {Math.max(
                 1,
                 Math.ceil(result.data.totalCount / result.data.pageSize),
@@ -256,7 +257,7 @@ export function UserDirectoryPage({
               disabled={result.data.page <= 1}
               onClick={() => setQuery({ ...query, page: result.data.page - 1 })}
             >
-              Previous page
+              Trang trước
             </button>
             <button
               type="button"
@@ -266,19 +267,19 @@ export function UserDirectoryPage({
               }
               onClick={() => setQuery({ ...query, page: result.data.page + 1 })}
             >
-              Next page
+              Trang sau
             </button>
           </section>
           {selected && (
             <aside
               className="user-directory-inspector"
-              aria-label="Account quick view"
+              aria-label="Xem nhanh tài khoản"
             >
               <div className="user-inspector-heading">
                 <h2>{selected.fullName}</h2>
                 <button
                   type="button"
-                  aria-label="Close quick view"
+                  aria-label="Đóng xem nhanh"
                   onClick={() => setSelectedId(null)}
                 >
                   ×
@@ -290,15 +291,15 @@ export function UserDirectoryPage({
               <dl>
                 <dt>Email</dt>
                 <dd>{selected.email}</dd>
-                <dt>Primary branch</dt>
-                <dd>{selected.primaryBranch?.name ?? "Not supplied"}</dd>
-                <dt>Department</dt>
-                <dd>{selected.department?.name ?? "Not supplied"}</dd>
-                <dt>Account status</dt>
-                <dd>{selected.accountStatus}</dd>
+                <dt>Chi nhánh chính</dt>
+                <dd>{selected.primaryBranch?.name ?? "Chưa cung cấp"}</dd>
+                <dt>Bộ phận</dt>
+                <dd>{selected.department?.name ?? "Chưa cung cấp"}</dd>
+                <dt>Trạng thái tài khoản</dt>
+                <dd>{displayCode(selected.accountStatus)}</dd>
               </dl>
               <Link className="primary" to={`/users/${selected.id}`}>
-                View full profile
+                Xem hồ sơ đầy đủ
               </Link>
             </aside>
           )}

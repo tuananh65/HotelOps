@@ -63,7 +63,7 @@ import { AuthFormRoute, Recovery, ForgotPasswordScreen } from "./AuthForms";
 import { OperationsRoutes } from "./OperationsRoutes";
 // Disabled destinations deliberately have no owner business imports.
 function OwnerDestination() {
-  return <p role="alert">This destination is not activated.</p>;
+  return <p role="alert">Chức năng đích chưa được kích hoạt.</p>;
 }
 function Protected({ children }: { children: ReactNode }) {
   const { state } = useAuth();
@@ -369,10 +369,17 @@ export function SharedAuthHost({
         path="/incidents/new"
         element={
           <Protected>
-            <OwnerDestination />
+            {incidentReadEnabled ? (
+              <Navigate replace to="/operations/incidents?action=A004A-021" />
+            ) : (
+              <OwnerDestination />
+            )}
           </Protected>
         }
       />
+      <Route path="/material-requests/new" element={<Protected>
+        {materialReadEnabled ? <Navigate replace to="/operations/material-requests?action=A004A-043" /> : <OwnerDestination />}
+      </Protected>} />
       <Route
         path="*"
         element={
@@ -384,7 +391,7 @@ export function SharedAuthHost({
               ...(notificationsEnabled ? ["/notifications"] : []),
               ...(roleAssignmentEnabled ? ["/roles"] : []),
               ...(structureReadEnabled ? ["/structure/work-categories", "/structure/reference-data", "/structure/priority-sla"] : []),
-              ...(incidentReadEnabled ? ["/operations/incidents", "/assets/maintenance-history", "/assets/locations", "/assets"] : []),
+              ...(incidentReadEnabled ? ["/incidents/new", "/operations/incidents", "/assets/maintenance-history", "/assets/locations", "/assets"] : []),
               ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments", "/inventory/return-requests"] : []),
               ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
               ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),

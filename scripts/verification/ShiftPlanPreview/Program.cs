@@ -9,6 +9,8 @@ using System.Text.Json;
 using HotelOps.Api.DTOs.WorkTime;
 using HotelOps.Api.Services.WorkTime;
 
+if (args.Contains("--http")) { await ShiftPlanHttpVerification.RunAsync(); return; }
+
 var count = 0;
 void Check(bool value, string label) { if (!value) throw new Exception("FAIL: " + label); count++; Console.WriteLine("PASS: " + label); }
 var date = new DateOnly(2026, 11, 9);

@@ -32,7 +32,7 @@ const states = [
 ];
 function route(branch: number, task: number) {
   if (!positive(branch) || !positive(task))
-    throw new Error("Invalid task identity");
+    throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}/assignment`;
 }
 async function request(
@@ -58,7 +58,7 @@ export async function readAssignment(
   signal: AbortSignal,
 ): Promise<AssignmentSnapshot> {
   if (!positive(page) || search.length > 150)
-    throw new Error("Invalid executor filters");
+    throw new Error("Bộ lọc người thực hiện không hợp lệ");
   const response = await request(
     route(branch, task) + `?page=${page}&search=${encodeURIComponent(search)}`,
     signal,
@@ -92,7 +92,7 @@ export async function readAssignment(
         !nonnegative(e.loggedSecondsToday),
     )
   )
-    throw new Error("Invalid assignment snapshot");
+    throw new Error("Bản chụp dữ liệu phân công không hợp lệ");
   return { data, etag };
 }
 export async function assignTask(
@@ -116,7 +116,7 @@ export async function assignTask(
     reason.length > 4000 ||
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(reason)
   )
-    throw new Error("Invalid assignment");
+    throw new Error("Phân công không hợp lệ");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
@@ -124,7 +124,7 @@ export async function assignTask(
     !csrf.csrfToken.trim() ||
     /[\r\n]/.test(csrf.csrfToken)
   )
-    throw new Error("Invalid CSRF response");
+    throw new Error("Phản hồi CSRF không hợp lệ");
   signal.throwIfAborted();
   const response = await request(url, signal, {
     method: "POST",
@@ -146,6 +146,6 @@ export async function assignTask(
     !tag(etag) ||
     etag === snapshot.etag
   )
-    throw new Error("Assignment outcome unconfirmed");
+    throw new Error("Chưa xác nhận kết quả phân công");
   return body;
 }

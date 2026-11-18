@@ -11,15 +11,14 @@ export function TaskRecurrenceFields({
 }) {
   return (
     <fieldset>
-      <legend>Recurring task schedule</legend>
+      <legend>Lịch công việc định kỳ</legend>
       <p>
-        Dates use Asia/Ho_Chi_Minh. The first deadline must match the selected
-        days. Occurrences are created one calendar day before their deadline.
+        Ngày giờ theo Việt Nam. Hạn đầu phải khớp ngày đã chọn. Các lần thực hiện được tạo trước thời hạn một ngày lịch.
       </p>
       <label>
-        Recurrence rule
+        Quy tắc lặp lại
         <select
-          aria-label="Recurrence rule"
+          aria-label="Quy tắc lặp lại"
           value={value.rule}
           onChange={(e) =>
             onChange({
@@ -30,22 +29,22 @@ export function TaskRecurrenceFields({
             })
           }
         >
-          <option value="DAILY">Daily</option>
-          <option value="WEEKLY">Weekly on selected days</option>
-          <option value="MONTHLY">Monthly on a day</option>
+          <option value="DAILY">Hằng ngày</option>
+          <option value="WEEKLY">Hằng tuần vào các ngày đã chọn</option>
+          <option value="MONTHLY">Hằng tháng vào một ngày cố định</option>
         </select>
       </label>
       {value.rule === "WEEKLY" && (
         <fieldset>
-          <legend>Weekdays</legend>
+          <legend>Ngày trong tuần</legend>
           {[
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
+            "Chủ nhật",
+            "Thứ Hai",
+            "Thứ Ba",
+            "Thứ Tư",
+            "Thứ Năm",
+            "Thứ Sáu",
+            "Thứ Bảy",
           ].map((name, day) => (
             <label key={day}>
               <input
@@ -68,9 +67,9 @@ export function TaskRecurrenceFields({
       {value.rule === "MONTHLY" && (
         <>
           <label>
-            Day of month
+            Ngày trong tháng
             <input
-              aria-label="Day of month"
+              aria-label="Ngày trong tháng"
               required
               type="number"
               min={1}
@@ -81,20 +80,20 @@ export function TaskRecurrenceFields({
               }
             />
           </label>
-          <p>Months without this calendar day have no occurrence.</p>
+          <p>Tháng không có ngày đã chọn sẽ không tạo lần thực hiện.</p>
         </>
       )}
       <label>
-        Default executor
+        Người thực hiện mặc định
         <select
-          aria-label="Default executor"
+          aria-label="Người thực hiện mặc định"
           required
           value={value.defaultAssigneeId || ""}
           onChange={(e) =>
             onChange({ ...value, defaultAssigneeId: Number(e.target.value) })
           }
         >
-          <option value="">Choose eligible executor</option>
+          <option value="">Chọn người thực hiện đủ điều kiện</option>
           {executors.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -103,9 +102,9 @@ export function TaskRecurrenceFields({
         </select>
       </label>
       <label>
-        Series end date
+        Ngày kết thúc chuỗi
         <input
-          aria-label="Series end date"
+          aria-label="Ngày kết thúc chuỗi"
           type="date"
           value={value.endDate ?? ""}
           onChange={(e) =>

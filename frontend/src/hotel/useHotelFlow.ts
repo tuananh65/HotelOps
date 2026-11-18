@@ -19,27 +19,27 @@ export interface HotelSnapshot {
   etag: string | null;
 }
 export function hotelErrorMessage(error: HotelError) {
-  if (error.reason === "DUPLICATE") return "MSG35: This code or number already exists in the selected scope.";
-  if (error.reason === "HEAD_ADMIN_REQUIRED") return "Administrator role is required to transfer a Department Head.";
-  if (error.reason === "HEAD_SCHEMA_REQUIRED") return "Department Head transfer schema must be installed and verified.";
-  if (error.reason === "HEAD_ROLE_OR_ACCESS_REQUIRED") return "The selected Head needs an active account, DEPT_MANAGER role and branch access.";
-  if (error.reason === "HEAD_DEPARTMENT_REQUIRED") return "The selected Head needs an active explicit membership in this department. For a new department, create it without a Head, configure membership, then assign the Head.";
-  if (error.reason === "HEAD_MISSING_IR_PROCESS") return "The selected Head needs IR_PROCESS in this branch.";
-  if (error.reason === "HEAD_MISSING_MR_APPROVE_L1") return "The selected Head needs MR_APPROVE_L1 in this branch.";
-  if (error.reason === "HEAD_MISSING_MR_APPROVE_FALLBACK") return "The selected Head needs MR_APPROVE_FALLBACK for this warehouse department.";
-  if (error.reason === "HEAD_MAPPING_NOT_EFFECTIVE") return "The selected Head has a future-dated mapping. Its activation time must be resolved before transfer.";
-  if (error.reason === "HEAD_MAPPING_PROVENANCE_REQUIRED") return "Existing authority mapping has unknown provenance. Reconcile its source before transferring the Head.";
-  if (error.reason === "INVALIDREFERENCE") return "MSG03: A selected reference is unavailable or no longer eligible. Check its current branch and active status.";
-  if (error.reason === "STRUCTURE_CODE_EXISTS") return "MSG35: This floor or area code already exists in the branch. Choose another code.";
-  if (error.reason === "PARENT_FLOOR_UNAVAILABLE") return "MSG03: Select an active parent floor in this branch.";
-  if (error.reason === "PARENT_CHANGE_CONFLICT") return "MSG03: The parent change conflicts with rooms currently linked to this area.";
+  if (error.reason === "DUPLICATE") return "MSG35: Mã hoặc số này đã tồn tại trong phạm vi đã chọn.";
+  if (error.reason === "HEAD_ADMIN_REQUIRED") return "Cần vai trò quản trị viên để điều chuyển trưởng bộ phận.";
+  if (error.reason === "HEAD_SCHEMA_REQUIRED") return "Cần cài đặt và xác minh cấu trúc dữ liệu điều chuyển trưởng bộ phận.";
+  if (error.reason === "HEAD_ROLE_OR_ACCESS_REQUIRED") return "Trưởng bộ phận đã chọn cần tài khoản hoạt động, vai trò DEPT_MANAGER và quyền chi nhánh.";
+  if (error.reason === "HEAD_DEPARTMENT_REQUIRED") return "Trưởng bộ phận đã chọn cần phân công thành viên rõ ràng còn hiệu lực trong bộ phận. Với bộ phận mới, tạo chưa có trưởng, cấu hình thành viên rồi gán trưởng.";
+  if (error.reason === "HEAD_MISSING_IR_PROCESS") return "Trưởng bộ phận đã chọn cần IR_PROCESS trong chi nhánh.";
+  if (error.reason === "HEAD_MISSING_MR_APPROVE_L1") return "Trưởng bộ phận đã chọn cần MR_APPROVE_L1 trong chi nhánh.";
+  if (error.reason === "HEAD_MISSING_MR_APPROVE_FALLBACK") return "Trưởng bộ phận đã chọn cần MR_APPROVE_FALLBACK cho bộ phận của kho này.";
+  if (error.reason === "HEAD_MAPPING_NOT_EFFECTIVE") return "Trưởng bộ phận đã chọn có phân công hiệu lực tương lai. Cần xử lý thời điểm kích hoạt trước khi điều chuyển.";
+  if (error.reason === "HEAD_MAPPING_PROVENANCE_REQUIRED") return "Chưa xác định nguồn gốc phân công thẩm quyền hiện có. Đối soát nguồn trước khi điều chuyển trưởng bộ phận.";
+  if (error.reason === "INVALIDREFERENCE") return "MSG03: Tham chiếu đã chọn không còn khả dụng hoặc đủ điều kiện. Kiểm tra chi nhánh và trạng thái hoạt động hiện tại.";
+  if (error.reason === "STRUCTURE_CODE_EXISTS") return "MSG35: Mã tầng hoặc khu vực đã tồn tại trong chi nhánh. Chọn mã khác.";
+  if (error.reason === "PARENT_FLOOR_UNAVAILABLE") return "MSG03: Chọn tầng cha đang hoạt động trong chi nhánh này.";
+  if (error.reason === "PARENT_CHANGE_CONFLICT") return "MSG03: Đổi mục cha xung đột với phòng đang liên kết khu vực này.";
   if (error.reason === "PASSWORD_CHANGE_REQUIRED")
-    return "Your session must be checked before continuing.";
+    return "Cần kiểm tra phiên trước khi tiếp tục.";
   if (error.reason === "ACTIVE_ROOMS_EXIST")
     return (
-      "This room type still has active rooms. Resolve the dependency before deactivation." +
+      "Loại phòng vẫn có phòng đang hoạt động. Xử lý ràng buộc trước khi vô hiệu hóa." +
       (error.activeRooms?.length
-        ? " Affected rooms: " +
+        ? "Phòng bị ảnh hưởng:" +
           error.activeRooms
             .map((v) => `${v.roomNumber} (#${v.id})`)
             .join(", ") +
@@ -47,30 +47,30 @@ export function hotelErrorMessage(error: HotelError) {
         : "")
     );
   if (error.reason === "ROOM_TYPE_SCHEMA_REQUIRED")
-    return "The backend room-type schema prerequisite is not available. Contact the integration owner.";
+    return "Chưa có cấu trúc dữ liệu loại phòng bắt buộc ở backend. Liên hệ người phụ trách tích hợp.";
   switch (error.status) {
     case 400:
-      return "The server rejected the input or security check. Review the fields before a new attempt.";
+      return "Máy chủ từ chối dữ liệu hoặc kiểm tra bảo mật. Kiểm tra trường trước lần thử mới.";
     case 401:
-      return "Your session needs to be checked. No request has been replayed.";
+      return "Cần kiểm tra phiên. Không gửi lại yêu cầu nào.";
     case 403:
-      return "Access denied. This response does not confirm whether the requested record exists.";
+      return "Không có quyền truy cập. Phản hồi này không xác nhận hồ sơ có tồn tại hay không.";
     case 404:
-      return "The requested record could not be found.";
+      return "Không tìm thấy hồ sơ yêu cầu.";
     case 409:
-      return "The server rejected a duplicate, inactive record or dependency conflict. No change has been confirmed.";
+      return "Máy chủ từ chối do trùng, ngừng hoạt động hoặc xung đột ràng buộc. Chưa xác nhận thay đổi.";
     case 412:
     case 428:
-      return "The version must be refreshed. Load the record again, review the current values, then confirm a new attempt.";
+      return "Cần phiên bản mới. Tải lại hồ sơ, kiểm tra giá trị rồi xác nhận lần thử mới.";
     case 503:
-      return "The service is unavailable. No demo data has been substituted.";
+      return "Dịch vụ chưa khả dụng. Không thay bằng dữ liệu giả lập.";
   }
   return error.kind === "invalid-request"
-    ? "Check the branch, record ID and required fields."
-    : "The response could not be confirmed safely. No raw server error is displayed.";
+    ? "Kiểm tra chi nhánh, mã hồ sơ và các trường bắt buộc."
+    : "Không xác minh an toàn phản hồi. Không hiển thị lỗi máy chủ nguyên bản.";
 }
 export const unknownHotelOutcome =
-  "The change could not be confirmed. It may already have been saved. Do not retry automatically. Ask an authorized administrator to verify the record before making another change.";
+  "Chưa xác nhận thay đổi; có thể đã lưu. Không tự gửi lại. Nhờ quản trị viên kiểm tra hồ sơ trước khi thay đổi tiếp.";
 export function useHotelFlow(key: string) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" ? state.session : null;
@@ -238,7 +238,7 @@ export function useHotelFlow(key: string) {
         setSnapshot(null);
       }
       setMessage(
-        (result.outcome === "NOT_DISPATCHED" ? "No mutation was sent. " : "") +
+        (result.outcome === "NOT_DISPATCHED" ? "Không gửi thao tác ghi dữ liệu." : "") +
           hotelErrorMessage(e),
       );
       publish(

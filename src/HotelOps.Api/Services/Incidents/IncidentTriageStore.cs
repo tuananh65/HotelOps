@@ -28,7 +28,7 @@ internal static class IncidentTriageStore
     {
         var targets = await db.Database.SqlQuery<NamedTarget>($"""
             SELECT r.reference_id AS PriorityId,r.display_name AS Name,t.response_minutes AS ResponseMinutes,
-              t.resolution_minutes AS ResolutionMinutes,CONVERT(varchar(16),t.row_version,2) AS Version
+              t.resolution_minutes AS ResolutionMinutes,CONVERT(varchar(16),CONVERT(binary(8),t.row_version),2) AS Version
             FROM dbo.incident_priority_sla_targets t JOIN dbo.reference_values r ON r.reference_id=t.priority_id
             WHERE t.is_active=1 AND r.is_active=1 AND r.group_code='PRIORITY'
             """).ToArrayAsync(ct);
@@ -88,7 +88,7 @@ internal static class IncidentTriageStore
 
     internal static async Task<string?> TagAsync(HotelOpsDbContext db, long id, CancellationToken ct)
         => !await InstalledAsync(db, ct) ? null : await db.Database.SqlQuery<string>($"""
-            SELECT CHAR(34)+CONVERT(varchar(16),row_version,2)+CHAR(34) AS Value FROM dbo.incidents WITH(HOLDLOCK) WHERE incident_id={id}
+            SELECT CHAR(34)+CONVERT(varchar(16),CONVERT(binary(8),row_version),2)+CHAR(34) AS Value FROM dbo.incidents WITH(HOLDLOCK) WHERE incident_id={id}
             """).SingleOrDefaultAsync(ct);
 
     internal static async Task<Target> TargetAsync(HotelOpsDbContext db, long priority, CancellationToken ct)
@@ -96,7 +96,7 @@ internal static class IncidentTriageStore
         if (db.Database.CurrentTransaction == null || !await InstalledAsync(db, ct)) throw new Dev2AccessDenied(503);
         return await db.Database.SqlQuery<Target>($"""
             SELECT t.response_minutes AS ResponseMinutes,t.resolution_minutes AS ResolutionMinutes,
-              CONVERT(varchar(16),t.row_version,2) AS Version
+              CONVERT(varchar(16),CONVERT(binary(8),t.row_version),2) AS Version
             FROM dbo.incident_priority_sla_targets t WITH(UPDLOCK,HOLDLOCK)
             JOIN dbo.reference_values r WITH(HOLDLOCK) ON r.reference_id=t.priority_id
             WHERE t.priority_id={priority} AND t.is_active=1 AND r.is_active=1 AND r.group_code='PRIORITY'

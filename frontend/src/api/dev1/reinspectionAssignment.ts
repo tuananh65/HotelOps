@@ -113,7 +113,7 @@ export async function assignReinspection(
   const current = () => {
     scope.signal.throwIfAborted();
     if (!scope.isCurrent())
-      throw new DOMException("Session or source changed", "AbortError");
+      throw new DOMException("Phiên đăng nhập hoặc dữ liệu nguồn đã thay đổi", "AbortError");
   };
   current();
   const csrf = (await getJson("/auth/csrf", scope.signal)) as {

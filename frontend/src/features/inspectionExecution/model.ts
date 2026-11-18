@@ -75,7 +75,7 @@ export const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 const tag = /^"[0-9A-F]{16}"$/;
 export function positiveId(value: number | string): number {
   if (!/^[1-9]\d*$/.test(String(value)) || !Number.isSafeInteger(Number(value)))
-    throw new Error("ID must be a positive safe integer");
+    throw new Error("Mã phải là số nguyên dương trong giới hạn cho phép");
   return Number(value);
 }
 export function strongTag(value: string): boolean {
@@ -107,13 +107,13 @@ export function scopeOf(
 export function reason(value: string): string {
   const s = value.trim();
   if (!s || s.length > 500 || /[\x00-\x1f\x7f-\x9f]/.test(s))
-    throw new Error("Reason must contain 1-500 safe characters");
+    throw new Error("Lý do phải gồm 1–500 ký tự hợp lệ");
   return s;
 }
 export function optionalNote(value: string, max = 4000): string | null {
   const s = value.trim();
   if (s.length > max || /[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f]/.test(s))
-    throw new Error("Invalid note");
+    throw new Error("Ghi chú không hợp lệ");
   return s || null;
 }
 export function decodeInspection(
@@ -128,7 +128,7 @@ export function decodeInspection(
     raw === null ||
     Array.isArray(raw)
   )
-    throw new Error("Invalid execution response");
+    throw new Error("Phản hồi thực hiện không hợp lệ");
   const v = raw as Inspection;
   if (
     v.severities !== undefined &&
@@ -145,7 +145,7 @@ export function decodeInspection(
       new Set(v.severities.map((s) => s.id)).size !== v.severities.length ||
       new Set(v.severities.map((s) => s.code)).size !== v.severities.length)
   )
-    throw new Error("Invalid inspection severity catalog");
+    throw new Error("Danh mục mức độ kiểm tra không hợp lệ");
   if (
     v.id !== inspection ||
     v.branchId !== branch ||
@@ -166,9 +166,9 @@ export function decodeInspection(
     ) ||
     v.defects.some((d) => !Number.isSafeInteger(d.id) || d.id <= 0)
   )
-    throw new Error("Invalid execution response or branch");
+    throw new Error("Phản hồi thực hiện hoặc chi nhánh không hợp lệ");
   if (new Set(v.criteria.map((c) => c.itemId)).size !== v.criteria.length)
-    throw new Error("Ambiguous criterion source");
+    throw new Error("Nguồn tiêu chí chưa rõ");
   return { value: v, etag };
 }
 export function validateResults(
@@ -180,7 +180,7 @@ export function validateResults(
     results.length < 1 ||
     results.length > 200
   )
-    throw new Error("Inspection not editable");
+    throw new Error("Không thể chỉnh sửa kiểm tra");
   const allowed = new Set(value.criteria.map((c) => c.itemId));
   if (
     new Set(results.map((r) => r.itemId)).size !== results.length ||
@@ -188,9 +188,9 @@ export function validateResults(
       (r) => !allowed.has(r.itemId) || !["PASS", "FAIL"].includes(r.outcome),
     )
   )
-    throw new Error("Criterion/version mismatch");
+    throw new Error("Tiêu chí không khớp phiên bản");
   if (results.reduce((n, r) => n + (r.photos?.length ?? 0), 0) > 5)
-    throw new Error("Too many files");
+    throw new Error("Vượt số lượng tệp cho phép");
   return results;
 }
 export function trustedSeverity(
@@ -209,7 +209,7 @@ export function trustedSeverity(
   );
 }
 export const invalidEvidenceMessage =
-  "MSG23: Invalid file. Only JPG, PNG or PDF files up to 10 MiB each and 5 files per upload are accepted.";
+  "MSG23: Tệp không hợp lệ. Chỉ nhận JPG, PNG hoặc PDF tối đa 10 MiB mỗi tệp và 5 tệp mỗi lần tải.";
 export async function encodeEvidence(
   file: File,
   signal?: AbortSignal,

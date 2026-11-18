@@ -48,8 +48,8 @@ export default function CreateCleaningTaskScreen() {
         })
         .catch((e) => {
           if (!abort.signal.aborted) setError(request && e instanceof ApiError && e.status === 403
-            ? "MSG02: Creating cleaning requires target permission and current request authority. Link existing work or ask the responsible role."
-            : e instanceof ApiError && e.code === "SOURCE_ROOM_REQUIRED" ? "This request has no room. Select a room in the request branch to continue."
+            ? "MSG02: Tạo vệ sinh cần quyền công việc đích và thẩm quyền yêu cầu hiện tại. Liên kết công việc sẵn có hoặc nhờ người có trách nhiệm."
+            : e instanceof ApiError && e.code === "SOURCE_ROOM_REQUIRED" ? "Yêu cầu chưa có phòng. Chọn phòng trong chi nhánh của yêu cầu để tiếp tục."
             : createError(e));
         });
     return () => abort.abort();
@@ -71,7 +71,7 @@ export default function CreateCleaningTaskScreen() {
     const abort = controller.current;
     if (!data || !owner || busy || submitted || pending.current || !abort || abort.signal.aborted) return;
     const f = new FormData(e.currentTarget);
-    if (source && !["required", "optional"].includes(String(f.get("mandatory")))) { setError("Select whether this cleaning is required for completion."); return; }
+    if (source && !["required", "optional"].includes(String(f.get("mandatory")))) { setError("Chọn việc vệ sinh này có bắt buộc để hoàn tất hay không."); return; }
     const assignImmediately =
       (e.nativeEvent as SubmitEvent).submitter?.getAttribute("name") ===
       "saveAndAssign";
@@ -84,8 +84,8 @@ export default function CreateCleaningTaskScreen() {
         ...(source ? {internalRequestId:source.requestId,requestLink:{version:source.version,mandatory:f.get("mandatory")==="required"}} : {}),
     };
     try { validateCleaningInput(input); }
-    catch { setError("MSG01: Select valid type/priority and a future UTC deadline; check instruction length."); return; }
-    if (data.existingTaskId) { setError("MSG03: This room already has an open cleaning task."); return; }
+    catch { setError("MSG01: Chọn loại / ưu tiên hợp lệ và thời hạn UTC trong tương lai; kiểm tra độ dài hướng dẫn."); return; }
+    if (data.existingTaskId) { setError("MSG03: Phòng đã có công việc vệ sinh đang mở."); return; }
     setBusy(true); setError(""); setSubmitted(true); pending.current = true;
     try {
       const d = await createCleaning(branch, input, abort.signal);
@@ -99,14 +99,14 @@ export default function CreateCleaningTaskScreen() {
     } catch (e) {
       if (!abort.signal.aborted) {
         setError(request ? e instanceof ApiError && e.status === 403
-          ? "MSG02: Creating cleaning requires target permission and current request authority. Link existing work or ask the responsible role."
-          : "Save not confirmed. Reload current request and linked cleaning before trying again." : createError(e));
+          ? "MSG02: Tạo vệ sinh cần quyền công việc đích và thẩm quyền yêu cầu hiện tại. Liên kết công việc sẵn có hoặc nhờ người có trách nhiệm."
+          : "Chưa xác nhận lưu. Tải lại yêu cầu và công việc vệ sinh liên quan trước khi thử lại." : createError(e));
         if (e instanceof ApiError && e.status === 409 && e.code === "DUPLICATE") {
           try {
             const latest = await cleaningOptions(branch,String(data.roomId),abort.signal);
             if (!abort.signal.aborted) {
               setResult({key,data:latest,source});
-              setError("MSG03: This room already has an open cleaning task. Open the existing task below.");
+              setError("MSG03: Phòng đã có công việc vệ sinh đang mở. Mở công việc hiện có bên dưới.");
             }
           } catch { if (!abort.signal.aborted) setResult(null); }
         } else if (e instanceof ApiError && e.status === 400) {
@@ -132,15 +132,15 @@ export default function CreateCleaningTaskScreen() {
         <button disabled={busy}>Tải cấu hình phòng</button>
       </form>
       {error && <p role="alert">{error}</p>}
-      {request && error && <button disabled={busy} onClick={() => setRetry(v => v + 1)}>Reload request prefill</button>}
+      {request && error && <button disabled={busy} onClick={() => setRetry(v => v + 1)}>Tải lại thông tin điền sẵn của yêu cầu</button>}
       {!data && (
         <p>Chọn phòng và chi nhánh hợp lệ để tải cấu hình từ máy chủ.</p>
       )}
       {data && (
         <section className="panel form-panel">
-          <p aria-label="Standard cleaning time">
-            Standard cleaning time: {data.standardCleaningMinutes == null ? "Unavailable" : `${data.standardCleaningMinutes} minutes`}.
-            {" "}Planning reference; enter the required deadline below.
+          <p aria-label="Thời gian vệ sinh tiêu chuẩn">
+            Thời gian vệ sinh tiêu chuẩn: {data.standardCleaningMinutes == null ? "Chưa khả dụng" : `${data.standardCleaningMinutes} minutes`}.
+            {" "}Thông tin kế hoạch tham khảo; nhập thời hạn bắt buộc bên dưới.
           </p>
           <h2>
             {data.roomNumber} · Chi nhánh {branch}
@@ -157,18 +157,18 @@ export default function CreateCleaningTaskScreen() {
               </li>
             ))}
           </ul>
-          {data.existingTaskId && <p role="alert">MSG03: This room already has an open cleaning task.</p>}
+          {data.existingTaskId && <p role="alert">MSG03: Phòng đã có công việc vệ sinh đang mở.</p>}
           {data.existingTaskId && (
             <Link
               to={`/cleaning/tasks/${data.existingTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
             >
-              Open existing cleaning task
+              Mở công việc vệ sinh hiện có
             </Link>
           )}
           <form key={`${key}:${retry}`} onSubmit={submit}>
-            {source && <><p>Source request: {source.requestId}. Creating cleaning does not close the request.</p>
-              <label>Request completion requirement<select aria-label="Request completion requirement" name="mandatory" required defaultValue="">
-                <option value="">Select requirement</option><option value="required">Required for completion</option><option value="optional">Optional</option>
+            {source && <><p>Yêu cầu nguồn: {source.requestId}. Creating cleaning does not close the request.</p>
+              <label>Điều kiện hoàn tất yêu cầu<select aria-label="Điều kiện hoàn tất yêu cầu" name="mandatory" required defaultValue="">
+                <option value="">Chọn điều kiện</option><option value="required">Bắt buộc để hoàn tất</option><option value="optional">Không bắt buộc</option>
               </select></label></>}
             <label>
               Loại vệ sinh
@@ -218,7 +218,7 @@ export default function CreateCleaningTaskScreen() {
                 data.cleaningItemCount > 100
               }
             >
-              Save and Assign
+              Lưu và phân công
             </button>
           </form>
           {submitted && !busy && (

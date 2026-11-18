@@ -42,7 +42,7 @@ export function DashboardFilters({
         setResult({
           owner,
           error:
-            "Dashboard filters are unavailable. Retry to load permitted choices.",
+            "Bộ lọc tổng quan chưa khả dụng. Thử tải lại lựa chọn được phép.",
         });
         if (error instanceof DashboardFailure && error.status === 401)
           invalidate(owner);
@@ -71,21 +71,21 @@ export function DashboardFilters({
     apply(query.toString());
   }
   return (
-    <section aria-label="Dashboard scope">
+    <section aria-label="Phạm vi tổng quan">
       {visible?.error && (
         <>
           <p role="status">{visible.error}</p>
-          <button onClick={() => setRetry((n) => n + 1)}>Retry filters</button>
+          <button onClick={() => setRetry((n) => n + 1)}>Tải lại bộ lọc</button>
         </>
       )}
-      {!visible && <p role="status">Loading permitted filters…</p>}
-      <form onSubmit={submit} aria-label="Dashboard filters">
+      {!visible && <p role="status">Đang tải bộ lọc được phép sử dụng…</p>}
+      <form onSubmit={submit} aria-label="Bộ lọc tổng quan">
         <fieldset disabled={!options}>
-          <legend>Filters</legend>
+          <legend>Bộ lọc</legend>
           <label>
-            Branch
+            Chi nhánh
             <select
-              aria-label="Branch"
+              aria-label="Chi nhánh"
               value={options ? draft.branchId : ""}
               onChange={(e) =>
                 setDraft((d) => ({
@@ -95,7 +95,7 @@ export function DashboardFilters({
                 }))
               }
             >
-              <option value="">All permitted branches</option>
+              <option value="">Tất cả chi nhánh được phép</option>
               {options?.branches.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name} ({b.code})
@@ -104,15 +104,15 @@ export function DashboardFilters({
             </select>
           </label>
           <label>
-            Department
+            Bộ phận
             <select
-              aria-label="Department"
+              aria-label="Bộ phận"
               value={options ? draft.departmentId : ""}
               onChange={(e) =>
                 setDraft((d) => ({ ...d, departmentId: e.target.value }))
               }
             >
-              <option value="">All permitted departments</option>
+              <option value="">Tất cả bộ phận được phép</option>
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name} —{" "}
@@ -122,7 +122,7 @@ export function DashboardFilters({
             </select>
           </label>
           <label>
-            From (UTC)
+            từ (UTC)
             <input
               type="date"
               value={draft.from}
@@ -133,7 +133,7 @@ export function DashboardFilters({
             />
           </label>
           <label>
-            To (UTC)
+            Đến (UTC)
             <input
               type="date"
               value={draft.to}
@@ -141,7 +141,7 @@ export function DashboardFilters({
               onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
             />
           </label>
-          <button type="submit">Apply filters</button>
+          <button type="submit">Áp dụng bộ lọc</button>
         </fieldset>
       </form>
     </section>

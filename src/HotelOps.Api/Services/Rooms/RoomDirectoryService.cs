@@ -17,7 +17,7 @@ public sealed record RoomDirectoryResult(RoomDirectoryStatus Status, RoomDirecto
 /// <summary>
 /// SQL-authorized room list, detail and recorded status history. Does not derive lifecycle state.
 /// </summary>
-public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
+public sealed partial class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
     ISqlSessionService sessions, IPermissionService permissions)
 {
     /// <param name="authenticatedSession">From a server-authenticated protected ticket, never a request DTO.</param>

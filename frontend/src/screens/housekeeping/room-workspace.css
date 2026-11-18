@@ -1,0 +1,139 @@
+.room-workspace {
+  min-width: 0;
+}
+.room-workspace .page-header {
+  margin-bottom: 24px;
+}
+.room-workspace h1 {
+  margin: 0 0 10px;
+}
+.room-workspace .room-scope {
+  padding: 18px 24px;
+  margin: 18px 0 24px;
+  border: 1px solid #e8d7c2;
+  border-radius: 14px;
+  background: #fff;
+}
+.room-scope > span,
+.room-scope > strong {
+  display: block;
+}
+.room-scope > span {
+  color: #856f5d;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+.room-workspace .filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 20px;
+  align-items: end;
+  padding: 24px;
+  margin: 20px 0;
+}
+.room-workspace .filter-bar label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.room-workspace input,
+.room-workspace select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.room-workspace .room-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+.room-workspace .room-actions a {
+  display: inline-flex;
+  padding: 10px 16px;
+  border: 1px solid #dfcbb6;
+  border-radius: 8px;
+  background: #fff;
+}
+.room-workspace .room-actions .primary {
+  color: #fff;
+  background: #795237;
+}
+.room-workspace .room-note {
+  color: #806b59;
+  margin: 16px 0;
+  line-height: 1.6;
+}
+.room-workspace .room-empty {
+  padding: 28px;
+  border: 1px dashed #dfcbb6;
+  border-radius: 12px;
+  background: #fff;
+}
+.room-workspace .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e8d7c2;
+  border-radius: 14px;
+  margin: 20px 0;
+}
+.room-workspace table {
+  min-width: 900px;
+  width: 100%;
+  table-layout: auto;
+  margin: 0;
+}
+.room-workspace th,
+.room-workspace td {
+  word-break: normal;
+  overflow-wrap: normal;
+  min-width: 110px;
+  padding: 16px;
+  vertical-align: top;
+}
+.room-workspace td a {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.room-workspace .room-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+.room-workspace .room-stats li {
+  padding: 12px 18px;
+  border: 1px solid #e8d7c2;
+  border-radius: 10px;
+  background: #fff;
+}
+.room-workspace .room-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-top: 20px;
+}
+.room-workspace [role="alert"] {
+  padding: 14px;
+  border-radius: 8px;
+  color: #9c3333;
+  background: #fff3f3;
+}
+@media (max-width: 640px) {
+  .room-workspace .filter-bar {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+  .room-workspace .room-actions a {
+    flex: 1;
+    justify-content: center;
+  }
+  .room-workspace h1 {
+    font-size: 1.7rem;
+  }
+}
