@@ -8,7 +8,7 @@ namespace HotelOps.Api.Services.Incidents;
 internal static class IncidentReadAccess
 {
     internal sealed record Grant(string Role, PermissionGrantPath Path);
-    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false, bool HistoricalAssets = false, bool Manager = false)
+    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false, bool HistoricalAssets = false, bool Manager = false, bool ReportedOnly = false)
     {
         internal bool CanRead => Lead || Staff || Manager;
         internal IQueryable<Incident> Apply(IQueryable<Incident> query)
@@ -22,6 +22,7 @@ internal static class IncidentReadAccess
                 : scoped.Where(i => i.Asset == null || i.Asset.BranchId == Branch);
             if(Lead || Manager) return scoped;
             if(!Staff) return scoped.Where(i=>false);
+            if(ReportedOnly) return scoped.Where(i=>i.ReportedBy==User);
             var assigned=IncidentCurrentAssignment.AssignedTo(scoped,User,CurrentAssignmentsOnly).Select(i=>i.IncidentId);
             return scoped.Where(i=>i.ReportedBy==User || assigned.Contains(i.IncidentId));
         }
@@ -37,11 +38,13 @@ internal static class IncidentReadAccess
     {
         var valid = grants.Where(g => g.Path.PermissionCode == "INCIDENT_VIEW" && g.Path.BranchId == branch
             && PermissionGrantRules.IsEligible(g.Path, now)).ToArray();
+        var receptionist = valid.Any(g => g.Role == "RECEPTION" && PermissionGrantRules.EffectiveScope(g.Path) is "OWN" or "BRANCH");
+        var otherReporter = valid.Any(g => g.Role is "SYS_ADMIN" or "OPERATIONS_MANAGER" or "HK_SUPERVISOR" or "HK_STAFF"
+            or "MAINTENANCE_LEAD" or "MAINTENANCE_STAFF" or "STOREKEEPER" or "DEPT_MANAGER"
+            && PermissionGrantRules.EffectiveScope(g.Path) is "OWN" or "BRANCH");
         return new(user, branch,
             valid.Any(g => g.Role is "MAINTENANCE_LEAD" or "OPERATIONS_MANAGER" && PermissionGrantRules.EffectiveScope(g.Path) == "BRANCH"),
-            valid.Any(g => g.Role is "SYS_ADMIN" or "OPERATIONS_MANAGER" or "HK_SUPERVISOR" or "HK_STAFF"
-                or "MAINTENANCE_LEAD" or "MAINTENANCE_STAFF" or "STOREKEEPER" or "DEPT_MANAGER"
-                && PermissionGrantRules.EffectiveScope(g.Path) is "OWN" or "BRANCH"));
+            otherReporter || receptionist, ReportedOnly: receptionist && !otherReporter);
     }
     internal static async Task<Scope> ReadAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct, bool sourceRecord = false)
     {

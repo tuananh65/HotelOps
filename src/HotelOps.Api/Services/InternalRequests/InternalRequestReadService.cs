@@ -52,7 +52,8 @@ public sealed class InternalRequestReadService(HotelOpsDbContext db, InternalReq
         await SessionAsync(ticket, sid, ct);
         var finalScope = await access.ReadAsync(ticket.UserId, clock.GetUtcNow().UtcDateTime, ct);
         if (scope.Global != finalScope.Global || !scope.Branches.SequenceEqual(finalScope.Branches)
-            || !scope.RelatedBranches.SequenceEqual(finalScope.RelatedBranches))
+            || !scope.RelatedBranches.SequenceEqual(finalScope.RelatedBranches)
+            || !(scope.HandlerBranches ?? scope.RelatedBranches).SequenceEqual(finalScope.HandlerBranches ?? finalScope.RelatedBranches))
             throw new InternalRequestReadException(403, "IR_SCOPE_CHANGED");
         await tx.CommitAsync(ct);
         return result;
@@ -88,5 +89,15 @@ public sealed class InternalRequestReadService(HotelOpsDbContext db, InternalReq
 
     public Task<InternalRequestTimeline?> TimelineAsync(SessionReference ticket, long sid, long id,
         InternalRequestTimelineQuery pagination, CancellationToken ct) => ReadAsync(ticket, sid, null,
-            (query, _) => InternalRequestHistoryQueries.TimelineAsync(query, id, pagination, ct), ct);
+            async (query, now) =>
+            {
+                var timeline = await InternalRequestHistoryQueries.TimelineAsync(query, id, pagination, ct);
+                if (timeline is null) return null;
+                var request = await query.SingleAsync(r => r.InternalRequestId == id, ct);
+                return timeline with
+                {
+                    CanReopen = await InternalRequestReopenAccess.AllowsAsync(db, ticket.UserId, request, now, ct),
+                    CanEscalate = await new InternalRequestEscalationAuthority(db).AllowsAsync(ticket.UserId, id, ct)
+                };
+            }, ct);
 }

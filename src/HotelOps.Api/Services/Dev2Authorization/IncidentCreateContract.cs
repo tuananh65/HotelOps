@@ -19,7 +19,7 @@ internal static class IncidentCreateContract
     private const string Resource = "incident_creation";
     private const string Policy = "UC049 HTTPS current unrestricted SQL session; active approved operational actor with INCIDENT_CREATE and independent INCIDENT_VIEW; exact principal-owned branch creation context; current location consistency; serializable user-first transaction and final authority revalidation; scoped duplicate review; atomic incident, evidence, source links, audit and notification intent";
     private static readonly string[] Actors = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
-        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
+        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER", "RECEPTION"];
 
     internal static IEnumerable<Dev2ActionContract> Contracts =>
     [new("A004A-021", "DEV3_6CORE_INCIDENT_CREATE_V1", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Policy))),

@@ -22,7 +22,11 @@ public sealed record InternalRequestFeedbackHistory(long Id, int Rating, string?
     long SubmittedBy, DateTime SubmittedAt, string? SubmittedByName = null);
 public sealed record InternalRequestTimeline(long RequestId, IReadOnlyList<InternalRequestTimelineEvent> Events,
     int EventTotalCount, IReadOnlyList<InternalRequestAssignmentHistory> Assignments, int AssignmentTotalCount,
-    InternalRequestFeedbackHistory? Feedback, InternalRequestTimelineQuery Pagination);
+    InternalRequestFeedbackHistory? Feedback, InternalRequestTimelineQuery Pagination)
+{
+    public bool CanReopen { get; init; }
+    public bool CanEscalate { get; init; }
+}
 
 /// <summary>
 /// Query component only. Caller must supply an authorized, branch-scoped EF query and a stable UTC snapshot

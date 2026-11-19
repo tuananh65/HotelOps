@@ -1,3 +1,4 @@
+import { useNavigationAccess } from "../shared-host/useNavigationAccess";
 import { userMessage } from "../i18n/userMessage";
 import { SearchableSelect } from "../components/SearchableSelect";
 import { SearchInput, searchSuggestions } from "../components/SearchInput";
@@ -36,40 +37,15 @@ import {
 } from "./historyApi";
 
 export function InternalRequestAccessLink() {
-  const { state, actions } = useAuth();
-  const owner =
-    state.status === "AUTHENTICATED" &&
-    state.pending === null &&
-    !state.session?.mustChangePassword
-      ? state.authorityGeneration
-      : null;
-  const [allowed, setAllowed] = useState<typeof owner>(null);
-  useEffect(() => {
-    setAllowed(null);
-    if (!owner) return;
-    const controller = new AbortController();
-    void readHistory("?pageSize=1", controller.signal)
-      .then(decodeHistory)
-      .then(() => {
-        if (!controller.signal.aborted) setAllowed(owner);
-      })
-      .catch((e: unknown) => {
-        if (
-          !controller.signal.aborted &&
-          e instanceof HistoryFailure &&
-          e.status === 401
-        )
-          actions.invalidateSession(owner);
-      });
-    return () => controller.abort();
-  }, [owner, actions]);
-  return owner && allowed === owner ? (
+  const allows = useNavigationAccess();
+  return allows("/internal-requests") ? (
     <Link to="/internal-requests">Yêu cầu nội bộ</Link>
   ) : null;
 }
 
 export function InternalRequestHistoryPage() {
   const { state, actions } = useAuth();
+  const allowsNavigation = useNavigationAccess();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -199,7 +175,8 @@ export function InternalRequestHistoryPage() {
           <div className="ds-quick-search">
             <label>
               Tìm yêu cầu
-              <SearchInput suggestions={searchSuggestions(visible?.list)}
+              <SearchInput
+                suggestions={searchSuggestions(visible?.list)}
                 maxLength={200}
                 value={search}
                 onChange={(e) => {
@@ -461,16 +438,18 @@ export function InternalRequestHistoryPage() {
           />
 
           <WorkflowAvailability key={visible.timeline.requestId}>
-            <InternalRequestReopenPanel
-              id={visible.timeline.requestId}
-              onReopened={() => {
-                setCompletionNotice(null);
-                refreshWork(
-                  visible.timeline!.requestId,
-                  "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng.",
-                );
-              }}
-            />
+            {visible.timeline.canReopen === true && (
+              <InternalRequestReopenPanel
+                id={visible.timeline.requestId}
+                onReopened={() => {
+                  setCompletionNotice(null);
+                  refreshWork(
+                    visible.timeline!.requestId,
+                    "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng.",
+                  );
+                }}
+              />
+            )}
             {completionNotice === visible.timeline.requestId && (
               <p role="status">Đã đóng yêu cầu.</p>
             )}
@@ -497,13 +476,15 @@ export function InternalRequestHistoryPage() {
             {escalationNotice === visible.timeline.requestId && (
               <p role="status">Đã chuyển cấp yêu cầu.</p>
             )}
-            <InternalRequestEscalationPanel
-              id={visible.timeline.requestId}
-              onSaved={() => {
-                setEscalationNotice(visible.timeline?.requestId ?? null);
-                setRevision((v) => v + 1);
-              }}
-            />
+            {visible.timeline.canEscalate === true && (
+              <InternalRequestEscalationPanel
+                id={visible.timeline.requestId}
+                onSaved={() => {
+                  setEscalationNotice(visible.timeline?.requestId ?? null);
+                  setRevision((v) => v + 1);
+                }}
+              />
+            )}
             <InternalRequestHandoverPanel
               id={visible.timeline.requestId}
               onSaved={(handoverState, receiptId) =>
@@ -547,16 +528,18 @@ export function InternalRequestHistoryPage() {
                 )
               }
             />
-            <InternalRequestMaterialLinksPanel
-              key={`Vật tư:${visible.timeline.requestId}`}
-              id={visible.timeline.requestId}
-              onLinked={() =>
-                refreshWork(
-                  visible.timeline!.requestId,
-                  "MSG08: Đã liên kết yêu cầu vật tư.",
-                )
-              }
-            />
+            {allowsNavigation("/operations/material-requests") && (
+              <InternalRequestMaterialLinksPanel
+                key={`Vật tư:${visible.timeline.requestId}`}
+                id={visible.timeline.requestId}
+                onLinked={() =>
+                  refreshWork(
+                    visible.timeline!.requestId,
+                    "MSG08: Đã liên kết yêu cầu vật tư.",
+                  )
+                }
+              />
+            )}
           </details>
           <section className="ir-card">
             <h3>Lịch sử xử lý</h3>
@@ -600,7 +583,8 @@ export function InternalRequestHistoryPage() {
             <ol>
               {visible.timeline.assignments.map((a) => (
                 <li key={a.id}>
-                  Người xử lý: {a.assigneeName ?? "Chưa có tên"}; người phân công: {a.assignedByName ?? "Chưa có tên"};{" "}
+                  Người xử lý: {a.assigneeName ?? "Chưa có tên"}; người phân
+                  công: {a.assignedByName ?? "Chưa có tên"};{" "}
                   {staffDate(a.assignedAt)} →{" "}
                   {a.endedAt ? staffDate(a.endedAt) : "Đang mở"};{" "}
                   {displayCode(a.status)}

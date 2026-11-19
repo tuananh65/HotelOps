@@ -31,7 +31,7 @@ public sealed class HomeNavigationController(HomeNavigationService navigation) :
         var result = await navigation.ReadAsync(ticket!, ct);
         return result.Status switch
         {
-            UserDirectoryReadStatus.Success => Ok(new { paths = result.Value }),
+            UserDirectoryReadStatus.Success => Ok(result.Value),
             UserDirectoryReadStatus.SessionInvalid => Unauthorized(),
             UserDirectoryReadStatus.Forbidden => Forbid(),
             _ => StatusCode(503)

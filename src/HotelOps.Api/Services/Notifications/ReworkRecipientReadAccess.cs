@@ -26,7 +26,7 @@ internal static class ReworkRecipientReadAccess
         if(!await db.CleaningReworks.AsNoTracking().AnyAsync(w=>w.ReworkId==id&&w.AssigneeUserId==actor
             &&w.CleaningTask.Room.BranchId==branch&&w.Inspection.RoomId==w.CleaningTask.RoomId
             &&w.Inspection.CleaningTaskId==w.CleaningTaskId,ct))return new(PermissionDecision.Denied);
-        foreach(var grant in await data.ReadPathsAsync(actor,permission,now,ct))
+        foreach(var grant in await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, actor, permission, now, ct))
             if(grant.PermissionCode==permission&&PermissionGrantRules.IsEligible(grant,now)
                 &&(PermissionGrantRules.EffectiveScope(grant)=="GLOBAL"||grant.BranchId==branch
                     &&PermissionGrantRules.EffectiveScope(grant) is "BRANCH" or "OWN"))return new(PermissionDecision.Granted);

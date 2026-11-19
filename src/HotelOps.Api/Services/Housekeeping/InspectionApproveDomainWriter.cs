@@ -59,7 +59,7 @@ public sealed partial class RoomTypeCreationService
         var after = (await readiness.ReadAsync([i.RoomId], clock.GetUtcNow().UtcDateTime, ct))[i.RoomId];
         if (after.Readiness is not ("READY" or "BLOCKED"))
             throw new InvalidOperationException("INSPECTION_READINESS_SOURCE_CONFLICT");
-        var physicalStatus = after.CanUse ? "READY" : room.OperationalStatus;
+        var physicalStatus = EffectiveRoomReadiness.InspectionOperationalStatus(room.OperationalStatus, after.CanUse);
         if (physicalStatus != room.OperationalStatus)
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.rooms SET operational_status={physicalStatus}

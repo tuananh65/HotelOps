@@ -9,12 +9,13 @@ namespace HotelOps.Api.Services.InternalRequests;
 public sealed class InternalRequestReadAccess(HotelOpsDbContext db)
 {
     internal sealed record Grant(string RoleCode, PermissionGrantPath Path);
-    internal sealed record Scope(long UserId, long[] Branches, long[] RelatedBranches, bool Global)
+    internal sealed record Scope(long UserId, long[] Branches, long[] RelatedBranches, bool Global, long[]? HandlerBranches = null)
     {
         internal IQueryable<InternalRequest> Apply(IQueryable<InternalRequest> requests, DateTime now) =>
             requests.Where(r => r.Branch.IsActive && (Global || Branches.Contains(r.BranchId)
                 || RelatedBranches.Contains(r.BranchId) && (r.RequesterId == UserId
-                    || r.InternalRequestAssignments.Count(a => a.Status == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
+                    || (HandlerBranches ?? RelatedBranches).Contains(r.BranchId)
+                    && r.InternalRequestAssignments.Count(a => a.Status == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
                     && r.InternalRequestAssignments.Any(a => a.AssigneeId == UserId && a.Status == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now))));
     }
 
@@ -27,7 +28,11 @@ public sealed class InternalRequestReadAccess(HotelOpsDbContext db)
             && PermissionGrantRules.EffectiveScope(g.Path) == "BRANCH").Select(g => g.Path.BranchId!.Value).Distinct().Order().ToArray();
         var related = valid.Where(g => PermissionGrantRules.EffectiveScope(g.Path) is "BRANCH" or "OWN")
             .Select(g => g.Path.BranchId!.Value).Distinct().Order().ToArray();
-        return new(userId, branches, related, global);
+        // Reception's approved grant covers requests they create, not another
+        // employee's request merely assigned to them by historical data.
+        var handlers = valid.Where(g => g.RoleCode != "RECEPTION" && (PermissionGrantRules.EffectiveScope(g.Path) is "BRANCH" or "OWN"))
+            .Select(g => g.Path.BranchId!.Value).Distinct().Order().ToArray();
+        return new(userId, branches, related, global, handlers);
     }
 
     internal async Task<Scope> ReadAsync(long user, DateTime now, CancellationToken ct)

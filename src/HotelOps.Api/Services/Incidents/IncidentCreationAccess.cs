@@ -35,7 +35,7 @@ public sealed class IncidentCreationAccess(HotelOpsDbContext db, ISqlSessionServ
         return new(rooms, areas, assets);
     }
     private static readonly string[] CreatorRoles = ["SYS_ADMIN", "OPERATIONS_MANAGER", "HK_SUPERVISOR", "HK_STAFF",
-        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER"];
+        "MAINTENANCE_LEAD", "MAINTENANCE_STAFF", "STOREKEEPER", "DEPT_MANAGER", "RECEPTION"];
     internal static bool IsCreatorRole(string? role) => role != null && CreatorRoles.Contains(role, StringComparer.Ordinal);
 
     // Creation owns its prospective request. OWN is applicable only in that

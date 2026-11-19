@@ -11,6 +11,17 @@ This document records confirmed requirement clarifications and pending changes t
 
 These notes do not replace the complete SRS or the final approved Permission Matrix.
 
+### Approved Reception clarification — 20 November 2026
+
+The user approved the check-in proposal, now archived at `RECEPTION-CHECKIN-PROPOSAL.md`.
+For this bounded change, an active Reception assignment with ROOM_CHECKIN in the room's branch and ROOM_VIEW may confirm guest arrival only when the active room is recorded as READY/AVAILABLE and the current cleaning/inspection evidence derives READY with no effective block. The operation records OCCUPIED, CHECKIN room history and audit atomically, checks the source version and rejects stale or duplicate writes.
+
+Occupancy is displayed separately from cleaning readiness. A passed inspection does not make an occupied room available for another arrival. Roles do not change after check-in. Cleaning, inspection and rework remain with their existing responsible roles; Reception's CLEANING_VIEW does not admit it to cleaning/rework inboxes or execution. Room status and turnover viewing remain available within the granted branch.
+
+The user subsequently approved `RECEPTION-CHECKOUT-MOVE-PROPOSAL.md`: Reception with ROOM_CHECKOUT may release an occupied room to DIRTY; ROOM_OCCUPANCY_MOVE may atomically move occupancy to an eligible ready room in the same branch, leaving the source DIRTY. Both require ROOM_VIEW, source versions, session/CSRF and transactional history/audit; moves require a reason and target version. Active cleaning/inspection/rework blocks departure until the responsible role resolves it. Locks are preserved. A checkout invalidates pre-departure cleaning evidence for readiness; the housekeeping supervisor creates and assigns a new cycle. Inspection/reinspection must not overwrite OCCUPIED with READY. No role transfer, new permissions or schema changes are included.
+
+Occupancy reversal, cross-branch moves and the remainder of the revised permission matrix remain pending. Reservations, guest records and payments are outside this bounded room-operation feature.
+
 ## 2. Reception Role
 
 ### Confirmed Changes

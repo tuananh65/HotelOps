@@ -19,6 +19,9 @@ test("timing status comes from the server and rejects contradictory overdue flag
 test("timeline decoder binds identity and rejects malformed history", () => {
   const value = { requestId: 1, eventTotalCount: 0, assignmentTotalCount: 0, events: [], assignments: [], feedback: null };
   assert.equal(decodeTimeline(value, 1).requestId, 1);
+  assert.throws(() => decodeTimeline({...value,canReopen:"true"},1));
+  assert.throws(() => decodeTimeline({...value,canEscalate:1},1));
+  assert.equal(decodeTimeline({...value,canReopen:false,canEscalate:true},1).canEscalate,true);
   assert.throws(() => decodeTimeline(value, 2));
   assert.throws(() => decodeTimeline({ ...value, assignments: [{}] }, 1));
   assert.throws(() => decodeTimeline({ ...value, feedback: { comment: {} } }, 1));

@@ -74,9 +74,11 @@ export function recordedCleaningHref(
 function RecordedSourceLink({
   branchId,
   source,
+  canMonitor,
 }: {
   branchId: number;
   source: RoomSource | null;
+  canMonitor: boolean;
 }) {
   const access = useWorkspacePermissions(branchId);
   const permission =
@@ -100,7 +102,9 @@ function RecordedSourceLink({
     (scopedSource && source?.type === "MAINTENANCE"
       ? `/operations/maintenance/${source.id}?branchId=${branchId}&action=A004A-036`
       : null);
-  return href && access.allows(permission) ? (
+  return href &&
+    access.allows(permission) &&
+    (source?.type !== "CLEANING_TASK" || canMonitor) ? (
     <Link to={href}>
       Xem {operationalLabel(source?.type)} {referenceLabel(source, "id")}
     </Link>
@@ -228,7 +232,8 @@ export default function RoomStatusBoardScreen() {
         <div className="room-board-primary-filters">
           <label>
             Số phòng
-            <SearchInput suggestions={searchSuggestions(data)}
+            <SearchInput
+              suggestions={searchSuggestions(data)}
               name="search"
               type="search"
               maxLength={200}
@@ -428,6 +433,7 @@ export default function RoomStatusBoardScreen() {
                       <th>Phòng</th>
                       <th>Trạng thái vận hành</th>
                       <th>Hoạt động</th>
+                      <th>Trạng thái sử dụng</th>
                       <th>Khu vực</th>
                       <th>Loại phòng</th>
                     </tr>
@@ -444,6 +450,7 @@ export default function RoomStatusBoardScreen() {
                             {roomLabel(r.effectiveReadiness ?? "UNKNOWN")}
                           </td>
                           <td>{r.isActive ? "Có" : "Không"}</td>
+                          <td>{roomLabel(r.operationalStatusCode)}</td>
                           <td>{r.area?.name || "—"}</td>
                           <td>{r.roomType.name}</td>
                         </tr>
@@ -470,6 +477,8 @@ export default function RoomStatusBoardScreen() {
       {detail && (
         <RoomStatusDetails
           detail={detail}
+          onChanged={() => setRetry(value => value + 1)}
+          canMonitor={scope.branch?.canMonitor === true}
           history={history}
           branchName={scope.branch?.name ?? "Chi nhánh hiện tại"}
           close={() => {
@@ -483,6 +492,7 @@ export default function RoomStatusBoardScreen() {
             <RecordedSourceLink
               branchId={detail.room.branchId}
               source={source}
+              canMonitor={scope.branch?.canMonitor === true}
             />
           )}
         />

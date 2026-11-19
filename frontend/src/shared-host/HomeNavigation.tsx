@@ -1,4 +1,5 @@
 import { NotificationUnreadBadge } from "../notifications/NotificationUnreadBadge";
+import { SelectSearchContext } from "../components/SearchableSelect";
 import {
   createContext,
   useContext,
@@ -76,6 +77,7 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
   const [result, setResult] = useState<{
     owner: AuthorityGeneration;
     paths: string[];
+    selectSearchEnabled: boolean;
   } | null>(null);
   const [finished, setFinished] = useState<AuthorityGeneration | null>(null);
   useEffect(() => {
@@ -115,7 +117,8 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
         )
           return;
         if (!signal.aborted && revision === generation) {
-          setResult({ owner, paths: [...new Set(body.paths as string[])] });
+          setResult({ owner, paths: [...new Set(body.paths as string[])],
+            selectSearchEnabled: !("selectSearchEnabled" in body) || body.selectSearchEnabled !== false });
           succeeded = true;
         }
       } catch {
@@ -143,9 +146,13 @@ function AuthorizedNavigation({ enabled, children }: NavigationProps) {
   }, [owner, actions]);
   const visible = owner && result?.owner === owner ? result.paths : [];
   if (children)
-    return children(
-      visible.filter((path) => !enabled || enabled.includes(path)),
-      !!owner && finished !== owner,
+    return (
+      <SelectSearchContext.Provider value={!!owner && result?.owner === owner && result.selectSearchEnabled}>
+        {children(
+          visible.filter((path) => !enabled || enabled.includes(path)),
+          !!owner && finished !== owner,
+        )}
+      </SelectSearchContext.Provider>
     );
   return (
     <span aria-label="Điều hướng trang chủ theo quyền">

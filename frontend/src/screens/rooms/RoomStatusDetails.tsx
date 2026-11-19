@@ -1,3 +1,4 @@
+import { useNavigationAccess } from "../../shared-host/useNavigationAccess";
 import { referenceLabel } from "../../i18n/referenceLabel";
 import { useWorkspacePermissions } from "../housekeeping/useWorkspacePermissions";
 import type { ReactNode } from "react";
@@ -14,11 +15,15 @@ import {
 } from "../housekeeping/OperationalReadView";
 import { roomLabel, hotelTime } from "../housekeeping/RoomWorkspace";
 import RoomWorkflowActions from "./RoomWorkflowActions";
+import { RoomCheckInAction } from "./RoomCheckInAction";
+import { RoomDepartureActions } from "./RoomDepartureActions";
 
 export function RoomStatusDetails({
   detail,
   history,
   branchName,
+  canMonitor = false,
+  onChanged,
   close,
   paginate,
   sourceLink,
@@ -26,12 +31,15 @@ export function RoomStatusDetails({
   detail: RoomDetail;
   history?: RoomHistory;
   branchName: string;
+  canMonitor?: boolean;
+  onChanged?: () => void;
   close: () => void;
   paginate: (page: number) => void;
   sourceLink: (source: RoomSource | null) => ReactNode;
 }) {
   const { room, currentCycle: cycle, currentStatusEvidence: evidence } = detail;
   const access = useWorkspacePermissions(room.branchId);
+  const admits = useNavigationAccess();
   return (
     <ReadDrawer title={`Phòng ${room.roomNumber}`} onClose={close}>
       <section aria-label="Chi tiết trạng thái phòng">
@@ -45,7 +53,7 @@ export function RoomStatusDetails({
           <Fact label="Hoạt động">
             {room.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
           </Fact>
-          <Fact label="Mức sẵn sàng thực tế">
+          <Fact label="Mức sẵn sàng vệ sinh">
             {roomLabel(room.effectiveReadiness ?? "UNKNOWN")}
           </Fact>
           <Fact label="Trạng thái đã ghi nhận">
@@ -70,14 +78,16 @@ export function RoomStatusDetails({
             <Fact label="Công việc vệ sinh">
               {cycle.cleaningTaskId ? (
                 <>
-                  {access.allows("CLEANING_VIEW") ? (
+                  {canMonitor && access.allows("CLEANING_VIEW") ? (
                     <Link
                       to={`/cleaning/tasks/${cycle.cleaningTaskId}?branchId=${room.branchId}&monitor=1&kind=cleaning`}
                     >
-                      Vệ sinh {referenceLabel(cycle, "cleaningTaskId")}
+                      Vệ sinh phòng {room.roomNumber}
                     </Link>
                   ) : (
-                    <span>Vệ sinh {referenceLabel(cycle, "cleaningTaskId")}</span>
+                    <span>
+                      Vệ sinh phòng {room.roomNumber}
+                    </span>
                   )}
                   <p>{label(cycle.cleaningState)}</p>
                 </>
@@ -92,10 +102,12 @@ export function RoomStatusDetails({
                     <Link
                       to={`/inspection-history/${cycle.inspectionId}?branchId=${room.branchId}`}
                     >
-                      Kiểm tra {referenceLabel(cycle, "inspectionId")}
+                      Kiểm tra phòng {room.roomNumber}
                     </Link>
                   ) : (
-                    <span>Kiểm tra {referenceLabel(cycle, "inspectionId")}</span>
+                    <span>
+                      Kiểm tra phòng {room.roomNumber}
+                    </span>
                   )}
                   <p>{label(cycle.inspectionState)}</p>
                 </>
@@ -105,20 +117,22 @@ export function RoomStatusDetails({
             </Fact>
             {cycle.reworkId && (
               <Fact label="Công việc làm lại">
-                {access.allows("CLEANING_VIEW") ? (
+                {canMonitor && access.allows("CLEANING_VIEW") ? (
                   <Link
-                    to={`/cleaning/reworks/${cycle.reworkId}?branchId=${room.branchId}`}
+                    to={`/cleaning/tasks/${cycle.reworkId}?branchId=${room.branchId}&monitor=1&kind=rework`}
                   >
-                    Làm lại {referenceLabel(cycle, "reworkId")}
+                    Làm lại phòng {room.roomNumber}
                   </Link>
                 ) : (
-                  <span>Làm lại {referenceLabel(cycle, "reworkId")}</span>
+                  <span>Làm lại phòng {room.roomNumber}</span>
                 )}
               </Fact>
             )}
           </dl>
         )}
       </section>
+      {onChanged && <RoomCheckInAction key={`${room.branchId}:${room.id}`} branchId={room.branchId} roomId={room.id} roomNumber={room.roomNumber} onChanged={onChanged} />}
+      {onChanged && <RoomDepartureActions key={`departure:${room.branchId}:${room.id}`} branchId={room.branchId} roomId={room.id} roomNumber={room.roomNumber} occupied={room.operationalStatusCode === "OCCUPIED"} onChanged={onChanged} />}
       <RoomWorkflowActions
         branch={String(room.branchId)}
         room={String(room.id)}
@@ -132,13 +146,15 @@ export function RoomStatusDetails({
           <article key={b.id}>
             <strong>Lệnh khóa {referenceLabel(b, "id")}</strong>
             <p>Từ {hotelTime(b.blockedAtUtc)}</p>
-            {b.incidentId && access.allows("INCIDENT_VIEW") && (
-              <Link
-                to={`/operations/incidents/${b.incidentId}?branchId=${room.branchId}&action=A004A-023`}
-              >
-                Xem sự cố {referenceLabel(b, "incidentId")}
-              </Link>
-            )}
+            {b.incidentId &&
+              admits("/operations/incidents") &&
+              access.allows("INCIDENT_VIEW") && (
+                <Link
+                  to={`/operations/incidents/${b.incidentId}?branchId=${room.branchId}&action=A004A-023`}
+                >
+                  Xem sự cố {referenceLabel(b, "incidentId")}
+                </Link>
+              )}
           </article>
         ))}
         {!!detail.unreleasedBlocks.length && (

@@ -27,7 +27,7 @@ public sealed partial class RoomTypeCreationService
         }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
         {
             var now = clock.GetUtcNow().UtcDateTime;
-            var paths = await new EfPermissionDataSource(db).ReadPathsAsync(ticket.UserId, "CLEANING_VIEW", now, token);
+            var paths = await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, ticket.UserId, "CLEANING_VIEW", now, token);
             return new PermissionEvaluation(paths.Any(p => PermissionGrantRules.IsEligible(p, now)
                 && (PermissionGrantRules.EffectiveScope(p) == "GLOBAL" || p.BranchId == branch
                     && PermissionGrantRules.EffectiveScope(p) is "BRANCH" or "OWN")) ? PermissionDecision.Granted : PermissionDecision.Denied);

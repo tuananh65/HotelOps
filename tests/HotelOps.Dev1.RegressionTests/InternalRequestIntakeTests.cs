@@ -13,9 +13,9 @@ public sealed class InternalRequestIntakeTests
     [Fact]
     public void ActorPermissionAndCurrentBranchAreAllRequired()
     {
-        foreach(var role in new[]{"SYS_ADMIN","OPERATIONS_MANAGER","HK_SUPERVISOR","HK_STAFF","MAINTENANCE_LEAD","MAINTENANCE_STAFF","STOREKEEPER","DEPT_MANAGER"})
+        foreach(var role in new[]{"SYS_ADMIN","OPERATIONS_MANAGER","HK_SUPERVISOR","HK_STAFF","MAINTENANCE_LEAD","MAINTENANCE_STAFF","STOREKEEPER","DEPT_MANAGER","RECEPTION"})
             Assert.True(InternalRequestIntakeAccess.Eligible(role,Grant(),7,Now));
-        foreach(var role in new[]{"OWNER","RECEPTION","UNKNOWN"})Assert.False(InternalRequestIntakeAccess.Eligible(role,Grant(),7,Now));
+        foreach(var role in new[]{"OWNER","UNKNOWN"})Assert.False(InternalRequestIntakeAccess.Eligible(role,Grant(),7,Now));
         foreach(var grant in new[]{Grant() with{PermissionCode="IR_VIEW"},Grant() with{PermissionCode="IR_PROCESS"},Grant() with{BranchAccessActive=false},
             Grant() with{AssignmentActive=false},Grant() with{RoleActive=false},Grant() with{ExpiresAt=Now},Grant() with{AssignedAt=Now.AddMinutes(1)},Grant() with{BranchId=8}})
             Assert.False(InternalRequestIntakeAccess.Eligible("DEPT_MANAGER",grant,7,Now));

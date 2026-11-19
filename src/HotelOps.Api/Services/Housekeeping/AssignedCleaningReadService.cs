@@ -20,7 +20,7 @@ public sealed partial class RoomTypeCreationService
             && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null, ct);
         var data = new EfPermissionDataSource(db);
         if (!await data.IsActiveBranchAsync(branch, ct)) return false;
-        foreach (var grant in await data.ReadPathsAsync(recipient, "CLEANING_VIEW", now, ct))
+        foreach (var grant in await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, recipient, "CLEANING_VIEW", now, ct))
         {
             if (grant.PermissionCode != "CLEANING_VIEW" || !PermissionGrantRules.IsEligible(grant, now)) continue;
             var scope = PermissionGrantRules.EffectiveScope(grant);
@@ -57,7 +57,7 @@ public sealed partial class RoomTypeCreationService
         }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
         {
             var data = new EfPermissionDataSource(db); var now = clock.GetUtcNow().UtcDateTime;
-            foreach (var grant in await data.ReadPathsAsync(ticket.UserId, "CLEANING_VIEW", now, token))
+            foreach (var grant in await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, ticket.UserId, "CLEANING_VIEW", now, token))
                 if (grant.PermissionCode == "CLEANING_VIEW" && PermissionGrantRules.IsEligible(grant, now) &&
                     (PermissionGrantRules.EffectiveScope(grant) == "GLOBAL" || grant.BranchId == branch && PermissionGrantRules.EffectiveScope(grant) is "BRANCH" or "OWN"))
                     return new PermissionEvaluation(PermissionDecision.Granted);

@@ -117,7 +117,7 @@ export function InternalRequestCleaningLinksPanel({
                 typeof t.mandatory !== "boolean" ||
                 typeof t.path !== "string" ||
                 !new RegExp(
-                  `^/cleaning/tasks/${t.taskId}\\?branchId=[1-9][0-9]*&execution=1$`,
+                  `^/cleaning/tasks/${t.taskId}\\?branchId=${v.branchId}&(?:execution=1|monitor=1&kind=cleaning)$`,
                 ).test(t.path),
             )
           )

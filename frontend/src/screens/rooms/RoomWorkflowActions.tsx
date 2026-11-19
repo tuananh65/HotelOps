@@ -1,3 +1,4 @@
+import { useNavigationAccess } from "../../shared-host/useNavigationAccess";
 import { userMessage } from "../../i18n/userMessage";
 import { useEffect, useMemo, useState } from "react";
 import { ActionLink as Link } from "../../components/ActionLink";
@@ -16,7 +17,9 @@ export default function RoomWorkflowActions({
   const access = useWorkspacePermissions(branch);
   const canClean = access.allows("CLEANING_ASSIGN");
   const canInspect = access.allows("INSPECTION_PERFORM");
-  const canReport = access.allows("INCIDENT_CREATE", true);
+  const admits = useNavigationAccess();
+  const canReport =
+    admits("/incidents/new") && access.allows("INCIDENT_CREATE", true);
   const [retry, setRetry] = useState(0);
   const contextKey = useMemo(
     () => Symbol("room-action"),
@@ -74,7 +77,9 @@ export default function RoomWorkflowActions({
           <Link to={current.href}>Tạo công việc vệ sinh</Link>
         ) : (
           <>
-            <p>{userMessage(current?.error || "Đang kiểm tra quyền và phòng…")}</p>
+            <p>
+              {userMessage(current?.error || "Đang kiểm tra quyền và phòng…")}
+            </p>
             {current?.error && (
               <button
                 onClick={() => {

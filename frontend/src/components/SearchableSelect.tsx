@@ -1,5 +1,7 @@
 import {
   Children,
+  createContext,
+  useContext,
   Fragment,
   cloneElement,
   forwardRef,
@@ -11,6 +13,8 @@ import {
   type ReactElement,
   type SelectHTMLAttributes,
 } from "react";
+
+export const SelectSearchContext = createContext(true);
 
 const normalize = (value: string) =>
   value
@@ -33,13 +37,14 @@ export const SearchableSelect = forwardRef<
   HTMLSelectElement,
   SelectHTMLAttributes<HTMLSelectElement>
 >(function SearchableSelect({ children, onChange, ...props }, ref) {
+  const searchEnabled = useContext(SelectSearchContext);
   const id = useId();
   const selectRef = useRef<HTMLSelectElement | null>(null);
   const [search, setSearch] = useState("");
   const [uncontrolledValue, setUncontrolledValue] = useState(
     props.defaultValue,
   );
-  const query = normalize(search.trim());
+  const query = searchEnabled ? normalize(search.trim()) : "";
   const selected = new Set(
     [props.value ?? uncontrolledValue].flat().map(String),
   );
@@ -94,7 +99,7 @@ export const SearchableSelect = forwardRef<
       >
         {filter(children)}
       </select>
-      <input
+      {searchEnabled && <input
         id={id}
         type="search"
         className="ds-select-search"
@@ -115,7 +120,7 @@ export const SearchableSelect = forwardRef<
         onKeyDown={(event) => {
           if (event.key === "Enter") event.preventDefault();
         }}
-      />
+      />}
     </span>
   );
 });

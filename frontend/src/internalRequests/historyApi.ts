@@ -11,7 +11,8 @@ export interface HistoryRow {
   deadline: string | null;
   overdue: boolean;
   createdAt?: string;
-  timingStatus?: "ON_TIME" | "AT_RISK" | "OVERDUE" | "TERMINAL" | "INVALID_WINDOW";
+  timingStatus?:
+    "ON_TIME" | "AT_RISK" | "OVERDUE" | "TERMINAL" | "INVALID_WINDOW";
   currentAssigneeId: number | null;
 }
 export interface HistoryPage {
@@ -23,6 +24,8 @@ export interface HistoryPage {
 }
 export interface Timeline {
   requestId: number;
+  canReopen?: boolean;
+  canEscalate?: boolean;
   eventTotalCount: number;
   assignmentTotalCount: number;
   events: {
@@ -111,13 +114,22 @@ export function decodeHistory(v: unknown): HistoryPage {
         (r.receivingDepartmentId === null || id(r.receivingDepartmentId)) &&
         text(r.number) &&
         text(r.subject) &&
-        [r.branchName, r.receivingDepartmentName, r.currentAssigneeName].every(v => v === undefined || nullableText(v)) &&
+        [r.branchName, r.receivingDepartmentName, r.currentAssigneeName].every(
+          (v) => v === undefined || nullableText(v),
+        ) &&
         text(r.status) &&
         nullableDate(r.deadline) &&
         typeof r.overdue === "boolean" &&
         ((r.timingStatus === undefined && r.createdAt === undefined) ||
-          (date(r.createdAt) && typeof r.timingStatus === "string" &&
-            ["ON_TIME", "AT_RISK", "OVERDUE", "TERMINAL", "INVALID_WINDOW"].includes(r.timingStatus) &&
+          (date(r.createdAt) &&
+            typeof r.timingStatus === "string" &&
+            [
+              "ON_TIME",
+              "AT_RISK",
+              "OVERDUE",
+              "TERMINAL",
+              "INVALID_WINDOW",
+            ].includes(r.timingStatus) &&
             r.overdue === (r.timingStatus === "OVERDUE"))) &&
         (r.currentAssigneeId === null || id(r.currentAssigneeId)),
     )
@@ -129,6 +141,8 @@ export function decodeTimeline(v: unknown, requestId: number): Timeline {
   if (
     !object(v) ||
     v.requestId !== requestId ||
+    (v.canReopen !== undefined && typeof v.canReopen !== "boolean") ||
+    (v.canEscalate !== undefined && typeof v.canEscalate !== "boolean") ||
     !count(v.eventTotalCount) ||
     !count(v.assignmentTotalCount) ||
     !Array.isArray(v.events) ||

@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Housekeeping;
 using HotelOps.Api.Services.OperationalTasks;
 using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
@@ -62,21 +63,39 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
     }
 
     private IQueryable<CleaningLinkState> States() => db.Database.SqlQuery<CleaningLinkState>($"SELECT cleaning_task_id AS TaskId,workflow_status AS State FROM dbo.cleaning_tasks");
+    private static async Task<bool> CanMonitorAsync(HotelOpsDbContext db, long user, long branch, DateTime now, CancellationToken ct)
+    {
+        var grants = await (from role in db.UserRoles.AsNoTracking()
+            join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
+            where role.UserId == user && (role.Role.RoleCode == "HK_SUPERVISOR" || role.Role.RoleCode == "OPERATIONS_MANAGER")
+                && grant.Permission.PermissionCode == "CLEANING_VIEW" && (role.BranchId == branch || role.BranchId == null)
+            select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, role.BranchId,
+                role.IsActive, role.Role.IsActive, role.AssignedAt, role.ExpiresAt, role.Branch == null || role.Branch.IsActive,
+                db.UserBranchAccesses.Any(a => a.UserId == user && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)))
+            .ToArrayAsync(ct);
+        return CleaningMonitorService.SupervisorCanMonitor(grants, branch, now);
+    }
+
+    internal static IQueryable<CleaningTask> ApplyVisibility(IQueryable<CleaningTask> tasks, long user, DateTime now, bool monitor, bool readOwn)
+    {
+        if (monitor) return tasks;
+        if (!readOwn) return tasks.Where(t => false);
+        return tasks.Where(t => t.CleaningAssignments.Count(a => a.AssigneeUserId == user && a.AssignmentStatus == "ACTIVE"
+            && a.EndedAt == null && a.AssignedAt <= now) == 1);
+    }
     internal static async Task<IQueryable<CleaningTask>> VisibleTasksAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var data = new EfPermissionDataSource(db);
-        var eligible = (await data.ReadPathsAsync(user, "CLEANING_VIEW", now, ct))
+        var eligible = (await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, user, "CLEANING_VIEW", now, ct))
             .Where(p => p.PermissionCode == "CLEANING_VIEW" && PermissionGrantRules.IsEligible(p, now)).ToArray();
-        var wide = eligible.Any(p => PermissionGrantRules.EffectiveScope(p) == "GLOBAL"
-            || p.BranchId == branch && PermissionGrantRules.EffectiveScope(p) == "BRANCH");
-        var own = eligible.Any(p => p.BranchId == branch && PermissionGrantRules.EffectiveScope(p) == "OWN");
+        var wide = await CanMonitorAsync(db, user, branch, now, ct);
+        var own = eligible.Any(p => PermissionGrantRules.EffectiveScope(p) == "GLOBAL"
+            || p.BranchId == branch && PermissionGrantRules.EffectiveScope(p) is "OWN" or "BRANCH");
         var tasks = db.CleaningTasks.AsNoTracking().Where(t => t.Room.BranchId == branch && t.Room.IsActive && t.Room.Branch.IsActive);
         if (!await data.IsActiveUserAsync(user, ct) || !wide && !own) return tasks.Where(t => false);
-        if (wide) return tasks;
-        // Same ownership predicate as CleaningExecutionAccess, independent from IR_VIEW.
-        return tasks.Where(t => t.CleaningAssignments.Count(a => a.AssigneeUserId == user && a.AssignmentStatus == "ACTIVE"
-            && a.EndedAt == null && a.AssignedAt <= now) == 1);
+        // A raw BRANCH grant does not authorize the supervisor monitor.
+        return ApplyVisibility(tasks, user, now, wide, own);
     }
     public async Task<InternalRequestTaskLinksView> ReadAsync(SessionReference ticket, long sid, long id, bool candidates, int page, CancellationToken ct)
     {
@@ -115,10 +134,11 @@ public sealed class InternalRequestCleaningLinks(HotelOpsDbContext db, InternalR
         canLink = request.Status is "ACCEPTED" or "IN_PROGRESS" && await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct);
         if (candidates && !canLink) throw new InternalRequestReadException(403, "IR_PROCESS_REQUIRED");
         var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
+        var monitor = await CanMonitorAsync(db, ticket.UserId, request.BranchId, DateTime.UtcNow, ct);
         await tx.CommitAsync(ct);
         return new(id, Convert.ToBase64String(version), canLink, rows.Select(t => new InternalRequestTaskLinkRow(t.CleaningTaskId,
             t.TaskNo, t.Instruction ?? t.TaskNo, stateMap.GetValueOrDefault(t.CleaningTaskId), metadata.GetValueOrDefault(t.CleaningTaskId),
-            $"/cleaning/tasks/{t.CleaningTaskId}?branchId={request.BranchId}&execution=1")).ToArray(), total, page, candidates, request.BranchId);
+            $"/cleaning/tasks/{t.CleaningTaskId}?branchId={request.BranchId}&{(monitor ? "monitor=1&kind=cleaning" : "execution=1")}")).ToArray(), total, page, candidates, request.BranchId);
     }
 
     public async Task<string> LinkAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestTaskLinkInput input, CancellationToken ct)

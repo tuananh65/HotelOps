@@ -22,7 +22,7 @@ public sealed partial class RoomTypeCreationService
         if (!await data.IsActiveUserAsync(actor, ct) || !await data.IsActiveBranchAsync(branch, ct)) return new(PermissionDecision.Denied);
         var own = await db.CleaningAssignments.AsNoTracking().CountAsync(x => x.CleaningTaskId == task && x.AssigneeUserId == actor
             && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null && x.AssignedAt <= now && x.CleaningTask.Room.BranchId == branch, ct) == 1;
-        foreach (var grant in await data.ReadPathsAsync(actor, permission, now, ct))
+        foreach (var grant in await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, actor, permission, now, ct))
             if (grant.PermissionCode == permission && PermissionGrantRules.IsEligible(grant, now)
                 && (PermissionGrantRules.EffectiveScope(grant) == "GLOBAL" || grant.BranchId == branch &&
                     (PermissionGrantRules.EffectiveScope(grant) == "BRANCH" || PermissionGrantRules.EffectiveScope(grant) == "OWN" && own))) return new(PermissionDecision.Granted);

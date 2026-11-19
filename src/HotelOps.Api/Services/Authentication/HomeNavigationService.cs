@@ -32,13 +32,20 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
                 return eligible.Select(p => new OperationGrant(p.BranchId, p.PermissionCode, PermissionGrantRules.EffectiveScope(p)!,
                     p.BranchId is {} branch && names.TryGetValue(branch, out var name) ? name : null)).Distinct().ToArray();
             }, ct);
-    public Task<UserDirectoryReadResult<string[]>> ReadAsync(SessionReference ticket, CancellationToken ct)
+    public sealed record NavigationResult(string[] Paths, bool SelectSearchEnabled);
+    public Task<UserDirectoryReadResult<NavigationResult>> ReadAsync(SessionReference ticket, CancellationToken ct)
         => new UserDirectoryReadGuard(db, current, permissions, clock).RunAuthorizedAsync(ticket,
             _ => Task.FromResult(new PermissionEvaluation(PermissionDecision.Granted)), async () =>
             {
                 var first = await LinksAsync(ct);
                 var final = await LinksAsync(ct);
-                return first.Intersect(final, StringComparer.Ordinal).ToArray();
+                var now = clock.GetUtcNow().UtcDateTime;
+                var reception = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == ticket.UserId
+                    && r.Role.RoleCode == "RECEPTION" && r.IsActive && r.Role.IsActive && r.AssignedAt <= now
+                    && (r.ExpiresAt == null || r.ExpiresAt > now) && r.Branch != null && r.Branch.IsActive
+                    && db.UserBranchAccesses.Any(a => a.UserId == ticket.UserId && a.BranchId == r.BranchId
+                        && a.RevokedAt == null && a.GrantedAt <= now), ct);
+                return new NavigationResult(first.Intersect(final, StringComparer.Ordinal).ToArray(), !reception);
             }, ct);
 
     private async Task<string[]> LinksAsync(CancellationToken ct)
@@ -130,7 +137,10 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
         foreach (var branch in branches)
             if (await intake.AllowsAsync(actor.UserId, branch, ct))
             { links.Add("/internal-requests/new"); break; }
-        if (await AnyOwnOrBranch("CLEANING_VIEW")) { links.Add("/cleaning/tasks"); links.Add("/rework"); }
+        var cleaningPaths = await HotelOps.Api.Services.Housekeeping.HousekeepingFeatureAccess.PathsAsync(db, actor.UserId, "CLEANING_VIEW", now, ct);
+        if (cleaningPaths.Any(p => PermissionGrantRules.IsEligible(p, now)
+            && PermissionGrantRules.EffectiveScope(p) is "GLOBAL" or "BRANCH" or "OWN"))
+        { links.Add("/cleaning/tasks"); links.Add("/rework"); }
         if (await AnyOwnOrBranch("SHIFT_VIEW")) links.Add("/workday");
         foreach (var branch in branches)
             if (Granted(await permissions.EvaluateResourceAsync("ATTENDANCE_RECORD", new("workday_self_branch", branch), ct)))

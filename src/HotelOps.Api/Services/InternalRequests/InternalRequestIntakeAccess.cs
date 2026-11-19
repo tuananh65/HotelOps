@@ -7,7 +7,7 @@ namespace HotelOps.Api.Services.InternalRequests;
 internal sealed class InternalRequestIntakeAccess(HotelOpsDbContext db)
 {
     internal static bool Eligible(string role, PermissionGrantPath path,long branch,DateTime now) =>
-        role is "SYS_ADMIN" or "OPERATIONS_MANAGER" or "HK_SUPERVISOR" or "HK_STAFF" or "MAINTENANCE_LEAD" or "MAINTENANCE_STAFF" or "STOREKEEPER" or "DEPT_MANAGER"
+        role is "SYS_ADMIN" or "OPERATIONS_MANAGER" or "HK_SUPERVISOR" or "HK_STAFF" or "MAINTENANCE_LEAD" or "MAINTENANCE_STAFF" or "STOREKEEPER" or "DEPT_MANAGER" or "RECEPTION"
         && path.PermissionCode=="IR_CREATE" && PermissionGrantRules.IsEligible(path,now)
         && (role=="SYS_ADMIN"&&PermissionGrantRules.EffectiveScope(path)=="GLOBAL"
             || path.BranchId==branch&&PermissionGrantRules.EffectiveScope(path) is "OWN" or "BRANCH");

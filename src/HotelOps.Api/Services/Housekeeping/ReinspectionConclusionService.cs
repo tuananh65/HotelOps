@@ -121,13 +121,14 @@ public sealed partial class RoomTypeCreationService
             var after = (await readiness.ReadAsync([source.RoomId], now, token))[source.RoomId];
             if (passed ? after.Readiness is not ("READY" or "BLOCKED") : after.Readiness is not ("REWORK_REQUIRED" or "BLOCKED"))
                 throw new InvalidOperationException("REINSPECTION_READINESS_CONFLICT");
-            if (after.CanUse && room.OperationalStatus != "READY")
+            var physicalStatus = EffectiveRoomReadiness.InspectionOperationalStatus(room.OperationalStatus, after.CanUse);
+            if (physicalStatus != room.OperationalStatus)
                 await db.Database.ExecuteSqlInterpolatedAsync($"""
                     UPDATE dbo.rooms SET operational_status='READY' WHERE room_id={source.RoomId} AND branch_id={branch} AND operational_status={room.OperationalStatus} AND is_active=1;
                     IF @@ROWCOUNT<>1 THROW 51999,'Reinspection room status conflict',1;
                     """, token);
             await RoomReadinessHistory.RecordAsync(db, before, after, room.OperationalStatus,
-                after.CanUse ? "READY" : room.OperationalStatus, "INSPECTION", inspection, actor, now, reason, token);
+                physicalStatus, "INSPECTION", inspection, actor, now, reason, token);
             var result = new ReinspectionConclusionResult(inspection, source.ReworkId, branch, source.CleaningTaskId, source.RoomId,
                 inspectionState, reworkState, WorkflowTag((await InspectionState(inspection, token)).Revision),
                 WorkflowTag((await ReworkState(source.ReworkId, token)).Revision), operation, after.Readiness,

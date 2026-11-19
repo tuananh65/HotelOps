@@ -1,3 +1,4 @@
+import { useWorkspacePermissions } from "./useWorkspacePermissions";
 import { referenceLabel } from "../../i18n/referenceLabel";
 import { userMessage } from "../../i18n/userMessage";
 import { SearchableSelect } from "../../components/SearchableSelect";
@@ -35,6 +36,7 @@ function CoverageNote({ value }: { value: Coverage }) {
 }
 export default function RoomTurnoverHistoryScreen() {
   const scope = useRoomWorkspace("rooms");
+  const access = useWorkspacePermissions(scope.branch?.id ?? "");
   const choices = useRoomChoices(scope);
   const [params, setParams] = useSearchParams(),
     [retry, setRetry] = useState(0);
@@ -340,8 +342,9 @@ export default function RoomTurnoverHistoryScreen() {
             {d.timeline.map((e) => (
               <li key={`${displayCode(e.sourceType)}:${e.sourceId}:${e.event}`}>
                 <time>{hotelTime(e.atUtc)}</time> · {displayCode(e.sourceType)}{" "}
-                {referenceLabel(e, "sourceId")} · {e.event} · {displayCode(e.state)} · {e.note} ·
-                Người thực hiện {e.actorId ?? "—"}
+                {referenceLabel(e, "sourceId")} · {e.event} ·{" "}
+                {displayCode(e.state)} · {e.note} · Người thực hiện{" "}
+                {e.actorId ?? "—"}
               </li>
             ))}
           </ol>
@@ -362,15 +365,17 @@ export default function RoomTurnoverHistoryScreen() {
           <ul>
             {d.inspections.map((i) => (
               <li key={i.id}>
-                Kiểm tra {referenceLabel(i, "id")} · Phiên bản danh sách kiểm tra {i.versionNumber}{" "}
-                (mã {referenceLabel(i, "versionId")}) · {displayCode(i.recordedStatus)} ·{" "}
-                {hotelTime(i.atUtc)} ·{" "}
+                Kiểm tra {referenceLabel(i, "id")} · Phiên bản danh sách kiểm
+                tra {i.versionNumber} (mã {referenceLabel(i, "versionId")}) ·{" "}
+                {displayCode(i.recordedStatus)} · {hotelTime(i.atUtc)} ·{" "}
                 {i.result ? roomLabel(i.result) : "Chưa kết luận"}{" "}
-                <Link
-                  to={`/inspection-history/${i.id}?branchId=${d.cycle.branchId}`}
-                >
-                  Xem tiêu chí, lỗi và ảnh kiểm tra
-                </Link>
+                {access.allows("INSPECTION_VIEW") && (
+                  <Link
+                    to={`/inspection-history/${i.id}?branchId=${d.cycle.branchId}`}
+                  >
+                    Xem tiêu chí, lỗi và ảnh kiểm tra
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -378,7 +383,8 @@ export default function RoomTurnoverHistoryScreen() {
           <ul>
             {d.reworks.map((w) => (
               <li key={w.id}>
-                Làm lại {referenceLabel(w, "id")} · Kiểm tra {referenceLabel(w, "inspectionId")} ·{" "}
+                Làm lại {referenceLabel(w, "id")} · Kiểm tra{" "}
+                {referenceLabel(w, "inspectionId")} ·{" "}
                 {roomLabel(w.workflowState ?? w.recordedStatus)} ·{" "}
                 {hotelTime(w.requestedAtUtc)} · {w.note}
               </li>

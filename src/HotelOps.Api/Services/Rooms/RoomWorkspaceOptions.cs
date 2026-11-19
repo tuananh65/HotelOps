@@ -26,7 +26,7 @@ public sealed partial class RoomDirectoryService
         async Task<List<RoomWorkspaceBranch>?> Read()
         {
             var at = DateTime.UtcNow;
-            var paths = await new EfPermissionDataSource(db).ReadPathsAsync(actor.UserId, "CLEANING_VIEW", at, ct);
+            var paths = await HousekeepingFeatureAccess.PathsAsync(db, actor.UserId, "CLEANING_VIEW", at, ct);
             var items = new List<RoomWorkspaceBranch>();
             foreach (var b in branches)
             {

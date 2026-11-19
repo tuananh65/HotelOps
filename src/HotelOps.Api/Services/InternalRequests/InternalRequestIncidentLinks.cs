@@ -66,9 +66,9 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
     }
 
     private IQueryable<IncidentLinkState> States() => db.Database.SqlQuery<IncidentLinkState>($"SELECT incident_id AS IncidentId,status AS State FROM dbo.incidents");
-    private async Task<IQueryable<Incident>> VisibleIncidentsAsync(long user, long branch, CancellationToken ct)
+    private async Task<IQueryable<Incident>> VisibleIncidentsAsync(long user, long branch, CancellationToken ct, bool sourceRecord = false)
     {
-        var scope = await IncidentReadAccess.ReadAsync(db, user, branch, ct);
+        var scope = await IncidentReadAccess.ReadAsync(db, user, branch, ct, sourceRecord);
         return scope.Apply(db.Incidents.AsNoTracking());
     }
     public async Task<InternalRequestIncidentLinksView> ReadAsync(SessionReference ticket, long sid, long id, bool candidates, int page, CancellationToken ct)
@@ -78,7 +78,7 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
         var request = await RequestAsync(ticket, sid, id, ct);
         var canLink = request.Status is "ACCEPTED" or "IN_PROGRESS" && await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct);
         if (candidates && !canLink) throw new InternalRequestReadException(403, "IR_PROCESS_REQUIRED");
-        var tasks = await VisibleIncidentsAsync(ticket.UserId, request.BranchId, ct);
+        var tasks = await VisibleIncidentsAsync(ticket.UserId, request.BranchId, ct, sourceRecord: !candidates);
         var links = Links(id);
         var states = States();
         var linked = links.Select(l => l.IncidentId);
@@ -94,7 +94,7 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
         var stateMap = await states.Where(s => ids.Contains(s.IncidentId)).ToDictionaryAsync(s => s.IncidentId, s => s.State, ct);
         var metadata = await links.Where(l => ids.Contains(l.IncidentId)).ToDictionaryAsync(l => l.IncidentId, l => l.Mandatory, ct);
         await RequestAsync(ticket, sid, id, ct);
-        var finalTasks = await VisibleIncidentsAsync(ticket.UserId, request.BranchId, ct);
+        var finalTasks = await VisibleIncidentsAsync(ticket.UserId, request.BranchId, ct, sourceRecord: !candidates);
         if (await finalTasks.CountAsync(t => ids.Contains(t.IncidentId), ct) != ids.Length)
             throw new InternalRequestReadException(403, "IR_TARGET_SCOPE_CHANGED");
         if (candidates)

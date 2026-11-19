@@ -20,6 +20,9 @@ public sealed record EffectiveRoomState(long RoomId, string Readiness)
 // is deliberately not an input: neither READY nor OUT_OF_SERVICE proves effective readiness.
 public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
 {
+    internal static string InspectionOperationalStatus(string previous, bool canUse)
+        => canUse && previous != "OCCUPIED" ? "READY" : previous;
+
     internal sealed class Facts
     {
         public long RoomId { get; set; }
@@ -35,6 +38,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         public bool ReworkOutstanding { get; set; }
         public bool ReworkSubmitted { get; set; }
         public bool SourceAvailable { get; set; }
+        public bool AwaitingNewCycle { get; set; }
     }
 
     internal static string Calculate(Facts source)
@@ -42,6 +46,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         if (!source.IsActive) return "INACTIVE";
         if (source.Blocked) return "BLOCKED";
         if (!source.SourceAvailable) return "UNKNOWN";
+        if (source.AwaitingNewCycle) return "PENDING_CLEANING";
         // Reject precedes Request Rework (UC045 -> UC046). The current cycle already
         // needs rework even before a rework row exists; never fall back to never-passed.
         if (source.ReworkOutstanding || source.Cleaning == "REWORK_REQUIRED"
@@ -84,6 +89,7 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
                 AND b.blocked_at<={now} AND (b.released_at IS NULL OR b.released_at>{now})) THEN 1 ELSE 0 END) AS Blocked,
             c.workflow_status AS Cleaning,i.workflow_status AS Inspection,
             c.cleaning_task_id AS CleaningTaskId,i.inspection_id AS InspectionId,
+            CONVERT(bit,CASE WHEN departure.OccurredAt IS NOT NULL AND c.cleaning_task_id IS NULL THEN 1 ELSE 0 END) AS AwaitingNewCycle,
             (SELECT TOP(1) w.rework_id FROM dbo.cleaning_reworks w WITH(HOLDLOCK)
                 WHERE w.cleaning_task_id=c.cleaning_task_id AND w.workflow_status<>'CANCELLED'
                 ORDER BY w.requested_at DESC,w.rework_id DESC) AS ReworkId,
@@ -107,9 +113,13 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
                   AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE '[]' END,'$.operation')='REACTIVATE_ROOM'
                   AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE '[]' END,'$.record.isActive')='true'
                   AND JSON_VALUE(CASE WHEN ISJSON(a.old_values)=1 THEN a.old_values ELSE '[]' END,'$.isActive')='false') activation
+            OUTER APPLY(SELECT MAX(h.changed_at) AS OccurredAt FROM dbo.room_status_history h WITH(HOLDLOCK)
+                WHERE h.room_id=r.room_id AND h.trigger_type='CHECKOUT' AND h.from_status='OCCUPIED'
+                  AND h.to_status='DIRTY' AND h.changed_at<={now}) departure
             OUTER APPLY(SELECT TOP(1) t.cleaning_task_id,t.workflow_status,t.status FROM dbo.cleaning_tasks t WITH(HOLDLOCK)
                 WHERE t.room_id=r.room_id AND t.status<>'CANCELLED' AND (t.workflow_status IS NULL OR t.workflow_status<>'CANCELLED')
                   AND (activation.OccurredAt IS NULL OR t.created_at>=activation.OccurredAt)
+                  AND (departure.OccurredAt IS NULL OR t.created_at>departure.OccurredAt)
                 ORDER BY t.created_at DESC,t.cleaning_task_id DESC) c
             OUTER APPLY(SELECT TOP(1) p.inspection_id,p.workflow_status,p.status,p.result FROM dbo.room_inspections p WITH(HOLDLOCK)
                 WHERE p.room_id=r.room_id AND p.cleaning_task_id=c.cleaning_task_id AND p.status<>'CANCELLED'

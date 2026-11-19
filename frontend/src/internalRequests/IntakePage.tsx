@@ -1,3 +1,4 @@
+import { useNavigationAccess } from "../shared-host/useNavigationAccess";
 import { userMessage } from "../i18n/userMessage";
 import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useRef, useState } from "react";
@@ -89,33 +90,12 @@ function options(raw: unknown): Options {
   return value;
 }
 export function InternalRequestIntakeLink() {
-  const { state, actions } = useAuth();
-  const owner =
-    state.status === "AUTHENTICATED" &&
-    !state.pending &&
-    !state.session?.mustChangePassword
-      ? state.authorityGeneration
-      : null;
-  const [allowed, setAllowed] = useState<typeof owner>(null);
-  useEffect(() => {
-    setAllowed(null);
-    const abort = new AbortController();
-    if (owner)
-      void json("/api/internal-requests/intake", abort.signal)
-        .then(options)
-        .then(() => {
-          if (!abort.signal.aborted) setAllowed(owner);
-        })
-        .catch((e) => {
-          if (!abort.signal.aborted && e instanceof Failure && e.status === 401)
-            actions.invalidateSession(owner);
-        });
-    return () => abort.abort();
-  }, [owner, actions]);
-  return owner && allowed === owner ? (
+  const allows = useNavigationAccess();
+  return allows("/internal-requests/new") ? (
     <Link to="/internal-requests/new">Tạo yêu cầu nội bộ</Link>
   ) : null;
 }
+
 export function InternalRequestIntakePage() {
   const { state, actions } = useAuth();
   const owner =

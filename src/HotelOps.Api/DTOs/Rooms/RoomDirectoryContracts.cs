@@ -61,7 +61,7 @@ public sealed record RoomDirectoryItemDto(long Id, long BranchId, string RoomNum
     string OperationalStatusCode, bool IsActive)
 {
     public string EffectiveReadiness { get; init; } = "UNKNOWN";
-    public bool CanUseRoom => EffectiveReadiness == "READY";
+    public bool CanUseRoom => EffectiveReadiness == "READY" && OperationalStatusCode is "READY" or "AVAILABLE";
 }
 public sealed record RoomDirectoryResponse(IReadOnlyList<RoomDirectoryItemDto> Items,
     int Page, int PageSize, long TotalCount, IReadOnlyList<RoomStatusCountDto>? StatusCounts = null)
