@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -175,7 +176,7 @@ export function MaintenanceVerifyPanel({
           Kiểm tra kết quả, bằng chứng và vật tư trước khi đóng. Lệnh khóa phòng
           khác vẫn hiệu lực.
         </p>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <label>
           Ghi chú xác minh
           <textarea

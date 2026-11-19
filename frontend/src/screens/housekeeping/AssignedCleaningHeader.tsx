@@ -1,8 +1,10 @@
+import { userMessage } from "../../i18n/userMessage";
 import { displayCode } from "../../i18n/vi";
-﻿import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ActionLink, ActionLinks } from "../../components/ActionLink";
 import { ApiError, getJson } from "../../api/dev1/client";
 import { positiveId } from "../../api/dev1/rooms";
+import { useWorkspacePermissions } from "./useWorkspacePermissions";
 interface Header {
   id: number;
   branchId: number;
@@ -21,6 +23,7 @@ export default function AssignedCleaningHeader({
   task: string;
   assignment: string;
 }) {
+  const access = useWorkspacePermissions(branch);
   const [data, setData] = useState<Header | null>(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -59,7 +62,7 @@ export default function AssignedCleaningHeader({
   return (
     <>
       <h1>Công việc được phân công</h1>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {!data && !error && <p role="status">Đang tải…</p>}
       {data && (
         <>
@@ -67,18 +70,26 @@ export default function AssignedCleaningHeader({
             {data.taskNumber} · {data.roomNumber}
           </h2>
           <p>
-            {displayCode(data.recordedStatus)} · Chi nhánh {data.branchId}
+            {displayCode(data.recordedStatus)}
           </p>
-          <Link
-            to={`/cleaning/tasks/${data.id}?branchId=${branch}&execution=1`}
-          >
-            Mở Start / Reassign
-          </Link>
-          {data.recordedStatus === "IN_PROGRESS" && (
-            <Link to={`/cleaning/tasks/${data.id}?branchId=${branch}`}>
-              Mở tiến độ UC032
-            </Link>
-          )}
+          <ActionLinks>
+            {access.allows("CLEANING_EXECUTE", true) && (
+              <ActionLink
+                variant="primary"
+                to={`/cleaning/tasks/${data.id}?branchId=${branch}&execution=1`}
+              >
+                Mở thực hiện công việc
+              </ActionLink>
+            )}
+            {data.recordedStatus === "IN_PROGRESS" &&
+              access.allows("CLEANING_EXECUTE", true) && (
+                <ActionLink
+                  to={`/cleaning/tasks/${data.id}?branchId=${branch}`}
+                >
+                  Cập nhật tiến độ
+                </ActionLink>
+              )}
+          </ActionLinks>
         </>
       )}
     </>

@@ -14,8 +14,9 @@ import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./
 import{WorkdayReadPanel}from'./src/workday/WorkdayReadPanel';import{HotelRouteHost}from'./src/hotel/HotelRouteHost';
 const calls=[],waiting=new Map();let sessions=[...(window.scenario.sessions??[{body:${JSON.stringify(session())}}])];
 const respond=r=>{const response=new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json'}});if(r.unreadable)response.text=async()=>{throw Error('PRIVATE_RESPONSE')};return response;};
-window.fetch=async(url,init)=>{const call={url,method:init.method,credentials:init.credentials,cache:init.cache};calls.push(call);
+window.fetch=async(url,init)=>{const call={url,method:init.method??'GET',credentials:init.credentials,cache:init.cache};calls.push(call);
 init.signal?.addEventListener('abort',()=>{call.aborted=true},{once:true});
+if(url==='/api/auth/navigation/operation-grants')return respond({body:{grants:window.scenario.grants??['SHIFT_HANDOVER_VIEW','SHIFT_HANDOVER_SUBMIT'].map(permission=>({permission,scope:'GLOBAL',branchId:null}))}});
 let r;if(url==='/api/auth/session')r=sessions.shift();else r=window.scenario.responses?.[url]??(url.endsWith('own-shifts')?{body:[${JSON.stringify(shift())}]}:{body:${JSON.stringify(day())}});
 if(r?.deferred)return new Promise(resolve=>waiting.set(r.deferred,[...(waiting.get(r.deferred)??[]),resolve]));if(!r)throw Error('Missing response');return respond(r)};
 const store=createAuthStore(createAuthApi(window.fetch));function App(){const[branch,setBranch]=useState(1);window.changeBranch=setBranch;return <><Link to='/profile'>Hồ sơ</Link><Routes><Route path='/workday' element={<WorkdayReadPanel branchId={branch}/>}/><Route path='*' element={<HotelRouteHost/>}/></Routes></>}
@@ -65,15 +66,25 @@ async function withPage(scenario, run) {
         });
     }, scenario);
     for (const output of bundle.outputFiles)
-      if (output.path.endsWith(".css")) await p.addStyleTag({ content: output.text });
-    await p.addScriptTag({ content: bundle.outputFiles.find(f => f.path.endsWith(".js")).text });
+      if (output.path.endsWith(".css"))
+        await p.addStyleTag({ content: output.text });
+    await p.addScriptTag({
+      content: bundle.outputFiles.find((f) => f.path.endsWith(".js")).text,
+    });
     await run(p);
     assert.deepEqual(errors, []);
     assert.ok(!(await p.locator("body").innerText()).includes(secret));
     const calls = await p.evaluate(() => window.fixture.calls);
     for (const c of calls) {
       assert.equal(c.method, "GET");
-      assert.equal(c.credentials, "include");
+      assert.equal(
+        c.credentials,
+        c.url === "/api/auth/navigation/operation-grants" ||
+          c.url === "/api/auth/profile"
+          ? "same-origin"
+          : "include",
+        c.url,
+      );
       assert.equal(c.cache, "no-store");
     }
   } finally {
@@ -106,7 +117,9 @@ test("current 403 does not hide authorized shifts", () =>
     { responses: { [path(1, "current")]: { status: 403, body: {} } } },
     async (p) => {
       await currentSection(p).getByRole("alert").waitFor();
-      await shiftsSection(p).locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
+      await shiftsSection(p)
+        .locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]')
+        .waitFor();
     },
   ));
 test("both 403 expose no workday or shift data", () =>
@@ -120,7 +133,12 @@ test("both 403 expose no workday or shift data", () =>
     async (p) => {
       await shiftsSection(p).getByRole("alert").waitFor();
       await currentSection(p).getByRole("alert").waitFor();
-      assert.equal(await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').count(), 0);
+      assert.equal(
+        await p
+          .locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]')
+          .count(),
+        0,
+      );
       assert.equal(
         await p.locator('a[href="/workday/handovers?workdayId=20"]').count(),
         0,
@@ -131,8 +149,12 @@ test("authorized shifts remain visible with current 204", () =>
   withPage(
     { responses: { [path(1, "current")]: { status: 204 } } },
     async (p) => {
-      await shiftsSection(p).locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
-      await currentSection(p).getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").waitFor();
+      await shiftsSection(p)
+        .locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]')
+        .waitFor();
+      await currentSection(p)
+        .getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.")
+        .waitFor();
     },
   ));
 for (const pending of ["current", "own-shifts"])
@@ -145,7 +167,11 @@ for (const pending of ["current", "own-shifts"])
         const ready =
           pending === "current" ? shiftsSection(p) : currentSection(p);
         await ready
-          .locator(pending === "current" ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]' : 'a[href="/workday/handovers?workdayId=20"]')
+          .locator(
+            pending === "current"
+              ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]'
+              : 'a[href="/workday/handovers?workdayId=20"]',
+          )
           .waitFor();
         await waiting.getByRole("status").waitFor();
         await p.evaluate(() =>
@@ -167,7 +193,11 @@ for (const pending of ["current", "own-shifts"])
           before,
         );
         await ready
-          .locator(pending === "current" ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]' : 'a[href="/workday/handovers?workdayId=20"]')
+          .locator(
+            pending === "current"
+              ? 'a[href="/workday?branchId=1&shiftAssignmentId=10"]'
+              : 'a[href="/workday/handovers?workdayId=20"]',
+          )
           .waitFor();
       },
     ));
@@ -184,11 +214,17 @@ for (const status of [404, 503])
         await currentSection(p).getByRole("alert").waitFor();
         await shiftsSection(p).getByRole("alert").waitFor();
         assert.equal(
-          await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").count(),
+          await p
+            .getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.")
+            .count(),
           0,
         );
         assert.equal(
-          await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
+          await p
+            .getByText(
+              "Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.",
+            )
+            .count(),
           0,
         );
       },
@@ -196,7 +232,9 @@ for (const status of [404, 503])
 test("normal own shifts/current render, no rowversion exposed", () =>
   withPage({}, async (p) => {
     await p.locator('a[href="/workday/handovers?workdayId=20"]').waitFor();
-    await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]').waitFor();
+    await p
+      .locator('a[href="/workday?branchId=1&shiftAssignmentId=10"]')
+      .waitFor();
     assert.ok(!(await p.locator("body").innerText()).includes("AAAAAAAAAAE="));
   }));
 test("empty shifts and explicit current 204", () =>
@@ -208,8 +246,14 @@ test("empty shifts and explicit current 204", () =>
       },
     },
     async (p) => {
-      await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").waitFor();
-      await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").waitFor();
+      await p
+        .getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.")
+        .waitFor();
+      await p
+        .getByText(
+          "Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.",
+        )
+        .waitFor();
     },
   ));
 for (const status of [401, 403, 404, 503])
@@ -226,7 +270,11 @@ for (const status of [401, 403, 404, 503])
       async (p) => {
         await p.getByRole("alert").waitFor();
         assert.equal(
-          await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
+          await p
+            .getByText(
+              "Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.",
+            )
+            .count(),
           0,
         );
         assert.equal(
@@ -295,7 +343,10 @@ test("identity replacement cannot publish old identity data", () =>
           };
           return window.fixture.revalidate();
         },
-        { s: { ...shift(), shiftId: 88, shiftAssignmentId: 88 }, d: { ...day(), workdayId: 99 } },
+        {
+          s: { ...shift(), shiftId: 88, shiftAssignmentId: 88 },
+          d: { ...day(), workdayId: 99 },
+        },
       );
       await p
         .getByText("Chưa xác nhận phiên đăng nhập không hạn chế.")
@@ -306,10 +357,16 @@ test("identity replacement cannot publish old identity data", () =>
         day(),
       );
       await p.locator('a[href="/workday/handovers?workdayId=99"]').waitFor();
-      await p.locator('a[href="/workday?branchId=1&shiftAssignmentId=88"]').waitFor();
+      await p
+        .locator('a[href="/workday?branchId=1&shiftAssignmentId=88"]')
+        .waitFor();
       await settle(p);
       assert.equal(
-        await p.getByText("Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.").count(),
+        await p
+          .getByText(
+            "Không có ca chờ bắt đầu hôm nay. Ca đã bắt đầu hoặc đã kết thúc không xuất hiện trong danh sách này.",
+          )
+          .count(),
         0,
       );
       assert.equal(
@@ -370,7 +427,12 @@ test("current 404 is unavailable even after valid empty shifts", () =>
     },
     async (p) => {
       await p.getByRole("alert").waitFor();
-      assert.equal(await p.getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.").count(), 0);
+      assert.equal(
+        await p
+          .getByText("Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.")
+          .count(),
+        0,
+      );
     },
   ));
 test("unmount ignores late read; existing profile remains", () =>
@@ -434,3 +496,12 @@ for (const op of ["current", "own-shifts"])
           },
         ),
     );
+
+test("current shift does not expose handover without both granted permissions", () =>
+  withPage({ grants: [] }, async (p) => {
+    await currentSection(p)
+      .getByText("Đang làm việc", { exact: true })
+      .waitFor();
+    await settle(p);
+    assert.equal(await p.locator('a[href*="/workday/handovers"]').count(), 0);
+  }));

@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   forwardRef,
   useEffect,
@@ -10,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { statusColor } from "./statusColors";
+import { SearchableSelect } from "./SearchableSelect";
 import { Link } from "react-router-dom";
 import {
   AlertCircle,
@@ -37,7 +40,7 @@ export const AppSelect = forwardRef<
   HTMLSelectElement,
   SelectHTMLAttributes<HTMLSelectElement>
 >(function AppSelect({ className = "", ...props }, ref) {
-  return <select {...props} ref={ref} className={`ds-control ${className}`} />;
+  return <SearchableSelect {...props} ref={ref} className={`ds-control ${className}`} />;
 });
 
 export const AppButton = forwardRef<
@@ -136,12 +139,12 @@ export type StatusTone = "success" | "warning" | "error" | "info" | "neutral";
 /** Presentation only. Callers pass the label/tone; no workflow or permission is inferred. */
 export function StatusBadge({
   children,
-  tone = "neutral",
+  tone,
 }: {
   children: ReactNode;
   tone?: StatusTone;
 }) {
-  return <span className={`ds-badge ds-badge--${tone}`}>{children}</span>;
+  return <span className={`ds-badge ds-badge--${tone ?? "state"}`} style={!tone && typeof children === "string" ? statusColor(children) : undefined}>{children}</span>;
 }
 export function EmptyState({
   title,
@@ -174,7 +177,7 @@ export function ErrorState({
     <div className="ds-error" role="alert">
       <AlertCircle size={20} aria-hidden="true" />
       <div>
-        <p>{message}</p>
+        <p>{userMessage(message)}</p>
         {retry && <AppButton onClick={retry}>Thử lại</AppButton>}
       </div>
     </div>
@@ -296,7 +299,7 @@ export function Pagination({
       {onPageSize && (
         <label>
           Số dòng{" "}
-          <select
+          <SearchableSelect
             aria-label="Số dòng mỗi trang"
             value={pageSize}
             onChange={(event) => onPageSize(Number(event.target.value))}
@@ -306,7 +309,7 @@ export function Pagination({
                 {size}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </label>
       )}
       <div className="ds-page-buttons">
@@ -628,10 +631,19 @@ export function AppModal({
     </dialog>
   );
 }
-export function AppDrawer(
-  props: Omit<React.ComponentProps<typeof AppModal>, "drawer">,
-) {
-  return <AppModal {...props} drawer />;
+export function AppDrawer({
+  navigation = false,
+  ...props
+}: Omit<React.ComponentProps<typeof AppModal>, "drawer"> & {
+  navigation?: boolean;
+}) {
+  return (
+    <AppModal
+      {...props}
+      size={props.size ?? (navigation ? "medium" : "large")}
+      drawer={navigation}
+    />
+  );
 }
 export function ConfirmDialog({
   open,
@@ -700,7 +712,7 @@ export function AppToast({
       role={tone === "error" ? "alert" : "status"}
     >
       <Icon size={20} aria-hidden="true" />
-      <p>{message}</p>
+      <p>{userMessage(message)}</p>
       <IconButton label="Đóng thông báo" icon={X} onClick={onClose} />
     </div>,
     document.body,

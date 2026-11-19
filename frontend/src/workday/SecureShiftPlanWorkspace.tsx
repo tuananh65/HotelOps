@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, CalendarPlus, Clock3 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -128,7 +130,7 @@ function Workspace({ saveEnabled }: { saveEnabled: boolean }) {
           <LoadingIndicator label="Đang tải chi nhánh và bộ phận" />
         ) : error ? (
           <div role="alert">
-            {error}{" "}
+            {userMessage(error)}{" "}
             <button onClick={() => setReload((v) => v + 1)}>Thử lại</button>
           </div>
         ) : !branches.length ? (
@@ -141,7 +143,7 @@ function Workspace({ saveEnabled }: { saveEnabled: boolean }) {
             <div className="shift-grid">
               <label>
                 Chi nhánh
-                <select
+                <SearchableSelect
                 aria-label="Chi nhánh"
                   value={branch}
                   disabled={busy || dirty || branches.length === 1}
@@ -163,11 +165,11 @@ function Workspace({ saveEnabled }: { saveEnabled: boolean }) {
                       {b.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Bộ phận
-                <select
+                <SearchableSelect
                 aria-label="Bộ phận"
                   value={department}
                   disabled={!selectedBranch || busy || dirty}
@@ -179,7 +181,7 @@ function Workspace({ saveEnabled }: { saveEnabled: boolean }) {
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
             </div>
             {dirty && (

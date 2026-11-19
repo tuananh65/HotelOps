@@ -1,9 +1,21 @@
+import { SearchInput, searchSuggestions } from "../../components/SearchInput";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import {
   restoredFilterDraft,
-  ActionDialog,
   CollapsibleFilterPanel,
 } from "../../components/workspace-interactions";
-import { displayCode } from "../../i18n/vi";
+import { HistoryDetails } from "./HistoryDetails";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../auth/AuthProvider";
+import { useWorkspacePermissions } from "../../screens/housekeeping/useWorkspacePermissions";
+import {
+  ReadDrawer,
+  operationalLabel,
+  recordedTime,
+  hotelInputToUtc,
+  utcToHotelInput,
+} from "../../screens/housekeeping/OperationalReadView";
 import { useEffect, useRef, useState } from "react";
 import { createHistoryApi, HistoryError } from "./api";
 import {
@@ -13,7 +25,6 @@ import {
   type Evidence,
   type Filters,
   type HistoryPage,
-  type Inspection,
 } from "./model";
 
 export function HistoryWorkspace({
@@ -25,6 +36,12 @@ export function HistoryWorkspace({
   initialId?: number;
   onDenied: (status: 401 | 403) => void;
 }) {
+  const { state } = useAuth();
+  const access = useWorkspacePermissions(branch);
+  const canExecute = (row: Detail["inspection"]) =>
+    access.allows("INSPECTION_PERFORM") &&
+    String(row.inspectorId) === state.session?.user.id &&
+    ["PENDING", "ASSIGNED", "IN_PROGRESS"].includes(row.status);
   const lifetime = useRef<AbortController | null>(null);
   const download = useRef<AbortController | null>(null);
   const urls = useRef(new Set<string>());
@@ -131,8 +148,8 @@ export function HistoryWorkspace({
       const next = filters({
         page: 1,
         pageSize: Number(form.pageSize),
-        from: form.from || null,
-        to: form.to || null,
+        from: hotelInputToUtc(form.from),
+        to: hotelInputToUtc(form.to),
         result: form.result || null,
         search: form.search || null,
         roomId: form.roomId ? positiveId(form.roomId) : null,
@@ -192,15 +209,21 @@ export function HistoryWorkspace({
     }
   }
   return (
-    <section aria-label="Lịch sử kiểm tra phòng">
-      <h1>Lịch sử kiểm tra phòng</h1>
-      <p>Chi nhánh #{branch}</p>
+    <section className="ops-history" aria-label="Lịch sử kiểm tra phòng">
       <CollapsibleFilterPanel
         onOpen={() =>
-          setForm((v) => restoredFilterDraft(v, query, { pageSize: "20" }))
+          setForm((v) => ({
+            ...restoredFilterDraft(v, query, { pageSize: "20" }),
+            from: utcToHotelInput(query.from),
+            to: utcToHotelInput(query.to),
+          }))
         }
         onClose={() =>
-          setForm((v) => restoredFilterDraft(v, query, { pageSize: "20" }))
+          setForm((v) => ({
+            ...restoredFilterDraft(v, query, { pageSize: "20" }),
+            from: utcToHotelInput(query.from),
+            to: utcToHotelInput(query.to),
+          }))
         }
         activeCount={
           Object.entries(query).filter(
@@ -209,27 +232,13 @@ export function HistoryWorkspace({
         }
       >
         <form onSubmit={apply} aria-label="Bộ lọc lịch sử">
-          {(["roomId", "inspectorId", "housekeeperId"] as const).map((key) => (
-            <label key={key}>
-              {
-                {
-                  roomId: "ID phòng",
-                  inspectorId: "ID người kiểm tra",
-                  housekeeperId: "ID nhân viên dọn phòng",
-                }[key]
-              }
-              <input
-                inputMode="numeric"
-                value={form[key]}
-                onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              />
-            </label>
-          ))}
           {(["from", "to"] as const).map((key) => (
             <label key={key}>
-              {key === "from" ? "Từ (UTC)" : "Đến (UTC)"}
+              {key === "from"
+                ? "Từ ngày, giờ (Việt Nam)"
+                : "Đến ngày, giờ (Việt Nam)"}
               <input
-                placeholder="2026-11-13T00:00:00Z"
+                type="datetime-local"
                 value={form[key]}
                 onChange={(e) => setForm({ ...form, [key]: e.target.value })}
               />
@@ -237,7 +246,7 @@ export function HistoryWorkspace({
           ))}
           <label>
             Kết quả
-            <select
+            <SearchableSelect
               aria-label="Kết quả"
               value={form.result}
               onChange={(e) => setForm({ ...form, result: e.target.value })}
@@ -245,39 +254,40 @@ export function HistoryWorkspace({
               <option value="">Tất cả</option>
               {["PASS", "FAIL", "CONDITIONAL"].map((value) => (
                 <option key={value} value={value}>
-                  {displayCode(value)}
+                  {operationalLabel(value)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Tìm kiếm
-            <input
+            <SearchInput suggestions={searchSuggestions(page)}
               maxLength={150}
+              placeholder="Số phòng hoặc mã kiểm tra"
               value={form.search}
               onChange={(e) => setForm({ ...form, search: e.target.value })}
             />
           </label>
           <label>
             Số dòng
-            <select
+            <SearchableSelect
               aria-label="Số dòng"
               value={form.pageSize}
               onChange={(e) => setForm({ ...form, pageSize: e.target.value })}
             >
               {[1, 10, 20, 50, 100].map((value) => (
                 <option key={value} value={value}>
-                  {displayCode(value)}
+                  {value}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <button type="submit">Áp dụng bộ lọc</button>
         </form>
       </CollapsibleFilterPanel>
       <button onClick={() => setReload((n) => n + 1)}>Tải lại lịch sử</button>
-      {error && <p role="alert">{error}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
+      {notice && <p role="status">{userMessage(notice)}</p>}
       {listBusy && <p role="status">Đang tải danh sách…</p>}
       {page && (
         <>
@@ -286,55 +296,57 @@ export function HistoryWorkspace({
           </p>
           {!page.items.length ? (
             <p role="status">
-              MSG10 — Không có lịch sử khớp bộ lọc đã áp dụng.
+              Không có lịch sử khớp bộ lọc. Thử thay đổi thời gian hoặc kết quả.
             </p>
           ) : (
-            <table>
-              <caption>Lịch sử Inspection</caption>
-              <thead>
-                <tr>
-                  <th>Kiểm tra</th>
-                  <th>Phòng</th>
-                  <th>Thời điểm ghi nhận</th>
-                  <th>Người kiểm tra</th>
-                  <th>Checklist lịch sử</th>
-                  <th>Trạng thái / Kết quả</th>
-                  <th>Công việc vệ sinh</th>
-                  <th>Lượt yêu cầu làm lại</th>
-                  <th>Lỗi của lượt kiểm tra</th>
-                  <th>Kiểm lại trong cleaning cycle</th>
-                  <th>Lượt không đạt trong cleaning cycle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {page.items.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <button onClick={() => open(row.id)}>{row.number}</button>
-                    </td>
-                    <td>
-                      {row.roomNumber} (#{row.roomId})
-                    </td>
-                    <td>{row.at}</td>
-                    <td>
-                      {row.inspectorName} (#{row.inspectorId})
-                    </td>
-                    <td>
-                      #{row.versionId} · v{row.versionNumber}
-                    </td>
-                    <td>
-                      {displayCode(row.status)} /{" "}
-                      {row.result ?? "Chưa kết luận"}
-                    </td>
-                    <td>{row.cleaningTaskId ?? "—"}</td>
-                    <td>{row.reworkCount}</td>
-                    <td>{row.defectCount ?? "Chưa xác minh"}</td>
-                    <td>{row.reinspectionCount ?? "Chưa xác minh"}</td>
-                    <td>{row.cycleFailedInspectionCount ?? "Chưa xác minh"}</td>
+            <div className="ops-table-wrap">
+              <table className="ops-history-table">
+                <caption>Lịch sử kiểm tra phòng</caption>
+                <thead>
+                  <tr>
+                    <th>Mã kiểm tra</th>
+                    <th>Phòng</th>
+                    <th>Người kiểm tra</th>
+                    <th>Thời điểm</th>
+                    <th>Kết quả</th>
+                    <th>Khắc phục</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {page.items.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <button onClick={() => open(row.id)}>
+                          {row.number}
+                        </button>
+                        {canExecute(row) && (
+                          <Link
+                            to={`/inspections/${branch}/${row.id}/execution`}
+                          >
+                            Thực hiện kiểm tra
+                          </Link>
+                        )}
+                      </td>
+                      <td>{row.roomNumber}</td>
+                      <td>{row.inspectorName}</td>
+                      <td>{recordedTime(row.at)}</td>
+                      <td>
+                        {row.result
+                          ? operationalLabel(row.result)
+                          : "Chưa kết luận"}
+                        <small>{operationalLabel(row.status)}</small>
+                      </td>
+                      <td>
+                        {row.defectCount == null
+                          ? "Chưa xác minh lỗi"
+                          : row.defectCount + " lỗi"}
+                        <small>{row.reworkCount} yêu cầu làm lại</small>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           <button
             disabled={listBusy || query.page <= 1}
@@ -352,127 +364,27 @@ export function HistoryWorkspace({
       )}
       {detailBusy && <p role="status">Đang tải chi tiết…</p>}
       {detail && (
-        <ActionDialog
-          open
-          drawer
+        <ReadDrawer
           title="Chi tiết lịch sử kiểm tra"
           onClose={() => setSelected(null)}
         >
-          <section aria-label="Chi tiết lịch sử">
-            <h2>{detail.inspection.number}</h2>
-            <InspectionSummary row={detail.inspection} />
-            <p>{detail.inspection.summary}</p>
-            <h3>Người hoàn tất dọn phòng</h3>
-            <p>
-              {detail.completedBy
-                ? `${detail.completedBy.name} (#${detail.completedBy.userId}) · ${detail.completedBy.completedAt}`
-                : "Chưa có bằng chứng xác nhận người hoàn tất dọn phòng."}
-            </p>
-            <h3>Lịch sử phân công dọn phòng</h3>
-            {detail.housekeepers.map((a) => (
-              <p key={a.id}>
-                {a.name} (#{a.userId}) · {displayCode(a.status)} ·{" "}
-                {a.assignedAt} — {a.endedAt ?? "Chưa kết thúc"} · {a.reason}
-              </p>
-            ))}
-            <h3>Tiêu chí của phiên bản lịch sử</h3>
-            {detail.criteria.map((c) => (
-              <article key={c.itemId}>
-                <h4>
-                  #{c.itemId} {c.criterion}
-                </h4>
-                <p>
-                  {c.group} · {c.mandatory ? "Bắt buộc" : "Tùy chọn"} ·{" "}
-                  {c.outcome ?? "Chưa ghi nhận"}
-                </p>
-                <p>
-                  {c.description} {c.passCondition}
-                </p>
-                <p>
-                  {c.note} {c.at}
-                </p>
-                <p>Mã bằng chứng: {c.evidenceIds?.join(", ") || "—"}</p>
-              </article>
-            ))}
-            <h3>Các lỗi</h3>
-            {!detail.defects.length && <p>Không có defect được trả về.</p>}
-            {detail.defects.map((d) => (
-              <article key={d.id}>
-                <h4>
-                  Lỗi #{d.id}: {d.description}
-                </h4>
-                <p>
-                  Tiêu chí #{d.itemId ?? "—"} · {displayCode(d.status)} · Mức độ
-                  #{d.severityId ?? "—"} · {d.location}
-                </p>
-                <p>
-                  {d.correctiveAction} {d.resolutionNote} {d.resolvedAt}
-                </p>
-                <p>Mã bằng chứng: {d.evidenceIds?.join(", ") || "—"}</p>
-              </article>
-            ))}
-            <h3>Công việc làm lại</h3>
-            {!detail.reworks.length && <p>Không có rework được trả về.</p>}
-            {detail.reworks.map((r) => (
-              <article key={r.id}>
-                <h4>Làm lại #{r.id}</h4>
-                <p>
-                  Kiểm tra #{r.inspectionId} · Công việc vệ sinh #
-                  {r.cleaningTaskId} · Người được giao #{r.assigneeId ?? "—"} ·{" "}
-                  {displayCode(r.status)}
-                </p>
-                <p>
-                  {r.reason} {r.note}
-                </p>
-                <p>
-                  {r.requestedAt} — {r.completedAt ?? "Chưa hoàn tất"}
-                </p>
-              </article>
-            ))}
-            <h3>Inspection cùng cleaning cycle</h3>
-            {detail.cycleInspections.map((row) => (
-              <article key={row.id}>
-                <InspectionSummary row={row} />
-                <button onClick={() => open(row.id)}>
-                  Xem lịch sử #{row.id}
-                </button>
-              </article>
-            ))}
-            <h3>Bằng chứng</h3>
-            {!detail.evidence.length && <p>Không có evidence được trả về.</p>}
-            {detail.evidence.map((e) => (
-              <article key={e.id}>
-                <p>
-                  {e.name} · {e.mimeType ?? "Chưa có MIME"} ·{" "}
-                  {e.bytes ?? "Chưa có kích thước"} bytes · {e.uploadedAt}
-                </p>
-                <button
-                  disabled={downloadBusy}
-                  onClick={() => void saveEvidence(e)}
-                >
-                  Tải evidence #{e.id}
-                </button>
-              </article>
-            ))}
-          </section>
-        </ActionDialog>
+          {error && <p role="alert">{userMessage(error)}</p>}
+          {notice && <p role="status">{userMessage(notice)}</p>}
+          {canExecute(detail.inspection) && (
+            <Link
+              to={`/inspections/${branch}/${detail.inspection.id}/execution`}
+            >
+              Thực hiện kiểm tra
+            </Link>
+          )}
+          <HistoryDetails
+            detail={detail}
+            open={open}
+            saveEvidence={saveEvidence}
+            downloadBusy={downloadBusy}
+          />
+        </ReadDrawer>
       )}
     </section>
-  );
-}
-function InspectionSummary({ row }: { row: Inspection }) {
-  return (
-    <p>
-      Kiểm tra #{row.id} · Phòng {row.roomNumber} (#{row.roomId}) · Chi nhánh #
-      {row.branchId} · Chu kỳ / công việc vệ sinh #{row.cleaningTaskId ?? "—"} ·
-      Danh sách kiểm tra #{row.versionId} v{row.versionNumber} ·{" "}
-      {row.inspectorName} (#
-      {row.inspectorId}) · {displayCode(row.status)} /{" "}
-      {row.result ?? "Chưa kết luận"} · {row.at}
-      {" · "}Lỗi: {row.defectCount ?? "Chưa xác minh"} · Kiểm lại trong cycle:{" "}
-      {row.reinspectionCount ?? "Chưa xác minh"}
-      {" · "}Không đạt trong cycle:{" "}
-      {row.cycleFailedInspectionCount ?? "Chưa xác minh"}
-    </p>
   );
 }

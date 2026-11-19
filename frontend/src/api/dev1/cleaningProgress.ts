@@ -275,6 +275,8 @@ export async function uploadFile(file: File): Promise<EvidenceUpload> {
   });
 }
 export function progressError(error: unknown): string {
+  if (error instanceof ApiError && error.code === "DUPLICATE_REWORK_SOURCE")
+    return "Có nhiều phiếu làm lại đang mở cho cùng lần kiểm tra. Hồ sơ cũ được giữ để tra cứu; cần giám sát kiểm tra nguồn trước khi thực hiện.";
   if (!(error instanceof ApiError))
     return "Dữ liệu không hợp lệ. Kiểm tra tiến độ, ghi chú một dòng và tệp JPG/PNG/PDF tối đa 10 MiB/tệp, tối đa 5 tệp.";
   if (error.status === 412)

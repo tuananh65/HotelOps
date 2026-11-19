@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, Building2 } from "lucide-react";
@@ -7,6 +9,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { safeId } from "./contracts";
 import { ScheduledWorkdayPanel } from "./ScheduledWorkdayPanel";
 import "./scheduled-workday.css";
+import { useWorkspacePermissions } from "../screens/housekeeping/useWorkspacePermissions";
 
 type Branch = { branchId: number; name: string; isPrimary: boolean };
 export function ScheduledWorkdayPage() {
@@ -14,6 +17,7 @@ export function ScheduledWorkdayPage() {
   const [query] = useSearchParams();
   const [branches, setBranches] = useState<Branch[] | null>(null);
   const [selected, setSelected] = useState("");
+  const access = useWorkspacePermissions(selected);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -82,7 +86,7 @@ export function ScheduledWorkdayPage() {
           <h2>Chi nhánh làm việc</h2>
           {error ? (
             <>
-              <p role="alert">{error}</p>
+              <p role="alert">{userMessage(error)}</p>
               <button onClick={() => setReload((n) => n + 1)}>Thử lại</button>
             </>
           ) : branches === null ? (
@@ -97,7 +101,7 @@ export function ScheduledWorkdayPage() {
           ) : (
             <label>
               Chọn chi nhánh
-              <select
+              <SearchableSelect
                 aria-label="Chọn chi nhánh"
                 value={selected}
                 disabled={busy}
@@ -109,7 +113,7 @@ export function ScheduledWorkdayPage() {
                     {b.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
           )}
         </div>
@@ -125,7 +129,11 @@ export function ScheduledWorkdayPage() {
       )}
       <nav className="workday-links" aria-label="Liên kết ca làm việc">
         <Link to="/workday">Lịch ca &amp; ngày làm việc</Link>
-        <Link to="/workday/handovers">Lịch sử bàn giao ca</Link>
+        {access.allows("SHIFT_HANDOVER_VIEW", true) && (
+          <Link to={`/workday/handovers?branchId=${selected}`}>
+            Lịch sử bàn giao ca
+          </Link>
+        )}
         <Link to="/home">Trang chủ</Link>
       </nav>
     </main>

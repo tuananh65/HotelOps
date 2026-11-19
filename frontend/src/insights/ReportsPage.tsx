@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -27,10 +29,28 @@ export function ReportAccessLink() {
     setAllowed(null);
     if (!owner) return;
     const lifetime = new AbortController();
-    void createReportApi(lifetime.signal)
-      .options()
-      .then(() => {
-        if (!lifetime.signal.aborted) setAllowed(owner);
+    void fetch("/api/auth/navigation", {
+      credentials: "same-origin",
+      cache: "no-store",
+      signal: lifetime.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401) {
+          actions.invalidateSession(owner);
+          return false;
+        }
+        if (!response.ok) return false;
+        const navigation = await response.json();
+        if (
+          !Array.isArray(navigation.paths) ||
+          !navigation.paths.includes("/reports")
+        )
+          return false;
+        await createReportApi(lifetime.signal).options();
+        return true;
+      })
+      .then((available) => {
+        if (available && !lifetime.signal.aborted) setAllowed(owner);
       })
       .catch((e: unknown) => {
         if (
@@ -231,7 +251,7 @@ export function ReportsPage() {
     <main aria-label="Báo cáo vận hành">
       <h1>Báo cáo vận hành</h1>
       <Link to="/dashboard">Tổng quan</Link>
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {!visible && <p role="status">Đang kiểm tra quyền xem báo cáo…</p>}
       {options && (
         <>
@@ -258,7 +278,7 @@ export function ReportsPage() {
             >
               <label>
                 Loại báo cáo
-                <select
+                <SearchableSelect
                   aria-label="Loại báo cáo"
                   value={kind}
                   onChange={(e) => {
@@ -277,7 +297,7 @@ export function ReportsPage() {
                       {displayCode(k)}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               {numericFilters.map(([key, label]) => (
                 <label key={key}>
@@ -309,7 +329,7 @@ export function ReportsPage() {
               )}
               <label>
                 Chi nhánh
-                <select
+                <SearchableSelect
                   aria-label="Chi nhánh"
                   value={branch}
                   onChange={(e) => {
@@ -324,7 +344,7 @@ export function ReportsPage() {
                       {b.code} — {b.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               {kind === "inspections" && (
                 <>
@@ -393,7 +413,7 @@ export function ReportsPage() {
               {(kind === "tasks" || kind === "requests") && (
                 <label>
                   {kind === "requests" ? "Bộ phận tiếp nhận" : "Bộ phận"}
-                  <select
+                  <SearchableSelect
                     aria-label="Bộ phận"
                     value={department}
                     onChange={(e) => {
@@ -409,7 +429,7 @@ export function ReportsPage() {
                           {d.name}
                         </option>
                       ))}
-                  </select>
+                  </SearchableSelect>
                 </label>
               )}
               <label>
@@ -441,7 +461,7 @@ export function ReportsPage() {
               <button disabled={busy}>Xem trước</button>
             </form>
           </CollapsibleFilterPanel>
-          {message && <p role="status">{message}</p>}
+          {message && <p role="status">{userMessage(message)}</p>}
           {snapshot && (
             <section aria-label="Xem trước báo cáo">
               <p>
@@ -473,7 +493,7 @@ export function ReportsPage() {
               )}
               {snapshot.totalCount === 0 && (
                 <p role="status">
-                  MSG10: Không có hồ sơ phù hợp. Vẫn có thể xuất tiêu đề cột
+                  Không có hồ sơ phù hợp. Vẫn có thể xuất tiêu đề cột
                   CSV.
                 </p>
               )}

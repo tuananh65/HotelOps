@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -77,7 +78,7 @@ function ChecklistBranchSelection() {
     <h1>Danh sách kiểm tra phòng</h1>
     <label>Mã chi nhánh<input inputMode="numeric" value={branch} onChange={event => setBranch(event.target.value)} /></label>
     <button>Tải danh sách kiểm tra</button>
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{userMessage(error)}</p>}
   </form>;
 }
 

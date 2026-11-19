@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { LoadingIndicator } from "../components/LoadingIndicator";
@@ -37,9 +39,9 @@ export function useWorkTimeScope(mode: Mode, requestedBranch?: number) {
 }
 export function WorkTimeBranchField({scope, disabled=false}:{scope:ReturnType<typeof useWorkTimeScope>;disabled?:boolean}) {
   return <section className="time-scope" aria-label="Chi nhánh làm việc">
-    {scope.error ? <><p role="alert">{scope.error}</p><button onClick={scope.reload}>Thử lại</button></> : !scope.items ? <LoadingIndicator compact label="Đang tải chi nhánh" />
+    {scope.error ? <><p role="alert">{userMessage(scope.error)}</p><button onClick={scope.reload}>Thử lại</button></> : !scope.items ? <LoadingIndicator compact label="Đang tải chi nhánh" />
       : scope.items.length===0 ? <p>Bạn chưa có chi nhánh được phép sử dụng chức năng này.</p>
       : scope.items.length===1 ? <div><span className="time-muted">Chi nhánh làm việc</span><strong>{scope.items[0].name}</strong></div>
-      : <label>Chi nhánh làm việc<select aria-label="Chi nhánh làm việc" disabled={disabled} value={scope.branch?.branchId??""} onChange={e=>scope.select(Number(e.target.value))}><option value="">Chọn chi nhánh</option>{scope.items.map(b=><option key={b.branchId} value={b.branchId}>{b.name}</option>)}</select></label>}
+      : <label>Chi nhánh làm việc<SearchableSelect aria-label="Chi nhánh làm việc" disabled={disabled} value={scope.branch?.branchId??""} onChange={e=>scope.select(Number(e.target.value))}><option value="">Chọn chi nhánh</option>{scope.items.map(b=><option key={b.branchId} value={b.branchId}>{b.name}</option>)}</SearchableSelect></label>}
   </section>;
 }

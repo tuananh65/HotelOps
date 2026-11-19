@@ -1,3 +1,6 @@
+import { SearchInput, searchSuggestions } from "../../components/SearchInput";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
@@ -109,7 +112,7 @@ export function ChecklistCollection({
         <div className="ds-quick-search">
           <label>
             Tìm mã hoặc tên
-            <input
+            <SearchInput suggestions={searchSuggestions(visible)}
               maxLength={200}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -129,18 +132,18 @@ export function ChecklistCollection({
           <div className="fe05-filters">
             <label>
               Hoạt động
-              <select
+              <SearchableSelect
                 value={active}
                 onChange={(e) => setActive(e.target.value)}
               >
                 <option value="">Tất cả</option>
                 <option value="true">Đang hoạt động</option>
                 <option value="false">Ngừng hoạt động</option>
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Trạng thái phiên bản
-              <select
+              <SearchableSelect
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -150,7 +153,7 @@ export function ChecklistCollection({
                     {displayCode(v)}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               ID loại phòng
@@ -162,13 +165,13 @@ export function ChecklistCollection({
             </label>
             <label>
               Số dòng mỗi trang
-              <select value={size} onChange={(e) => setSize(e.target.value)}>
+              <SearchableSelect value={size} onChange={(e) => setSize(e.target.value)}>
                 {[20, 50, 100].map((v) => (
                   <option key={v} value={v}>
                     {displayCode(v)}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
           </div>
           <p>Trạng thái khớp bất kỳ phiên bản đã lưu, kể cả lịch sử.</p>
@@ -187,11 +190,11 @@ export function ChecklistCollection({
           >
             Xóa bộ lọc
           </button>
-          {formError && <p role="alert">{formError}</p>}
+          {formError && <p role="alert">{userMessage(formError)}</p>}
         </CollapsibleFilterPanel>
       </form>
       {busy && <p role="status">Đang tải danh sách checklist…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {visible && (
         <>
           <p role="status">

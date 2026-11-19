@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -175,7 +176,7 @@ export default function ChangePasswordScreen() {
           </div>
           {error && (
             <p role="alert" id="change-password-error">
-              {error}
+              {userMessage(error)}
             </p>
           )}
           <div className="form-actions">

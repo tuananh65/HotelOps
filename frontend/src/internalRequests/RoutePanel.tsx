@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -179,7 +181,7 @@ export function InternalRequestRoutePanel({
     <ActionDialog title="Chuyển yêu cầu" busy={busy}>
       <section aria-label="Chuyển yêu cầu">
         <h3>Chuyển sang bộ phận khác</h3>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại bộ phận
         </button>
@@ -188,7 +190,7 @@ export function InternalRequestRoutePanel({
             <div aria-busy={busy}>
               <label>
                 Bộ phận đích
-                <select
+                <SearchableSelect
                   aria-label="Bộ phận đích"
                   disabled={busy}
                   value={department}
@@ -200,7 +202,7 @@ export function InternalRequestRoutePanel({
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Lý do chuyển bộ phận

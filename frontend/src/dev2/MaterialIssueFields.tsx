@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -52,17 +54,17 @@ export function MaterialIssueFields({ record, values, onChange }: { record: Valu
   return <section aria-label="Cấp vật tư đã duyệt">
     <p>Chỉ cấp số lượng đã duyệt còn lại. Khả dụng không phải giữ chỗ; tồn kho được kiểm tra lại khi lưu.</p>
     <label>Kho cấp phát
-      <select required value={String(values.warehouseId ?? "")} onChange={event => onChange({ ...values, warehouseId: event.target.value })}>
+      <SearchableSelect required value={String(values.warehouseId ?? "")} onChange={event => onChange({ ...values, warehouseId: event.target.value })}>
         <option value="">Chọn kho được duyệt</option>
         <option value={warehouse}>Kho của yêu cầu đã duyệt {displayCode(warehouse)}</option>
-      </select>
+      </SearchableSelect>
     </label>
     <p>Đổi kho đã duyệt cần cập nhật và duyệt lại yêu cầu.</p>
     <label>Tên người nhận
       <input required maxLength={200} value={String(values.receiverName ?? "")} onChange={event => onChange({ ...values, receiverName: event.target.value })} />
     </label>
     <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại tồn kho cấp phát</button>
-    <p role="status">{current?.message ?? "Đang tải khả dụng hiện tại…"}</p>
+    <p role="status">{userMessage(current?.message ?? "Đang tải khả dụng hiện tại…")}</p>
     {lines.map(line => {
       const available = preview.find(p => String(p.requestLineId) === String(line.requestLineId));
       const maximum = typeof available?.fulfillableQty === "number" ? Math.min(Number(line.openFulfillableQty), available.fulfillableQty) : 0;

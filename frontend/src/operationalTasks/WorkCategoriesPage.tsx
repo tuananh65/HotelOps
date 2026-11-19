@@ -1,7 +1,14 @@
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
+  CollapsibleFilterPanel,
 } from "../components/workspace-interactions";
+import { LoadingIndicator } from "../components/LoadingIndicator";
+import { useStructureOptions } from "../hotel/useStructureOptions";
+import "./work-categories.css";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
@@ -53,6 +60,9 @@ export function WorkCategoriesPage() {
 }
 function BoundWorkCategoriesPage() {
   const { state } = useAuth();
+  const branches = useStructureOptions("branches");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
   const owner =
     state.status === "AUTHENTICATED" && !state.pending
       ? state.authorityGeneration
@@ -145,7 +155,9 @@ function BoundWorkCategoriesPage() {
     } catch (e) {
       if (!controller.signal.aborted && current.current === owner) {
         clear();
-        setMessage(String(e));
+        setMessage(
+          e instanceof Error ? e.message : "Không tải được nhóm công việc.",
+        );
       }
     } finally {
       sending.current = false;
@@ -237,9 +249,11 @@ function BoundWorkCategoriesPage() {
           return;
         }
         throw Error(
-          isObject(error) && typeof error.title === "string"
-            ? error.title
-            : "Chưa xác nhận lưu (" + saved.status + ").",
+          saved.status === 403
+            ? "Bạn không có quyền lưu nhóm trong phạm vi này."
+            : saved.status === 412
+              ? "Nhóm đã được người khác cập nhật. Tải lại danh sách trước khi sửa."
+              : "Chưa xác nhận được kết quả lưu. Tải lại danh sách để kiểm tra.",
         );
       }
       const value: unknown = await saved.json();
@@ -254,7 +268,9 @@ function BoundWorkCategoriesPage() {
       }
     } catch (e) {
       if (!controller.signal.aborted && current.current === owner) {
-        setMessage(String(e));
+        setMessage(
+          e instanceof Error ? e.message : "Chưa xác nhận được kết quả lưu.",
+        );
         if (submitted) setUncertain(true);
       }
     } finally {
@@ -264,67 +280,210 @@ function BoundWorkCategoriesPage() {
     }
   }
   if (!owner) return null;
+  const filtered = rows.filter(
+    (row) =>
+      (!status || String(row.isActive) === status) &&
+      (!search.trim() ||
+        `${row.code} ${row.name}`
+          .toLocaleLowerCase("vi")
+          .includes(search.trim().toLocaleLowerCase("vi"))),
+  );
   return (
-    <section>
-      <h2>Nhóm công việc</h2>
-      <label>
-        Mã chi nhánh (để trống với nhóm dùng chung)
-        <input
-          disabled={busy}
-          type="number"
-          min="1"
-          value={branch}
-          onChange={(e) => {
-            setBranch(e.target.value);
-            clear();
-          }}
-        />
-      </label>
-      <p>
-        Nhóm dùng chung cần quyền quản trị toàn hệ thống. Nhóm chi nhánh cần
-        quyền chi nhánh và phải thuộc bộ phận trong chi nhánh đó.
-      </p>
-      <button disabled={busy} onClick={() => void load()}>
-        Tải các nhóm
-      </button>
-      {message && <p role="status">{message}</p>}
-      {loaded && (
-        <>
-          <button disabled={busy || uncertain} onClick={() => edit(null)}>
+    <section className="work-categories">
+      <header className="work-categories__heading">
+        <div>
+          <p>Quản lý danh mục</p>
+          <h1>Nhóm công việc</h1>
+          <p>
+            Quản lý các nhóm để phân loại công việc dùng chung hoặc trong từng
+            chi nhánh.
+          </p>
+        </div>
+        {loaded && (
+          <button
+            className="work-categories__primary"
+            disabled={busy || uncertain}
+            onClick={() => edit(null)}
+          >
             Tạo nhóm
           </button>
+        )}
+      </header>
+      <section
+        className="work-categories__card"
+        aria-label="Phạm vi nhóm công việc"
+      >
+        <div className="work-categories__scope">
+          <label>
+            Phạm vi danh mục
+            <SearchableSelect
+              disabled={busy || uncertain}
+              value={branch}
+              onChange={(e) => {
+                setBranch(e.target.value);
+                clear();
+                setMessage("");
+                setSearch("");
+                setStatus("");
+              }}
+            >
+              <option value="">Nhóm dùng chung</option>
+              {branches.items?.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.code} — {b.name}
+                </option>
+              ))}
+            </SearchableSelect>
+          </label>
+          <button
+            className="work-categories__primary"
+            disabled={busy}
+            onClick={() => void load()}
+          >
+            {loaded ? "Tải lại danh sách" : "Xem danh sách"}
+          </button>
+        </div>
+        <p className="work-categories__hint">
+          {branch
+            ? "Nhóm tại chi nhánh được gắn với một bộ phận phụ trách."
+            : "Nhóm dùng chung được quản lý ở phạm vi toàn hệ thống."}
+        </p>
+        {branches.loading && (
+          <LoadingIndicator label="Đang tải chi nhánh" compact />
+        )}
+        {branches.error && (
+          <p role="alert">
+            {userMessage(branches.error)}{" "}
+            <button type="button" onClick={branches.reload}>
+              Tải lại chi nhánh
+            </button>
+          </p>
+        )}
+      </section>
+      {message && (
+        <p
+          className={
+            message.startsWith("Đã lưu")
+              ? "work-categories__success"
+              : "work-categories__message"
+          }
+          role="status"
+        >
+          {userMessage(message)}
+        </p>
+      )}
+      {busy && <LoadingIndicator label="Đang xử lý nhóm công việc" />}
+      {!loaded && !busy && !message && (
+        <section className="work-categories__empty">
+          <h2>Chọn danh mục để bắt đầu</h2>
+          <p>Chọn nhóm dùng chung hoặc chi nhánh, sau đó bấm Xem danh sách.</p>
+        </section>
+      )}
+      {loaded && (
+        <section className="work-categories__card">
+          <div className="work-categories__result-heading">
+            <h2>
+              Danh sách nhóm{" "}
+              <span>
+                {rows.length}
+                {hasMore ? "+" : ""}
+              </span>
+            </h2>
+          </div>
+          <CollapsibleFilterPanel
+            activeCount={Number(!!search) + Number(!!status)}
+          >
+            <div className="work-categories__filters">
+              <label>
+                Tìm trong danh sách đã tải
+                <SearchInput suggestions={searchSuggestions(rows)}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Nhập mã hoặc tên nhóm"
+                />
+              </label>
+              <label>
+                Trạng thái
+                <SearchableSelect
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="">Tất cả</option>
+                  <option value="true">Đang hoạt động</option>
+                  <option value="false">Ngừng hoạt động</option>
+                </SearchableSelect>
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setStatus("");
+                }}
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
+          </CollapsibleFilterPanel>
           {!rows.length ? (
-            <p>Không có nhóm trong phạm vi này.</p>
+            <div className="work-categories__empty">
+              <h3>Chưa có nhóm công việc</h3>
+              <p>Bấm Tạo nhóm để thêm nhóm đầu tiên trong phạm vi này.</p>
+            </div>
+          ) : !filtered.length ? (
+            <p>Không có nhóm phù hợp bộ lọc trong danh sách đã tải.</p>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Mã</th>
-                  <th>Tên</th>
-                  <th>Trạng thái</th>
-                  <th>Sử dụng</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.code}</td>
-                    <td>{r.name}</td>
-                    <td>{r.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</td>
-                    <td>{r.usageCount}</td>
-                    <td>
-                      <button
-                        disabled={busy || uncertain}
-                        onClick={() => edit(r)}
-                      >
-                        Chỉnh sửa
-                      </button>
-                    </td>
+            <div
+              className="work-categories__table"
+              tabIndex={0}
+              role="region"
+              aria-label="Danh sách nhóm công việc"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã</th>
+                    <th>Tên</th>
+                    <th>Bộ phận</th>
+                    <th>Trạng thái</th>
+                    <th>Lượt sử dụng</th>
+                    <th>Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.code}</td>
+                      <td>
+                        <strong>{r.name}</strong>
+                        {r.description && <small>{r.description}</small>}
+                      </td>
+                      <td>
+                        {r.departmentId
+                          ? (departments.find((d) => d.id === r.departmentId)
+                              ?.name ?? "Chưa có thông tin")
+                          : "Dùng chung"}
+                      </td>
+                      <td>
+                        <span
+                          className={`work-categories__badge ${r.isActive ? "is-active" : ""}`}
+                        >
+                          {r.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                        </span>
+                      </td>
+                      <td>{r.usageCount}</td>
+                      <td>
+                        <button
+                          disabled={busy || uncertain}
+                          onClick={() => edit(r)}
+                        >
+                          Chỉnh sửa
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           {hasMore && (
             <button
@@ -334,19 +493,20 @@ function BoundWorkCategoriesPage() {
               Tải thêm
             </button>
           )}
-        </>
+        </section>
       )}
       {editing && (
         <ActionDialog
           scope="operationalTasks/WorkCategoriesPage.tsx"
           open
-          title="Nhóm công việc"
+          title={selected ? "Cập nhật nhóm công việc" : "Tạo nhóm công việc"}
           onClose={() => setEditing(false)}
           busy={busy}
           locked={uncertain}
           error={message}
         >
           <form
+            className="work-category-form"
             onSubmit={(e) => {
               e.preventDefault();
               void save();
@@ -361,7 +521,7 @@ function BoundWorkCategoriesPage() {
                 </p>
               )}
               <label>
-                Mã
+                Mã nhóm
                 <input
                   required
                   maxLength={40}
@@ -371,7 +531,7 @@ function BoundWorkCategoriesPage() {
                 />
               </label>
               <label>
-                Tên
+                Tên nhóm
                 <input
                   required
                   maxLength={150}
@@ -392,7 +552,8 @@ function BoundWorkCategoriesPage() {
               {branch && (
                 <label>
                   Bộ phận
-                  <select
+                  <SearchableSelect
+                    aria-label="Bộ phận"
                     required
                     disabled={selected !== null}
                     value={department}
@@ -404,7 +565,7 @@ function BoundWorkCategoriesPage() {
                         {d.name}
                       </option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </label>
               )}
               {selected && (
@@ -432,7 +593,7 @@ function BoundWorkCategoriesPage() {
                 </label>
               )}
               <button data-dialog-action type="submit">
-                Lưu
+                Lưu nhóm công việc
               </button>
             </fieldset>
           </form>

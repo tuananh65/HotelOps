@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -152,7 +153,7 @@ export function MaintenanceDeclinePanel({
           Từ chối sẽ bỏ phân công hiện tại của bạn. Thời hạn SLA và lệnh khóa
           phòng giữ nguyên.
         </p>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <label>
           Lý do từ chối nhận việc
           <textarea

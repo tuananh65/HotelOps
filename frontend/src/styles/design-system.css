@@ -1,5 +1,11 @@
 ﻿@import "./design-system-tokens.css";
 
+.ds-search-select { display: grid; gap: 6px; min-width: 0; width: 100%; }
+.ds-search-select > select { width: 100%; min-width: 0; }
+.ds-search-select > input.ds-select-search { width: 100%; min-width: 0; box-sizing: border-box; min-height: 34px; padding: 7px 10px; margin: 0; border: 1px solid var(--border); border-radius: 6px; background: var(--surface, white); color: var(--text-primary); font-size: 13px; font-weight: 400; }
+.ds-search-select > input.ds-select-search:focus { outline: 2px solid var(--primary-500); outline-offset: 1px; }
+.ds-badge--state { border: 1px solid; align-self: start; width: fit-content; }
+
 body {
   margin: 0;
   font: 14px/1.5 var(--font-body);
@@ -529,6 +535,19 @@ textarea::placeholder {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.ds-action-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-block: 16px;
+}
+a.ds-button {
+  text-decoration: none;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .ds-icon-button {
   width: 40px;
   min-width: 40px;
@@ -776,6 +795,10 @@ textarea::placeholder {
   cursor: not-allowed;
 }
 .ds-dialog {
+  position: fixed;
+  inset: 0;
+  height: fit-content;
+  overflow: hidden;
   padding: 0;
   margin: auto;
   border: 1px solid var(--border);
@@ -803,6 +826,8 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 50px);
+  min-width: 0;
+  min-height: 0;
 }
 .ds-dialog-layout > header,
 .ds-dialog-layout > footer {
@@ -820,12 +845,18 @@ textarea::placeholder {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .ds-dialog-layout > footer {
+  flex-wrap: wrap;
   justify-content: flex-end;
   border-top: 1px solid var(--border);
 }
 .ds-dialog-body {
+  min-height: 0;
+  min-width: 0;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
   overflow: auto;
   padding: 24px;
 }

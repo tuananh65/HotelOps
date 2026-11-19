@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -119,7 +122,7 @@ export function RequestReworkForm({
     >
       <section aria-label="Yêu cầu vệ sinh lại">
         <h3>Yêu cầu vệ sinh lại</h3>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         {busy && <p role="status">Đang tải hoặc lưu kết quả làm lại...</p>}
         <button
           type="button"
@@ -130,7 +133,7 @@ export function RequestReworkForm({
         </button>
         {receipt ? (
           <p role="status">
-            Làm lại #{receipt.id} đang chờ tiếp nhận.{" "}
+            Làm lại {referenceLabel(receipt, "id")} đang chờ tiếp nhận.{" "}
             {receipt.notification === "PENDING_DELIVERY"
               ? "Thông báo cho người được giao đang chờ gửi."
               : receipt.notification === "DELIVERED"
@@ -139,7 +142,7 @@ export function RequestReworkForm({
           </p>
         ) : options?.existingReworkId ? (
           <p role="alert">
-            MSG03: Mở làm lại #{options.existingReworkId} đã tồn tại.
+            Mở làm lại {referenceLabel(options, "existingReworkId")} đã tồn tại.
           </p>
         ) : (
           options && (
@@ -163,7 +166,7 @@ export function RequestReworkForm({
               ))}
               <label>
                 Nhân viên buồng phòng
-                <select
+                <SearchableSelect
                   value={assignee}
                   onChange={(e) => setAssignee(e.target.value)}
                 >
@@ -176,7 +179,7 @@ export function RequestReworkForm({
                       {a.originalCleaner ? "(nhân viên vệ sinh ban đầu)" : ""}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               {!options.assignees.length && (
                 <p role="status">

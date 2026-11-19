@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { useState } from "react";
 import {
@@ -106,7 +107,7 @@ export function ChecklistForm({
         aria-label={initial ? "Chỉnh sửa tiêu chí" : "Tạo checklist"}
       >
         <h2>{initial ? "Lưu tiêu chí vào Draft" : "Tạo checklist mới"}</h2>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         <fieldset disabled={disabled || busy || blocked}>
           {!initial && (
             <>
@@ -168,7 +169,7 @@ export function ChecklistForm({
               </label>
               {validationAttempted && invalidText(c.text) && (
                 <p id={`checklist-criterion-${i}-error`} role="alert">
-                  MSG03: Nội dung tiêu chí {i + 1} là bắt buộc, tối đa 250 ký tự
+                  Nội dung tiêu chí {i + 1} là bắt buộc, tối đa 250 ký tự
                   và không chứa ký tự điều khiển.
                 </p>
               )}

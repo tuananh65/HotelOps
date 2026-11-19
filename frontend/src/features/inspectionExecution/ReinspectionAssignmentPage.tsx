@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -170,21 +173,21 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
       <h1>Phân công kiểm tra lại</h1>
       <Link to="/notifications">Thông báo</Link>
       {!visible && <p role="status">Đang tải kết quả làm lại đã nộp…</p>}
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {confirmed && (
         <p role="status">
-          <span>Đã phân công kiểm tra. Mã kiểm tra #{confirmed.id}.</span>
+          <span>Đã phân công kiểm tra. Mã kiểm tra {referenceLabel(confirmed, "id")}.</span>
           <Link to={`/reinspections/${branch}/${confirmed.id}/execution`}>
             Mở kiểm tra lại
           </Link>
         </p>
       )}
-      {message && <p role="alert">{message}</p>}
+      {message && <p role="alert">{userMessage(message)}</p>}
       {data && (
         <>
           <h2>Phòng {data.roomNumber}</h2>
           <p>
-            Làm lại #{data.reworkId} · Chu kỳ vệ sinh #{data.cleaningTaskId}
+            Làm lại {referenceLabel(data, "reworkId")} · Chu kỳ vệ sinh {referenceLabel(data, "cleaningTaskId")}
           </p>
           <p>
             {data.checklistName} · Phiên bản {data.checklistVersionNumber}
@@ -192,7 +195,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           {data.existingInspectionId !== null && (
             <p role="status">
               <span>
-                MSG03: Đã có phân công kiểm tra: #{data.existingInspectionId}.
+                Đã có phân công kiểm tra: {referenceLabel(data, "existingInspectionId")}.
               </span>
               <Link
                 to={`/reinspections/${branch}/${data.existingInspectionId}/execution`}
@@ -212,7 +215,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           {!data.canAssign && data.existingInspectionId === null && (
             <p role="status">
               {data.unavailableReason === "CHECKLIST_UNAVAILABLE"
-                ? "MSG03: Phiên bản danh sách kiểm tra gốc chưa khả dụng để phân công. Công bố phiên bản hợp lệ; không được gán lỗi gốc sang phiên bản khác."
+                ? "Phiên bản danh sách kiểm tra gốc chưa khả dụng để phân công. Công bố phiên bản hợp lệ; không được gán lỗi gốc sang phiên bản khác."
                 : data.unavailableReason === "NO_ELIGIBLE_INSPECTOR"
                   ? "Không có người kiểm tra đủ điều kiện cho chu kỳ vệ sinh này."
                   : "Quyền hiện tại không cho phép phân công."}
@@ -233,7 +236,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
               >
                 <fieldset disabled={busy || review}>
                   <label htmlFor="reinspection-inspector">Người kiểm tra</label>
-                  <select
+                  <SearchableSelect
                     id="reinspection-inspector"
                     required
                     value={inspector}
@@ -245,7 +248,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
                         {person.name}
                       </option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                   <label>
                     Thời hạn
                     <input

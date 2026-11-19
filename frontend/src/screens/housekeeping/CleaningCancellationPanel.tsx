@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import { useEffect, useRef, useState } from "react";
 import { ApiError } from "../../api/dev1/client";
 import { Link } from "react-router-dom";
@@ -98,13 +99,13 @@ export default function CleaningCancellationPanel({
   return (
     <section aria-label="Hủy công việc vệ sinh">
       <h2>Hủy công việc vệ sinh</h2>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {!options && message && !busy && !pending.current && (
         <button type="button" onClick={() => setReload(v => v + 1)}>Tải lại điều kiện hủy</button>
       )}
       {options?.capability === "UNAVAILABLE" && (
         options.blocker === "TASK_ALREADY_STARTED" || options.blocker === "TASK_HAS_EXECUTION_HISTORY" ? (
-          <p role="status">MSG24: Công việc đã bắt đầu hoặc có lịch sử thực hiện nên không thể hủy. Bạn có thể xem phương án phân công lại.{" "}
+          <p role="status">Công việc đã bắt đầu hoặc có lịch sử thực hiện nên không thể hủy. Bạn có thể xem phương án phân công lại.{" "}
             <Link to={`/cleaning/tasks/${encodeURIComponent(task)}?branchId=${encodeURIComponent(branch)}&execution=1`}>
               Phân công lại
             </Link>
@@ -126,7 +127,7 @@ export default function CleaningCancellationPanel({
             />
           </label>
           <p id="cleaning-cancellation-reason-policy">Lý do: 10–500 ký tự, không tính khoảng trắng đầu và cuối.</p>
-          <p>MSG33: Xác nhận hủy công việc vệ sinh này?</p>
+          <p>Xác nhận hủy công việc vệ sinh này?</p>
           <label>
             <input
               type="checkbox"

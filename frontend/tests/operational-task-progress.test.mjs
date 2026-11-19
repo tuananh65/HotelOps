@@ -59,14 +59,14 @@ test("task response requires exact identity, kind, state, criteria and strong ve
     const mock = t.mock.method(globalThis, "fetch", async () => response(body));
     await assert.rejects(
       readTaskProgress(2, 4, signal),
-      /Invalid task progress response/,
+      /Phản hồi tiến độ công việc không hợp lệ/,
     );
     mock.mock.restore();
   }
   t.mock.method(globalThis, "fetch", async () => response(data, "W/" + etag));
   await assert.rejects(
     readTaskProgress(2, 4, signal),
-    /Invalid task progress version/,
+    /Phiên bản tiến độ công việc không hợp lệ/,
   );
 });
 test("paused task is accepted without converting its state", async (t) => {
@@ -111,7 +111,7 @@ test("foreign criteria, duplicates, invalid percent and control text never reach
   ])
     await assert.rejects(
       saveTaskProgress(2, 4, current, bad, signal),
-      /Invalid task progress input/,
+      /Dữ liệu tiến độ công việc không hợp lệ/,
     );
 });
 test("invalid CSRF cannot dispatch a write", async (t) => {
@@ -153,7 +153,7 @@ test("stale and unknown outcomes are never retried", async (t) => {
 });
 test("unsafe IDs never reach network", async (t) => {
   t.mock.method(globalThis, "fetch", () => assert.fail("network"));
-  await assert.rejects(readTaskProgress(0, 4, signal), /Invalid task identity/);
+  await assert.rejects(readTaskProgress(0, 4, signal), /Định danh công việc không hợp lệ/);
 });
 test("saved evidence must belong to this exact task and use its protected download endpoint", async (t) => {
   const file = {
@@ -187,7 +187,7 @@ test("saved evidence must belong to this exact task and use its protected downlo
     );
     await assert.rejects(
       readTaskProgress(2, 4, signal),
-      /Invalid task progress response/,
+      /Phản hồi tiến độ công việc không hợp lệ/,
     );
     mock.mock.restore();
   }
@@ -240,5 +240,5 @@ test('pause rejects paused snapshot before fetching and does not retry stale wri
 });
 test('pause catalog rejects invalid IDs and accepts backend labels',async t=>{
  t.mock.method(globalThis,'fetch',async()=>Response.json([{id:7,code:'OTHER',label:'Other'}]));assert.deepEqual(await readPauseReasons(2,4,signal),[{id:7,code:'OTHER',label:'Other'}]);
- globalThis.fetch=async()=>Response.json([{id:0,code:'OTHER',label:'Other'}]);await assert.rejects(readPauseReasons(2,4,signal),/Invalid pause reasons/);
+ globalThis.fetch=async()=>Response.json([{id:0,code:'OTHER',label:'Other'}]);await assert.rejects(readPauseReasons(2,4,signal),/Lý do tạm dừng không hợp lệ/);
 });

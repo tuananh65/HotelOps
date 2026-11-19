@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -253,13 +255,13 @@ export function IncidentRoomBlocksPanel({
         >
           Tải lại phòng
         </button>
-        {message?.owner === owner && <p role="status">{message.text}</p>}
+        {message?.owner === owner && <p role="status">{userMessage(message.text)}</p>}
         {data && (
           <>
             <fieldset disabled={busy || attempted || review}>
               <label>
                 Thao tác
-                <select
+                <SearchableSelect
                   value={action}
                   onChange={(e) => {
                     setAction(e.target.value);
@@ -271,7 +273,7 @@ export function IncidentRoomBlocksPanel({
                   <option value="MAP">
                     Thêm phòng vào phạm vi bị ảnh hưởng
                   </option>
-                </select>
+                </SearchableSelect>
               </label>
               <p>
                 Mã phòng và phân công phòng bị ảnh hưởng xác định phạm vi. Bỏ
@@ -325,7 +327,7 @@ export function IncidentRoomBlocksPanel({
             {review ? (
               <>
                 <p>
-                  {action === "REMOVE" ? "MSG33: " : ""}Xác nhận{" "}
+                  {action === "REMOVE" ? "" : ""}Xác nhận{" "}
                   {action.toLowerCase()} cho {selected.length} phòng đã chọn?
                 </p>
                 <button

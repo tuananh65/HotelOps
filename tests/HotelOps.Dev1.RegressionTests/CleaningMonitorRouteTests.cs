@@ -12,7 +12,7 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class CleaningMonitorRouteTests
 {
     [Fact]
-    public void Monitor_exposes_exactly_two_cookie_authenticated_GETs_without_collisions()
+    public void Monitor_list_detail_and_options_are_cookie_authenticated_GETs_without_collisions()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -21,8 +21,8 @@ public sealed class CleaningMonitorRouteTests
         var actions = provider.GetRequiredService<IActionDescriptorCollectionProvider>().ActionDescriptors.Items
             .OfType<ControllerActionDescriptor>().ToArray();
         var monitor = actions.Where(a => a.ControllerTypeInfo.AsType() == typeof(CleaningMonitorController)).ToArray();
-        Assert.Equal(2, monitor.Length);
-        Assert.Equal(new[] { "api/branches/{branchId:long}/cleaning-monitor", "api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}" },
+        Assert.Equal(3, monitor.Length);
+        Assert.Equal(new[] { "api/branches/{branchId:long}/cleaning-monitor", "api/branches/{branchId:long}/cleaning-monitor/options", "api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}" }.OrderBy(x => x),
             monitor.Select(a => a.AttributeRouteInfo!.Template).OrderBy(x => x).ToArray());
         Assert.All(monitor, action =>
         {

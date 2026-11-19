@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -107,8 +108,8 @@ export function TaskSeriesPanel({
       <button disabled={busy} onClick={() => setRevision((n) => n + 1)}>
         Tải lại chuỗi định kỳ
       </button>
-      {message && <p role="status">{message}</p>}
-      {error && <p role="alert">{error}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {data && (
         <>
           <p>{data.totalCount} Chuỗi định kỳ</p>

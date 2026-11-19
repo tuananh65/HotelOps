@@ -1,7 +1,11 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { hotelTime } from "./RoomWorkspace";
+import { useWorkspacePermissions } from "./useWorkspacePermissions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
-import { Link } from "react-router-dom";
+import { ActionLink as Link, ActionLinks } from "../../components/ActionLink";
 import CleaningCancellationPanel from "./CleaningCancellationPanel";
 import {
   readCleaning,
@@ -18,50 +22,76 @@ export default function CleaningMonitorDetail({
   id: string;
 }) {
   const { state } = useAuth();
-  const owner = state.status === "AUTHENTICATED" && !state.pending ? state.authorityGeneration : null;
+  const access = useWorkspacePermissions(branch);
+  const owner =
+    state.status === "AUTHENTICATED" && !state.pending
+      ? state.authorityGeneration
+      : null;
   const [cancelled, setCancelled] = useState(false);
   const [page, setPage] = useState(1),
     [retry, setRetry] = useState(0);
-  const [loaded, setLoaded] = useState<{ key: string; value: MonitorDetail } | null>(null),
+  const [loaded, setLoaded] = useState<{
+      key: string;
+      value: MonitorDetail;
+    } | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
   const key = `${owner}/${branch}/${kind}/${id}/${page}`;
   const result = owner !== null && loaded?.key === key ? loaded.value : null;
-  useEffect(() => { setCancelled(false); setPage(1); }, [branch, kind, id, owner]);
+  const canExecute =
+    !!result &&
+    String(result.item.assigneeId) === state.session?.user.id &&
+    access.allows("CLEANING_EXECUTE", true);
+  useEffect(() => {
+    setCancelled(false);
+    setPage(1);
+  }, [branch, kind, id, owner]);
   useEffect(() => {
     const abort = new AbortController();
     setLoaded(null);
     setError("");
     setLoading(true);
-    if (owner !== null) readCleaning(branch, kind, id, page, abort.signal)
-      .then((data) => {
-        if (!abort.signal.aborted) setLoaded({ key, value: data });
-      })
-      .catch((e) => {
-        if (!abort.signal.aborted) setError(monitorError(e));
-      })
-      .finally(() => {
-        if (!abort.signal.aborted) setLoading(false);
-      });
+    if (owner !== null)
+      readCleaning(branch, kind, id, page, abort.signal)
+        .then((data) => {
+          if (!abort.signal.aborted) setLoaded({ key, value: data });
+        })
+        .catch((e) => {
+          if (!abort.signal.aborted) setError(monitorError(e));
+        })
+        .finally(() => {
+          if (!abort.signal.aborted) setLoading(false);
+        });
     return () => abort.abort();
   }, [branch, kind, id, page, retry, owner, key]);
   return (
     <>
       <h1>Chi tiết công việc vệ sinh</h1>
-      {cancelled && <p role="status">MSG08: Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.</p>}
-      {kind === "cleaning" && (
+      {cancelled && (
+        <p role="status">
+          Đã hủy công việc. Chi tiết và lịch sử được tải lại từ máy chủ.
+        </p>
+      )}
+      {canExecute && kind === "cleaning" && (
         <Link to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}>
-          Bắt đầu / Phân công lại
+          Thực hiện công việc
         </Link>
       )}
-      {kind === "rework" && (
+      {canExecute && kind === "rework" && (
         <Link to={`/rework/${id}?branchId=${branch}`}>Mở thực hiện rework</Link>
       )}
-      <Link to={`/cleaning/tasks?branchId=${branch}`}>Danh sách công việc</Link>
+      <div className="ops-actions">
+        <Link to="/">Trang chủ</Link>
+        {access.allows("CLEANING_VIEW") && (
+          <Link to={`/cleaning/tasks?branchId=${branch}`}>
+            Danh sách công việc
+          </Link>
+        )}
+      </div>
       {loading && <p role="status">Đang tải chi tiết…</p>}
       {error && (
         <p role="alert">
-          {error}{" "}
+          {userMessage(error)}{" "}
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
@@ -76,7 +106,7 @@ export default function CleaningMonitorDetail({
                 setCancelled(true);
                 setLoaded(null);
                 setPage(1);
-                setRetry(v => v + 1);
+                setRetry((v) => v + 1);
               }}
             />
           )}
@@ -85,7 +115,9 @@ export default function CleaningMonitorDetail({
           </h2>
           <p>
             Chi nhánh {branch} · {displayCode(result.item.kind)} ·{" "}
-            {result.item.workflowState ?? result.item.recordedStatus}
+            {displayCode(
+              result.item.workflowState ?? result.item.recordedStatus,
+            )}
           </p>
           <dl>
             <dt>Nhân viên</dt>
@@ -96,8 +128,8 @@ export default function CleaningMonitorDetail({
                 ? "—"
                 : `${result.item.progressPercent}%`}
             </dd>
-            <dt>Hạn UTC</dt>
-            <dd>{result.item.dueAtUtc ?? "—"}</dd>
+            <dt>Thời hạn</dt>
+            <dd>{hotelTime(result.item.dueAtUtc)}</dd>
             <dt>Mô tả</dt>
             <dd>{result.item.description ?? "—"}</dd>
             <dt>Trở ngại</dt>
@@ -123,23 +155,39 @@ export default function CleaningMonitorDetail({
             {result.item.effectiveReadiness ?? "Chưa xác định"} ·{" "}
             {result.item.readinessCoverage ?? "UNAVAILABLE"}
           </p>
-          <Link
-            to={`/rooms/turnover?branchId=${branch}&roomId=${result.item.roomId}`}
-          >
-            Lịch sử turnover của phòng
-          </Link>
-          {kind === "cleaning" && (
-            <Link to={`/cleaning/tasks/${id}?branchId=${branch}`}>
-              Mở UC032 · tiến độ của người được phân công
+          <ActionLinks>
+            <Link
+              to={`/rooms/turnover?branchId=${branch}&roomId=${result.item.roomId}`}
+            >
+              Lịch sử turnover của phòng
             </Link>
-          )}
-          {kind === "cleaning" && (
+            {canExecute && kind === "cleaning" && (
+              <Link to={`/cleaning/tasks/${id}?branchId=${branch}`}>
+                Cập nhật tiến độ
+              </Link>
+            )}
+          </ActionLinks>
+          {access.allows("CLEANING_ASSIGN") && kind === "cleaning" && (
             <p>
               <Link to={`/cleaning/assignment?branchId=${branch}&taskId=${id}`}>
                 Xem phương án phân công
               </Link>
             </p>
           )}
+          {access.allows("CLEANING_ASSIGN") &&
+            kind === "cleaning" &&
+            result.item.isCurrentCycle !== false &&
+            ["ASSIGNED", "IN_PROGRESS", "ON_HOLD"].includes(
+              result.item.workflowState ?? "",
+            ) && (
+              <p>
+                <Link
+                  to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}
+                >
+                  Phân công lại người thực hiện
+                </Link>
+              </p>
+            )}
           <h2>
             Phân công {kind === "rework" ? "Chu kỳ vệ sinh" : ""}(
             {result.assignmentCount})
@@ -150,7 +198,8 @@ export default function CleaningMonitorDetail({
           <ul>
             {result.assignments.map((r) => (
               <li key={r.id}>
-                {r.assigneeId} · {displayCode(r.status)} · {r.assignedAtUtc} · {r.reason}
+                {referenceLabel(r, "assigneeId")} · {displayCode(r.status)} · {r.assignedAtUtc} ·{" "}
+                {r.reason}
               </li>
             ))}
           </ul>
@@ -164,8 +213,8 @@ export default function CleaningMonitorDetail({
           <ul>
             {result.progress.map((r) => (
               <li key={r.id}>
-                {r.percent}% · {r.loggedAtUtc} · {displayCode(r.status)} · {r.blockerCode} ·{" "}
-                {r.note}
+                {r.percent}% · {r.loggedAtUtc} · {displayCode(r.status)} ·{" "}
+                {r.blockerCode} · {r.note}
               </li>
             ))}
           </ul>

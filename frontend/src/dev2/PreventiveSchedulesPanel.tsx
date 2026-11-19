@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { PreventiveTechnicianSelect } from "./PreventiveTechnicianSelect";
@@ -364,7 +366,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
           Tải trang sau
         </button>
       )}
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       <ul>
         {rows.map((r) => (
           <li key={r.scheduleId}>
@@ -417,7 +419,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                 <>
                   <label>
                     Loại đối tượng
-                    <select
+                    <SearchableSelect
                       value={kind}
                       onChange={(e) => {
                         setKind(e.target.value);
@@ -428,7 +430,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                       <option value="ROOM">Phòng</option>
                       <option value="AREA">Khu vực</option>
                       <option value="ASSET">Tài sản</option>
-                    </select>
+                    </SearchableSelect>
                   </label>
                   <button onClick={() => void loadTargets()}>
                     Tải mục tiêu
@@ -441,7 +443,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                   </button>
                   <label>
                     Đối tượng
-                    <select
+                    <SearchableSelect
                       value={target}
                       onChange={(e) => setTarget(e.target.value)}
                     >
@@ -451,7 +453,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                           {t.label}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </label>
                 </>
               )}
@@ -481,7 +483,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                   onChange={(e) => setInterval(e.target.value)}
                 />
               </label>
-              <select
+              <SearchableSelect
                 aria-label="Đơn vị khoảng thời gian"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
@@ -489,7 +491,7 @@ export function PreventiveSchedulesPanel({ branchId }: { branchId: number }) {
                 <option>DAYS</option>
                 <option>WEEKS</option>
                 <option>MONTHS</option>
-              </select>
+              </SearchableSelect>
               {!selected && (
                 <label>
                   Hạn đầu tiên (UTC+7)

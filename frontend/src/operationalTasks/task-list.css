@@ -1,0 +1,49 @@
+.compact-task-list {
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e0e7f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.compact-task-list li {
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+.compact-task-list li + li {
+  border-top: 1px solid #e0e7f0;
+}
+.compact-task-list button {
+  padding: 0;
+  text-align: left;
+  border: 0;
+  background: none;
+}
+.compact-task-list progress {
+  width: 70px;
+  height: 8px;
+  accent-color: #1768e8;
+}
+.compact-task-list li > div {
+  font-size: 14px;
+  color: #586a80;
+}
+.task-series-disclosure {
+  margin: 18px 0;
+  padding: 18px 22px;
+  border: 1px solid #e0e7f0;
+  background: white;
+  border-radius: 14px;
+}
+.task-series-disclosure summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 800px) {
+  .compact-task-list li {
+    grid-template-columns: 1fr;
+  }
+}

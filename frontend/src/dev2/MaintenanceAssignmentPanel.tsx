@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -277,7 +279,7 @@ export function MaintenanceAssignmentPanel({
     >
       <section aria-label="Phân công bảo trì">
         <h3>Phân công hoặc phân công lại kỹ thuật viên</h3>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {data && (
           <button disabled={busy} onClick={() => void load()}>
             Tải lại phân công hiện tại và kỹ thuật viên
@@ -297,7 +299,7 @@ export function MaintenanceAssignmentPanel({
             )}
             <label>
               Bộ phận thực hiện
-              <select
+              <SearchableSelect
                 aria-label="Bộ phận thực hiện"
                 disabled={busy || review || attempted}
                 value={department}
@@ -309,11 +311,11 @@ export function MaintenanceAssignmentPanel({
                     {d.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Kỹ thuật viên
-              <select
+              <SearchableSelect
                 aria-label="Kỹ thuật viên"
                 disabled={busy || review || attempted}
                 value={selected}
@@ -330,7 +332,7 @@ export function MaintenanceAssignmentPanel({
                     {t.openOccurrences ?? "N/A"} Mở các lần thực hiện
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Hướng dẫn

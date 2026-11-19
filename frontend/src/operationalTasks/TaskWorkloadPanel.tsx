@@ -1,3 +1,7 @@
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
@@ -223,7 +227,7 @@ export function TaskWorkloadPanel({
           </label>
           <label>
             Trạng thái công việc
-            <select
+            <SearchableSelect
               aria-label="Trạng thái công việc"
               value={form.status}
               onChange={(e) => field("status", e.target.value)}
@@ -234,7 +238,7 @@ export function TaskWorkloadPanel({
                   {s.replaceAll("_", " ")}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Thời hạn từ
@@ -254,7 +258,7 @@ export function TaskWorkloadPanel({
           </label>
           <label>
             Tìm công việc theo khối lượng
-            <input
+            <SearchInput suggestions={searchSuggestions(result)}
               maxLength={150}
               value={form.search}
               onChange={(e) => field("search", e.target.value)}
@@ -274,7 +278,7 @@ export function TaskWorkloadPanel({
         </form>
       </CollapsibleFilterPanel>
       {busy && <p role="status">Đang tải khối lượng công việc…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       <button
         disabled={busy}
         onClick={() => setQuery((q) => q && { ...q, revision: q.revision + 1 })}
@@ -296,7 +300,7 @@ export function TaskWorkloadPanel({
             phân công.
           </p>
           {taskPage.messageCode === "MSG10" && (
-            <p role="status">MSG10: Không có công việc phù hợp bộ lọc.</p>
+            <p role="status">Không có công việc phù hợp bộ lọc.</p>
           )}
           <table aria-label="Công việc phù hợp">
             <thead>
@@ -335,7 +339,7 @@ export function TaskWorkloadPanel({
         <>
           {page.messageCode === "MSG10" && (
             <p role="status">
-              MSG10: Không có khối lượng công việc phù hợp bộ lọc.
+              Không có khối lượng công việc phù hợp bộ lọc.
             </p>
           )}
           <table aria-label="Khối lượng công việc của nhân viên">
@@ -439,7 +443,7 @@ export function TaskWorkloadPanel({
               {detail.intervals.map((i) => (
                 <tr key={i.intervalId}>
                   <td>{i.intervalId}</td>
-                  <td>{i.taskId}</td>
+                  <td>{referenceLabel(i, "taskId")}</td>
                   <td>{i.start}</td>
                   <td>{i.end ?? "Đang mở"}</td>
                   <td>{i.closedSeconds}</td>

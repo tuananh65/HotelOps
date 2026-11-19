@@ -1,4 +1,4 @@
-export interface TimeLogEntry { intervalId:number; kind:string; workItemId:number; start:string; end:string|null; closedSeconds:number; provisionalSeconds:number; version:string }
+export interface TimeLogEntry { intervalId:number; kind:string; workItemId:number; workItemName?:string|null; start:string; end:string|null; closedSeconds:number; provisionalSeconds:number; version:string }
 export interface TimeLog { branchId:number; date:string; asOf:string; workdayClosedSeconds:number; workdayProvisionalSeconds:number; workClosedSeconds:number; workProvisionalSeconds:number; total:number; page:number; pageSize:number; items:TimeLogEntry[] }
 export class TimeLogFailure extends Error { constructor(readonly status:number){super("Nhật ký thời gian chưa khả dụng.");} }
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);

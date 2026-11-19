@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -226,7 +227,7 @@ function BoundPrioritySlaPage() {
       <button disabled={busy} onClick={() => void load()}>
         Tải độ ưu tiên
       </button>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {loaded && (
         <table>
           <thead>

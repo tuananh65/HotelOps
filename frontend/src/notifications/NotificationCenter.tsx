@@ -1,3 +1,8 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import "./notifications.css";
+import { staffDate } from "../internalRequests/staffDate";
 import {
   restoredFilterDraft,
   CollapsibleFilterPanel,
@@ -85,7 +90,18 @@ export function NotificationCenter() {
   const appliedFilters =
     [...new URLSearchParams(query).entries()]
       .filter(([name]) => name !== "page")
-      .map(([name, value]) => `${name}: ${value}`)
+      .map(([name, value]) => {
+        const labels: Record<string, string> = {
+          search: "Từ khóa",
+          type: "Loại",
+          priority: "Ưu tiên",
+          from: "Từ ngày",
+          to: "Đến ngày",
+          unread: "Chưa đọc",
+          acknowledged: "Đã xác nhận",
+        };
+        return `${labels[name] ?? name}: ${value === "true" ? "Có" : value === "false" ? "Không" : displayCode(value)}`;
+      })
       .join("; ") || "Không có";
   const operation = write?.owner === owner ? write : null;
   async function openSource(id: number) {
@@ -163,12 +179,11 @@ export function NotificationCenter() {
     }
   }
   return (
-    <main aria-label="Trung tâm thông báo">
+    <main className="notification-center" aria-label="Trung tâm thông báo">
       <h1>Trung tâm thông báo</h1>
-      <nav>
-        <Link to="/dashboard">Tổng quan</Link>{" "}
-        <Link to="/profile">Hồ sơ cá nhân</Link>
-      </nav>
+      <p className="notification-subtitle">
+        Theo dõi cập nhật công việc và các thông báo cần xác nhận.
+      </p>
       {owner && (
         <>
           <form
@@ -186,7 +201,7 @@ export function NotificationCenter() {
             <div className="ds-quick-search">
               <label>
                 Tìm thông báo
-                <input
+                <SearchInput suggestions={searchSuggestions(data)}
                   type="search"
                   maxLength={200}
                   value={draft.search}
@@ -241,7 +256,7 @@ export function NotificationCenter() {
               ))}
               <label>
                 Trạng thái đã đọc
-                <select
+                <SearchableSelect
                   aria-label="Trạng thái đã đọc"
                   value={draft.unread}
                   onChange={(e) =>
@@ -251,7 +266,7 @@ export function NotificationCenter() {
                   <option value="">Tất cả</option>
                   <option value="true">Chưa đọc</option>
                   <option value="false">Đã đọc</option>
-                </select>
+                </SearchableSelect>
               </label>
 
               <button
@@ -274,7 +289,7 @@ export function NotificationCenter() {
               </button>
               <label>
                 Trạng thái xác nhận đã đọc
-                <select
+                <SearchableSelect
                   value={draft.acknowledged}
                   onChange={(e) =>
                     setDraft((d) => ({ ...d, acknowledged: e.target.value }))
@@ -283,7 +298,7 @@ export function NotificationCenter() {
                   <option value="">Tất cả</option>
                   <option value="false">Chờ xác nhận đã đọc</option>
                   <option value="true">Đã xác nhận</option>
-                </select>
+                </SearchableSelect>
               </label>
             </CollapsibleFilterPanel>
           </form>
@@ -291,7 +306,7 @@ export function NotificationCenter() {
           <p aria-label="Bộ lọc thông báo đã áp dụng">
             Bộ lọc đã áp dụng: {appliedFilters}
           </p>
-          {data?.acknowledgmentAvailable && (
+          {selected.length > 0 && data?.acknowledgmentAvailable && (
             <button
               disabled={
                 !!operation?.busy ||
@@ -319,49 +334,52 @@ export function NotificationCenter() {
               Xác nhận đã nhận đã chọn
             </button>
           )}
-          <button
-            disabled={
-              !data ||
-              !!operation?.busy ||
-              !data.items.some((r) => !r.readAt && selected.includes(r.id))
-            }
-            onClick={() =>
-              void mark(
-                data!.items
-                  .filter((r) => !r.readAt && selected.includes(r.id))
-                  .map((r) => r.id),
-              )
-            }
-          >
-            Đánh dấu mục đã chọn đã đọc
-          </button>
+          {selected.length > 0 && (
+            <button
+              disabled={
+                !data ||
+                !!operation?.busy ||
+                !data.items.some((r) => !r.readAt && selected.includes(r.id))
+              }
+              onClick={() =>
+                void mark(
+                  data!.items
+                    .filter((r) => !r.readAt && selected.includes(r.id))
+                    .map((r) => r.id),
+                )
+              }
+            >
+              Đánh dấu mục đã chọn đã đọc
+            </button>
+          )}
           <button
             disabled={!data || !!operation?.busy || data.unreadCount === 0}
             onClick={() => void mark(null)}
           >
             Đánh dấu tất cả đã đọc
           </button>
-          {operation?.message && <p role="status">{operation.message}</p>}
-          {visible?.error && <p role="alert">{visible.error}</p>}
+          {operation?.message && <p role="status">{userMessage(operation.message)}</p>}
+          {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
           {!visible && <p role="status">Đang tải thông báo…</p>}
           {data && (
             <>
               <p role="status" aria-label="Số lượng thông báo">
-                Chưa đọc: {data.unreadCount}. Matching: {data.totalCount}.
-                Snapshot: {data.snapshot}
+                <strong>{data.unreadCount} chưa đọc</strong> · {data.totalCount}{" "}
+                thông báo phù hợp
               </p>
               {!data.acknowledgmentAvailable && (
                 <p>Chưa hỗ trợ xác nhận cảnh báo nghiêm trọng.</p>
               )}
               {data.items.length === 0 ? (
                 <p role="status">
-                  Không có thông báo phù hợp (MSG10). Đổi hoặc xóa bộ lọc.
+                  Không có thông báo phù hợp. Đổi hoặc xóa bộ lọc.
                 </p>
               ) : (
-                <ul>
+                <ul className="notification-list">
                   {data.items.map((row) => (
                     <li
                       key={row.id}
+                      data-unread={!row.readAt}
                       data-awaiting-acknowledgment={
                         !!row.requiresAcknowledgment && !row.acknowledgedAt
                       }
@@ -394,7 +412,7 @@ export function NotificationCenter() {
                             )
                           }
                         />
-                        Chọn thông báo {row.id}
+                        Chọn thông báo {row.title}
                       </label>
                       <h2>{row.title}</h2>
                       <button
@@ -403,7 +421,7 @@ export function NotificationCenter() {
                       >
                         Mở nguồn
                       </button>
-                      <p>{row.message}</p>
+                      <p>{userMessage(row.message)}</p>
                       {data.acknowledgmentAvailable &&
                         row.requiresAcknowledgment &&
                         !row.acknowledgedAt && (
@@ -411,7 +429,7 @@ export function NotificationCenter() {
                             disabled={!!operation?.busy}
                             onClick={() => void mark([row.id], true)}
                           >
-                            Xác nhận đã nhận thông báo {row.id}
+                            Xác nhận đã nhận thông báo {row.title}
                           </button>
                         )}
                       {row.requiresAcknowledgment && !row.acknowledgedAt && (
@@ -419,19 +437,23 @@ export function NotificationCenter() {
                       )}
                       {row.acknowledgedAt && (
                         <p>
-                          Đã xác nhận: <time>{row.acknowledgedAt}</time>
+                          Đã xác nhận:{" "}
+                          <time>{staffDate(row.acknowledgedAt)}</time>
                         </p>
                       )}
                       <p>
-                        {displayCode(row.type)} · {row.priority} ·{" "}
-                        <time>{row.createdAt}</time> ·{" "}
+                        {row.type === "TASK_ASSIGNED"
+                          ? "Phân công công việc"
+                          : displayCode(row.type)}{" "}
+                        · {displayCode(row.priority)} ·{" "}
+                        <time>{staffDate(row.createdAt)}</time> ·{" "}
                         {row.readAt ? "Đã đọc" : "Chưa đọc"}
                       </p>
                       <button
                         disabled={!!row.readAt || !!operation?.busy}
                         onClick={() => void mark(row.id)}
                       >
-                        Đánh dấu thông báo {row.id} là đã đọc
+                        Đánh dấu thông báo {row.title} là đã đọc
                       </button>
                     </li>
                   ))}

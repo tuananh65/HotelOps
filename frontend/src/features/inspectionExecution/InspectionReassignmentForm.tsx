@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -146,11 +149,11 @@ export function InspectionReassignmentForm({
     >
       <section aria-label="Thay đổi người kiểm tra">
         <h2>Thay đổi người kiểm tra</h2>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {data && (
           <p>
-            Người kiểm tra hiện tại #{data.inspectorId}. State:{" "}
-            {displayCode(data.state)}. Checklist and deadline remain unchanged.
+            Người kiểm tra hiện tại {referenceLabel(data, "inspectorId")}. Trạng thái:{" "}
+            {displayCode(data.state)}.
           </p>
         )}
         {data?.canReassign && !locked && (
@@ -164,7 +167,7 @@ export function InspectionReassignmentForm({
               <label htmlFor={`reassign-inspector-${id}`}>
                 Người kiểm tra mới
               </label>
-              <select
+              <SearchableSelect
                 id={`reassign-inspector-${id}`}
                 required
                 value={inspector}
@@ -176,7 +179,7 @@ export function InspectionReassignmentForm({
                     {p.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
               <label>
                 Lý do thay đổi
                 <input
@@ -221,7 +224,7 @@ export function InspectionReassignmentForm({
         )}
         {data && !data.canReassign && (
           <p>
-            Không có người kiểm tra thay thế đủ điều kiện với quyền hiện tại.
+            Chưa thể đổi người kiểm tra cho lượt này. Chức năng chỉ mở khi hệ thống sẵn sàng và có người thay thế đủ điều kiện.
           </p>
         )}
         <button

@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -12,6 +13,7 @@ import {
   type ProgressSnapshot,
 } from "../../api/dev1/cleaningProgress";
 import { PageHeader } from "../../ui";
+import CleaningExecutionPanel from "./CleaningExecutionPanel";
 
 export default function CleaningProgressPanel({
   branch,
@@ -21,6 +23,7 @@ export default function CleaningProgressPanel({
   task: string;
 }) {
   const [current, setCurrent] = useState<ProgressSnapshot | null>(null);
+  const [legacy, setLegacy] = useState(false);
   const [percent, setPercent] = useState(0);
   const [items, setItems] = useState<
     { id: number; done: boolean; note: string | null }[]
@@ -58,6 +61,7 @@ export default function CleaningProgressPanel({
     active.current = controller;
     setLoading(true);
     setCurrent(null);
+    setLegacy(false);
     setError("");
     setSuccess("");
     setLocked(false);
@@ -66,7 +70,14 @@ export default function CleaningProgressPanel({
         if (!controller.signal.aborted) show(snapshot);
       })
       .catch((reason) => {
-        if (!controller.signal.aborted) setError(progressError(reason));
+        if (!controller.signal.aborted) {
+          if (
+            reason instanceof ApiError &&
+            ["SCHEMAREQUIRED", "SCHEMA_REQUIRED"].includes(reason.code)
+          )
+            setLegacy(true);
+          else setError(progressError(reason));
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
@@ -147,6 +158,7 @@ export default function CleaningProgressPanel({
       if (!controller.signal.aborted) setSaving(false);
     }
   }
+  if (legacy) return <CleaningExecutionPanel branch={branch} task={task} />;
   return (
     <>
       <PageHeader id={26} />
@@ -155,7 +167,7 @@ export default function CleaningProgressPanel({
         không hoàn tất công việc.
       </p>
       {loading && <p role="status">Đang tải tiến độ…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {success && <p role="status">{success}</p>}
       {!loading && (
         <button
@@ -200,7 +212,7 @@ export default function CleaningProgressPanel({
               </label>
               {percentError && (
                 <p id="cleaning-percent-error" role="alert">
-                  {percentError}
+                  {userMessage(percentError)}
                 </p>
               )}
               {items.length === 0 && <p>Chưa có hạng mục vệ sinh.</p>}
@@ -267,7 +279,7 @@ export default function CleaningProgressPanel({
               </label>
               {fileError && (
                 <p id="cleaning-file-error" role="alert">
-                  {fileError}
+                  {userMessage(fileError)}
                 </p>
               )}
               <p>JPG/PNG/PDF, tối đa 10 MiB mỗi tệp. Ghi chú dùng một dòng.</p>

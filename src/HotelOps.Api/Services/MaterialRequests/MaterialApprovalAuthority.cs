@@ -35,11 +35,14 @@ internal static class MaterialApprovalAuthority
                 && assignment.User.AccountStatus == "ACTIVE" && assignment.User.EmploymentStatus == "ACTIVE"
                 && grant.Permission.PermissionCode == route.Permission && (grant.DataScope == "ALL" || grant.DataScope == "BRANCH")
                 && mapped.Contains(assignment.UserId)
-                && db.Departments.Any(d => d.DepartmentId == route.DepartmentId && d.BranchId == branch && d.IsActive && d.ManagerUserId == assignment.UserId)
+                // The current management mapping is the authority, as in ValidateAsync.
+                // ManagerUserId is a legacy single-head pointer and must not hide another mapped head.
+                && db.Departments.Any(d => d.DepartmentId == route.DepartmentId && d.BranchId == branch && d.IsActive)
                 && db.UserBranchAccesses.Any(b => b.UserId == assignment.UserId && b.BranchId == branch && b.GrantedAt <= now && b.RevokedAt == null)
-            select new Candidate(assignment.UserId, assignment.User.EmployeeCode, assignment.User.FullName))
+            select new { assignment.UserId, assignment.User.EmployeeCode, assignment.User.FullName })
             .Distinct().OrderBy(c => c.FullName).ThenBy(c => c.UserId).ToArrayAsync(ct);
-        return new(branch, warehouse, route.DepartmentId, route.Permission, candidates);
+        return new(branch, warehouse, route.DepartmentId, route.Permission,
+            candidates.Select(c => new Candidate(c.UserId, c.EmployeeCode, c.FullName)).ToArray());
     }
 
     private static async Task<bool> MappedAsync(HotelOpsDbContext db, long user, long branch, long department, DateTime now, CancellationToken ct) =>

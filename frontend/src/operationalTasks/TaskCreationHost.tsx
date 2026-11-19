@@ -1,3 +1,6 @@
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState, type ComponentProps } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -28,12 +31,12 @@ export function TaskCreationHost(props: ComponentProps<typeof TaskCreatePanel>) 
   return <section aria-label="Nguồn công việc">
     <label><input type="checkbox" checked={linked} onChange={e => setLinked(e.target.checked)} />Dùng yêu cầu nội bộ làm nguồn</label>
     {!linked ? <TaskCreatePanel {...props} /> : <>
-      {error && <p role="status">{error}</p>}
-      <label>Trạng thái yêu cầu nguồn<select aria-label="Trạng thái yêu cầu nguồn" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
-        <option value="IN_PROGRESS">Đang thực hiện</option><option value="ACCEPTED">Đã tiếp nhận</option></select></label>
-      <label>Tìm yêu cầu nguồn<input aria-label="Tìm yêu cầu nguồn" maxLength={200} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></label>
-      {data && <><label>Yêu cầu nội bộ nguồn<select aria-label="Yêu cầu nội bộ nguồn" value={selected} onChange={e => setSelected(e.target.value)}>
-        <option value="">Chọn yêu cầu</option>{data.items.map(r => <option key={r.id} value={r.id}>{displayCode(r.number)}: {displayCode(r.subject)}</option>)}</select></label>
+      {error && <p role="status">{userMessage(error)}</p>}
+      <label>Trạng thái yêu cầu nguồn<SearchableSelect aria-label="Trạng thái yêu cầu nguồn" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
+        <option value="IN_PROGRESS">Đang thực hiện</option><option value="ACCEPTED">Đã tiếp nhận</option></SearchableSelect></label>
+      <label>Tìm yêu cầu nguồn<SearchInput suggestions={searchSuggestions(data)} aria-label="Tìm yêu cầu nguồn" maxLength={200} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></label>
+      {data && <><label>Yêu cầu nội bộ nguồn<SearchableSelect aria-label="Yêu cầu nội bộ nguồn" value={selected} onChange={e => setSelected(e.target.value)}>
+        <option value="">Chọn yêu cầu</option>{data.items.map(r => <option key={r.id} value={r.id}>{displayCode(r.number)}: {displayCode(r.subject)}</option>)}</SearchableSelect></label>
         <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Yêu cầu nguồn trước</button><span> Trang {page} </span>
         <button disabled={page * 25 >= data.totalCount} onClick={() => setPage(p => p + 1)}>Yêu cầu nguồn tiếp theo</button>
         {request && <InternalRequestTaskCreationPanel key={`${props.owner}:${request.id}`} id={request.id} branch={props.branch} onCreated={props.onCreated} />}

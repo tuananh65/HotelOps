@@ -8,14 +8,15 @@ namespace HotelOps.Api.Services.Maintenance;
 internal static class MaintenanceReadAccess
 {
     internal sealed record Grant(string Role, PermissionGrantPath Path);
-    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool HistoricalAssets = false)
+    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool HistoricalAssets = false, bool Manager = false)
     {
+        internal bool CanRead => Lead || Staff || Manager;
         internal IQueryable<MaintenanceWork> Apply(IQueryable<MaintenanceWork> query)
         {
             // Select the expression before EF translation: older databases must not
             // query the additive provenance table until the guarded capability exists.
             if (HistoricalAssets) return query.Where(w =>
-                (Lead || Staff && w.AssigneeId == User)
+                (Lead || Manager || Staff && w.AssigneeId == User)
                 && (w.Department == null || w.Department.BranchId == Branch)
                 && (w.Incident != null && w.Incident.BranchId == Branch && w.Incident.Branch.IsActive
                     && (w.Incident.Room == null || w.Incident.Room.BranchId == Branch)
@@ -33,7 +34,7 @@ internal static class MaintenanceReadAccess
                             || r.Schedule.Room != null && r.Schedule.Room.BranchId == Branch && r.Schedule.Room.Branch.IsActive
                             || r.Schedule.Area != null && r.Schedule.Area.BranchId == Branch && r.Schedule.Area.Branch.IsActive))));
             return query.Where(w =>
-            (Lead || Staff && w.AssigneeId == User)
+            (Lead || Manager || Staff && w.AssigneeId == User)
             && (w.Department == null || w.Department.BranchId == Branch)
             && (w.Incident != null && w.Incident.BranchId == Branch && w.Incident.Branch.IsActive
                 && (w.Incident.Room == null || w.Incident.Room.BranchId == Branch)
@@ -54,7 +55,8 @@ internal static class MaintenanceReadAccess
     {
         var valid = grants.Where(g => g.Path.PermissionCode == "MAINTENANCE_VIEW" && g.Path.BranchId == branch
             && PermissionGrantRules.IsEligible(g.Path, now) && PermissionGrantRules.EffectiveScope(g.Path) is "BRANCH" or "OWN" or "GLOBAL").ToArray();
-        return new(user, branch, valid.Any(g => g.Role == "MAINTENANCE_LEAD" && PermissionGrantRules.EffectiveScope(g.Path) is "BRANCH" or "GLOBAL"), valid.Any(g => g.Role is "MAINTENANCE_STAFF" or "MAINTENANCE_LEAD"));
+        return new(user, branch, valid.Any(g => g.Role == "MAINTENANCE_LEAD" && PermissionGrantRules.EffectiveScope(g.Path) is "BRANCH" or "GLOBAL"), valid.Any(g => g.Role is "MAINTENANCE_STAFF" or "MAINTENANCE_LEAD"),
+            Manager: valid.Any(g => g.Role == "OPERATIONS_MANAGER" && PermissionGrantRules.EffectiveScope(g.Path) == "BRANCH"));
     }
     internal static async Task<Scope> ReadAsync(HotelOpsDbContext db, long user, long branch, CancellationToken ct)
     {

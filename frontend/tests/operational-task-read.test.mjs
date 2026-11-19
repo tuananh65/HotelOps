@@ -29,6 +29,16 @@ const task = {
 };
 const page = { items: [task], totalCount: 1, page: 1, pageSize: 25 };
 const signal = new AbortController().signal;
+
+test("recorded status filter matches legacy TODO rows without a workflow projection", async (t) => {
+  t.mock.method(globalThis, "fetch", async (url) => {
+    const query = new URL(url, "https://test.local").searchParams;
+    assert.equal(query.get("status"), "TODO");
+    assert.equal(query.has("workflowStatus"), false);
+    return Response.json(page);
+  });
+  assert.deepEqual(await readTasks(2, 1, "", null, signal, undefined, "TODO"), page);
+});
 test("task read scopes URL and preserves credentials, cancellation and no-store", async (t) => {
   t.mock.method(globalThis, "fetch", async (url, options) => {
     assert.match(

@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -260,7 +261,7 @@ export function IncidentReopenPanel({
   if (!context)
     return error ? (
       <div role="status">
-        <p>{error}</p>
+        <p>{userMessage(error)}</p>
         {expired && (
           <Link
             to={`/operations/incidents?action=A004A-021${positive(data.branchId) ? `&branchId=${data.branchId}` : ""}`}
@@ -319,7 +320,7 @@ export function IncidentReopenPanel({
             />
           </label>
         </fieldset>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {review ? (
           <>
             <p>

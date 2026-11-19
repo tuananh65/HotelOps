@@ -1,3 +1,7 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   ActionDialog,
   CollapsibleFilterPanel,
@@ -547,7 +551,7 @@ export function PreventiveOccurrencesPanel({
             </label>
             <label>
               Trạng thái
-              <select
+              <SearchableSelect
                 value={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
@@ -564,11 +568,11 @@ export function PreventiveOccurrencesPanel({
                 <option value="ON_HOLD">Đang tạm dừng</option>
                 <option value="COMPLETED">Đã hoàn tất</option>
                 <option value="CANCELLED">Đã hủy</option>
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Tìm theo tiêu đề, mã lần thực hiện hoặc mã lịch
-              <input
+              <SearchInput suggestions={searchSuggestions(rows)}
                 maxLength={200}
                 value={keyword}
                 onChange={(e) => {
@@ -615,7 +619,7 @@ export function PreventiveOccurrencesPanel({
             </label>
             <label>
               Quá hạn
-              <select
+              <SearchableSelect
                 value={overdue}
                 onChange={(e) => {
                   setOverdue(e.target.value);
@@ -625,7 +629,7 @@ export function PreventiveOccurrencesPanel({
                 <option value="">Tất cả</option>
                 <option value="true">Quá hạn</option>
                 <option value="false">Chưa quá hạn</option>
-              </select>
+              </SearchableSelect>
             </label>
             <p>
               Sắp xếp lần thực hiện đến hạn sớm nhất trước. Kết quả chi nhánh
@@ -635,14 +639,14 @@ export function PreventiveOccurrencesPanel({
         </CollapsibleFilterPanel>
       )}
       <button disabled={busy} onClick={() => void load()}>
-        {runId != null ? `Mở lần thực hiện #${runId}` : "Tải các lần thực hiện"}
+        {runId != null ? "Mở lần thực hiện" : "Tải các lần thực hiện"}
       </button>
       {runId == null && hasMore && !!rows.length && (
         <button disabled={busy || uncertain} onClick={() => void load(true)}>
           Tải thêm lần thực hiện
         </button>
       )}
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {workdayRequired && (
         <Link to={`/workday?branchId=${branchId}`}>
           Mở ngày làm việc của tôi
@@ -657,7 +661,7 @@ export function PreventiveOccurrencesPanel({
           <p>{r.isOverdue ? "Quá hạn" : "Chưa quá hạn"}</p>
           <p>{r.instruction}</p>
           <p>
-            Lần thực hiện #{r.runId}; Lịch #{r.scheduleId}; Người được giao{" "}
+            Lần thực hiện {referenceLabel(r, "runId")}; Lịch {referenceLabel(r, "scheduleId")}; Người được giao{" "}
             {r.assigneeName ?? r.assigneeId ?? "Chờ phân công"}.
           </p>
           <button disabled={busy} onClick={() => void loadHistory(r.runId)}>
@@ -736,7 +740,7 @@ export function PreventiveOccurrencesPanel({
                     <label>
                       {c.description}
                       {c.required ? " (required)" : ""}
-                      <select
+                      <SearchableSelect
                         value={outcomes[`${r.runId}:${c.key}`] ?? ""}
                         onChange={(e) =>
                           setOutcomes({
@@ -748,7 +752,7 @@ export function PreventiveOccurrencesPanel({
                         <option value="">Chọn kết quả</option>
                         <option value="PASS">Đạt</option>
                         <option value="FAIL">Không đạt</option>
-                      </select>
+                      </SearchableSelect>
                     </label>
                     <label>
                       Ghi chú kiểm tra

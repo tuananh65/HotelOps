@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -267,7 +269,7 @@ export function IncidentClassificationPanel({
         {loading ? (
           <LoadingIndicator label="Đang tải phân loại" />
         ) : (
-          message && <p role="alert">{message}</p>
+          message && <p role="alert">{userMessage(message)}</p>
         )}
         {!loading && (
           <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
@@ -320,7 +322,7 @@ export function IncidentClassificationPanel({
         <fieldset disabled={busy || attempted}>
           <label>
             Nhóm
-            <select
+            <SearchableSelect
               aria-label="Nhóm"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -336,11 +338,11 @@ export function IncidentClassificationPanel({
                   {x.name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Mức độ
-            <select
+            <SearchableSelect
               aria-label="Mức độ"
               value={severity}
               onChange={(e) => setSeverity(e.target.value)}
@@ -362,11 +364,11 @@ export function IncidentClassificationPanel({
                     {x.name}
                   </option>
                 ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Ảnh hưởng đến khả năng sẵn sàng của phòng
-            <select
+            <SearchableSelect
               aria-label="Ảnh hưởng đến khả năng sẵn sàng của phòng"
               value={impact}
               onChange={(e) => setImpact(e.target.value)}
@@ -374,7 +376,7 @@ export function IncidentClassificationPanel({
               <option value="">Chọn mức ảnh hưởng</option>
               <option value="true">Có</option>
               <option value="false">Không</option>
-            </select>
+            </SearchableSelect>
           </label>
         </fieldset>
         <p>
@@ -392,7 +394,7 @@ export function IncidentClassificationPanel({
             vận hành có quyền; người nhận cần xác nhận đã đọc.
           </p>
         )}
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button
           data-dialog-action
           disabled={!valid || !changed || busy || attempted}

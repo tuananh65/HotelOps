@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { ShiftPlanApiError, type SavePlanAdapter } from "./shiftPlanApi";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -263,7 +265,7 @@ function Bound({
       )}
       {choices.error && (
         <div className="shift-notice" role="alert">
-          {choices.error}{" "}
+          {userMessage(choices.error)}{" "}
           <button disabled={locked} onClick={choices.reload}>
             Tải lại danh sách
           </button>
@@ -340,7 +342,7 @@ function Bound({
           </label>
           <label>
             Ca làm việc
-            <select
+            <SearchableSelect
               aria-label="Ca làm việc"
               required
               value={fields.templateId}
@@ -356,11 +358,11 @@ function Bound({
                   {t.crossesMidnight ? " (hôm sau)" : ""}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Nhân viên
-            <select
+            <SearchableSelect
               aria-label="Nhân viên"
               required
               value={fields.employeeId}
@@ -375,7 +377,7 @@ function Bound({
                   {e.name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <button
             className="shift-primary"
@@ -457,7 +459,7 @@ function Bound({
           className={`shift-notice${messageSucceeded ? " shift-notice-success" : ""}`}
           role={messageSucceeded ? "status" : "alert"}
         >
-          {message}
+          {userMessage(message)}
         </p>
       )}
       {canStartNew && !pending && !sessionBlocked && (

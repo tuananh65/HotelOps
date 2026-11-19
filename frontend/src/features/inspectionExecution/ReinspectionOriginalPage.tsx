@@ -1,3 +1,4 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -69,8 +70,8 @@ export function ReinspectionOriginalPage() {
       {data && (
         <>
           <p>
-            Kiểm tra #{data.id} — Không đạt. Người kiểm tra #{data.inspectorId}.
-            Checklist version #{data.versionId}.
+            Kiểm tra {referenceLabel(data, "id")} — Không đạt. Người kiểm tra {referenceLabel(data, "inspectorId")}.
+            Checklist version {referenceLabel(data, "versionId")}.
           </p>
           <p>{data.summary}</p>
           <section aria-label="Kết quả kiểm tra ban đầu">
@@ -97,7 +98,7 @@ export function ReinspectionOriginalPage() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Lỗi #{d.id} ảnh #{file}
+                      Lỗi {referenceLabel(d, "id")} ảnh #{file}
                     </a>
                   </p>
                 ))}

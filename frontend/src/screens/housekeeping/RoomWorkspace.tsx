@@ -1,3 +1,5 @@
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -117,7 +119,7 @@ export function RoomBranchField({
     <section className="room-scope" aria-label="Chi nhánh làm việc">
       {scope.error && (
         <p role="alert">
-          {scope.error}{" "}
+          {userMessage(scope.error)}{" "}
           <button type="button" onClick={scope.reload}>
             Thử lại
           </button>
@@ -136,7 +138,7 @@ export function RoomBranchField({
         scope.items && (
           <label>
             Chi nhánh làm việc
-            <select
+            <SearchableSelect
               aria-label="Chọn chi nhánh làm việc"
               value={scope.branch?.id ?? ""}
               onChange={(e) => scope.select(e.target.value)}
@@ -147,7 +149,7 @@ export function RoomBranchField({
                   {b.name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
         )
       )}
@@ -209,14 +211,14 @@ export function NamedFilter({
   return (
     <label>
       {label}
-      <select aria-label={label} name={name} defaultValue={value}>
+      <SearchableSelect aria-label={label} name={name} defaultValue={value}>
         <option value="">Tất cả</option>
         {items.map((o) => (
           <option key={o.id} value={o.id}>
             {roomLabel(o.name)}
           </option>
         ))}
-      </select>
+      </SearchableSelect>
     </label>
   );
 }
@@ -224,10 +226,12 @@ export function RoomNumberField({
   items,
   selected,
   onSelect,
+  onUnmatched,
 }: {
   items: RoomDirectoryItem[];
   selected: string;
   onSelect: (id: string) => void;
+  onUnmatched?: () => void;
 }) {
   const [text, setText] = useState(
     items.find((r) => String(r.id) === selected)?.roomNumber ?? "",
@@ -248,6 +252,7 @@ export function RoomNumberField({
           setText(value);
           const match = items.find((r) => r.roomNumber === value.trim());
           if (match) onSelect(String(match.id));
+          else onUnmatched?.();
         }}
         onInvalid={(e) =>
           e.currentTarget.setCustomValidity("Chọn một phòng trong danh sách.")

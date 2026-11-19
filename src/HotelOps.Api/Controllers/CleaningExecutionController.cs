@@ -11,7 +11,7 @@ namespace HotelOps.Api.Controllers;
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [RequestSizeLimit(72 * 1024 * 1024)]
-public sealed class CleaningExecutionController(RoomTypeCreationService service, IWebHostEnvironment? environment = null, IConfiguration? configuration = null) : ControllerBase
+public sealed class CleaningExecutionController(RoomTypeCreationService service, HotelOps.Api.Services.Housekeeping.ReworkWorkflowWriter reworkWriter, IWebHostEnvironment? environment = null, IConfiguration? configuration = null) : ControllerBase
 {
     private string? EvidenceRoot => configuration?["Evidence:PrivateRoot"] ?? (environment == null ? null : Path.Combine(environment.ContentRootPath, "App_Data", "evidence"));
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/cancellation")]
@@ -23,10 +23,13 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service,
             Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/execution")]
     public Task<IActionResult> ReadRework(long branchId, long id, CancellationToken ct)
-        => Run(false, (ticket, sid) => service.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct));
+        => Run(false, (ticket, sid) => reworkWriter.ExecuteAsync(writer => writer.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct),ct));
+    [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/record")]
+    public Task<IActionResult> ReworkRecord(long branchId, long id, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ReadAssignedReworkRecordAsync(ticket, sid, branchId, id, ct));
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/evidence/{attachmentId:long}")]
     public Task<IActionResult> ReworkEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
-        => Run(false, (ticket, sid) => service.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct, attachmentId));
+        => Run(false, (ticket, sid) => reworkWriter.ExecuteAsync(writer => writer.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct, attachmentId),ct));
     [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/accept")]
     public Task<IActionResult> AcceptRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
         => Rework(branchId, id, "accept", request, ct);
@@ -37,14 +40,17 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service,
     public Task<IActionResult> CompleteRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
         => Rework(branchId, id, "complete", request, ct);
     private Task<IActionResult> Rework(long branch, long id, string action, ReworkActionRequest? input, CancellationToken ct)
-        => Run(action != "read", (ticket, sid) => action is "accept" or "start"
-            ? service.ExecuteAssignedReworkAsync(ticket, sid, branch, id, action,
+        => Run(action != "read", (ticket, sid) => reworkWriter.ExecuteAsync(writer => action is "accept" or "start"
+            ? writer.ExecuteAssignedReworkAsync(ticket, sid, branch, id, action,
                 Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input!, EvidenceRoot, ct)
-            : service.SubmitAssignedReworkAsync(ticket, sid, branch, id,
-                Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input!, EvidenceRoot, ct));
+            : writer.SubmitAssignedReworkAsync(ticket, sid, branch, id,
+                Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input!, EvidenceRoot, ct),ct));
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/execution")]
     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ReadCleaningExecutionAsync(ticket, sid, branchId, id, ct));
+    [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/record")]
+    public Task<IActionResult> CleaningRecord(long branchId, long id, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ReadOwnCleaningRecordAsync(ticket, sid, branchId, id, ct));
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/start")]
     public Task<IActionResult> Start(long branchId, long id, StartCleaningRequest request, CancellationToken ct)
         => Run(true, (ticket, sid) => service.StartCleaningAsync(ticket, sid, branchId, id, Request.Headers.IfMatch.ToString(), request, ct));

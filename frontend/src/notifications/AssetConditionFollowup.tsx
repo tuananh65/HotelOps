@@ -1,3 +1,4 @@
+import { referenceLabel } from "../i18n/referenceLabel";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -32,7 +33,7 @@ export function AssetConditionFollowup() {
   return <main><h1>Xem lại tình trạng tài sản</h1><Link to="/notifications">Thông báo</Link>
     {!visible ? <p>Đang xác minh quyền truy cập…</p> : visible.failed ? <p role="alert">Chưa thể theo dõi tiếp tài sản. Quyền của bạn có thể đã thay đổi.</p>
       : visible.data && <><h2>{visible.data.assetName}</h2><dl>
-        <dt>Tài sản</dt><dd>{visible.data.assetId}</dd><dt>Chi nhánh</dt><dd>{visible.data.branchId}</dd>
+        <dt>Tài sản</dt><dd>{referenceLabel(visible.data, "assetId")}</dd><dt>Chi nhánh</dt><dd>{referenceLabel(visible.data, "branchId")}</dd>
         <dt>Tình trạng khi đóng sự cố</dt><dd>{visible.data.conditionAtClosure}</dd>
         <dt>Tình trạng hiện tại</dt><dd>{visible.data.currentCondition}</dd>
         <dt>Đã đóng sự cố</dt><dd>{new Date(visible.data.closedAtUtc).toLocaleString()}</dd></dl>

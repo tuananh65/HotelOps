@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import type { PlanningOptions } from "./planning";
 
 export interface PlanDraft {
@@ -19,7 +20,7 @@ export function TaskPlanFields({
     <>
       <label>
         Độ ưu tiên
-        <select
+        <SearchableSelect
           aria-label="Độ ưu tiên"
           required
           value={value.priority}
@@ -31,7 +32,7 @@ export function TaskPlanFields({
               {p.name}
             </option>
           ))}
-        </select>
+        </SearchableSelect>
       </label>
       <p>Thời gian kế hoạch theo giờ Việt Nam (UTC+07:00).</p>
       <label>

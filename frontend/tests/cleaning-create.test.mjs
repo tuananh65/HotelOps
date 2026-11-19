@@ -35,6 +35,8 @@ test("create uses shared cookie transport and fresh CSRF, no client actor or ret
         roomId: 3,
         taskNumber: "CL-6",
         state: "PENDING_ASSIGNMENT",
+        readiness: "PENDING_CLEANING",
+        hasEffectiveBlock: false,
       },
       { status: 201 },
     );
@@ -106,7 +108,7 @@ test('room-type changes are reread and estimate never overrides the submitted de
  globalThis.fetch=async(url,o)=>{
   if(url.endsWith('/auth/csrf'))return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'fresh'});
   body=JSON.parse(o.body);
-  return Response.json({id:6,branchId:7,roomId:3,taskNumber:'CL-6',state:'PENDING_ASSIGNMENT',standardCleaningMinutes:45},{status:201});
+  return Response.json({id:6,branchId:7,roomId:3,taskNumber:'CL-6',state:'PENDING_ASSIGNMENT',readiness:'PENDING_CLEANING',hasEffectiveBlock:false,standardCleaningMinutes:45},{status:201});
  };
  await createCleaning('7',{...input,standardCleaningMinutes:999});
  assert.equal(body.dueAt,input.dueAt);assert.equal(body.standardCleaningMinutes,undefined);

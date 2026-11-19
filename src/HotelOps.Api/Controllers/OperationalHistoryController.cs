@@ -16,6 +16,10 @@ public sealed class OperationalHistoryController(RoomTypeCreationService service
 {
     private string PrivateRoot => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
 
+    [HttpGet("api/inspection-history/branches")]
+    public Task<IActionResult> InspectionBranches(CancellationToken ct)
+        => Execute((ticket, sid) => service.InspectionHistoryBranchesAsync(ticket, sid, ct));
+
     [HttpGet("api/inspection-history")]
     public Task<IActionResult> Inspections([FromQuery] OperationalHistoryQuery query, CancellationToken ct)
         => Execute((ticket, sid) => service.InspectionHistoryAsync(ticket, sid, query, null, ct));

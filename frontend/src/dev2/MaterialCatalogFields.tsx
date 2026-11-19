@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
@@ -45,7 +47,7 @@ export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
   const catalog = current?.catalog;
   const lines = Array.isArray(values.lines) ? values.lines as Values[] : [];
   function selector(name: string, title: string, items: Choice[], required = false) {
-    return <label>{title}<select name={name} required={required}
+    return <label>{title}<SearchableSelect name={name} required={required}
       value={items.some(i => String(i.id) === String(values[name])) ? String(values[name]) : ""}
       onChange={e => onChange({ ...values, [name]: e.target.value,
         ...(name === "sourceWarehouseId" ? { assignedApproverUserId: "" } : {}),
@@ -53,14 +55,14 @@ export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
         ...(name === "receivingAreaId" && e.target.value ? { receivingRoomId: "" } : {}) })}>
       <option value="">{required ? "Chọn một lựa chọn" : "Không có"}</option>
       {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-    </select></label>;
+    </SearchableSelect></label>;
   }
   function updateLine(index: number, changes: Values) {
     onChange({ ...values, lines: lines.map((line, n) => n === index ? { ...line, ...changes } : line) });
   }
   return <section aria-label="Danh sách vật tư lựa chọn">
     <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại danh sách vật tư lựa chọn</button>
-    {!catalog && <p role="status">{current?.error ?? (branch ? "Đang tải danh sách vật tư lựa chọn…" : "Chọn chi nhánh trước.")}</p>}
+    {!catalog && <p role="status">{userMessage(current?.error ?? (branch ? "Đang tải danh sách vật tư lựa chọn…" : "Chọn chi nhánh trước."))}</p>}
     {selector("departmentId", "Bộ phận tiếp nhận", catalog?.departments ?? [], true)}
     {selector("sourceWarehouseId", "Kho cấp phát", catalog?.warehouses ?? [], values.submit === true)}
     {selector("receivingRoomId", "Phòng tiếp nhận (không bắt buộc)", catalog?.rooms ?? [])}
@@ -73,14 +75,14 @@ export function MaterialCatalogFields({ values, onChange, historicalLineMax }: {
         const persisted = historicalLineMax !== undefined && line.requestLineId != null;
         return <fieldset key={String(line.lineNo)}><legend>Dòng {String(line.lineNo)}</legend>
           {persisted && <p>Để đổi vật tư hoặc đơn vị, xóa dòng này và thêm dòng mới. Lịch sử được giữ lại.</p>}
-          <label>Vật tư<select required disabled={persisted} value={item ? String(item.id) : ""}
+          <label>Vật tư<SearchableSelect required disabled={persisted} value={item ? String(item.id) : ""}
             onChange={e => updateLine(index, { itemId: e.target.value, uomId: "" })}>
             <option value="">Chọn vật tư</option>{catalog?.items.map(i => <option key={i.id} value={i.id}>{i.code}: {i.name}</option>)}
-          </select></label>
-          <label>Đơn vị<select required disabled={persisted} value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
+          </SearchableSelect></label>
+          <label>Đơn vị<SearchableSelect required disabled={persisted} value={item?.units.some(u => String(u.id) === String(line.uomId)) ? String(line.uomId) : ""}
             onChange={e => updateLine(index, { uomId: e.target.value })}>
             <option value="">Chọn đơn vị</option>{item?.units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select></label>
+          </SearchableSelect></label>
           <label>Số lượng<input type="number" min="0.001" step="0.001" required value={String(line.requestedQty ?? "")}
             onChange={e => updateLine(index, { requestedQty: e.target.value })} /></label>
           <label>Ghi chú (không bắt buộc)<input value={String(line.note ?? "")} onChange={e => updateLine(index, { note: e.target.value })} /></label>

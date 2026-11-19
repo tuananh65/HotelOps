@@ -15,7 +15,7 @@ namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestIntakeInput(Guid SubmissionId,long BranchId,long TypeId,long DepartmentId,string Subject,string Description,
     long PriorityId,DateTimeOffset DesiredDeadline,long? RoomId=null,long? AreaId=null,IReadOnlyList<EvidenceUpload>? Files=null,long? RequesterDepartmentId=null);
-public sealed record InternalRequestIntakeTypeOption(long Id,string Name,bool MaterialNeed);
+public sealed record InternalRequestIntakeTypeOption(long Id,string Name,bool MaterialNeed,long? DepartmentId = null,bool AllowAnyDepartment = false);
 public sealed record InternalRequestIntakeOptions(InternalRequestFilterValue[] Branches,InternalRequestIntakeTypeOption[] Types,
     InternalRequestFilterValue[] Departments,InternalRequestFilterValue[] Priorities,InternalRequestFilterValue[] Rooms,InternalRequestFilterValue[] Areas,
     InternalRequestFilterValue[]? RequesterDepartments=null);
@@ -60,7 +60,10 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
             if(await access.AllowsAsync(ticket.UserId,item.Id,ct))branches.Add(item);
         if(branches.Count==0||branch!=null&&!branches.Any(b=>b.Id==branch))throw new InternalRequestReadException(403,"IR_CREATE_REQUIRED");
         var types=await (from type in db.InternalRequestTypes.AsNoTracking() join policy in InternalRequestIntakePolicy.Types(db) on type.RequestTypeId equals policy.TypeId
-            where type.IsActive orderby policy.SortOrder,type.TypeName,type.RequestTypeId select new InternalRequestIntakeTypeOption(type.RequestTypeId,type.TypeName,policy.MaterialNeed)).ToArrayAsync(ct);
+            where type.IsActive && !policy.MaterialNeed orderby policy.SortOrder,type.TypeName,type.RequestTypeId
+            select new InternalRequestIntakeTypeOption(type.RequestTypeId,type.TypeName,policy.MaterialNeed,
+                type.DefaultDepartment != null && type.DefaultDepartment.IsActive && type.DefaultDepartment.BranchId == branch ? type.DefaultDepartmentId : null,
+                type.TypeCode == "OTHER")).ToArrayAsync(ct);
         var requesterDepartments=branch is {} selectedBranch
             ? await WorkdayMembershipStore.ReadAsync(db,ticket.UserId,selectedBranch,
                 await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),ct)
@@ -98,6 +101,10 @@ public sealed class InternalRequestIntakeService(HotelOpsDbContext db,ISqlSessio
                 where type.RequestTypeId==input.TypeId&&type.IsActive select rule).SingleOrDefaultAsync(ct);
             if(policy==null)throw new InternalRequestReadException(400,"IR_TYPE_UNCLASSIFIED");
             if(policy.MaterialNeed)throw new InternalRequestReadException(400,"MATERIAL_REQUEST_REQUIRED");
+            var requestType = await db.InternalRequestTypes.AsNoTracking().Where(t => t.RequestTypeId == input.TypeId)
+                .Select(t => new { t.TypeCode, t.DefaultDepartmentId }).SingleAsync(ct);
+            if(requestType.TypeCode != "OTHER" && requestType.DefaultDepartmentId != input.DepartmentId)
+                throw new InternalRequestReadException(400,"IR_RECEIVING_DEPARTMENT_MISMATCH");
             if(!await db.Departments.AsNoTracking().AnyAsync(d=>d.DepartmentId==input.DepartmentId&&d.BranchId==input.BranchId&&d.IsActive,ct)
                 ||!await db.ReferenceValues.AsNoTracking().AnyAsync(r=>r.ReferenceId==input.PriorityId&&r.GroupCode=="PRIORITY"&&r.IsActive,ct)
                 ||input.RoomId!=null&&!await db.Rooms.AsNoTracking().AnyAsync(r=>r.RoomId==input.RoomId&&r.BranchId==input.BranchId&&r.IsActive,ct)

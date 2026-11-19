@@ -1,5 +1,6 @@
+import { userMessage } from "../i18n/userMessage";
 import { ActionDialog } from "../components/workspace-interactions";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PropsWithChildren } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import type { TimeLogEntry } from "./timeLogApi";
@@ -10,16 +11,23 @@ export const hotelInput = (value: string) =>
   new Date(Date.parse(value) + 7 * 3600000).toISOString().slice(0, 19);
 export const utcInput = (value: string) =>
   new Date(value + "+07:00").toISOString();
+function InlineCorrection({ children }: PropsWithChildren) {
+  return <>{children}</>;
+}
 export function CorrectionRequestForm({
   branch,
   interval,
   owner,
   onSaved,
+  embedded = false,
+  onBusyChange,
 }: {
   branch: number;
   interval: TimeLogEntry;
   owner: AuthorityGeneration;
   onSaved: () => void;
+  embedded?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const { actions } = useAuth();
   const [open, setOpen] = useState(false);
@@ -32,14 +40,17 @@ export function CorrectionRequestForm({
   const active = useRef<AbortController | null>(null);
   const saving = useRef(false);
   useEffect(() => () => active.current?.abort(), []);
+  const Container = embedded ? InlineCorrection : ActionDialog;
   if (!interval.end) return null;
   return (
     <>
-      <button disabled={busy || locked} onClick={() => setOpen((v) => !v)}>
-        Đề nghị điều chỉnh
-      </button>
-      {open && (
-        <ActionDialog
+      {!embedded && (
+        <button disabled={busy || locked} onClick={() => setOpen((v) => !v)}>
+          Đề nghị điều chỉnh
+        </button>
+      )}
+      {(open || embedded) && (
+        <Container
           open
           title="Đề nghị điều chỉnh thời gian"
           onClose={() => setOpen(false)}
@@ -53,6 +64,7 @@ export function CorrectionRequestForm({
               if (saving.current || locked) return;
               saving.current = true;
               setBusy(true);
+              onBusyChange?.(true);
               setError("");
               const controller = new AbortController();
               active.current = controller;
@@ -80,7 +92,10 @@ export function CorrectionRequestForm({
                   }
                 } finally {
                   saving.current = false;
-                  if (!controller.signal.aborted) setBusy(false);
+                  if (!controller.signal.aborted) {
+                    setBusy(false);
+                    onBusyChange?.(false);
+                  }
                 }
               })();
             }}
@@ -125,9 +140,9 @@ export function CorrectionRequestForm({
             >
               Gửi điều chỉnh
             </button>
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{userMessage(error)}</p>}
           </form>
-        </ActionDialog>
+        </Container>
       )}
     </>
   );

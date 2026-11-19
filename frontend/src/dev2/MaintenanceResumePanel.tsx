@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -174,7 +175,7 @@ export function MaintenanceResumePanel({
             />
           </label>
         )}
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {!review ? (
           <button
             type="button"

@@ -25,7 +25,8 @@ public sealed class IncidentEscalationItem
     public DateTime? ClosedAt { get; set; }
 }
 public sealed record IncidentEscalationContext(string? ETag, bool CanCreate, string? Severity,
-    DateTime? ResponseDeadlineAt, DateTime? ResolutionDeadlineAt, DateTime ServerNow, IncidentEscalationTiming Timing, IncidentEscalationItem[] Items);
+    DateTime? ResponseDeadlineAt, DateTime? ResolutionDeadlineAt, DateTime ServerNow, IncidentEscalationTiming Timing, IncidentEscalationItem[] Items,
+    bool CanHandle = false, bool AcknowledgmentAvailable = false);
 
 public sealed class IncidentEscalationService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
 {
@@ -66,13 +67,15 @@ public sealed class IncidentEscalationService(HotelOpsDbContext db, ISqlSessionS
         var cycleDiscovery=cycle?.DiscoveredAt ?? incident.DiscoveredAt;
         var timing=IncidentEscalationEligibility.Calculate(incident.Status,severity,cycleDiscovery,sla.ResolutionDeadlineAt,now);
         var tag=await IncidentTriageStore.TagAsync(db,id,ct);
+        var acknowledgmentAvailable=await NotificationAcknowledgmentStore.InstalledAsync(db,ct);
         var can=tag!=null && timing.Eligible && !items.Any(e=>e.State=="OPEN")
-            && await NotificationAcknowledgmentStore.InstalledAsync(db,ct)
+            && acknowledgmentAvailable
             && await IncidentEscalationAccess.AllowsAsync(db,ticket.UserId,incident.BranchId,id,ct);
         await SessionAsync(ticket,sid,ct);
         await RequireReadAsync(ticket.UserId,incident,ct);
+        var canHandle=await IncidentEscalationHandlingAccess.AllowsAsync(db,ticket.UserId,incident.BranchId,ct);
         await tx.CommitAsync(ct);
-        return new(tag,can,severity,sla.ResponseDeadlineAt,sla.ResolutionDeadlineAt,now,timing,items);
+        return new(tag,can,severity,sla.ResponseDeadlineAt,sla.ResolutionDeadlineAt,now,timing,items,canHandle,acknowledgmentAvailable);
     }
     public async Task<IncidentEscalationSaved> CreateAsync(SessionReference ticket,long sid,long id,string tag,IncidentEscalationInput input,CancellationToken ct)
     {

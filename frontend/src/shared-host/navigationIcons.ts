@@ -82,6 +82,12 @@ export const navigationGroups = [
     prefixes: ["/workday", "/my-time-log", "/time-corrections"],
   },
   {
+    id: "settings",
+    label: "Cấu hình",
+    icon: Settings,
+    prefixes: ["/settings"],
+  },
+  {
     id: "account",
     label: "Cá nhân",
     icon: UserRound,
@@ -95,6 +101,7 @@ export const navigationGroupFor = (path: string) =>
     group.prefixes.some((prefix) => pathMatches(path, prefix)),
   )?.id ?? "overview";
 const icons: Record<string, LucideIcon> = {
+  "/settings": Settings,
   "/dashboard": LayoutDashboard,
   "/notifications": Bell,
   "/audit": History,
@@ -112,6 +119,7 @@ const icons: Record<string, LucideIcon> = {
   "/rework": ClipboardCheck,
   "/inspections/checklists": ClipboardCheck,
   "/inspection-history": History,
+  "/inspections/assignment": ClipboardCheck,
   "/operational-tasks": ClipboardList,
   "/internal-requests": FileText,
   "/internal-requests/new": FileText,
@@ -122,6 +130,10 @@ const icons: Record<string, LucideIcon> = {
   "/assets/locations": Building2,
   "/assets/maintenance-history": Wrench,
   "/inventory/return-requests": Package,
+  "/inventory/stock": Package,
+  "/inventory/items": Package,
+  "/inventory/stocktakes": ClipboardCheck,
+  "/inventory/adjustments": ClipboardList,
   "/material-requests/new": FileText,
   "/operations/material-requests": ClipboardList,
   "/operations/replenishments": Package,

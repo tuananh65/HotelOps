@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -53,13 +54,12 @@ export function IncidentDuplicateReview({ values, onReviewed }: { values: Values
   const current = loaded?.key === key && loaded.page === page ? loaded : undefined;
   return <section aria-label="Xem lại sự cố tương tự">
     <h3>Xem lại sự cố tương tự</h3>
-    <p>Hiển thị sự cố chưa đóng tại các vị trí đã chọn trong quyền xem của bạn. Kết quả trống không chứng minh không còn sự cố khác.</p>
     {!key ? <p>Chọn chi nhánh và phòng, khu vực hoặc tài sản.</p> : !current ? <p role="status">Đang kiểm tra sự cố tương tự…</p>
-      : current.error ? <p role="alert">{current.error}</p> : current.data && <>
-        {!current.data.totalCount && <p>Không có sự cố phù hợp được phép xem.</p>}
+      : current.error ? <p role="alert">{userMessage(current.error)}</p> : current.data && <>
+        {!current.data.totalCount && <p>Không có sự cố tương tự.</p>}
         <ul>{current.data.items.map(item => <li key={item.incidentId}>
           <Link to={`/operations/incidents/${item.incidentId}`}>{item.incidentNo}: {item.incidentTitle}</Link> — {displayCode(item.status)}
-          <span> MSG32: Mở sự cố này để thêm bằng chứng nếu có quyền; không tạo sự cố mới.</span>
+          <span> Mở sự cố này để thêm bằng chứng nếu có quyền; không tạo sự cố mới.</span>
         </li>)}</ul>
         <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sự cố tương tự trước</button>
         <span> Trang {page} </span>

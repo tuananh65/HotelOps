@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
@@ -12,9 +13,9 @@ export function MaterialAvailabilityView({ data }: { data: Values }) {
     <h2>Vật tư khả dụng</h2>
     <p>Chỉ xem trước, không giữ tồn kho. Vật tư đang vận chuyển không thể cấp trước khi nhận.</p>
     <label>Kho
-      <select value={String(warehouse?.warehouseId ?? "")} onChange={e => setSelected(e.target.value)} disabled={!warehouses.length}>
+      <SearchableSelect value={String(warehouse?.warehouseId ?? "")} onChange={e => setSelected(e.target.value)} disabled={!warehouses.length}>
         {warehouses.map(w => <option key={String(w.warehouseId)} value={String(w.warehouseId)}>{String(w.warehouseName)}</option>)}
-      </select>
+      </SearchableSelect>
     </label>
     {warehouse && String(warehouse.warehouseId) !== String(data.warehouseId) &&
       <p>Đây là kho để so sánh. Kho cấp phát của yêu cầu không đổi.</p>}

@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -70,9 +71,9 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
     <label>Mã kho tiếp nhận<input required type="number" min="1" step="1" value={warehouse} onChange={e => reset({ ...values, warehouseId: e.target.value })} /></label>
     <label>Nhà cung cấp (không bắt buộc)<input maxLength={200} value={String(values.supplierName ?? "")} onChange={e => onChange({ ...values, supplierName: e.target.value })} /></label>
     <label>Ngày dự kiến (không bắt buộc)<input type="date" value={String(values.expectedOn ?? "")} onChange={e => onChange({ ...values, expectedOn: e.target.value })} /></label>
-    <label>Nguồn thiếu hụt<select value={source} onChange={e => { setSource(e.target.value); setPage(1); }}>
+    <label>Nguồn thiếu hụt<SearchableSelect value={source} onChange={e => { setSource(e.target.value); setPage(1); }}>
       <option value="low-stock">Dưới mức tồn tối thiểu</option><option value="material-requests">Yêu cầu vật tư đã duyệt</option>
-    </select></label>
+    </SearchableSelect></label>
     <p>Nhu cầu vật tư chỉ gồm yêu cầu bạn được xem. Số lượng theo đơn vị cơ sở; số liệu không giữ chỗ tồn kho.</p>
     {source === "material-requests" && sourceRequestId && <p>Thiếu hụt được phép xem của yêu cầu {sourceRequestId}.
       <button type="button" onClick={() => reset({ ...values, sourceRequestId: "" })}>Hiện tất cả yêu cầu được phép xem</button></p>}
@@ -92,14 +93,14 @@ export function ReplenishmentCreateFields({ values, onChange }: { values: Values
     <button type="button" disabled={!current?.data || page * 20 >= current.data.total} onClick={() => setPage(p => p + 1)}>Tiếp</button>
     {lines.map(l => <div key={String(l.itemId)}>
       <label>{String(l.itemName || `Vật tư ${l.itemId}`)} Đơn vị
-        <select value={String(l.inputUomId)} onChange={e => {
+        <SearchableSelect value={String(l.inputUomId)} onChange={e => {
           const unit = (Array.isArray(l.units) ? l.units.filter(isObject) : []).find(u => String(u.uomId) === e.target.value);
           if (!unit) return;
           onChange({ ...values, lines: lines.map(x => x.itemId === l.itemId ? { ...x, inputUomId: unit.uomId,
             factorToBase: unit.factorToBase, inputQty: "", requestedBaseQty: null } : x) });
         }}>
           {(Array.isArray(l.units) ? l.units.filter(isObject) : []).map(u => <option key={String(u.uomId)} value={String(u.uomId)}>{String(u.unitName)}</option>)}
-        </select>
+        </SearchableSelect>
       </label>
       <label>Số lượng yêu cầu<input type="number" required min="0.001" step="0.001" value={String(l.inputQty)} onChange={e => onChange({ ...values,
         lines: lines.map(x => x.itemId === l.itemId ? { ...x, inputQty: e.target.value,

@@ -1,3 +1,7 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -124,14 +128,14 @@ export function TaskReopenPanel({
         >
           Tải lại chi tiết mở lại
         </button>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         {snapshot && (
           <>
             <ol>
               {snapshot.data.history.map((event) => (
                 <li key={event.previousSubmissionId}>
                   Đã mở lại {event.reopenedAt} bởi người dùng {event.reopenedBy}
-                  ; giao cho người dùng {event.assigneeId}.
+                  ; giao cho người dùng {referenceLabel(event, "assigneeId")}.
                   <p>Lý do: {event.reason}</p>
                   <p>Hướng dẫn khắc phục: {event.instructions}</p>
                   <TaskSubmissionReview
@@ -163,7 +167,7 @@ export function TaskReopenPanel({
                 >
                   <label>
                     Tìm người thực hiện khi mở lại
-                    <input
+                    <SearchInput suggestions={searchSuggestions(snapshot)}
                       value={search}
                       maxLength={150}
                       disabled={busy}
@@ -182,7 +186,7 @@ export function TaskReopenPanel({
                 >
                   <label>
                     Người thực hiện khi mở lại
-                    <select
+                    <SearchableSelect
                       aria-label="Người thực hiện khi mở lại"
                       required
                       disabled={busy || locked}
@@ -197,7 +201,7 @@ export function TaskReopenPanel({
                           hôm nay
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </label>
                   <label>
                     Lý do mở lại

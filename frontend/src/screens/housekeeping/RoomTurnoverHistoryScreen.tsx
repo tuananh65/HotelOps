@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
 import {
   useRoomWorkspace,
@@ -38,6 +41,15 @@ export default function RoomTurnoverHistoryScreen() {
   const key = params.toString(),
     room = params.get("roomId") || params.get("room") || "",
     cycle = params.get("cycleId") || "";
+  useEffect(() => {
+    if (!room && scope.branch && choices.items?.length) {
+      const next = new URLSearchParams(params);
+      next.set("branchId", String(scope.branch.id));
+      next.set("roomId", String(choices.items[0].id));
+      next.delete("cycleId");
+      setParams(next, { replace: true });
+    }
+  }, [room, scope.branch?.id, choices.items, params, setParams]);
   const [result, setResult] = useState<{
       key: string;
       owner: typeof scope.owner;
@@ -134,7 +146,7 @@ export default function RoomTurnoverHistoryScreen() {
       <RoomBranchField scope={scope} />
       {choices.error && (
         <p role="alert">
-          {choices.error}{" "}
+          {userMessage(choices.error)}{" "}
           <button onClick={choices.reload}>Tải lại danh sách phòng</button>
         </p>
       )}
@@ -187,7 +199,7 @@ export default function RoomTurnoverHistoryScreen() {
           </label>
           <label>
             Kết quả kiểm tra
-            <select
+            <SearchableSelect
               aria-label="Kết quả kiểm tra"
               name="result"
               defaultValue={params.get("result") || ""}
@@ -195,11 +207,11 @@ export default function RoomTurnoverHistoryScreen() {
               <option value="">Tất cả</option>
               <option value="PASS">Đạt</option>
               <option value="FAIL">Không đạt</option>
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Số dòng
-            <select
+            <SearchableSelect
               name="pageSize"
               defaultValue={params.get("pageSize") || "20"}
             >
@@ -208,7 +220,7 @@ export default function RoomTurnoverHistoryScreen() {
                   {displayCode(n)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
         </CollapsibleFilterPanel>
       </form>
@@ -223,7 +235,7 @@ export default function RoomTurnoverHistoryScreen() {
       {loading && scope.branch && <LoadingIndicator label="Đang tải lịch sử" />}
       {error && (
         <p role="alert">
-          {error}{" "}
+          {userMessage(error)}{" "}
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
@@ -294,14 +306,14 @@ export default function RoomTurnoverHistoryScreen() {
           )}
           <button
             disabled={p.filters.page <= 1}
-            onClick={() => pageChange("Trang", p.filters.page - 1)}
+            onClick={() => pageChange("page", p.filters.page - 1)}
           >
             Trang trước
           </button>{" "}
           Trang {p.filters.page}{" "}
           <button
             disabled={p.filters.page * p.filters.pageSize >= p.total}
-            onClick={() => pageChange("Trang", p.filters.page + 1)}
+            onClick={() => pageChange("page", p.filters.page + 1)}
           >
             Trang sau
           </button>
@@ -328,7 +340,7 @@ export default function RoomTurnoverHistoryScreen() {
             {d.timeline.map((e) => (
               <li key={`${displayCode(e.sourceType)}:${e.sourceId}:${e.event}`}>
                 <time>{hotelTime(e.atUtc)}</time> · {displayCode(e.sourceType)}{" "}
-                #{e.sourceId} · {e.event} · {displayCode(e.state)} · {e.note} ·
+                {referenceLabel(e, "sourceId")} · {e.event} · {displayCode(e.state)} · {e.note} ·
                 Người thực hiện {e.actorId ?? "—"}
               </li>
             ))}
@@ -350,8 +362,8 @@ export default function RoomTurnoverHistoryScreen() {
           <ul>
             {d.inspections.map((i) => (
               <li key={i.id}>
-                Kiểm tra {i.id} · Phiên bản danh sách kiểm tra {i.versionNumber}{" "}
-                (mã {i.versionId}) · {displayCode(i.recordedStatus)} ·{" "}
+                Kiểm tra {referenceLabel(i, "id")} · Phiên bản danh sách kiểm tra {i.versionNumber}{" "}
+                (mã {referenceLabel(i, "versionId")}) · {displayCode(i.recordedStatus)} ·{" "}
                 {hotelTime(i.atUtc)} ·{" "}
                 {i.result ? roomLabel(i.result) : "Chưa kết luận"}{" "}
                 <Link
@@ -366,7 +378,7 @@ export default function RoomTurnoverHistoryScreen() {
           <ul>
             {d.reworks.map((w) => (
               <li key={w.id}>
-                Làm lại {w.id} · Kiểm tra {w.inspectionId} ·{" "}
+                Làm lại {referenceLabel(w, "id")} · Kiểm tra {referenceLabel(w, "inspectionId")} ·{" "}
                 {roomLabel(w.workflowState ?? w.recordedStatus)} ·{" "}
                 {hotelTime(w.requestedAtUtc)} · {w.note}
               </li>
@@ -379,7 +391,7 @@ export default function RoomTurnoverHistoryScreen() {
                 <a href={e.downloadPath} target="_blank" rel="noreferrer">
                   {e.name}
                 </a>{" "}
-                · {e.entityType} #{e.entityId}
+                · {e.entityType} {referenceLabel(e, "entityId")}
               </li>
             ))}
           </ul>

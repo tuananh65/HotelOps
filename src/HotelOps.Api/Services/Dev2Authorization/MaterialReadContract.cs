@@ -126,7 +126,7 @@ internal static class MaterialReadContract
         a.Http.Items[DisclosedScopeKey] = scope;
         try
         {
-            if (a.Identity.ActionName == "List") return new OkObjectResult(await MaterialRequestService.ListAsync(scope.Apply(db.MaterialRequests.AsNoTracking()), Page(a), ct));
+            if (a.Identity.ActionName == "List") return new OkObjectResult(await MaterialRequestService.ListAsync(db, scope.Apply(db.MaterialRequests.AsNoTracking()), Page(a), ct));
             if (a.Identity.ActionName is "Fulfillments" or "Fulfillment")
             {
                 var service = a.Http.RequestServices.GetRequiredService<MaterialRequestService>();

@@ -1,3 +1,5 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -5,6 +7,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
 import { useAuth } from "../auth/AuthProvider";
+import { staffDate } from "../internalRequests/staffDate";
 
 type Item = {
   id: number;
@@ -276,9 +279,9 @@ function BoundIncidentEvidencePanel({
       >
         Tải lại bằng chứng
       </button>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {!current && <p role="status">Đang tải bằng chứng…</p>}
-      {current?.error && <p role="alert">{current.error}</p>}
+      {current?.error && <p role="alert">{userMessage(current.error)}</p>}
       {current?.data && (
         <>
           {!current.data.total && <p>Chưa có tệp đính kèm.</p>}
@@ -307,7 +310,7 @@ function BoundIncidentEvidencePanel({
                   {item.name}
                 </a>
                 <p>
-                  Người tải lên {item.authorId} lúc {item.uploadedAt}
+                  Người tải lên {referenceLabel(item, "authorId")} lúc {staffDate(item.uploadedAt)}
                 </p>
                 {item.note && <p>{item.note}</p>}
               </li>
@@ -316,7 +319,7 @@ function BoundIncidentEvidencePanel({
           <ul>
             {current.data.notes.map((n) => (
               <li key={n.id}>
-                {n.note ?? "Tệp đã thêm"} — Người dùng {n.authorId}, {n.at}
+                 {n.note ?? "Tệp đã thêm"} — {referenceLabel(n, "authorId")}, {staffDate(n.at)}
               </li>
             ))}
           </ul>

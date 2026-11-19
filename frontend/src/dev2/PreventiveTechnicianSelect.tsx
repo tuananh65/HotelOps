@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -35,10 +37,10 @@ export function PreventiveTechnicianSelect({url,value,onChange,optional=false}:{
   if(!owner||owner!==mounted)return null;
   return <div><button type="button" disabled={busy} onClick={()=>void load()}>Tải kỹ thuật viên đủ điều kiện</button>
     {next!==null&&<button type="button" disabled={busy} onClick={()=>void load(true)}>Thêm kỹ thuật viên</button>}
-    <label>{optional?"Kỹ thuật viên mặc định (không bắt buộc)":"Kỹ thuật viên"}<select disabled={busy} value={value} onChange={e=>onChange(e.target.value)}>
+    <label>{optional?"Kỹ thuật viên mặc định (không bắt buộc)":"Kỹ thuật viên"}<SearchableSelect disabled={busy} value={value} onChange={e=>onChange(e.target.value)}>
       <option value="">{optional?"Chưa có kỹ thuật viên mặc định":"Chọn kỹ thuật viên"}</option>
       {value&&!rows.some(r=>String(r.userId)===value)&&<option value={value} disabled>Lựa chọn hiện tại #{displayCode(value)} ? tải lại điều kiện</option>}
       {rows.map(r=><option key={r.userId} value={r.userId}>{r.name} (#{displayCode(r.userId)})</option>)}
-    </select></label>{message&&<p role="status">{message}</p>}
+    </SearchableSelect></label>{message&&<p role="status">{userMessage(message)}</p>}
   </div>;
 }

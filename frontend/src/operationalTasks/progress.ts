@@ -3,6 +3,7 @@ export class TaskProgressError extends Error {
     public readonly status: number,
     public readonly messageCode?: string,
     public readonly missingCriteria: string[] = [],
+    public readonly problemCode?: string,
   ) {
     super(`Yêu cầu tiến độ công việc thất bại (${status})`);
   }
@@ -55,7 +56,8 @@ const text = (s: string | null, max: number) =>
     s.trim().length <= max &&
     !/[\u0000-\u001f\u007f-\u009f]/.test(s));
 function path(branch: number, task: number) {
-  if (!id(branch) || !id(task)) throw new Error("Định danh công việc không hợp lệ");
+  if (!id(branch) || !id(task))
+    throw new Error("Định danh công việc không hợp lệ");
   return `/api/branches/${branch}/operational-tasks/${task}/progress`;
 }
 async function request(
@@ -84,6 +86,7 @@ async function request(
         )
         ? problem.missingCriteria
         : [],
+      typeof problem?.title === "string" ? problem.title : undefined,
     );
   }
   return response;

@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   ActionDialog,
   CollapsibleFilterPanel,
@@ -308,9 +309,9 @@ export function ShiftRosterPanel({
       {notice?.owner === owner &&
         notice.branch === Number(branch) &&
         notice.department === Number(department) && (
-          <p role="status">{notice.text}</p>
+          <p role="status">{userMessage(notice.text)}</p>
         )}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {result && (
         <>
           <p>

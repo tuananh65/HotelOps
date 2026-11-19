@@ -33,7 +33,7 @@ test("canonical mutation cannot cross a changed session during CSRF bootstrap", 
       { note: "Accepted rework" },
       { signal: new AbortController().signal, isCurrent: () => current },
     ),
-    /Session changed/,
+    { name: "AbortError", message: "Phiên đăng nhập đã thay đổi" },
   );
   assert.deepEqual(calls, ["/api/auth/csrf"]);
 });

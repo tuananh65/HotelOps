@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -61,7 +62,7 @@ export function TaskSubmissionReview({
       <button onClick={() => { onReady?.(false); setReload((n) => n + 1); }}>
         Tải lại kết quả hoàn tất đã nộp
       </button>
-      {error && <p>{error}</p>}
+      {error && <p>{userMessage(error)}</p>}
       {result && (
         <>
           <p>

@@ -1,8 +1,11 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
 } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
+import { StatusBadge } from "../components/design-system";
+import { staffDate } from "./staffDate";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { InternalRequestAssignmentPanel } from "./AssignmentPanel";
@@ -228,25 +231,34 @@ export function InternalRequestDecisionPanel({
   }
   if (!owner) return null;
   return (
-    <section aria-label="Quyết định yêu cầu">
-      {message && <p role="status">{message}</p>}
+    <section className="ir-summary" aria-label="Thông tin yêu cầu">
+      {message && <p role="status">{userMessage(message)}</p>}
       <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
-        Tải lại quyết định
+        Tải lại thông tin
       </button>
       {view && (
         <>
-          <h3>{view.subject}</h3>
-          <p>{view.description}</p>
-          <p>Trạng thái: {displayCode(view.status)}</p>
-          <p>
-            Đã nộp: {view.submittedAt}; thời gian tồn tại:{" "}
-            {Math.floor(view.ageSeconds / 60)} phút.
-          </p>
-          <p>Thời hạn (UTC): {view.deadline ?? "Chưa có thời hạn"}</p>
-          <p>
-            Thời hạn người yêu cầu mong muốn (UTC):{" "}
-            {view.desiredDeadline ?? "Chưa chỉ định"}
-          </p>
+          <h2>{view.subject}</h2>
+          <StatusBadge>{displayCode(view.status)}</StatusBadge>
+          <p className="ir-description">{view.description}</p>
+          <dl className="ir-facts">
+            <div>
+              <dt>Ngày gửi</dt>
+              <dd>{staffDate(view.submittedAt)}</dd>
+            </div>
+            <div>
+              <dt>Hạn xử lý</dt>
+              <dd>{staffDate(view.deadline)}</dd>
+            </div>
+            <div>
+              <dt>Thời gian mong muốn</dt>
+              <dd>
+                {view.desiredDeadline
+                  ? staffDate(view.desiredDeadline)
+                  : "Chưa chỉ định"}
+              </dd>
+            </div>
+          </dl>
           {view.canDecide && (
             <InternalRequestRoutePanel
               id={id}

@@ -13,21 +13,23 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [UserAccountActivationErrors]
 [RequestSizeLimit(72 * 1024 * 1024)]
-public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration,
+    HotelOps.Api.Services.Housekeeping.InitialInspectionWriter initialWriter,
+    HotelOps.Api.Services.Housekeeping.ReworkWorkflowWriter reworkWriter) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
     [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/reassignment-options")]
     public Task<IActionResult> ReinspectionReassignmentOptions(long branchId,long id,CancellationToken ct)
-        => Execute((ticket,sid)=>service.ReadReinspectionReassignmentAsync(ticket,sid,branchId,id,Root,ct),false);
+        => Execute((ticket,sid)=>reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionReassignmentAsync(ticket,sid,branchId,id,Root,ct),ct),false);
     [HttpPost("api/branches/{branchId:long}/reinspections/{id:long}/reassign")]
     public Task<IActionResult> ReassignReinspection(long branchId,long id,ReinspectionReassignmentRequest input,CancellationToken ct)
-        => Execute((ticket,sid)=>service.ReassignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),true);
+        => Execute((ticket,sid)=>reworkWriter.ExecuteAsync(writer => writer.ReassignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),ct),true);
     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/reassignment-options")]
     public Task<IActionResult> ReassignmentOptions(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadInspectionReassignmentAsync(ticket,sid,branchId,id,ct),false);
+        => Execute((ticket,sid) => initialWriter.ExecuteAsync(writer => writer.ReadInspectionReassignmentAsync(ticket,sid,branchId,id,ct),ct),false);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reassign")]
     public Task<IActionResult> Reassign(long branchId, long id, InspectionReassignmentRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReassignInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true);
+        => Execute((ticket,sid) => initialWriter.ExecuteAsync(writer => writer.ReassignInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),ct),true);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reject")]
     public Task<IActionResult> Reject(long branchId, long id, RejectInspectionRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.RejectInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true);
@@ -52,42 +54,45 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
         => Execute((ticket,sid) => service.AssignCleaningCandidateAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true);
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections")]
     public Task<IActionResult> AssignInspection(long branchId, long id, InitialInspectionAssignmentRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.AssignInitialInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true,true);
+        => Execute((ticket,sid) => initialWriter.ExecuteAsync(writer => writer.AssignInitialInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),ct),true,true);
     [HttpGet("api/branches/{branchId:long}/inspections/pending-assignment")]
     public Task<IActionResult> InitialQueue(long branchId, CancellationToken ct, long? roomId=null, int page=1, int pageSize=25)
         => Execute((ticket,sid) => service.ReadInitialInspectionQueueAsync(ticket,sid,branchId,roomId,page,pageSize,ct),false);
+    [HttpGet("api/inspections/assignment-branches")]
+    public Task<IActionResult> AssignmentBranches(CancellationToken ct)
+        => Execute((ticket,sid) => service.InspectionHistoryBranchesAsync(ticket,sid,ct,assignment:true),false);
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/initial-inspection-options")]
     public Task<IActionResult> InitialOptions(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadInitialInspectionOptionsAsync(ticket,sid,branchId,id,ct),false);
+        => Execute((ticket,sid) => initialWriter.ExecuteAsync(writer => writer.ReadInitialInspectionOptionsAsync(ticket,sid,branchId,id,ct),ct),false);
     [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/reinspection")]
     public Task<IActionResult> AssignReinspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.AssignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
-            Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),true,true);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.AssignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
+            Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),ct),true,true);
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/reinspection-options")]
     public Task<IActionResult> ReinspectionOptions(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadReinspectionAssignmentAsync(ticket,sid,branchId,id,Root,ct),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionAssignmentAsync(ticket,sid,branchId,id,Root,ct),ct),false);
     [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/execution")]
     public Task<IActionResult> ReadReinspection(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct),ct),false);
     [HttpPost("api/branches/{branchId:long}/reinspections/{id:long}/conclude")]
     public Task<IActionResult> ConcludeReinspection(long branchId, long id, ConcludeReinspectionRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.ConcludeReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
-            Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),true);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ConcludeReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
+            Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),ct),true);
     [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/original")]
     public Task<IActionResult> ReinspectionOriginal(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadReinspectionOriginalAsync(ticket,sid,branchId,id,Root,ct),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionOriginalAsync(ticket,sid,branchId,id,Root,ct),ct),false);
     [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/original/evidence/{attachmentId:long}")]
     public Task<IActionResult> ReinspectionOriginalEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadReinspectionOriginalAsync(ticket,sid,branchId,id,Root,ct,attachmentId),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionOriginalAsync(ticket,sid,branchId,id,Root,ct,attachmentId),ct),false);
     [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/evidence/{attachmentId:long}")]
     public Task<IActionResult> ReinspectionEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct,attachmentId),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct,attachmentId),ct),false);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Root),true,true);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Root),ct),true,true);
     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/rework-options")]
     public Task<IActionResult> ReworkOptions(long branchId, long id, CancellationToken ct)
-        => Execute((ticket,sid) => service.ReadInspectionReworkOptionsAsync(ticket,sid,branchId,id,ct),false);
+        => Execute((ticket,sid) => reworkWriter.ExecuteAsync(writer => writer.ReadInspectionReworkOptionsAsync(ticket,sid,branchId,id,ct),ct),false);
     private Task<IActionResult> Inspect(long branch,long id,string action,SaveInspectionRequest? save,RecordInspectionDefectRequest? defect,string? reason,CancellationToken ct)
         => Execute((ticket,sid) => service.ExecuteInspectionAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),action,save,defect,reason,Root,ct),action!="read");
     private async Task<IActionResult> Execute(Func<SessionReference,long,Task<RoomTypeBatchResult>> action,bool conditional,bool created=false)

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
+import { HistoryBranchSelector } from "../features/inspectionHistory/HistoryBranchSelector";
 import { HistoryRoute } from "../features/inspectionHistory/HistoryRoute";
 import {
   createHistoryApi,
@@ -13,24 +14,20 @@ export function InspectionHistoryAuthRoute() {
   const { state } = useAuth();
   const { id } = useParams();
   const location = useLocation();
-  const [, setParams] = useSearchParams();
-  const [branchInput, setBranchInput] = useState("");
-  const [inputError, setInputError] = useState("");
   const query = new URLSearchParams(location.search);
-  if (!id && !location.search) return (
-    <main>
-      <h1>Lịch sử kiểm tra</h1>
-      <form onSubmit={(event) => {
-        event.preventDefault();
-        try { setParams({ branchId: String(positiveId(branchInput)) }); setInputError(""); }
-        catch { setInputError("Nhập mã chi nhánh hợp lệ."); }
-      }}>
-        <label>Mã chi nhánh<input inputMode="numeric" value={branchInput} onChange={event => setBranchInput(event.target.value)} /></label>
-        <button type="submit">Xem lịch sử kiểm tra</button>
-      </form>
-      {inputError && <p role="alert">{inputError}</p>}
-    </main>
-  );
+  if (!id && !location.search)
+    return (
+      <main className="ops-history">
+        <header>
+          <h1>Lịch sử kiểm tra phòng</h1>
+          <p>
+            Xem kết quả kiểm tra, lỗi cần khắc phục và bằng chứng theo từng
+            phòng.
+          </p>
+        </header>
+        <HistoryBranchSelector autoSelect />
+      </main>
+    );
   let branch: number, inspection: number | undefined;
   try {
     if (
@@ -77,7 +74,11 @@ function AdmittedHistory({
     lifetime.current = abort;
     setAdmission("pending");
     const api = createHistoryApi(branch, abort.signal);
-    void (inspection === undefined ? api.list({ page: 1, pageSize: 20 }) : api.detail(inspection))
+    void (
+      inspection === undefined
+        ? api.list({ page: 1, pageSize: 20 })
+        : api.detail(inspection)
+    )
       .then(() => {
         if (!abort.signal.aborted) setAdmission("granted");
       })
@@ -90,17 +91,21 @@ function AdmittedHistory({
     return () => abort.abort();
   }, [branch, inspection, generation, actions]);
   return (
-    <main>
-      <h1>Lịch sử kiểm tra</h1>
-      <Link to="/notifications">Thông báo</Link>
-      <Link to="/inspection-history">Thay đổi chi nhánh</Link>
+    <main className="ops-history">
+      <header>
+        <h1>Lịch sử kiểm tra phòng</h1>
+        <p>
+          Xem kết quả kiểm tra, lỗi cần khắc phục và bằng chứng theo từng phòng.
+        </p>
+      </header>
+      {admission === "granted" && (
+        <HistoryBranchSelector selected={String(branch)} />
+      )}
       {admission === "pending" && (
         <p role="status">Đang kiểm tra quyền xem lịch sử kiểm tra...</p>
       )}
       {admission === "denied" && (
-        <p role="alert">
-          Lịch sử kiểm tra chưa khả dụng hoặc quyền đã đổi.
-        </p>
+        <p role="alert">Lịch sử kiểm tra chưa khả dụng hoặc quyền đã đổi.</p>
       )}
       {admission === "granted" && state.session && (
         <HistoryRoute

@@ -1,3 +1,5 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { uploadFile } from "../../api/dev1/cleaningProgress";
 import {
@@ -78,7 +80,7 @@ export function ReworkSubmissionForm({
           <section key={d.id}>
             <p>{d.description}</p>
             <label>
-              Khắc phục lỗi {d.id}
+              Khắc phục lỗi {referenceLabel(d, "id")}
               <textarea
                 name={`remediation-${d.id}`}
                 required
@@ -90,7 +92,7 @@ export function ReworkSubmissionForm({
               <p role="alert">Trường này là bắt buộc.</p>
             )}
             <label>
-              Ảnh khắc phục lỗi {d.id}
+              Ảnh khắc phục lỗi {referenceLabel(d, "id")}
               <input
                 name={`photo-${d.id}`}
                 type="file"
@@ -103,7 +105,7 @@ export function ReworkSubmissionForm({
         <p>Nộp sẽ chuyển kết quả làm lại sang kiểm tra lại.</p>
         <button type="submit">Nộp kết quả làm lại</button>
       </fieldset>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
     </form>
   );
 }

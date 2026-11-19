@@ -1,11 +1,13 @@
+import { userMessage } from "../i18n/userMessage";
 import { StatusBadge } from "../components/design-system";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createWorkdayApi, type WorkdayApi } from "./workdayApi";
 import { safeId, type ReadFailure, type ReadResult } from "./contracts";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import { staffDate } from "../internalRequests/staffDate";
+import { useWorkspacePermissions } from "../screens/housekeeping/useWorkspacePermissions";
+import { ActionLink } from "../components/ActionLink";
 
 const messages: Record<ReadFailure, string> = {
   "invalid-request": "Chưa có chi nhánh hợp lệ.",
@@ -81,7 +83,7 @@ function ReadSection<T>({
         <LoadingIndicator label="Đang tải ca làm việc" />
       ) : view.kind === "error" ? (
         <div role="alert">
-          <p>{messages[view.error]}</p>
+          <p>{userMessage(messages[view.error])}</p>
           {view.error === "unauthorized" ? (
             <button onClick={revalidate}>Xác minh phiên</button>
           ) : (
@@ -112,6 +114,7 @@ export function WorkdayReadPanel({
   canReadCurrent?: boolean;
 }) {
   const { state, actions } = useAuth();
+  const access = useWorkspacePermissions(branchId);
   const defaultClient = useMemo(() => createWorkdayApi(), []);
   const client = injectedClient ?? defaultClient;
   const confirmed =
@@ -141,12 +144,12 @@ export function WorkdayReadPanel({
       <section>
         <h2>Ca làm việc của tôi</h2>
         <p>Chưa xác nhận phiên đăng nhập không hạn chế.</p>
-        <Link to="/login">Đăng nhập</Link>
-        <Link to="/change-password">Đổi mật khẩu</Link>
+        <ActionLink to="/login">Đăng nhập</ActionLink>
+        <ActionLink to="/change-password">Đổi mật khẩu</ActionLink>
       </section>
     );
   if (!safeId(branchId))
-    return <p role="alert">{messages["invalid-request"]}</p>;
+    return <p role="alert">{userMessage(messages["invalid-request"])}</p>;
   return (
     <section className="time-columns">
       {canReadShifts && (
@@ -170,11 +173,11 @@ export function WorkdayReadPanel({
                       {staffDate(s.scheduledEndAtUtc)}
                     </strong>
                     <p>
-                      <Link
+                      <ActionLink
                         to={`/workday?branchId=${branchId}&shiftAssignmentId=${s.shiftAssignmentId}`}
                       >
                         Xem chi tiết ca
-                      </Link>
+                      </ActionLink>
                     </p>
                   </li>
                 ))}
@@ -198,9 +201,14 @@ export function WorkdayReadPanel({
               <div>
                 <StatusBadge>Đang làm việc</StatusBadge>
                 <p>Bắt đầu lúc {staffDate(data.startedAtUtc)}</p>
-                <Link to={`/workday/handovers?workdayId=${data.workdayId}`}>
-                  Chuẩn bị bàn giao ca
-                </Link>
+                {access.allows("SHIFT_HANDOVER_SUBMIT", true) &&
+                  access.allows("SHIFT_HANDOVER_VIEW", true) && (
+                    <ActionLink
+                      to={`/workday/handovers?workdayId=${data.workdayId}`}
+                    >
+                      Chuẩn bị bàn giao ca
+                    </ActionLink>
+                  )}
               </div>
             )
           }

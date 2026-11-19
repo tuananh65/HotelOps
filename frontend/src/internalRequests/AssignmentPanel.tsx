@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -199,7 +201,7 @@ export function InternalRequestAssignmentPanel({
     >
       <section aria-label="Phân công người xử lý yêu cầu">
         <h3>Phân công người xử lý</h3>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại người xử lý
         </button>
@@ -213,7 +215,7 @@ export function InternalRequestAssignmentPanel({
               </p>
               <label>
                 Người xử lý yêu cầu
-                <select
+                <SearchableSelect
                   aria-label="Người xử lý yêu cầu"
                   disabled={busy}
                   value={handler}
@@ -229,7 +231,7 @@ export function InternalRequestAssignmentPanel({
                       {h.name} ({displayCode(h.openRequests)} yêu cầu đang mở)
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Ghi chú phân công

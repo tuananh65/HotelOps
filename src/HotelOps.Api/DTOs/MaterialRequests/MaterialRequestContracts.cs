@@ -37,6 +37,10 @@ public sealed record MaterialRequestDto(long RequestId, string RequestNo, string
     IReadOnlyList<MaterialFulfillmentDto> Fulfillments, IReadOnlyList<MaterialReturnDto> Returns)
 {
     public bool LinkedWorkAvailable { get; init; }
+    public string? RequesterName { get; init; }
+    public string? BranchName { get; init; }
+    public string? DepartmentName { get; init; }
+    public IReadOnlyList<string> AvailableLinkKinds { get; init; } = [];
     public MaterialLinkedIncidentDto? LinkedIncident { get; init; }
     public IReadOnlyList<MaterialLinkedRequestDto> LinkedInternalRequests { get; init; } = [];
 }
@@ -46,7 +50,8 @@ public sealed record MaterialAuditDto(long AuditId, string EntityType, string En
     DateTime OccurredAt, string? OldValues, string? NewValues, string? ChangedFields);
 public sealed record MaterialHistoryDto(MaterialRequestDto Request, IReadOnlyList<MaterialAuditDto> Audit);
 public sealed record MaterialSummaryDto(long RequestId, string RequestNo, string RawStatus, long BranchId, long DepartmentId, long RequesterId, DateTime CreatedAt, DateTime? NeededAt,
-    long? AssignedApproverUserId = null, IReadOnlyList<MaterialSummaryLineDto>? Quantities = null);
+    long? AssignedApproverUserId = null, IReadOnlyList<MaterialSummaryLineDto>? Quantities = null, bool CanOpenDetail = true,
+    string? RequesterName = null, string? AssignedApproverName = null, string? BranchName = null);
 public sealed record MaterialSummaryLineDto(long RequestLineId, string ItemName, string UnitName,
     decimal RequestedQty, decimal? ApprovedQty, decimal IssuedQty);
 public sealed record MaterialPageDto(int Page, int PageSize, int Total, IReadOnlyList<MaterialSummaryDto> Items);

@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -44,7 +45,7 @@ export default function MyCleaningAssignments() {
       <label>Chi nhánh <input name="branchId" required defaultValue={branch} key={branch} inputMode="numeric" /></label><button>Tải</button>
     </form>
     <button onClick={() => setRetry(v => v + 1)}>Tải lại</button>
-    {error?.key === key && <p role="alert">{error.message}</p>}
+    {error?.key === key && <p role="alert">{userMessage(error.message)}</p>}
     {branch && owner !== null && !data && error?.key !== key && <p role="status">Đang tải phân công?</p>}
     {data && <><ul>{data.items.map(item => <li key={item.assignmentId}>
       <Link to={'/cleaning/tasks/' + item.id + '?branchId=' + branch + '&assignmentId=' + item.assignmentId}>{item.taskNumber} ? Phòng {item.roomNumber}</Link> ? {displayCode(item.recordedStatus)}

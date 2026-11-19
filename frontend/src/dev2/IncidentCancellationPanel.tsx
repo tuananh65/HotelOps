@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -180,10 +182,10 @@ export function IncidentCancellationPanel({
         <fieldset disabled={busy || attempted || review}>
           <label>
             Loại hủy
-            <select value={kind} onChange={(e) => setKind(e.target.value)}>
+            <SearchableSelect value={kind} onChange={(e) => setKind(e.target.value)}>
               <option value="INVALID">Không hợp lệ</option>
               <option value="DUPLICATE">Trùng lặp</option>
-            </select>
+            </SearchableSelect>
           </label>
           {kind === "DUPLICATE" && (
             <label>
@@ -203,7 +205,7 @@ export function IncidentCancellationPanel({
             />
           </label>
         </fieldset>
-        {message?.owner === owner && <p role="status">{message.text}</p>}
+        {message?.owner === owner && <p role="status">{userMessage(message.text)}</p>}
         {attempted && onReload && (
           <button disabled={busy} onClick={onReload}>
             Tải lại sự cố
@@ -212,7 +214,7 @@ export function IncidentCancellationPanel({
         {review ? (
           <>
             <p>
-              MSG33: Hủy sự cố này theo loại {kind.toLowerCase()}
+              Hủy sự cố này theo loại {kind.toLowerCase()}
               {originalId ? `, tham chiếu sự cố gốc ${originalId}` : ""}? Chỉ bỏ
               lệnh khóa còn hiệu lực của sự cố này. Lệnh khóa khác và yêu cầu vệ
               sinh vẫn giữ nguyên.

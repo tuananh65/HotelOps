@@ -34,10 +34,10 @@ public sealed partial class RoomDirectoryService
                 var cleaning = await permissions.EvaluateBranchAsync("CLEANING_VIEW", b.BranchId, ct);
                 var create = await permissions.EvaluateBranchAsync("CLEANING_ASSIGN", b.BranchId, ct);
                 if (new[] { room, cleaning, create }.Any(p => p.Decision == PermissionDecision.Unavailable)) return null;
-                // Match UC037's existing supervisor gate; a role label alone grants nothing.
+                // Read-only monitor for supervisors and operations managers; creation stays supervisor-only.
                 var supervisorPaths = await (from r in db.UserRoles.AsNoTracking()
                     join p in db.RolePermissions.AsNoTracking() on r.RoleId equals p.RoleId
-                    where r.UserId == actor.UserId && r.Role.RoleCode == "HK_SUPERVISOR"
+                    where r.UserId == actor.UserId && (r.Role.RoleCode == "HK_SUPERVISOR" || r.Role.RoleCode == "OPERATIONS_MANAGER")
                         && p.Permission.PermissionCode == "CLEANING_VIEW" && (r.BranchId == null || r.BranchId == b.BranchId)
                     select new PermissionGrantPath(p.Permission.PermissionCode, p.DataScope, r.BranchId,
                         r.IsActive, r.Role.IsActive, r.AssignedAt, r.ExpiresAt, r.Branch == null || r.Branch.IsActive,

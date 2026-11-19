@@ -1,3 +1,6 @@
+import { userMessage } from "../../i18n/userMessage";
+import { PersonalProfileDetails } from "./PersonalProfileDetails";
+import "./profile.css";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
@@ -68,8 +71,8 @@ export default function ProfileScreen() {
   // Local markup avoids mock/storage initialization through PageHeader/ui/i18n imports.
   // Provider may unmount this component during logout; integration must handle that separately.
   return (
-    <>
-      <header className="page-header">
+    <main className="personal-profile">
+      <header>
         <h1>Hồ sơ cá nhân</h1>
       </header>
       <section className="panel form-panel">
@@ -77,14 +80,15 @@ export default function ProfileScreen() {
         {session ? (
           <>
             <h2>{session.user.name}</h2>
-            {location.state?.passwordChanged === true && !session.mustChangePassword && (
-              <p role="status">MSG08: Đã đổi mật khẩu thành công.</p>
+            {location.state?.passwordChanged === true &&
+              !session.mustChangePassword && (
+                <p role="status">Đã đổi mật khẩu thành công.</p>
+              )}
+            {!session.mustChangePassword && (
+              <PersonalProfileDetails key={String(state.authorityGeneration)} />
             )}
+            <h3>Bảo mật tài khoản</h3>
             <dl className="metadata">
-              <div>
-                <dt>ID</dt>
-                <dd>{session.user.id}</dd>
-              </div>
               <div>
                 <dt>Tên đăng nhập</dt>
                 <dd>{session.user.username}</dd>
@@ -92,7 +96,13 @@ export default function ProfileScreen() {
               <div>
                 <dt>Phiên hết hạn lúc</dt>
                 <dd>
-                  <time dateTime={session.expiresAt}>{session.expiresAt}</time>
+                  <time dateTime={session.expiresAt}>
+                    {new Intl.DateTimeFormat("vi-VN", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    }).format(new Date(session.expiresAt))}
+                  </time>
                 </dd>
               </div>
               <div>
@@ -108,7 +118,7 @@ export default function ProfileScreen() {
               : "Chưa có hồ sơ đã xác minh. Kiểm tra phiên đăng nhập."}
           </p>
         )}
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         <div className="form-actions">
           {session && (
             <Link className="secondary" to="/change-password">
@@ -128,6 +138,6 @@ export default function ProfileScreen() {
           )}
         </div>
       </section>
-    </>
+    </main>
   );
 }

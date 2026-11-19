@@ -1,3 +1,6 @@
+import { ActionLink } from "../components/ActionLink";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -6,7 +9,7 @@ import {
 import { StatusBadge } from "../components/design-system";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import { TimeLogFailure } from "./timeLogApi";
@@ -18,6 +21,7 @@ import {
   type CorrectionDetail,
 } from "./timeCorrectionsApi";
 import { hotelInput, utcInput } from "./CorrectionRequestForm";
+import { CreateTimeCorrection } from "./CreateTimeCorrection";
 import { correctionMessage } from "./correctionMessage";
 import { useWorkTimeScope, WorkTimeBranchField } from "./useWorkTimeScope";
 import "./work-time.css";
@@ -43,7 +47,7 @@ export function TimeCorrectionsPage() {
             Nam (UTC+7).
           </p>
         </div>
-        <Link to="/my-time-log">Mở nhật ký để tạo đề nghị</Link>
+        <ActionLink to="/my-time-log">Mở nhật ký để tạo đề nghị</ActionLink>
       </header>
       <WorkTimeBranchField scope={scope} disabled={busy} />
       {scope.branch && scope.owner && (
@@ -63,8 +67,8 @@ export function TimeCorrectionsPage() {
         />
       )}
       <nav className="time-links">
-        <Link to="/workday">Lịch ca &amp; ngày làm việc</Link>
-        <Link to="/home">Trang chủ</Link>
+        <ActionLink to="/workday">Lịch ca &amp; ngày làm việc</ActionLink>
+        <ActionLink to="/home">Trang chủ</ActionLink>
       </nav>
     </main>
   );
@@ -204,6 +208,14 @@ function CorrectionsBody({
   }
   return (
     <>
+      {own && (
+        <div className="time-toolbar">
+          <CreateTimeCorrection
+            branch={branch}
+            onSaved={() => setRevision((n) => n + 1)}
+          />
+        </div>
+      )}
       <CollapsibleFilterPanel activeCount={Number(!!department)}>
         <section
           className="time-card time-toolbar"
@@ -212,7 +224,7 @@ function CorrectionsBody({
           {departments.length > 0 ? (
             <label>
               Phạm vi xem
-              <select
+              <SearchableSelect
                 aria-label="Phạm vi xem"
                 disabled={busy}
                 value={department}
@@ -228,7 +240,7 @@ function CorrectionsBody({
                     Xét duyệt: {d.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
           ) : (
             <strong>Đề nghị của tôi</strong>
@@ -243,7 +255,7 @@ function CorrectionsBody({
           </button>
         </section>
       </CollapsibleFilterPanel>
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {!visible && <LoadingIndicator label="Đang tải đề nghị điều chỉnh" />}
       {visible?.items && (
         <>
@@ -251,10 +263,10 @@ function CorrectionsBody({
             <div className="time-empty">
               <p>Chưa có đề nghị điều chỉnh trong phạm vi này.</p>
               {own && !department && (
-                <Link to="/my-time-log">
+                <ActionLink to="/my-time-log">
                   Vào nhật ký thời gian, chọn khoảng đã kết thúc rồi bấm Đề nghị
                   điều chỉnh.
-                </Link>
+                </ActionLink>
               )}
             </div>
           ) : (
@@ -263,7 +275,7 @@ function CorrectionsBody({
                 <li key={r.correctionId}>
                   <div className="time-toolbar">
                     <button onClick={() => setId(r.correctionId)}>
-                      Xem đề nghị #{r.correctionId}
+                      Xem đề nghị điều chỉnh
                     </button>
                     <StatusBadge>{displayCode(r.status)}</StatusBadge>
                   </div>
@@ -296,7 +308,7 @@ function CorrectionsBody({
       )}
       {row && (
         <section className="time-card">
-          <h2>Đề nghị #{row.correctionId}</h2>
+          <h2>Chi tiết đề nghị điều chỉnh</h2>
           <p>
             <StatusBadge>{displayCode(row.status)}</StatusBadge> ·{" "}
             {displayCode(row.kind)}
@@ -401,7 +413,7 @@ function CorrectionsBody({
       )}
       {message && (
         <p className={success ? "time-success" : "time-empty"} role="status">
-          {message}
+          {userMessage(message)}
         </p>
       )}
     </>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 
-export type TaskBranch = { id: number; name: string; isPrimary: boolean; canCreate: boolean };
+export type TaskBranch = { id: number; name: string; isPrimary: boolean; canCreate: boolean; canViewWorkload?: boolean; canManageSeries?: boolean };
 export function useTaskBranches() {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && !state.pending && !state.session?.mustChangePassword ? state.authorityGeneration : null;
@@ -16,7 +16,7 @@ export function useTaskBranches() {
         if (response.status === 401) { actions.invalidateSession(owner); return; }
         if (!response.ok) throw new Error();
         const value: unknown = await response.json();
-        if (!Array.isArray(value) || value.some(b => !b || !Number.isSafeInteger(b.id) || b.id <= 0 || typeof b.name !== 'string' || typeof b.isPrimary !== 'boolean' || typeof b.canCreate !== 'boolean')) throw new Error();
+        if (!Array.isArray(value) || value.some(b => !b || !Number.isSafeInteger(b.id) || b.id <= 0 || typeof b.name !== 'string' || typeof b.isPrimary !== 'boolean' || typeof b.canCreate !== 'boolean' || (b.canViewWorkload !== undefined && typeof b.canViewWorkload !== 'boolean') || (b.canManageSeries !== undefined && typeof b.canManageSeries !== 'boolean'))) throw new Error();
         if (!abort.signal.aborted) setResult({ owner, items: value });
       } catch { if (!abort.signal.aborted) setResult({ owner, error: 'Chưa tải được chi nhánh của bạn. Vui lòng thử lại.' }); }
     })();

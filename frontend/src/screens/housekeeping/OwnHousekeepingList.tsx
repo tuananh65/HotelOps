@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getJson } from "../../api/dev1/client";
@@ -94,7 +95,7 @@ export default function OwnHousekeepingList({
       </p>
       <button onClick={() => setRetry((v) => v + 1)}>Tải lại công việc</button>
       {visible?.error ? (
-        <p role="alert">{visible.error}</p>
+        <p role="alert">{userMessage(visible.error)}</p>
       ) : !visible?.items ? (
         <LoadingIndicator label="Đang tải công việc" />
       ) : !visible.items.length ? (

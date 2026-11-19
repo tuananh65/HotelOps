@@ -1,3 +1,7 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { useWorkflowAvailability } from "./WorkflowAvailability";
+import { staffDate } from "./staffDate";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -69,6 +73,7 @@ export function InternalRequestHandoverPanel({
   onSaved?: (state: string, receiptId: number) => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     !state.pending &&
@@ -153,6 +158,9 @@ export function InternalRequestHandoverPanel({
             setLoaded({ owner, id, receiptId: handoverId, view: v });
         })
         .catch((e) => {
+          if (abort.signal.aborted) return;
+          if (reportUnavailable(e)) return;
+          if (e instanceof Failure && [403, 404].includes(e.status)) return;
           if (!abort.signal.aborted) {
             setMessage(
               "Chưa có bàn giao. Tải lại quyền và trách nhiệm hiện tại.",
@@ -162,7 +170,7 @@ export function InternalRequestHandoverPanel({
           }
         });
     return () => abort.abort();
-  }, [id, handoverId, owner, revision, actions]);
+  }, [id, handoverId, owner, revision, actions, reportUnavailable]);
   const view =
     owner &&
     loaded?.owner === owner &&
@@ -305,13 +313,28 @@ export function InternalRequestHandoverPanel({
       }
     }
   }
-  if (!owner) return null;
+  if (!owner || (view && !view.canSubmit && !view.canDecide && !view.state))
+    return null;
+  if (!view)
+    return message ? (
+      <p role="status">
+        {userMessage(message)}{" "}
+        <button onClick={() => setRevision((v) => v + 1)}>Thử lại</button>
+      </p>
+    ) : null;
   return (
-    <ActionDialog title="Yêu cầu bàn giao" busy={busy}>
+    <ActionDialog
+      title={
+        view.canSubmit || view.canDecide
+          ? "Yêu cầu bàn giao"
+          : "Lịch sử bàn giao"
+      }
+      busy={busy}
+    >
       <section aria-label="Yêu cầu bàn giao" aria-busy={busy}>
         {saved && (
           <p role="status">
-            MSG08: Bàn giao {displayCode(saved.state)}.{" "}
+            Bàn giao {displayCode(saved.state)}.{" "}
             {handoverId === undefined && (
               <Link
                 to={`/internal-requests/${id}/handovers/${saved.receiptId}`}
@@ -321,7 +344,7 @@ export function InternalRequestHandoverPanel({
             )}
           </p>
         )}
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại bàn giao
         </button>
@@ -341,12 +364,12 @@ export function InternalRequestHandoverPanel({
         )}
         {view?.createdAt && (
           <p>
-            Đã nộp: <time>{view.createdAt}</time>
+            Đã nộp: <time>{staffDate(view.createdAt)}</time>
           </p>
         )}
         {view?.decisionAt && (
           <p>
-            Quyết định: <time>{view.decisionAt}</time>
+            Quyết định: <time>{staffDate(view.decisionAt)}</time>
           </p>
         )}
         {view?.rejectionReason && <p>Lý do từ chối: {view.rejectionReason}</p>}
@@ -360,7 +383,7 @@ export function InternalRequestHandoverPanel({
             )}
             <label>
               Người xử lý mới
-              <select
+              <SearchableSelect
                 aria-label="Người xử lý mới"
                 value={receiver}
                 disabled={busy}
@@ -372,7 +395,7 @@ export function InternalRequestHandoverPanel({
                     {r.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Tổng hợp trạng thái

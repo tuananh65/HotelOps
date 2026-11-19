@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   ActionDialog,
   announceWorkflowSuccess,
@@ -344,7 +346,7 @@ function Bound({
             sách bắt đầu hôm nay.
           </p>
           {shiftError ? (
-            <p role="alert">{shiftError}</p>
+            <p role="alert">{userMessage(shiftError)}</p>
           ) : shifts === null ? (
             <LoadingIndicator label="Đang tải ca làm việc" />
           ) : shifts.length === 0 ? (
@@ -358,7 +360,7 @@ function Bound({
           ) : (
             <label>
               Ca đã lên lịch
-              <select
+              <SearchableSelect
                 aria-label="Ca đã lên lịch"
                 value={selection}
                 disabled={pending || locked || !!day}
@@ -373,7 +375,7 @@ function Bound({
                     {shiftLabel(s)}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
           )}
           <button
@@ -394,7 +396,7 @@ function Bound({
           <span className="workday-eyebrow">02 · TRẠNG THÁI LÀM VIỆC</span>
           <h2>Ngày làm việc hiện tại</h2>
           {dayError ? (
-            <p role="alert">{dayError}</p>
+            <p role="alert">{userMessage(dayError)}</p>
           ) : day === undefined ? (
             <LoadingIndicator label="Đang tải trạng thái làm việc" />
           ) : day === null ? (
@@ -558,7 +560,7 @@ function Bound({
           className={`workday-notice${receipt ? " workday-notice-success" : ""}`}
           role={receipt ? "status" : "alert"}
         >
-          {message}
+          {userMessage(message)}
         </p>
       )}
       {receipt && (

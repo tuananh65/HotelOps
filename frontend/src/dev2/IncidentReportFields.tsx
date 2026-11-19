@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { IncidentLocationFields } from "./IncidentLocationFields";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -39,14 +41,13 @@ export function IncidentReportFields({ values, onChange, fixed }: {
   }, [current, selected, fixed, values, onChange]);
   return <>
     <label>Chi nhánh của bạn
-      <select name="branchId" required value={selected ? String(selected.branchId) : ""}
+      <SearchableSelect name="branchId" required value={selected ? String(selected.branchId) : ""}
         onChange={e => { if (!fixed) onChange({ ...values, branchId: e.target.value, roomId: "", areaId: "", assetId: "", categoryId: "", priorityId: "", severityId: "" }); }}>
         <option value="">{current ? "Không có chi nhánh phù hợp" : "Đang tải chi nhánh…"}</option>
         {current?.branches.filter(b => !fixed || b === selected).map(b => <option key={b.branchId} value={b.branchId}>{b.name}</option>)}
-      </select>
+      </SearchableSelect>
     </label>
-    <p>Chi nhánh được lấy từ phân quyền tài khoản. Người báo được ghi nhận tự động khi gửi.</p>
-    {(!current || current.error || !current.branches.length || fixed && !selected) && <p role="status">{current?.error ?? (!current ? "Đang kiểm tra quyền báo sự cố…" : "Bạn chưa có quyền báo sự cố tại chi nhánh này.")}</p>}
+    {(!current || current.error || !current.branches.length || fixed && !selected) && <p role="status">{userMessage(current?.error ?? (!current ? "Đang kiểm tra quyền báo sự cố…" : "Bạn chưa có quyền báo sự cố tại chi nhánh này."))}</p>}
     {current?.error && <button type="button" onClick={() => setRevision(v => v + 1)}>Thử lại</button>}
     <div className="dev2-fields">
       <label>Tiêu đề sự cố *<input name="incidentTitle" required maxLength={200} value={String(values.incidentTitle ?? "")} onChange={e => onChange({ ...values, incidentTitle: e.target.value })} /></label>

@@ -1,3 +1,6 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { useWorkflowAvailability } from "./WorkflowAvailability";
 import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -70,6 +73,7 @@ export function InternalRequestReopenPanel({
   onReopened: () => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -124,16 +128,23 @@ export function InternalRequestReopenPanel({
         })
         .catch((e) => {
           if (abort.signal.aborted) return;
-          if (e instanceof ReopenFailure && e.code === "IR_NOT_CLOSED") return;
+          if (reportUnavailable(e)) return;
+          if (
+            e instanceof ReopenFailure &&
+            (e.code === "IR_NOT_CLOSED" || e.status === 403 || e.status === 404)
+          )
+            return;
           setHidden(false);
           setMessage(
-            "Không tải được điều kiện mở lại. Tải lại trạng thái và quyền hiện tại.",
+            e instanceof ReopenFailure && e.code === "IR_CLOSURE_INCONSISTENT"
+              ? "Yêu cầu cũ chưa có đủ thông tin xác nhận đóng để mở lại. Vui lòng liên hệ quản trị viên kiểm tra lịch sử."
+              : "Không tải được điều kiện mở lại. Vui lòng thử lại.",
           );
           if (e instanceof ReopenFailure && e.status === 401)
             actions.invalidateSession(owner);
         });
     return () => abort.abort();
-  }, [id, owner, revision, actions]);
+  }, [id, owner, revision, actions, reportUnavailable]);
   const view =
     owner && result?.owner === owner && result.id === id ? result.view : null;
   async function reopen() {
@@ -225,31 +236,32 @@ export function InternalRequestReopenPanel({
     }
   }
   if (!owner || hidden) return null;
+  if (!view) return message ? <p role="status">{userMessage(message)}</p> : null;
   return (
     <ActionDialog title="Yêu cầu mở lại" busy={busy}>
       <section aria-label="Yêu cầu mở lại" aria-busy={busy}>
         <h3>Mở lại yêu cầu đã đóng</h3>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {view && (
           <>
             <p>Kết quả trước: {view.previousResult}</p>
             <p>
-              Đã đóng: {displayTime(view.closedAt)}. Reopen window:{" "}
+              Đã đóng: {displayTime(view.closedAt)}. Thời hạn mở lại:{" "}
               {view.windowDays} ngày sau khi đóng.
             </p>
             <p>
-              Đánh giá từ máy chủ: {displayTime(view.evaluatedAt)}. Last
-              handler: #{view.lastHandlerId}.
+              Đánh giá từ máy chủ: {displayTime(view.evaluatedAt)}. Người xử lý
+              cuối cùng: {referenceLabel(view, "lastHandlerId")}.
             </p>
             {view.blocker && (
               <p role="status">
                 {view.blocker === "IR_REOPEN_WINDOW_EXPIRED"
-                  ? "MSG03: Đã hết thời hạn mở lại. Tạo yêu cầu mới."
+                  ? "Đã hết thời hạn mở lại. Tạo yêu cầu mới."
                   : view.blocker === "IR_LAST_HANDLER_INELIGIBLE"
                     ? "Người xử lý cuối cùng không còn đủ điều kiện. Không thể mở lại."
                     : view.blocker === "IR_REOPEN_REQUIRED" ||
                         view.blocker === "IR_AUTHORITY_CHANGED"
-                      ? "MSG02: Cần quyền mở lại hiện tại."
+                      ? "Cần quyền mở lại hiện tại."
                       : "Dữ liệu mở lại chưa khả dụng. Liên hệ quản trị viên."}
               </p>
             )}

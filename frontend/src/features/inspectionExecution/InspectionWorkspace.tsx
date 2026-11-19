@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -290,14 +293,14 @@ export function InspectionWorkspace({
       <p>Chi nhánh #{branch}. Inspection execution and approval.</p>
       {error && (
         <p role="alert" style={{ color: "#b91c1c" }}>
-          {error}
+          {userMessage(error)}
         </p>
       )}
       {incomplete && current && (
         <ul aria-label="Hạng mục kiểm tra còn thiếu">
           {incomplete.missingItems.map((item) => (
             <li key={item.itemId}>
-              #{item.itemId}{" "}
+              {referenceLabel(item, "itemId")}{" "}
               {
                 current.value.criteria.find((c) => c.itemId === item.itemId)
                   ?.criterion
@@ -310,7 +313,7 @@ export function InspectionWorkspace({
           ))}
         </ul>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {notice && <p role="status">{userMessage(notice)}</p>}
       {blocked && (
         <p role="alert">
           Thao tác bị chặn. Kiểm tra lại máy chủ trước khi làm tiếp.
@@ -331,8 +334,7 @@ export function InspectionWorkspace({
         <>
           <p>
             Trạng thái: <strong>{displayCode(current.value.state)}</strong>.
-            Assigned version #{current.value.versionId}; Phòng #
-            {current.value.roomId}; Công việc #{current.value.cleaningTaskId}.
+            Assigned version {referenceLabel(current.value, "versionId")}; Phòng {referenceLabel(current.value, "roomId")}; Công việc {referenceLabel(current.value, "cleaningTaskId")}.
           </p>
           <label>
             Lý do{" "}
@@ -366,7 +368,7 @@ export function InspectionWorkspace({
           )}
           {["PASSED", "FAILED"].includes(current.value.state) && (
             <p role="status">
-              MSG24: Kiểm tra đang ở trạng thái{" "}
+              Kiểm tra đang ở trạng thái{" "}
               {displayCode(current.value.state)} và các lỗi liên quan không còn
               được chỉnh sửa.
             </p>
@@ -385,7 +387,7 @@ export function InspectionWorkspace({
               (c) => c.mandatory && c.outcome === "FAIL",
             ) && (
               <p role="alert">
-                MSG03: Tiêu chí bắt buộc không đạt. Không thể duyệt. Kiểm tra
+                Tiêu chí bắt buộc không đạt. Không thể duyệt. Kiểm tra
                 lỗi và chọn Từ chối kết quả kiểm tra.
               </p>
             )}
@@ -409,12 +411,12 @@ export function InspectionWorkspace({
                 <legend>Từ chối kết quả kiểm tra</legend>
                 {why.trim().length < 10 && (
                   <p role="alert" style={{ color: "#b91c1c" }}>
-                    MSG03: Lý do từ chối cần ít nhất 10 ký tự.
+                    Lý do từ chối cần ít nhất 10 ký tự.
                   </p>
                 )}
                 {current.value.defects.length === 0 && (
                   <p role="alert" style={{ color: "#b91c1c" }}>
-                    MSG03: Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ
+                    Cần ghi lỗi cho từng tiêu chí không đạt trước khi từ
                     chối kiểm tra. Kiểm tra và thử lại.
                   </p>
                 )}
@@ -455,12 +457,12 @@ export function InspectionWorkspace({
               disabled={busy || blocked || current.value.state !== "INSPECTING"}
             >
               <legend>
-                #{c.itemId} {c.criterion} {c.mandatory ? "(required)" : ""}
+                {referenceLabel(c, "itemId")} {c.criterion} {c.mandatory ? "(required)" : ""}
               </legend>
               {c.description && <p>{c.description}</p>}
               <label>
                 Kết quả{" "}
-                <select
+                <SearchableSelect
                   value={outcomes[c.itemId] ?? ""}
                   onChange={(e) =>
                     setOutcomes((v) => ({
@@ -472,7 +474,7 @@ export function InspectionWorkspace({
                   <option value="">Chưa ghi nhận</option>
                   <option value="PASS">Đạt</option>
                   <option value="FAIL">Không đạt</option>
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Ghi chú{" "}
@@ -486,7 +488,7 @@ export function InspectionWorkspace({
                 />
               </label>
               <label>
-                Bằng chứng theo tiêu chí #{c.itemId} (JPG, PNG, PDF; tối đa 10
+                Bằng chứng theo tiêu chí {referenceLabel(c, "itemId")} (JPG, PNG, PDF; tối đa 10
                 MiB mỗi tệp)
                 <input
                   key={`${c.itemId}:${uploadGeneration}`}
@@ -523,7 +525,7 @@ export function InspectionWorkspace({
           <h3>Các lỗi</h3>
           {current.value.defects.map((d) => (
             <p key={d.id}>
-              Lỗi #{d.id}: {d.description} — {displayCode(d.status)}
+              Lỗi {referenceLabel(d, "id")}: {d.description} — {displayCode(d.status)}
               <button
                 type="button"
                 disabled={
@@ -544,7 +546,7 @@ export function InspectionWorkspace({
                   setUploads([]);
                 }}
               >
-                Chỉnh sửa lỗi #{d.id}
+                Chỉnh sửa lỗi {referenceLabel(d, "id")}
               </button>
             </p>
           ))}
@@ -568,7 +570,7 @@ export function InspectionWorkspace({
             <legend>Ghi nhận lỗi (chỉ cho tiêu chí đã lưu là không đạt)</legend>
             <label>
               Tiêu chí không đạt{" "}
-              <select
+              <SearchableSelect
                 value={selection}
                 disabled={editingDefect !== null}
                 onChange={(e) => setSelection(e.target.value)}
@@ -581,11 +583,11 @@ export function InspectionWorkspace({
                       {displayCode(c.criterion)}
                     </option>
                   ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Mức độ{" "}
-              <select
+              <SearchableSelect
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value)}
               >
@@ -600,7 +602,7 @@ export function InspectionWorkspace({
                       {s.name}
                     </option>
                   ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Mô tả{" "}

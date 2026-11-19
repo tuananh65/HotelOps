@@ -68,7 +68,7 @@ public sealed class CleaningClosureBoundaryTests
             new Claim(HotelOpsCookieTicket.CredentialClaim, SessionCredential.Generate()),
             new Claim(HotelOpsCookieTicket.RestrictedClaim, "0"), new Claim(HotelOpsCookieTicket.CreatedClaim, DateTime.UtcNow.Ticks.ToString()),
             new Claim(HotelOpsCookieTicket.VersionClaim, "1") }, HotelOpsCookieTicket.Scheme));
-        var controller = new CleaningExecutionController(Service()) { ControllerContext = new() { HttpContext = context } };
+        var controller = new CleaningExecutionController(Service(), null!) { ControllerContext = new() { HttpContext = context } };
         var result = complete ? await controller.Complete(1, 1, new("note"), default)
             : await controller.ReportBlocker(1, 1, new(1, "note"), default);
         var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);
@@ -132,7 +132,7 @@ public sealed class CleaningClosureBoundaryTests
     [InlineData(true)]
     public async Task Closure_controller_rejects_insecure_transport_before_service(bool complete)
     {
-        var controller = new CleaningExecutionController(Service())
+        var controller = new CleaningExecutionController(Service(), null!)
         {
             ControllerContext = new() { HttpContext = new DefaultHttpContext() }
         };
@@ -150,7 +150,7 @@ public sealed class CleaningClosureBoundaryTests
     {
         var context = new DefaultHttpContext();
         context.Request.Scheme = "https";
-        var controller = new CleaningExecutionController(Service()) { ControllerContext = new() { HttpContext = context } };
+        var controller = new CleaningExecutionController(Service(), null!) { ControllerContext = new() { HttpContext = context } };
         var result = complete ? await controller.Complete(1, 1, new("note"), default)
             : await controller.ReportBlocker(1, 1, new(1, "note"), default);
         var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);

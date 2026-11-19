@@ -1,9 +1,12 @@
+import { ActionLink } from "../components/ActionLink";
+import { userMessage } from "../i18n/userMessage";
 import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { StatusBadge } from "../components/design-system";
 import { displayCode } from "../i18n/vi";
 import { CorrectionRequestForm } from "./CorrectionRequestForm";
+import { CreateTimeCorrection } from "./CreateTimeCorrection";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import { readTimeLog, TimeLogFailure, type TimeLog } from "./timeLogApi";
@@ -38,7 +41,9 @@ export function MyTimeLogPage() {
             Việt Nam (UTC+7).
           </p>
         </div>
-        <Link to="/time-corrections">Theo dõi đề nghị điều chỉnh</Link>
+        <ActionLink to="/time-corrections">
+          Theo dõi đề nghị điều chỉnh
+        </ActionLink>
       </header>
       <WorkTimeBranchField scope={scope} />
       {scope.owner && scope.branch && (
@@ -48,8 +53,8 @@ export function MyTimeLogPage() {
         />
       )}
       <nav className="time-links">
-        <Link to="/workday">Lịch ca &amp; ngày làm việc</Link>
-        <Link to="/home">Trang chủ</Link>
+        <ActionLink to="/workday">Lịch ca &amp; ngày làm việc</ActionLink>
+        <ActionLink to="/home">Trang chủ</ActionLink>
       </nav>
     </main>
   );
@@ -93,6 +98,12 @@ function TimeLogBody({ branch }: { branch: number }) {
     data = visible?.data;
   return (
     <>
+      <div className="time-toolbar">
+        <CreateTimeCorrection
+          branch={branch}
+          onSaved={() => setRevision((n) => n + 1)}
+        />
+      </div>
       <CollapsibleFilterPanel activeCount={Number(!!date)}>
         <form
           className="time-card time-filters"
@@ -122,13 +133,13 @@ function TimeLogBody({ branch }: { branch: number }) {
       </CollapsibleFilterPanel>
       {message && (
         <p className="time-success" role="status">
-          {message}
+          {userMessage(message)}
         </p>
       )}
       {date && !visible && (
         <LoadingIndicator label="Đang tải nhật ký thời gian" />
       )}
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {data && (
         <section aria-label="Nhật ký thời gian hằng ngày của tôi">
           <dl className="time-summary">
@@ -184,10 +195,7 @@ function TimeLogBody({ branch }: { branch: number }) {
                   <tbody>
                     {data.items.map((i) => (
                       <tr key={i.intervalId}>
-                        <td>
-                          {displayCode(i.kind)}{" "}
-                          <span className="time-muted">#{i.workItemId}</span>
-                        </td>
+                        <td>{i.workItemName ?? displayCode(i.kind)}</td>
                         <td>{stamp(i.start)}</td>
                         <td>
                           {i.end ? (

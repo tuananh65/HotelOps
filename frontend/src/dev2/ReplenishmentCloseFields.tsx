@@ -1,3 +1,4 @@
+import { referenceLabel } from "../i18n/referenceLabel";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
@@ -16,7 +17,7 @@ export function ReplenishmentCloseFields({ record, values, onChange }: {
     <p>Đóng phần số lượng sẽ không nhận được. Số lượng đã ghi sổ trước đó giữ nguyên.</p>
     {!replenishmentCanClose(record) && <p role="status">Tải yêu cầu bổ sung đang mở có phần còn lại lớn hơn 0 trước khi đóng.</p>}
     <ul>{lines.filter(l => Number(l.remainingBaseQty) > 0).map(l => <li key={String(l.replenishmentLineId)}>
-      Vật tư {String(l.itemId)}: Đã yêu cầu {String(l.requestedBaseQty)}, Đã nhận {String(l.netReceivedBaseQty)}, Còn lại {String(l.remainingBaseQty)} (Đơn vị cơ sở {String(l.baseUomId)}).
+      Vật tư {referenceLabel(l, "itemId")}: Đã yêu cầu {String(l.requestedBaseQty)}, Đã nhận {String(l.netReceivedBaseQty)}, Còn lại {String(l.remainingBaseQty)} (Đơn vị cơ sở {referenceLabel(l, "baseUomId")}).
     </li>)}</ul>
     <label>Lý do đóng
       <textarea required minLength={10} value={String(values.reason ?? "")}

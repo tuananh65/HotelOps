@@ -28,6 +28,9 @@ const plan = {
   sourceETag: tag,
   startCapability: "UNAVAILABLE",
   reassignCapability: "PROVISIONAL_NOT_ACCEPTED",
+  startDetails: { roomId: 3, roomNumber: "203", cleaningType: "Sau trả phòng", instructions: null, dueAtUtc: null,
+    items: [{ id: 11, label: "Clean", isRequired: true, sortOrder: 1 }] },
+  blockers: [],
 };
 
 test("End of shift hold metadata is preserved and unknown reasons are rejected", async () => {

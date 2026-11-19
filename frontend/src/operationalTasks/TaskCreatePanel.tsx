@@ -1,4 +1,8 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
+import { listRooms, type RoomDirectoryItem } from "../api/dev1/rooms";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -23,6 +27,7 @@ import { TaskRecurrenceFields } from "./TaskRecurrenceFields";
 
 export function TaskCreatePanel({
   branch,
+  branchName,
   owner,
   onCreated,
   onSeriesCreated,
@@ -30,6 +35,7 @@ export function TaskCreatePanel({
   onSourceInvalid,
 }: {
   branch: number;
+  branchName?: string;
   owner: AuthorityGeneration;
   onCreated: (task: number, assign: boolean) => void;
   onSeriesCreated: () => void;
@@ -53,6 +59,40 @@ export function TaskCreatePanel({
   const [location, setLocation] = useState(
     String(source?.roomId ?? source?.areaId ?? ""),
   );
+  const [roomNumber, setRoomNumber] = useState("");
+  const [rooms, setRooms] = useState<RoomDirectoryItem[]>([]);
+  const [roomError, setRoomError] = useState("");
+  useEffect(() => {
+    const abort = new AbortController();
+    setRooms([]);
+    setRoomError("");
+    if (locationType === "room")
+      void (async () => {
+        const all: RoomDirectoryItem[] = [];
+        for (let page = 1; !abort.signal.aborted; page++) {
+          const response = await listRooms(
+            String(branch),
+            page,
+            "",
+            "",
+            abort.signal,
+          );
+          all.push(...response.items);
+          if (page * response.pageSize >= response.totalCount) break;
+        }
+        if (!abort.signal.aborted) {
+          setRooms(all);
+          if (source?.roomId)
+            setRoomNumber(
+              all.find((r) => r.id === source.roomId)?.roomNumber ?? "",
+            );
+        }
+      })().catch(() => {
+        if (!abort.signal.aborted)
+          setRoomError("Chưa tải được số phòng trong chi nhánh này.");
+      });
+    return () => abort.abort();
+  }, [branch, owner, locationType, source?.roomId]);
   const [plan, setPlan] = useState<PlanDraft>({
     priority: source?.priorityId ? String(source.priorityId) : "",
     start: "",
@@ -111,6 +151,14 @@ export function TaskCreatePanel({
       recurrence: RecurrenceInput | null;
     };
     try {
+      if (
+        !pending &&
+        locationType === "room" &&
+        !rooms.some((r) => r.roomNumber === roomNumber.trim())
+      ) {
+        setError("Chọn số phòng trong danh sách của chi nhánh này.");
+        return;
+      }
       if (source && !pending && !["required", "optional"].includes(mandatory)) {
         setError(
           "Chọn công việc này có bắt buộc để hoàn tất yêu cầu hay không.",
@@ -132,7 +180,10 @@ export function TaskCreatePanel({
           plannedStartAt: utcPlanTime(plan.start),
           dueAt: utcPlanTime(plan.due),
           slaMinutes: plan.minutes ? Number(plan.minutes) : null,
-          roomId: locationType === "room" ? Number(location) : null,
+          roomId:
+            locationType === "room"
+              ? rooms.find((r) => r.roomNumber === roomNumber.trim())!.id
+              : null,
           areaId: locationType === "area" ? Number(location) : null,
           internalRequestId: source?.requestId ?? null,
           ...(source
@@ -229,7 +280,7 @@ export function TaskCreatePanel({
   return (
     <section aria-label="Tạo công việc vận hành">
       <h2>Tạo công việc vận hành</h2>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {pending && (
         <>
           <p>
@@ -248,6 +299,11 @@ export function TaskCreatePanel({
       )}
       {options && (
         <ActionDialog error={error} drawer title="Tạo công việc" busy={busy}>
+          {branchName && (
+            <p>
+              <strong>Chi nhánh:</strong> {branchName}
+            </p>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -259,12 +315,12 @@ export function TaskCreatePanel({
               {source && (
                 <>
                   <p>
-                    Liên kết với yêu cầu {source.requestId}. The request stays
+                    Liên kết với yêu cầu {referenceLabel(source, "requestId")}. The request stays
                     open after creation.
                   </p>
                   <label>
                     Điều kiện hoàn tất yêu cầu
-                    <select
+                    <SearchableSelect
                       aria-label="Điều kiện hoàn tất yêu cầu"
                       required
                       value={mandatory}
@@ -273,7 +329,7 @@ export function TaskCreatePanel({
                       <option value="">Chọn điều kiện</option>
                       <option value="required">Bắt buộc để hoàn tất</option>
                       <option value="optional">Không bắt buộc</option>
-                    </select>
+                    </SearchableSelect>
                   </label>
                 </>
               )}
@@ -288,7 +344,7 @@ export function TaskCreatePanel({
               </label>
               <label>
                 Bộ phận
-                <select
+                <SearchableSelect
                   aria-label="Bộ phận"
                   required
                   value={department}
@@ -304,11 +360,11 @@ export function TaskCreatePanel({
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Nhóm công việc
-                <select
+                <SearchableSelect
                   aria-label="Nhóm công việc"
                   required
                   value={category}
@@ -320,12 +376,12 @@ export function TaskCreatePanel({
                       {c.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <p>Vệ sinh, sự cố và yêu cầu vật tư sử dụng quy trình riêng.</p>
               <label>
                 Loại vị trí
-                <select
+                <SearchableSelect
                   aria-label="Loại vị trí"
                   value={locationType}
                   onChange={(e) => {
@@ -336,9 +392,30 @@ export function TaskCreatePanel({
                   <option value="department">Chỉ trong bộ phận</option>
                   <option value="room">Phòng</option>
                   <option value="area">Khu vực</option>
-                </select>
+                </SearchableSelect>
               </label>
-              {locationType !== "department" && (
+              {locationType === "room" && (
+                <label>
+                  Số phòng
+                  <input
+                    aria-label="Số phòng"
+                    required
+                    list="operational-task-rooms"
+                    value={roomNumber}
+                    onChange={(e) => setRoomNumber(e.target.value)}
+                    placeholder="Ví dụ: 201"
+                  />
+                  <datalist id="operational-task-rooms">
+                    {rooms.map((r) => (
+                      <option key={r.id} value={r.roomNumber}>
+                        {r.floor.name}
+                      </option>
+                    ))}
+                  </datalist>
+                  {roomError && <span role="alert">{userMessage(roomError)}</span>}
+                </label>
+              )}
+              {locationType === "area" && (
                 <label>
                   Mã vị trí
                   <input

@@ -1,3 +1,10 @@
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { OperationsReadFilters } from "./OperationsReadFilters";
+import { MaterialDetailView } from "./MaterialDetailView";
+import "./operations-read.css";
 import {
   OperationSurface,
   announceWorkflowSuccess,
@@ -24,6 +31,7 @@ import {
   useParams,
   useSearchParams,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
@@ -308,6 +316,7 @@ function Screen({
   expired: () => void;
 }) {
   // Hold/Resume use versioned detail, never the unversioned generic form.
+  const navigate = useNavigate();
   const available = operations.filter(
     (x) =>
       ![
@@ -835,6 +844,8 @@ function Screen({
     (m) => ({ name: m[1], type: "long", optional: false }),
   );
   const branch = values.branchId ?? record.branchId ?? context.branchId;
+  const readList = ["A004A-035", "A004A-037"].includes(operation.id);
+  const readDetail = ["A004A-036", "A004A-038"].includes(operation.id);
   const materialWrite = ["A004A-043", "A004A-044"].includes(operation.id);
   const materialSubmit = operation.id === "A004A-045";
   const needsApproval =
@@ -857,20 +868,26 @@ function Screen({
     setDenied(false);
   };
   return (
-    <main className="dev2-workspace">
+    <main
+      className={`dev2-workspace${["maintenance", "material-requests"].includes(module) ? " ops-read-workspace" : ""}`}
+    >
       <header>
         <h1>{config.name}</h1>
-        <Link to="/profile">Hồ sơ cá nhân</Link>
-        <Link to="/home">Trang chủ</Link>
+        <p className="ops-read-subtitle">
+          {module === "maintenance"
+            ? "Theo dõi tiến độ, người thực hiện và thời hạn bảo trì."
+            : module === "material-requests"
+              ? "Theo dõi yêu cầu, phê duyệt và cấp phát vật tư."
+              : "Theo dõi và xử lý công việc theo chi nhánh."}
+        </p>
       </header>
       {maintenanceCommitNotice && (
-        <p role="status">{maintenanceCommitNotice}</p>
+        <p role="status">{userMessage(maintenanceCommitNotice)}</p>
       )}
-      {incidentCommitNotice && <p role="status">{incidentCommitNotice}</p>}
+      {incidentCommitNotice && <p role="status">{userMessage(incidentCommitNotice)}</p>}
       {context.occurrenceId != null && (
         <p role="status">
-          Báo hạng mục không đạt từ lần thực hiện #
-          {String(context.occurrenceId)}. Keep the original target. After
+          Báo hạng mục không đạt từ lần thực hiện {referenceLabel(context, "occurrenceId")}. Keep the original target. After
           saving, reload the occurrence before continuing.
         </p>
       )}
@@ -899,7 +916,11 @@ function Screen({
         )}
       <nav aria-label="Vận hành">
         {modules
-          .filter((m) => !enabledModules || enabledModules.includes(m.id))
+          .filter(
+            (m) =>
+              (!enabledModules || enabledModules.includes(m.id)) &&
+              (!enabledActions || enabledActions.includes(m.list)),
+          )
           .map((m) => (
             <Link
               key={m.id}
@@ -922,7 +943,7 @@ function Screen({
             </Link>
           </div>
         )}
-      {!readOnly && module !== "incidents" && (
+      {!readOnly && module === "maintenance" && (
         <p>
           Sự cố → Công việc bảo trì → Yêu cầu vật tư → Cấp phát → Vật tư khả
           dụng
@@ -931,6 +952,7 @@ function Screen({
       {module !== "incidents" && (
         <div className="dev2-toolbar">
           {module === "maintenance" &&
+            context.runId != null &&
             Number.isSafeInteger(Number(branch)) &&
             Number(branch) > 0 && (
               <PreventiveOccurrencesPanel
@@ -953,44 +975,57 @@ function Screen({
                 branchId={Number(branch)}
               />
             )}
-          {available.some((op) => op.id === config.list) && (
-            <Link to={`/operations/${module}`}>Danh sách</Link>
-          )}
+          {operation.id !== config.list &&
+            available.some((op) => op.id === config.list) && (
+              <Link
+                to={`/operations/${module}${branch ? "?branchId=" + branch : ""}`}
+              >
+                Danh sách
+              </Link>
+            )}
           {!readOnly && available.some((op) => op.id === config.create) && (
             <Link
-              to={`/operations/${module}${recordId ? "/" + recordId : ""}?action=${config.create}`}
+              className="ds-button ds-button--primary"
+              to={`/operations/${module}?action=${config.create}${branch ? "&branchId=" + encodeURIComponent(String(branch)) : ""}`}
             >
               Tạo mới
             </Link>
           )}
-          <label>
-            Thao tác
-            <select
-              aria-label="Thao tác"
-              value={operation.id}
-              disabled={busy}
-              onChange={(e) => select(e.target.value)}
-            >
-              {["GET", "WRITE"].map((group) => (
-                <optgroup
-                  key={group}
-                  label={
-                    group === "GET"
-                      ? "Tra cứu và lịch sử"
-                      : "Thao tác nghiệp vụ"
-                  }
+          {(module !== "material-requests" || !!recordId) &&
+            (!readOnly ||
+              (!!recordId &&
+                available.filter((op) => op.method === "GET").length > 2)) && (
+              <label>
+                Thao tác
+                <SearchableSelect
+                  aria-label="Thao tác"
+                  value={operation.id}
+                  disabled={busy}
+                  onChange={(e) => select(e.target.value)}
                 >
-                  {available
-                    .filter((o) => (o.method === "GET") === (group === "GET"))
-                    .map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
+                  {["GET", "WRITE"].map((group) => (
+                    <optgroup
+                      key={group}
+                      label={
+                        group === "GET"
+                          ? "Tra cứu và lịch sử"
+                          : "Thao tác nghiệp vụ"
+                      }
+                    >
+                      {available
+                        .filter(
+                          (o) => (o.method === "GET") === (group === "GET"),
+                        )
+                        .map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
+                </SearchableSelect>
+              </label>
+            )}
           <button
             disabled={busy}
             onClick={() => {
@@ -998,25 +1033,18 @@ function Screen({
               setRevision((v) => v + 1);
             }}
           >
-            Tải lại hồ sơ
+            Tải lại dữ liệu
           </button>
         </div>
       )}
-      {module !== "incidents" && (
-        <p className="dev2-permission">
-          Quyền cần có:{" "}
-          {materialApprovalActions.includes(operation.id)
-            ? "Người duyệt được chỉ định, có thẩm quyền tương ứng và MR_VIEW"
-            : materialRequesterActions.includes(operation.id)
-              ? "Người yêu cầu hiện tại có MR_CREATE và quyền MR_VIEW riêng"
-              : operation.permissions.join(" + ") || operation.permissionHint}
-          . The server checks your branch, resource, ownership and workflow for
-          every request.
+      {readOnly && (
+        <p className="ops-read-subtitle">
+          Bạn đang xem thông tin trong phạm vi được phân quyền.
         </p>
       )}
       {sourceRequest && !sourceReady && (
         <p role="status">
-          {sourceError || "Đang tải thông tin mặc định của yêu cầu nguồn..."}
+          {userMessage(sourceError || "Đang tải thông tin mặc định của yêu cầu nguồn...")}
           {sourceError && (
             <Link
               to={
@@ -1057,7 +1085,17 @@ function Screen({
           </Link>
         </section>
       )}
-      {operation.id !== "A004A-023" && (
+      {readList && (
+        <OperationsReadFilters
+          records={data}
+          operation={operation}
+          values={values}
+          change={change}
+          busy={busy}
+          run={() => void run(operation)}
+        />
+      )}
+      {operation.id !== "A004A-023" && !readList && !readDetail && (
         <OperationSurface
           activeCount={
             data === undefined
@@ -1085,7 +1123,15 @@ function Screen({
           open={commandOpen}
           busy={busy}
           error={message}
-          onClose={() => setCommandOpen(false)}
+          onClose={() => {
+            setCommandOpen(false);
+            if (operation.method !== "GET") {
+              const destination = recordId ? config.detail : config.list;
+              if (available.some((op) => op.id === destination))
+                select(destination);
+              else navigate("/home");
+            }
+          }}
           onReopen={() => setCommandOpen(true)}
         >
           <form
@@ -1106,7 +1152,7 @@ function Screen({
               {operation.id === "A004A-022" && (
                 <label>
                   Tìm theo mã hoặc tiêu đề
-                  <input
+                  <SearchInput suggestions={searchSuggestions(data)}
                     name="keyword"
                     value={String(values.keyword ?? "")}
                     onChange={(e) =>
@@ -1148,7 +1194,7 @@ function Screen({
                     </Link>
                     <label>
                       Điều kiện hoàn tất
-                      <select
+                      <SearchableSelect
                         required
                         value={String(values.materialRequirement ?? "")}
                         onChange={(event) =>
@@ -1161,7 +1207,7 @@ function Screen({
                         <option value="">Chọn điều kiện</option>
                         <option value="required">Bắt buộc để hoàn tất</option>
                         <option value="optional">Không bắt buộc</option>
-                      </select>
+                      </SearchableSelect>
                     </label>
                   </section>
                 )}
@@ -1412,28 +1458,29 @@ function Screen({
                     ? operation.id === "A004A-022"
                       ? "Tìm kiếm / tải lại"
                       : "Tải hồ sơ"
-                    : "Lưu" + operation.name.toLowerCase()}
+                    : operation.name}
               </button>
             </fieldset>
           </form>
         </OperationSurface>
       )}
-      {operation.id === "A004A-023" && (
-        <Link
-          to={`/operations/incidents${branch ? `?branchId=${branch}` : ""}`}
-        >
-          Quay lại danh sách sự cố
-        </Link>
-      )}
+      {operation.id === "A004A-023" &&
+        available.some((op) => op.id === config.list) && (
+          <Link
+            to={`/operations/incidents${branch ? `?branchId=${branch}` : ""}`}
+          >
+            Quay lại danh sách sự cố
+          </Link>
+        )}
 
       {busy && <LoadingIndicator label="Đang tải dữ liệu" />}
       {message && (
         <p
           role={
-            denied || !message.startsWith("Máy chủ đã lưu") ? "alert" : "status"
+            denied || !/^(MSG0[89]:|Đã |Máy chủ đã lưu)/.test(message) ? "alert" : "status"
           }
         >
-          {message}
+          {userMessage(message)}
         </p>
       )}
       {data !== undefined &&
@@ -1494,8 +1541,24 @@ function Screen({
           <ReplenishmentDetailView record={data} />
         ) : operation.id === "A004A-037" && isObject(data) ? (
           <MaterialListView data={data} />
+        ) : operation.id === "A004A-038" && isObject(data) ? (
+          <MaterialDetailView data={data} />
         ) : (
-          <DataView data={data} title={config.name} />
+          <DataView
+            data={data}
+            title={config.name}
+            linkTargets={[
+              ["incidents", "A004A-023"],
+              ["maintenance", "A004A-036"],
+              ["material-requests", "A004A-038"],
+              ["replenishments", "A004A-053"],
+            ]
+              .filter(
+                ([, action]) =>
+                  !enabledActions || enabledActions.includes(action),
+              )
+              .map(([target]) => target)}
+          />
         ))}
       {operation.id === "A004A-023" &&
         isObject(data) &&
@@ -1627,7 +1690,12 @@ function Screen({
         )}
       {module === "material-requests" &&
         record.requestId != null &&
-        Array.isArray(record.cycles) && <MaterialHistoryView record={record} />}
+        Array.isArray(record.cycles) && (
+          <details className="ops-read-card">
+            <summary>Quá trình xử lý và cấp phát</summary>
+            <MaterialHistoryView record={record} />
+          </details>
+        )}
       {operation.id === "A004A-023" &&
         data !== undefined &&
         !denied &&
@@ -1642,12 +1710,13 @@ function Screen({
       {module === "material-requests" &&
         operation.id === "A004A-038" &&
         record.requestId != null && (
-          <>
+          <details className="ops-read-card">
+            <summary>Công việc liên quan</summary>
             <MaterialTaskLinks record={record} />
             <MaterialTaskLinks record={record} kind="cleaning" />
             <MaterialTaskLinks record={record} kind="maintenance" />
             <MaterialTaskLinks record={record} kind="incident" />
-          </>
+          </details>
         )}
       {module === "material-requests" &&
         materialApprovalReady(record, actor, "A004A-047") && (
@@ -1731,15 +1800,16 @@ function Screen({
         record.requesterId != null &&
         Array.isArray(record.lines) && (
           <section aria-label="Thông tin xét duyệt yêu cầu vật tư">
-            {(record.rawStatus === "APPROVED" ||
-              record.rawStatus === "PARTIALLY_ISSUED" ||
-              materialApprovalReady(record, actor, "A004A-047")) && (
-              <Link
-                to={`/operations/material-requests/${record.requestId}?action=A004A-040`}
-              >
-                Xem tồn kho khả dụng
-              </Link>
-            )}
+            {available.some((op) => op.id === "A004A-040") &&
+              (record.rawStatus === "APPROVED" ||
+                record.rawStatus === "PARTIALLY_ISSUED" ||
+                materialApprovalReady(record, actor, "A004A-047")) && (
+                <Link
+                  to={`/operations/material-requests/${record.requestId}?action=A004A-040`}
+                >
+                  Xem tồn kho khả dụng
+                </Link>
+              )}
             <p>
               Tồn kho chỉ là xem trước theo đơn vị cơ sở; xét duyệt yêu cầu
               không giữ chỗ vật tư.
@@ -1805,23 +1875,30 @@ function Screen({
         )}
       {!readOnly && record.incidentId != null && (
         <p>
-          <Link
-            to={`/operations/maintenance?action=A004A-035&incidentId=${record.incidentId}${record.branchId ? "&branchId=" + record.branchId : ""}`}
-          >
-            Xem công việc bảo trì liên quan
-          </Link>{" "}
-          ·{" "}
-          <Link
-            to={`/operations/incidents/${record.incidentId}?action=A004A-023`}
-          >
-            Mở phân công xử lý sự cố {String(record.incidentId)}
-          </Link>{" "}
-          ·{" "}
-          <Link
-            to={`/operations/material-requests?action=A004A-043&incidentId=${record.incidentId}${record.branchId ? "&branchId=" + record.branchId : ""}${record.departmentId ? "&departmentId=" + record.departmentId : ""}`}
-          >
-            Yêu cầu vật tư cho sự cố này
-          </Link>
+          {(!enabledActions || enabledActions.includes("A004A-035")) && (
+            <Link
+              to={`/operations/maintenance?action=A004A-035&incidentId=${record.incidentId}${record.branchId ? "&branchId=" + record.branchId : ""}`}
+            >
+              Xem công việc bảo trì liên quan
+            </Link>
+          )}{" "}
+          {operation.id !== "A004A-023" &&
+            (!enabledActions || enabledActions.includes("A004A-023")) && (
+              <Link
+                to={`/operations/incidents/${record.incidentId}?action=A004A-023`}
+              >
+                Xem sự cố {referenceLabel(record, "incidentId")}
+              </Link>
+            )}{" "}
+          {(!enabledActions ||
+            (enabledActions.includes("A004A-022") &&
+              enabledActions.includes("A004A-043"))) && (
+            <Link
+              to={`/operations/material-requests?action=A004A-043&incidentId=${record.incidentId}${record.branchId ? "&branchId=" + record.branchId : ""}${record.departmentId ? "&departmentId=" + record.departmentId : ""}`}
+            >
+              Yêu cầu vật tư cho sự cố này
+            </Link>
+          )}
         </p>
       )}
       {!readOnly &&

@@ -1,3 +1,5 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -171,7 +173,7 @@ export function AssignedReworkRead() {
         Tải lại làm lại
       </button>
       {owner && !visible && <p role="status">Đang tải làm lại...</p>}
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {visible?.data &&
         saved?.owner === owner &&
         saved.source === `${branch}:${id}` && (
@@ -185,17 +187,17 @@ export function AssignedReworkRead() {
       {visible?.data && (
         <>
           <p>
-            Làm lại #{visible.data.id}:{" "}
+            Làm lại {referenceLabel(visible.data, "id")}:{" "}
             {visible.data.state.replaceAll("_", " ").toLowerCase()}.
           </p>
           <p>
-            Phòng {visible.data.roomId}; kiểm tra không đạt{" "}
-            {visible.data.inspectionId}.
+            Phòng {referenceLabel(visible.data, "roomId")}; kiểm tra không đạt{" "}
+            {referenceLabel(visible.data, "inspectionId")}.
           </p>
           <p>Đến hạn: {visible.data.dueAtUtc || "Chưa chỉ định"}</p>
           {visible.data.conclusion && (
             <section aria-label="Kết quả kiểm tra lại">
-              <p>Kiểm tra lại #{visible.data.conclusion.reinspectionId}: {visible.data.conclusion.state.toLowerCase()}.</p>
+              <p>Kiểm tra lại {referenceLabel(visible.data.conclusion, "reinspectionId")}: {visible.data.conclusion.state.toLowerCase()}.</p>
               <p>Mức sẵn sàng của phòng hiện tại: {displayCode(visible.data.conclusion.effectiveReadiness)}.</p>
               <p>Mức sẵn sàng khi kết luận: {visible.data.conclusion.readinessAtConclusion}.</p>
               <p>Công việc làm lại đã đóng. Khả dụng phòng được kiểm tra theo điều kiện hiện tại.</p>

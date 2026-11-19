@@ -7,4 +7,7 @@ public sealed record OperationalTaskPage(IReadOnlyList<OperationalTaskRow> Items
 public sealed record OperationalTaskProgressRow(long Id, int ProgressPercent, string? FromStatus, string? ToStatus,
     string? Description, string? BlockerReason, long ReportedBy, DateTime ReportedAt);
 public sealed record OperationalTaskDetail(OperationalTaskRow Task, string? Description, long? CategoryId, long? PriorityId,
-    long? RoomId, long? AreaId, string? CompletionNote, IReadOnlyList<OperationalTaskProgressRow> Progress, int ProgressTotalCount, string? Priority = null);
+    long? RoomId, long? AreaId, string? CompletionNote, IReadOnlyList<OperationalTaskProgressRow> Progress, int ProgressTotalCount, string? Priority = null)
+{
+    public bool CanExecute { get; init; }
+}

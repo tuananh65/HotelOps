@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -191,11 +194,11 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       {data && (
         <p>
           <Link to={`/reinspections/${branch}/${id}/original`}>
-            Lần kiểm tra ban đầu #{data.originalInspectionId}
+            Lần kiểm tra ban đầu {referenceLabel(data, "originalInspectionId")}
           </Link>
         </p>
       )}
-      {message && <p role="alert">{message}</p>}
+      {message && <p role="alert">{userMessage(message)}</p>}
       {!data && !message && <p role="status">Đang tải kiểm tra lại…</p>}
       {result && (
         <section aria-label="Kết luận kiểm tra lại">
@@ -211,7 +214,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
             {terminalRead
               ? `Mức sẵn sàng của phòng hiện tại: ${terminalRead.effectiveReadiness}.`
               : result.effectiveReadiness === "BLOCKED"
-                ? "Phòng vẫn bị khóa (MSG17)."
+                ? "Phòng vẫn bị khóa."
                 : result.state === "PASSED"
                   ? "Phòng sẵn sàng tại thời điểm kết luận."
                   : "Chu kỳ vệ sinh cần làm lại lần nữa."}
@@ -273,11 +276,10 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       {data && !result && (
         <>
           <p>
-            Phòng #{data.roomId} · Làm lại #{data.reworkId} · Chu kỳ vệ sinh #
-            {data.cleaningTaskId}
+            Phòng {referenceLabel(data, "roomId")} · Làm lại {referenceLabel(data, "reworkId")} · Chu kỳ vệ sinh {referenceLabel(data, "cleaningTaskId")}
           </p>
           {data.effectiveReadiness === "BLOCKED" && (
-            <p role="status">Phòng bị khóa (MSG17).</p>
+            <p role="status">Phòng bị khóa.</p>
           )}
           <form
             onInvalidCapture={() => setShowValidation(true)}
@@ -313,9 +315,9 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                     </p>
                   ))}
                   <label htmlFor={`decision-${d.id}`}>
-                    Kết quả lỗi #{d.id}
+                    Kết quả lỗi {referenceLabel(d, "id")}
                   </label>
-                  <select
+                  <SearchableSelect
                     id={`decision-${d.id}`}
                     required
                     aria-invalid={showValidation && !decisions[d.id]?.fixed}
@@ -330,7 +332,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                     <option value="">Chọn kết quả</option>
                     <option value="FIXED">Đã khắc phục</option>
                     <option value="NOT_FIXED">Chưa khắc phục</option>
-                  </select>
+                  </SearchableSelect>
                   {showValidation && !decisions[d.id]?.fixed && (
                     <p
                       id={`decision-error-${d.id}`}
@@ -341,14 +343,14 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                       và thử lại.
                     </p>
                   )}
-                  <label htmlFor={`note-${d.id}`}>Ghi chú lỗi #{d.id}</label>
+                  <label htmlFor={`note-${d.id}`}>Ghi chú lỗi {referenceLabel(d, "id")}</label>
                   <textarea
                     id={`note-${d.id}`}
                     maxLength={500}
                     value={decisions[d.id]?.note ?? ""}
                     onChange={(e) => change(d.id, { note: e.target.value })}
                   />
-                  <label htmlFor={`photos-${d.id}`}>Ảnh lỗi #{d.id}</label>
+                  <label htmlFor={`photos-${d.id}`}>Ảnh lỗi {referenceLabel(d, "id")}</label>
                   <input
                     id={`photos-${d.id}`}
                     type="file"

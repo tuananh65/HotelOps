@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -8,7 +11,14 @@ import { Link, useLocation } from "react-router-dom";
 import { Circle, CircleCheck } from "lucide-react";
 import { useAuth } from "../../auth/AuthProvider";
 import { cleaningBlockerContext } from "../../dev2/cleaningBlockerContext";
+import { useWorkspacePermissions } from "./useWorkspacePermissions";
 import { ApiError } from "../../api/dev1/client";
+import {
+  readCleaningRecord,
+  type CleaningRecord,
+} from "../../api/dev1/cleaningRecord";
+import { ActionLink, ActionLinks } from "../../components/ActionLink";
+import { hotelTime, roomLabel } from "./RoomWorkspace";
 import { uploadFile } from "../../api/dev1/cleaningProgress";
 import {
   readAssignmentPlan,
@@ -54,6 +64,8 @@ function CleaningExecutionContent({
   branch: string;
   task: string;
 }) {
+  const access = useWorkspacePermissions(branch);
+  const [record, setRecord] = useState<CleaningRecord | null>(null);
   const [data, setData] = useState<CleaningExecution | null>(null),
     [plan, setPlan] = useState<AssignmentPlan | null>(null);
   const { state: auth } = useAuth();
@@ -109,6 +121,7 @@ function CleaningExecutionContent({
     setBlockersConfirmed(false);
     setResolutionNote("");
     setPlan(null);
+    setRecord(null);
     setError("");
     readCleaningExecution(branch, task, abort.signal)
       .then(async (d) => {
@@ -125,13 +138,30 @@ function CleaningExecutionContent({
           if (!abort.signal.aborted) setPlan(candidates);
         }
       })
-      .catch((e) => {
-        if (!abort.signal.aborted) setError(message(e));
+      .catch(async (e) => {
+        if (abort.signal.aborted) return;
+        if (
+          e instanceof ApiError &&
+          ["SCHEMAREQUIRED", "SCHEMA_REQUIRED"].includes(e.code)
+        ) {
+          try {
+            const historical = await readCleaningRecord(
+              branch,
+              task,
+              abort.signal,
+            );
+            if (!abort.signal.aborted) setRecord(historical);
+          } catch (reason) {
+            if (!abort.signal.aborted) setError(message(reason));
+          }
+        } else setError(message(e));
       });
     return () => abort.abort();
   }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
+      if (e.code === "SCHEMAREQUIRED")
+        return "Công việc chưa đủ cấu hình hoặc danh sách hạng mục để thực hiện. Hồ sơ được giữ để tra cứu; liên hệ giám sát để kiểm tra và chuẩn bị công việc hợp lệ.";
       if (e.code === "BLOCKER_LINK_NOT_AVAILABLE")
         return "MSG02: Công việc liên quan chưa khả dụng. Kiểm tra quyền đọc nguồn, phòng của sự cố và liên kết rõ ràng giữa yêu cầu vật tư với việc vệ sinh.";
       if (e.code === "TIME_WORKDAY_REQUIRED")
@@ -362,10 +392,36 @@ function CleaningExecutionContent({
   return (
     <section className="panel">
       <h1>Vòng đời dọn phòng</h1>
-      {error && <p role="alert">{error}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
+      {notice && <p role="status">{userMessage(notice)}</p>}
       {busy && <p role="status">Đang lưu…</p>}
-      {!data && !error && <p role="status">Đang tải công việc…</p>}
+      {!data && !record && !error && <p role="status">Đang tải công việc…</p>}
+      {record && (
+        <section className="ds-card" aria-label="Hồ sơ vệ sinh lưu trữ">
+          <h2>
+            Phòng {record.roomNumber} · {record.taskNumber}
+          </h2>
+          <p role="status">
+            Hồ sơ cũ · Chỉ xem. Chưa có checklist hoặc dữ liệu quy trình hợp lệ
+            để thực hiện; thông tin đã ghi nhận được giữ bên dưới.
+          </p>
+          <dl>
+            <dt>Trạng thái đã ghi nhận</dt>
+            <dd>{roomLabel(record.recordedStatus)}</dd>
+            <dt>Loại vệ sinh</dt>
+            <dd>{record.cleaningType}</dd>
+            <dt>Hướng dẫn</dt>
+            <dd>{record.instructions || "Chưa có hướng dẫn bổ sung."}</dd>
+            <dt>Thời hạn</dt>
+            <dd>{hotelTime(record.dueAt)}</dd>
+          </dl>
+          <ActionLinks>
+            <ActionLink to={`/cleaning/tasks?branchId=${branch}`}>
+              Danh sách công việc vệ sinh
+            </ActionLink>
+          </ActionLinks>
+        </section>
+      )}
       {data && (
         <>
           <h2>{data.taskNumber}</h2>
@@ -396,18 +452,18 @@ function CleaningExecutionContent({
             <ul aria-label="Trở ngại vệ sinh">
               {data.blockers.map((blocker) => (
                 <li key={blocker.progressId}>
-                  Trở ngại #{blocker.progressId}:{" "}
+                  Trở ngại {referenceLabel(blocker, "progressId")}:{" "}
                   {blocker.incidentId
-                    ? `Sự cố #${blocker.incidentId}`
+                    ? "Sự cố liên quan"
                     : blocker.materialRequestId
-                      ? `Yêu cầu vật tư #${blocker.materialRequestId}`
+                      ? "Yêu cầu vật tư liên quan"
                       : "Trở ngại vệ sinh"}
                   {" — "}
-                  {blocker.sourceResolved
+                  {userMessage(blocker.sourceResolved
                     ? blocker.confirmed
                       ? "Đã xác nhận xử lý"
                       : "Sẵn sàng để bạn xác nhận"
-                    : blocker.failure}
+                    : blocker.failure)}
                 </li>
               ))}
             </ul>
@@ -443,23 +499,25 @@ function CleaningExecutionContent({
             {displayCode(data.state)} · Nhân viên{" "}
             {data.assigneeName ?? data.assigneeId ?? "—"}
           </p>
-          <button
-            disabled={
-              busy ||
-              !!pending ||
-              !!closurePending ||
-              data.startCapability !== "AVAILABLE" ||
-              (data.state === "ASSIGNED" &&
-                data.actualStartAtUtc !== null &&
-                !!data.blockers?.length &&
-                (!blockersConfirmed ||
-                  !resolutionNote.trim() ||
-                  data.blockers.some((blocker) => !blocker.sourceResolved)))
-            }
-            onClick={() => void start()}
-          >
-            Bắt đầu dọn phòng
-          </button>
+          {data.startCapability === "AVAILABLE" && (
+            <button
+              disabled={
+                busy ||
+                !!pending ||
+                !!closurePending ||
+                data.startCapability !== "AVAILABLE" ||
+                (data.state === "ASSIGNED" &&
+                  data.actualStartAtUtc !== null &&
+                  !!data.blockers?.length &&
+                  (!blockersConfirmed ||
+                    !resolutionNote.trim() ||
+                    data.blockers.some((blocker) => !blocker.sourceResolved)))
+              }
+              onClick={() => void start()}
+            >
+              Bắt đầu dọn phòng
+            </button>
+          )}
           {data.startCapability === "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" && (
             <>
               {data.resumeCapability === "PROVISIONAL_V1" ? (
@@ -575,28 +633,36 @@ function CleaningExecutionContent({
                     !busy &&
                     !pending &&
                     !closurePending &&
-                    ["incidents", "material-requests"].map((module) => (
-                      <Link
-                        key={module}
-                        to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
-                        state={{
-                          cleaningBlocker: {
-                            actor: String(auth.session?.user.id),
-                            branch,
-                            task,
-                            room: data.startDetails!.roomId,
-                            note: blockerNote,
-                            reason: blockerReason,
-                            incident: incidentLink,
-                            material: materialLink,
-                          },
-                        }}
-                      >
-                        {module === "incidents"
-                          ? "Báo sự cố phòng"
-                          : "Tạo yêu cầu vật tư"}
-                      </Link>
-                    ))}
+                    ["incidents", "material-requests"]
+                      .filter((module) =>
+                        module === "incidents"
+                          ? access.allows("INCIDENT_CREATE", true) &&
+                            access.allows("INCIDENT_VIEW", true)
+                          : access.allows("MR_CREATE", true) &&
+                            access.allows("MR_VIEW", true),
+                      )
+                      .map((module) => (
+                        <Link
+                          key={module}
+                          to={`/operations/${module}?branchId=${branch}&action=${module === "incidents" ? "A004A-021" : "A004A-043"}`}
+                          state={{
+                            cleaningBlocker: {
+                              actor: String(auth.session?.user.id),
+                              branch,
+                              task,
+                              room: data.startDetails!.roomId,
+                              note: blockerNote,
+                              reason: blockerReason,
+                              incident: incidentLink,
+                              material: materialLink,
+                            },
+                          }}
+                        >
+                          {module === "incidents"
+                            ? "Báo sự cố phòng"
+                            : "Tạo yêu cầu vật tư"}
+                        </Link>
+                      ))}
                 </fieldset>
               )}
               {data.reportBlockerCapability === "PROVISIONAL_V1" ? (
@@ -610,7 +676,7 @@ function CleaningExecutionContent({
                     <h3>Báo cáo trở ngại</h3>
                     <label>
                       Lý do trở ngại
-                      <select
+                      <SearchableSelect
                         aria-label="Lý do trở ngại"
                         name="reasonId"
                         required
@@ -624,7 +690,7 @@ function CleaningExecutionContent({
                             {r.name}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </label>
                     <label>
                       Ghi chú trở ngại
@@ -747,7 +813,7 @@ function CleaningExecutionContent({
                 </p>
                 <label>
                   Người phụ trách mới
-                  <select
+                  <SearchableSelect
                     aria-label="Người phụ trách mới"
                     name="assigneeId"
                     required
@@ -762,7 +828,7 @@ function CleaningExecutionContent({
                           {c.name} · {displayCode(c.openTasks)} việc mở
                         </option>
                       ))}
-                  </select>
+                  </SearchableSelect>
                 </label>
                 <div>
                   <button

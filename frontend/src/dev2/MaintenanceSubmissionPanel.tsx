@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -182,7 +183,7 @@ export function MaintenanceSubmissionPanel({
           Nộp sẽ kết thúc khoảng làm việc hiện tại. Máy chủ ghi giờ kết thúc
           thực tế. Vật tư đã dùng được đối chiếu số đã cấp và trả.
         </p>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <fieldset disabled={busy || attempted || review}>
           <label>
             Chẩn đoán / nguyên nhân gốc

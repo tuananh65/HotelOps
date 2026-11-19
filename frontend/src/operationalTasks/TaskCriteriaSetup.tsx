@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -84,7 +85,7 @@ export function TaskCriteriaSetup({
             định sau khi thiết lập. Quyền quản lý công việc được kiểm tra khi
             lưu.
           </p>
-          {error && <p role="alert">{error}</p>}
+          {error && <p role="alert">{userMessage(error)}</p>}
           {saved ? (
             <p role="status">Đã khởi tạo tiêu chí hoàn tất.</p>
           ) : (

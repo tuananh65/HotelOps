@@ -18,7 +18,7 @@ public sealed class MaterialRequestsController(MaterialRequestService service) :
         catch (ValidationException e) { return Problem(statusCode: 400, title: "Material Request validation failed", detail: e.Message); }
         catch (InternalRequestReadException e) { return Problem(statusCode: e.Status, title: e.Code); }
     }
-    [HttpGet] public Task<IActionResult> List([FromQuery] MaterialPage page, CancellationToken ct) => Execute(() => service.List(page, ct));
+    [HttpGet] public Task<IActionResult> List([FromQuery, Bind(Prefix = "")] MaterialPage page, CancellationToken ct) => Execute(() => service.List(page, ct));
     // The admitted scoped read handler owns this lookup; never fall back to an unscoped user directory.
     [HttpGet("creation-approvers")] public IActionResult Approvers([FromQuery] long branchId, [FromQuery] long? sourceWarehouseId) => Forbid();
     [HttpGet("creation-catalog")] public IActionResult CreationCatalog([FromQuery] long branchId) => Forbid();

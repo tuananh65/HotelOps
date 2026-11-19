@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useRef, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
 import { safeId } from "./contracts";
@@ -42,14 +44,14 @@ export function UnscheduledStartForm({branchId, disabled, current, onBusy, onSta
   return <section aria-label="Bắt đầu ngoài kế hoạch">
     <h2>Bắt đầu ngoài kế hoạch ca</h2>
     {departments.length===0&&<p>Không có phân công bộ phận đã xác minh cho chi nhánh này.</p>}
-    <label>Bộ phận<select aria-label="Bộ phận" value={department} disabled={disabled} onChange={e=>{setReview(false);setDepartment(e.target.value);}}>
+    <label>Bộ phận<SearchableSelect aria-label="Bộ phận" value={department} disabled={disabled} onChange={e=>{setReview(false);setDepartment(e.target.value);}}>
       <option value="">Chọn bộ phận đã xác minh</option>{departments.map(d=><option key={d.departmentId} value={d.departmentId}>{d.code} — {d.name}</option>)}
-    </select></label>
+    </SearchableSelect></label>
     <label>Lý do<textarea value={reason} maxLength={1000} disabled={disabled} onChange={e=>{setReview(false);setReason(e.target.value);}}/></label>
     <button disabled={disabled||!valid} onClick={()=>setReview(true)}>Xem lại thông tin bắt đầu ngoài ca</button>
     {review&&<div><p>Bắt đầu trong {departments.find(d=>d.departmentId===Number(department))?.name}? Trưởng bộ phận có quyền sẽ nhận thông báo.</p>
       <p>{reason}</p><button disabled={disabled||!valid} onClick={()=>void confirm()}>Xác nhận bắt đầu ngoài ca</button>
       <button disabled={disabled} onClick={()=>setReview(false)}>Hủy xem xét</button></div>}
-    {message&&<p role="status">{message}</p>}
+    {message&&<p role="status">{userMessage(message)}</p>}
   </section>;
 }

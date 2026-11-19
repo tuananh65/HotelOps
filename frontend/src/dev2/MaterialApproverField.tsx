@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
@@ -35,7 +37,7 @@ export function MaterialApproverField({ branch, warehouse, value, required, onCh
       if (abort.signal.aborted) return;
       const matching = result.ok && result.data.branchId === Number(branchId) && result.data.sourceWarehouseId === (warehouseId ? Number(warehouseId) : null);
       setLoaded({ owner, key, rows: matching ? result.data.items : [], message: matching
-        ? result.data.items.length ? "" : "Hiện chưa có người duyệt đủ điều kiện. Bạn có thể lưu nháp."
+        ? result.data.items.length ? "" : "Chưa có Trưởng bộ phận khác đủ điều kiện duyệt yêu cầu này. Bạn có thể lưu nháp; hãy liên hệ quản trị viên để phân công người duyệt độc lập trước khi gửi. Người tạo không được tự duyệt."
         : "Chưa có danh sách người duyệt. Kiểm tra chi nhánh và kho cấp phát, rồi tải lại." });
       if (!result.ok && result.error.kind === "http" && result.error.status === 401) void actions.revalidate();
     });
@@ -44,12 +46,12 @@ export function MaterialApproverField({ branch, warehouse, value, required, onCh
   const current = loaded?.owner === owner && loaded.key === key ? loaded : undefined;
   const selected = current?.rows.some(c => String(c.userId) === String(value)) ? String(value) : "";
   return <div><label>Người duyệt{required ? "(bắt buộc để gửi)" : "(để gửi kết quả)"}
-    <select name="assignedApproverUserId" value={selected} required={required}
+    <SearchableSelect name="assignedApproverUserId" value={selected} required={required}
       onChange={event => onChange(event.target.value)}>
       <option value="">Chọn người duyệt</option>
       {current?.rows.map(c => <option key={c.userId} value={c.userId}>{c.fullName} ({displayCode(c.employeeCode)})</option>)}
-    </select></label>
+    </SearchableSelect></label>
     <button type="button" onClick={() => { onChange(""); setRevision(v => v + 1); }}>Tải lại người duyệt</button>
-    <p role="status">{current?.message ?? (branchId ? "Đang tải người duyệt đủ điều kiện…" : "Chọn chi nhánh để tải người duyệt đủ điều kiện.")}</p>
+    <p role="status">{userMessage(current?.message ?? (branchId ? "Đang tải người duyệt đủ điều kiện…" : "Chọn chi nhánh để tải người duyệt đủ điều kiện."))}</p>
   </div>;
 }

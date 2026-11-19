@@ -28,24 +28,25 @@ public sealed partial class CleaningMonitorService(HotelOpsDbContext db, ICurren
         CleaningMonitorQuery input, CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
-        var from = input.FromDate ?? today;
-        var to = input.ToDate ?? from;
+        var from = input.FromDate;
+        var to = input.ToDate;
         var search = input.Search?.Trim();
         var status = input.Status?.Trim().ToUpperInvariant();
         var kind = input.Kind?.Trim().ToLowerInvariant();
         if (branchId <= 0 || input.FloorId <= 0 || input.AssigneeId <= 0 || input.PriorityId <= 0
             || input.Page < 1 || input.PageSize is < 1 or > 100 || input.Page > int.MaxValue / input.PageSize
-            || from == DateOnly.MinValue || from > to || to.DayNumber - from.DayNumber > 366 || to == DateOnly.MaxValue
+            || from == DateOnly.MinValue || from > to || (from.HasValue && to.HasValue && to.Value.DayNumber - from.Value.DayNumber > 366) || to == DateOnly.MaxValue
             || search?.Length > 150 || search?.Any(char.IsControl) == true
             || status?.Length > 40 || status?.Any(c => !(char.IsAsciiLetterOrDigit(c) || c == '_')) == true
             || kind is not (null or "" or "cleaning" or "rework"))
             throw new ValidationException("Invalid cleaning monitor filters.");
-        var start = TimeZoneInfo.ConvertTimeToUtc(from.ToDateTime(TimeOnly.MinValue), HotelTimezone);
-        var end = TimeZoneInfo.ConvertTimeToUtc(to.AddDays(1).ToDateTime(TimeOnly.MinValue), HotelTimezone);
+        var start = from.HasValue ? TimeZoneInfo.ConvertTimeToUtc(from.Value.ToDateTime(TimeOnly.MinValue), HotelTimezone) : (DateTime?)null;
+        var end = to.HasValue ? TimeZoneInfo.ConvertTimeToUtc(to.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), HotelTimezone) : (DateTime?)null;
         return ReadAsync(ticket, sessionId, branchId, async token =>
         {
-            var rows = (await RowsAsync(branchId, now, token)).Where(x => x.OccurredAt >= start && x.OccurredAt < end);
+            var rows = await RowsAsync(branchId, now, token);
+            if (start.HasValue) rows = rows.Where(x => x.OccurredAt >= start.Value);
+            if (end.HasValue) rows = rows.Where(x => x.OccurredAt < end.Value);
             if (input.FloorId is { } floor) rows = rows.Where(x => x.FloorId == floor);
             if (input.AssigneeId is { } assignee) rows = rows.Where(x => x.AssigneeId == assignee);
             if (input.PriorityId is { } priority) rows = rows.Where(x => x.PriorityId == priority);
@@ -144,7 +145,7 @@ public sealed partial class CleaningMonitorService(HotelOpsDbContext db, ICurren
             var now = clock.GetUtcNow().UtcDateTime;
             var roleGrants = await (from role in db.UserRoles.AsNoTracking()
                 join grant in db.RolePermissions.AsNoTracking() on role.RoleId equals grant.RoleId
-                where role.UserId == ticket.UserId && role.Role.RoleCode == "HK_SUPERVISOR"
+                where role.UserId == ticket.UserId && (role.Role.RoleCode == "HK_SUPERVISOR" || role.Role.RoleCode == "OPERATIONS_MANAGER")
                     && grant.Permission.PermissionCode == "CLEANING_VIEW"
                     && (role.BranchId == branchId || role.BranchId == null)
                 select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope, role.BranchId,
@@ -153,7 +154,7 @@ public sealed partial class CleaningMonitorService(HotelOpsDbContext db, ICurren
                     db.UserBranchAccesses.Any(a => a.UserId == ticket.UserId && a.BranchId == branchId
                         && a.RevokedAt == null && a.GrantedAt <= now))).ToArrayAsync(ct);
             if (!SupervisorCanMonitor(roleGrants, branchId, now)) return CleaningMonitorStatus.Forbidden;
-            // Supervisor monitor requires an actual branch/global view grant. OWN is not promoted to branch access.
+            // Both monitor roles require an actual branch/global view grant. OWN never grants branch access.
             var access = await permissions.EvaluateBranchAsync("CLEANING_VIEW", branchId, ct);
             return access.IsGranted ? null : access.Decision == PermissionDecision.Unavailable
                 ? CleaningMonitorStatus.Unavailable : CleaningMonitorStatus.Forbidden;

@@ -56,9 +56,10 @@ export function approvedReturnDestination(
   const safe = validateReturnUrl(value);
   if (!safe || !revalidated) return null;
   const path = safe.split("?")[0];
+  if (/^\/inventory\/transfer-requests(?:\/(?:new|[1-9][0-9]*))?$/.test(safe)) return safe;
   const incident = /^\/operations\/incidents(?:\/([1-9][0-9]*))?(?:\?branchId=([1-9][0-9]*))?$/.exec(safe);
   if (incident && incident.slice(1).every(id => id === undefined || Number.isSafeInteger(Number(id)))) return safe;
-  if (safe === "/my-time-log" || safe === "/reports" || safe === "/audit" || safe === "/internal-requests" || safe === "/internal-requests/new") return safe;
+  if (safe === "/settings" || safe === "/my-time-log" || safe === "/reports" || safe === "/audit" || safe === "/internal-requests" || safe === "/internal-requests/new") return safe;
   const internalRequest = /^\/internal-requests\?requestId=([1-9][0-9]*)$/.exec(safe);
   if (internalRequest && Number.isSafeInteger(Number(internalRequest[1]))) return safe;
   const inspection =

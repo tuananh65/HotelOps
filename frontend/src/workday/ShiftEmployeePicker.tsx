@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -60,13 +62,13 @@ export function ShiftEmployeePicker({ branchId, departmentId, disabled, onSelect
     <legend>Nhân viên thuộc chi nhánh và bộ phận đã chọn</legend>
     <button type="button" disabled={!safeId(Number(branchId)) || !safeId(Number(departmentId))} onClick={() => void load()}>Tải nhân viên</button>
     {page && <>
-      <label>Chọn nhân viên<select value="" onChange={e => onSelect(e.target.value)}>
+      <label>Chọn nhân viên<SearchableSelect value="" onChange={e => onSelect(e.target.value)}>
         <option value="">Chọn nhân viên</option>
         {page.employees.map(e => <option key={e.id} value={e.id}>{e.name} (#{displayCode(e.id)})</option>)}
-      </select></label>
+      </SearchableSelect></label>
       {page.nextCursor !== null && <button type="button" onClick={() => void load(page.nextCursor!)}>Nhân viên tiếp theo</button>}
     </>}
     {pending && <p role="status">Đang tải nhân viên...</p>}
-    {message && <p role="status">{message}</p>}
+    {message && <p role="status">{userMessage(message)}</p>}
   </fieldset>;
 }

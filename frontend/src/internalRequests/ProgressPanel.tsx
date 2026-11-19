@@ -1,3 +1,9 @@
+import { userMessage } from "../i18n/userMessage";
+import {
+  useWorkflowAvailability,
+  workflowProblemCode,
+} from "./WorkflowAvailability";
+import { staffDate } from "./staffDate";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -27,7 +33,10 @@ interface View {
 const version = (v: unknown): v is string =>
   typeof v === "string" && /^[A-Za-z0-9+/]{11}=$/.test(v);
 class Failure extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly code?: string,
+  ) {
     super("Tiến độ chưa khả dụng");
   }
 }
@@ -43,7 +52,8 @@ async function json(
     redirect: "error",
     signal,
   });
-  if (!response.ok) throw new Failure(response.status);
+  if (!response.ok)
+    throw new Failure(response.status, await workflowProblemCode(response));
   if (!response.headers.get("content-type")?.includes("application/json"))
     throw new Error("Phản hồi không hợp lệ");
   return response.json();
@@ -56,6 +66,7 @@ export function InternalRequestProgressPanel({
   onSaved?: () => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -140,6 +151,9 @@ export function InternalRequestProgressPanel({
           }
         })
         .catch((e) => {
+          if (abort.signal.aborted) return;
+          if (reportUnavailable(e)) return;
+          if (e instanceof Failure && [403, 404].includes(e.status)) return;
           if (!abort.signal.aborted) {
             setMessage(
               "Chưa tải được tiến độ. Tải lại để kiểm tra quyền hiện tại.",
@@ -149,7 +163,7 @@ export function InternalRequestProgressPanel({
           }
         });
     return () => abort.abort();
-  }, [id, owner, revision, actions]);
+  }, [id, owner, revision, actions, reportUnavailable]);
   const view =
     owner && loaded?.owner === owner && loaded.id === id ? loaded.view : null;
   async function olderEvidence() {
@@ -347,15 +361,22 @@ export function InternalRequestProgressPanel({
     }
   }
   if (!owner) return null;
+  if (!view)
+    return message ? (
+      <p role="status">
+        {userMessage(message)}{" "}
+        <button onClick={() => setRevision((v) => v + 1)}>Thử lại</button>
+      </p>
+    ) : null;
   return (
     <ActionDialog
       scope="internalRequests/ProgressPanel.tsx"
-      title="Tiến độ yêu cầu"
+      title={view.canUpdate ? "Cập nhật tiến độ" : "Xem tiến độ"}
       busy={busy}
     >
       <section aria-label="Tiến độ yêu cầu">
         <h3>Tiến độ và kết quả</h3>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại tiến độ
         </button>
@@ -367,7 +388,7 @@ export function InternalRequestProgressPanel({
             </p>
             {view.note && <p>{view.note}</p>}
             {view.result && <p>{view.result}</p>}
-            {view.deadline && <p>Thời hạn (UTC): {view.deadline}</p>}
+            {view.deadline && <p>Hạn xử lý: {staffDate(view.deadline)}</p>}
             {!!view.evidence?.length && (
               <>
                 <h4>Tệp đính kèm</h4>

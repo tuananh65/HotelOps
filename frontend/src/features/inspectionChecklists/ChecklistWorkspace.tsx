@@ -1,3 +1,4 @@
+import { userMessage } from "../../i18n/userMessage";
 import {
   ActionDialog,
   announceWorkflowSuccess,
@@ -73,7 +74,7 @@ export function ChecklistWorkspace({
         </label>
         <button>Chọn chi nhánh</button>
       </form>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       {branchId ? (
         <BranchWorkspace
           key={`${branchId}:${initialId || ""}`}
@@ -166,7 +167,7 @@ function BranchWorkspace({
           Tạo checklist
         </button>
       </div>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       <ChecklistCollection
         branch={branch}
         refresh={refresh}
@@ -316,8 +317,8 @@ function ChecklistDetail({
         </button>
       </div>
       {busy && <p role="status">Đang xử lý…</p>}
-      {error && <p role="alert">{error}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
+      {notice && <p role="status">{userMessage(notice)}</p>}
       {loaded && rules && (
         <>
           <h3>
@@ -431,7 +432,7 @@ function ChecklistDetail({
                 <fieldset disabled={busy || blocked}>
                   {action === "retire" && (
                     <p role="alert">
-                      MSG33: Bạn có chắc muốn ngừng sử dụng phiên bản checklist
+                      Bạn có chắc muốn ngừng sử dụng phiên bản checklist
                       này? Không thể hoàn tác.
                     </p>
                   )}

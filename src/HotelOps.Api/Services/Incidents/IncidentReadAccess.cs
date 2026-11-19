@@ -8,8 +8,9 @@ namespace HotelOps.Api.Services.Incidents;
 internal static class IncidentReadAccess
 {
     internal sealed record Grant(string Role, PermissionGrantPath Path);
-    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false, bool HistoricalAssets = false)
+    internal sealed record Scope(long User, long Branch, bool Lead, bool Staff, bool CurrentAssignmentsOnly = false, bool HistoricalAssets = false, bool Manager = false)
     {
+        internal bool CanRead => Lead || Staff || Manager;
         internal IQueryable<Incident> Apply(IQueryable<Incident> query)
         {
             var scoped=query.Where(i=>i.BranchId==Branch && i.Branch.IsActive
@@ -19,7 +20,7 @@ internal static class IncidentReadAccess
                 ? scoped.Where(i => i.Asset == null || i.Asset.BranchId == Branch
                     || i.AssetSourceScopes.Any(s => s.AssetId == i.AssetId && s.BranchId == i.BranchId))
                 : scoped.Where(i => i.Asset == null || i.Asset.BranchId == Branch);
-            if(Lead) return scoped;
+            if(Lead || Manager) return scoped;
             if(!Staff) return scoped.Where(i=>false);
             var assigned=IncidentCurrentAssignment.AssignedTo(scoped,User,CurrentAssignmentsOnly).Select(i=>i.IncidentId);
             return scoped.Where(i=>i.ReportedBy==User || assigned.Contains(i.IncidentId));
@@ -29,7 +30,8 @@ internal static class IncidentReadAccess
     {
         var valid = grants.Where(g => g.Path.PermissionCode == "INCIDENT_VIEW" && g.Path.BranchId == branch
             && PermissionGrantRules.IsEligible(g.Path, now) && PermissionGrantRules.EffectiveScope(g.Path) == "BRANCH").ToArray();
-        return new(user, branch, valid.Any(g => g.Role == "MAINTENANCE_LEAD"), valid.Any(g => g.Role == "MAINTENANCE_STAFF"));
+        return new(user, branch, valid.Any(g => g.Role == "MAINTENANCE_LEAD"), valid.Any(g => g.Role == "MAINTENANCE_STAFF"),
+            Manager: valid.Any(g => g.Role == "OPERATIONS_MANAGER"));
     }
     internal static Scope ResolveSource(long user, long branch, IEnumerable<Grant> grants, DateTime now)
     {

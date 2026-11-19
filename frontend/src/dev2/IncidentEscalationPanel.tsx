@@ -1,3 +1,5 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -6,6 +8,7 @@ import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
+import { Link } from "react-router-dom";
 
 type Item = {
   escalationId: number;
@@ -18,6 +21,8 @@ type Item = {
 type Context = {
   eTag: string | null;
   canCreate: boolean;
+  canHandle?: boolean;
+  acknowledgmentAvailable?: boolean;
   severity: string | null;
   responseDeadlineAt: string | null;
   resolutionDeadlineAt: string | null;
@@ -219,7 +224,9 @@ export function IncidentEscalationPanel({
   return (
     <ActionDialog
       scope="dev2/IncidentEscalationPanel.tsx"
-      title="Chuyển cấp xử lý sự cố"
+      title={
+        data?.canCreate ? "Chuyển cấp xử lý sự cố" : "Lịch sử chuyển cấp sự cố"
+      }
       busy={busy}
     >
       <section aria-label="Chuyển cấp xử lý sự cố">
@@ -227,12 +234,12 @@ export function IncidentEscalationPanel({
         <button disabled={busy} onClick={() => setReload((n) => n + 1)}>
           Tải lại chuyển cấp xử lý
         </button>
-        {message?.owner === owner && <p role="status">{message.text}</p>}
+        {message?.owner === owner && <p role="status">{userMessage(message.text)}</p>}
         {data && (
           <>
             <p>
-              Mức độ: {data.severity ?? "N/A"}. Response deadline:{" "}
-              {date(data.responseDeadlineAt)}. Resolution deadline:{" "}
+              Mức độ: {data.severity ?? "Chưa xác định"}. Hạn phản hồi:{" "}
+              {date(data.responseDeadlineAt)}. Hạn xử lý:{" "}
               {date(data.resolutionDeadlineAt)}.
             </p>
             <p>
@@ -249,7 +256,7 @@ export function IncidentEscalationPanel({
             {data.items.map((item) => (
               <article key={item.escalationId}>
                 <h4>
-                  Chuyển cấp xử lý #{item.escalationId} —{" "}
+                  Chuyển cấp xử lý {referenceLabel(item, "escalationId")} —{" "}
                   {displayCode(item.state)}
                 </h4>
                 <p>
@@ -260,6 +267,25 @@ export function IncidentEscalationPanel({
                 <p>Hỗ trợ được yêu cầu: {item.requestedSupport}</p>
               </article>
             ))}
+            {data.canHandle === true && data.items.length > 0 && (
+              <div className="notice">
+                <p>
+                  Xem nội dung hỗ trợ ở trên, sau đó mở Thông báo và chọn Xác
+                  nhận đã tiếp nhận cho cảnh báo tương ứng. Chuyển cấp tự đóng
+                  khi sự cố được đóng hoặc hủy.
+                </p>
+                {data.acknowledgmentAvailable === true ? (
+                  <Link to="/notifications">
+                    Mở thông báo để xác nhận tiếp nhận
+                  </Link>
+                ) : (
+                  <p role="status">
+                    Chưa thể xác nhận tiếp nhận. Quản trị viên cần hoàn tất cập
+                    nhật chức năng thông báo.
+                  </p>
+                )}
+              </div>
+            )}
             {data.canCreate && (
               <>
                 <fieldset disabled={busy || attempted || review}>

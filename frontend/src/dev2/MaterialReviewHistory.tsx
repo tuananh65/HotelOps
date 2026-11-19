@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -61,9 +62,9 @@ export function MaterialReviewHistory({ record }: { record: Values }) {
       : <p role="status">{currentStock ? "Chưa có tồn kho. Cần quyền kho riêng và thẩm quyền xét duyệt hiện tại; chưa giữ chỗ tồn nào." : "Đang tải bản xem trước tồn kho được phép truy cập…"}</p>}
     <h3>Yêu cầu gần đây cho cùng vật tư</h3>
     <p>Tối đa 5 yêu cầu khác mới nhất của người này trong chi nhánh và quyền MR_VIEW hiện tại. Số lượng lịch sử không giữ chỗ tồn kho.</p>
-    <label>Vật tư<select value={itemId} onChange={e => setSelected(e.target.value)}>
+    <label>Vật tư<SearchableSelect value={itemId} onChange={e => setSelected(e.target.value)}>
       {items.map(l => <option key={String(l.itemId)} value={String(l.itemId)}>{String(l.itemName ?? l.itemId)}</option>)}
-    </select></label>
+    </SearchableSelect></label>
     <button type="button" onClick={() => setRevision(r => r + 1)}>Tải lại thông tin xét duyệt</button>
     {!current ? <p role="status">Đang tải yêu cầu gần đây…</p> : !current.page ? <p role="alert">Chưa tải được yêu cầu gần đây. Kiểm tra quyền xem và thử lại.</p>
       : rows.length === 0 ? <p>Không có yêu cầu phù hợp khác được phép xem.</p> : <table>

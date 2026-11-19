@@ -1,16 +1,24 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import { ApiError } from "../../api/dev1/client";
 import { inspectionAssignmentRejection } from "../../api/dev1/inspectionReassignment";
 import { parseAssignmentContext } from "../inspectionAssignment/navigation";
 import { InspectionReassignmentForm } from "./InspectionReassignmentForm";
+import { useWorkspacePermissions } from "../../screens/housekeeping/useWorkspacePermissions";
 import {
   assignInitialInspection,
   readInitialInspectionOptions,
   type InitialInspectionOptions,
 } from "../../api/dev1/initialInspectionAssignment";
+
+function InlineEditor({ children }: ComponentProps<typeof ActionDialog>) {
+  return <>{children}</>;
+}
 
 export function InitialInspectionAssignmentPage() {
   const { state } = useAuth();
@@ -40,8 +48,19 @@ export function InitialInspectionAssignmentPage() {
   );
 }
 
-function Assignment({ branch, id }: { branch: string; id: string }) {
+export function Assignment({
+  branch,
+  id,
+  embedded = false,
+  onClose,
+}: {
+  branch: string;
+  id: string;
+  embedded?: boolean;
+  onClose?: () => void;
+}) {
   const { state, actions } = useAuth();
+  const access = useWorkspacePermissions(branch);
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -72,6 +91,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
     owner: typeof owner;
     source: string;
     id: number;
+    inspectorId: number;
   } | null>(null);
   const sourceKey = `${branch}:${id}`;
   useEffect(() => {
@@ -156,7 +176,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
         { signal: scope.signal, isCurrent },
       );
       if (!scope.signal.aborted && isCurrent()) {
-        setSaved({ owner, source: sourceKey, id: assigned.id });
+        setSaved({ owner, source: sourceKey, id: assigned.id, inspectorId });
         setLocked(true);
         setReview(false);
       }
@@ -180,60 +200,68 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
     }
   }
   if (!owner) return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
-  return (
+  const Editor = embedded ? InlineEditor : ActionDialog;
+  const content = (
     <main>
       <h1>Phân công kiểm tra</h1>
       <Link to={`/inspections/assignment?branchId=${branch}`}>
         Các lượt kiểm tra đang chờ
       </Link>
       {!visible && <p role="status">Đang tải chu kỳ vệ sinh…</p>}
-      {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.error && <p role="alert">{userMessage(visible.error)}</p>}
       {confirmed && (
         <p role="status">
-          <span>Đã phân công kiểm tra. Mã kiểm tra #{confirmed.id}.</span>
-          <Link to={`/inspections/${branch}/${confirmed.id}/execution`}>
-            Mở kiểm tra
-          </Link>
+          <span>Đã phân công kiểm tra. Mã kiểm tra {referenceLabel(confirmed, "id")}.</span>
+          {access.allows("INSPECTION_PERFORM") &&
+            String(confirmed.inspectorId) === state.session?.user.id && (
+              <Link to={`/inspections/${branch}/${confirmed.id}/execution`}>
+                Mở kiểm tra
+              </Link>
+            )}
         </p>
       )}
-      {message && <p role="alert">{message}</p>}
+      {message && <p role="alert">{userMessage(message)}</p>}
       {data && (
         <>
           <h2>Phòng {data.roomNumber}</h2>
-          <p>Chu kỳ vệ sinh #{data.taskId}</p>
+          <p>Chu kỳ vệ sinh {referenceLabel(data, "taskId")}</p>
           <p>
             {data.checklistName} · Phiên bản {data.versionNo}
           </p>
           {data.existingInspectionId !== null && (
             <p role="status">
               <span>
-                MSG03: Đã có phân công kiểm tra: #{data.existingInspectionId}.
+                Đã có phân công kiểm tra: {referenceLabel(data, "existingInspectionId")}.
               </span>
-              <Link
-                to={`/inspections/${branch}/${data.existingInspectionId}/execution`}
-              >
-                Mở kiểm tra
-              </Link>
+              {access.allows("INSPECTION_PERFORM") &&
+                String(data.existingInspectorId) === state.session?.user.id && (
+                  <Link
+                    to={`/inspections/${branch}/${data.existingInspectionId}/execution`}
+                  >
+                    Mở kiểm tra
+                  </Link>
+                )}
             </p>
           )}
-          {data.existingInspectionId !== null && (
-            <InspectionReassignmentForm
-              key={`${key}:${data.existingInspectionId}`}
-              branch={branch}
-              id={data.existingInspectionId}
-            />
-          )}
+          {data.existingInspectionId !== null &&
+            access.allows("INSPECTION_PERFORM") && (
+              <InspectionReassignmentForm
+                key={`${key}:${data.existingInspectionId}`}
+                branch={branch}
+                id={data.existingInspectionId}
+              />
+            )}
           {!data.canAssign && data.existingInspectionId === null && (
             <p role="status">
               {data.unavailableReason === "CHECKLIST_UNAVAILABLE"
-                ? "MSG03: Chưa có danh sách kiểm tra đã công bố còn hiệu lực cho loại phòng này. Công bố danh sách hợp lệ trước khi phân công."
+                ? "Chưa có danh sách kiểm tra đã công bố còn hiệu lực cho loại phòng này. Công bố danh sách hợp lệ trước khi phân công."
                 : data.unavailableReason === "NO_ELIGIBLE_INSPECTOR"
                   ? "Không có người kiểm tra đủ điều kiện cho chu kỳ vệ sinh này."
-                  : "Quyền hiện tại không cho phép phân công."}
+                  : "Chức năng lưu phân công chưa sẵn sàng hoặc quyền thực hiện đã thay đổi. Liên hệ quản trị để kiểm tra cấu hình."}
             </p>
           )}
           {data.canAssign && !confirmed && !locked && (
-            <ActionDialog
+            <Editor
               error={message}
               title="Phân công kiểm tra phòng"
               busy={busy}
@@ -247,7 +275,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
               >
                 <fieldset disabled={busy || review}>
                   <label htmlFor="inspection-inspector">Người kiểm tra</label>
-                  <select
+                  <SearchableSelect
                     id="inspection-inspector"
                     required
                     value={inspector}
@@ -259,7 +287,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
                         {person.name}
                       </option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                   <label>
                     Thời hạn
                     <input
@@ -312,7 +340,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
                   </section>
                 )}
               </form>
-            </ActionDialog>
+            </Editor>
           )}
         </>
       )}
@@ -325,5 +353,17 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
         Tải lại kiểm tra
       </button>
     </main>
+  );
+  return embedded ? (
+    <ActionDialog
+      title="Phân công kiểm tra phòng"
+      open
+      busy={busy}
+      onClose={onClose}
+    >
+      {content}
+    </ActionDialog>
+  ) : (
+    content
   );
 }

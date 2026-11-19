@@ -13,7 +13,7 @@ await build({
   bundle: true,
   platform: "node",
   format: "esm",
-  external: ["react", "react-dom"],
+  packages: "external",
   outExtension: { ".js": ".mjs" },
 });
 const m = await import("../.test-output/history/model.mjs");

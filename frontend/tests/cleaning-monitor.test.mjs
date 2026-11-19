@@ -65,6 +65,18 @@ test("monitor uses existing cookie transport, scoped route, allowlisted query an
     40,
   );
 });
+
+test("monitor without date filters accepts the unbounded authorized list", async () => {
+  globalThis.fetch = async (url) => {
+    const q = new URL(url, "https://localhost").searchParams;
+    assert.equal(q.has("fromDate"), false);
+    assert.equal(q.has("toDate"), false);
+    return Response.json({ ...page, fromDate: null, toDate: null });
+  };
+  const result = await listCleaning("7", new URLSearchParams());
+  assert.equal(result.fromDate, null);
+  assert.equal(result.items.length, 1);
+});
 test("monitor rejects malformed rows and wrong pagination instead of mock fallback", async () => {
   for (const value of [
     { ...page, items: [{ ...item, id: Number.MAX_SAFE_INTEGER + 1 }] },

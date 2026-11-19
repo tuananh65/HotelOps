@@ -77,6 +77,15 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         if(!await NotificationAcknowledgmentStore.InstalledAsync(db,ct))throw new InsightException(503,"ACK_SCHEMA_REQUIRED","Acknowledgment storage is unavailable.");
         var recipients=await Inbox(user,now).AsNoTracking().Where(r=>ids.Contains(r.NotificationId)).Select(r=>new {r.RecipientId,r.NotificationId,r.ReadAt}).ToArrayAsync(ct);
         if(recipients.Length!=ids.Length)throw new InsightException(404,"NOT_FOUND","Notification not found.");
+        var escalations=await Inbox(user,now).AsNoTracking().Where(r=>ids.Contains(r.NotificationId)
+            &&r.Notification.NotificationType==HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery.Kind)
+            .Select(r=>r.Notification).ToArrayAsync(ct);
+        foreach(var notice in escalations)
+            if(notice.SourceType!=HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery.Kind
+                ||notice.SourceId is not >0
+                ||await HotelOps.Api.Services.Incidents.IncidentEscalatedNotificationDelivery.TargetAsync(
+                    db,notice.SourceId.Value,user,notice.CreatedBy,notice.CreatedAt,ct)==null)
+                throw new InsightException(403,"ACCESS_DENIED","Không còn quyền tiếp nhận sự cố chuyển cấp này.");
         var keys=recipients.Select(r=>r.RecipientId).ToArray();
         var states=await NotificationAcknowledgmentStore.Query(db).Where(a=>keys.Contains(a.RecipientId)).ToDictionaryAsync(a=>a.RecipientId,ct);
         if(states.Count!=keys.Length || states.Values.Any(a=>!a.RequiresAcknowledgment))throw new InsightException(409,"ACK_NOT_REQUIRED","A selected notification does not require acknowledgment.");

@@ -6,7 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.HotelStructure;
 
-public sealed record OperationalTaskBranchOption(long Id, string Name, bool IsPrimary, bool CanCreate);
+public sealed record OperationalTaskBranchOption(long Id, string Name, bool IsPrimary, bool CanCreate)
+{
+    public bool CanViewWorkload { get; init; }
+    public bool CanManageSeries { get; init; }
+}
 
 public sealed partial class RoomTypeCreationService
 {
@@ -32,7 +36,11 @@ public sealed partial class RoomTypeCreationService
                 PermissionGrantRules.IsEligible(p, now) && PermissionGrantRules.EffectiveScope(p) == "OWN")) continue;
             var create = await permissions.EvaluateBranchAsync("TASK_CREATE", b.BranchId, ct);
             if (create.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
-            result.Add(new(b.BranchId, b.BranchName, b.BranchId == primary, create.IsGranted));
+            result.Add(new(b.BranchId, b.BranchName, b.BranchId == primary, create.IsGranted)
+            {
+                CanViewWorkload = (await WorkloadAccess(actor.UserId, b.BranchId, ct)).IsGranted,
+                CanManageSeries = (await VerificationManager(actor.UserId, b.BranchId, ct)).IsGranted
+            });
         }
         if (!await Valid()) return new(RoomTypeBatchStatus.SessionInvalid);
         await tx.CommitAsync(ct);

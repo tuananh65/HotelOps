@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -260,7 +262,7 @@ function BoundReferenceCatalogPage() {
       <h2>Dữ liệu danh mục vận hành</h2>
       <label>
         Nhóm
-        <select
+        <SearchableSelect
           disabled={busy}
           value={group}
           onChange={(e) => {
@@ -279,7 +281,7 @@ function BoundReferenceCatalogPage() {
           <option value="CLEANING_TYPE">Loại vệ sinh</option>
           <option value="BLOCKER">Lý do bị chặn</option>
           <option value="TASK_PAUSE_REASON">Lý do tạm dừng công việc</option>
-        </select>
+        </SearchableSelect>
       </label>
       {group === "PRIORITY" ? (
         <PrioritySlaPage />
@@ -288,7 +290,7 @@ function BoundReferenceCatalogPage() {
           <button disabled={busy} onClick={() => void load()}>
             Tải danh mục
           </button>
-          {message && <p role="status">{message}</p>}
+          {message && <p role="status">{userMessage(message)}</p>}
           {loaded && (
             <>
               <button
@@ -426,7 +428,7 @@ function BoundReferenceCatalogPage() {
                   {group === "REQUEST_TYPE" && (
                     <label>
                       Phân loại khi tiếp nhận
-                      <select
+                      <SearchableSelect
                         required={active}
                         disabled={selected?.meaningLocked}
                         value={material}
@@ -437,7 +439,7 @@ function BoundReferenceCatalogPage() {
                         <option value="true">
                           Cần vật tư? Chuyển sang yêu cầu vật tư
                         </option>
-                      </select>
+                      </SearchableSelect>
                     </label>
                   )}
                   <label>

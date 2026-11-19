@@ -27,9 +27,9 @@ internal sealed class IncidentCriticalNotificationDelivery(HotelOpsDbContext db,
         JOIN dbo.audit_logs a ON a.entity_type='incidents' AND TRY_CONVERT(bigint,a.entity_id)=e.incident_id
           AND a.actor_user_id=e.actor_id AND a.branch_id=i.branch_id AND a.occurred_at=e.occurred_at AND a.action='UPDATE'
         WHERE e.event_type='CLASSIFIED' AND e.from_status=e.to_status
-          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.notification_kind')='INCIDENT_CRITICAL'
-          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.severity')='CRITICAL'
-          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.event_id'))=e.event_id
+          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.notification_kind')='INCIDENT_CRITICAL'
+          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.severity')='CRITICAL'
+          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.event_id'))=e.event_id
         """);
     internal async Task<long[]> PendingAsync(long after, CancellationToken ct)
     {

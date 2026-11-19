@@ -1,3 +1,6 @@
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -137,7 +140,7 @@ export function TaskAssignmentPanel({
         >
           Tải lại phân công
         </button>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         {snapshot && (
           <>
             <p>
@@ -162,7 +165,7 @@ export function TaskAssignmentPanel({
             >
               <label>
                 Tìm người thực hiện
-                <input
+                <SearchInput suggestions={searchSuggestions(snapshot)}
                   maxLength={150}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -176,7 +179,7 @@ export function TaskAssignmentPanel({
               <legend>Chọn người thực hiện đủ điều kiện</legend>
               <label>
                 Người thực hiện
-                <select
+                <SearchableSelect
                   aria-label="Người thực hiện"
                   value={assignee}
                   onChange={(e) => setAssignee(e.target.value)}
@@ -192,7 +195,7 @@ export function TaskAssignmentPanel({
                       {displayCode(e.loggedSecondsToday)} giây ghi nhận hôm nay
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Lý do phân công lại

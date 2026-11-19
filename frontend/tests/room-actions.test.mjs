@@ -20,19 +20,12 @@ const boardBundle = await build({
   platform: "node",
   format: "esm",
   packages: "external",
-  write: false,
+  outfile: ".test-output/room-actions-board.mjs",
+  loader: { ".css": "empty" },
   define: { "import.meta.env": "{}" },
 });
-// Resolve external packages before loading the in-memory module.
-import { createRequire } from "node:module";
-import { pathToFileURL } from "node:url";
-const require = createRequire(import.meta.url);
-const boardSource = boardBundle.outputFiles[0].text.replace(
-  /from "(react(?:\/jsx-runtime)?|react-router-dom)"/g,
-  (_, name) => `from "${pathToFileURL(require.resolve(name)).href}"`,
-);
 const { parseRoomContext, recordedCleaningHref } =
-  await loadBundle(boardSource);
+  await import("../.test-output/room-actions-board.mjs");
 
 test("optional context stays missing; canonical scoped IDs are preserved", () => {
   for (const [query, expected] of [

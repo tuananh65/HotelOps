@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -251,7 +253,7 @@ export function InternalRequestMaterialLinksPanel({
       <button disabled={busy} onClick={() => setRevision((value) => value + 1)}>
         Tải lại vật tư liên quan
       </button>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {candidates && (
         <button
           disabled={busy}
@@ -281,7 +283,7 @@ export function InternalRequestMaterialLinksPanel({
           Tạo yêu cầu vật tư liên quan
         </Link>
       )}
-      {visible?.error && <p role="status">{visible.error}</p>}
+      {visible?.error && <p role="status">{userMessage(visible.error)}</p>}
       {visible?.view && (
         <>
           {visible.view.items.length === 0 && (
@@ -329,7 +331,7 @@ export function InternalRequestMaterialLinksPanel({
             <ActionDialog title="Liên kết yêu cầu vật tư" busy={busy}>
               <label>
                 Mở yêu cầu vật tư
-                <select
+                <SearchableSelect
                   value={selected}
                   disabled={busy}
                   onChange={(event) => setSelected(event.target.value)}
@@ -343,11 +345,11 @@ export function InternalRequestMaterialLinksPanel({
                       {item.code}: {displayCode(item.purpose)}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Điều kiện hoàn tất
-                <select
+                <SearchableSelect
                   value={mandatory}
                   disabled={busy}
                   onChange={(event) => setMandatory(event.target.value)}
@@ -355,7 +357,7 @@ export function InternalRequestMaterialLinksPanel({
                   <option value="">Chọn điều kiện</option>
                   <option value="required">Bắt buộc để hoàn tất</option>
                   <option value="optional">Không bắt buộc</option>
-                </select>
+                </SearchableSelect>
               </label>
               <button disabled={busy} onClick={() => void link()}>
                 Lưu liên kết vật tư

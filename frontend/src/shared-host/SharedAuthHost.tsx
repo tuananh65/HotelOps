@@ -395,12 +395,9 @@ export function SharedAuthHost({
               ...(materialReadEnabled ? ["/operations/material-requests", "/operations/replenishments", "/inventory/return-requests"] : []),
               ...(workdayReadEnabled ? ["/workday", "/workday/shift-plans"] : []),
               ...((inspectionExecutionEnabled || notificationsEnabled) ? ["/inspection-history"] : []),
+              ...(inspectionExecutionEnabled ? ["/inspections/assignment"] : []),
               ...(checklistEnabled ? ["/inspections/checklists"] : []),
               ...(operationalTasksEnabled ? ["/operational-tasks", "/my-time-log", "/time-corrections"] : [])]} />
-
-{dashboardEnabled && <ReportAccessLink />}
-            {internalRequestsEnabled && <InternalRequestAccessLink />}
-            {internalRequestsEnabled && <InternalRequestIntakeLink />}
 
 <OperationsRoutes />
           </Protected>

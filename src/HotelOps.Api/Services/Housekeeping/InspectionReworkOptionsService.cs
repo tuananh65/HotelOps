@@ -35,6 +35,8 @@ public sealed partial class RoomTypeCreationService
                     && r.ChecklistItemId == d.ChecklistItemId && r.Outcome == "FAIL"))
                 .OrderBy(d => d.DefectId).Select(d => new ReworkDefectOption(d.DefectId, d.Description)).ToArrayAsync(token);
             if (open != null) return new(RoomTypeBatchStatus.Success, new InspectionReworkOptionsDto(inspection, branch, open, defects, []), WorkflowTag(state.Revision));
+            // Match the write-side prerequisite before offering a new rework form.
+            if (!await ReworkAuthorityIssuerAvailable(token)) return new(RoomTypeBatchStatus.SchemaRequired);
             if ((await CleaningState(row.CleaningTaskId.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
             var cleaner = await ReadInspectionCleanerAttributionAsync(db.Database.GetDbConnection(), db.Database.CurrentTransaction!.GetDbTransaction(), inspection, branch, token);
             if (cleaner == null) return new(RoomTypeBatchStatus.Unavailable);

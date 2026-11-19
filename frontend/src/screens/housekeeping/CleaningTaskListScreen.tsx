@@ -1,3 +1,7 @@
+import { SearchInput, searchSuggestions } from "../../components/SearchInput";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import CreateCleaningTaskScreen from "./CreateCleaningTaskScreen";
 import { CollapsibleFilterPanel } from "../../components/workspace-interactions";
 import {
   useRoomWorkspace,
@@ -19,10 +23,17 @@ import {
   type MonitorPage,
 } from "../../api/dev1/cleaningMonitor";
 import { useAuth } from "../../auth/AuthProvider";
-export default function CleaningTaskListScreen(props: { kindOnly?: "rework" }) {
+import "./operational-read.css";
+export default function CleaningTaskListScreen(props: {
+  kindOnly?: "rework";
+  assignmentMode?: boolean;
+}) {
   return <CleaningMonitorScreen {...props} />;
 }
-function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
+function CleaningMonitorScreen({
+  kindOnly,
+  assignmentMode,
+}: { kindOnly?: "rework"; assignmentMode?: boolean } = {}) {
   const { state } = useAuth();
   const scope = useRoomWorkspace("cleaning");
   const owner =
@@ -30,9 +41,11 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
       ? state.authorityGeneration
       : null;
   const [params, setParams] = useSearchParams();
+  const [createOpen, setCreateOpen] = useState(false);
   const monitorMode = scope.branch?.canMonitor && params.get("view") !== "mine";
   const effectiveParams = new URLSearchParams(params);
   if (kindOnly) effectiveParams.set("kind", kindOnly);
+  if (assignmentMode) effectiveParams.set("kind", "cleaning");
   const key = effectiveParams.toString(),
     branch = params.get("branchId") || "";
   type Options = {
@@ -171,15 +184,29 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
       <div className="page-header">
         <div>
           <span className="eyebrow">Buồng phòng</span>
-          <h1>{kindOnly ? "Công việc làm lại" : "Công việc buồng phòng"}</h1>
+          <h1>
+            {assignmentMode
+              ? "Phân công vệ sinh"
+              : kindOnly
+                ? "Công việc làm lại"
+                : "Công việc buồng phòng"}
+          </h1>
           <p>
-            {kindOnly
-              ? "Theo dõi các công việc cần khắc phục sau kiểm tra phòng."
-              : "Theo dõi công việc, nhân viên thực hiện và tiến độ vệ sinh phòng."}
+            {assignmentMode
+              ? "Chọn công việc trong danh sách để phân công hoặc đổi người thực hiện."
+              : kindOnly
+                ? "Theo dõi các công việc cần khắc phục sau kiểm tra phòng."
+                : "Theo dõi công việc, nhân viên thực hiện và tiến độ vệ sinh phòng."}
           </p>
         </div>
       </div>
       <RoomBranchField scope={scope} />
+      {scope.branch?.canMonitor && !scope.branch.canCreate && (
+        <p className="room-note">
+          Theo dõi công việc trong chi nhánh. Việc phân công và xử lý do nhân
+          viên có quyền phụ trách.
+        </p>
+      )}
       <div className="room-actions">
         {!kindOnly && scope.branch?.canReadOwn && (
           <Link
@@ -191,11 +218,17 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
           </Link>
         )}
         {!kindOnly && scope.branch?.canCreate && (
-          <Link
-            to={`/cleaning/tasks/new?branchId=${encodeURIComponent(branch)}`}
-          >
-            Tạo công việc vệ sinh
-          </Link>
+          <>
+            <button type="button" onClick={() => setCreateOpen(true)}>
+              Tạo công việc
+            </button>
+            {createOpen && (
+              <CreateCleaningTaskScreen
+                key={branch}
+                onClose={() => setCreateOpen(false)}
+              />
+            )}
+          </>
         )}
       </div>
       <form
@@ -206,7 +239,7 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
         <div className="ds-quick-search">
           <label>
             Tìm công việc
-            <input
+            <SearchInput suggestions={searchSuggestions(data)}
               name="search"
               type="search"
               placeholder="Số phòng hoặc mã công việc"
@@ -268,18 +301,18 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
           />
           <label>
             Trạng thái
-            <select name="status" defaultValue={params.get("status") || ""}>
+            <SearchableSelect name="status" defaultValue={params.get("status") || ""}>
               <option value="">Tất cả</option>
               {options?.statuses.map((s) => (
                 <option key={s} value={s}>
                   {roomLabel(s)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Loại
-            <select
+            <SearchableSelect
               name="kind"
               value={kindOnly || undefined}
               defaultValue={kindOnly ? undefined : params.get("kind") || ""}
@@ -288,20 +321,20 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
               <option value="">Tất cả</option>
               <option value="cleaning">Vệ sinh</option>
               <option value="rework">Làm lại</option>
-            </select>
+            </SearchableSelect>
             {kindOnly && <input type="hidden" name="kind" value={kindOnly} />}
           </label>
           <label>
             Quá hạn
-            <select name="overdue" defaultValue={params.get("overdue") || ""}>
+            <SearchableSelect name="overdue" defaultValue={params.get("overdue") || ""}>
               <option value="">Tất cả</option>
               <option value="true">Có</option>
               <option value="false">Không</option>
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Số dòng
-            <select
+            <SearchableSelect
               name="pageSize"
               defaultValue={params.get("pageSize") || "20"}
             >
@@ -310,7 +343,7 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
                   {displayCode(n)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <button className="primary" disabled={!scope.branch?.canMonitor}>
             Lọc công việc
@@ -321,7 +354,7 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
         optionResult?.owner === owner &&
         optionResult.error && (
           <p role="alert">
-            {optionResult.error}{" "}
+            {userMessage(optionResult.error)}{" "}
             <button onClick={() => setOptionRetry((v) => v + 1)}>
               Tải lại bộ lọc
             </button>
@@ -341,19 +374,20 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
       )}
       {error?.key === key && (
         <p role="alert">
-          {error.message}{" "}
+          {userMessage(error.message)}{" "}
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
       <p className="room-note">
-        Mặc định hiển thị công việc hôm nay. Chọn khoảng ngày để xem lịch sử.
-        Thời gian theo giờ Việt Nam (UTC+7).
+        Hiển thị công việc trong phạm vi được phép xem. Chọn khoảng ngày để thu
+        hẹp kết quả. Thời gian theo giờ Việt Nam (UTC+7).
       </p>
       {data && (
         <>
           <p>
-            {data.total} công việc · {hotelDate(data.fromDate)} –{" "}
-            {hotelDate(data.toDate)}
+            {data.total} công việc ·{" "}
+            {data.fromDate ? hotelDate(data.fromDate) : "Từ trước đến nay"}
+            {data.toDate ? ` – ${hotelDate(data.toDate)}` : ""}
           </p>
           {data.items.length === 0 ? (
             <p>
@@ -362,22 +396,18 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
             </p>
           ) : (
             <div className="table-wrap">
-              <table>
+              <table className="ops-history-table">
                 <thead>
                   <tr>
                     {[
                       "Công việc",
                       "Phòng",
-                      "Loại",
                       "Trạng thái",
                       "Nhân viên",
                       "Ưu tiên",
                       "Thời hạn",
-                      "Quá hạn",
-                      "Tiến độ",
-                      "Chu kỳ hiện tại",
                       "Trở ngại",
-                      "Trạng thái phòng",
+                      "Mức sẵn sàng",
                     ].map((s) => (
                       <th key={displayCode(s)}>{displayCode(s)}</th>
                     ))}
@@ -388,43 +418,58 @@ function CleaningMonitorScreen({ kindOnly }: { kindOnly?: "rework" } = {}) {
                     <tr key={`${roomLabel(r.kind)}:${r.id}`}>
                       <td>
                         <Link
-                          to={`/cleaning/tasks/${r.id}?branchId=${branch}&monitor=1&kind=${roomLabel(r.kind)}`}
+                          to={`/cleaning/tasks/${r.id}?branchId=${branch}&monitor=1&kind=${r.kind}`}
                         >
                           {r.taskNumber}
                         </Link>
+                        {scope.branch?.canCreate &&
+                          r.kind === "cleaning" &&
+                          r.isCurrentCycle !== false &&
+                          [
+                            "PENDING_ASSIGNMENT",
+                            "ASSIGNED",
+                            "IN_PROGRESS",
+                            "ON_HOLD",
+                          ].includes(r.workflowState ?? r.recordedStatus) && (
+                            <Link
+                              to={
+                                (r.workflowState ?? r.recordedStatus) ===
+                                "PENDING_ASSIGNMENT"
+                                  ? `/cleaning/assignment?branchId=${branch}&taskId=${r.id}`
+                                  : `/cleaning/tasks/${r.id}?branchId=${branch}&execution=1`
+                              }
+                            >
+                              Phân công / phân công lại
+                            </Link>
+                          )}
+                        <small>
+                          {roomLabel(r.kind)}
+                          {r.isCurrentCycle === false ? " · Chu kỳ trước" : ""}
+                        </small>
                       </td>
                       <td>{r.roomNumber}</td>
-                      <td>{roomLabel(r.kind)}</td>
-                      <td>{roomLabel(r.workflowState ?? r.recordedStatus)}</td>
+                      <td>
+                        {roomLabel(r.workflowState ?? r.recordedStatus)}
+                        <small>
+                          Tiến độ:{" "}
+                          {r.progressPercent === null
+                            ? "Chưa ghi nhận"
+                            : `${r.progressPercent}%`}
+                        </small>
+                      </td>
                       <td>{r.assigneeName ?? "Chưa phân công"}</td>
                       <td>{roomLabel(r.priorityCode)}</td>
-                      <td>{hotelTime(r.dueAtUtc)}</td>
                       <td>
-                        {r.isOverdue === null
-                          ? "Chưa xác định"
-                          : r.isOverdue
-                            ? "Có"
-                            : "Không"}
-                      </td>
-                      <td>
-                        {r.progressPercent === null
-                          ? "—"
-                          : `${r.progressPercent}%`}
-                      </td>
-                      <td>
-                        {r.isCurrentCycle == null
-                          ? "Chưa xác định"
-                          : r.isCurrentCycle
-                            ? "Có"
-                            : "Không"}
+                        {hotelTime(r.dueAtUtc)}
+                        {r.isOverdue && <small>Đã quá hạn</small>}
                       </td>
                       <td>
                         {r.hasUnresolvedBlocker == null
                           ? "Chưa xác định"
                           : r.hasUnresolvedBlocker
                             ? "Chưa xử lý"
-                            : "Không"}{" "}
-                        {r.blockerCode}
+                            : "Không"}
+                        {r.blockerNote && <small>{r.blockerNote}</small>}
                       </td>
                       <td>{roomLabel(r.effectiveReadiness ?? "UNKNOWN")}</td>
                     </tr>

@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ExternalLink } from "lucide-react";
@@ -141,7 +142,7 @@ export function HeaderNotifications() {
                     onClick={() => void openSource(item.id)}
                   >
                     <strong>{item.title}</strong>
-                    <span>{item.message}</span>
+                    <span>{userMessage(item.message)}</span>
                     <time dateTime={item.createdAt}>
                       {new Intl.DateTimeFormat("vi-VN", {
                         dateStyle: "short",

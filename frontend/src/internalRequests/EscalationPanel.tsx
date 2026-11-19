@@ -1,3 +1,8 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { useWorkflowAvailability } from "./WorkflowAvailability";
+import { staffDate } from "./staffDate";
 import { ActionDialog } from "../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -69,6 +74,7 @@ export function InternalRequestEscalationPanel({
   onSaved: () => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -182,6 +188,8 @@ export function InternalRequestEscalationPanel({
             setResult({ owner, id, view });
         })
         .catch((e) => {
+          if (abort.signal.aborted) return;
+          if (reportUnavailable(e)) return;
           if (abort.signal.aborted || liveOwner.current !== owner) return;
           if (e instanceof Failure && e.status === 403) setDenied(true);
           else
@@ -192,7 +200,7 @@ export function InternalRequestEscalationPanel({
             actions.invalidateSession(owner);
         });
     return () => abort.abort();
-  }, [id, owner, revision, actions]);
+  }, [id, owner, revision, actions, reportUnavailable]);
   const view =
     owner && result?.owner === owner && result.id === id ? result.view : null;
   const targetDepartment = view?.departments.find(
@@ -321,34 +329,36 @@ export function InternalRequestEscalationPanel({
       }
     }
   }
-  if (!owner || denied) return null;
+  if (!owner || denied || (view && !view.canEscalate && !view.hasOpen))
+    return null;
+  if (!view)
+    return message ? (
+      <p role="status">
+        {userMessage(message)}{" "}
+        <button onClick={() => setRevision((v) => v + 1)}>Thử lại</button>
+      </p>
+    ) : null;
   return (
     <ActionDialog title="Chuyển cấp xử lý yêu cầu" busy={busy}>
       <section aria-label="Chuyển cấp xử lý yêu cầu" aria-busy={busy}>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại chuyển cấp xử lý
         </button>
         {view && (
           <p>
-            Đã tạo: {view.createdAt}. Age at server evaluation:{" "}
-            {Date.parse(view.evaluatedAt) >= Date.parse(view.createdAt)
-              ? (
-                  (Date.parse(view.evaluatedAt) - Date.parse(view.createdAt)) /
-                  3600000
-                ).toFixed(1) + " hours"
-              : "Chưa khả dụng"}
-            . Deadline: {view.deadline ?? "Thiếu"}. Timing: {view.timingStatus}.
-            Current handler:{" "}
-            {view.handlerId === null ? "Chưa phân công" : `#${view.handlerId}`}.
+            Ngày tạo: {staffDate(view.createdAt)} · Hạn xử lý:{" "}
+            {staffDate(view.deadline)}. Người xử lý:{" "}
+            {view.handlerId === null ? "Chưa phân công" : referenceLabel(view, "handlerId")}
+            .{" "}
           </p>
         )}
         {view?.hasOpen && (
-          <p role="status">MSG03: Yêu cầu đã có chuyển cấp đang mở.</p>
+          <p role="status">Yêu cầu đã có chuyển cấp đang mở.</p>
         )}
         {view && !view.canEscalate && !view.hasOpen && (
           <p>
-            MSG03: Chuyển cấp cần yêu cầu đang hoạt động, có nguy cơ trễ hoặc đã
+            Chuyển cấp cần yêu cầu đang hoạt động, có nguy cơ trễ hoặc đã
             quá hạn và khoảng thời gian hợp lệ.
           </p>
         )}
@@ -356,7 +366,7 @@ export function InternalRequestEscalationPanel({
           <>
             <label>
               Độ ưu tiên mới
-              <select
+              <SearchableSelect
                 aria-label="Độ ưu tiên mới"
                 value={priority}
                 disabled={busy}
@@ -368,7 +378,7 @@ export function InternalRequestEscalationPanel({
                     {p.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               Thời hạn mới (giờ địa phương)
@@ -382,7 +392,7 @@ export function InternalRequestEscalationPanel({
             {handlers.length > 0 && (
               <label>
                 Người xử lý mới
-                <select
+                <SearchableSelect
                   aria-label="Người xử lý chuyển cấp"
                   value={handler}
                   disabled={busy}
@@ -398,13 +408,13 @@ export function InternalRequestEscalationPanel({
                       {h.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
             )}
             {view.departments.length > 0 && (
               <label>
                 Bộ phận tiếp nhận mới
-                <select
+                <SearchableSelect
                   value={department}
                   disabled={busy}
                   onChange={(e) => {
@@ -418,7 +428,7 @@ export function InternalRequestEscalationPanel({
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
             )}
             {department && view.status === "IN_PROGRESS" && (

@@ -32,12 +32,15 @@ export interface Timeline {
     newStatus: string | null;
     note: string | null;
     actorId: number;
+    actorName?: string | null;
     occurredAt: string;
   }[];
   assignments: {
     id: number;
     assigneeId: number;
     assignedBy: number;
+    assigneeName?: string | null;
+    assignedByName?: string | null;
     assignedAt: string;
     endedAt: string | null;
     status: string;
@@ -49,6 +52,7 @@ export interface Timeline {
     comment: string | null;
     isSatisfied: boolean | null;
     submittedBy: number;
+    submittedByName?: string | null;
     submittedAt: string;
   } | null;
 }

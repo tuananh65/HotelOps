@@ -14,12 +14,12 @@ public sealed record InternalRequestHistoryRow(long Id, string Number, long Bran
 public sealed record InternalRequestHistoryPage(IReadOnlyList<InternalRequestHistoryRow> Items, int TotalCount,
     int Page, int PageSize, DateTime SnapshotUtc);
 public sealed record InternalRequestTimelineEvent(long Id, string Type, string? OldStatus, string? NewStatus,
-    string? Note, long ActorId, DateTime OccurredAt);
+    string? Note, long ActorId, DateTime OccurredAt, string? ActorName = null);
 public sealed record InternalRequestTimelineQuery(int EventPage = 1, int AssignmentPage = 1, int PageSize = 25);
 public sealed record InternalRequestAssignmentHistory(long Id, long AssigneeId, long AssignedBy, DateTime AssignedAt,
-    DateTime? EndedAt, string Status, string? Note);
+    DateTime? EndedAt, string Status, string? Note, string? AssigneeName = null, string? AssignedByName = null);
 public sealed record InternalRequestFeedbackHistory(long Id, int Rating, string? Comment, bool? IsSatisfied,
-    long SubmittedBy, DateTime SubmittedAt);
+    long SubmittedBy, DateTime SubmittedAt, string? SubmittedByName = null);
 public sealed record InternalRequestTimeline(long RequestId, IReadOnlyList<InternalRequestTimelineEvent> Events,
     int EventTotalCount, IReadOnlyList<InternalRequestAssignmentHistory> Assignments, int AssignmentTotalCount,
     InternalRequestFeedbackHistory? Feedback, InternalRequestTimelineQuery Pagination);
@@ -88,17 +88,17 @@ public static class InternalRequestHistoryQueries
             .OrderBy(e => e.OccurredAt).ThenBy(e => e.EventId)
             .Skip((pagination.EventPage-1)*pagination.PageSize).Take(pagination.PageSize)
             .Select(e => new InternalRequestTimelineEvent(e.EventId, e.EventType, e.OldStatus, e.NewStatus,
-                e.EventNote, e.ActorId, e.OccurredAt)).ToArrayAsync(ct);
+                e.EventNote, e.ActorId, e.OccurredAt,e.Actor.FullName)).ToArrayAsync(ct);
         var assignmentQuery=request.SelectMany(r=>r.InternalRequestAssignments);
         var assignmentCount=await assignmentQuery.CountAsync(ct);
         var assignments=await assignmentQuery.OrderBy(a=>a.AssignedAt).ThenBy(a=>a.AssignmentId)
             .Skip((pagination.AssignmentPage-1)*pagination.PageSize).Take(pagination.PageSize)
             .Select(a=>new InternalRequestAssignmentHistory(a.AssignmentId,a.AssigneeId,a.AssignedBy,a.AssignedAt,
-                a.EndedAt,a.Status,a.AssignmentNote)).ToArrayAsync(ct);
+                a.EndedAt,a.Status,a.AssignmentNote,a.Assignee.FullName,a.AssignedByNavigation.FullName)).ToArrayAsync(ct);
         var feedback=await request.Select(r=>r.InternalRequestFeedback==null?null:
             new InternalRequestFeedbackHistory(r.InternalRequestFeedback.FeedbackId,r.InternalRequestFeedback.Rating,
                 r.InternalRequestFeedback.Comment,r.InternalRequestFeedback.IsSatisfied,r.InternalRequestFeedback.SubmittedBy,
-                r.InternalRequestFeedback.SubmittedAt)).SingleAsync(ct);
+                r.InternalRequestFeedback.SubmittedAt,r.InternalRequestFeedback.SubmittedByNavigation.FullName)).SingleAsync(ct);
         return new(requestId,events.Select(e=>e with {OccurredAt=Utc(e.OccurredAt)!.Value}).ToArray(),eventCount,
             assignments.Select(a=>a with {AssignedAt=Utc(a.AssignedAt)!.Value,EndedAt=Utc(a.EndedAt)}).ToArray(),assignmentCount,
             feedback==null?null:feedback with {SubmittedAt=Utc(feedback.SubmittedAt)!.Value},pagination);

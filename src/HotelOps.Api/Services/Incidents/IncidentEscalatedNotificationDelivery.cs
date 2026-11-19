@@ -28,8 +28,8 @@ internal sealed class IncidentEscalatedNotificationDelivery(HotelOpsDbContext db
           AND a.actor_user_id=e.actor_id AND a.branch_id=i.branch_id AND a.occurred_at=e.occurred_at AND a.action='UPDATE'
         WHERE e.event_type='ESCALATED' AND e.from_status=e.to_status
           AND EXISTS(SELECT 1 FROM dbo.incident_escalations x WHERE x.incident_id=e.incident_id AND x.opened_event_id=e.event_id AND x.opened_at=e.occurred_at)
-          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.notification_kind')='INCIDENT_ESCALATED'
-          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.event_id'))=e.event_id
+          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.notification_kind')='INCIDENT_ESCALATED'
+          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.event_id'))=e.event_id
         """);
     internal async Task<long[]> PendingAsync(long after, CancellationToken ct)
     {
@@ -46,9 +46,7 @@ internal sealed class IncidentEscalatedNotificationDelivery(HotelOpsDbContext db
         var source = await Events(db).SingleOrDefaultAsync(e => e.Id == id, ct);
         if (source == null || source.ActorId != actor || source.At != at) return null;
         var scope = await IncidentReadAccess.ReadAsync(db, user, source.BranchId, ct, sourceRecord: true);
-        var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        if(!await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==user && r.BranchId==source.BranchId && r.IsActive && r.Role.IsActive
-            && r.Role.RoleCode=="OPERATIONS_MANAGER" && r.AssignedAt<=now && (r.ExpiresAt==null || r.ExpiresAt>now),ct)) return null;
+        if(!await IncidentEscalationHandlingAccess.AllowsAsync(db,user,source.BranchId,ct)) return null;
         // Current Operations Manager and independent source read authority are both required.
         return await scope.Apply(db.Incidents.AsNoTracking()).AnyAsync(i => i.IncidentId == source.IncidentId, ct)
             ? source.IncidentId : null;
@@ -81,7 +79,7 @@ internal sealed class IncidentEscalatedNotificationDelivery(HotelOpsDbContext db
         if (notice == null)
         {
             notice = new Notification { NotificationType = Kind, SourceType = Kind, SourceId = id,
-                Title = "Incident escalated", Message = "An incident requires your attention. Open it to review the requested support and acknowledge this notification.",
+                Title = "Sự cố cần hỗ trợ xử lý", Message = "Hãy mở sự cố để xem nội dung hỗ trợ được yêu cầu, sau đó xác nhận đã tiếp nhận thông báo.",
                 Priority = "NORMAL", CreatedBy = hint.ActorId, CreatedAt = hint.At };
             db.Notifications.Add(notice);
             await db.SaveChangesAsync(ct);

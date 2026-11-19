@@ -74,9 +74,13 @@ public sealed class StockBalanceReadService(HotelOpsDbContext db, InsightAccess 
     private async Task<long[]> Branches(CancellationToken ct)
     {
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
-        var user = access.UserId;
         var permitted = await access.BranchesAsync("INVENTORY_VIEW", null, ct);
-        return await db.Branches.AsNoTracking().Where(b => permitted.Contains(b.BranchId) && b.IsActive
+        return await AuthorizedBranchesAsync(db, access.UserId, permitted, now, ct);
+    }
+
+    internal static Task<long[]> AuthorizedBranchesAsync(HotelOpsDbContext db, long user, long[] permitted, DateTime now, CancellationToken ct)
+    {
+        return db.Branches.AsNoTracking().Where(b => permitted.Contains(b.BranchId) && b.IsActive
             && db.UserBranchAccesses.Any(a => a.UserId == user && a.BranchId == b.BranchId && a.RevokedAt == null && a.GrantedAt <= now)
             && db.UserRoles.Any(r => r.UserId == user && r.User.AccountStatus == "ACTIVE" && r.User.EmploymentStatus == "ACTIVE"
                 && r.User.DeletedAt == null && r.IsActive && r.Role.IsActive && r.AssignedAt <= now

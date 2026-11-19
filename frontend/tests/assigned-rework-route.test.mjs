@@ -168,13 +168,13 @@ test("end-of-shift hold resumes only with the server capability", async () => {
   await scenario(async (page, state) => {
     await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();
     state.data = { ...source, state: "ON_HOLD", capability: "READ_ONLY" };
-    await page.getByRole("button", { name: "Refresh rework" }).click();
-    await page.getByText("Rework #12: on hold.", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Tải lại làm lại" }).click();
+    await page.getByText("Làm lại #12: on hold.", { exact: true }).waitFor();
     assert.equal(await page.getByRole("button", { name: "Tiếp tục làm lại", exact: true }).count(), 0);
     state.data.capability = "RESUME_REWORK";
-    await page.getByRole("button", { name: "Refresh rework" }).click();
+    await page.getByRole("button", { name: "Tải lại làm lại" }).click();
     await page.getByRole("button", { name: "Tiếp tục làm lại", exact: true }).click();
-    await page.getByText("Rework #12: in progress.", { exact: true }).waitFor();
+    await page.getByText("Làm lại #12: in progress.", { exact: true }).waitFor();
     assert.deepEqual(state.calls.filter(c => c.method === "POST").map(c => c.path), ["/api/branches/3/reworks/12/start"]);
   }, true);
 });
@@ -182,12 +182,12 @@ test("end-of-shift hold resumes only with the server capability", async () => {
 test("canonical receive workflow accepts and starts using current CSRF and committed receipts", async () => {
   await scenario(async (page, state) => {
     await page
-      .getByRole("button", { name: "Accept rework", exact: true })
+      .getByRole("button", { name: "Tiếp nhận làm lại", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Start rework", exact: true })
+      .getByRole("button", { name: "Bắt đầu làm lại", exact: true })
       .click();
-    await page.getByText("Rework #12: in progress.", { exact: true }).waitFor();
+    await page.getByText("Làm lại #12: in progress.", { exact: true }).waitFor();
     assert.deepEqual(
       state.calls.filter((c) => c.method === "POST").map((c) => c.path),
       ["/api/branches/3/reworks/12/accept", "/api/branches/3/reworks/12/start"],
@@ -195,7 +195,7 @@ test("canonical receive workflow accepts and starts using current CSRF and commi
     assert.equal(
       await page
         .getByRole("button", {
-          name: /Accept rework|Start rework|Complete rework/,
+          name: /Tiếp nhận làm lại|Bắt đầu làm lại|Hoàn tất làm lại/,
         })
         .count(),
       0,
@@ -207,12 +207,12 @@ test("canonical assigned source displays committed defects, then clears them on 
     await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();
     assert.equal(
       await page
-        .getByRole("link", { name: "View defect photo 8" })
+        .getByRole("link", { name: "Xem ảnh lỗi 8" })
         .getAttribute("href"),
       "/api/branches/3/reworks/12/evidence/8",
     );
     assert.equal(
-      await page.getByRole("button", { name: /Accept|Start|Complete/ }).count(),
+      await page.getByRole("button", { name: /Tiếp nhận|Bắt đầu|Hoàn tất/ }).count(),
       0,
     );
     state.signedIn = false;
@@ -229,11 +229,11 @@ test("executor terminal acknowledgement is read-only, separates readiness and cl
     for (const ended of ["COMPLETED", "FAILED"]) {
       state.data = { ...source, state: ended, conclusion: { reinspectionId: 15, state: ended === "COMPLETED" ? "PASSED" : "FAILED",
         effectiveReadiness: "PENDING_CLEANING", readinessAtConclusion: "BLOCKED" } };
-      await page.getByRole("button", { name: "Refresh rework" }).click();
-      await page.getByText(`Reinspection #15: ${ended === "COMPLETED" ? "passed" : "failed"}.`, { exact: true }).waitFor();
-      await page.getByText("Current room readiness: PENDING_CLEANING.", { exact: true }).waitFor();
-      await page.getByText("Readiness at conclusion: BLOCKED.", { exact: true }).waitFor();
-      assert.equal(await page.getByRole("button", { name: /Accept rework|Start rework|Submit rework|Conclude/ }).count(), 0);
+      await page.getByRole("button", { name: "Tải lại làm lại" }).click();
+      await page.getByText(`Kiểm tra lại #15: ${ended === "COMPLETED" ? "passed" : "failed"}.`, { exact: true }).waitFor();
+      await page.getByText("Mức sẵn sàng của phòng hiện tại: Chờ vệ sinh.", { exact: true }).waitFor();
+      await page.getByText("Mức sẵn sàng khi kết luận: BLOCKED.", { exact: true }).waitFor();
+      assert.equal(await page.getByRole("button", { name: /Tiếp nhận làm lại|Bắt đầu làm lại|Nộp kết quả làm lại|Kết luận|Conclude/ }).count(), 0);
     }
     state.signedIn = false;
     await page.evaluate(() => window.reworkTest.revalidate());
@@ -246,7 +246,7 @@ test("source 401 invalidates the current session and removes prior details", asy
     await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();
     state.status = 401;
     state.data = { code: "AUTHENTICATION_REQUIRED" };
-    await page.getByRole("button", { name: "Refresh rework" }).click();
+    await page.getByRole("button", { name: "Tải lại làm lại" }).click();
     await page.waitForURL(/\/login/);
     assert.equal(
       await page.getByText("PRIVATE-DEFECT", { exact: true }).count(),
@@ -262,7 +262,7 @@ test("unsupported lifecycle capability is not displayed as pending acceptance", 
       state: "IN_PROGRESS",
       capability: "PROVISIONAL_NOT_ACCEPTED",
     };
-    await page.getByRole("button", { name: "Refresh rework" }).click();
+    await page.getByRole("button", { name: "Tải lại làm lại" }).click();
     await page.getByRole("alert").waitFor();
     assert.equal(
       await page.getByText("PRIVATE-DEFECT", { exact: true }).count(),

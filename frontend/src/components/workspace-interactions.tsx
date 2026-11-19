@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   Children,
   Fragment,
@@ -343,7 +344,7 @@ export function ActionDialog({
           className="ds-action-workflow"
           onChangeCapture={() => setDirty(true)}
         >
-          {error && <div role="status">{error}</div>}
+          {error && <div role="status">{userMessage(error)}</div>}
           {body}
         </div>
         {locked && (

@@ -247,6 +247,7 @@ function WorkspaceChrome({
         </aside>
       )}
       <AppDrawer
+        navigation
         open={open}
         title="Điều hướng HotelOps"
         onClose={() => setMobileRoute(null)}
@@ -284,7 +285,7 @@ function WorkspaceChrome({
                 placeholder="Tìm chức năng…"
                 value={search}
                 role="combobox"
-                aria-expanded={searchOpen && !!search.trim()}
+                aria-expanded={searchOpen}
                 aria-controls="workspace-search-results"
                 autoComplete="off"
                 onFocus={() => setSearchOpen(true)}
@@ -321,7 +322,7 @@ function WorkspaceChrome({
                   }}
                 />
               )}
-              {searchOpen && search.trim() && (
+              {searchOpen && (
                 <div
                   id="workspace-search-results"
                   className="ds-search-results"

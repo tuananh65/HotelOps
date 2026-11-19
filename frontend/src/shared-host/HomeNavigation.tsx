@@ -11,6 +11,12 @@ import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 
 export const navigationLabels: Record<string, string> = {
+  "/inventory/transfer-requests": "Yêu cầu điều chuyển",
+  "/inventory/stock": "Tồn kho và sổ kho",
+  "/inventory/items": "Danh mục vật tư",
+  "/inventory/stocktakes": "Theo dõi kiểm kê",
+  "/inventory/adjustments": "Điều chỉnh tồn kho",
+  "/settings": "Cấu hình hệ thống",
   "/operations/maintenance": "Công việc bảo trì",
   "/incidents/new": "Báo sự cố",
   "/material-requests/new": "Tạo yêu cầu vật tư",
@@ -28,6 +34,7 @@ export const navigationLabels: Record<string, string> = {
   "/operations/material-requests": "Theo dõi yêu cầu vật tư",
   "/operations/replenishments": "Bổ sung vật tư",
   "/inspection-history": "Lịch sử kiểm tra",
+  "/inspections/assignment": "Phòng chờ kiểm tra",
   "/inspections/checklists": "Danh sách kiểm tra phòng",
   "/cleaning/tasks": "Công việc buồng phòng",
   "/cleaning/assignment": "Phân công vệ sinh",

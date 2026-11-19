@@ -1,3 +1,6 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -131,12 +134,12 @@ function Assignment({
     <section aria-label="Phân công kiểm tra">
       <h2>Phân công kiểm tra</h2>
       {busy && <p role="status">Đang tải…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
       <h3>Các lượt kiểm tra đang chờ</h3>
       {!busy && !queue.pending.length && <p>Không có công việc đang chờ.</p>}
       {queue.pending.map((t) => (
         <button disabled={busy} key={t.taskId} onClick={() => open(t.taskId)}>
-          Phòng #{t.roomId} · Công việc #{t.taskId}
+          Phòng {referenceLabel(t, "roomId")} · Công việc {referenceLabel(t, "taskId")}
         </button>
       ))}
       <h3>Giao cho tôi</h3>
@@ -145,7 +148,7 @@ function Assignment({
           key={i.inspectionId}
           onClick={() => onOpenInspection(i.inspectionId)}
         >
-          Mở kiểm tra #{i.inspectionId}
+          Mở kiểm tra {referenceLabel(i, "inspectionId")}
         </button>
       ))}
       {source && (
@@ -157,13 +160,13 @@ function Assignment({
         >
           <div>
             <p>
-              Phòng #{source.roomId}; phiên bản danh sách kiểm tra{" "}
-              {source.checklistVersionId}
+              Phòng {referenceLabel(source, "roomId")}; phiên bản danh sách kiểm tra{" "}
+              {referenceLabel(source, "checklistVersionId")}
             </p>
             <fieldset disabled={busy || blocked || review}>
               <label>
                 Người kiểm tra
-                <select
+                <SearchableSelect
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                 >
@@ -173,11 +176,11 @@ function Assignment({
                       {p.fullName}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Giám sát chịu trách nhiệm
-                <select
+                <SearchableSelect
                   value={supervisor}
                   onChange={(e) => setSupervisor(e.target.value)}
                 >
@@ -187,7 +190,7 @@ function Assignment({
                       {p.fullName}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
                 Thời hạn

@@ -1,3 +1,7 @@
+import { SearchInput, searchSuggestions } from "../../components/SearchInput";
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { ActionDialog } from "../../components/workspace-interactions";
 import { ApiError } from "../../api/dev1/client";
 import { submitAssignment } from "../../api/dev1/cleaningAssignmentCommand";
@@ -10,7 +14,13 @@ import {
   type AssignmentPlan,
 } from "../../api/dev1/cleaningAssignment";
 import { PageHeader } from "../../ui";
+import CleaningTaskListScreen from "./CleaningTaskListScreen";
 export default function CleaningAssignmentScreen() {
+  const [params] = useSearchParams();
+  if (!params.get("taskId") && !params.get("record")) return <CleaningTaskListScreen assignmentMode />;
+  return <CleaningAssignmentEditor />;
+}
+function CleaningAssignmentEditor() {
   const [params, setParams] = useSearchParams();
   const creation = useLocation().state;
   const branch = params.get("branchId") || "",
@@ -176,21 +186,21 @@ export default function CleaningAssignmentScreen() {
       {creation?.cleaningCreatedId === Number(task) &&
         creation?.cleaningCreatedBranchId === Number(branch) && (
           <p role="status">
-            MSG08: Đã tạo công việc vệ sinh.{" "}
+            Đã tạo công việc vệ sinh.{" "}
             {creation.cleaningRoomBlocked === true
-              ? "MSG17: Phòng vẫn bị khóa."
+              ? "Phòng vẫn bị khóa."
               : "Phòng đang chờ vệ sinh."}{" "}
             Chọn người được giao để tiếp tục.
           </p>
         )}
       {committed && (
         <p role="status">
-          MSG08: Phân công {committed} đã lưu. Thông báo đang chờ gửi.
+          Phân công {committed} đã lưu. Thông báo đang chờ gửi.
         </p>
       )}
       {saveError && (
         <p role="alert">
-          {saveError}{" "}
+          {userMessage(saveError)}{" "}
           {command && !committed && (
             <button
               disabled={saving}
@@ -218,14 +228,14 @@ export default function CleaningAssignmentScreen() {
         </label>
         <label>
           Tìm nhân viên
-          <input name="search" defaultValue={search} maxLength={150} />
+          <SearchInput suggestions={searchSuggestions(data?.candidates)} name="search" defaultValue={search} maxLength={150} />
         </label>
         <button>Tải phương án</button>
       </form>
       {loading && <p role="status">Đang tải phương án phân công…</p>}
       {error?.key === key && (
         <p role="alert">
-          {error.message}{" "}
+          {userMessage(error.message)}{" "}
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
@@ -242,7 +252,7 @@ export default function CleaningAssignmentScreen() {
               {data.task.number} · {data.task.roomNumber}
             </h2>
             <p>
-              Chi nhánh {data.task.branchId} ·{" "}
+              Chi nhánh {referenceLabel(data.task, "branchId")} ·{" "}
               {data.task.workflowState ?? data.task.recordedStatus}
             </p>
             <Link
@@ -258,7 +268,7 @@ export default function CleaningAssignmentScreen() {
               <form key={`${key}:${retry}`} onSubmit={preview}>
                 <label>
                   Nhân viên (bản nháp)
-                  <select
+                  <SearchableSelect
                     aria-label="Nhân viên (bản nháp)"
                     name="assigneeId"
                     required
@@ -270,7 +280,7 @@ export default function CleaningAssignmentScreen() {
                         {c.name}
                       </option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </label>
                 <label>
                   Hạn UTC (ISO 8601)
@@ -308,7 +318,7 @@ export default function CleaningAssignmentScreen() {
                 </button>
               </form>
             </ActionDialog>
-            {draft?.key === key && <p role="status">{draft.message}</p>}
+            {draft?.key === key && <p role="status">{userMessage(draft.message)}</p>}
             <p>
               Không tự tiếp nhận task legacy, không đổi người phụ trách. Danh
               sách ứng viên và ca ghi nhận chưa phải xác nhận đủ điều kiện phân
@@ -340,7 +350,7 @@ export default function CleaningAssignmentScreen() {
             <ul>
               {data.recordedShifts.map((s) => (
                 <li key={`${s.id}:${s.userId}`}>
-                  {s.userId} · {s.from} → {s.to} · {s.recordedShiftStatus} /{" "}
+                  {referenceLabel(s, "userId")} · {s.from} → {s.to} · {s.recordedShiftStatus} /{" "}
                   {s.recordedAssignmentStatus}
                 </li>
               ))}

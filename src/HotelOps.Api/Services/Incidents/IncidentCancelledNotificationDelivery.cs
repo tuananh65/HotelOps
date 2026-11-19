@@ -27,10 +27,10 @@ internal sealed class IncidentCancelledNotificationDelivery(HotelOpsDbContext db
         JOIN dbo.audit_logs a ON a.entity_type='incidents' AND TRY_CONVERT(bigint,a.entity_id)=e.incident_id
           AND a.actor_user_id=e.actor_id AND a.branch_id=i.branch_id AND a.occurred_at=e.occurred_at AND a.action='UPDATE'
         WHERE e.event_type='STATUS_CHANGED' AND e.from_status='OPEN' AND e.to_status='CANCELLED'
-          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.notification_kind')='INCIDENT_CANCELLED'
-          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.event_id'))=e.event_id
-          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{}' END,'$.status')='CANCELLED'
-          AND JSON_VALUE(CASE WHEN ISJSON(a.old_values)=1 THEN a.old_values ELSE N'{}' END,'$.workflow')='PENDING_TRIAGE'
+          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.notification_kind')='INCIDENT_CANCELLED'
+          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.event_id'))=e.event_id
+          AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'{{}}' END,'$.status')='CANCELLED'
+          AND JSON_VALUE(CASE WHEN ISJSON(a.old_values)=1 THEN a.old_values ELSE N'{{}}' END,'$.workflow')='PENDING_TRIAGE'
         """);
     internal async Task<long[]> PendingAsync(long after, CancellationToken ct)
     {

@@ -42,17 +42,17 @@ test('workday automatically loads own branch, formats shifts in Vietnam time and
  await p.screenshot({path:'../artifacts/time-workspace-fix/screenshots/workday.png',fullPage:true});
 }));
 test('time log auto-loads own data, date changes reload and denied reads clear results',()=>run({page:'log'},async p=>{
- await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).waitFor();await p.getByLabel('Ngày làm việc',{exact:true}).fill('2026-11-17');
+ await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).waitFor();await p.getByRole('button',{name:/^Bộ lọc/}).click(); await p.getByLabel('Ngày làm việc',{exact:true}).fill('2026-11-17');
  await p.waitForFunction(()=>window.calls.some(c=>c.url.includes('date=2026-11-17')));await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).waitFor();
  await p.screenshot({path:'../artifacts/time-workspace-fix/screenshots/time-log.png',fullPage:true});await p.evaluate(()=>window.scenario.denied=true);await p.getByRole('button',{name:'Tải lại nhật ký',exact:true}).click();await p.getByText('Bạn không còn quyền xem nhật ký thời gian chi nhánh này.',{exact:true}).waitFor();assert.equal(await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).count(),0);
 }));
 test('employee sees only own corrections and no department ID or decision action',()=>run({},async p=>{
- await p.getByRole('button',{name:'Xem đề nghị #5',exact:true}).click();await p.getByRole('heading',{name:'Đề nghị #5',exact:true}).waitFor();assert.equal(await p.getByLabel('Phạm vi xem').count(),0);assert.equal(await p.getByText('TIME_CORRECTION_DECIDE').count(),0);assert.equal(await p.getByRole('button',{name:'Áp dụng điều chỉnh'}).count(),0);
+ await p.getByRole('button',{name:'Xem đề nghị điều chỉnh',exact:true}).click();await p.getByRole('heading',{name:'Chi tiết đề nghị điều chỉnh',exact:true}).waitFor();assert.equal(await p.getByLabel('Phạm vi xem').count(),0);assert.equal(await p.getByText('TIME_CORRECTION_DECIDE').count(),0);assert.equal(await p.getByRole('button',{name:'Áp dụng điều chỉnh'}).count(),0);
  await p.screenshot({path:'../artifacts/time-workspace-fix/screenshots/correction-detail.png',fullPage:true});
 }));
 test('authorized manager uses named department and stale decision sends once',()=>run({manager:true,stale:true},async p=>{
- await p.getByLabel('Phạm vi xem',{exact:true}).selectOption('2');await p.getByRole('button',{name:'Xem đề nghị #5',exact:true}).click();await p.getByRole('button',{name:'Áp dụng điều chỉnh',exact:true}).click();
- await p.getByText('Dữ liệu đã thay đổi. Tải lại trước khi gửi đề nghị hoặc xét duyệt.',{exact:true}).waitFor();assert(await p.getByRole('button',{name:'Áp dụng điều chỉnh',exact:true}).isDisabled());const sent=await posts(p);assert.equal(sent.length,1);assert.equal(sent[0].headers['If-Match'],'"AAAAAAAAAAE="');assert.equal(JSON.parse(sent[0].body).start,'2026-11-18T01:10:00.000Z');
+ await p.getByRole('button',{name:/^Bộ lọc/}).click(); await p.getByLabel('Phạm vi xem',{exact:true}).selectOption('2');await p.getByRole('button',{name:'Xem đề nghị điều chỉnh',exact:true}).click();await p.getByRole('button',{name:'Xét duyệt đề nghị điều chỉnh',exact:true}).click();await p.getByRole('button',{name:'Áp dụng điều chỉnh',exact:true}).click();
+ await p.getByRole('dialog').getByText('Dữ liệu đã thay đổi. Tải lại trước khi gửi đề nghị hoặc xét duyệt.',{exact:true}).waitFor();assert(await p.getByRole('button',{name:'Áp dụng điều chỉnh',exact:true}).isDisabled());const sent=await posts(p);assert.equal(sent.length,1);assert.equal(sent[0].headers['If-Match'],'"AAAAAAAAAAE="');assert.equal(JSON.parse(sent[0].body).start,'2026-11-18T01:10:00.000Z');
 }));
 test('closed interval correction sends correct UTC, CSRF and version',()=>run({page:'log'},async p=>{
  await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).click();await p.getByLabel('Lý do',{exact:true}).fill('Quên dừng bộ đếm khi kết thúc');await p.getByRole('button',{name:'Gửi điều chỉnh',exact:true}).click();
@@ -62,7 +62,7 @@ test('open interval cannot submit correction',()=>run({page:'log',open:true},asy
  await p.getByText('Có thể đề nghị sau khi kết thúc',{exact:true}).waitFor();assert.equal(await p.getByRole('button',{name:'Đề nghị điều chỉnh',exact:true}).count(),0);
 }));
 test('foreign branch URL falls back to allowed branch and never reads foreign correction',()=>run({query:'?branchId=999&correctionId=5'},async p=>{
- await p.getByRole('button',{name:'Xem đề nghị #5',exact:true}).waitFor();const calls=await p.evaluate(()=>window.calls);assert(!calls.some(c=>c.url.includes('/branches/999/')));assert(!calls.some(c=>c.url.endsWith('/time-corrections/5')));
+ await p.getByRole('button',{name:'Xem đề nghị điều chỉnh',exact:true}).waitFor();const calls=await p.evaluate(()=>window.calls);assert(!calls.some(c=>c.url.includes('/branches/999/')));assert(!calls.some(c=>c.url.endsWith('/time-corrections/5')));
 }));
 test('empty corrections guide employee to the time log; mobile does not overflow',()=>run({empty:true},async p=>{
  await p.getByText('Chưa có đề nghị điều chỉnh trong phạm vi này.',{exact:true}).waitFor();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:'../artifacts/time-workspace-fix/screenshots/corrections-mobile.png',fullPage:true});
@@ -73,3 +73,19 @@ test('scope unavailable offers retry without loading work data',()=>run({page:'l
 test('no shift permission hides shift section without issuing its request',()=>run({page:'workday',noShifts:true},async p=>{
  await p.getByText('Bạn chưa bắt đầu ca hoặc đã kết thúc ca gần nhất.',{exact:true}).waitFor();assert(!(await p.evaluate(()=>window.calls)).some(c=>c.url.endsWith('/own-shifts')));
 }));
+test('correction list opens creation popup with eligible intervals without navigating away',()=>run({},async p=>{
+ await p.getByRole('button',{name:'Tạo đề nghị điều chỉnh',exact:true}).click();
+ const dialog=p.getByRole('dialog');await dialog.waitFor();
+ await dialog.getByLabel('Khoảng thời gian đã kết thúc',{exact:true}).selectOption('7');
+ await dialog.getByLabel('Lý do',{exact:true}).fill('Điều chỉnh thời gian bị ghi sai');
+ assert.equal(await p.getByRole('dialog').count(),1);
+ await dialog.getByRole('button',{name:'Gửi điều chỉnh',exact:true}).click();
+ await dialog.waitFor({state:'hidden'});assert.equal((await posts(p)).length,1);
+}));
+test('empty correction creation remains visible and can change date without sending',()=>run({empty:true},async p=>{
+ await p.getByRole('button',{name:'Tạo đề nghị điều chỉnh',exact:true}).click();
+ const dialog=p.getByRole('dialog');await dialog.getByText('Chưa có khoảng thời gian đã kết thúc trong ngày này. Chọn ngày khác để tạo đề nghị.',{exact:true}).waitFor();
+ await dialog.getByLabel('Ngày có thời gian cần điều chỉnh').fill('2026-11-17');
+ assert.equal(await dialog.getByRole('button',{name:'Gửi điều chỉnh',exact:true}).count(),0);assert.equal((await posts(p)).length,0);
+ const box=await dialog.boundingBox();assert(box.x>=0 && box.y>=0 && box.x+box.width<=390);
+},390));

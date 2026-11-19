@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createHttpClient, isObject } from "../auth/http";
@@ -27,12 +29,12 @@ export function MaterialBranchField({ value, onChange, fixed = false }: { value:
     return () => abort.abort();
   }, [owner, revision, actions]);
   const current = loaded?.owner === owner ? loaded : undefined;
-  return <div><label>Chi nhánh<select required name="branchId" disabled={fixed}
+  return <div><label>Chi nhánh<SearchableSelect required name="branchId" disabled={fixed}
     value={current?.branches.some(b => String(b.branchId) === String(value)) ? String(value) : ""}
     onChange={event => onChange(event.target.value)}>
     <option value="">Chọn chi nhánh</option>{current?.branches.map(b => <option key={b.branchId} value={b.branchId}>{b.name}</option>)}
-  </select></label>
+  </SearchableSelect></label>
     <button type="button" onClick={() => setRevision(v => v + 1)}>Tải lại chi nhánh</button>
-    <p role="status">{current?.error ?? (!current ? "Đang tải chi nhánh…" : current.branches.length ? "" : "Hiện bạn không được tạo yêu cầu vật tư ở chi nhánh nào.")}</p>
+    <p role="status">{userMessage(current?.error ?? (!current ? "Đang tải chi nhánh…" : current.branches.length ? "" : "Hiện bạn không được tạo yêu cầu vật tư ở chi nhánh nào."))}</p>
   </div>;
 }

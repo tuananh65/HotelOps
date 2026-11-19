@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -152,8 +153,8 @@ export function TaskVerificationPanel({
         >
           Tải lại xác minh
         </button>
-        {error && <p role="alert">{error}</p>}
-        {message && <p role="status">{message}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {snapshot && (
           <>
             <TaskSubmissionReview
@@ -172,7 +173,7 @@ export function TaskVerificationPanel({
             </p>
             {snapshot.data.denialCode === "MSG22" && (
               <p>
-                MSG22: Người yêu cầu, người nộp hoặc người thực hiện không được
+                Người yêu cầu, người nộp hoặc người thực hiện không được
                 xác minh chu kỳ này.
               </p>
             )}

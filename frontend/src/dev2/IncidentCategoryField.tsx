@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
 
@@ -35,11 +37,11 @@ export function IncidentCategoryField({ branch, value, onChange }: {
   }, [branchId]);
   const current = loaded?.branch === branchId ? loaded : undefined;
   return <label>Nhóm (không bắt buộc)
-    <select name="categoryId" value={String(value ?? "")} disabled={!current?.rows.length}
+    <SearchableSelect name="categoryId" value={String(value ?? "")} disabled={!current?.rows.length}
       onChange={event => onChange(event.target.value)}>
       <option value="">Chưa có nhóm</option>
       {current?.rows.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}
-    </select>
-    <small>{current?.message ?? (branchId ? "Đang tải các nhóm…" : "Chọn chi nhánh để tải nhóm.")}</small>
+    </SearchableSelect>
+    <small>{userMessage(current?.message ?? (branchId ? "Đang tải các nhóm…" : "Chọn chi nhánh để tải nhóm."))}</small>
   </label>;
 }

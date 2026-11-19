@@ -10,7 +10,7 @@ import {AuthProvider} from './src/auth/AuthProvider'; import {createAuthStore} f
 import './src/styles.css'; import './src/styles/cacao.css';
 import {TaskReadPage} from './src/operationalTasks/TaskReadPage'; import {InternalRequestIntakePage} from './src/internalRequests/IntakePage'; import {InternalRequestHistoryPage} from './src/internalRequests/HistoryPage';
 const s=window.scenario, calls=[]; window.calls=calls;
-const options={branches:[{id:1,name:'Chi nhánh Bùi Viện'}],types:[{id:1,name:'Hỗ trợ di chuyển đồ',materialNeed:false},{id:2,name:'Bổ sung vật dụng phòng',materialNeed:true}],departments:[{id:3,name:'Kỹ thuật'}],requesterDepartments:[{id:4,name:'Buồng phòng'}],priorities:[{id:6,name:'Bình thường'}],rooms:[{id:2,name:'201'}],areas:[{id:9,name:'Sảnh chính'}]};
+const options={branches:[{id:1,name:'Chi nhánh Bùi Viện'}],types:[{id:1,name:'Hỗ trợ di chuyển đồ',materialNeed:false,departmentId:3},{id:2,name:'Bổ sung vật dụng phòng',materialNeed:true},{id:3,name:'Yêu cầu khác',materialNeed:false,allowAnyDepartment:true}],departments:[{id:3,name:'Kỹ thuật'},{id:5,name:'Giặt là'}],requesterDepartments:[{id:4,name:'Buồng phòng'}],priorities:[{id:6,name:'Bình thường'}],rooms:[{id:2,name:'201'}],areas:[{id:9,name:'Sảnh chính'}]};
 window.fetch=async(url,o={})=>{
  calls.push({url,method:o.method??'GET',body:o.body});
  if(url==='/api/auth/session')return Response.json({user:{id:'6',username:'lan.dang',name:'Đặng Thị Lan'},expiresAt:'2099-01-01T00:00:00Z',absoluteExpiresAt:'2099-01-02T00:00:00Z',mustChangePassword:false,csrfToken:'test'});
@@ -59,8 +59,8 @@ test('tasks reject branch outside allowed options without reading that branch',(
  assert(!(await p.evaluate(()=>window.calls)).some(c=>c.url.includes('/api/branches/999/')));
 }));
 test('history displays names, Vietnam time and clears rows after denied refresh',()=>run({page:'history'},async p=>{
- await p.getByRole('cell',{name:'Hỗ trợ vận chuyển đồ',exact:true}).waitFor();
- await p.getByRole('cell',{name:'Chi nhánh Bùi Viện',exact:true}).waitFor();await p.getByRole('cell',{name:'Kỹ thuật',exact:true}).waitFor();
+ await p.locator('tbody').getByText('Hỗ trợ vận chuyển đồ',{exact:true}).waitFor();
+ await p.locator('tbody').getByText('Chi nhánh Bùi Viện',{exact:true}).waitFor();assert.match(await p.locator('tbody').innerText(),/Kỹ thuật/);
  assert.match(await p.locator('tbody').innerText(),/14:00/);
  await p.screenshot({path:'../artifacts/staff-workspace-fix/screenshots/history.png',fullPage:true});
  await p.evaluate(()=>window.scenario.revoked=true);await p.getByRole('button',{name:'Tải lại lịch sử',exact:true}).click();
@@ -72,12 +72,14 @@ test('intake uses assigned branch and named room, sends correct IDs and UTC time
  await p.getByLabel('Tiêu đề',{exact:true}).fill('Hỗ trợ di chuyển bàn');await p.getByLabel('Mô tả',{exact:true}).fill('Di chuyển bàn tại phòng 201.');
  await p.getByLabel('Thời hạn mong muốn (UTC+7)',{exact:true}).fill('2099-01-01T14:00');await p.getByLabel('Vị trí (không bắt buộc)').selectOption('room:2');
  await p.screenshot({path:'../artifacts/staff-workspace-fix/screenshots/intake.png',fullPage:true});
- await p.getByRole('button',{name:'Gửi yêu cầu',exact:true}).click();await p.getByText('MSG09: Đã tạo yêu cầu. Đang chờ tiếp nhận.',{exact:true}).waitFor();
+ await p.getByRole('button',{name:'Gửi yêu cầu',exact:true}).click();await p.getByText('Đã tạo yêu cầu. Đang chờ tiếp nhận.',{exact:true}).waitFor();
  const posts=(await p.evaluate(()=>window.calls)).filter(c=>c.method==='POST');assert.equal(posts.length,1);const body=JSON.parse(posts[0].body);
  assert.equal(body.branchId,1);assert.equal(body.roomId,2);assert.equal(body.areaId,null);assert.equal(body.requesterDepartmentId,4);assert.equal(body.desiredDeadline,'2099-01-01T07:00:00.000Z');
 }));
-test('material request type routes to materials and prevents internal submit',()=>run({},async p=>{
- await p.getByLabel('Loại yêu cầu',{exact:true}).selectOption('2');await p.getByRole('link',{name:'Tạo yêu cầu vật tư',exact:true}).waitFor();assert(await p.getByRole('button',{name:'Gửi yêu cầu',exact:true}).isDisabled());
+test('material types are hidden and request type controls receiving departments',()=>run({},async p=>{
+ const type=p.getByLabel('Loại yêu cầu',{exact:true});await type.waitFor();assert.equal(await type.locator('option[value="2"]').count(),0);
+ await type.selectOption('1');const departments=p.getByLabel('Bộ phận tiếp nhận',{exact:true});assert.equal(await departments.inputValue(),'3');assert.equal(await departments.locator('option[value="5"]').count(),0);
+ await type.selectOption('3');assert.equal(await departments.inputValue(),'');await departments.selectOption('5');await type.selectOption('1');assert.equal(await departments.inputValue(),'3');
 }));
 test('denied intake distinguishes permission error from unavailable schema',async()=>{
  await run({denied:true},p=>p.getByText('Bạn chưa được cấp quyền tạo yêu cầu nội bộ trong chi nhánh này.',{exact:true}).waitFor());

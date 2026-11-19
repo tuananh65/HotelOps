@@ -29,7 +29,7 @@ export default function CleaningTaskDetailScreen() {
     const kind = params.get("kind") || "cleaning";
     return (
       <>
-      {creation?.cleaningCreatedId === Number(id) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">MSG08: Đã tạo công việc vệ sinh. {creation.cleaningRoomBlocked === true ? "MSG17: Phòng vẫn bị khóa." : "Phòng đang chờ vệ sinh."}</p>}
+      {creation?.cleaningCreatedId === Number(id) && creation?.cleaningCreatedBranchId === Number(branch) && <p role="status">Đã tạo công việc vệ sinh. {creation.cleaningRoomBlocked === true ? "Phòng vẫn bị khóa." : "Phòng đang chờ vệ sinh."}</p>}
       <CleaningMonitorDetail
         key={`${branch}:${kind}:${id}`}
         branch={branch}

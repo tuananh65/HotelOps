@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -233,7 +235,7 @@ export function InternalRequestIncidentLinksPanel({
       <p>
         Chỉ liệt kê sự cố bạn được xem. Liên kết công việc không đóng yêu cầu.
       </p>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
         Tải lại sự cố liên quan
       </button>
@@ -328,7 +330,7 @@ export function InternalRequestIncidentLinksPanel({
                 {candidates && (
                   <label>
                     Mở sự cố
-                    <select
+                    <SearchableSelect
                       aria-label="Mở sự cố"
                       disabled={busy}
                       value={selected}
@@ -340,7 +342,7 @@ export function InternalRequestIncidentLinksPanel({
                           {t.code}: {t.title}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </label>
                 )}
                 {legacy && (
@@ -352,7 +354,7 @@ export function InternalRequestIncidentLinksPanel({
                 )}
                 <label>
                   Điều kiện hoàn tất
-                  <select
+                  <SearchableSelect
                     aria-label="Điều kiện hoàn tất"
                     disabled={busy}
                     value={mandatory}
@@ -361,7 +363,7 @@ export function InternalRequestIncidentLinksPanel({
                     <option value="">Chọn điều kiện</option>
                     <option value="required">Bắt buộc để hoàn tất</option>
                     <option value="optional">Không bắt buộc</option>
-                  </select>
+                  </SearchableSelect>
                 </label>
                 <button disabled={busy} onClick={() => void link()}>
                   {legacy ? "Lưu điều kiện hoàn tất" : "Lưu liên kết sự cố"}

@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -243,7 +244,7 @@ export function ShiftDefinitionsPanel({ active = true }: { active?: boolean }) {
         </button>
         {busy && <LoadingIndicator compact label="Đang xử lý mẫu ca" />}
       </div>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {loaded && (
         <>
           <button disabled={busy || uncertain} onClick={() => edit(null)}>

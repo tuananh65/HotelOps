@@ -15,6 +15,7 @@ const identity = {
   mustChangePassword: false,
 };
 const bundle = await build({
+  loader: { ".css": "empty" },
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
@@ -152,23 +153,21 @@ async function withProfile(scenario, run) {
   }
 }
 
-test("confirmed profile renders only PublicSession fields and correct expiry", async () => {
+test("session fallback renders localized identity and expiry when personnel API is unavailable", async () => {
   await withProfile({}, async (page) => {
     assert.equal(
       await page.getByRole("heading", { name: identity.user.name }).count(),
       1,
     );
     assert.deepEqual(await page.locator("dt").allTextContents(), [
-      "ID",
-      "Username",
+      "Tên đăng nhập",
       "Phiên hết hạn lúc",
       "Cần đổi mật khẩu",
     ]);
     assert.deepEqual(await page.locator("dd").allTextContents(), [
-      identity.user.id,
       identity.user.username,
-      identity.expiresAt,
-      "No",
+      new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(identity.expiresAt)),
+      "Không",
     ]);
     assert.equal(
       await page.locator("time").getAttribute("datetime"),
@@ -191,7 +190,7 @@ test("restricted identity displays password-change flag without inferring roles"
       session: { ...identity, mustChangePassword: true },
     },
     async (page) => {
-      assert.equal((await page.locator("dd").allTextContents()).at(-1), "Yes");
+      assert.equal((await page.locator("dd").allTextContents()).at(-1), "Có");
     },
   );
 });
@@ -264,23 +263,23 @@ for (const [name, reply, expected] of [
   [
     "network/timeout",
     { ok: false, error: { kind: "network" } },
-    /could not be confirmed/,
+    /Chưa xác nhận đăng xuất/,
   ],
-  ["503", fail(503, "AUTH_SERVICE_UNAVAILABLE"), /currently unavailable/],
+  ["503", fail(503, "AUTH_SERVICE_UNAVAILABLE"), /Xác thực chưa khả dụng/],
   [
     "cancelled",
     { ok: false, error: { kind: "cancelled" } },
-    /could not be confirmed/,
+    /Chưa xác nhận đăng xuất/,
   ],
-  ["401", fail(401, "SESSION_INVALID"), /session is invalid/],
-  ["CSRF", fail(400, "CSRF_VALIDATION_FAILED"), /security check/],
-  ["403", fail(403, "FORBIDDEN"), /could not be confirmed/],
-  ["busy", { ok: false, error: { kind: "busy" } }, /operation is in progress/],
-  ["stale", { ok: false, error: { kind: "stale" } }, /state changed/],
+  ["401", fail(401, "SESSION_INVALID"), /Phiên không hợp lệ/],
+  ["CSRF", fail(400, "CSRF_VALIDATION_FAILED"), /kiểm tra bảo mật/],
+  ["403", fail(403, "FORBIDDEN"), /Chưa xác nhận đăng xuất/],
+  ["busy", { ok: false, error: { kind: "busy" } }, /thao tác xác thực khác đang chạy/],
+  ["stale", { ok: false, error: { kind: "stale" } }, /Trạng thái xác thực đã đổi/],
   [
     "invalid-response",
     { ok: false, error: { kind: "invalid-response" } },
-    /could not be confirmed/,
+    /Chưa xác nhận đăng xuất/,
   ],
 ]) {
   test(`logout ${name} is not success, hides identity and never auto-replays`, async () => {
@@ -320,7 +319,7 @@ test("errors and rejected exceptions cannot expose secrets", async () => {
       await page.getByRole("button", { name: "Đăng xuất", exact: true }).click();
       const text = await page.getByRole("alert").textContent();
       assert.ok(!/PRIVATE/.test(text));
-      assert.match(text, /could not be confirmed/);
+      assert.match(text, /Chưa xác nhận đăng xuất/);
       assert.equal(await page.locator("#location").textContent(), "/profile");
     });
   }

@@ -12,7 +12,7 @@ public sealed record CleaningMonitorItem(string Kind, long Id, long CleaningTask
     string? EffectiveReadiness = null, string ReadinessCoverage = "UNAVAILABLE");
 
 public sealed record CleaningMonitorPage(IReadOnlyList<CleaningMonitorItem> Items, int Total,
-    int Page, int PageSize, DateOnly FromDate, DateOnly ToDate, string Timezone, DateTime AsOfUtc);
+    int Page, int PageSize, DateOnly? FromDate, DateOnly? ToDate, string Timezone, DateTime AsOfUtc);
 
 public sealed record MonitorAssignment(long Id, long AssigneeId, string Status, DateTime AssignedAtUtc,
     DateTime? EndedAtUtc, string? Reason);

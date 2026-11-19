@@ -1,3 +1,9 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import {
+  useWorkflowAvailability,
+  workflowProblemCode,
+} from "./WorkflowAvailability";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -21,7 +27,10 @@ interface CompletionView {
   hasUndisclosedBlockers?: boolean;
 }
 class CompletionFailure extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly code?: string,
+  ) {
     super("Hoàn tất thất bại");
   }
 }
@@ -39,7 +48,11 @@ async function json(
     redirect: "error",
     signal,
   });
-  if (!response.ok) throw new CompletionFailure(response.status);
+  if (!response.ok)
+    throw new CompletionFailure(
+      response.status,
+      await workflowProblemCode(response),
+    );
   if (!response.headers.get("content-type")?.includes("application/json"))
     throw new Error("Phản hồi không hợp lệ");
   return response.json();
@@ -53,6 +66,7 @@ export function InternalRequestCompletionPanel({
   onCompleted: () => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -113,6 +127,10 @@ export function InternalRequestCompletionPanel({
         })
         .catch((e) => {
           if (abort.signal.aborted) return;
+          if (reportUnavailable(e)) return;
+          if (e instanceof CompletionFailure && [403, 404].includes(e.status))
+            return;
+          if (abort.signal.aborted) return;
           setMessage(
             "Không tải được điều kiện hoàn tất. Tải lại để kiểm tra quyền và trạng thái.",
           );
@@ -120,7 +138,7 @@ export function InternalRequestCompletionPanel({
             actions.invalidateSession(owner);
         });
     return () => abort.abort();
-  }, [id, owner, revision, actions]);
+  }, [id, owner, revision, actions, reportUnavailable]);
   const view =
     owner && result?.owner === owner && result.id === id ? result.view : null;
   async function complete() {
@@ -206,6 +224,13 @@ export function InternalRequestCompletionPanel({
     }
   }
   if (!owner || (view && !view.canComplete && !view.blocker)) return null;
+  if (!view)
+    return message ? (
+      <p role="status">
+        {userMessage(message)}{" "}
+        <button onClick={() => setRevision((v) => v + 1)}>Thử lại</button>
+      </p>
+    ) : null;
   return (
     <ActionDialog
       scope="internalRequests/CompletionPanel.tsx"
@@ -213,10 +238,10 @@ export function InternalRequestCompletionPanel({
       busy={busy}
     >
       <section aria-label="Hoàn tất yêu cầu" aria-busy={busy}>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {view?.blocker && (
           <p role="status">
-            MSG34: Công việc bắt buộc hoặc bàn giao chưa xử lý xong. Kiểm tra
+            Công việc bắt buộc hoặc bàn giao chưa xử lý xong. Kiểm tra
             công việc liên quan bên dưới trước khi đóng.
           </p>
         )}
@@ -224,7 +249,7 @@ export function InternalRequestCompletionPanel({
           <ul aria-label="Công việc đang chặn hoàn tất">
             {view.visibleBlockers.map((b) => (
               <li key={`${b.kind}:${b.id}`}>
-                {displayCode(b.kind)} #{b.id}:{" "}
+                {displayCode(b.kind)} {referenceLabel(b, "id")}:{" "}
                 {b.code === "LEGACY_COMPLETION_REQUIREMENT_UNCLASSIFIED"
                   ? "Chưa phân loại điều kiện hoàn tất."
                   : b.code === "MATERIAL_COMPLETION_UNPROVEN"

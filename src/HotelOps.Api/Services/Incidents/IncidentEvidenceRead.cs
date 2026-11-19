@@ -18,12 +18,12 @@ internal static class IncidentEvidenceRead
         var rows = await query.OrderByDescending(a => a.UploadedAt).ThenByDescending(a => a.AttachmentId)
             .Skip((page - 1) * 25).Take(25)
             .Select(a => new { id = a.AttachmentId, name = a.OriginalFileName ?? a.FileName, a.MimeType,
-                size = a.FileSizeBytes, note = a.Description, authorId = a.UploadedBy, a.UploadedAt }).ToArrayAsync(ct);
+                size = a.FileSizeBytes, note = a.Description, authorId = a.UploadedBy, authorName = a.UploadedByNavigation.FullName, a.UploadedAt }).ToArrayAsync(ct);
         var source = await db.Incidents.AsNoTracking().SingleAsync(i => i.IncidentId == incident, ct);
         var notesQuery = db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident && e.EventType == "EVIDENCE_ADDED");
         var noteTotal = await notesQuery.CountAsync(ct);
         var notes = await notesQuery.OrderByDescending(e => e.EventId).Skip((page - 1) * 25).Take(25)
-            .Select(e => new { id = e.EventId, e.Note, authorId = e.ActorId, at = e.OccurredAt }).ToArrayAsync(ct);
+            .Select(e => new { id = e.EventId, e.Note, authorId = e.ActorId, authorName = e.Actor.FullName, at = e.OccurredAt }).ToArrayAsync(ct);
         return new OkObjectResult(new { incidentId = incident, page, total, items = rows, notes, noteTotal,
             version = await IncidentEvidenceWrite.VersionAsync(db, source, ct),
             canAdd = await IncidentEvidenceWrite.CanAddAsync(db, actor, source, ct) });

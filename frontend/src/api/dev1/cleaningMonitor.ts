@@ -31,8 +31,8 @@ export interface MonitorPage {
   total: number;
   page: number;
   pageSize: number;
-  fromDate: string;
-  toDate: string;
+  fromDate: string | null;
+  toDate: string | null;
   timezone: string;
   asOfUtc: string;
 }
@@ -157,8 +157,8 @@ export async function listCleaning(
     !integer(v.total, 0) ||
     v.page !== page ||
     v.pageSize !== pageSize ||
-    !text(v.fromDate) ||
-    !text(v.toDate) ||
+    !nullableText(v.fromDate) ||
+    !nullableText(v.toDate) ||
     !text(v.timezone) ||
     !stamp(v.asOfUtc) ||
     v.items.length > pageSize ||
@@ -245,7 +245,7 @@ export function monitorError(error: unknown): string {
     if (error.status === 401)
       return "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.";
     if (error.status === 403)
-      return "Không có quyền CLEANING_VIEW tại chi nhánh này; OWN không cấp quyền xem monitor.";
+      return "Bạn không có quyền theo dõi công việc vệ sinh tại cơ sở này.";
     if (error.status === 404)
       return "Không tìm thấy công việc trong chi nhánh được phép.";
     if (error.status === 400)

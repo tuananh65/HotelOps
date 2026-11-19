@@ -1,3 +1,4 @@
+import { referenceLabel } from "../i18n/referenceLabel";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -35,8 +36,8 @@ export function CleaningCancellationReceipt() {
   return <main><h1>Biên nhận hủy công việc dọn phòng</h1><Link to="/notifications">Thông báo</Link>
     {!owner ? <p>Đang xác minh phiên đăng nhập.</p> : !current ? <p>Đang tải…</p>
       : current.failed ? <p role="alert">Không thể truy cập biên nhận. Quyền truy cập có thể đã thay đổi.</p>
-      : current.data && <dl><dt>Công việc</dt><dd>{current.data.taskId}</dd><dt>Chi nhánh</dt><dd>{current.data.branchId}</dd>
-        <dt>Phân công</dt><dd>{current.data.assignmentId}</dd><dt>Trạng thái</dt><dd>Đã hủy</dd>
+      : current.data && <dl><dt>Công việc</dt><dd>{referenceLabel(current.data, "taskId")}</dd><dt>Chi nhánh</dt><dd>{referenceLabel(current.data, "branchId")}</dd>
+        <dt>Phân công</dt><dd>{referenceLabel(current.data, "assignmentId")}</dd><dt>Trạng thái</dt><dd>Đã hủy</dd>
         <dt>Thời điểm hủy</dt><dd>{new Date(current.data.cancelledAtUtc).toLocaleString()}</dd></dl>}
   </main>;
 }

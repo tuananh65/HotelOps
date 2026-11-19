@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { ActionDialog } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useRef, useState } from "react";
@@ -222,7 +224,7 @@ export function InternalRequestCleaningLinksPanel({
     <section aria-label="Công việc vệ sinh liên quan">
       <h3>Công việc vệ sinh liên quan</h3>
       <p>Chỉ liệt kê công việc bạn được xem. Liên kết không đóng yêu cầu.</p>
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
         Tải lại công việc liên quan
       </button>
@@ -297,7 +299,7 @@ export function InternalRequestCleaningLinksPanel({
               <div aria-busy={busy}>
                 <label>
                   Mở công việc vệ sinh
-                  <select
+                  <SearchableSelect
                     aria-label="Mở công việc vệ sinh"
                     disabled={busy}
                     value={selected}
@@ -309,11 +311,11 @@ export function InternalRequestCleaningLinksPanel({
                         {t.code}: {t.title}
                       </option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </label>
                 <label>
                   Điều kiện hoàn tất
-                  <select
+                  <SearchableSelect
                     aria-label="Điều kiện hoàn tất"
                     disabled={busy}
                     value={mandatory}
@@ -322,7 +324,7 @@ export function InternalRequestCleaningLinksPanel({
                     <option value="">Chọn điều kiện</option>
                     <option value="required">Bắt buộc để hoàn tất</option>
                     <option value="optional">Không bắt buộc</option>
-                  </select>
+                  </SearchableSelect>
                 </label>
                 <button
                   data-dialog-action

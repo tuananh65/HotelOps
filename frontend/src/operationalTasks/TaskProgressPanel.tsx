@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -53,6 +55,7 @@ export function TaskProgressPanel({
   const [locked, setLocked] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [recordOnly, setRecordOnly] = useState(false);
   const [reload, setReload] = useState(0);
   const active = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -70,6 +73,17 @@ export function TaskProgressPanel({
     if (fileInput.current) fileInput.current.value = "";
   }
   function failure(reason: unknown) {
+    if (
+      !current &&
+      reason instanceof TaskProgressError &&
+      reason.status === 503 &&
+      reason.problemCode === "SCHEMAREQUIRED"
+    ) {
+      setRecordOnly(true);
+      setError("");
+      setLocked(true);
+      return;
+    }
     if (reason instanceof TaskProgressError && reason.status === 401)
       actions.invalidateSession(owner);
     setError(
@@ -87,6 +101,7 @@ export function TaskProgressPanel({
     setBusy(true);
     setLocked(true);
     setCurrent(null);
+    setRecordOnly(false);
     setError("");
     setMessage("");
     void readTaskProgress(branch, task, controller.signal)
@@ -439,8 +454,21 @@ export function TaskProgressPanel({
         Tải lại tiến độ (bỏ chỉnh sửa)
       </button>
       {busy && <p role="status">Đang tải hoặc lưu tiến độ…</p>}
-      {error && <p role="alert">{error}</p>}
-      {message && <p role="status">{message}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
+      {recordOnly && (
+        <section className="ds-card" aria-label="Hồ sơ công việc lưu trữ">
+          <h3>Hồ sơ công việc cũ · Chỉ xem</h3>
+          <p role="status">
+            Thông tin và lịch sử đã ghi nhận vẫn được hiển thị. Công việc này
+            chưa có dữ liệu tiến độ hợp lệ để nhận hoặc bắt đầu thực hiện.
+          </p>
+          <p>
+            Chọn công việc mới có đầy đủ quy trình trong danh sách công việc
+            được giao để tiếp tục.
+          </p>
+        </section>
+      )}
+      {message && <p role="status">{userMessage(message)}</p>}
       {current?.data.state === "PENDING_VERIFICATION" && (
         <p>Đang chờ trưởng bộ phận xác minh. Tiến độ đã khóa.</p>
       )}
@@ -516,7 +544,7 @@ export function TaskProgressPanel({
           </button>
           <label>
             Lý do tạm dừng
-            <select
+            <SearchableSelect
               aria-label="Lý do tạm dừng"
               disabled={busy || locked}
               value={reasonId}
@@ -528,7 +556,7 @@ export function TaskProgressPanel({
                   {r.label}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <label>
             Ghi chú tạm dừng
@@ -614,7 +642,7 @@ export function TaskProgressPanel({
                   <label>
                     {item.label}
                     {item.required ? "(bắt buộc để hoàn tất)" : ""}
-                    <select
+                    <SearchableSelect
                       aria-label={`Kết quả tiêu chí: ${item.label}`}
                       value={item.outcome ?? ""}
                       onChange={(e) =>
@@ -635,7 +663,7 @@ export function TaskProgressPanel({
                       </option>
                       <option value="PASS">Đạt</option>
                       <option value="FAIL">Không đạt</option>
-                    </select>
+                    </SearchableSelect>
                   </label>
                   <label>
                     Ghi chú tiêu chí: {item.label}

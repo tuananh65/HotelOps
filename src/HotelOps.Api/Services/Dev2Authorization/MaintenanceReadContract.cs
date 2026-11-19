@@ -95,7 +95,7 @@ internal static class MaintenanceReadContract
                 && (prior.Branch && !materialScope.Branch || prior.Own && !materialScope.Own && !materialScope.Branch)) return false;
         }
         var scope = await MaintenanceReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct);
-        if (!scope.Lead && !scope.Staff) return false;
+        if (!scope.CanRead) return false;
         if (!IsList(a) && !await scope.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == Id(a), ct))
             throw new Dev2AccessDenied(404);
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items.ContainsKey(ResumeKey)
@@ -110,7 +110,8 @@ internal static class MaintenanceReadContract
                 || !fresh.ResultAttachmentIds.SequenceEqual(shownReview.ResultAttachmentIds)) return false;
         }
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && a.Http.Items[ScopeKey] is MaintenanceReadAccess.Scope disclosed
-            && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
+            && (disclosed.Branch != scope.Branch || disclosed.Lead && !scope.Lead || disclosed.Manager && !scope.Manager
+                || disclosed.Staff && !scope.Lead && !scope.Staff)) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure && !IsList(a)
             && a.Http.Items[UsageKey] is MaintenanceUsageRead.Result { Available: true } shown)
         {

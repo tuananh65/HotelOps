@@ -1,7 +1,7 @@
 .shift-planning {
   max-width: 1280px;
   margin: 0 auto;
-  color: var(--brown-900, var(--text-primary));
+  color: var(--text-primary);
 }
 .shift-planning [hidden] {
   display: none !important;
@@ -17,7 +17,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--brown-600, var(--primary-500));
+  color: var(--primary-500);
   margin: 0 0 8px;
 }
 .shift-planning h1 {
@@ -38,12 +38,12 @@
 }
 .shift-planning .shift-heading p:last-child,
 .shift-planning .shift-section-heading p {
-  color: #776759;
+  color: var(--text-secondary);
   margin-bottom: 0;
 }
 .shift-planning .shift-card {
   background: var(--surface, #fff);
-  border: 1px solid var(--brown-200, var(--border));
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 24px;
   min-width: 0;
@@ -69,7 +69,7 @@
   font: inherit;
   font-weight: 400;
   min-height: 44px;
-  border: 1px solid #d9c8b8;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 10px 12px;
   background: #fff;
@@ -81,7 +81,7 @@
   align-self: start;
 }
 .shift-planning button {
-  border: 1px solid #d9c8b8;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 10px 16px;
   background: #fff;
@@ -99,7 +99,7 @@
   cursor: not-allowed;
 }
 .shift-planning select:disabled {
-  background: #f7f3ee;
+  background: var(--surface-muted);
   opacity: 1;
 }
 .shift-planning :is(button, input, select, textarea):focus-visible {
@@ -107,9 +107,9 @@
   outline-offset: 3px;
 }
 .shift-planning .shift-primary {
-  background: #785239;
+  background: var(--primary-500);
   color: white;
-  border-color: #785239;
+  border-color: var(--primary-500);
   font-weight: 600;
 }
 .shift-planning .shift-primary:hover:not(:disabled) {
@@ -167,7 +167,7 @@
   grid-template-columns: 1fr 1.3fr 1.3fr;
   align-items: end;
   padding-bottom: 24px;
-  border-bottom: 1px solid #eee5dc;
+  border-bottom: 1px solid var(--border);
 }
 .shift-planning .shift-form-grid button {
   justify-self: start;
@@ -175,7 +175,7 @@
 .shift-planning .shift-table-scroll {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid #eee5dc;
+  border: 1px solid var(--border);
   border-radius: 10px;
 }
 .shift-planning table {
@@ -190,14 +190,14 @@
   text-align: left;
   vertical-align: top;
   padding: 14px 16px;
-  border-bottom: 1px solid #eee5dc;
+  border-bottom: 1px solid var(--border);
   overflow-wrap: normal;
   word-break: normal;
   font-size: 14px;
 }
 .shift-planning th {
   background: var(--background);
-  color: #776759;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -212,7 +212,7 @@
   flex-wrap: wrap;
 }
 .shift-planning .shift-notice {
-  background: #fbf5e9;
+  background: var(--primary-50);
   border-left: 3px solid var(--border);
   padding: 14px 16px;
   border-radius: 6px;
@@ -220,29 +220,29 @@
 }
 .shift-planning .shift-hint {
   font-size: 13px;
-  color: #776759;
+  color: var(--text-secondary);
   margin-bottom: 0;
 }
 .shift-planning .shift-empty {
   text-align: center;
   padding: 60px 24px;
-  color: #776759;
+  color: var(--text-secondary);
 }
 .shift-planning .shift-empty h2 {
   margin-top: 16px;
 }
 .shift-planning .shift-empty-small {
   padding: 28px 20px;
-  background: #faf8f5;
+  background: var(--surface-muted);
   border: 1px dashed var(--border);
   border-radius: 10px;
-  color: #776759;
+  color: var(--text-secondary);
   text-align: center;
 }
 .shift-planning .shift-review {
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #eee5dc;
+  border-top: 1px solid var(--border);
 }
 .shift-planning .shift-review > ul {
   list-style: none;
@@ -251,7 +251,7 @@
   gap: 12px;
 }
 .shift-planning .shift-review > ul > li {
-  border: 1px solid #eee5dc;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
 }

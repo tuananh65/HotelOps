@@ -51,8 +51,7 @@ internal static class IncidentAlertSource
         if(await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==user&&r.BranchId==episode.BranchId&&r.IsActive&&r.Role.IsActive
             &&r.Role.RoleCode=="MAINTENANCE_LEAD"&&r.AssignedAt<=now&&(r.ExpiresAt==null||r.ExpiresAt>now),ct))return true;
         if(await IncidentEscalationClosure.InstalledAsync(db,ct)
-            &&await db.UserRoles.AsNoTracking().AnyAsync(r=>r.UserId==user&&r.BranchId==episode.BranchId&&r.IsActive&&r.Role.IsActive
-                &&r.Role.RoleCode=="OPERATIONS_MANAGER"&&r.AssignedAt<=now&&(r.ExpiresAt==null||r.ExpiresAt>now),ct)
+            &&await IncidentEscalationHandlingAccess.AllowsAsync(db,user,episode.BranchId,ct)
             &&await db.Database.SqlQuery<int>($"""
                 SELECT 1 AS Value FROM dbo.incident_escalations x
                 WHERE x.incident_id={episode.SourceId} AND x.state='OPEN' AND x.opened_at<={now}

@@ -1,5 +1,8 @@
 using HotelOps.Api.DTOs.MaterialRequests;
 using Microsoft.EntityFrameworkCore;
+using HotelOps.Api.Data;
+using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.OperationalTasks;
 
 namespace HotelOps.Api.Services.MaterialRequests;
 
@@ -8,9 +11,9 @@ public sealed partial class MaterialRequestService
     private static DateTime Utc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
     private static DateTime? Utc(DateTime? value) => value.HasValue ? Utc(value.Value) : null;
     public async Task<MaterialPageDto> List(MaterialPage p, CancellationToken ct)
-        => await ListAsync(db.MaterialRequests.AsNoTracking(), p, ct);
+        => await ListAsync(db, db.MaterialRequests.AsNoTracking(), p, ct);
 
-    internal static async Task<MaterialPageDto> ListAsync(IQueryable<HotelOps.Api.Entities.MaterialRequest> q, MaterialPage p, CancellationToken ct)
+    internal static async Task<MaterialPageDto> ListAsync(HotelOpsDbContext db, IQueryable<HotelOps.Api.Entities.MaterialRequest> q, MaterialPage p, CancellationToken ct)
     {
         if (p.Page < 1 || p.PageSize < 1 || p.PageSize > 100 || (long)(p.Page - 1) * p.PageSize > int.MaxValue || p.From > p.To) throw Invalid("Invalid page/date range.");
         if (p.BranchId is long b) q = q.Where(x => x.BranchId == b);
@@ -30,17 +33,26 @@ public sealed partial class MaterialRequestService
         // different materials/UOMs, and never infer a missing legacy approver.
         var details = await q.Where(r => ids.Contains(r.RequestId)).Select(r => new {
             r.RequestId,
+            RequesterName = r.Requester.FullName,
+            BranchName = r.Branch.BranchName,
+            ApproverName = r.MaterialRequestApprovalCycles.OrderByDescending(c => c.RevisionNo).Select(c => c.AssignedApprover.FullName).FirstOrDefault(),
             Approver = r.MaterialRequestApprovalCycles.OrderByDescending(c => c.RevisionNo).Select(c => (long?)c.AssignedApproverId).FirstOrDefault(),
             Lines = r.MaterialRequestLines.Where(l => l.IsActive).OrderBy(l => l.LineNo)
                 .Select(l => new MaterialSummaryLineDto(l.LineId, l.Item.ItemName, l.Uom.UomName, l.RequestedQty, l.ApprovedQty, l.FulfilledQty)).ToArray()
         }).ToArrayAsync(ct);
-        return new(p.Page, p.PageSize, total, rows.Select(x => x with { CreatedAt = Utc(x.CreatedAt), NeededAt = Utc(x.NeededAt),
+        var readable = new Dictionary<long, bool>();
+        foreach (var row in rows)
+            readable[row.RequestId] = await MaterialReadProvenance.ValidAsync(db, row.RequestId, row.BranchId, ct);
+        return new(p.Page, p.PageSize, total, rows.Select(x => x with { CanOpenDetail = readable[x.RequestId], CreatedAt = Utc(x.CreatedAt), NeededAt = Utc(x.NeededAt),
             AssignedApproverUserId = details.Single(d => d.RequestId == x.RequestId).Approver,
+            RequesterName = details.Single(d => d.RequestId == x.RequestId).RequesterName,
+            AssignedApproverName = details.Single(d => d.RequestId == x.RequestId).ApproverName,
+            BranchName = details.Single(d => d.RequestId == x.RequestId).BranchName,
             Quantities = details.Single(d => d.RequestId == x.RequestId).Lines }).ToArray());
     }
     public async Task<MaterialRequestDto?> Get(long id, CancellationToken ct)
     {
-        var r = await db.MaterialRequests.AsNoTracking().Include(x => x.MaterialRequestLines).ThenInclude(l => l.Item)
+        var r = await db.MaterialRequests.AsNoTracking().Include(x => x.Requester).Include(x => x.Branch).Include(x => x.Department).Include(x => x.MaterialRequestLines).ThenInclude(l => l.Item)
             .Include(x => x.MaterialRequestLines).ThenInclude(l => l.Uom).SingleOrDefaultAsync(x => x.RequestId == id, ct);
         if (r is null) return null;
         var cycles = await db.MaterialRequestApprovalCycles.AsNoTracking().Include(x => x.MaterialRequestApprovalLineSnapshots).Where(x => x.RequestId == id).OrderBy(x => x.RevisionNo).ToListAsync(ct);
@@ -57,6 +69,10 @@ public sealed partial class MaterialRequestService
                 x.StockDocumentLine.ActualQty, x.DamagedQty, x.StockDocumentLine.Document.CreatedAt,
                 x.StockDocumentLine.Document.PostedAt, x.StockDocumentLine.Document.PostedBy)).ToListAsync(ct);
         var isNew = await NewWorkflow(r, ct); var eligible = isNew && r.Status is "DRAFT" or "PENDING_APPROVAL" or "NEEDS_INFORMATION" or "APPROVED" or "PARTIALLY_ISSUED";
+        var linkKinds = new List<string> { "incident" };
+        if (await MaterialTaskLinks.InstalledAsync(db, ct) && await ProgressSchema.InstalledAsync(db, ct)) linkKinds.Add("operational");
+        if (await MaterialCleaningLinks.InstalledAsync(db, ct) && await HousekeepingSchema.InstalledAsync(db, ct)) linkKinds.Add("cleaning");
+        if (await MaterialOccurrenceLinks.InstalledAsync(db, ct)) linkKinds.Add("maintenance");
         return new(r.RequestId, r.RequestNo, r.Status, isNew, eligible, eligible ? null : isNew ? "Terminal workflow state." : "Legacy workflow: mutation reconciliation unavailable.", Convert.ToBase64String(r.RowVersion),
             r.BranchId, r.DepartmentId, r.RequesterId, r.SourceWarehouseId, r.Purpose, Utc(r.NeededAt), r.PriorityId, r.ReceivingRoomId, r.ReceivingAreaId, r.IncidentId,
             Utc(r.CreatedAt), Utc(r.SubmittedAt), Utc(r.CompletedAt), Utc(r.UpdatedAt), r.CancellationReason, Utc(r.RemainderClosedAt), r.RemainderClosedBy, r.RemainderCloseReason,
@@ -65,7 +81,8 @@ public sealed partial class MaterialRequestService
             cycles.Select(x => new MaterialCycleDto(x.ApprovalCycleId, x.RevisionNo, x.SubmittedBy, x.AssignedApproverId, x.Status, Utc(x.SubmittedAt), Utc(x.ResolvedAt),
                 x.MaterialRequestApprovalLineSnapshots.OrderBy(l => l.LineNo).Select(l => new MaterialCycleLineDto(l.RequestLineId, l.LineNo, l.ItemId, l.UomId, l.RequestedQty, l.ApprovedQty, l.Note)).ToArray())).ToArray(),
             decisions.Select(x => x with { DecidedAt = Utc(x.DecidedAt) }).ToArray(), batches,
-            returns.Select(x => x with { CreatedAt = Utc(x.CreatedAt), PostedAt = Utc(x.PostedAt) }).ToArray());
+            returns.Select(x => x with { CreatedAt = Utc(x.CreatedAt), PostedAt = Utc(x.PostedAt) }).ToArray()) {
+                AvailableLinkKinds = linkKinds, RequesterName = r.Requester.FullName, BranchName = r.Branch.BranchName, DepartmentName = r.Department.DepartmentName };
     }
     public async Task<IReadOnlyList<MaterialFulfillmentDto>?> Fulfillments(long id, CancellationToken ct)
     {

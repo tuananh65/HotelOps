@@ -6,12 +6,13 @@ import { HomeNavigation, navigationLabels } from "./HomeNavigation";
 import { NotificationUnreadBadge } from "../notifications/NotificationUnreadBadge";
 import "./home.css";
 import { useHomeDisplay } from "./useHomeDisplay";
+import { SearchInput } from "../components/SearchInput";
 
 const sections = [
   { title: "Nhân sự & phân quyền", icon: Users, description: "Tài khoản và quyền truy cập hệ thống.", paths: ["/users", "/roles"] },
   { title: "Khách sạn & cấu hình", icon: Building2, description: "Cấu trúc chi nhánh và danh mục vận hành.", paths: ["/hotel", "/room-directory", "/structure/work-categories", "/structure/priority-sla", "/structure/reference-data"] },
   { title: "Vận hành & buồng phòng", icon: ClipboardCheck, description: "Theo dõi phòng, công việc và xử lý sự cố.", paths: ["/dashboard", "/rooms/status", "/rooms/turnover", "/cleaning/tasks", "/cleaning/assignment", "/rework", "/inspections/checklists", "/inspection-history", "/operational-tasks", "/incidents/new", "/operations/incidents", "/operations/maintenance", "/internal-requests/new", "/internal-requests"] },
-  { title: "Tài sản & vật tư", icon: Package, description: "Tra cứu tài sản và các yêu cầu vật tư.", paths: ["/assets", "/assets/locations", "/assets/maintenance-history", "/inventory/return-requests", "/material-requests/new", "/operations/material-requests", "/operations/replenishments"] },
+  { title: "Tài sản & vật tư", icon: Package, description: "Tra cứu tài sản và các yêu cầu vật tư.", paths: ["/assets", "/assets/locations", "/assets/maintenance-history", "/inventory/stock", "/inventory/items", "/inventory/stocktakes", "/inventory/adjustments", "/inventory/return-requests", "/inventory/transfer-requests", "/material-requests/new", "/operations/material-requests", "/operations/replenishments"] },
   { title: "Ca làm việc", icon: Clock3, description: "Kế hoạch ca và thời gian làm việc.", paths: ["/workday", "/workday/scheduled", "/workday/shift-plans", "/my-time-log", "/time-corrections", "/workday/handovers"] },
 ];
 const names: Record<string, string> = {
@@ -38,7 +39,7 @@ export function HomePage({ children }: { children?: ReactNode }) {
       return <><button type="button" className="home-personal-toggle" aria-expanded={display.value.personal} aria-controls="home-personal-panel" aria-label={display.value.personal ? "Ẩn khu vực cá nhân" : "Hiện khu vực cá nhân"} title={display.value.personal ? "Ẩn khu vực cá nhân" : "Hiện khu vực cá nhân"} onClick={() => display.update("personal", !display.value.personal)}><UserRound size={20} aria-hidden="true" /><span>{display.value.personal ? "Ẩn cá nhân" : "Hiện cá nhân"}</span></button>
       <div className={`home-layout${display.value.personal ? "" : " home-layout-expanded"}`}><section className="home-directory" aria-labelledby="home-functions">
         <div className="home-directory-heading"><div><h2 id="home-functions">Không gian làm việc</h2><p>Các chức năng dành cho tài khoản của bạn.</p></div></div>
-        <label className="home-search"><Search size={19} aria-hidden="true" /><span className="home-sr-only">Tìm chức năng</span><input type="search" placeholder="Tìm chức năng…" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        <label className="home-search"><Search size={19} aria-hidden="true" /><span className="home-sr-only">Tìm chức năng</span><SearchInput suggestions={paths.map(label)} type="search" placeholder="Tìm chức năng…" value={query} onChange={event => setQuery(event.target.value)} /></label>
         {loading && <p role="status" className="home-feedback">Đang tải chức năng…</p>}
         {!loading && !paths.length && <p role="status" className="home-feedback">Chưa tải được chức năng khả dụng. Hãy tải lại trang; nếu vẫn không có kết quả, liên hệ quản trị viên để kiểm tra quyền truy cập.</p>}
         {!loading && paths.length > 0 && !filtered.length && <p role="status" className="home-feedback">Không tìm thấy chức năng phù hợp. Thử từ khóa khác hoặc xóa nội dung tìm kiếm.</p>}

@@ -9,7 +9,7 @@ const bundle = await build({
     loader: "tsx",
     contents: `
 import React from 'react';import {createRoot} from 'react-dom/client';import {BrowserRouter} from 'react-router-dom';
-import './src/styles.css';import './src/styles/cacao.css';
+import './src/styles.css';import './src/styles/cacao.css';import './src/styles/design-system.css';
 import {AuthProvider} from './src/auth/AuthProvider';import {createAuthStore} from './src/auth/authStore';import {createAuthApi} from './src/auth/authApi';
 import RoomBoard from './src/screens/rooms/RoomStatusBoardScreen';import Turnover from './src/screens/housekeeping/RoomTurnoverHistoryScreen';import Cleaning from './src/screens/housekeeping/CleaningTaskListScreen';
 const s=window.scenario;window.calls=[];
@@ -23,9 +23,11 @@ window.fetch=async(url,o={})=>{
    if(s.hang&&!window.recover)return new Promise((resolve,reject)=>o.signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
    if(s.delay)await new Promise(resolve=>setTimeout(resolve,s.delay));
    const b=Number(q.get('branchId'));const items=s.empty?[]:[{...room,branchId:b,roomNumber:b===1?'203':'401'}];
+   if(s.floorTest)items.push({...room,id:4,roomNumber:'101',floor:{id:1,code:'F1',name:'Tầng 1',number:1},area:null});
    const total=s.paginated?21:items.length;
    return Response.json({items,page:Number(q.get('page')||1),pageSize:20,totalCount:total,statusCounts:items.length?[{operationalStatusCode:'DIRTY',count:total}]:[],effectiveReadinessCounts:items.length?{PENDING_CLEANING:total}:{}});
  }
+ if(u.pathname==='/api/branches/1/cleaning-task-options')return Response.json({roomId:Number(q.get('roomId')),branchId:1,roomNumber:'203',cleaningItemCount:1,cleaningTypes:[{id:1,code:'CHECKOUT',name:'Sau trả phòng'}],priorities:[{id:1,code:'NORMAL',name:'Bình thường'}],existingTaskId:null});
  if(u.pathname.endsWith('/cleaning-monitor/options'))return Response.json({floors:[{id:2,name:'Tầng 2'}],assignees:[{id:6,name:'Đặng Thị Lan'}],priorities:[{id:5,name:'HIGH'}],statuses:['IN_PROGRESS','COMPLETED']});
  if(u.pathname.endsWith('/cleaning-monitor'))return Response.json({items:s.empty?[]:[{kind:q.get('kind')||'cleaning',id:12,cleaningTaskId:12,taskNumber:'VS-012',roomId:3,roomNumber:'203',floorId:2,floorName:'Tầng 2',recordedStatus:'IN_PROGRESS',workflowState:null,priorityId:5,priorityCode:'HIGH',assigneeId:6,assigneeName:'Đặng Thị Lan',dueAtUtc:'2026-11-18T07:00:00Z',isOverdue:false,progressPercent:40,blockerCode:null,blockerNote:null,description:null}],total:s.empty?0:1,page:1,pageSize:20,fromDate:q.get('fromDate')||'2026-11-18',toDate:q.get('toDate')||'2026-11-18',timezone:'Asia/Ho_Chi_Minh',asOfUtc:'2026-11-18T05:00:00Z'});
  if(u.pathname.includes('/my-'))return Response.json({items:s.empty?[]:[{id:12,branchId:1,assignmentId:15,taskNumber:'VS-012',roomNumber:'203',recordedStatus:'ASSIGNED'}],nextCursor:null});
@@ -297,7 +299,7 @@ test("supervisor gets named filters and create action", () =>
   run({ page: "cleaning", supervisor: true }, async (p) => {
     await p.getByRole("link", { name: "VS-012", exact: true }).waitFor();
     await p
-      .getByRole("link", { name: "Tạo công việc vệ sinh", exact: true })
+      .getByRole("button", { name: "Tạo công việc", exact: true })
       .waitFor();
     await p.getByRole("button", { name: "Bộ lọc", exact: true }).click();
     await p.getByLabel("Nhân viên", { exact: true }).selectOption("6");
@@ -387,3 +389,16 @@ test("empty own list is understandable and mobile layout fits viewport", () =>
     },
     390,
   ));
+
+test('floor change clears incompatible corridor and excludes it from request',()=>run({page:'rooms',floorTest:true},async p=>{
+ await p.getByRole('link',{name:'203',exact:true}).waitFor();await p.getByRole('button',{name:'Bộ lọc',exact:true}).click();
+ await p.getByLabel('Tầng',{exact:true}).selectOption('2');await p.getByLabel('Khu vực',{exact:true}).selectOption('4');
+ await p.getByLabel('Tầng',{exact:true}).selectOption('1');assert.equal(await p.getByLabel('Khu vực',{exact:true}).inputValue(),'');assert.equal(await p.locator('select[name=areaId] option').count(),1);
+ await p.getByRole('button',{name:'Lọc phòng',exact:true}).click();assert.equal(new URL(p.url()).searchParams.get('floorId'),'1');assert.equal(new URL(p.url()).searchParams.has('areaId'),false);
+}));
+test('turnover automatically requests first authorized room without typing',()=>run({page:'turnover'},async p=>{await p.getByText('0 lần vệ sinh').waitFor();assert.equal(new URL(p.url()).searchParams.get('roomId'),'3');}));
+test('cleaning creation opens popup, resolves room number to ID and cancels without POST',()=>run({page:'cleaning',supervisor:true},async p=>{
+ await p.getByRole('button',{name:'Tạo công việc',exact:true}).click();const d=p.getByRole('dialog');await d.waitFor();await d.getByLabel('Số phòng',{exact:true}).fill('203');await d.getByRole('heading',{name:/Phòng 203/}).waitFor();
+ assert.ok((await p.evaluate(()=>window.calls)).some(c=>c.url.includes('cleaning-task-options?roomId=3')));assert.ok(!(await p.evaluate(()=>window.calls)).some(c=>c.url.includes('roomId=203')));
+ await p.screenshot({path:'../artifacts/room-workspace-fix/screenshots/cleaning-create-popup.png'});p.once('dialog',d=>d.accept());await d.getByRole('button',{name:'Đóng',exact:true}).click();await p.getByRole('link',{name:'VS-012',exact:true}).waitFor();assert.equal((await p.evaluate(()=>window.calls)).filter(c=>c.method==='POST').length,0);
+}));

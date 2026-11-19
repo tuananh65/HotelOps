@@ -1,3 +1,6 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -289,7 +292,7 @@ function Bound({
       const result = (await response.json()) as { id: number; message: string };
       if (!validId(result.id) || result.message !== "MSG08")
         throw new Error("Xác nhận lưu không hợp lệ.");
-      setMessage(`MSG08: Đã lưu bàn giao #${result.id}.`);
+      setMessage("Đã lưu bàn giao.");
       setConfirmed(false);
       const saved = (await read(
         `/api/shift-handovers/${result.id}`,
@@ -333,7 +336,7 @@ function Bound({
           </Link>
         </>
       )}
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status">{userMessage(message)}</p>}
       {busy && <p role="status">Đang tải hoặc lưu…</p>}
       <button
         disabled={busy || unknown}
@@ -363,7 +366,7 @@ function Bound({
           <ul>
             {rows.map((r) => (
               <li key={r.id}>
-                <Link to={`/workday/handovers/${r.id}`}>#{r.id}</Link> —{" "}
+                <Link to={`/workday/handovers/${r.id}`}>{referenceLabel(r, "id")}</Link> —{" "}
                 {displayCode(r.state)} — {r.submittedAt}
               </li>
             ))}
@@ -385,10 +388,10 @@ function Bound({
       )}
       {preview && (
         <section>
-          <h2>Xem lại dữ liệu ngày làm việc #{preview.workdayId}</h2>
+          <h2>Xem lại dữ liệu ngày làm việc {referenceLabel(preview, "workdayId")}</h2>
           <label>
             Người nhận ca tiếp theo
-            <select
+            <SearchableSelect
               disabled={busy || unknown}
               value={receiver}
               onChange={(e) => {
@@ -402,7 +405,7 @@ function Bound({
                   {r.name} — {displayCode(r.start)} đến {displayCode(r.end)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           {!preview.receivers.length && (
             <p>
@@ -413,7 +416,7 @@ function Bound({
           <ul>
             {preview.items.map((i) => (
               <li key={`${i.kind}:${i.id}`}>
-                {displayCode(i.kind)} #{i.id}: {i.label} —{" "}
+                {displayCode(i.kind)} {referenceLabel(i, "id")}: {i.label} —{" "}
                 {displayCode(i.state)}
                 <label>
                   Ghi chú vật tư
@@ -465,7 +468,7 @@ function Bound({
       {receipt && (
         <section>
           <h2>
-            Bàn giao #{receipt.id} — {displayCode(receipt.state)}
+            Bàn giao {referenceLabel(receipt, "id")} — {displayCode(receipt.state)}
           </h2>
           <p>
             Đã nộp: {receipt.submittedAt}; Quyết định:{" "}
@@ -480,7 +483,7 @@ function Bound({
           <ul>
             {receipt.items.map((i) => (
               <li key={`${i.kind}:${i.id}`}>
-                {displayCode(i.kind)} #{i.id}: {i.label} —{" "}
+                {displayCode(i.kind)} {referenceLabel(i, "id")}: {i.label} —{" "}
                 {displayCode(i.state)}
                 <p>{i.note}</p>
                 {sourcePath(i, receipt.branchId) && (

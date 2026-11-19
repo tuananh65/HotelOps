@@ -1,7 +1,9 @@
-import {
-  ActionDialog,
-  FilterToggleButton,
-} from "../../components/workspace-interactions";
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { SearchInput, searchSuggestions } from "../../components/SearchInput";
+import { userMessage } from "../../i18n/userMessage";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import { useWorkspacePermissions } from "../housekeeping/useWorkspacePermissions";
+import { FilterToggleButton } from "../../components/workspace-interactions";
 import {
   useRoomWorkspace,
   useRoomChoices,
@@ -31,7 +33,8 @@ import {
   type RoomSource,
 } from "../../api/dev1/roomBoard";
 
-import RoomWorkflowActions from "./RoomWorkflowActions";
+import { RoomStatusDetails } from "./RoomStatusDetails";
+import { operationalLabel } from "../housekeeping/OperationalReadView";
 import "./room-status-board.css";
 
 type Loaded = {
@@ -75,6 +78,13 @@ function RecordedSourceLink({
   branchId: number;
   source: RoomSource | null;
 }) {
+  const access = useWorkspacePermissions(branchId);
+  const permission =
+    source?.type === "CLEANING_TASK"
+      ? "CLEANING_VIEW"
+      : source?.type === "INSPECTION"
+        ? "INSPECTION_VIEW"
+        : "MAINTENANCE_VIEW";
   const scopedSource =
     source?.availability === "VERIFIED_SAME_ROOM" &&
     source.id !== null &&
@@ -85,14 +95,14 @@ function RecordedSourceLink({
   const href =
     recordedCleaningHref(branchId, source) ??
     (scopedSource && source?.type === "INSPECTION"
-      ? `/inspections/${branchId}/${source.id}/execution`
+      ? `/inspection-history/${source.id}?branchId=${branchId}`
       : null) ??
     (scopedSource && source?.type === "MAINTENANCE"
       ? `/operations/maintenance/${source.id}?branchId=${branchId}&action=A004A-036`
       : null);
-  return href ? (
+  return href && access.allows(permission) ? (
     <Link to={href}>
-      Đang mở {displayCode(source?.type)} #{source?.id}
+      Xem {operationalLabel(source?.type)} {referenceLabel(source, "id")}
     </Link>
   ) : null;
 }
@@ -101,6 +111,12 @@ export default function RoomStatusBoardScreen() {
   const location = useLocation();
   const scope = useRoomWorkspace("rooms");
   const [advanced, setAdvanced] = useState(false);
+  const [draftFloor, setDraftFloor] = useState(params.get("floorId") || "");
+  const [draftArea, setDraftArea] = useState(params.get("areaId") || "");
+  useEffect(() => {
+    setDraftFloor(params.get("floorId") || "");
+    setDraftArea(params.get("areaId") || "");
+  }, [params]);
   const choices = useRoomChoices({
     ...scope,
     branch: scope.branch,
@@ -212,7 +228,7 @@ export default function RoomStatusBoardScreen() {
         <div className="room-board-primary-filters">
           <label>
             Số phòng
-            <input
+            <SearchInput suggestions={searchSuggestions(data)}
               name="search"
               type="search"
               maxLength={200}
@@ -222,7 +238,7 @@ export default function RoomStatusBoardScreen() {
           </label>
           <label>
             Trạng thái vận hành
-            <select
+            <SearchableSelect
               aria-label="Trạng thái vận hành"
               name="readiness"
               defaultValue={params.get("readiness") || ""}
@@ -233,7 +249,7 @@ export default function RoomStatusBoardScreen() {
                   {roomLabel(s)}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           <button disabled={!scope.branch}>Lọc phòng</button>
           <FilterToggleButton
@@ -245,6 +261,10 @@ export default function RoomStatusBoardScreen() {
             }
             controls="room-board-advanced"
             onClick={() => {
+              if (advanced) {
+                setDraftFloor(params.get("floorId") || "");
+                setDraftArea(params.get("areaId") || "");
+              }
               if (advanced)
                 document
                   .querySelectorAll<HTMLSelectElement>(
@@ -266,20 +286,49 @@ export default function RoomStatusBoardScreen() {
             key={choices.items ? "ready" : "pending"}
             className="room-board-advanced-fields"
           >
-            <NamedFilter
-              name="floorId"
-              label="Tầng"
-              value={params.get("floorId") || ""}
-              items={uniqueOptions((choices.items ?? []).map((r) => r.floor))}
-            />
-            <NamedFilter
-              name="areaId"
-              label="Khu vực"
-              value={params.get("areaId") || ""}
-              items={uniqueOptions(
-                (choices.items ?? []).flatMap((r) => (r.area ? [r.area] : [])),
-              )}
-            />
+            <label>
+              Tầng
+              <SearchableSelect
+                name="floorId"
+                aria-label="Tầng"
+                value={draftFloor}
+                onChange={(e) => {
+                  setDraftFloor(e.target.value);
+                  setDraftArea("");
+                }}
+              >
+                <option value="">Tất cả</option>
+                {uniqueOptions((choices.items ?? []).map((r) => r.floor)).map(
+                  (f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ),
+                )}
+              </SearchableSelect>
+            </label>
+            <label>
+              Khu vực
+              <SearchableSelect
+                name="areaId"
+                aria-label="Khu vực"
+                value={draftArea}
+                onChange={(e) => setDraftArea(e.target.value)}
+              >
+                <option value="">Tất cả khu vực thuộc tầng</option>
+                {uniqueOptions(
+                  (choices.items ?? [])
+                    .filter(
+                      (r) => !draftFloor || String(r.floor.id) === draftFloor,
+                    )
+                    .flatMap((r) => (r.area ? [r.area] : [])),
+                ).map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </SearchableSelect>
+            </label>
             <NamedFilter
               name="roomTypeId"
               label="Loại phòng"
@@ -290,14 +339,14 @@ export default function RoomStatusBoardScreen() {
             />
             <label>
               Bộ lọc hoạt động
-              <select
+              <SearchableSelect
                 name="isActive"
                 defaultValue={params.get("isActive") || ""}
               >
                 <option value="">Tất cả</option>
                 <option value="true">Đang hoạt động</option>
                 <option value="false">Ngừng hoạt động</option>
-              </select>
+              </SearchableSelect>
             </label>
           </div>
         </div>
@@ -323,7 +372,7 @@ export default function RoomStatusBoardScreen() {
       </form>
       {choices.error && (
         <p role="alert">
-          {choices.error}{" "}
+          {userMessage(choices.error)}{" "}
           <button onClick={choices.reload}>Tải lại danh mục</button>
         </p>
       )}
@@ -351,7 +400,7 @@ export default function RoomStatusBoardScreen() {
       )}
       {error && (
         <p role="alert">
-          {error}{" "}
+          {userMessage(error)}{" "}
           <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
         </p>
       )}
@@ -419,177 +468,24 @@ export default function RoomStatusBoardScreen() {
         </>
       )}
       {detail && (
-        <ActionDialog
-          open
-          drawer
-          title={`Phòng ${detail.room.roomNumber}`}
-          onClose={() => {
+        <RoomStatusDetails
+          detail={detail}
+          history={history}
+          branchName={scope.branch?.name ?? "Chi nhánh hiện tại"}
+          close={() => {
             const next = new URLSearchParams(params);
             next.delete("roomId");
             next.delete("historyPage");
             setParams(next);
           }}
-        >
-          {" "}
-          {detail && (
-            <section aria-label="Chi tiết trạng thái phòng">
-              <Link to={href()}>Quay lại danh sách phòng</Link>
-              <h2>Phòng {detail.room.roomNumber}</h2>
-              <p>
-                Chi nhánh {detail.room.branchId} · {detail.room.floor.name} ·{" "}
-                {detail.room.roomType.name}
-              </p>
-              <p>
-                Mức sẵn sàng thực tế:{" "}
-                {roomLabel(detail.room.effectiveReadiness ?? "UNKNOWN")} · Đã
-                ghi nhận: {roomLabel(detail.room.operationalStatusCode)} · Hoạt
-                động: {detail.room.isActive ? "Có" : "Không"}
-              </p>
-              <p>{detail.description}</p>
-              {detail.currentCycle && (
-                <section aria-label="Chu kỳ vệ sinh hiện tại">
-                  <h3>Chu kỳ vệ sinh hiện tại</h3>
-                  {detail.currentCycle.cleaningTaskId && (
-                    <p>
-                      <Link
-                        to={`/cleaning/tasks/${detail.currentCycle.cleaningTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
-                      >
-                        Vệ sinh #{detail.currentCycle.cleaningTaskId}
-                      </Link>
-                      : {detail.currentCycle.cleaningState ?? "Chưa xác định"}
-                    </p>
-                  )}
-                  {detail.currentCycle.inspectionId && (
-                    <p>
-                      <Link
-                        to={`/inspections/${branch}/${detail.currentCycle.inspectionId}/execution`}
-                      >
-                        Kiểm tra #{detail.currentCycle.inspectionId}
-                      </Link>
-                      : {detail.currentCycle.inspectionState ?? "Chưa xác định"}
-                    </p>
-                  )}
-                  {detail.currentCycle.reworkId && (
-                    <p>
-                      <Link
-                        to={`/cleaning/reworks/${detail.currentCycle.reworkId}?branchId=${branch}`}
-                      >
-                        Làm lại #{detail.currentCycle.reworkId}
-                      </Link>
-                    </p>
-                  )}
-                </section>
-              )}
-              <section aria-label="Lệnh khóa phòng có hiệu lực">
-                <h3>Lệnh khóa có hiệu lực</h3>
-                {!detail.effectiveBlocks.length && (
-                  <p>Chưa có lệnh khóa có hiệu lực.</p>
-                )}
-                <ul>
-                  {detail.effectiveBlocks.map((b) => (
-                    <li key={b.id}>
-                      Lệnh khóa #{b.id} từ {hotelTime(b.blockedAtUtc)}
-                      {b.incidentId && (
-                        <>
-                          {" "}
-                          ?{" "}
-                          <Link
-                            to={`/operations/incidents/${b.incidentId}?branchId=${branch}&action=A004A-023`}
-                          >
-                            Sự cố #{b.incidentId}
-                          </Link>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-              {detail.room.branchId === Number(branch) &&
-                detail.room.id === Number(room) && (
-                  <RoomWorkflowActions
-                    key={`${location.key}:${query}:${retry}`}
-                    branch={String(detail.room.branchId)}
-                    room={String(detail.room.id)}
-                  />
-                )}
-              <h3>Bằng chứng trạng thái hiện tại</h3>
-              <p>
-                {detail.currentStatusEvidence.availability} ·{" "}
-                {detail.currentStatusEvidence.reason || "Chưa ghi nhận lý do"} ·{" "}
-                {detail.currentStatusEvidence.recordedAtUtc || "—"}
-              </p>
-              {detail.currentStatusEvidence.source && (
-                <p>
-                  Nguồn: {detail.currentStatusEvidence.source.type || "—"}{" "}
-                  {detail.currentStatusEvidence.source.id ?? ""} ·{" "}
-                  {detail.currentStatusEvidence.source.availability}{" "}
-                  <RecordedSourceLink
-                    branchId={detail.room.branchId}
-                    source={detail.currentStatusEvidence.source}
-                  />
-                </p>
-              )}
-              <h3>Lệnh khóa chưa kết thúc</h3>
-              <p>
-                Các lệnh khóa chưa kết thúc; thời điểm dự kiến không xác nhận
-                phòng đã được mở lại.
-              </p>
-              {!detail.unreleasedBlocks.length && (
-                <p>Không có lệnh khóa chưa kết thúc.</p>
-              )}
-              <ul>
-                {detail.unreleasedBlocks.map((b) => (
-                  <li key={b.id}>
-                    {b.reason} · Bắt đầu: {hotelTime(b.blockedAtUtc)} · Dự kiến:{" "}
-                    {hotelTime(b.expectedReleaseAtUtc)}
-                  </li>
-                ))}
-              </ul>
-            </section>
+          paginate={(page) => paginate("historyPage", page)}
+          sourceLink={(source) => (
+            <RecordedSourceLink
+              branchId={detail.room.branchId}
+              source={source}
+            />
           )}
-          {history && detail && (
-            <section aria-label="Lịch sử trạng thái">
-              <h2>Lịch sử trạng thái đã ghi nhận</h2>
-              {!history.items.length && <p>Chưa có sự kiện trên trang này.</p>}
-              <ol>
-                {history.items.map((e) => (
-                  <li key={e.id}>
-                    <time>{hotelTime(e.changedAtUtc)}</time> ·{" "}
-                    {e.fromStatusCode || "—"} → {e.toStatusCode} ·{" "}
-                    {e.effectiveTo && (
-                      <>
-                        Mức sẵn sàng: {e.effectiveFrom || "—"} → {e.effectiveTo}{" "}
-                        ·{" "}
-                      </>
-                    )}
-                    {e.reason || "—"} · Nguồn {e.source.type || "—"}{" "}
-                    {e.source.id ?? ""} ({e.source.availability}) · Người thay
-                    đổi (ID): {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
-                    <RecordedSourceLink
-                      branchId={detail.room.branchId}
-                      source={e.source}
-                    />
-                  </li>
-                ))}
-              </ol>
-              <p>
-                Trang lịch sử {history.page} · {history.totalCount} sự kiện
-              </p>
-              <button
-                disabled={history.page <= 1}
-                onClick={() => paginate("historyPage", history.page - 1)}
-              >
-                Lịch sử trước
-              </button>{" "}
-              <button
-                disabled={history.page * history.pageSize >= history.totalCount}
-                onClick={() => paginate("historyPage", history.page + 1)}
-              >
-                Lịch sử sau
-              </button>
-            </section>
-          )}
-        </ActionDialog>
+        />
       )}{" "}
     </div>
   );

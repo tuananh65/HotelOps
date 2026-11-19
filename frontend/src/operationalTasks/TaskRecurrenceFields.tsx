@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import type { RecurrenceInput } from "./series";
 
 export function TaskRecurrenceFields({
@@ -17,7 +18,7 @@ export function TaskRecurrenceFields({
       </p>
       <label>
         Quy tắc lặp lại
-        <select
+        <SearchableSelect
           aria-label="Quy tắc lặp lại"
           value={value.rule}
           onChange={(e) =>
@@ -32,7 +33,7 @@ export function TaskRecurrenceFields({
           <option value="DAILY">Hằng ngày</option>
           <option value="WEEKLY">Hằng tuần vào các ngày đã chọn</option>
           <option value="MONTHLY">Hằng tháng vào một ngày cố định</option>
-        </select>
+        </SearchableSelect>
       </label>
       {value.rule === "WEEKLY" && (
         <fieldset>
@@ -85,7 +86,7 @@ export function TaskRecurrenceFields({
       )}
       <label>
         Người thực hiện mặc định
-        <select
+        <SearchableSelect
           aria-label="Người thực hiện mặc định"
           required
           value={value.defaultAssigneeId || ""}
@@ -99,7 +100,7 @@ export function TaskRecurrenceFields({
               {u.name}
             </option>
           ))}
-        </select>
+        </SearchableSelect>
       </label>
       <label>
         Ngày kết thúc chuỗi

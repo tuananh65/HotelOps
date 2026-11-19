@@ -69,8 +69,11 @@ public sealed class InternalRequestReopenService(HotelOpsDbContext db, ISqlSessi
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct); await SessionAsync(ticket, sid, ct);
         var now = await Now(ct); var request = await Readable(ticket.UserId, id, now, ct);
-        var closure = await InternalRequestReopenSource.PreviewAsync(db, id, options.Value.WindowDays, ct);
+        // Admit the action before reading its closure prerequisites. A read-only viewer
+        // must receive a permission denial, not a legacy closure consistency error.
         var allowed = await InternalRequestReopenAccess.AllowsAsync(db, ticket.UserId, request, now, ct);
+        if (!allowed) throw new InternalRequestReadException(403, "IR_REOPEN_REQUIRED");
+        var closure = await InternalRequestReopenSource.PreviewAsync(db, id, options.Value.WindowDays, ct);
         string? blocker = !allowed ? "IR_REOPEN_REQUIRED"
             : !InternalRequestReopenSource.WithinWindow(closure.ClosedAt, now, options.Value.WindowDays) ? "IR_REOPEN_WINDOW_EXPIRED"
             : !await InstalledAsync(db, ct) ? "IR_REOPEN_SCHEMA_REQUIRED"

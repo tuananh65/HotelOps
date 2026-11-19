@@ -103,7 +103,7 @@ internal static class IncidentReadContract
             && b.RevokedAt == null && b.GrantedAt <= now && b.Branch.IsActive, ct)) return false;
         var scope = await IncidentReadAccess.ReadAsync(db, a.Actor.UserId, branch, ct,
             sourceRecord: IsSource(a) || IsCreationLookup(a));
-        if (!scope.Lead && !scope.Staff) return false;
+        if (!scope.CanRead) return false;
         if (phase == Dev2AuthorizationPhase.BeforeDisclosure
             && a.Http.Items[ReadScopeKey] is IncidentReadAccess.Scope disclosed && disclosed != scope)
             return false;

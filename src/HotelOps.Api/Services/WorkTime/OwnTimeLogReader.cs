@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace HotelOps.Api.Services.WorkTime;
 
 public sealed record OwnTimeLogEntry(long IntervalId, string Kind, long WorkItemId, DateTimeOffset Start,
-    DateTimeOffset? End, long ClosedSeconds, long ProvisionalSeconds, string Version);
+    DateTimeOffset? End, long ClosedSeconds, long ProvisionalSeconds, string Version, string? WorkItemName = null);
 public sealed record OwnTimeLog(long BranchId, DateOnly Date, DateTimeOffset AsOf, long WorkdayClosedSeconds,
     long WorkdayProvisionalSeconds, long WorkClosedSeconds, long WorkProvisionalSeconds,
     int Total, int Page, int PageSize, OwnTimeLogEntry[] Items);
@@ -38,7 +38,19 @@ internal static class OwnTimeLogReader
                 ||(i.ClosedAt==null)!=(i.EffectiveEndedAt==null)))
             throw new WorkTimeContractException("TIME_STATE_CONFLICT");
         ValidateNonOverlap(intervals,now);
-        return Project(branch,period,now,days,intervals,page,pageSize);
+        var result = Project(branch,period,now,days,intervals,page,pageSize);
+        var taskIds = result.Items.Where(i => i.Kind == "TASK").Select(i => i.WorkItemId).ToArray();
+        var tasks = await db.OperationalTasks.AsNoTracking().Where(t => taskIds.Contains(t.TaskId) && t.BranchId == branch)
+            .Select(t => new { t.TaskId, t.Title }).ToDictionaryAsync(t => t.TaskId, t => t.Title, ct);
+        var cleaningIds = result.Items.Where(i => i.Kind == "CLEANING").Select(i => i.WorkItemId).ToArray();
+        var cleanings = await db.CleaningTasks.AsNoTracking().Where(t => cleaningIds.Contains(t.CleaningTaskId) && t.Room.BranchId == branch)
+            .Select(t => new { t.CleaningTaskId, Name = "Vệ sinh phòng " + t.Room.RoomNumber }).ToDictionaryAsync(t => t.CleaningTaskId, t => t.Name, ct);
+        var reworkIds = result.Items.Where(i => i.Kind == "REWORK").Select(i => i.WorkItemId).ToArray();
+        var reworks = await db.CleaningReworks.AsNoTracking().Where(t => reworkIds.Contains(t.ReworkId) && t.CleaningTask.Room.BranchId == branch)
+            .Select(t => new { t.ReworkId, Name = "Làm lại phòng " + t.CleaningTask.Room.RoomNumber }).ToDictionaryAsync(t => t.ReworkId, t => t.Name, ct);
+        return result with { Items = result.Items.Select(i => i with { WorkItemName = i.Kind switch {
+            "TASK" => tasks.GetValueOrDefault(i.WorkItemId), "CLEANING" => cleanings.GetValueOrDefault(i.WorkItemId),
+            "REWORK" => reworks.GetValueOrDefault(i.WorkItemId), _ => null } }).ToArray() };
     }
 
     internal static void ValidateNonOverlap(WorkInterval[] intervals,DateTime now)

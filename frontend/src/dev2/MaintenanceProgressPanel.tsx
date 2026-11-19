@@ -1,3 +1,6 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -332,7 +335,7 @@ export function MaintenanceProgressPanel({
           Thời gian thực tế tính từ các khoảng làm việc. Vật tư phải lấy từ dòng
           cấp phát đã ghi sổ và hợp lệ với sự cố này.
         </p>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <fieldset disabled={busy || attempted || review}>
           {data.progressPercentAvailable === true && (
             <label>
@@ -361,7 +364,7 @@ export function MaintenanceProgressPanel({
               <button disabled={loading} onClick={() => void load(1)}>
                 Tải vật tư đã cấp
               </button>
-              {materialMessage && <p role="status">{materialMessage}</p>}
+              {materialMessage && <p role="status">{userMessage(materialMessage)}</p>}
               {loading && <p>Đang tải dòng cấp phát hợp lệ…</p>}
               {page > 0 && (
                 <>
@@ -374,8 +377,8 @@ export function MaintenanceProgressPanel({
                   {lines.map((line) => (
                     <p key={line.stockDocumentLineId}>
                       {line.documentNo}, Dòng {line.lineNo}, Vật tư{" "}
-                      {line.itemId}: {line.remainingBaseQty} còn lại (đơn vị cơ
-                      sở {line.baseUomId}).
+                      {referenceLabel(line, "itemId")}: {line.remainingBaseQty} còn lại (đơn vị cơ
+                      sở {referenceLabel(line, "baseUomId")}).
                       <button
                         disabled={
                           loading ||
@@ -423,11 +426,11 @@ export function MaintenanceProgressPanel({
             <div key={s.line.stockDocumentLineId}>
               <p>
                 {s.line.documentNo}, Dòng {s.line.lineNo}, Vật tư{" "}
-                {s.line.itemId}
+                {referenceLabel(s.line, "itemId")}
               </p>
               <label>
-                Đơn vị của dòng {s.line.stockDocumentLineId}
-                <select
+                Đơn vị của dòng {referenceLabel(s.line, "stockDocumentLineId")}
+                <SearchableSelect
                   aria-label={`Đơn vị của dòng ${s.line.stockDocumentLineId}`}
                   value={s.uomId}
                   onChange={(e) =>
@@ -444,10 +447,10 @@ export function MaintenanceProgressPanel({
                       {displayCode(u.conversionFactor)} đơn vị cơ sở)
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
               <label>
-                Số lượng đã dùng của dòng {s.line.stockDocumentLineId}
+                Số lượng đã dùng của dòng {referenceLabel(s.line, "stockDocumentLineId")}
                 <input
                   inputMode="decimal"
                   value={s.quantity}
@@ -471,7 +474,7 @@ export function MaintenanceProgressPanel({
                   setSelected((items) => items.filter((x) => x !== s))
                 }
               >
-                Xóa dòng {s.line.stockDocumentLineId}
+                Xóa dòng {referenceLabel(s.line, "stockDocumentLineId")}
               </button>
             </div>
           ))}

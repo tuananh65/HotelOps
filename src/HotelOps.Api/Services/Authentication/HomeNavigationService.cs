@@ -12,7 +12,7 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
     IPermissionService permissions, TimeProvider clock, AuditAccess audit, HotelOps.Api.Services.Assets.AssetMaintenanceHistoryReader assetHistory,
     HotelOps.Api.Services.Assets.AssetLocationReview assetLocations, HotelOps.Api.Services.Assets.AssetProfileAccess assetProfiles)
 {
-    public sealed record OperationGrant(long? BranchId, string Permission, string Scope);
+    public sealed record OperationGrant(long? BranchId, string Permission, string Scope, string? BranchName = null);
     public Task<UserDirectoryReadResult<OperationGrant[]>> OperationGrantsAsync(SessionReference ticket, CancellationToken ct)
         => new UserDirectoryReadGuard(db, current, permissions, clock).RunAuthorizedAsync(ticket,
             _ => Task.FromResult(new PermissionEvaluation(PermissionDecision.Granted)), async () =>
@@ -26,8 +26,11 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
                         assignment.Branch != null && assignment.Branch.IsActive,
                         db.UserBranchAccesses.Any(b => b.UserId == ticket.UserId && b.BranchId == assignment.BranchId
                             && b.RevokedAt == null && b.GrantedAt <= now))).ToArrayAsync(ct);
-                return paths.Where(p => PermissionGrantRules.IsEligible(p, now) && PermissionGrantRules.EffectiveScope(p) != null)
-                    .Select(p => new OperationGrant(p.BranchId, p.PermissionCode, PermissionGrantRules.EffectiveScope(p)!)).Distinct().ToArray();
+                var eligible = paths.Where(p => PermissionGrantRules.IsEligible(p, now) && PermissionGrantRules.EffectiveScope(p) != null).ToArray();
+                var ids = eligible.Where(p => p.BranchId != null).Select(p => p.BranchId!.Value).Distinct().ToArray();
+                var names = await db.Branches.AsNoTracking().Where(b => ids.Contains(b.BranchId)).ToDictionaryAsync(b => b.BranchId, b => b.BranchName, ct);
+                return eligible.Select(p => new OperationGrant(p.BranchId, p.PermissionCode, PermissionGrantRules.EffectiveScope(p)!,
+                    p.BranchId is {} branch && names.TryGetValue(branch, out var name) ? name : null)).Distinct().ToArray();
             }, ct);
     public Task<UserDirectoryReadResult<string[]>> ReadAsync(SessionReference ticket, CancellationToken ct)
         => new UserDirectoryReadGuard(db, current, permissions, clock).RunAuthorizedAsync(ticket,
@@ -41,7 +44,8 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
     private async Task<string[]> LinksAsync(CancellationToken ct)
     {
         var links = new List<string> { "/profile", "/change-password", "/notifications" };
-        if (Granted(await permissions.EvaluateGlobalAsync("USER_VIEW", ct))) links.Add("/users");
+        if (await new UserDirectoryScopeResolver(db, current, new EfPermissionDataSource(db), clock).ResolveAsync(ct) is not null)
+            links.Add("/users");
         var branches = await db.Branches.AsNoTracking().Where(b => b.IsActive).Select(b => b.BranchId).ToArrayAsync(ct);
         async Task<bool> AnyBranch(string permission)
         {
@@ -52,7 +56,29 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
         }
         if (await AnyBranch("ROOM_VIEW")) { links.Add("/room-directory"); links.Add("/rooms/status"); }
         if (links.Contains("/room-directory") || await AnyBranch("MASTER_DATA_MANAGE")) links.Add("/hotel");
-        if (await AnyBranch("DASHBOARD_VIEW")) links.Add("/dashboard");
+        // Use the same actor contract as the dashboard; a grant alone is not admission.
+        var dashboard = new TaskDashboardAccess(db, new InsightAccess(db, permissions, current), clock);
+        if (await dashboard.AllowedAsync(null, ct)) links.Add("/dashboard");
+        else foreach (var branch in branches)
+            if (await dashboard.AllowedAsync(branch, ct)) { links.Add("/dashboard"); break; }
+        if (await AnyBranch("INVENTORY_VIEW"))
+        {
+            if (current.TryGetCurrentUser(out var inventoryActor))
+            {
+                var permitted = new List<long>();
+                foreach (var branch in branches)
+                    if (Granted(await permissions.EvaluateBranchAsync("INVENTORY_VIEW", branch, ct))) permitted.Add(branch);
+                if ((await HotelOps.Api.Services.Inventory.StockBalanceReadService.AuthorizedBranchesAsync(
+                    db, inventoryActor.UserId, permitted.ToArray(), clock.GetUtcNow().UtcDateTime, ct)).Length > 0)
+                    links.Add("/inventory/stock");
+            }
+            links.Add("/inventory/items");
+            links.Add("/inventory/stocktakes");
+            foreach (var branch in branches)
+                if (Granted(await permissions.EvaluateBranchAsync("INVENTORY_VIEW", branch, ct))
+                    && Granted(await permissions.EvaluateBranchAsync("STOCK_ADJUST_POST", branch, ct)))
+                { links.Add("/inventory/adjustments"); break; }
+        }
         if (await AnyBranch("INSPECTION_VIEW")) links.Add("/inspection-history");
         if (await AnyBranch("CHECKLIST_MANAGE")) links.Add("/inspections/checklists");
         if (await AnyBranch("CLEANING_VIEW")) links.Add("/rooms/turnover");
@@ -62,6 +88,16 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
             { links.Add("/cleaning/assignment"); break; }
         if (Granted(await RoleCatalogAuthority.EvaluateAsync(db, current, permissions, clock, ct))) links.Add("/roles");
         if (!current.TryGetCurrentUser(out var actor)) return [];
+        foreach (var branch in branches)
+            if (Granted(await permissions.EvaluateBranchAsync("INSPECTION_VIEW", branch, ct))
+                && Granted(await permissions.EvaluateBranchAsync("INSPECTION_PERFORM", branch, ct))
+                && await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == actor.UserId && r.BranchId == branch
+                    && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_SUPERVISOR"
+                    && r.AssignedAt <= clock.GetUtcNow().UtcDateTime
+                    && (r.ExpiresAt == null || r.ExpiresAt > clock.GetUtcNow().UtcDateTime)
+                    && db.UserBranchAccesses.Any(a => a.UserId == actor.UserId && a.BranchId == branch
+                        && a.RevokedAt == null && a.GrantedAt <= clock.GetUtcNow().UtcDateTime), ct))
+            { links.Add("/inspections/assignment"); break; }
         foreach (var branch in branches)
             if (await HotelOps.Api.Services.Inventory.StockReturnReadAccess.QueueBranchAsync(db, actor.UserId, branch, "mine", ct)
                 || await HotelOps.Api.Services.Inventory.StockReturnReadAccess.QueueBranchAsync(db, actor.UserId, branch, "post", ct)
@@ -95,9 +131,10 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
             if (await intake.AllowsAsync(actor.UserId, branch, ct))
             { links.Add("/internal-requests/new"); break; }
         if (await AnyOwnOrBranch("CLEANING_VIEW")) { links.Add("/cleaning/tasks"); links.Add("/rework"); }
+        if (await AnyOwnOrBranch("SHIFT_VIEW")) links.Add("/workday");
         foreach (var branch in branches)
             if (Granted(await permissions.EvaluateResourceAsync("ATTENDANCE_RECORD", new("workday_self_branch", branch), ct)))
-            { links.Add("/workday"); links.Add("/workday/scheduled"); links.Add("/my-time-log"); break; }
+            { if (!links.Contains("/workday")) links.Add("/workday"); links.Add("/workday/scheduled"); links.Add("/my-time-log"); break; }
         foreach (var branch in branches)
             if (await HotelOps.Api.Services.WorkTime.TimeCorrectionAccess.OwnAsync(db, actor.UserId, branch, now, ct))
             { links.Add("/time-corrections"); break; }
@@ -135,12 +172,12 @@ public sealed class HomeNavigationService(HotelOpsDbContext db, ICurrentUserAcce
         foreach (var branch in branches)
         {
             var scope = await IncidentReadAccess.ReadAsync(db, actor.UserId, branch, ct);
-            if (scope.Lead || scope.Staff) { links.Add("/operations/incidents"); break; }
+            if (scope.CanRead) { links.Add("/operations/incidents"); break; }
         }
         foreach (var branch in branches)
         {
             var scope = await HotelOps.Api.Services.Maintenance.MaintenanceReadAccess.ReadAsync(db, actor.UserId, branch, ct);
-            if (scope.Lead || scope.Staff) { links.Add("/operations/maintenance"); break; }
+            if (scope.CanRead) { links.Add("/operations/maintenance"); break; }
         }
         // Reporters need a creation entry even when the maintenance list is not
         // available to their role. Keep creation and list access independent.

@@ -56,7 +56,11 @@ public sealed partial class RoomTypeCreationService
                 var state = workflowReady ? await TaskWorkflowRead.Query(db, now).Where(v => v.TaskId == id).Select(v => v.State).SingleOrDefaultAsync(token) : null;
                 var priority = await db.ReferenceValues.AsNoTracking().Where(r => r.ReferenceId == entity.PriorityId).Select(r => r.DisplayName).SingleOrDefaultAsync(token);
                 return new(RoomTypeBatchStatus.Success, new OperationalTaskDetail(TaskRow(entity) with { WorkflowStatus = state },entity.Description,entity.CategoryId,entity.PriorityId,
-                    entity.RoomId,entity.AreaId,entity.CompletionNote,progress.Select(p=>p with {ReportedAt=UtcTaskDate(p.ReportedAt)!.Value}).ToArray(),total,priority));
+                    entity.RoomId,entity.AreaId,entity.CompletionNote,progress.Select(p=>p with {ReportedAt=UtcTaskDate(p.ReportedAt)!.Value}).ToArray(),total,priority)
+                {
+                    CanExecute = await ProgressOwned(false, id, branch, ticket.UserId, token)
+                        && (await ProgressAccess(false, id, branch, ticket.UserId, token)).IsGranted
+                });
             }
             if (query.DepartmentId is { } department) tasks=tasks.Where(t=>t.DepartmentId==department);
             if (!string.IsNullOrWhiteSpace(query.Search)) {var term=query.Search.Trim();tasks=tasks.Where(t=>t.Title.Contains(term)||t.TaskCode.Contains(term));}

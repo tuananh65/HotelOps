@@ -189,20 +189,20 @@ async function scenario(run) {
 }
 async function review(page) {
   await page
-    .getByLabel("Result for defect #9", { exact: true })
+    .getByLabel("Kết quả lỗi #9", { exact: true })
     .selectOption("FIXED");
   await page
     .getByLabel("Lý do kết luận", { exact: true })
     .fill("Checked remediation");
   await page
-    .getByRole("button", { name: "Review conclusion", exact: true })
+    .getByRole("button", { name: "Xem lại kết luận", exact: true })
     .click();
 }
 
 test("canonical original link is read only and clears private source on session loss", async () => {
   await scenario(async (page, state) => {
     await page
-      .getByRole("link", { name: "Original inspection #5", exact: true })
+      .getByRole("link", { name: "Lần kiểm tra ban đầu #5", exact: true })
       .click();
     await page.waitForURL("https://hotelops.test/reinspections/1/8/original");
     await page.getByText("PRIVATE-ORIGINAL-NOTE", { exact: true }).waitFor();
@@ -215,7 +215,7 @@ test("canonical original link is read only and clears private source on session 
     assert.equal(
       await page
         .getByRole("button", {
-          name: /Approve|Reject|Start|Save|Confirm conclusion/,
+          name: /Duyệt|Không đạt|Bắt đầu|Lưu|Approve|Reject|Start|Save|Xác nhận kết luận/,
         })
         .count(),
       0,
@@ -225,7 +225,7 @@ test("canonical original link is read only and clears private source on session 
       .click();
     await page.getByText("PRIVATE-REMEDIATION", { exact: false }).waitFor();
     await page
-      .getByRole("link", { name: "Original inspection #5", exact: true })
+      .getByRole("link", { name: "Lần kiểm tra ban đầu #5", exact: true })
       .click();
     await page.getByText("PRIVATE-ORIGINAL-SUMMARY", { exact: true }).waitFor();
     state.signedIn = false;
@@ -277,24 +277,24 @@ test("terminal reload shows fresh readiness and recorded decisions without enabl
     };
     await page.evaluate(() => window.reinspectionTest.revalidate());
     await page
-      .getByText("Current room readiness: READY.", { exact: true })
+      .getByText("Mức sẵn sàng của phòng hiện tại: READY.", { exact: true })
       .waitFor();
     await page
       .getByText(
-        "Recorded outcome: PASSED; readiness at conclusion: BLOCKED.",
+        "Kết quả đã ghi nhận: Đạt; Mức sẵn sàng khi kết luận: Bị khóa.",
         { exact: true },
       )
       .waitFor();
     await page.getByText("Verified after rework", { exact: true }).waitFor();
     assert.equal(
       await page
-        .getByRole("button", { name: "Review conclusion", exact: true })
+        .getByRole("button", { name: "Xem lại kết luận", exact: true })
         .count(),
       0,
     );
     assert.equal(
       await page
-        .getByRole("link", { name: "Reinspection photo #12", exact: true })
+        .getByRole("link", { name: "Kiểm tra lại ảnh #12", exact: true })
         .getAttribute("href"),
       "/api/branches/1/reinspections/8/evidence/12",
     );
@@ -311,7 +311,7 @@ test("terminal reload shows fresh readiness and recorded decisions without enabl
 test("canonical reinspection requires every decision and confirms blocked result once", async () => {
   await scenario(async (page, state) => {
     await page
-      .getByRole("button", { name: "Review conclusion", exact: true })
+      .getByRole("button", { name: "Xem lại kết luận", exact: true })
       .click();
     await page
       .getByText(
@@ -321,14 +321,14 @@ test("canonical reinspection requires every decision and confirms blocked result
       .waitFor();
     assert.equal(
       await page
-        .getByLabel("Result for defect #9", { exact: true })
+        .getByLabel("Kết quả lỗi #9", { exact: true })
         .getAttribute("aria-invalid"),
       "true",
     );
     assert.equal(state.posts.length, 0);
     assert.equal(
       await page
-        .getByRole("button", { name: "Confirm conclusion", exact: true })
+        .getByRole("button", { name: "Xác nhận kết luận", exact: true })
         .count(),
       0,
     );
@@ -343,7 +343,7 @@ test("canonical reinspection requires every decision and confirms blocked result
       0,
     );
     await page
-      .getByRole("button", { name: "Confirm conclusion", exact: true })
+      .getByRole("button", { name: "Xác nhận kết luận", exact: true })
       .click();
     await page
       .getByText("Đã lưu kết quả kiểm tra lại.", { exact: true })
@@ -355,7 +355,7 @@ test("canonical reinspection requires every decision and confirms blocked result
     assert.equal(state.posts[0].defects[0].fixed, true);
     assert.equal(
       await page
-        .getByRole("button", { name: "Confirm conclusion", exact: true })
+        .getByRole("button", { name: "Xác nhận kết luận", exact: true })
         .count(),
       0,
     );
@@ -366,13 +366,13 @@ test("unknown conclusion outcome locks form and hides raw server detail", async 
     state.fail = true;
     await review(page);
     await page
-      .getByRole("button", { name: "Confirm conclusion", exact: true })
+      .getByRole("button", { name: "Xác nhận kết luận", exact: true })
       .click();
     await page.getByText(/Chưa xác nhận kết luận\. Không gửi kết luận khác; kiểm tra hồ sơ hiện tại\./).waitFor();
     assert.equal(await page.getByText("PRIVATE-SQL-ERROR").count(), 0);
     assert.equal(
       await page
-        .getByRole("button", { name: "Review conclusion", exact: true })
+        .getByRole("button", { name: "Xem lại kết luận", exact: true })
         .isDisabled(),
       true,
     );
@@ -387,7 +387,7 @@ test("session invalidation during CSRF removes private source and prevents concl
     });
     await review(page);
     await page
-      .getByRole("button", { name: "Confirm conclusion", exact: true })
+      .getByRole("button", { name: "Xác nhận kết luận", exact: true })
       .click();
     state.signedIn = false;
     await page.evaluate(() => window.reinspectionTest.revalidate());

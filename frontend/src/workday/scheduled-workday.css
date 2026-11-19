@@ -1,7 +1,7 @@
 .scheduled-workday {
   max-width: 1280px;
   margin: 0 auto;
-  color: #3c3029;
+  color: var(--text-primary);
 }
 .scheduled-workday .workday-heading {
   display: flex;
@@ -25,16 +25,16 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #86674f;
+  color: var(--primary-600);
 }
 .scheduled-workday .workday-heading p,
 .scheduled-workday .workday-muted {
-  color: #786a60;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 .scheduled-workday .workday-card {
   background: white;
-  border: 1px solid #e8d8c5;
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 26px;
   margin: 0 0 24px;
@@ -51,7 +51,7 @@
 }
 .scheduled-workday .workday-branch h2 {
   font-size: 14px;
-  color: #786a60;
+  color: var(--text-secondary);
   margin: 0 0 6px;
 }
 .scheduled-workday .workday-branch-name {
@@ -72,14 +72,14 @@
   margin-top: auto;
 }
 .scheduled-workday .workday-empty {
-  background: #faf7f2;
-  border: 1px dashed #e2d2be;
+  background: var(--surface-muted);
+  border: 1px dashed var(--border);
   border-radius: 10px;
   padding: 20px;
   margin: 8px 0 24px;
 }
 .scheduled-workday .workday-empty p {
-  color: #786a60;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 0;
 }
@@ -93,7 +93,7 @@
 .scheduled-workday textarea {
   width: 100%;
   min-width: 0;
-  border: 1px solid #d8bfa5;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   background: white;
   color: inherit;
@@ -105,19 +105,19 @@
   resize: vertical;
 }
 .scheduled-workday button {
-  border: 1px solid #dbc2a5;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 12px 18px;
   background: white;
-  color: #754f38;
+  color: var(--primary-600);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
   white-space: normal;
 }
 .scheduled-workday button.workday-primary {
-  background: #795239;
-  border-color: #795239;
+  background: var(--primary-500);
+  border-color: var(--primary-500);
   color: white;
   font-weight: 600;
 }
@@ -128,7 +128,7 @@
 .scheduled-workday button:focus-visible,
 .scheduled-workday a:focus-visible,
 .scheduled-workday summary:focus-visible {
-  outline: 3px solid #ae7d53;
+  outline: 3px solid var(--primary-500);
   outline-offset: 3px;
 }
 .scheduled-workday .workday-badge {
@@ -147,7 +147,7 @@
   margin: 20px 0;
 }
 .scheduled-workday dt {
-  color: #786a60;
+  color: var(--text-secondary);
   font-size: 13px;
   margin-bottom: 6px;
 }
@@ -163,14 +163,14 @@
   margin: 20px 0;
 }
 .scheduled-workday .workday-links {
-  border-top: 1px solid #e8d8c5;
+  border-top: 1px solid var(--border);
   padding-top: 20px;
   gap: 16px 28px;
   font-size: 14px;
 }
 .scheduled-workday .workday-review {
-  border: 2px solid #b78c65;
-  background: #fffcf7;
+  border: 2px solid var(--primary-500);
+  background: var(--primary-50);
 }
 .scheduled-workday .workday-notice {
   background: #fff7ed;

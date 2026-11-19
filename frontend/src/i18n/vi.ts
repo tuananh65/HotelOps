@@ -1,5 +1,6 @@
 /** Presentation only: never use localized text as an API value or permission. */
 const codes: Record<string, string> = {
+  CREATE: "Đã tạo", CREATED: "Đã tạo", UPDATE: "Cập nhật", STATUS_CHANGE: "Đổi trạng thái", ASSIGN: "Phân công", REASSIGN: "Phân công lại", CANCEL: "Hủy", CLOSE: "Đóng", REOPEN: "Mở lại",
   ACTIVE: "Đang hoạt động", INACTIVE: "Ngừng hoạt động", LOCKED: "Đã khóa",
   OPEN: "Đang mở", CLOSED: "Đã đóng", CANCELLED: "Đã hủy", CANCELED: "Đã hủy",
   DRAFT: "Bản nháp", PENDING: "Đang chờ", APPROVED: "Đã duyệt", REJECTED: "Đã từ chối",
@@ -52,6 +53,10 @@ export function displayCode(value: unknown): string {
 }
 
 const fields: Record<string, string> = {
+  eventId: "EventID", eventType: "Sự kiện", fromStatus: "Trạng thái trước", toStatus: "Trạng thái sau",
+  actorName: "Người thực hiện", reportedByName: "Người báo", reportedAt: "Thời điểm báo",
+  closureNote: "Ghi chú hoàn tất",
+  maintenanceWorks: "Công việc bảo trì", requesterName: "Người yêu cầu", assignedApproverName: "Người duyệt",
   acceptedQty: "Số lượng chấp nhận", actionTaken: "Biện pháp đã thực hiện", actorUserId: "Người thực hiện",
   approvedQty: "Số lượng duyệt", areaId: "Mã khu vực", assetCode: "Mã tài sản", assetId: "Tài sản",
   assetName: "Tên tài sản", assetTypeId: "Loại tài sản", assignedApproverUserId: "Người duyệt được chỉ định",

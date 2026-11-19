@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -28,8 +29,8 @@ export function InternalRequestTaskCreationPanel({ id, branch, onCreated, onLink
   if (!owner) return null;
   const source = loaded?.owner === owner && loaded.id === id && loaded.branch === branch ? loaded.source : null;
   return <section aria-label="Tạo công việc từ yêu cầu">
-    {message && <p role="status">{message}</p>}
-    {created?.owner === owner && <p role="status">MSG08: Đã tạo và liên kết công việc. <Link to={`/operational-tasks?branchId=${branch}&taskId=${created.task}`}>Mở công việc vừa tạo</Link>. Reload linked tasks to view the relationship.</p>}
+    {message && <p role="status">{userMessage(message)}</p>}
+    {created?.owner === owner && <p role="status">Đã tạo và liên kết công việc. <Link to={`/operational-tasks?branchId=${branch}&taskId=${created.task}`}>Mở công việc vừa tạo</Link>. Reload linked tasks to view the relationship.</p>}
     {!source && !created && <button onClick={() => setRevision(v => v + 1)}>Tải lại thông tin điền sẵn của yêu cầu</button>}
     {source && <TaskCreatePanel key={`${owner}:${id}:${revision}`} branch={branch} owner={owner} source={source}
       onSourceInvalid={() => { setLoaded(null); setMessage("Quyền hoặc phiên bản yêu cầu đã đổi. Tải lại thông tin điền sẵn trước khi thử lại."); }}

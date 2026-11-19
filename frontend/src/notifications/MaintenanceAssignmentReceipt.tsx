@@ -1,3 +1,4 @@
+import { referenceLabel } from "../i18n/referenceLabel";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -26,7 +27,7 @@ export function MaintenanceAssignmentReceipt() {
   const current = result?.id === id && result.owner === owner ? result : null;
   return <main><h1>Xác nhận phân công lại bảo trì</h1><Link to="/notifications">Thông báo</Link>
     {!owner || !current ? <p>Đang kiểm tra quyền truy cập hiện tại…</p> : current.failed ? <p role="alert">Biên nhận chưa khả dụng. Quyền của bạn có thể đã đổi.</p>
-      : current.value && <dl><dt>Công việc</dt><dd>{current.value.workId}</dd><dt>Kỹ thuật viên được phân công lại</dt><dd>{current.value.assigneeId}</dd>
+      : current.value && <dl><dt>Công việc</dt><dd>{referenceLabel(current.value, "workId")}</dd><dt>Kỹ thuật viên được phân công lại</dt><dd>{referenceLabel(current.value, "assigneeId")}</dd>
         <dt>Phân công lại lúc</dt><dd>{new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(current.value.occurredAt))}</dd></dl>}
   </main>;
 }

@@ -1,7 +1,14 @@
+import { referenceLabel } from "../../i18n/referenceLabel";
+import { userMessage } from "../../i18n/userMessage";
 import { displayCode } from "../../i18n/vi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../api/dev1/client";
+import {
+  readReworkRecord,
+  type ReworkRecord,
+} from "../../api/dev1/reworkRecord";
+import { hotelTime, roomLabel } from "./RoomWorkspace";
 import { uploadFile, progressError } from "../../api/dev1/cleaningProgress";
 import {
   readRework,
@@ -21,6 +28,7 @@ export default function ReworkExecutionPanel({
   const [data, setData] = useState<ReworkExecution | null>(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const [record, setRecord] = useState<ReworkRecord | null>(null);
   const [refresh, setRefresh] = useState(0),
     [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{
@@ -40,13 +48,22 @@ export default function ReworkExecutionPanel({
   useEffect(() => {
     const abort = new AbortController();
     setData(null);
+    setRecord(null);
     setError("");
     readRework(branch, id, abort.signal)
       .then((d) => {
         if (!abort.signal.aborted) setData(d);
       })
-      .catch((e) => {
-        if (!abort.signal.aborted) setError(progressError(e));
+      .catch(async (e) => {
+        if (abort.signal.aborted) return;
+        if (e instanceof ApiError && e.code === "DUPLICATE_REWORK_SOURCE") {
+          try {
+            const historical = await readReworkRecord(branch, id, abort.signal);
+            if (!abort.signal.aborted) setRecord(historical);
+          } catch (readError) {
+            if (!abort.signal.aborted) setError(progressError(readError));
+          }
+        } else setError(progressError(e));
       });
     return () => abort.abort();
   }, [branch, id, refresh]);
@@ -55,7 +72,8 @@ export default function ReworkExecutionPanel({
       ? null
       : data?.state === "PENDING_ACCEPTANCE"
         ? "accept"
-        : data?.state === "ACCEPTED" || (data?.state === "ON_HOLD" && data.capability === "RESUME_REWORK")
+        : data?.state === "ACCEPTED" ||
+            (data?.state === "ON_HOLD" && data.capability === "RESUME_REWORK")
           ? "start"
           : data?.state === "IN_PROGRESS"
             ? "complete"
@@ -144,27 +162,62 @@ export default function ReworkExecutionPanel({
   return (
     <>
       <h1>Thực hiện làm lại</h1>
-      <Link to={`/cleaning/tasks?branchId=${branch}&kind=rework`}>
-        Theo dõi vệ sinh
-      </Link>
-      {notice && <p role="status">{notice}</p>}
-      {error && <p role="alert">{error}</p>}
-      {!data && !error && <p role="status">Đang tải rework…</p>}
+      <Link to={`/rework?branchId=${branch}`}>Danh sách công việc làm lại</Link>
+      {notice && <p role="status">{userMessage(notice)}</p>}
+      {error && <p role="alert">{userMessage(error)}</p>}
+      {!data && !record && !error && (
+        <p role="status">Đang tải công việc làm lại…</p>
+      )}
+      {record && (
+        <section className="ds-card" aria-label="Hồ sơ làm lại lưu trữ">
+          <h2>
+            Phòng {record.roomNumber} · Làm lại {referenceLabel(record, "id")}
+          </h2>
+          <p role="status">
+            Hồ sơ cũ · Chỉ xem. Có nhiều phiếu làm lại đang mở cho cùng lần kiểm
+            tra; cần giám sát kiểm tra nguồn trước khi thực hiện.
+          </p>
+          <dl>
+            <dt>Công việc vệ sinh</dt>
+            <dd>{record.taskNumber}</dd>
+            <dt>Lần kiểm tra</dt>
+            <dd>{referenceLabel(record, "inspectionId")}</dd>
+            <dt>Trạng thái đã ghi nhận</dt>
+            <dd>{roomLabel(record.recordedStatus)}</dd>
+            <dt>Yêu cầu làm lại</dt>
+            <dd>{record.reason}</dd>
+            <dt>Ngày yêu cầu</dt>
+            <dd>{hotelTime(record.requestedAt)}</dd>
+            {record.note && (
+              <>
+                <dt>Ghi chú</dt>
+                <dd>{record.note}</dd>
+              </>
+            )}
+            {record.completedAt && (
+              <>
+                <dt>Ngày hoàn tất đã ghi nhận</dt>
+                <dd>{hotelTime(record.completedAt)}</dd>
+              </>
+            )}
+          </dl>
+        </section>
+      )}
       {data && (
         <>
           <p>
-            {displayCode(data.state)} · Phòng {data.roomId} · Nhân viên {data.assigneeId} ·
-            Hạn UTC {data.dueAtUtc || "—"}
+            {displayCode(data.state)} · Phòng {referenceLabel(data, "roomId")} · Nhân viên{" "}
+            {referenceLabel(data, "assigneeId")} · Hạn UTC {data.dueAtUtc || "—"}
           </p>
           <p>
-            Kiểm tra {data.inspectionId} · Chu kỳ {data.cleaningTaskId} ·
+            Kiểm tra {referenceLabel(data, "inspectionId")} · Chu kỳ {referenceLabel(data, "cleaningTaskId")} ·
             {data.sourceAuthority}
           </p>
           <form key={data.sourceETag} onSubmit={submit}>
             <fieldset disabled={busy || !!pending}>
               {data.defects.map((d) => (
                 <section key={d.id}>
-                  <h2>Lỗi {d.id}</h2>
+                  <h2>Lỗi {referenceLabel(d, "id")}</h2>
                   <p>{d.description}</p>
                   {[
                     ...d.inspectionAttachmentIds,
@@ -182,7 +235,7 @@ export default function ReworkExecutionPanel({
                   {action === "complete" ? (
                     <>
                       <label>
-                        Khắc phục {d.id}
+                        Khắc phục {referenceLabel(d, "id")}
                         <textarea
                           name={`defect-${d.id}`}
                           required
@@ -191,7 +244,7 @@ export default function ReworkExecutionPanel({
                         />
                       </label>
                       <label>
-                        Ảnh remediation {d.id}
+                        Ảnh remediation {referenceLabel(d, "id")}
                         <input
                           name={`photo-${d.id}`}
                           type="file"
@@ -215,7 +268,9 @@ export default function ReworkExecutionPanel({
                     {action === "accept"
                       ? "Tiếp nhận làm lại"
                       : action === "start"
-                        ? data?.state === "ON_HOLD" ? "Tiếp tục làm lại" : "Bắt đầu làm lại"
+                        ? data?.state === "ON_HOLD"
+                          ? "Tiếp tục làm lại"
+                          : "Bắt đầu làm lại"
                         : "Hoàn tất làm lại"}
                   </button>
                 </>

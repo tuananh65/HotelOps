@@ -1,3 +1,5 @@
+import { referenceLabel } from "../i18n/referenceLabel";
+import { userMessage } from "../i18n/userMessage";
 import { displayCode } from "../i18n/vi";
 import { useEffect, useState } from "react";
 import { createHttpClient, isObject } from "../auth/http";
@@ -30,7 +32,7 @@ export function UnscheduledWorkdaySummary({branchId,workdayId}:{branchId:number;
     return()=>abort.abort();
   },[branchId,workdayId,owner,actions]);
   return <section aria-label="Thông báo ngày làm việc ngoài kế hoạch"><h2>Ngày làm việc ngoài kế hoạch {workdayId}</h2>
-    {error?<p role="alert">{error}</p>:result?<><p>Nhân viên {result.employeeId}; Chi nhánh {branchId}; Bộ phận {result.departmentId}.</p>
+    {error?<p role="alert">{userMessage(error)}</p>:result?<><p>Nhân viên {referenceLabel(result, "employeeId")}; Chi nhánh {branchId}; Bộ phận {referenceLabel(result, "departmentId")}.</p>
       <p>{displayCode(result.status)}: {result.startedAt}{result.endedAt?` — ${result.endedAt}`:""}</p><p>Lý do: {result.reason}</p></>:<p>Đang tải ngày làm việc được phép truy cập...</p>}
   </section>;
 }

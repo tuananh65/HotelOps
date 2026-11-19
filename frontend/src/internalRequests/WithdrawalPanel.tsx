@@ -1,3 +1,8 @@
+import { userMessage } from "../i18n/userMessage";
+import {
+  useWorkflowAvailability,
+  workflowProblemCode,
+} from "./WorkflowAvailability";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -12,7 +17,10 @@ interface WithdrawalView {
   canWithdraw: boolean;
 }
 class WithdrawalFailure extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly code?: string,
+  ) {
     super("Rút yêu cầu thất bại");
   }
 }
@@ -30,7 +38,11 @@ async function json(
     redirect: "error",
     signal,
   });
-  if (!response.ok) throw new WithdrawalFailure(response.status);
+  if (!response.ok)
+    throw new WithdrawalFailure(
+      response.status,
+      await workflowProblemCode(response),
+    );
   if (!response.headers.get("content-type")?.includes("application/json"))
     throw new Error("Phản hồi không hợp lệ");
   return response.json();
@@ -44,6 +56,7 @@ export function InternalRequestWithdrawalPanel({
   onWithdrawn: () => void;
 }) {
   const { state, actions } = useAuth();
+  const reportUnavailable = useWorkflowAvailability();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.pending === null &&
@@ -86,6 +99,10 @@ export function InternalRequestWithdrawalPanel({
         })
         .catch((e) => {
           if (abort.signal.aborted) return;
+          if (reportUnavailable(e)) return;
+          if (e instanceof WithdrawalFailure && [403, 404].includes(e.status))
+            return;
+          if (abort.signal.aborted) return;
           setMessage(
             "Không tải được điều kiện rút yêu cầu. Tải lại quyền và trạng thái.",
           );
@@ -93,7 +110,7 @@ export function InternalRequestWithdrawalPanel({
             actions.invalidateSession(owner);
         });
     return () => abort.abort();
-  }, [id, owner, revision, actions]);
+  }, [id, owner, revision, actions, reportUnavailable]);
   const view =
     owner && result?.owner === owner && result.id === id ? result.view : null;
   async function withdraw() {
@@ -179,6 +196,13 @@ export function InternalRequestWithdrawalPanel({
     }
   }
   if (!owner || (view && !view.canWithdraw)) return null;
+  if (!view)
+    return message ? (
+      <p role="status">
+        {userMessage(message)}{" "}
+        <button onClick={() => setRevision((v) => v + 1)}>Thử lại</button>
+      </p>
+    ) : null;
   return (
     <ActionDialog
       scope="internalRequests/WithdrawalPanel.tsx"
@@ -186,7 +210,7 @@ export function InternalRequestWithdrawalPanel({
       busy={busy}
     >
       <section aria-label="Rút yêu cầu" aria-busy={busy}>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         <button disabled={busy} onClick={() => setRevision((v) => v + 1)}>
           Tải lại rút yêu cầu
         </button>

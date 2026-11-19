@@ -53,7 +53,7 @@ public sealed class IncidentReadAccessTests
                 Assert.NotNull(contract); Assert.True(contract.IsComplete(identity)); Assert.True(contract.RequiresReadTransaction);
                 Assert.False(contract.MatchesServiceInvocation(null!, null!));
             }
-            else if (identity.DecisionId == "A004A-020")
+            else if (identity.DecisionId is "A004A-020" or "A004A-021")
             {
                 Assert.NotNull(contract);
                 Assert.True(contract.RequiresActionTransaction);

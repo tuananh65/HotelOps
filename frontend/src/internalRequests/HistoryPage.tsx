@@ -1,9 +1,14 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { SearchInput, searchSuggestions } from "../components/SearchInput";
+import { WorkflowAvailability } from "./WorkflowAvailability";
 import { CollapsibleFilterPanel } from "../components/workspace-interactions";
 import { StatusBadge } from "../components/design-system";
 import { displayCode } from "../i18n/vi";
 import { staffDate } from "./staffDate";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import "./staff-workspace.css";
+import "./request-history.css";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -172,7 +177,7 @@ export function InternalRequestHistoryPage() {
     owner && result?.owner === owner && result.key === key ? result : null;
   if (!owner) return null;
   return (
-    <main className="staff-workspace">
+    <main className="staff-workspace ir-workspace">
       <header className="staff-heading">
         <div>
           <h1>Theo dõi yêu cầu nội bộ</h1>
@@ -194,7 +199,7 @@ export function InternalRequestHistoryPage() {
           <div className="ds-quick-search">
             <label>
               Tìm yêu cầu
-              <input
+              <SearchInput suggestions={searchSuggestions(visible?.list)}
                 maxLength={200}
                 value={search}
                 onChange={(e) => {
@@ -216,7 +221,7 @@ export function InternalRequestHistoryPage() {
                 <>
                   <label>
                     Trạng thái
-                    <select
+                    <SearchableSelect
                       aria-label="Trạng thái"
                       value={filters.status}
                       onChange={(e) => {
@@ -230,7 +235,7 @@ export function InternalRequestHistoryPage() {
                           {displayCode(value)}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </label>
                   {(
                     [
@@ -245,7 +250,7 @@ export function InternalRequestHistoryPage() {
                   ).map(([field, label, values]) => (
                     <label key={field}>
                       {label}
-                      <select
+                      <SearchableSelect
                         aria-label={label}
                         value={filters[field]}
                         onChange={(e) => {
@@ -262,7 +267,7 @@ export function InternalRequestHistoryPage() {
                             {v.name}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </label>
                   ))}
                   <button
@@ -286,7 +291,7 @@ export function InternalRequestHistoryPage() {
               )}
               <label>
                 Phạm vi yêu cầu
-                <select
+                <SearchableSelect
                   aria-label="Phạm vi yêu cầu"
                   value={filters.direction}
                   onChange={(e) => {
@@ -300,7 +305,7 @@ export function InternalRequestHistoryPage() {
                   <option value="">Tất cả yêu cầu được phép xem</option>
                   <option value="SENT">Đã gửi</option>
                   <option value="RECEIVED">Đã nhận</option>
-                </select>
+                </SearchableSelect>
               </label>
               <label className="staff-check">
                 <input
@@ -335,7 +340,7 @@ export function InternalRequestHistoryPage() {
       {!visible && <LoadingIndicator label="Đang tải yêu cầu" />}
       {workNotice?.owner === owner && workNotice.id === selected && (
         <p role="status">
-          {workNotice.message}{" "}
+          {userMessage(workNotice.message)}{" "}
           {workNotice.receiptId && (
             <Link
               to={`/internal-requests/${workNotice.id}/handovers/${workNotice.receiptId}`}
@@ -347,7 +352,7 @@ export function InternalRequestHistoryPage() {
       )}
       {visible?.error && (
         <p role="alert">
-          {visible.error}{" "}
+          {userMessage(visible.error)}{" "}
           <button onClick={() => setRevision((value) => value + 1)}>
             Tải lại lịch sử
           </button>
@@ -358,8 +363,8 @@ export function InternalRequestHistoryPage() {
           <p>{visible.list.totalCount} yêu cầu</p>
           {visible.list.totalCount === 0 ? (
             <p role="status">
-              MSG10: Không có yêu cầu phù hợp với quyền và bộ lọc hiện tại. Đổi
-              hoặc xóa bộ lọc để tìm lại.
+              Không có yêu cầu phù hợp với quyền và bộ lọc hiện tại. Đổi hoặc
+              xóa bộ lọc để tìm lại.
             </p>
           ) : (
             <div
@@ -372,14 +377,12 @@ export function InternalRequestHistoryPage() {
                 <thead>
                   <tr>
                     <th>Yêu cầu</th>
-                    <th>Chủ đề</th>
+
                     <th>Trạng thái</th>
-                    <th>Chi nhánh</th>
-                    <th>Bộ phận tiếp nhận</th>
-                    <th>Người xử lý hiện tại</th>
+
+                    <th>Tiếp nhận / xử lý</th>
+
                     <th>Thời hạn</th>
-                    <th>Quá hạn</th>
-                    <th>Khoảng thời gian</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -395,32 +398,38 @@ export function InternalRequestHistoryPage() {
                         >
                           {row.number}
                         </button>
+                        <strong className="ir-subject">{row.subject}</strong>
+                        <small>
+                          {row.branchName ?? "Chưa có tên chi nhánh"}
+                        </small>
                       </td>
-                      <td>{row.subject}</td>
                       <td>
                         <StatusBadge>{displayCode(row.status)}</StatusBadge>
                       </td>
-                      <td>{row.branchName ?? "Chưa có tên chi nhánh"}</td>
                       <td>
                         {row.receivingDepartmentName ??
                           visible.options?.departments.find(
                             (d) => d.id === row.receivingDepartmentId,
                           )?.name ??
                           "Chưa phân công"}
+                        <small>
+                          {row.currentAssigneeName ??
+                            "Chưa phân công người xử lý"}
+                        </small>
                       </td>
-                      <td>{row.currentAssigneeName ?? "Chưa phân công"}</td>
-                      <td>{staffDate(row.deadline)}</td>
-                      <td>{row.overdue ? "Có" : "Không"}</td>
                       <td>
-                        {row.timingStatus === "AT_RISK"
-                          ? "Có nguy cơ trễ hạn (đã dùng ít nhất 80% thời gian)"
-                          : row.timingStatus === "OVERDUE"
-                            ? "Quá hạn"
-                            : row.timingStatus === "ON_TIME"
-                              ? "Đã dùng dưới 80% thời gian"
-                              : row.timingStatus === "TERMINAL"
-                                ? "Đã hoàn tất"
-                                : "Cần thời điểm tạo và thời hạn hợp lệ"}
+                        {staffDate(row.deadline)}
+                        <small>
+                          {row.timingStatus === "AT_RISK"
+                            ? "Sắp đến hạn"
+                            : row.timingStatus === "OVERDUE"
+                              ? "Quá hạn"
+                              : row.timingStatus === "ON_TIME"
+                                ? "Trong hạn"
+                                : row.timingStatus === "TERMINAL"
+                                  ? "Đã hoàn tất"
+                                  : "Chưa xác định tiến độ thời hạn"}
+                        </small>
                       </td>
                     </tr>
                   ))}
@@ -444,175 +453,210 @@ export function InternalRequestHistoryPage() {
       )}
       {visible?.timeline && (
         <section aria-label="Dòng thời gian yêu cầu">
-          <h2>Yêu cầu {visible.timeline.requestId}</h2>
-          <InternalRequestReopenPanel
-            id={visible.timeline.requestId}
-            onReopened={() => {
-              setCompletionNotice(null);
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng.",
-              );
-            }}
-          />
-          {completionNotice === visible.timeline.requestId && (
-            <p role="status">MSG08: Đã đóng yêu cầu.</p>
-          )}
-          <InternalRequestCompletionPanel
-            id={visible.timeline.requestId}
-            onCompleted={() => {
-              setCompletionNotice(visible.timeline?.requestId ?? null);
-              setRevision((v) => v + 1);
-            }}
-          />
           <InternalRequestDecisionPanel
             id={visible.timeline.requestId}
             onChanged={(message) =>
               refreshWork(visible.timeline!.requestId, message)
             }
           />
-          <InternalRequestWithdrawalPanel
-            id={visible.timeline.requestId}
-            onWithdrawn={() => setRevision((v) => v + 1)}
-          />
-          <InternalRequestProgressPanel
-            id={visible.timeline.requestId}
-            onSaved={() =>
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã lưu tiến độ. Yêu cầu vẫn đang thực hiện.",
-              )
-            }
-          />
-          {escalationNotice === visible.timeline.requestId && (
-            <p role="status">MSG08: Đã chuyển cấp yêu cầu.</p>
-          )}
-          <InternalRequestEscalationPanel
-            id={visible.timeline.requestId}
-            onSaved={() => {
-              setEscalationNotice(visible.timeline?.requestId ?? null);
-              setRevision((v) => v + 1);
-            }}
-          />
-          <InternalRequestHandoverPanel
-            id={visible.timeline.requestId}
-            onSaved={(handoverState, receiptId) =>
-              refreshWork(
-                visible.timeline!.requestId,
-                `MSG08: Bàn giao ${handoverState}.`,
-                receiptId,
-              )
-            }
-          />
-          <InternalRequestTaskLinksPanel
-            key={visible.timeline.requestId}
-            id={visible.timeline.requestId}
-            onLinked={() =>
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã liên kết công việc.",
-              )
-            }
-          />
-          <InternalRequestCleaningLinksPanel
-            key={`Vệ sinh:${visible.timeline.requestId}`}
-            id={visible.timeline.requestId}
-            onLinked={() =>
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã liên kết công việc vệ sinh.",
-              )
-            }
-          />
-          <InternalRequestIncidentLinksPanel
-            key={`Sự cố:${visible.timeline.requestId}`}
-            id={visible.timeline.requestId}
-            onLinked={() =>
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã liên kết sự cố.",
-              )
-            }
-          />
-          <InternalRequestMaterialLinksPanel
-            key={`Vật tư:${visible.timeline.requestId}`}
-            id={visible.timeline.requestId}
-            onLinked={() =>
-              refreshWork(
-                visible.timeline!.requestId,
-                "MSG08: Đã liên kết yêu cầu vật tư.",
-              )
-            }
-          />
-          <h3>Sự kiện</h3>
-          {visible.timeline.events.length === 0 && (
-            <p>Không có sự kiện trên trang này.</p>
-          )}
-          <ol>
-            {visible.timeline.events.map((e) => (
-              <li key={e.id}>
-                {staffDate(e.occurredAt)} — {displayCode(e.type)}:{" "}
-                {e.oldStatus ? displayCode(e.oldStatus) : "—"} →{" "}
-                {e.newStatus ?? "—"}; Người thực hiện {e.actorId}
-                {e.note && <p>{e.note}</p>}
-              </li>
-            ))}
-          </ol>
-          <button
-            disabled={eventPage <= 1}
-            onClick={() => setEventPage((p) => p - 1)}
-          >
-            Sự kiện trước
-          </button>
-          <span> Trang {eventPage} </span>
-          <button
-            disabled={eventPage * 25 >= visible.timeline.eventTotalCount}
-            onClick={() => setEventPage((p) => p + 1)}
-          >
-            Sự kiện tiếp theo
-          </button>
-          <h3>Phân công</h3>
-          {visible.timeline.assignments.length === 0 && (
-            <p>Không có phân công trên trang này.</p>
-          )}
-          <ol>
-            {visible.timeline.assignments.map((a) => (
-              <li key={a.id}>
-                Người xử lý {a.assigneeId}; người phân công {a.assignedBy};{" "}
-                {staffDate(a.assignedAt)} →{" "}
-                {a.endedAt ? staffDate(a.endedAt) : "Đang mở"};{" "}
-                {displayCode(a.status)}
-                {a.note && <p>{a.note}</p>}
-              </li>
-            ))}
-          </ol>
-          <button
-            disabled={assignmentPage <= 1}
-            onClick={() => setAssignmentPage((p) => p - 1)}
-          >
-            Phân công trước
-          </button>
-          <span> Trang {assignmentPage} </span>
-          <button
-            disabled={
-              assignmentPage * 25 >= visible.timeline.assignmentTotalCount
-            }
-            onClick={() => setAssignmentPage((p) => p + 1)}
-          >
-            Phân công tiếp theo
-          </button>
-          <h3>Phản hồi</h3>
-          {visible.timeline.feedback ? (
-            <p>
-              {visible.timeline.feedback.rating} —{" "}
-              {visible.timeline.feedback.comment}; Đã nộp{" "}
-              {staffDate(visible.timeline.feedback.submittedAt)}
-            </p>
-          ) : (
-            <p>Chưa có phản hồi đã ghi nhận.</p>
-          )}
+
+          <WorkflowAvailability key={visible.timeline.requestId}>
+            <InternalRequestReopenPanel
+              id={visible.timeline.requestId}
+              onReopened={() => {
+                setCompletionNotice(null);
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã mở lại yêu cầu với người xử lý cuối cùng.",
+                );
+              }}
+            />
+            {completionNotice === visible.timeline.requestId && (
+              <p role="status">Đã đóng yêu cầu.</p>
+            )}
+            <InternalRequestCompletionPanel
+              id={visible.timeline.requestId}
+              onCompleted={() => {
+                setCompletionNotice(visible.timeline?.requestId ?? null);
+                setRevision((v) => v + 1);
+              }}
+            />
+            <InternalRequestWithdrawalPanel
+              id={visible.timeline.requestId}
+              onWithdrawn={() => setRevision((v) => v + 1)}
+            />
+            <InternalRequestProgressPanel
+              id={visible.timeline.requestId}
+              onSaved={() =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã lưu tiến độ. Yêu cầu vẫn đang thực hiện.",
+                )
+              }
+            />
+            {escalationNotice === visible.timeline.requestId && (
+              <p role="status">Đã chuyển cấp yêu cầu.</p>
+            )}
+            <InternalRequestEscalationPanel
+              id={visible.timeline.requestId}
+              onSaved={() => {
+                setEscalationNotice(visible.timeline?.requestId ?? null);
+                setRevision((v) => v + 1);
+              }}
+            />
+            <InternalRequestHandoverPanel
+              id={visible.timeline.requestId}
+              onSaved={(handoverState, receiptId) =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  `MSG08: Bàn giao ${handoverState}.`,
+                  receiptId,
+                )
+              }
+            />
+          </WorkflowAvailability>
+          <details className="ir-card">
+            <summary>Công việc liên quan</summary>
+            <InternalRequestTaskLinksPanel
+              key={visible.timeline.requestId}
+              id={visible.timeline.requestId}
+              onLinked={() =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã liên kết công việc.",
+                )
+              }
+            />
+            <InternalRequestCleaningLinksPanel
+              key={`Vệ sinh:${visible.timeline.requestId}`}
+              id={visible.timeline.requestId}
+              onLinked={() =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã liên kết công việc vệ sinh.",
+                )
+              }
+            />
+            <InternalRequestIncidentLinksPanel
+              key={`Sự cố:${visible.timeline.requestId}`}
+              id={visible.timeline.requestId}
+              onLinked={() =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã liên kết sự cố.",
+                )
+              }
+            />
+            <InternalRequestMaterialLinksPanel
+              key={`Vật tư:${visible.timeline.requestId}`}
+              id={visible.timeline.requestId}
+              onLinked={() =>
+                refreshWork(
+                  visible.timeline!.requestId,
+                  "MSG08: Đã liên kết yêu cầu vật tư.",
+                )
+              }
+            />
+          </details>
+          <section className="ir-card">
+            <h3>Lịch sử xử lý</h3>
+            {visible.timeline.events.length === 0 && (
+              <p>Không có sự kiện trên trang này.</p>
+            )}
+            <ol className="ir-timeline">
+              {visible.timeline.events.map((e) => (
+                <li key={e.id}>
+                  {staffDate(e.occurredAt)} — {requestEventLabel(e.type)}:{" "}
+                  {e.oldStatus ? displayCode(e.oldStatus) : "—"} →{" "}
+                  {e.newStatus ? displayCode(e.newStatus) : "—"}; Người thực
+                  hiện: {e.actorName ?? "Chưa có tên"}
+                  {e.note && <p>{e.note}</p>}
+                </li>
+              ))}
+            </ol>
+            {visible.timeline.eventTotalCount > 25 && (
+              <nav aria-label="Phân trang lịch sử">
+                <button
+                  disabled={eventPage <= 1}
+                  onClick={() => setEventPage((p) => p - 1)}
+                >
+                  Sự kiện trước
+                </button>
+                <span> Trang {eventPage} </span>
+                <button
+                  disabled={eventPage * 25 >= visible.timeline.eventTotalCount}
+                  onClick={() => setEventPage((p) => p + 1)}
+                >
+                  Sự kiện tiếp theo
+                </button>
+              </nav>
+            )}
+          </section>
+          <details className="ir-card">
+            <summary>Lịch sử phân công</summary>
+            {visible.timeline.assignments.length === 0 && (
+              <p>Không có phân công trên trang này.</p>
+            )}
+            <ol>
+              {visible.timeline.assignments.map((a) => (
+                <li key={a.id}>
+                  Người xử lý: {a.assigneeName ?? "Chưa có tên"}; người phân công: {a.assignedByName ?? "Chưa có tên"};{" "}
+                  {staffDate(a.assignedAt)} →{" "}
+                  {a.endedAt ? staffDate(a.endedAt) : "Đang mở"};{" "}
+                  {displayCode(a.status)}
+                  {a.note && <p>{a.note}</p>}
+                </li>
+              ))}
+            </ol>
+            {visible.timeline.assignmentTotalCount > 25 && (
+              <nav aria-label="Phân trang phân công">
+                <button
+                  disabled={assignmentPage <= 1}
+                  onClick={() => setAssignmentPage((p) => p - 1)}
+                >
+                  Phân công trước
+                </button>
+                <span> Trang {assignmentPage} </span>
+                <button
+                  disabled={
+                    assignmentPage * 25 >= visible.timeline.assignmentTotalCount
+                  }
+                  onClick={() => setAssignmentPage((p) => p + 1)}
+                >
+                  Phân công tiếp theo
+                </button>
+              </nav>
+            )}
+          </details>
+          <section className="ir-card">
+            <h3>Phản hồi</h3>
+            {visible.timeline.feedback ? (
+              <p>
+                Đánh giá: {visible.timeline.feedback.rating}/5 —{" "}
+                {visible.timeline.feedback.comment}; Đã nộp{" "}
+                {staffDate(visible.timeline.feedback.submittedAt)}
+              </p>
+            ) : (
+              <p>Chưa có phản hồi đã ghi nhận.</p>
+            )}
+          </section>
         </section>
       )}
     </main>
   );
+}
+
+function requestEventLabel(code: string) {
+  const labels: Record<string, string> = {
+    STATUS_CHANGE: "Cập nhật trạng thái",
+    CREATED: "Tạo yêu cầu",
+    ASSIGNED: "Phân công xử lý",
+    REASSIGNED: "Đổi người xử lý",
+    PROGRESS_UPDATED: "Cập nhật tiến độ",
+    WITHDRAWN: "Rút yêu cầu",
+    ESCALATED: "Chuyển cấp",
+    CLOSED: "Đóng yêu cầu",
+    REOPENED: "Mở lại yêu cầu",
+  };
+  return labels[code] ?? displayCode(code);
 }

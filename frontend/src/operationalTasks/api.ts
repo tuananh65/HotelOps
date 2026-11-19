@@ -1,3 +1,10 @@
+export const taskRecordedStates = [
+  "TODO",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+export type TaskRecordedState = (typeof taskRecordedStates)[number];
 export const taskWorkflowStates = [
   "PENDING_ASSIGNMENT",
   "ASSIGNED",
@@ -27,6 +34,7 @@ export interface TaskPage {
   pageSize: number;
 }
 export interface TaskDetail {
+  canExecute?: boolean;
   task: TaskRow;
   description: string | null;
   completionNote: string | null;
@@ -73,6 +81,7 @@ export async function readTasks(
   id: number | null,
   signal: AbortSignal,
   workflowStatus?: TaskWorkflowState,
+  status?: TaskRecordedState,
 ): Promise<TaskPage | TaskDetail> {
   if (!positive(branch) || !positive(page) || (id !== null && !positive(id)))
     throw new Error("Mã công việc không hợp lệ");
@@ -81,11 +90,14 @@ export async function readTasks(
     !taskWorkflowStates.includes(workflowStatus)
   )
     throw new Error("Bộ lọc quy trình không hợp lệ");
+  if (status !== undefined && !taskRecordedStates.includes(status))
+    throw new Error("Trạng thái công việc không hợp lệ");
   const query = new URLSearchParams({
     page: String(page),
     pageSize: "25",
     ...(id === null ? { search } : {}),
     ...(id === null && workflowStatus ? { workflowStatus } : {}),
+    ...(id === null && status ? { status } : {}),
   });
   const response = await fetch(
     `/api/branches/${branch}/operational-tasks${id === null ? "" : `/${id}`}?${query}`,
@@ -115,6 +127,7 @@ export async function readTasks(
     !text(data.description) ||
     !text(data.completionNote) ||
     (data.priority !== undefined && !text(data.priority)) ||
+    (data.canExecute !== undefined && typeof data.canExecute !== "boolean") ||
     !count(data.progressTotalCount) ||
     !Array.isArray(data.progress) ||
     !data.progress.every(

@@ -1,3 +1,4 @@
+import { SearchableSelect } from "../components/SearchableSelect";
 import type { Field, Values } from "./contracts";
 import { label } from "./contracts";
 import { displayCode } from "../i18n/vi";
@@ -49,7 +50,7 @@ export function Fields({
           return (
             <label key={name}>
               {label(f.name)}
-              <select
+              <SearchableSelect
                 name={name}
                 required={!f.optional}
                 value={String(values[f.name] ?? "")}
@@ -63,7 +64,7 @@ export function Fields({
                     {displayCode(option)}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
           );
         if (f.name === "actorUserId" || f.name === "reportedBy")
@@ -136,10 +137,10 @@ export function Fields({
         const value = values[f.name] ?? f.default ?? "";
         if(f.type === "bool?" && f.optional) return <label key={name}>
           {label(f.name)} (không bắt buộc)
-          <select name={name} value={value===true?"true":value===false?"false":""}
+          <SearchableSelect name={name} value={value===true?"true":value===false?"false":""}
             onChange={e=>onChange({...values,[f.name]:e.target.value===""?"":e.target.value==="true"})}>
             <option value="">Tất cả</option><option value="true">Có</option><option value="false">Không</option>
-          </select>
+          </SearchableSelect>
         </label>;
         const display =
           time && value ? String(value).slice(0, 16) : String(value);

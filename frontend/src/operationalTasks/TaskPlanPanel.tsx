@@ -1,3 +1,4 @@
+import { userMessage } from "../i18n/userMessage";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -191,7 +192,7 @@ export function TaskPlanPanel({
         >
           Tải lại kế hoạch công việc
         </button>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{userMessage(error)}</p>}
         {snapshot && (
           <>
             <p>
@@ -235,7 +236,7 @@ export function TaskPlanPanel({
                           checked={confirmCancel}
                           onChange={(e) => setConfirmCancel(e.target.checked)}
                         />
-                        MSG33: Xác nhận hủy công việc này
+                        Xác nhận hủy công việc này
                       </label>
                       <button
                         type="button"

@@ -1,3 +1,5 @@
+import { userMessage } from "../i18n/userMessage";
+import { SearchableSelect } from "../components/SearchableSelect";
 import {
   announceWorkflowSuccess,
   ActionDialog,
@@ -97,7 +99,7 @@ export function IncidentTriagePanel({
   )
     return (
       <p role="status">
-        MSG03: Cần chọn nhóm và mức độ trước khi tiếp nhận sự cố.{" "}
+        Cần chọn nhóm và mức độ trước khi tiếp nhận sự cố.{" "}
         <a href="#incident-classification">Mở phần phân loại sự cố</a>.
       </p>
     );
@@ -255,7 +257,7 @@ export function IncidentTriagePanel({
         <fieldset disabled={busy || attempted || review}>
           <label>
             Độ ưu tiên
-            <select
+            <SearchableSelect
               aria-label="Độ ưu tiên"
               value={priority}
               onChange={(e) => {
@@ -271,7 +273,7 @@ export function IncidentTriagePanel({
                   {o.name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
           {chosen && (
             <p>
@@ -312,7 +314,7 @@ export function IncidentTriagePanel({
             </label>
           )}
         </fieldset>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status">{userMessage(message)}</p>}
         {attempted && !saved && onReload && (
           <button disabled={busy} onClick={onReload}>
             Tải lại sự cố và cấu hình SLA
