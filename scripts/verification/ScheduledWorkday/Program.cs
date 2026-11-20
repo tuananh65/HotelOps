@@ -8,11 +8,30 @@ using HotelOps.Api.Controllers;
 using HotelOps.Api.DTOs.WorkTime;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.WorkTime;
+using HotelOps.Api.Services.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 if (args is ["--sql-session-regression", var username]) { await SessionRevalidationChecks.RunAsync(username); return; }
 if (args is ["--sql-current-end", var employee]) { await SessionRevalidationChecks.CheckCurrentEndAsync(employee); return; }
 var count = 0; void Check(bool v, string name) { if (!v) throw new Exception("FAIL: " + name); count++; Console.WriteLine("PASS: " + name); }
+// Offline EF tracking regression: normalize only saved/read-only entries at the session boundary.
+// No SQL connection, user mutation or HTTP request is performed.
+using (var trackingDb = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+    .UseSqlServer("Server=offline.invalid;Database=OFFLINE_SESSION_TRACKER;Integrated Security=true;Encrypt=true;TrustServerCertificate=false").Options))
+{
+    var prepare = typeof(SqlSessionService).GetMethod("RequireCleanSessionContext", BindingFlags.Static | BindingFlags.NonPublic)!;
+    trackingDb.Users.Attach(new User { UserId = 900001 });
+    Check(trackingDb.ChangeTracker.Entries().Count() == 1 && !trackingDb.ChangeTracker.HasChanges(),
+        "session tracking fixture has one unchanged entity");
+    prepare.Invoke(null, [trackingDb]);
+    Check(!trackingDb.ChangeTracker.Entries().Any(), "session boundary clears unchanged entries");
+    trackingDb.Users.Add(new User { UserId = 900002 });
+    var rejectedPending = false;
+    try { prepare.Invoke(null, [trackingDb]); }
+    catch (TargetInvocationException e) when (e.InnerException is InvalidOperationException) { rejectedPending = true; }
+    Check(rejectedPending && trackingDb.ChangeTracker.HasChanges(),
+        "session boundary rejects and retains unsaved entries");
+}
 Check(!typeof(WorkdaysController).IsDefined(typeof(NonControllerAttribute)), "authorized scheduled mutation controller discoverable");
 Check(typeof(WorkdaysController).GetMethod("Start")!.GetCustomAttribute<HttpPostAttribute>()?.Template == null, "scheduled start POST template");
 Check(typeof(WorkdaysController).GetMethod("End")!.GetCustomAttribute<HttpPostAttribute>()?.Template == "{workdayId:long}/end", "end POST route");

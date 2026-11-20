@@ -221,6 +221,12 @@ public sealed partial class WorkdayService(HotelOpsDbContext db, ICurrentUserAcc
             // stale middleware identity cannot survive a revocation committed during a lock wait.
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
             await participant.LockUsersAsync(timeOwner is > 0 ? [actor.UserId, timeOwner.Value] : [actor.UserId], ct);
+            // Middleware and scoped authorization may have loaded tracked read-only entities.
+            // Session validation deliberately requires an empty tracker. Never erase pending
+            // writes: fail closed if any exist, then clear only already-saved/read-only entries.
+            if (db.ChangeTracker.HasChanges())
+                throw new InvalidOperationException("Workday context contains unsaved changes before session validation.");
+            db.ChangeTracker.Clear();
             var validated = await sessions.ValidateSessionAsync(ticket, ct);
             if (!validated.IsValid || validated.Session?.SessionId != actor.SessionId
                 || validated.Session.UserId != actor.UserId || validated.Session.IsRestricted)

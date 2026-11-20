@@ -108,10 +108,20 @@ public sealed class SqlSessionService(HotelOpsDbContext db, ISessionRevocationSe
         if (!db.Database.IsSqlServer() || tx.GetDbTransaction().IsolationLevel
             is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))
             throw new InvalidOperationException("SQL Server locking isolation is required.");
-        if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Session operations require a clean untracked context.");
+        RequireCleanSessionContext(db);
         try { return await work(); }
         catch (Exception e) when (!ct.IsCancellationRequested && SessionStoreUnavailableException.Matches(e))
         { throw new SessionStoreUnavailableException(e); }
+    }
+
+    // Session reads and SQL locks are untracked. A shared request context can retain
+    // entities already saved by another participant; these must not make a valid
+    // session check fail. Never silently discard Added/Modified/Deleted entries.
+    internal static void RequireCleanSessionContext(HotelOpsDbContext context)
+    {
+        if (context.ChangeTracker.HasChanges())
+            throw new InvalidOperationException("Session operations require a clean untracked context; pending changes must be saved by the caller.");
+        context.ChangeTracker.Clear();
     }
 
     private static AuditLog Audit(long userId, string authenticationEvent, DateTime now)
