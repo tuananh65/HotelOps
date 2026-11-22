@@ -1,0 +1,55 @@
+erDiagram
+  direction LR
+  workday_shifts {
+    bigint shift_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    bigint department_id FK "bigint; NOT NULL"
+    bigint role_id FK "bigint; NOT NULL"
+    nvarchar name "nvarchar(150); NOT NULL"
+    int start_minute "int; NOT NULL"
+    int end_minute "int; NOT NULL"
+    int capacity "int; NOT NULL"
+    bit is_active "bit; NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  workday_assignments {
+    bigint assignment_id PK "bigint; NOT NULL; IDENTITY"
+    bigint shift_id FK "bigint; NOT NULL"
+    bigint user_id FK "bigint; NOT NULL"
+    date work_date "date; NOT NULL"
+    varchar status "varchar(20); NOT NULL"
+    datetime2 started_at "datetime2(7); NULL"
+    datetime2 ended_at "datetime2(7); NULL"
+    bigint created_by FK "bigint; NOT NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  workday_events {
+    bigint event_id PK "bigint; NOT NULL; IDENTITY"
+    bigint assignment_id FK "bigint; NOT NULL"
+    bigint actor_user_id FK "bigint; NOT NULL"
+    varchar action "varchar(20); NOT NULL"
+    uniqueidentifier operation_key UK "uniqueidentifier; NOT NULL"
+    nvarchar reason "nvarchar(2000); NULL"
+    datetime2 occurred_at "datetime2(7); NOT NULL"
+  }
+  users {
+    bigint user_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  branches {
+    bigint branch_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  departments {
+    bigint department_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  roles {
+    bigint role_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  users ||..o{ workday_assignments : "F001"
+  workday_shifts ||..o{ workday_assignments : "F002"
+  users ||..o{ workday_assignments : "F003"
+  users ||..o{ workday_events : "F004"
+  workday_assignments ||..o{ workday_events : "F005"
+  branches ||..o{ workday_shifts : "F006"
+  departments ||..o{ workday_shifts : "F007"
+  roles ||..o{ workday_shifts : "F008"

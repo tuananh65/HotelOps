@@ -1,0 +1,885 @@
+﻿CAPSTONE PROJECT / HOTELOPS
+SOFTWARE REQUIREMENTS SPECIFICATION
+PHIÊN BẢN TINH GỌN — WORKFLOW-FIRST
+Project 2: HotelOps Legacy Redesign  |  Phiên bản đề xuất V1  |  22/11/2026
+Trạng thái: Draft for Product Owner review — tài liệu định hướng yêu cầu, không thay thế bản Report 3 đã duyệt.
+Phạm vi:
+Giản lược tổ chức chức năng và tương tác, không mặc nhiên xóa các nghĩa vụ kiểm soát, phân quyền, dữ liệu hay lịch sử.
+
+0. Kiểm soát tài liệu và nguồn
+Nguồn
+Phạm vi sử dụng
+Độ tin cậy
+Report-3_Software Requirement Specification.docx
+144 UC; 15 FE; Actors; Permission Matrix; BF-01..BF-06; business rules
+SRS gốc
+Làm lại chức năng workday.docx
+Lịch làm việc tuần, định mức ca, Start/End Shift, góp ý theo vai trò
+Yêu cầu thay đổi của chủ dự án
+note fix v1.docx; TestNote.txt; New Text Document.txt
+Định hướng giản lược, màn hình và UX theo vai trò
+Góp ý UX
+HotelOps_UX_Prototype_V9/README.md
+Bằng chứng prototype đã mô phỏng workflow và Workday tuần
+Prototype-only; không phải backend
+Các quyết định hội thoại Project 2
+Level 2 Balanced, V9 Workday, role workflow Reception/HK
+Quyết định/đề xuất cần phân loại
+
+Quy ước trạng thái: BASELINE = yêu cầu SRS gốc; SIMPLIFIED = đề xuất tổ chức lại; CHANGE = yêu cầu mới so với SRS; OPEN = cần quyết định/quyền được xác minh; PROTOTYPE = chỉ chạy demo.
+1. Tóm tắt định hướng hệ thống
+HotelOps quản lý vận hành khách sạn qua 6 cụm nghiệp vụ: (1) quản trị tổ chức & quyền, (2) phòng & buồng phòng, (3) sự cố & bảo trì, (4) tài sản, (5) vật tư & kho, (6) công việc, yêu cầu nội bộ & điều phối ca. Báo cáo và audit phục vụ giám sát, bảo toàn truy vết.
+Chỉ tiêu
+SRS gốc
+Bản tinh gọn
+Danh mục UC
+144 UC (UC-001..UC-144)
+Giữ ID để truy vết; gộp trải nghiệm, chưa xóa UC tự động
+Màn hình
+80 mục Screen Inventory
+Mục tiêu 25–35 workspace chính, không phải 25–35 UC
+Vai trò
+9 actors trong mục 4.1; Reception trong Permission Matrix
+10 trải nghiệm nghiệp vụ; Reception là extension cần xác minh
+Workday
+UC-138..140 quản lý ca/ngày và bàn giao
+KHÔI PHỤC thành lập lịch tuần; Start/End Shift; bàn giao đang OPEN
+Database
+Conceptual Model và legacy 149 bảng theo audit
+Database riêng ≤40 bảng là mục tiêu kiến trúc đề xuất, KHÔNG phải schema được duyệt
+
+1.1 Nguyên tắc phạm vi
+Không loại bỏ quy tắc inspection → Ready và incident block; hoàn thành cleaning không tự Ready.
+Không cho người thực hiện bảo trì tự xác minh kết quả của chính họ.
+Material approval và stock posting tách trách nhiệm; không xóa ledger, reversal, audit.
+Read/write luôn phụ thuộc role, branch, department, assignee và tình trạng bản ghi.
+Trạng thái UI là phép chiếu nghiệp vụ; không ép Occupied và Ready vào cùng một cột dữ liệu.
+Tính năng demo không xác minh API/runtime; mọi thay đổi backend/database cần phê duyệt riêng.
+2. Actors và phạm vi trách nhiệm
+Actor
+Nghiệp vụ trọng tâm
+Ràng buộc
+Administrator
+Người dùng, role/permissions, cấu trúc chi nhánh–tầng–phòng, cấu hình, audit
+Không tự động có quyền duyệt vật tư, dọn/kiểm tra phòng hoặc sửa chữa
+Operations Manager
+Giám sát phòng, ngoại lệ/incident, tài sản, stock adjustment/reversal theo quyền, báo cáo
+Incident triage/close phụ thuộc vai trò và điều kiện; OM chủ yếu giám sát/escalate
+HK Supervisor
+Tạo/giao cleaning; inspection/checklist; approve/rework; room turnover
+Không thay nhân viên thực hiện cleaning; Ready phải đủ điều kiện
+HK Staff
+Nhận/chạy cleaning; cập nhật, blocker, complete, rework; ca được phân
+Chỉ việc thuộc cá nhân/scope; không self-approve inspection
+Maintenance Lead
+Triage, assign, block, verify/close incident; preventive schedule
+Không self-verify kết quả mình trực tiếp thực hiện
+Maintenance Staff
+Nhận/tiến hành bảo trì, ghi vật tư, gửi verification; ca được phân
+Không tự đóng incident chưa verified
+Storekeeper
+Kho vật tư, nhận/xuất/chuyển/trả/kiểm kê, fulfill, replenishment; ca được phân
+Không duyệt material request của bộ phận
+Department Head
+Giao/verify task, approve vật tư, route internal request, lập lịch tuần
+Không tự ý thay role/scope; định mức ca phải hợp lệ
+Owner
+Executive monitoring, analytics, operational reports, management notifications
+Không mặc nhiên có quyền CRUD vận hành
+Reception
+Xem phòng theo scope, check-out/check-in/transfer theo contract thực tế; ca được phân
+Reception là extension của Permission Matrix, source contract chưa verified
+
+2.1 Quy tắc quyền hiệu lực
+Effective access = role permission ∩ branch/department scope ∩ record ownership/assignment ∩ lifecycle preconditions ∩ segregation-of-duties. Prototype có thể mô phỏng các điều kiện này, nhưng backend thật là nơi thực thi cuối cùng. Permission Matrix SRS có điểm mâu thuẫn với UC-107..112 (Operational Task execute); giữ trạng thái OPEN cho quyền production.
+3. Danh mục chức năng tinh gọn FE-01 đến FE-15
+FE
+Nhóm
+Phạm vi tinh gọn
+Điều kiện giữ
+FE-01
+Authentication & Role
+Users + Access Management; list/detail/action hợp nhất; giữ đăng nhập, đổi mật khẩu, phiên, hiệu lực quyền
+Giữ các UC; chỉ gộp tương tác
+FE-02
+Hotel Structure
+Workspace cấu trúc chi nhánh → tầng/khu vực → phòng; wizard tạo theo flow; room equipment xem theo category
+Building chỉ là lớp trực quan, chưa có entity trong SRS
+FE-03
+Room Operations
+Room Board trực quan theo chi nhánh/tầng và hành động theo trạng thái; reception panel chi tiết
+Ready có inspection PASS & không incident block
+FE-04
+Housekeeping
+HK Supervisor 1 queue điều phối; HK Staff My Work; rework trong vòng đời task
+Không xóa assignee, blocker, chứng cứ, lịch sử
+FE-05
+Room Inspection
+Queue kiểm tra/duyệt/rework trong HK workspace; checklist và version ở settings
+Không bỏ phân quyền/điều kiện Ready
+FE-06
+Incident & Maintenance
+Incident lifecycle gắn maintenance job; Lead control & Staff my jobs; preventive tab
+Giữ triage, SLA, verify độc lập, close/reopen
+FE-07
+Asset
+Kho tài sản có danh mục, nhận/điều chuyển/bàn giao/thu hồi/condition/history
+Khác tồn kho vật tư tiêu hao FE-08
+FE-08
+Inventory
+Tồn kho, phiếu nhập/xuất/transfer/stocktake/ledger trong Inventory Workspace
+Giữ transaction/reversal immutable
+FE-09
+Material Request
+My Requests / Approvals / Fulfillment là cùng dòng request
+Tách approver và storekeeper
+FE-10
+Replenishment
+Tích hợp thành tab tồn kho / yêu cầu bổ sung
+Giữ dữ liệu còn thiếu & lượng nhận
+FE-11
+Operational Task
+My Tasks, Team Tasks, assignment, verification; action theo trạng thái
+Không nhập trùng time log; vẫn phải verify
+FE-12
+Workday & Work-Time
+Lịch phân ca THỨ HAI–CHỦ NHẬT do DH lập; nhân viên Start/End ca; time task riêng
+Không tính lương/chấm công HRM; UC-140 bàn giao OPEN
+FE-13
+Internal Request
+Request queue → route → accept → process/link work → close/reopen
+Không trộn Request với Task
+FE-14
+Notifications & Dashboard
+Bell ở navbar, dashboard role-specific; bỏ bảng phân bổ tại trang chức năng
+Giữ alerts bắt buộc và notification history
+FE-15
+Reports & Audit
+Báo cáo theo mục đích cho Owner/OM nếu được cấp; audit Admin
+Ẩn Report khỏi menu OM theo prototype, không mặc nhiên xóa UC-135
+
+4. Workflow nghiệp vụ tích hợp
+BF-01 — Room turnover
+Reception checkout (extension, contract OPEN) → Pending Cleaning → HK Supervisor tạo/giao task → HK Staff nhận/bắt đầu/hoàn thành → Pending Inspection → HK Supervisor PASS → Ready (nếu không blocked) → Reception check-in (extension). FAIL → Rework → Reinspection.
+Traceability: UC-027..048; Reception extension
+BF-02 — Incident resolution
+Report incident → Maintenance Lead classify/triage → assign → Staff accept/repair/resolve → Lead hoặc reviewer hợp lệ verify/close → cập nhật điều kiện blocking; fail/recur → reopen.
+Traceability: UC-049..062
+BF-03 — Material fulfillment
+Requester submit → Department Head approve/reject → Storekeeper check stock → issue full/partial → movement ledger → return unused nếu có.
+Traceability: UC-079..090, 091..099
+BF-04 — Replenishment
+Low stock/shortage → create replenishment → track expected/received → receipt posted → update balance; phần còn thiếu tiếp tục tracked.
+Traceability: UC-100..101, 079..080
+BF-05 — Operational tasks
+Department Head create/priority/assign → assignee accept/start/update/pause if necessary → complete → manager verify/reopen. Actual task time derived from start/pause/resume/end.
+Traceability: UC-102..113
+BF-06 — Internal request
+Create → receiving department route/accept/reject → link operational work nếu cần → progress/handover → confirm completion → reopen/escalate nếu cần.
+Traceability: UC-114..123
+5. Đặc tả Workday mới — Lịch làm việc theo tuần
+CHANGE: Yêu cầu mới nhất thay thế quyết định loại bỏ Workday của các prototype cũ. Department Head tổ chức lịch nhân sự theo tuần, mỗi tuần Thứ Hai–Chủ nhật; nhân viên thuộc nhóm phân ca xác nhận bắt đầu/kết thúc ca. Không tạo hệ thống lương hoặc chấm công nhân sự.
+Nhóm
+Ca/ngày
+Người/ca
+Diễn giải
+HK Supervisor
+3
+1
+Mỗi ca 8 giờ
+HK Staff
+3
+4
+Mỗi ca 8 giờ
+Maintenance Lead
+2
+1
+Ca 8 giờ theo lịch có khoảng nghỉ
+Maintenance Staff
+2
+3
+Ca 8 giờ theo lịch có khoảng nghỉ
+Storekeeper
+2
+1
+Ca 8 giờ theo lịch có khoảng nghỉ
+Reception
+3
+1
+Mỗi ca 8 giờ
+
+5.1 Quy tắc lịch tuần
+DH chọn tuần, bộ phận, ngày và ca; xem danh sách nhân sự đang phân, còn thiếu hoặc vượt định mức.
+Không xếp trùng ca/thời gian một nhân sự; không xếp ngoài branch/department của scope; cần kiểm tra nhân sự active.
+Người được phân lịch mới có hành động Bắt đầu ca / Kết thúc ca; ghi timestamp và actor; chưa áp dụng kiểm tra giờ hệ thống ở demo V9.
+Time tracking của từng task vẫn độc lập với thời gian ca và không dùng để tính lương.
+Administrator, OM, DH và Owner được coi là luôn có mặt trong prototype; không hiểu là được bỏ qua xác thực hay phân quyền.
+Giờ chuẩn 3 ca đề xuất là 00:00–08:00, 08:00–16:00, 16:00–24:00. Giờ 2 ca trong V9 là GIẢ ĐỊNH DEMO và cần phê duyệt.
+5.2 Bàn giao ca (UC-140)
+OPEN: Chủ dự án đã yêu cầu Workday dạng lịch tuần, nhưng chưa quyết định rõ việc hủy hay giữ yêu cầu “receiver acknowledgement” của UC-140. Giải pháp an toàn: giữ thông tin công việc tồn đọng và xác nhận nhận bàn giao như một nghiệp vụ riêng nếu cần; không buộc mở màn Workday truyền thống.
+6. Đặc tả các trải nghiệm theo role
+Role
+Màn làm việc mặc định
+Hành động thường xuyên
+Administrator
+Tổng quan quản trị
+Users/roles, chi nhánh–tầng–phòng wizard, audit
+OM
+Tổng quan số phòng theo trạng thái
+Room Board nhóm ô phòng, incidents, kho tài sản
+HK Supervisor
+Điều phối dọn phòng
+4 cột Phòng / Người dọn / Trạng thái / Thao tác; assign/check/rework
+HK Staff
+Công việc của tôi
+Accept/start/complete/rework; chỉ task được giao
+Maintenance Lead
+Điều phối bảo trì
+Triage/assign/verify/close
+Maintenance Staff
+Việc kỹ thuật của tôi
+Accept/repair/update/submit
+Storekeeper
+Kho vật tư
+Receipts/issues/transfer/stocktake/fulfillment
+Department Head
+Công việc & lịch tuần
+Approve material; task assign; internal requests; weekly roster
+Owner
+Executive overview
+KPI có ý nghĩa, analytics, reports
+Reception
+Room Board
+4 nhóm tổng quan occupied/cleaning/ready/blocked; chọn ô để checkout/check-in/transfer
+
+6.1 Nền tảng UI chung
+Header chỉ có tiêu đề ngắn, breadcrumbs khi cần; thông báo ở chuông và tài khoản trong navbar.
+Sidebar thu/mở được. Navigation không liệt kê mọi UC hoặc các trang list/detail lặp nhau.
+Dashboard có KPI/biểu đồ giúp ra quyết định; không nhắc lại danh sách trên màn chức năng.
+Room Board có ô màu + chữ; ở OM nhóm theo trạng thái, mở rộng một nhóm để tập trung quan sát.
+Bảng nghiệp vụ thu gọn, tìm kiếm + bộ lọc ẩn; sticky header phù hợp; mobile ưu tiên bốn trường thiết yếu.
+Tất cả form có validation, confirmation nếu nguy hiểm, loading/empty/error, và lịch sử hành động khi phù hợp.
+7. Yêu cầu chức năng tinh gọn — mã mới (SR)
+ID
+Nhóm
+Yêu cầu chức năng
+SR-01
+Bảo mật & scope
+Mọi hành động quyền, branch, department, assignee và lifecycle được kiểm tra hiệu lực; role-switch demo không thay auth.
+SR-02
+Room occupancy
+Check-out tạo nhu cầu vệ sinh; check-in chỉ nếu phòng Ready và không bị block; source contract Reception còn OPEN.
+SR-03
+Room readiness
+Cleaning complete → Pending Inspection, inspection PASS + không block → Ready; FAIL → Rework.
+SR-04
+Cleaning tasks
+Supervisor tạo/giao/reassign; Staff accept/start/update/complete; history, blocker, evidence.
+SR-05
+Inspections
+Checklist version, defects, pass/fail, rework, reinspection và người kiểm tra hợp lệ.
+SR-06
+Incident maintenance
+Triage/assign/repair/verify/close/reopen; SLA, room blocking, segregation-of-duties.
+SR-07
+Asset warehouse
+Quản lý tài sản cá thể: đăng ký, điều chuyển, bàn giao, thu hồi, condition, retire, history.
+SR-08
+Consumable inventory
+Nhập/xuất/trả/chuyển/kiểm kê; ledger, idempotency, reversal và no negative stock.
+SR-09
+Material approvals
+Approve/reject thuộc DH; fulfillment thuộc Storekeeper; theo dõi partial qty và replenishment.
+SR-10
+Operational tasks
+Create/assign/accept/start/update/pause/complete/verify/reopen; time log theo task.
+SR-11
+Internal requests
+Route/accept/reject/link work/progress/handover/close/reopen/escalate.
+SR-12
+Weekly workday
+DH lập lịch Mon–Sun; định mức theo bộ phận; tránh overlap; nhân viên Start/End ca.
+SR-13
+Notifications
+Tạo alerts theo thay đổi quan trọng; bell mở liên kết đúng bản ghi và scope.
+SR-14
+Analytics/reporting
+Dashboard chỉ số theo quyền; report có mục đích và filters; audit lưu immutable.
+SR-15
+Traceability
+Mọi UI operation và action mapping ngược UC gốc, ghi rõ approved/proposed/prototype/open.
+
+8. Business Rules cần giữ nguyên
+BR-01: Room number duy nhất trong mỗi chi nhánh.
+BR-02: Ready yêu cầu passed inspection hiện hành và không có open blocking incident.
+BR-03: Cleaning complete không tự Ready; fail inspection phải có defects/rework.
+BR-04: Material issue không vượt available; posted transaction không bị overwrite.
+BR-05: Requested/Approved/Issued là các số lượng riêng.
+BR-06: Effective permissions giới hạn bởi role, branch, department và record scope.
+BR-07: Maintenance completion và closure yêu cầu review hợp lệ, không self-verify.
+BR-08: Inactive master records giữ traceability trong lịch sử.
+BR-09: Các transactional actions có chống gửi trùng/idempotency.
+BR-10: Work-Time phục vụ vận hành, không payroll/leave/biometric.
+BR-11: Không tự xóa event/audit log để đạt mục tiêu giản lược.
+BR-12: Thay đổi về workday, Reception extensions và báo cáo cần được chốt trước production.
+9. Các quyết định còn mở
+Mã
+Vấn đề
+Hành động cần duyệt
+D-01
+Reception checkout/check-in/transfer chưa có UC chi tiết trong SRS gốc
+Xác nhận contract, phòng có khách vs ready, quyền trạng thái
+D-02
+Permission Matrix Operational Task Execute/Update không đồng nhất UC-107..112
+Chốt catalog quyền backend theo actor và scope
+D-03
+UC-140 Shift Handover sau thay đổi Workday
+Giữ acknowledgement hay thay bằng theo dõi tồn đọng
+D-04
+Khung giờ 2 ca cho Maintenance & Storekeeper
+Chốt giờ làm/giờ nghỉ, lịch 7 ngày và giới hạn overlap
+D-05
+Ẩn Reports khỏi menu OM vs quyền report trong SRS
+Giữ quyền qua đường dẫn khác hay loại khỏi scope
+D-06
+Tối đa 40 bảng database Project 2
+Thiết kế/mapping/schema DB riêng; không xóa legacy 149 bảng
+D-07
+Mục tiêu 25–35 workspace
+Nghiệm thu scope và coverage trước khi thay thế frontend thật
+D-08
+Role grants runtime thực tế
+Kiểm tra backend grants thay vì giả định UI prototype
+
+10. Tiêu chí chấp nhận hệ thống tinh gọn
+AC-01: 10 actor có navigation đúng trách nhiệm và những hành động được cấp có thể thực hiện trong demo.
+AC-02: Checkout → HK assign → HK clean → Inspection PASS/FAIL → Ready → Check-in có thể thực hiện end-to-end bằng dữ liệu mô phỏng.
+AC-03: Vi phạm readiness, ownership, authorization hoặc SLA/blocked có lỗi rõ, không ghi đè dữ liệu.
+AC-04: Inventory approval và issue có diễn tiến số lượng, ledger và partial fulfillment chính xác.
+AC-05: Weekly calendar đủ 6 nhóm phân ca, 7 ngày/tuần, có hạn mức và chống trùng nhân viên.
+AC-06: Responsive desktop/mobile, keyboard, trạng thái không chỉ biểu diễn bằng màu, bảng không che cột chức năng.
+AC-07: Các màn hình chức năng không có biểu đồ trạng thái chiếm diện tích; thông tin tổng hợp tập trung dashboard.
+AC-08: Mỗi UC gốc được trace đến giữ nguyên/gộp/giản lược/thay đổi yêu cầu/chưa quyết định.
+AC-09: Không tuyên bố ready for production khi runtime permission, database hoặc browser E2E chưa được xác minh.
+PHỤ LỤC A — Bảng đối chiếu đầy đủ 144 UC
+Mục “Xử lý” mô tả tác động lên trải nghiệm/đặc tả, không có nghĩa source code đã bị loại bỏ. Mỗi UC vẫn giữ mã ban đầu.
+FE-01 — User / Access workspace
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-001
+Login
+MERGE UI: giữ UC, gộp màn hình
+UC-002
+Logout
+MERGE UI: giữ UC, gộp màn hình
+UC-003
+Change Password
+MERGE UI: giữ UC, gộp màn hình
+UC-004
+Create User Account
+MERGE UI: giữ UC, gộp màn hình
+UC-005
+Update User Account
+MERGE UI: giữ UC, gộp màn hình
+UC-006
+Activate/Deactivate User Account
+MERGE UI: giữ UC, gộp màn hình
+UC-007
+Assign User to Branch/Department
+MERGE UI: giữ UC, gộp màn hình
+UC-008
+Create/Update User Role
+MERGE UI: giữ UC, gộp màn hình
+UC-009
+Configure Role Permissions
+MERGE UI: giữ UC, gộp màn hình
+UC-010
+Assign/Revoke User Roles
+MERGE UI: giữ UC, gộp màn hình
+UC-011
+Review User Access Permissions
+MERGE UI: giữ UC, gộp màn hình
+UC-141
+View User List
+MERGE UI: giữ UC, gộp màn hình
+
+FE-02 — Hotel Structure workspace
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-012
+Update Branch Information
+MERGE UI: giữ UC, gộp màn hình
+UC-013
+View Branch Structure
+MERGE UI: giữ UC, gộp màn hình
+UC-014
+Create Floor/Area
+MERGE UI: giữ UC, gộp màn hình
+UC-015
+Update Floor/Area
+MERGE UI: giữ UC, gộp màn hình
+UC-016
+Deactivate Floor/Area
+MERGE UI: giữ UC, gộp màn hình
+UC-017
+Create Room Type
+MERGE UI: giữ UC, gộp màn hình
+UC-018
+Update Room Type
+MERGE UI: giữ UC, gộp màn hình
+UC-019
+Deactivate Room Type
+MERGE UI: giữ UC, gộp màn hình
+UC-020
+Create Room
+MERGE UI: giữ UC, gộp màn hình
+UC-021
+Update Room Information
+MERGE UI: giữ UC, gộp màn hình
+UC-022
+Deactivate Room
+MERGE UI: giữ UC, gộp màn hình
+UC-023
+View Room Directory
+MERGE UI: giữ UC, gộp màn hình
+UC-024
+Create Department
+MERGE UI: giữ UC, gộp màn hình
+UC-025
+Update Department
+MERGE UI: giữ UC, gộp màn hình
+UC-026
+Deactivate Department
+MERGE UI: giữ UC, gộp màn hình
+UC-142
+View Room Types List
+MERGE UI: giữ UC, gộp màn hình
+
+FE-03 — Room Board
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-027
+Manage Operational Room Status
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+
+FE-04 — HK Work Queue
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-028
+Create Cleaning Task
+MERGE UI: giữ UC, gộp màn hình
+UC-029
+Assign Cleaning Task
+MERGE UI: giữ UC, gộp màn hình
+UC-030
+Reassign Cleaning Task
+MERGE UI: giữ UC, gộp màn hình
+UC-031
+Start Cleaning Task
+MERGE UI: giữ UC, gộp màn hình
+UC-032
+Update Cleaning Progress
+MERGE UI: giữ UC, gộp màn hình
+UC-033
+Report Cleaning Blocker
+MERGE UI: giữ UC, gộp màn hình
+UC-034
+Complete Cleaning Task
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-035
+Receive Rework Task
+MERGE UI: giữ UC, gộp màn hình
+UC-036
+Complete Cleaning Rework
+MERGE UI: giữ UC, gộp màn hình
+UC-037
+Monitor Cleaning Tasks
+MERGE UI: giữ UC, gộp màn hình
+UC-038
+View Room Turnover History
+MERGE UI: giữ UC, gộp màn hình
+
+FE-05 — Inspection in HK Queue
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-039
+Create Room Inspection Checklist
+MERGE UI: giữ UC, gộp màn hình
+UC-040
+Update Room Inspection Checklist
+MERGE UI: giữ UC, gộp màn hình
+UC-041
+Assign Room Inspection
+MERGE UI: giữ UC, gộp màn hình
+UC-042
+Perform Room Inspection
+MERGE UI: giữ UC, gộp màn hình
+UC-043
+Record Inspection Defects
+MERGE UI: giữ UC, gộp màn hình
+UC-044
+Approve Room Inspection
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-045
+Reject Room Inspection
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-046
+Request Cleaning Rework
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-047
+Reinspect Room
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-048
+View Room Inspection History
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+
+FE-06 — Incident & Maintenance Workspace
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-049
+Report Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-050
+Classify Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-051
+Attach Incident Evidence
+MERGE UI: giữ UC, gộp màn hình
+UC-052
+Triage Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-053
+Assign Maintenance Work
+MERGE UI: giữ UC, gộp màn hình
+UC-054
+Accept and Start Maintenance
+MERGE UI: giữ UC, gộp màn hình
+UC-055
+Update Maintenance Progress
+MERGE UI: giữ UC, gộp màn hình
+UC-056
+Block Room Due to Incident
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-057
+Escalate Critical Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-058
+Resolve Maintenance Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-059
+Verify and Close Incident
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-060
+Reopen Incident
+MERGE UI: giữ UC, gộp màn hình
+UC-061
+Create Preventive Maintenance Schedule
+MERGE UI: giữ UC, gộp màn hình
+UC-062
+Execute Scheduled Maintenance
+MERGE UI: giữ UC, gộp màn hình
+UC-143
+View Incidents List
+MERGE UI: giữ UC, gộp màn hình
+UC-144
+View Maintenance List
+MERGE UI: giữ UC, gộp màn hình
+
+FE-06 + FE-11 — Cross-feature
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-063
+Manage Work Categories
+MERGE UI: giữ UC, gộp màn hình
+UC-064
+Manage Operational Reference Data
+MERGE UI: giữ UC, gộp màn hình
+
+FE-07 — Asset Warehouse
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-065
+Register Asset/Equipment
+MERGE UI: giữ UC, gộp màn hình
+UC-066
+Update Asset Information
+MERGE UI: giữ UC, gộp màn hình
+UC-067
+Assign Asset to Location
+MERGE UI: giữ UC, gộp màn hình
+UC-068
+Transfer Asset Location
+MERGE UI: giữ UC, gộp màn hình
+UC-069
+Record Asset Handover
+MERGE UI: giữ UC, gộp màn hình
+UC-070
+Update Asset Condition
+MERGE UI: giữ UC, gộp màn hình
+UC-071
+View Asset Profile
+MERGE UI: giữ UC, gộp màn hình
+UC-072
+Review Asset Maintenance History
+MERGE UI: giữ UC, gộp màn hình
+UC-073
+Review Assets by Location
+MERGE UI: giữ UC, gộp màn hình
+UC-074
+Retire/Deactivate Asset
+MERGE UI: giữ UC, gộp màn hình
+
+FE-08 — Inventory Workspace
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-075
+Manage Warehouses
+MERGE UI: giữ UC, gộp màn hình
+UC-076
+Manage Inventory Items
+MERGE UI: giữ UC, gộp màn hình
+UC-077
+Manage Units of Measurement
+MERGE UI: giữ UC, gộp màn hình
+UC-078
+Configure Minimum Stock Levels
+MERGE UI: giữ UC, gộp màn hình
+UC-079
+Create Stock Receipt
+MERGE UI: giữ UC, gộp màn hình
+UC-080
+Verify and Post Stock Receipt
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-081
+Issue Stock
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-082
+Return Materials to Stock
+MERGE UI: giữ UC, gộp màn hình
+UC-083
+Create Stock Transfer
+MERGE UI: giữ UC, gộp màn hình
+UC-084
+Confirm Stock Transfer Receipt
+MERGE UI: giữ UC, gộp màn hình
+UC-085
+Conduct Stocktake
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-086
+Reconcile Stocktake Discrepancies
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-087
+Adjust Stock Balance
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-088
+Reverse Stock Transaction
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-089
+View Stock Balance and Movement Ledger
+MERGE UI: giữ UC, gộp màn hình
+UC-090
+Return Unused Materials
+MERGE UI: giữ UC, gộp màn hình
+
+FE-09 — Material Request workflow
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-091
+Create Material Request
+MERGE UI: giữ UC, gộp màn hình
+UC-092
+Link Material Request to Work
+MERGE UI: giữ UC, gộp màn hình
+UC-093
+Update/Cancel Material Request
+MERGE UI: giữ UC, gộp màn hình
+UC-094
+Review Material Request
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-095
+Approve/Reject Material Request
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-096
+Check Material Availability
+MERGE UI: giữ UC, gộp màn hình
+UC-097
+Issue Approved Materials
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-098
+Manage Partial Material Fulfillment
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-099
+Track Material Request History
+MERGE UI: giữ UC, gộp màn hình
+
+FE-10 — Inventory / Replenishment tab
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-100
+Create Replenishment Request
+MERGE UI: giữ UC, gộp màn hình
+UC-101
+Track Material Replenishment
+MERGE UI: giữ UC, gộp màn hình
+
+FE-11 — Operational Task workflow
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-102
+Create Operational Task
+MERGE UI: giữ UC, gộp màn hình
+UC-103
+Set Task Priority and Deadline
+MERGE UI: giữ UC, gộp màn hình
+UC-104
+Assign/Reassign Task
+MERGE UI: giữ UC, gộp màn hình
+UC-105
+Review and Verify Task Completion
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-106
+Reopen Assigned Task
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+
+FE-11 + FE-12 — Cross-feature
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-107
+Accept Assigned Task
+MERGE UI: giữ UC, gộp màn hình
+UC-108
+Start Assigned Task
+MERGE UI: giữ UC, gộp màn hình
+UC-109
+Update Task Progress
+MERGE UI: giữ UC, gộp màn hình
+UC-110
+Pause/Resume Task
+MERGE UI: giữ UC, gộp màn hình
+UC-111
+Record Actual Working Time
+KEEP: thời gian từng task
+UC-112
+Complete Assigned Task
+MERGE UI: giữ UC, gộp màn hình
+UC-113
+Review Task Workload and Time Logs
+MERGE UI: giữ UC, gộp màn hình
+
+FE-12 — Weekly Scheduling & Task Time
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-138
+Manage Operational Workday and Shift Records
+CHANGE: lập lịch tuần / Start-End ca
+UC-139
+Record Workday Start and End
+CHANGE: lập lịch tuần / Start-End ca
+UC-140
+Manage Operational Shift Handover
+OPEN: bàn giao ca
+
+FE-13 — Internal Request workflow
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-114
+Create Internal Request
+MERGE UI: giữ UC, gộp màn hình
+UC-115
+Route and Assign Internal Request
+MERGE UI: giữ UC, gộp màn hình
+UC-116
+Accept/Reject Internal Request
+MERGE UI: giữ UC, gộp màn hình
+UC-117
+Update Internal Request Progress
+MERGE UI: giữ UC, gộp màn hình
+UC-118
+Create Linked Operational Work
+MERGE UI: giữ UC, gộp màn hình
+UC-119
+Record Request Handover
+MERGE UI: giữ UC, gộp màn hình
+UC-120
+Complete Internal Request
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-121
+Reopen Internal Request
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-122
+Escalate Overdue Internal Request
+MERGE UI: giữ UC, gộp màn hình
+UC-123
+View Internal Request History
+MERGE UI: giữ UC, gộp màn hình
+
+FE-14 — Role Dashboard / Bell
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-124
+Receive Assignment Notifications
+MERGE UI: giữ UC, gộp màn hình
+UC-125
+Receive Approval Notifications
+MERGE UI: giữ UC, gộp màn hình
+UC-126
+Receive Inspection and Incident Alerts
+MERGE UI: giữ UC, gộp màn hình
+UC-127
+Receive Overdue Work Alerts
+MERGE UI: giữ UC, gộp màn hình
+UC-128
+Receive Low Stock Alerts
+MERGE UI: giữ UC, gộp màn hình
+UC-129
+View Notification Center
+MERGE UI: giữ UC, gộp màn hình
+UC-130
+Acknowledge Notifications
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-131
+View Room Readiness Dashboard
+SIMPLIFY: KPI theo vai trò
+UC-132
+View Task Workload Dashboard
+SIMPLIFY: KPI theo vai trò
+UC-133
+View Incident and Maintenance Dashboard
+SIMPLIFY: KPI theo vai trò
+UC-134
+View Inventory and Material Dashboard
+SIMPLIFY: KPI theo vai trò
+
+FE-15 — Report & Audit
+UC ID
+Tên Use Case (theo SRS)
+Xử lý trong bản tinh gọn
+UC-135
+Generate and Export Operational Reports
+OPEN: reporting theo role
+UC-136
+View Audit Logs
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+UC-137
+Inspect Record Change History
+KEEP: nghiệp vụ / kiểm soát trọng yếu
+
+PHỤ LỤC B — Cơ sở dữ liệu và phạm vi triển khai
+Bản SRS này KHÔNG định nghĩa schema vật lý 40 bảng và KHÔNG cho phép migration. Mục tiêu tối đa 40 bảng là constraint kiến trúc của Project 2, cần chứng minh đủ entity, lịch sử, audit, stock movement, phân quyền, task/incident/inspection và lịch tuần trên database mới. Không tái sử dụng tự động schema 39 bảng của HotelOps Rebuild.
+Nguồn legacy 149 bảng theo audit là dữ liệu để mapping, không phải đối tượng được phép xóa. Phân tích migration và runtime contract phải là pha nghiệm thu độc lập.

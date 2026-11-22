@@ -1,0 +1,281 @@
+erDiagram
+  direction LR
+  asset_events {
+    bigint asset_event_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  assets {
+    bigint asset_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  attachments {
+    bigint attachment_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  audit_logs {
+    bigint audit_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  branches {
+    bigint branch_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  checklist_items {
+    bigint checklist_item_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  checklist_templates {
+    bigint checklist_template_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  departments {
+    bigint department_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  document_events {
+    bigint document_event_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inspection_findings {
+    bigint finding_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inventory_document_lines {
+    bigint line_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inventory_documents {
+    bigint document_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inventory_items {
+    bigint item_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inventory_policies {
+    bigint inventory_policy_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  locations {
+    bigint location_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  memberships {
+    bigint membership_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  notifications {
+    bigint notification_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  permissions {
+    bigint permission_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  reference_values {
+    bigint reference_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  role_permissions {
+    bigint grant_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  roles {
+    bigint role_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  room_blocks {
+    bigint block_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  room_events {
+    bigint room_event_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  room_types {
+    bigint room_type_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  rooms {
+    bigint room_id PK,FK "bigint; NOT NULL; IDENTITY"
+  }
+  stock_movements {
+    bigint movement_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  user_roles {
+    bigint user_role_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  user_sessions {
+    bigint session_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  users {
+    bigint user_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  warehouses {
+    bigint warehouse_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_assignments {
+    bigint assignment_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_checklist_items {
+    bigint work_checklist_item_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_events {
+    bigint work_event_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_intervals {
+    bigint interval_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_items {
+    bigint work_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_links {
+    bigint work_link_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_templates {
+    bigint work_template_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  workday_assignments {
+    bigint assignment_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  workday_events {
+    bigint event_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  workday_shifts {
+    bigint shift_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  users ||..o{ workday_assignments : "F001"
+  workday_shifts ||..o{ workday_assignments : "F002"
+  users ||..o{ workday_assignments : "F003"
+  users ||..o{ workday_events : "F004"
+  workday_assignments ||..o{ workday_events : "F005"
+  branches ||..o{ workday_shifts : "F006"
+  departments ||..o{ workday_shifts : "F007"
+  roles ||..o{ workday_shifts : "F008"
+  users ||..o{ asset_events : "F009"
+  assets ||..o{ asset_events : "F010"
+  branches ||..o{ asset_events : "F011"
+  branches |o..o{ asset_events : "F012"
+  locations |o..o{ asset_events : "F013"
+  rooms |o..o{ asset_events : "F014"
+  users |o..o{ asset_events : "F015"
+  work_items |o..o{ asset_events : "F016"
+  locations |o..o{ asset_events : "F017"
+  rooms |o..o{ asset_events : "F018"
+  users |o..o{ asset_events : "F019"
+  reference_values |o..o{ assets : "F020"
+  branches ||..o{ assets : "F021"
+  users |o..o{ assets : "F022"
+  departments |o..o{ assets : "F023"
+  locations |o..o{ assets : "F024"
+  rooms |o..o{ assets : "F025"
+  assets |o..o{ attachments : "F026"
+  branches ||..o{ attachments : "F027"
+  inventory_documents |o..o{ attachments : "F028"
+  inspection_findings |o..o{ attachments : "F029"
+  users ||..o{ attachments : "F030"
+  work_items |o..o{ attachments : "F031"
+  users |o..o{ audit_logs : "F032"
+  branches |o..o{ audit_logs : "F033"
+  checklist_templates ||..o{ checklist_items : "F034"
+  branches ||..o{ checklist_templates : "F035"
+  users ||..o{ checklist_templates : "F036"
+  branches ||..o{ departments : "F037"
+  users |o..o{ departments : "F038"
+  users ||..o{ document_events : "F039"
+  branches ||..o{ document_events : "F040"
+  inventory_documents ||..o{ document_events : "F041"
+  inventory_document_lines |o..o{ document_events : "F042"
+  users |o..o{ inspection_findings : "F043"
+  branches ||..o{ inspection_findings : "F044"
+  work_items ||..o{ inspection_findings : "F045"
+  work_checklist_items |o..o{ inspection_findings : "F046"
+  work_items |o..o{ inspection_findings : "F047"
+  reference_values |o..o{ inspection_findings : "F048"
+  branches ||..o{ inventory_document_lines : "F049"
+  inventory_documents ||..o{ inventory_document_lines : "F050"
+  inventory_items ||..o{ inventory_document_lines : "F051"
+  inventory_document_lines |o..o{ inventory_document_lines : "F052"
+  reference_values ||..o{ inventory_document_lines : "F053"
+  users |o..o{ inventory_documents : "F054"
+  branches ||..o{ inventory_documents : "F055"
+  users ||..o{ inventory_documents : "F056"
+  departments |o..o{ inventory_documents : "F057"
+  branches |o..o{ inventory_documents : "F058"
+  warehouses |o..o{ inventory_documents : "F059"
+  users |o..o{ inventory_documents : "F060"
+  rooms |o..o{ inventory_documents : "F061"
+  inventory_documents |o..o{ inventory_documents : "F062"
+  warehouses |o..o{ inventory_documents : "F063"
+  work_items |o..o{ inventory_documents : "F064"
+  reference_values ||..o{ inventory_items : "F065"
+  reference_values |o..o{ inventory_items : "F066"
+  branches ||..o{ inventory_policies : "F067"
+  inventory_items ||..o{ inventory_policies : "F068"
+  warehouses ||..o{ inventory_policies : "F069"
+  branches ||..o{ locations : "F070"
+  locations |o..o{ locations : "F071"
+  branches ||..o{ memberships : "F072"
+  departments |o..o{ memberships : "F073"
+  users |o..o{ memberships : "F074"
+  users ||..o{ memberships : "F075"
+  branches ||..o{ notifications : "F076"
+  inventory_documents |o..o{ notifications : "F077"
+  users ||..o{ notifications : "F078"
+  rooms |o..o{ notifications : "F079"
+  work_items |o..o{ notifications : "F080"
+  reference_values |o..o{ reference_values : "F081 / F082"
+  permissions ||..o{ role_permissions : "F083"
+  roles ||..o{ role_permissions : "F084"
+  users ||..o{ room_blocks : "F085"
+  branches ||..o{ room_blocks : "F086"
+  users |o..o{ room_blocks : "F087"
+  rooms ||..o{ room_blocks : "F088"
+  work_items |o..o{ room_blocks : "F089"
+  users ||..o{ room_events : "F090"
+  branches ||..o{ room_events : "F091"
+  rooms ||..o{ room_events : "F092"
+  work_items |o..o{ room_events : "F093"
+  branches ||..o{ room_types : "F094"
+  branches ||..o{ rooms : "F095"
+  work_items |o..o{ rooms : "F096"
+  work_items |o..o| rooms : "F097"
+  departments |o..o{ rooms : "F098"
+  locations ||..o{ rooms : "F099"
+  room_types ||..o{ rooms : "F100"
+  branches ||..o{ stock_movements : "F101"
+  users ||..o{ stock_movements : "F102"
+  inventory_document_lines ||..o{ stock_movements : "F103"
+  stock_movements |o..o{ stock_movements : "F104"
+  warehouses ||..o{ stock_movements : "F105"
+  users |o..o{ user_roles : "F106"
+  branches |o..o{ user_roles : "F107"
+  roles ||..o{ user_roles : "F108"
+  users ||..o{ user_roles : "F109"
+  users ||..o{ user_sessions : "F110"
+  users |o..o{ users : "F111"
+  branches ||..o{ warehouses : "F112"
+  departments |o..o{ warehouses : "F113"
+  locations |o..o{ warehouses : "F114"
+  users ||..o{ work_assignments : "F115"
+  users ||..o{ work_assignments : "F116"
+  branches ||..o{ work_assignments : "F117"
+  work_items ||..o{ work_assignments : "F118"
+  branches ||..o{ work_checklist_items : "F119"
+  users |o..o{ work_checklist_items : "F120"
+  checklist_items ||..o{ work_checklist_items : "F121"
+  work_items ||..o{ work_checklist_items : "F122"
+  work_items ||..o{ work_checklist_items : "F123"
+  users ||..o{ work_events : "F124"
+  branches ||..o{ work_events : "F125"
+  users |o..o{ work_events : "F126"
+  work_events |o..o{ work_events : "F127"
+  work_items ||..o{ work_events : "F128"
+  work_assignments ||..o{ work_intervals : "F129"
+  branches ||..o{ work_intervals : "F130"
+  users |o..o{ work_intervals : "F131"
+  users ||..o{ work_intervals : "F132"
+  users ||..o{ work_intervals : "F133"
+  work_items ||..o{ work_intervals : "F134"
+  assets |o..o{ work_items : "F135"
+  branches ||..o{ work_items : "F136"
+  reference_values |o..o{ work_items : "F137"
+  checklist_templates |o..o{ work_items : "F138"
+  users ||..o{ work_items : "F139"
+  departments |o..o{ work_items : "F140"
+  locations |o..o{ work_items : "F141"
+  work_items |o..o{ work_items : "F142"
+  reference_values |o..o{ work_items : "F143"
+  departments |o..o{ work_items : "F144"
+  rooms |o..o{ work_items : "F145"
+  reference_values |o..o{ work_items : "F146"
+  users |o..o{ work_items : "F147"
+  work_templates |o..o{ work_items : "F148"
+  branches ||..o{ work_links : "F149"
+  users ||..o{ work_links : "F150"
+  work_items ||..o{ work_links : "F151"
+  work_items ||..o{ work_links : "F152"
+  assets |o..o{ work_templates : "F153"
+  branches ||..o{ work_templates : "F154"
+  checklist_templates |o..o{ work_templates : "F155"
+  users ||..o{ work_templates : "F156"
+  departments |o..o{ work_templates : "F157"
+  locations |o..o{ work_templates : "F158"
+  rooms |o..o{ work_templates : "F159"
+  room_types |o..o{ work_templates : "F160"

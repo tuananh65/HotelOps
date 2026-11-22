@@ -1,0 +1,27 @@
+{
+  "source_database": "HotelOpsDB",
+  "source_tables": 149,
+  "target_tables": 40,
+  "mapped_source_tables": 149,
+  "unmapped_source_tables": [],
+  "source_column_count": 1310,
+  "source_objects": [
+    {
+      "type_desc": "SQL_SCALAR_FUNCTION",
+      "object_count": 1
+    },
+    {
+      "type_desc": "SQL_STORED_PROCEDURE",
+      "object_count": 8
+    },
+    {
+      "type_desc": "SQL_TRIGGER",
+      "object_count": 65
+    },
+    {
+      "type_desc": "VIEW",
+      "object_count": 1
+    }
+  ],
+  "limitation": "Table-level design mapping; not an executable or lossless column-level data migration."
+}

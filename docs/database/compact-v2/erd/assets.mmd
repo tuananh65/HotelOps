@@ -1,0 +1,83 @@
+erDiagram
+  direction LR
+  assets {
+    bigint asset_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    varchar asset_code UK "varchar(60); NOT NULL"
+    nvarchar name "nvarchar(200); NOT NULL"
+    bigint asset_type_id FK "bigint; NULL"
+    bigint location_id FK "bigint; NULL"
+    bigint room_id FK "bigint; NULL"
+    bigint department_id FK "bigint; NULL"
+    bigint custodian_user_id FK "bigint; NULL"
+    nvarchar serial_number "nvarchar(100); NULL"
+    varchar condition_code "varchar(40); NOT NULL"
+    date purchased_on "date; NULL"
+    date warranty_until "date; NULL"
+    datetime2 retired_at "datetime2(7); NULL"
+    nvarchar retirement_reason "nvarchar(2000); NULL"
+    bit is_active "bit; NOT NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+    varchar asset_type_kind FK "varchar(40); NOT NULL"
+  }
+  asset_events {
+    bigint asset_event_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    bigint asset_id FK "bigint; NOT NULL"
+    varchar event_type "varchar(30); NOT NULL"
+    bigint source_work_id FK "bigint; NULL"
+    bigint from_branch_id FK "bigint; NULL"
+    bigint from_location_id FK "bigint; NULL"
+    bigint to_location_id FK "bigint; NULL"
+    bigint from_room_id FK "bigint; NULL"
+    bigint to_room_id FK "bigint; NULL"
+    bigint from_user_id FK "bigint; NULL"
+    bigint to_user_id FK "bigint; NULL"
+    varchar old_condition "varchar(40); NULL"
+    varchar new_condition "varchar(40); NULL"
+    varchar handover_status "varchar(30); NULL"
+    datetime2 accepted_at "datetime2(7); NULL"
+    bigint actor_user_id FK "bigint; NOT NULL"
+    uniqueidentifier operation_key "uniqueidentifier; NOT NULL"
+    nvarchar note "nvarchar(2000); NULL"
+    datetime2 occurred_at "datetime2(7); NOT NULL"
+  }
+  users {
+    bigint user_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  branches {
+    bigint branch_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  locations {
+    bigint location_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  rooms {
+    bigint room_id PK,FK "bigint; NOT NULL; IDENTITY"
+  }
+  work_items {
+    bigint work_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  reference_values {
+    bigint reference_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  departments {
+    bigint department_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  users ||..o{ asset_events : "F009"
+  assets ||..o{ asset_events : "F010"
+  branches ||..o{ asset_events : "F011"
+  branches |o..o{ asset_events : "F012"
+  locations |o..o{ asset_events : "F013"
+  rooms |o..o{ asset_events : "F014"
+  users |o..o{ asset_events : "F015"
+  work_items |o..o{ asset_events : "F016"
+  locations |o..o{ asset_events : "F017"
+  rooms |o..o{ asset_events : "F018"
+  users |o..o{ asset_events : "F019"
+  reference_values |o..o{ assets : "F020"
+  branches ||..o{ assets : "F021"
+  users |o..o{ assets : "F022"
+  departments |o..o{ assets : "F023"
+  locations |o..o{ assets : "F024"
+  rooms |o..o{ assets : "F025"

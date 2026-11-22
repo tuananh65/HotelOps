@@ -1,0 +1,98 @@
+erDiagram
+  direction LR
+  users {
+    bigint user_id PK "bigint; NOT NULL; IDENTITY"
+    varchar employee_code UK "varchar(30); NOT NULL"
+    nvarchar username UK "nvarchar(100); NOT NULL"
+    nvarchar email "nvarchar(254); NULL"
+    nvarchar full_name "nvarchar(200); NOT NULL"
+    varchar phone "varchar(30); NULL"
+    nvarchar password_hash "nvarchar(500); NULL"
+    uniqueidentifier security_stamp "uniqueidentifier; NOT NULL"
+    int failed_login_count "int; NOT NULL"
+    datetime2 locked_until "datetime2(7); NULL"
+    datetime2 temporary_password_expires_at "datetime2(7); NULL"
+    bigint manager_user_id FK "bigint; NULL"
+    varchar employment_status "varchar(30); NOT NULL"
+    varchar account_status "varchar(30); NOT NULL"
+    datetime2 last_login_at "datetime2(7); NULL"
+    datetime2 deleted_at "datetime2(7); NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  memberships {
+    bigint membership_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    bigint user_id FK "bigint; NOT NULL"
+    bigint department_id FK "bigint; NULL"
+    varchar kind "varchar(24); NOT NULL"
+    varchar access_level "varchar(30); NULL"
+    bit is_primary "bit; NOT NULL"
+    datetime2 valid_from "datetime2(7); NOT NULL"
+    datetime2 valid_to "datetime2(7); NULL"
+    bigint recorded_by FK "bigint; NULL"
+    nvarchar provenance "nvarchar(500); NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  roles {
+    bigint role_id PK "bigint; NOT NULL; IDENTITY"
+    varchar code UK "varchar(60); NOT NULL"
+    nvarchar name "nvarchar(150); NOT NULL"
+    nvarchar description "nvarchar(1000); NULL"
+    bit is_active "bit; NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  permissions {
+    bigint permission_id PK "bigint; NOT NULL; IDENTITY"
+    varchar code UK "varchar(100); NOT NULL"
+    varchar module_code "varchar(30); NOT NULL"
+    nvarchar description "nvarchar(1000); NULL"
+    bit is_active "bit; NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  role_permissions {
+    bigint grant_id PK "bigint; NOT NULL; IDENTITY"
+    bigint role_id FK "bigint; NOT NULL"
+    bigint permission_id FK "bigint; NOT NULL"
+    varchar data_scope "varchar(20); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  user_roles {
+    bigint user_role_id PK "bigint; NOT NULL; IDENTITY"
+    bigint user_id FK "bigint; NOT NULL"
+    bigint role_id FK "bigint; NOT NULL"
+    bigint branch_id FK "bigint; NULL"
+    bigint assigned_by FK "bigint; NULL"
+    datetime2 assigned_at "datetime2(7); NOT NULL"
+    datetime2 expires_at "datetime2(7); NULL"
+    datetime2 revoked_at "datetime2(7); NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  user_sessions {
+    bigint session_id PK "bigint; NOT NULL; IDENTITY"
+    bigint user_id FK "bigint; NOT NULL"
+    binary token_hash UK "binary(32); NOT NULL"
+    uniqueidentifier security_stamp "uniqueidentifier; NOT NULL"
+    datetime2 expires_at "datetime2(7); NOT NULL"
+    datetime2 revoked_at "datetime2(7); NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  branches {
+    bigint branch_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  departments {
+    bigint department_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  branches ||..o{ memberships : "F072"
+  departments |o..o{ memberships : "F073"
+  users |o..o{ memberships : "F074"
+  users ||..o{ memberships : "F075"
+  permissions ||..o{ role_permissions : "F083"
+  roles ||..o{ role_permissions : "F084"
+  users |o..o{ user_roles : "F106"
+  branches |o..o{ user_roles : "F107"
+  roles ||..o{ user_roles : "F108"
+  users ||..o{ user_roles : "F109"
+  users ||..o{ user_sessions : "F110"
+  users |o..o{ users : "F111"

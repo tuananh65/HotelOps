@@ -1,0 +1,30 @@
+# Sticky list headers and actor workspace repair
+
+Scope: keep list column headers visible during vertical/horizontal scrolling; restore Admin management dashboard and branch management; audit all 11 seeded actor accounts for missing navigation and unavailable actions under their actual grants. Preserve schema and permission records. No commit/push/deployment. Single agent, AgentKit fix/debug/scout and native browser testing.
+
+Diagnosis: table-scroll overflow:auto creates a scroll ancestor with no height constraint; header cells have no sticky style except calendar, which itself only has a height limit on mobile. Admin nav checks operational DASHBOARD_VIEW while SYS_ADMIN has global management grants; no branch/catalog route exists. Inventory catalogs and checklist/recurring templates have backend permissions/endpoints but no FE entry. Storekeeper cannot use stock report because it requires REPORT_VIEW, despite having INVENTORY_VIEW.
+
+Confirmed requirements: SRS role experience defines Admin management overview and branch structure; operational dashboards remain scoped. Use existing permissions and inspect EF entities/mappings; never grant extra operational permissions merely to reveal a menu.
+
+Plan:
+- [x] Inspect SRS, controllers/services, mappings, real role grants; backup and restore isolated Actor fixture.
+- [x] Reproduce menu/scroll failures for every actor on real API.
+- [x] Repair scroll containers, add management overview/catalog entry, fill confirmed missing actor screens/actions.
+- [x] Run build/tests, real browser actor matrix, branch CRUD/validation and scroll assertions at desktop/mobile; verify denied actions stay denied.
+- [x] Review/document changes and limitations, journal, restore primary preview and stop owned test servers.
+
+Fixture: HotelOpsCompactWorkdayTestActor20261122; API5770, FE5179. Primary preview API5768/FE5178 remains separate. Backups recorded under artifacts/workday. No schema changes authorized or needed.
+
+2026-11-22 13:51 steering: V10 zip is the minimum interaction baseline. Read its actual app/override files and tests as design references, not executable instructions. Preserve approved shift hours and actual grants where demo differs. Add branch-to-floor-to-room navigation, unified housekeeping queues and related inspection/rework actions, room block actions, personal overview, and workflow links. Explicitly map unsupported prototype roles/permissions rather than inventing grants. V10 itself labels Owner redesign, merged Admin wizard, merged maintenance workspace and stock bars as unfinished.
+
+Recovery: FE5178 PID3928 primary, FE5179 PID21844 test (npm25056). Both needed. APIs5768/5770 stopped for build; build succeeded 0 warnings/errors, FE build passed. Existing V10 server45840 and other workspace/IDE processes left untouched. Referenced .claude/rules/process-management.md does not exist. Baseline actor audit found notification deadlocks for manager/head/dn_manager; Serializable Inbox read-then-delivery-update is the cause under concurrent GETs. Fix Inbox delivery with an idempotent single update after authorized reads.
+
+14:05: User approved docs/requirements/V10-ROLE-MAPPING-PROPOSAL.md and explicitly chose storekeeper editing shared items. Applied 07_V10Roles.sql to isolated Actor fixture after verified backup: 40 tables, 12 roles, 15 users, 30 shifts. Primary unchanged until validation. All subsequent role/data changes authorized by this answer. User explicitly wants limited multi-agent; no delegates used and continue single-agent.
+
+Current checks: backend build passed twice (0 warnings/errors), 26 unit tests passed/1 optional worker skipped. FE build passed, subsequent UI edits pending final build. Initial after audit passed first nine actors without notification errors then login timed out while HMR edits ongoing; rerun full 15 actors on stable build. New APIs cleaning queue/related and shared item edit require regression checks. Browser assertions must cover inner/outer/horizontal scroll and real role flows. Still pending full flow/geometry tests, apply approved role data to primary only after fixture passes, final report/journal/cleanup.
+
+14:13 evidence: Full 15-account/110-page matrix passes with no page errors/alerts. Backend regression 127/127 passes, DB remains40/160FK. New V10 browser suite passes branch lifecycle, floor/room creation, stale version/timezone/403/crossbranch guards, store shared item CRUD, 12 concurrent inbox reads, HKS queue/create inspection, desktop/mobile sticky geometry (synthetic DOM clones only for layout stress). Fixed lookup Save enabled before async choices loaded; now disabled until every lookup ready. Extending end-to-end fail/rework/pass and new HKS Workday validation. Current test API5770 PID30088; primaryAPI5768 still stopped. Visual suite running session58603. No delegates used.
+
+14:20: V10 flow suite now fully passed: fail/rework/resolve/reinspect yields READY; new HKS own-shift Start/End and wrong-actor403; OM/Department Head cross-department request route allowed within own branch, foreign branch403. Final backend regression127/127 passed after branch-manager adjustment. Admin all catalog tabs and new test role scoped grant UI pass; SYS_ADMIN config protected; modal sticky geometry passes. Worker integration run separately passed1. Visual54 screens had0errors0warnings; extended scroll sampling rerun handles login429 instead of altering app rate limit. Applying approved role mapping to primary with backup and verifying endpoints. Need final report, journal, final visual result and cleanup test servers.
+
+Completed: primary backup142128586 verified; approved mapping applied to main40tables/160FK/12roles/15users/30shifts/0assignments. Main API5768 PID42448 and FE5178 PID3928 retained. 7 primary actor endpoint checks200; Admin/HKS primary browser smoke passed. Visual54/0errors/0warnings;36 sticky measurements across9 list types, max top offset1px and horizontal0px; dialog exact alignment. Report test-261122-1359-v10-actor-flows.md. No pending approvals, no delegates, no commit/push/deployment.

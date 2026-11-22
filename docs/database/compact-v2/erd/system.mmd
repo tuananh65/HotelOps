@@ -1,0 +1,104 @@
+erDiagram
+  direction LR
+  attachments {
+    bigint attachment_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    bigint work_id FK "bigint; NULL"
+    bigint finding_id FK "bigint; NULL"
+    bigint document_id FK "bigint; NULL"
+    bigint asset_id FK "bigint; NULL"
+    nvarchar storage_key UK "nvarchar(450); NOT NULL"
+    nvarchar original_name "nvarchar(255); NOT NULL"
+    varchar mime_type "varchar(150); NOT NULL"
+    bigint byte_length "bigint; NOT NULL"
+    binary sha256 "binary(32); NOT NULL"
+    bigint uploaded_by FK "bigint; NOT NULL"
+    datetime2 invalidated_at "datetime2(7); NULL"
+    nvarchar invalidation_reason "nvarchar(2000); NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  audit_logs {
+    bigint audit_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NULL"
+    bigint actor_user_id FK "bigint; NULL"
+    uniqueidentifier operation_key "uniqueidentifier; NOT NULL"
+    varchar entity_type "varchar(80); NOT NULL"
+    nvarchar entity_key "nvarchar(150); NOT NULL"
+    varchar action "varchar(80); NOT NULL"
+    nvarchar before_json "nvarchar(max); NULL"
+    nvarchar after_json "nvarchar(max); NULL"
+    datetime2 occurred_at "datetime2(7); NOT NULL"
+  }
+  notifications {
+    bigint notification_id PK "bigint; NOT NULL; IDENTITY"
+    bigint branch_id FK "bigint; NOT NULL"
+    bigint recipient_user_id FK "bigint; NOT NULL"
+    bigint work_id FK "bigint; NULL"
+    bigint document_id FK "bigint; NULL"
+    bigint room_id FK "bigint; NULL"
+    uniqueidentifier event_key "uniqueidentifier; NOT NULL"
+    varchar notification_type "varchar(60); NOT NULL"
+    nvarchar title "nvarchar(250); NOT NULL"
+    nvarchar message "nvarchar(max); NOT NULL"
+    bit requires_acknowledgment "bit; NOT NULL"
+    datetime2 available_at "datetime2(7); NOT NULL"
+    uniqueidentifier lease_id "uniqueidentifier; NULL"
+    datetime2 lease_until "datetime2(7); NULL"
+    int attempt_count "int; NOT NULL"
+    datetime2 delivered_at "datetime2(7); NULL"
+    datetime2 read_at "datetime2(7); NULL"
+    datetime2 acknowledged_at "datetime2(7); NULL"
+    datetime2 expires_at "datetime2(7); NULL"
+    nvarchar last_error "nvarchar(2000); NULL"
+    datetime2 created_at "datetime2(7); NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  reference_values {
+    bigint reference_id PK "bigint; NOT NULL; IDENTITY"
+    varchar kind "varchar(40); NOT NULL"
+    varchar code "varchar(60); NOT NULL"
+    nvarchar name "nvarchar(150); NOT NULL"
+    bigint parent_id FK "bigint; NULL"
+    bigint base_unit_id FK "bigint; NULL"
+    decimal conversion_factor "decimal(19,8); NULL"
+    nvarchar settings_json "nvarchar(max); NULL"
+    int sort_order "int; NOT NULL"
+    bit is_active "bit; NOT NULL"
+    timestamp row_version "timestamp; NOT NULL"
+  }
+  assets {
+    bigint asset_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  branches {
+    bigint branch_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inventory_documents {
+    bigint document_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  inspection_findings {
+    bigint finding_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  users {
+    bigint user_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  work_items {
+    bigint work_id PK "bigint; NOT NULL; IDENTITY"
+  }
+  rooms {
+    bigint room_id PK,FK "bigint; NOT NULL; IDENTITY"
+  }
+  assets |o..o{ attachments : "F026"
+  branches ||..o{ attachments : "F027"
+  inventory_documents |o..o{ attachments : "F028"
+  inspection_findings |o..o{ attachments : "F029"
+  users ||..o{ attachments : "F030"
+  work_items |o..o{ attachments : "F031"
+  users |o..o{ audit_logs : "F032"
+  branches |o..o{ audit_logs : "F033"
+  branches ||..o{ notifications : "F076"
+  inventory_documents |o..o{ notifications : "F077"
+  users ||..o{ notifications : "F078"
+  rooms |o..o{ notifications : "F079"
+  work_items |o..o{ notifications : "F080"
+  reference_values |o..o{ reference_values : "F081 / F082"
