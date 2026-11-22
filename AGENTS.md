@@ -1,5 +1,13 @@
 # HotelOps Backend
 
+## Compact UI — preserving accepted UX
+
+For changes to Project 2 (`frontend/src/compact`), read `docs/ui/compact-ux.md`.
+The user requested selective adoption of new requirement documents on 22 November 2026:
+preserve previously accepted UX, compare new proposals against current behavior and permissions,
+and implement compatible changes rather than following every item verbatim. Apply the same
+approach to subsequent documents. Explicit new user decisions still take precedence.
+
 ## Tech Stack
 
 - C#

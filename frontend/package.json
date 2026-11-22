@@ -1,1 +1,41 @@
-{"name":"hotelops","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"tsc -b && vite build","typecheck":"tsc --noEmit","test":"node --test --test-concurrency=2 tests/*.test.mjs","lint":"prettier --check src tests playwright.config.ts","test:e2e":"playwright test","format":"prettier --write src tests playwright.config.ts"},"dependencies":{"lucide-react":"^0.468.0","react":"^19.0.0","react-dom":"^19.0.0","react-router-dom":"^7.0.0"},"devDependencies":{"@playwright/test":"^1.63.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0","@vitejs/plugin-react":"^4.3.4","prettier":"^3.9.9","typescript":"~5.7.2","vite":"^6.4.6"}}
+{
+  "name": "hotelops",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-concurrency=2 tests/*.test.mjs",
+    "lint": "prettier --check src tests playwright.config.ts",
+    "test:e2e": "playwright test",
+    "format": "prettier --write src tests playwright.config.ts",
+    "test:compact": "node --test tests/compact-workflow.test.mjs",
+    "test:compact:department-head": "node tests/compact-department-head.mjs",
+    "test:compact:operations-manager": "node tests/compact-operations-manager.mjs",
+    "test:compact:housekeeping-staff": "node tests/compact-housekeeping-staff.mjs",
+    "test:compact:storekeeper": "node tests/compact-storekeeper.mjs",
+    "test:compact:ux": "node tests/compact-navbar-titles.mjs && node tests/compact-structure-settings.mjs && node tests/compact-reception-rooms.mjs && node tests/compact-workday-filter.mjs && node tests/compact-dashboard-pagination.mjs",
+    "test:compact:e2e": "node tests/compact-browser.mjs",
+    "test:compact:visual": "node tests/compact-visual.mjs",
+    "test:compact:states": "node tests/compact-states.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0",
+    "three": "0.181.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "0.181.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "prettier": "^3.9.9",
+    "typescript": "~5.7.2",
+    "vite": "^6.4.6"
+  }
+}

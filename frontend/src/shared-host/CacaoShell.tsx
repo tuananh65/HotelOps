@@ -117,7 +117,7 @@ function WorkspaceChrome({
         className={`ds-sidebar-inner${mobile ? " ds-sidebar-inner--mobile" : ""}`}
       >
         <Link className="ds-brand" to="/home" aria-label="HotelOps — Trang chủ">
-          <span className="ds-brand-mark">H</span>
+          <img className="ds-brand-mark" src="/duc-vuong-logo.jpg" alt="Đức Vượng Group" />
           <span className="ds-brand-name">
             Hotel<span>Ops</span>
             <small>VẬN HÀNH KHÁCH SẠN</small>
@@ -221,7 +221,7 @@ function WorkspaceChrome({
             ))}
         </nav>
         <div className="ds-sidebar-footer">
-          <span className="ds-brand-mark ds-brand-mark--small">H</span>
+          <img className="ds-brand-mark ds-brand-mark--small" src="/duc-vuong-logo.jpg" alt="Đức Vượng Group" />
           <div>
             <strong>HotelOps</strong>
             <small>Không gian làm việc</small>

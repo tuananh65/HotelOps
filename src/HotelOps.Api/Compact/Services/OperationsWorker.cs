@@ -1,0 +1,53 @@
+using System.Security.Cryptography;
+using System.Text;
+using HotelOps.Api.Compact.Data;
+using HotelOps.Api.Compact.Entities;
+using Microsoft.EntityFrameworkCore;
+namespace HotelOps.Api.Compact.Services;
+public sealed class OperationsWorker(IServiceScopeFactory scopes,ILogger<OperationsWorker> logger,IConfiguration config):BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        if(!config.GetValue("Compact:WorkerEnabled",true))return;
+        using var timer=new PeriodicTimer(TimeSpan.FromSeconds(60));
+        do{try{await Tick(stoppingToken);}catch(OperationCanceledException) when(stoppingToken.IsCancellationRequested){break;}catch(Exception e){logger.LogError(e,"Compact scheduled operations failed; transaction rolled back");}}
+        while(await timer.WaitForNextTickAsync(stoppingToken));
+    }
+    public async Task Tick(CancellationToken ct)
+    {
+        await using var scope=scopes.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<HotelOpsCompactDbContext>();var notifications=scope.ServiceProvider.GetRequiredService<NotificationService>();var now=DateTime.UtcNow;
+        await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
+        // Serialize workers across instances using an existing SQL application lock, not another table.
+        await db.Database.ExecuteSqlRawAsync("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'Compact.OperationsWorker',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=0; IF @r<0 THROW 51400,'Worker is already running.',1;",ct);
+        var templates=await db.WorkTemplates.Where(t=>t.IsActive&&t.NextDueAt<=now&&(t.Kind=="OPERATIONAL"||t.Kind=="MAINTENANCE")&&db.Branches.Any(b=>b.BranchId==t.BranchId&&b.IsActive)).OrderBy(t=>t.NextDueAt).Take(50).ToArrayAsync(ct);
+        foreach(var t in templates){
+            var due=t.NextDueAt!.Value;
+            if(!await db.WorkItems.AnyAsync(w=>w.WorkTemplateId==t.WorkTemplateId&&w.OccurrenceAt==due,ct)){
+                var w=new WorkItem{BranchId=t.BranchId,Kind=t.Kind,Status=WorkRules.Initial(t.Kind),WorkNo=Guid.NewGuid().ToString("N"),Title=t.Title,Description=t.Instruction,DepartmentId=t.DepartmentId,RoomId=t.RoomId,AssetId=t.AssetId,
+                    WorkTemplateId=t.WorkTemplateId,ChecklistTemplateId=t.ChecklistTemplateId,OccurrenceAt=due,DueAt=due,CreatedBy=t.CreatedBy};
+                db.WorkItems.Add(w);await db.SaveChangesAsync(ct);
+                if(t.ChecklistTemplateId!=null)foreach(var item in await db.ChecklistItems.Where(i=>i.ChecklistTemplateId==t.ChecklistTemplateId).ToArrayAsync(ct))
+                    db.WorkChecklistItems.Add(new WorkChecklistItem{BranchId=w.BranchId,WorkId=w.WorkId,ChecklistTemplateId=t.ChecklistTemplateId.Value,ChecklistItemId=item.ChecklistItemId,DescriptionSnapshot=item.Description,RequiredSnapshot=item.IsRequired,WeightSnapshot=item.Weight});
+                db.WorkEvents.Add(new WorkEvent{BranchId=w.BranchId,WorkId=w.WorkId,ActorUserId=t.CreatedBy,EventType="SCHEDULE_GENERATED",OperationKey=Guid.NewGuid(),ToStatus=w.Status});
+                db.AuditLogs.Add(new AuditLog{BranchId=w.BranchId,ActorUserId=t.CreatedBy,EntityType="Work",EntityKey=w.WorkId.ToString(),Action="SCHEDULE_GENERATED",OperationKey=Guid.NewGuid()});
+                await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"assign"),"SCHEDULE_GENERATED",w.Title,w.WorkId,null,Key($"schedule:{w.WorkId}"),ct);
+            }
+            t.NextDueAt=t.Frequency switch{"DAILY"=>due.AddDays(t.FrequencyInterval??1),"WEEKLY"=>due.AddDays(7*(t.FrequencyInterval??1)),"MONTHLY"=>due.AddMonths(t.FrequencyInterval??1),_=>throw new InvalidOperationException("Unsupported recurrence")};
+        }
+        foreach(var w in await db.WorkItems.Where(w=>w.DueAt<now&&!WorkRules.Terminal.Contains(w.Status)).OrderBy(w=>w.DueAt).Take(500).ToArrayAsync(ct)){
+            var key=Key($"overdue:{w.WorkId}:{w.DueAt:O}");
+            if(!await db.Notifications.AnyAsync(n=>n.EventKey==key,ct))await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"assign"),"WORK_OVERDUE",w.Title,w.WorkId,null,key,ct);
+        }
+        foreach(var p in await db.InventoryPolicies.ToArrayAsync(ct)){
+            var qty=await db.StockMovements.Where(m=>m.WarehouseId==p.WarehouseId&&m.ItemId==p.ItemId).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
+            if(qty>=p.MinimumQty){p.LowStockEpisode=null;p.AlertedAt=null;continue;}
+            p.LowStockEpisode??=Guid.NewGuid();var key=p.LowStockEpisode.Value;
+            if(p.AlertedAt==null){
+                await notifications.ForPermission(p.BranchId,"INVENTORY_VIEW","LOW_STOCK",$"Item {p.ItemId}: {qty}",null,null,key,ct);
+                if(db.Notifications.Local.Any(n=>n.EventKey==key))p.AlertedAt=now;
+            }
+        }
+        await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
+    }
+    private static Guid Key(string value)=>new(SHA256.HashData(Encoding.UTF8.GetBytes(value)).AsSpan(0,16));
+}

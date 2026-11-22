@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # Track shared HotelOps database release scripts
 !/scripts/database/release/
+**/App_Data/compact-evidence/

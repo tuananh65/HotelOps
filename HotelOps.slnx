@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/HotelOps.Api/HotelOps.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HotelOps.Compact.Tests/HotelOps.Compact.Tests.csproj" />
+  </Folder>
 </Solution>

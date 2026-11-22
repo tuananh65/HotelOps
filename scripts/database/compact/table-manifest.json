@@ -1,0 +1,202 @@
+[
+  {
+    "name": "branches",
+    "primary_key": "branch_id",
+    "columns": 9
+  },
+  {
+    "name": "departments",
+    "primary_key": "department_id",
+    "columns": 7
+  },
+  {
+    "name": "locations",
+    "primary_key": "location_id",
+    "columns": 9
+  },
+  {
+    "name": "room_types",
+    "primary_key": "room_type_id",
+    "columns": 8
+  },
+  {
+    "name": "rooms",
+    "primary_key": "room_id",
+    "columns": 12
+  },
+  {
+    "name": "users",
+    "primary_key": "user_id",
+    "columns": 18
+  },
+  {
+    "name": "memberships",
+    "primary_key": "membership_id",
+    "columns": 12
+  },
+  {
+    "name": "roles",
+    "primary_key": "role_id",
+    "columns": 6
+  },
+  {
+    "name": "permissions",
+    "primary_key": "permission_id",
+    "columns": 6
+  },
+  {
+    "name": "role_permissions",
+    "primary_key": "grant_id",
+    "columns": 5
+  },
+  {
+    "name": "user_roles",
+    "primary_key": "user_role_id",
+    "columns": 9
+  },
+  {
+    "name": "user_sessions",
+    "primary_key": "session_id",
+    "columns": 8
+  },
+  {
+    "name": "reference_values",
+    "primary_key": "reference_id",
+    "columns": 11
+  },
+  {
+    "name": "assets",
+    "primary_key": "asset_id",
+    "columns": 19
+  },
+  {
+    "name": "checklist_templates",
+    "primary_key": "checklist_template_id",
+    "columns": 11
+  },
+  {
+    "name": "checklist_items",
+    "primary_key": "checklist_item_id",
+    "columns": 6
+  },
+  {
+    "name": "work_templates",
+    "primary_key": "work_template_id",
+    "columns": 19
+  },
+  {
+    "name": "work_items",
+    "primary_key": "work_id",
+    "columns": 35
+  },
+  {
+    "name": "work_links",
+    "primary_key": "work_link_id",
+    "columns": 7
+  },
+  {
+    "name": "work_assignments",
+    "primary_key": "assignment_id",
+    "columns": 11
+  },
+  {
+    "name": "work_events",
+    "primary_key": "work_event_id",
+    "columns": 12
+  },
+  {
+    "name": "work_checklist_items",
+    "primary_key": "work_checklist_item_id",
+    "columns": 13
+  },
+  {
+    "name": "inspection_findings",
+    "primary_key": "finding_id",
+    "columns": 13
+  },
+  {
+    "name": "room_blocks",
+    "primary_key": "block_id",
+    "columns": 11
+  },
+  {
+    "name": "room_events",
+    "primary_key": "room_event_id",
+    "columns": 12
+  },
+  {
+    "name": "warehouses",
+    "primary_key": "warehouse_id",
+    "columns": 8
+  },
+  {
+    "name": "inventory_items",
+    "primary_key": "item_id",
+    "columns": 10
+  },
+  {
+    "name": "inventory_policies",
+    "primary_key": "inventory_policy_id",
+    "columns": 9
+  },
+  {
+    "name": "inventory_documents",
+    "primary_key": "document_id",
+    "columns": 23
+  },
+  {
+    "name": "inventory_document_lines",
+    "primary_key": "line_id",
+    "columns": 20
+  },
+  {
+    "name": "stock_movements",
+    "primary_key": "movement_id",
+    "columns": 10
+  },
+  {
+    "name": "document_events",
+    "primary_key": "document_event_id",
+    "columns": 12
+  },
+  {
+    "name": "shifts",
+    "primary_key": "shift_id",
+    "columns": 13
+  },
+  {
+    "name": "workdays",
+    "primary_key": "workday_id",
+    "columns": 14
+  },
+  {
+    "name": "work_intervals",
+    "primary_key": "interval_id",
+    "columns": 12
+  },
+  {
+    "name": "time_corrections",
+    "primary_key": "correction_id",
+    "columns": 16
+  },
+  {
+    "name": "asset_events",
+    "primary_key": "asset_event_id",
+    "columns": 20
+  },
+  {
+    "name": "attachments",
+    "primary_key": "attachment_id",
+    "columns": 16
+  },
+  {
+    "name": "audit_logs",
+    "primary_key": "audit_id",
+    "columns": 10
+  },
+  {
+    "name": "notifications",
+    "primary_key": "notification_id",
+    "columns": 22
+  }
+]
