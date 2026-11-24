@@ -23,8 +23,18 @@ Yêu cầu: xử lý đề xuất trong chat chia sẻ, đưa cả thay đổi P
 
 ## Giới hạn và xuất bản
 
-Docker không được cài trên máy Windows hiện tại; kiểm chứng container/Linux sẽ dựa trên job GitHub Actions sau push. AWS chưa được cấp cấu hình/hạ tầng trong lượt này, nên không tuyên bố hotelops.ap.vn đã online. Full A+B acceptance P0 vẫn PARTIAL theo báo cáo trước; publish code không thay đổi kết luận đó.
+Docker không được cài trên máy Windows hiện tại; kiểm chứng container/Linux đã thực hiện trên GitHub Actions. AWS chưa được cấp cấu hình/hạ tầng trong lượt này, nên không tuyên bố hotelops.ap.vn đã online. Full A+B acceptance P0 vẫn PARTIAL theo báo cáo trước; publish code không thay đổi kết luận đó.
 
 Không đưa thư mục công cụ `.agents`, `.agentkit`, `.codex`, prototype ngoài phạm vi, artifacts, backup, chứng chỉ/private key hoặc credentials TEST vào commit. Các literal mật khẩu trong script fixture cũ được xác nhận chỉ dùng database TEST có guard; template deployment chỉ có placeholder/biến môi trường.
 
-Kết quả commit/push và CI sẽ được bổ sung sau khi nhận bằng chứng từ GitHub.
+Đã push P0, deployment, logo và các script runtime verification lên nhánh được yêu cầu. Secret scan của các nhóm stage không phát hiện credential thực. Các workbook/docx dữ liệu nhân viên được giữ local, không đưa lên Git. ShellCheck và actionlint đều đạt. Lần tải actionlint đầu bị timeout; lần tải tiếp thành công và kiểm tra đạt.
+
+CI build/test và Docker smoke ban đầu đã PASS tại https://github.com/tuananh65/HotelOps/actions/runs/45367133842. Một push cũ bị từ chối non-fast-forward vì commit mới hơn trong cùng lượt đã lên remote; không force push hoặc ghi đè commit. Remote đã được đối chiếu lại.
+
+Lượt mở rộng https://github.com/tuananh65/HotelOps/actions/runs/45367673278 đã restore SQL thành công nhưng thất bại khi script CI ghi lại file connection đã chmod 444. Đã sửa script chỉ mở quyền ghi cho owner lúc chuyển database, rồi đặt lại chỉ đọc trước khởi động API. Lượt CI tiếp theo chứa lỗi đã biết được hủy để nhường runner cho bản sửa; không ghi PASS cho lượt lỗi.
+
+Kết quả cuối VERIFIED: https://github.com/tuananh65/HotelOps/actions/runs/45368592341, source commit `4313be40534035bc5d6d1f9c1fce2d71d7c5c638`, hoàn tất 09:51:54 UTC ngày 24/11/2026. `build-test` SUCCESS; `docker-smoke` SUCCESS, gồm backup/restore SQL vào database TEST khác và khởi động API/HTTPS frontend với database đã phục hồi. `deploy` SKIPPED đúng điều kiện chưa bật AWS. Commit chốt báo cáo chỉ thay đổi `plans/**`, nằm trong paths-ignore của CI.
+
+GitHub Actions có annotation deprecation Node.js 20 của các action v4 đã pin SHA; runner đã chạy chúng bằng Node.js 24 và các job thành công. Đây là cảnh báo cần theo dõi khi nâng action, không phải lỗi build/test. Các process Production/API 43404, frontend 7680 (launcher 10388), TEST API 15136 và frontend 48136 vẫn được giữ; watcher CI đã kết thúc với exit code 0. Không khởi động thêm server lâu dài trong lượt triển khai này.
+
+Log container ghi cảnh báo ASP.NET Data Protection về key trong filesystem không bền vững/không cấu hình XML encryptor. Compact hiện xác thực bằng opaque session trong SQL, không dựa trên cookie Data Protection. Không tuyên bố đã triển khai lưu trữ/encryption key dùng chung cho các tính năng Data Protection khác. AWS OIDC/ECR/SSM, SQL application-login provisioning và rollback khi rollout lỗi chưa được thực thi trên hạ tầng AWS thật.
