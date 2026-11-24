@@ -52,7 +52,9 @@ if bash "$root/deployment/init-database.sh" --schema-only; then echo 'Existing d
 # Exercise the real Linux restore path, not VERIFYONLY alone. Keep the source DB.
 sed -i 's/DATABASE_NAME=HotelOpsCompactCiTest/DATABASE_NAME=HotelOpsCompactRestoreTest/' "$ENV_FILE"
 bash "$root/deployment/init-database.sh" --restore "$backup"
+chmod 600 "$private/connection"
 printf 'Server=db;Database=HotelOpsCompactRestoreTest;User ID=sa;Password=%s;Encrypt=True;TrustServerCertificate=True\n' "$password" > "$private/connection"
+chmod 444 "$private/connection"
 docker compose --env-file "$ENV_FILE" -p hotelops -f "$root/docker-compose.yml" up -d api frontend
 bash "$root/deployment/healthcheck.sh"
 echo 'PASS isolated Linux Docker build, fresh schema, HTTPS, auth, actual backup restore and reinitialization guard'
