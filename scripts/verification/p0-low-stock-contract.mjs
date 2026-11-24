@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+const root = new URL('../../', import.meta.url);
+const read = path => readFileSync(fileURLToPath(new URL(path, root)), 'utf8');
+const service = read('src/HotelOps.Api/Compact/Services/LowStockService.cs');
+const worker = read('src/HotelOps.Api/Compact/Services/OperationsWorker.cs');
+const config = read('src/HotelOps.Api/Compact/Services/SupplyConfigurationService.cs');
+const posting = read('src/HotelOps.Api/Compact/Services/DocumentService.Supplies.cs');
+// Source contract guards only. Runtime transaction/concurrency tests remain mandatory.
+assert.match(service, /stock>=policy\.MinimumQty/);
+assert.match(service, /policy\.LowStockEpisode=null;policy\.AlertedAt=null/);
+assert.match(service, /n\.ExpiresAt=Now/);
+assert.match(service, /Recipients\(policy\.BranchId,"STOREKEEPER","INVENTORY_VIEW",ct\)/);
+assert.match(service, /ur\.BranchId==branch&&ur\.AssignedAt<=now/);
+assert.match(service, /user\.AccountStatus=="ACTIVE"&&user\.EmploymentStatus=="ACTIVE"/);
+assert.match(service, /n\.RecipientUserId==recipient&&n\.EventKey==key/);
+assert.match(service, /db\.Database\.CurrentTransaction!=null/);
+assert.match(service, /policy\.MinimumQty-stock/);
+assert.match(worker, /GetRequiredService<LowStockService>\(\)\.Reconcile\(ct\)/);
+assert.doesNotMatch(worker, /ForPermission\([^\n]*"LOW_STOCK"/);
+assert.match(config, /await lowStock\.Reconcile\(ct,r\.BranchId\)/);
+assert.match(posting, /\.SupplyPosted\(allocation,document,purpose,ct\)/);
+console.log('PASS: 13 low-stock source contracts (runtime not tested).');

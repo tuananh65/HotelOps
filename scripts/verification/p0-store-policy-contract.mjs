@@ -1,0 +1,26 @@
+// Source contract checks only; these do not replace SQL/API/concurrency validation.
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
+const document = read('src/HotelOps.Api/Compact/Services/DocumentService.cs');
+const approval = document.slice(document.indexOf('private async Task ApprovalAuthority'), document.indexOf('private async Task Event'));
+assert.match(approval, /RequireRolePermission\("STOREKEEPER","MR_APPROVE_L1",d.BranchId,ct\)/);
+assert.match(approval, /d.CreatedBy!=actor.Id/);
+assert.match(approval, /USE_TRANSFER_REQUEST_FOR_OTHER_BRANCH/);
+assert.doesNotMatch(approval, /DEPT_MANAGER|MR_APPROVE_FALLBACK/);
+assert.match(document, /if\(source.ApprovedBy==actor.Id\)await access.RequireRolePermission\("STOREKEEPER","MR_APPROVE_L1"/);
+const sql = read('scripts/database/compact-v2/p0-store-policy.sql');
+assert.match(sql, /HotelOpsCompactWorkdayTestP0%/);
+assert.match(sql, /BEGIN TRANSACTION/);
+assert.match(sql, /IF XACT_STATE\(\)<>0 ROLLBACK/);
+assert.match(sql, /CREATE UNIQUE INDEX UX_warehouses_one_active_branch/);
+assert.match(sql, /active_count>1 AND referenced_count<>1/);
+assert.match(sql, /sys.foreign_key_columns/);
+assert.doesNotMatch(sql, /DELETE\s+(?:FROM\s+)?dbo\.(?:warehouses|stock_movements)|DISABLE TRIGGER|NOCHECK|TRUNCATE/i);
+assert.match(sql, /MR_APPROVE_L1/);
+assert.match(sql, /P0_STOREKEEPER_APPROVAL/);
+assert.match(sql, /u.account_status=''ACTIVE''/);
+assert.match(sql, /member.kind=''BRANCH_ACCESS''/);
+assert.match(read('src/HotelOps.Api/Compact/Services/CatalogService.cs'), /BRANCH_ALREADY_HAS_ACTIVE_WAREHOUSE/);
+assert.match(read('src/HotelOps.Api/Compact/Services/SupplyConfigurationService.cs'), /warehouseIds.Length==1/);
+console.log('PASS: store-policy source contracts (not runtime verification).');
