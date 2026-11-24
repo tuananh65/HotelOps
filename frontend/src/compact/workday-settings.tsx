@@ -3,14 +3,17 @@ import { useEffect, useState } from "react";
 import { action, api, type Row } from "./api";
 import { useAuth } from "./auth";
 import PageTitle from "./page-title";
-import { Dialog, Empty, State, useQuery } from "./ui";
+import { ConfirmationActions, Dialog, Empty, State, useQuery } from "./ui";
 import { shiftTime, workdayMessage } from "./workday-scheduling";
 import "./workday.css";
+import ShiftTimePicker from "./shift-time-picker";
 
 export default function WorkdaySettings({ close }: { close?: () => void }) {
   const { branch, can } = useAuth();
   const [revision, refresh] = useState(0);
   const [editor, setEditor] = useState<Row | null>(null);
+  const [removing, setRemoving] = useState<Row | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -20,12 +23,15 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
   );
   useEffect(() => {
     setEditor(null);
+    setRemoving(null);
+    setShowInactive(false);
     setError("");
     setNotice("");
   }, [branch]);
   const roleOptions = (query.data?.roles ?? []).filter((r: Row) =>
     editor?.departmentId && query.data?.departmentRoles?.some((link: Row) =>
       link.departmentId === editor.departmentId && link.roleId === r.roleId));
+  const shifts = (query.data?.shifts ?? []).filter((s: Row) => showInactive || s.isActive);
   if (!can("SHIFT_MANAGE"))
     return <Empty>Bạn chưa có quyền cấu hình ca tại chi nhánh này.</Empty>;
   return (
@@ -53,6 +59,10 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
           Tạo ca
         </button>
       </div>
+      <label className="workday-check">
+        <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
+        Hiện ca đã xóa / ngừng sử dụng
+      </label>
       <p>
         Ca đã có lịch sử giữ nguyên bộ phận, đối tượng và giờ. Muốn đổi các
         thông tin này, hãy tạo ca mới. Chỉ ngừng ca sau khi xử lý các phân công
@@ -64,8 +74,8 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
         </AlertPopup>
       )}
       <State {...query} retry={() => refresh((x) => x + 1)}>
-        {!query.data?.shifts.length ? (
-          <Empty>Chưa có ca làm việc.</Empty>
+        {!shifts.length ? (
+          <Empty>{showInactive ? "Chưa có ca làm việc." : "Chưa có ca đang sử dụng."}</Empty>
         ) : (
           <div className="table-scroll">
             <table>
@@ -80,18 +90,18 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
                 </tr>
               </thead>
               <tbody>
-                {query.data.shifts.map((s: Row) => (
+                {shifts.map((s: Row) => (
                   <tr key={s.shiftId}>
-                    <td>{s.name}</td>
-                    <td>
+                    <td data-label="Ca">{s.name}</td>
+                    <td data-label="Bộ phận / đối tượng">
                       {s.department} · {s.role}
                     </td>
-                    <td>
+                    <td data-label="Giờ">
                       {shiftTime(s.startMinute)}–{shiftTime(s.endMinute)}
                     </td>
-                    <td>{s.capacity}</td>
-                    <td>{s.isActive ? "Đang dùng" : "Đã ngừng"}</td>
-                    <td>
+                    <td data-label="Số người">{s.capacity}</td>
+                    <td data-label="Trạng thái">{s.isActive ? "Đang dùng" : "Đã ngừng"}</td>
+                    <td data-label="Thao tác">
                       <button
                         onClick={() => {
                           setError("");
@@ -100,6 +110,11 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
                       >
                         Sửa {s.name}
                       </button>
+                      {s.isActive && <button
+                        className="shift-delete"
+                        aria-label={`Xóa ca ${s.name} ${shiftTime(s.startMinute)}–${shiftTime(s.endMinute)}`}
+                        onClick={() => { setError(""); setNotice(""); setRemoving(s); }}
+                      >Xóa ca</button>}
                     </td>
                   </tr>
                 ))}
@@ -108,6 +123,28 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
           </div>
         )}
       </State>
+      {removing && <Dialog className="confirmation-popup" title="Xóa ca làm việc" close={() => { if (!pending) setRemoving(null); }}>
+        <p><strong>{removing.name}</strong> · {shiftTime(removing.startMinute)}–{shiftTime(removing.endMinute)}</p>
+        <p>{removing.department} · {removing.role}</p>
+        <p>Ca sẽ ngừng sử dụng và không thể phân công mới. Lịch sử ca đã làm được giữ nguyên. Chỉ xóa được khi không còn phân công chưa kết thúc.</p>
+        <form onSubmit={async e => {
+          e.preventDefault(); if (pending) return;
+          setPending(true); setError("");
+          try {
+            await api(`workday/shifts/${removing.shiftId}`, action(removing.rowVersion, {
+              branchId: branch, departmentId: removing.departmentId, roleId: removing.roleId,
+              name: removing.name, startMinute: removing.startMinute, endMinute: removing.endMinute,
+              capacity: removing.capacity, isActive: false,
+            }), "PUT");
+            setRemoving(null); setNotice("Đã xóa ca khỏi danh sách đang sử dụng. Lịch sử được giữ nguyên.");
+            refresh(x => x + 1);
+          } catch(err) { setError(workdayMessage(err)); refresh(x => x + 1); }
+          finally { setPending(false); }
+        }}>
+          {error && <AlertPopup>{error}</AlertPopup>}
+          <ConfirmationActions pending={pending} cancel={()=>setRemoving(null)}/>
+        </form>
+      </Dialog>}
       {editor && (
         <Dialog
           title={editor.shiftId ? "Sửa ca làm việc" : "Tạo ca làm việc"}
@@ -228,28 +265,8 @@ export default function WorkdaySettings({ close }: { close?: () => void }) {
               {!editor.departmentId && <small>Chọn bộ phận trước khi chọn đối tượng.</small>}
               {editor.departmentId && !roleOptions.length && !editor.hasHistory && <small>Bộ phận chưa có đối tượng đang hoạt động đủ điều kiện nhận ca.</small>}
             </label>
-            <label>
-              Bắt đầu
-              <input
-                type="time"
-                name="start"
-                required
-                defaultValue={shiftTime(editor.startMinute)}
-                disabled={pending || editor.hasHistory}
-              />
-            </label>
-            <label>
-              Kết thúc
-              <input
-                type="text"
-                name="end"
-                required
-                pattern="([01][0-9]|2[0-3]):[0-5][0-9]|24:00"
-                title="Nhập giờ HH:mm từ 00:00 đến 24:00"
-                defaultValue={shiftTime(editor.endMinute)}
-                disabled={pending || editor.hasHistory}
-              />
-            </label>
+            <ShiftTimePicker name="start" label="Bắt đầu" minutes={editor.startMinute} disabled={pending || editor.hasHistory}/>
+            <ShiftTimePicker name="end" label="Kết thúc" minutes={editor.endMinute} allowMidnight disabled={pending || editor.hasHistory}/>
             <label>
               Sức chứa
               <input

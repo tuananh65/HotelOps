@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "./auth";
 import { action, type Row } from "./api";
-import { State, useQuery } from "./ui";
+import { ConfirmationActions, State, useQuery } from "./ui";
 import { documentNames } from "./inventory-document-model";
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
   lines: Row[];
   options: Row;
   pending: boolean;
+  cancel: () => void;
   submit: (path: string, body: Row, method?: string) => Promise<void>;
 };
 export default function InventoryDocumentForm({
@@ -22,6 +23,7 @@ export default function InventoryDocumentForm({
   lines,
   options,
   pending,
+  cancel,
   submit,
 }: Props) {
   const { branch } = useAuth();
@@ -192,6 +194,7 @@ export default function InventoryDocumentForm({
           Tạo {documentNames[target].toLowerCase()} từ {doc?.documentNo}. Bản
           nháp chưa thay đổi tồn kho.
         </p>
+        {target === "ISSUE" && context?.receivingRoom && <section className="panel"><strong>Địa điểm cấp đồ dùng bền</strong><p>{context.receivingRoom}</p></section>}
         {((target === "ISSUE" && !doc?.sourceWarehouseId) ||
           (target === "RECEIPT" && !doc?.destinationWarehouseId)) &&
           selectWarehouse("warehouseId", "Kho thực hiện", warehouseId, (v) =>
@@ -413,9 +416,7 @@ export default function InventoryDocumentForm({
           required={["cancel", "close"].includes(form.type)}
         />
       </label>
-      <button className="primary" disabled={pending}>
-        Xác nhận
-      </button>
+      <ConfirmationActions pending={pending} cancel={cancel}/>
     </form>
   );
 }

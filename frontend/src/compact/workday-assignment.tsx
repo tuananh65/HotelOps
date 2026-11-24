@@ -1,7 +1,7 @@
 import { AlertPopup } from "./alert-popup";
 import { useEffect, useState } from "react";
 import { action, api, type Row } from "./api";
-import { Dialog, Empty, State, useQuery } from "./ui";
+import { ConfirmPopup, Dialog, Empty, State, useQuery } from "./ui";
 import {
   monthDates,
   weekDates,
@@ -29,6 +29,7 @@ export default function WorkdayAssignment({
   invalidate: () => void;
 }) {
   const [period, setPeriod] = useState("day");
+  const [dismissedHours, setDismissedHours] = useState("");
   const [excluded, setExcluded] = useState<string[]>([]);
   const [weekdays, setWeekdays] = useState([0, 1, 2, 3, 4, 5, 6]);
   const [users, setUsers] = useState<number[]>([]);
@@ -38,7 +39,8 @@ export default function WorkdayAssignment({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [operationKey] = useState(() => crypto.randomUUID());
-  const allDates = period === "month" ? monthDates(slot.date, today) : period === "week" ? weekDates(slot.date, today) : [slot.date];
+  const allDates = (period === "month" ? monthDates(slot.date, today) : period === "week" ? weekDates(slot.date, today) : [slot.date])
+    .filter(d => d !== today || slot.endMinute > (slot.currentMinute ?? 0));
   const dates = allDates.filter(
     (d) =>
       !excluded.includes(d) &&
@@ -155,7 +157,7 @@ export default function WorkdayAssignment({
           {period !== "day" && (
             <>
               <p>
-                {period === "week" ? "Chọn các ngày trong tuần chứa ngày đã chọn, từ thứ Hai đến Chủ nhật." : "Chọn các ngày trong tháng đã chọn."} Bỏ các ngày đã qua; có thể chọn thứ hoặc bỏ từng ngày bên dưới.
+                {period === "week" ? "Chọn các ngày trong tuần chứa ngày đã chọn, từ thứ Hai đến Chủ nhật." : "Chọn các ngày trong tháng đã chọn."} Bỏ các ngày đã qua và ca đã hết giờ; có thể chọn thứ hoặc bỏ từng ngày bên dưới.
               </p>
               <div
                 className="workday-weekdays"
@@ -315,8 +317,8 @@ export default function WorkdayAssignment({
               phân ca các ngày này.
             </label>
           )}
-          {warnings.length > 0 && (
-            <AlertPopup aria-label="Cảnh báo vượt giờ">
+          {warnings.length > 0 && !hoursConfirmed && dismissedHours !== hoursFingerprint && (
+            <ConfirmPopup title="Cảnh báo vượt giờ" confirm={() => { setHoursAcknowledged(hoursFingerprint); setError(""); }} cancel={() => setDismissedHours(hoursFingerprint)} pending={pending}>
               <h3>Vượt giới hạn phân ca</h3>
               <p>Giới hạn thông thường: 8 giờ/ngày, 40 giờ/tuần (thứ Hai–Chủ nhật). Tổng dưới đây gồm lịch đã có và lịch đang thêm.</p>
               <ul>{warnings.map((w) => (
@@ -324,12 +326,10 @@ export default function WorkdayAssignment({
                   <strong>{w.fullName}</strong> · {w.period === "DAY" ? "Ngày" : "Tuần"} {w.from}{w.period === "WEEK" ? ` – ${w.to}` : ""}: {hoursText(w.existingMinutes)} đã có + {hoursText(w.addedMinutes)} thêm = <strong>{hoursText(w.totalMinutes)}</strong> / {hoursText(w.limitMinutes)}.
                 </li>
               ))}</ul>
-              <label className="workday-check">
-                <input type="checkbox" checked={hoursConfirmed} onChange={(e) => setHoursAcknowledged(e.target.checked ? hoursFingerprint : "")} />
-                Tôi đã xem số giờ vượt và xác nhận phân ca vượt giới hạn cho các nhân viên trên.
-              </label>
-            </AlertPopup>
+              <p>Xác nhận để tiếp tục phân ca vượt giới hạn cho các nhân viên trên.</p>
+            </ConfirmPopup>
           )}
+          {warnings.length > 0 && <p role="status">{hoursConfirmed ? "Đã xác nhận số giờ vượt." : "Chưa xác nhận số giờ vượt; chưa thể lưu phân ca."} <button type="button" onClick={() => { setDismissedHours(""); setHoursAcknowledged(""); }}>Xem cảnh báo vượt giờ</button></p>}
           <p role="status">
             Sẽ tạo {selected.length} người × {dates.length} ngày ={" "}
             {selected.length * dates.length} lượt phân công. Nếu có xung đột,

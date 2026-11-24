@@ -21,6 +21,7 @@ public sealed partial class WorkService
             return (object)new{work=Output.Record(parent),inspection=Output.Record(recorded)};
         }
         Output.Version(parent.RowVersion, request.RowVersion);
+        Output.Require(!await CleaningIssues(id).AnyAsync(i=>i.Status!="CLOSED"&&i.Status!="CANCELLED",ct),"CLEANING_INCIDENT_REVIEW_REQUIRED");
         Output.Key(request.OperationKey);
         Output.Require(request.Result is "PASS" or "FAIL", "INVALID_OUTCOME", 400);
         Output.Require(!await db.WorkEvents.AnyAsync(e => e.WorkId == id && e.ActorUserId == actor.Id && e.OperationKey == request.OperationKey, ct), "OPERATION_ALREADY_APPLIED");
@@ -37,7 +38,7 @@ public sealed partial class WorkService
             .OrderByDescending(w => w.CompletedAt).FirstOrDefault();
         Output.Require(parent.Status != "REWORK_REQUIRED" || latestRework != null, "REWORK_NOT_SUBMITTED");
         var note = request.Note?.Trim();
-        if (request.Result == "FAIL") Output.Reason(note);
+        if (request.Result == "FAIL") RequireInspectionNote(note);
         var open = await db.WorkItems.Where(w => w.ParentWorkId == id && w.Kind == "INSPECTION" && !WorkRules.Terminal.Contains(w.Status)).ToArrayAsync(ct);
         Output.Require(open.Length <= 1, "HOUSEKEEPING_WORK_ALREADY_ACTIVE");
         var inspection = open.SingleOrDefault();
@@ -63,12 +64,12 @@ public sealed partial class WorkService
         if (request.Result == "PASS" && findings.Length > 0)
         {
             await access.Require("DEFECT_RESOLVE", parent.BranchId, ct: ct);
-            Output.Require(request.ResolveFindings && latestRework != null, "PAPER_FINDINGS_CONFIRMATION_REQUIRED");
-            Output.Reason(note);
+            Output.Require(latestRework != null, "REWORK_NOT_SUBMITTED");
             foreach (var finding in findings)
             {
                 finding.ReworkWorkId = latestRework!.WorkId;
-                finding.Status = "RESOLVED"; finding.ResolvedAt = Now; finding.ResolutionNote = note;
+                finding.Status = "RESOLVED"; finding.ResolvedAt = Now;
+                finding.ResolutionNote = string.IsNullOrWhiteSpace(note) ? "Kiểm tra dọn lại: Đạt" : note;
                 audit.Add("Finding", finding.FindingId, "RESOLVED", parent.BranchId, after: new { note, latestRework.WorkId });
             }
         }
@@ -105,4 +106,7 @@ public sealed partial class WorkService
         }
         return (object)new { work = Output.Record(parent), inspection = Output.Record(inspection) };
     }, ct);
+
+    private static void RequireInspectionNote(string? note) =>
+        Output.Require(note?.Trim() is { Length: > 0 and <= 2000 }, "INSPECTION_NOTE_REQUIRED", 400);
 }

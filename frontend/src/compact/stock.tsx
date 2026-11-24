@@ -6,8 +6,18 @@ import { Dialog, Empty, Pager, State, useQuery } from "./ui";
 import { SlidersHorizontal } from "lucide-react";
 import { timestamp, type Row } from "./api";
 import { documentHref, documentNames } from "./inventory-document-model";
+import { api } from "./api";
+import { AlertPopup } from "./alert-popup";
+import { supplyMessage } from "./supply-api";
+import "./stock.css";
 export default function Stock({ readScope }: { readScope?: number }) {
-  const { branch, profile } = useAuth();
+  const { branch, profile, setBranch, can } = useAuth();
+  const [switching, setSwitching] = useState(false);
+  const [editing, setEditing] = useState<Row | null>(null);
+  const warehouses = useQuery(readScope === undefined ? `catalog/warehouses?branchId=${branch}&pageSize=100` : null);
+  const currentWarehouses = warehouses.data?.items.map((r: Row) => r.fields).filter((r: Row) => r.isActive) || [];
+  const mayEdit = readScope === undefined && can("ROOM_SUPPLY_CONFIG", false) && profile.roles.some(r => r.code === "OPERATION_MANAGER" && (r.branchId == null || r.branchId === branch));
+  const allowedBranches = profile.branches.filter(b => profile.grants.some(g => g.code === "INVENTORY_VIEW" && g.dataScope !== "OWN" && (g.branchId == null || g.branchId === b.branchId)));
   const storekeeper = profile.roles
     .filter((r) => r.branchId == null || r.branchId === branch)
     .every((r) => r.code === "STOREKEEPER");
@@ -43,6 +53,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
       .filter(
         (r) =>
           (!warehouse || r.warehouseId === Number(warehouse)) &&
+          (readScope !== undefined || currentWarehouses.some((w: Row) => w.warehouseId === r.warehouseId)) &&
           (!low || (r.minimumQty != null && r.baseQty < r.minimumQty)),
       )
       .sort((a, b) =>
@@ -58,9 +69,14 @@ export default function Stock({ readScope }: { readScope?: number }) {
           <p>Số lượng theo đơn vị cơ sở, tính từ chứng từ đã ghi sổ</p>
         </PageTitle>
       </div>
+      <div className="stock-context">
+        <div><small>Kho đang xem</small><strong>{readScope !== undefined ? (warehouse ? query.data?.find(r => r.warehouseId === Number(warehouse))?.warehouse : "Các kho trong phạm vi đã chọn") : currentWarehouses.length ? currentWarehouses.map((w: Row) => w.name).join(" · ") : warehouses.loading ? "Đang tải kho…" : "Chưa có kho hoạt động"}</strong></div>
+        {readScope === undefined && <button onClick={() => setSwitching(true)}>Xem kho chi nhánh khác</button>}
+      </div>
+      {!!warehouses.error && <State {...warehouses}>{null}</State>}
       <PageToolbar>
         <label className="search">
-          Tìm vật tư hoặc kho
+          Tìm vật tư
           <input
             value={search}
             onChange={(e) => {
@@ -75,7 +91,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
       </PageToolbar>
       {filters && (
         <PageToolbar>
-          <label>
+          {readScope !== undefined && <label>
             Kho
             <select
               value={warehouse}
@@ -95,7 +111,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
                 </option>
               ))}
             </select>
-          </label>
+          </label>}
           <label>
             Sắp xếp
             <select
@@ -138,34 +154,31 @@ export default function Stock({ readScope }: { readScope?: number }) {
           <table className="mobile-records">
             <thead>
               <tr>
-                <th>Kho</th>
+                <th>STT</th>
                 {readScope !== undefined && <th>Chi nhánh</th>}
-                <th>Mã vật tư</th>
                 <th>Vật tư</th>
                 <th className="numeric">Tồn cơ sở</th>
                 <th>Đơn vị</th>
                 <th>Tối thiểu</th>
-                <th>Biến động cuối</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {rows.slice((page - 1) * 25, page * 25).map((r) => (
-                <tr key={`${r.warehouseId}-${r.itemId}`}>
-                  <td data-label="Kho">{r.warehouse}</td>
+              {rows.slice((page - 1) * 25, page * 25).map((r, index) => (
+                <tr key={`${r.warehouseId}-${r.itemId}`} className={r.minimumQty != null && r.baseQty < r.minimumQty ? "stock-below-minimum" : undefined}>
+                  <td data-label="STT">{(page - 1) * 25 + index + 1}</td>
                   {readScope !== undefined && (
                     <td data-label="Chi nhánh">{profile.branches.find((b) => b.branchId === r.branchId)
                         ?.name || "—"}
                     </td>
                   )}
-                  <td data-label="Mã vật tư">{r.code}</td>
                   <td data-label="Vật tư">{r.item}</td>
                   <td className="numeric" data-label="Tồn cơ sở">
                     {Number(r.baseQty || 0).toLocaleString("vi-VN")}
+                    {r.minimumQty != null && r.baseQty < r.minimumQty && <small>Dưới tối thiểu</small>}
                   </td>
                   <td data-label="Đơn vị">{r.unit || "—"}</td>
-                  <td data-label="Tối thiểu">{r.minimumQty ?? "—"}</td>
-                  <td data-label="Biến động cuối">{r.lastMovement ? timestamp(r.lastMovement) : "—"}</td>
+                  <td data-label="Tối thiểu">{mayEdit && r.isActive !== false ? <button aria-label={`Sửa tối thiểu ${r.item}`} onClick={() => setEditing(r)}>{r.minimumQty ?? 0} · Sửa</button> : r.minimumQty ?? "—"}</td>
                   <td data-label="Thao tác"><button
                       onClick={() => {
                         setSelected(r);
@@ -183,6 +196,12 @@ export default function Stock({ readScope }: { readScope?: number }) {
         {!rows.length && <Empty>Chưa có tồn kho phù hợp với bộ lọc.</Empty>}
         <Pager page={page} total={rows.length} pageSize={25} onPage={setPage} />
       </State>
+      {switching && <Dialog title="Xem kho chi nhánh khác" close={() => setSwitching(false)}>
+        <p>Chọn chi nhánh được cấp quyền xem tồn kho.</p>
+        <div className="stock-branch-list">{allowedBranches.map(b => <button key={b.branchId} disabled={b.branchId === branch} onClick={() => { setSwitching(false); setBranch(b.branchId); }}>{b.name}{b.branchId === branch ? " · Đang xem" : ""}</button>)}</div>
+        {allowedBranches.length < 2 && <p>Tài khoản hiện chỉ được xem kho của chi nhánh này.</p>}
+      </Dialog>}
+      {editing && <MinimumEditor row={editing} branch={branch} close={() => setEditing(null)} saved={() => { setEditing(null); bump(n => n + 1); }} />}
       {selected && (
         <Dialog
           className="room-drawer"
@@ -244,4 +263,25 @@ export default function Stock({ readScope }: { readScope?: number }) {
       )}
     </>
   );
+}
+
+function MinimumEditor({row, branch, close, saved}: {row: Row; branch: number; close: () => void; saved: () => void}) {
+  const [revision, bump] = useState(0);
+  const query = useQuery(`supplies/minimum?branchId=${branch}&warehouseId=${row.warehouseId}&itemId=${row.itemId}`, revision);
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  return <Dialog title={`Tồn tối thiểu · ${row.item}`} close={pending ? () => {} : close}>
+    <p>{row.warehouse} · Đơn vị: {row.unit}</p>
+    <State {...query} retry={() => bump(n => n + 1)}>{query.data && <form key={revision} onSubmit={async e => {
+      e.preventDefault(); if(pending) return;
+      const minimumStock = Number(new FormData(e.currentTarget).get("minimumStock"));
+      setPending(true); setError("");
+      try { await api("supplies/minimum", {...query.data, branchId: branch, warehouseId: row.warehouseId, itemId: row.itemId, minimumStock}, "PUT"); saved(); }
+      catch(e) { setError(supplyMessage(e)); } finally { setPending(false); }
+    }}>
+      <label>Tồn tối thiểu<input name="minimumStock" type="number" min="0" max="99999999999999.9999" step="0.0001" required defaultValue={query.data.minimumStock} /></label>
+      {error && <AlertPopup>{error}</AlertPopup>}
+      <div className="actions"><button type="submit" className="primary" disabled={pending}>{pending ? "Đang lưu…" : "Lưu tối thiểu"}</button><button type="button" disabled={pending} onClick={close}>Hủy</button></div>
+    </form>}</State>
+  </Dialog>;
 }

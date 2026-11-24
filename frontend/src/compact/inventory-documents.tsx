@@ -304,7 +304,7 @@ export default function InventoryDocuments({
                     <small>{d.reason || documentNames[d.kind]}</small>
                   </td>
                   <td>
-                    <Badge value={d.status} />
+                    <Badge value={group === "fulfillment" && d.status === "APPROVED" ? "Chờ duyệt" : d.status} />
                   </td>
                   <td>{timestamp(d.createdAt)}</td>
                   <td>
@@ -345,7 +345,7 @@ export default function InventoryDocuments({
           <State {...detail} retry={() => bump((x) => x + 1)}>
             {doc && (
               <>
-                <Badge value={doc.status} />
+                <Badge value={group === "fulfillment" && doc.status === "APPROVED" ? "Chờ duyệt" : doc.status} />
                 <p>
                   {documentNames[doc.kind]} · {timestamp(doc.createdAt)}
                 </p>
@@ -357,6 +357,7 @@ export default function InventoryDocuments({
                       <dd>{context.creator}</dd>
                       <dt>Người duyệt</dt>
                       <dd>{context.approver || "Chưa duyệt"}</dd>
+                      {context.receivingRoom && <><dt>Địa điểm cấp</dt><dd><strong>{context.receivingRoom}</strong></dd></>}
                       <dt>Kho xuất</dt>
                       <dd>{context.sourceWarehouse || "—"}</dd>
                       <dt>Kho nhận</dt>
@@ -529,7 +530,7 @@ export default function InventoryDocuments({
         </Dialog>
       )}
       {form && (
-        <Dialog
+        <Dialog className={["create","derive","line"].includes(form.type)?undefined:"confirmation-popup"}
           title={
             form.type === "create"
               ? `Tạo ${documentNames[kind].toLowerCase()}`
@@ -554,6 +555,7 @@ export default function InventoryDocuments({
               options={options.data}
               pending={pending}
               submit={mutate}
+              cancel={()=>setForm(null)}
             />
           </State>
           {error && (

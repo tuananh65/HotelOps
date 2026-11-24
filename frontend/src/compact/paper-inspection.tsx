@@ -30,7 +30,6 @@ export default function PaperInspection({ work, related, reviews, saved }: {
           await api(`work/${work.workId}/inspection-result`, {
             rowVersion: work.rowVersion, inspectionRowVersion: activeInspection?.rowVersion || null,
             operationKey: key.current, result, note: String(data.get("note") || "").trim() || null,
-            resolveFindings: data.get("resolveFindings") === "on",
           });
           setOpen(false); saved();
         } catch (err) { setError(message(err)); }
@@ -42,11 +41,10 @@ export default function PaperInspection({ work, related, reviews, saved }: {
         {result === "PASS" && findings.length > 0 && <>
           <p>Các lỗi cần xác nhận đã khắc phục:</p>
           <ul>{findings.map((f, i) => <li key={i}>{f.description}</li>)}</ul>
-          {can("DEFECT_RESOLVE") ? <label><input type="checkbox" name="resolveFindings" required disabled={pending} /> Tôi đã kiểm tra và xác nhận các lỗi trên đã được khắc phục.</label>
-            : <p role="alert">Bạn chưa có quyền xác nhận khắc phục lỗi. Người có quyền cần xử lý lỗi trước khi xác nhận Đạt.</p>}
+          {!can("DEFECT_RESOLVE") && <p role="alert">Bạn chưa có quyền xác nhận khắc phục lỗi. Người có quyền cần xử lý lỗi trước khi xác nhận Đạt.</p>}
         </>}
-        <label>Ghi chú{(result === "FAIL" || findings.length > 0) ? " (bắt buộc, ít nhất 10 ký tự)" : " (không bắt buộc)"}
-          <textarea name="note" disabled={pending} maxLength={2000} minLength={result === "FAIL" || findings.length > 0 ? 10 : undefined} required={result === "FAIL" || findings.length > 0} />
+        <label>Ghi chú{result === "FAIL" ? " (bắt buộc khi không đạt)" : " (không bắt buộc)"}
+          <textarea name="note" disabled={pending} maxLength={2000} required={result === "FAIL"} />
         </label>
         {error && <AlertPopup>{error}</AlertPopup>}
         <button className="primary" disabled={pending || (result === "PASS" && findings.length > 0 && !can("DEFECT_RESOLVE"))}>{pending ? "Đang lưu…" : "Lưu kết quả"}</button>

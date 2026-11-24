@@ -89,15 +89,27 @@ export async function downloadEvidence(id: number, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 const errors: Record<string, string> = {
+  REQUEST_SENDER_REQUIRED: "Chọn ít nhất một vai trò được gửi yêu cầu.",
+  REQUEST_SENDER_INVALID: "Vai trò được chọn không còn quyền gửi yêu cầu nội bộ.",
+  REQUEST_SENDER_NOT_ALLOWED: "Vai trò của bạn không được gửi loại yêu cầu này.",
+  REQUEST_RECIPIENT_REQUIRED: "Chọn ít nhất một người hoặc bộ phận nhận.",
+  REQUEST_RECIPIENT_NOT_ALLOWED: "Nơi nhận không nằm trong danh sách được cấu hình cho loại yêu cầu này.",
+  REQUEST_RECIPIENT_UNAVAILABLE: "Người nhận không còn đủ điều kiện xử lý yêu cầu trong chi nhánh.",
+  ROOM_ISSUE_IMPACT_CONFIGURATION_INVALID: "Mỗi loại báo cáo đang bật cần ít nhất một mức ảnh hưởng được phép chọn, có tên hợp lệ.",
+  ROOM_ISSUE_IMPACT_UNAVAILABLE: "Mức ảnh hưởng này đã bị tắt. Tải lại và chọn mức đang được phép sử dụng.",
+  CLEANING_INCIDENT_REVIEW_REQUIRED: "Phòng còn sự cố cần xác nhận và khắc phục. Hoàn tất kiểm tra sự cố trước khi kết luận vệ sinh thông thường.",
+  BRANCH_WAREHOUSE_REQUIRED: "Chi nhánh cần có đúng một kho đang hoạt động để tiếp nhận yêu cầu bổ sung.",
   ROOM_NOT_RESERVED: "Phòng chưa được đặt. Vui lòng đặt phòng trước khi xác nhận khách đến.",
   TARGET_ROOM_MUST_DIFFER: "Phòng chuyển đến phải khác phòng hiện tại.",
   SHIFT_OUTSIDE_WORKING_HOURS: "Chỉ được bắt đầu ca trong khung giờ đã phân công.",
   CLEANING_CREATOR_NOT_ON_SHIFT: "Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để tạo yêu cầu dọn phòng.",
-  RECEPTION_NOT_ON_SHIFT: "Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để thay đổi trạng thái phòng.",
+  RECEPTION_NOT_ON_SHIFT: "Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để thao tác phòng hoặc báo sự cố.",
+  SHIFT_ALREADY_ENDED: "Ca đã hết giờ. Vui lòng chọn ca còn giờ làm hoặc ngày tiếp theo.",
   REQUEST_VISIBILITY_DENIED: "Bạn chỉ được xem yêu cầu nội bộ do mình tạo hoặc được giao cho mình.",
   CLEANING_ASSIGNEE_REQUIRED: "Vui lòng chọn nhân viên dọn phòng đang trong ca.",
   CLEANING_STAFF_REQUIRED: "Chỉ được phân công cho nhân viên buồng phòng hợp lệ tại chi nhánh này.",
   CLEANING_ASSIGNEE_NOT_ON_SHIFT: "Nhân viên được chọn hiện không trong ca. Vui lòng chọn lại nhân viên đang làm việc.",
+  CLEANING_ASSIGNEE_HAS_UNACCEPTED_WORK: "Nhân viên còn công việc chờ nhận. Chỉ giao thêm sau khi nhân viên nhận công việc đó.",
   INVALID_TASK_PERIOD:
     "Khoảng thống kê không hợp lệ. Chọn ngày, tuần hoặc tháng.",
   USE_BRANCH_CONTACT_FORM:
@@ -172,7 +184,8 @@ const errors: Record<string, string> = {
   HOUSEKEEPING_HANDOVER_BEFORE_ACCEPT_ONLY: "Không thể bàn giao sau khi đã nhận hoặc bắt đầu công việc.",
   HOUSEKEEPING_STAFF_CANNOT_REPORT_INCIDENT: "Nhân viên dọn phòng không báo cáo sự cố. Giám sát sẽ kiểm tra và ghi nhận sau khi hoàn thành.",
   HOUSEKEEPING_EVIDENCE_NOT_SUPPORTED: "Công việc dọn phòng không yêu cầu nhân viên gửi minh chứng.",
-  CLEANING_DURATION_REQUIRED: "Chọn thời gian hoàn thành từ 10 đến 30 phút, tính từ lúc giao việc.",
+  CLEANING_DURATION_REQUIRED: "Chọn 20, 25 hoặc 30 phút, tính từ lúc giao việc.",
+  ROOM_REPORT_EXECUTION_REQUIRED: "Chỉ báo sự cố trong lúc thực hiện dọn phòng hoặc kiểm tra phòng được giao.",
   INSPECTION_VERSION_REQUIRED: "Kết quả kiểm tra đã thay đổi. Đóng và mở lại chi tiết công việc.",
   INSPECTION_ASSIGNED_TO_ANOTHER: "Công việc kiểm tra đang được giao cho giám sát khác.",
   PAPER_FINDINGS_CONFIRMATION_REQUIRED: "Cần hoàn thành việc làm lại và xác nhận các lỗi đã được khắc phục.",

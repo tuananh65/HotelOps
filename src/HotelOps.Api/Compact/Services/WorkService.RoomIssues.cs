@@ -20,11 +20,16 @@ public sealed partial class WorkService
         Output.Require(!await access.HasRole("OPERATION_MANAGER",request.BranchId,ct),"OM_REQUEST_READ_ONLY",403);
         var housekeeper=await access.HasRole("HK_STAFF",request.BranchId,ct);
         var receptionist=await access.HasRole("RECEPTION",request.BranchId,ct);
+        if(receptionist)Output.Require(await RoomService.ReceptionOnShift(db,actor.Id,clock,request.BranchId,ct),"RECEPTION_NOT_ON_SHIFT",403);
         Output.Require(housekeeper||receptionist||await access.HasRole("HOUSEKEEPING_SUPERVISOR",request.BranchId,ct),"ROOM_REPORTER_REQUIRED",403);
         Output.Key(request.OperationKey);
         Output.Require(!await db.WorkEvents.AnyAsync(e=>e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct),"OPERATION_ALREADY_APPLIED");
         var room=await db.Rooms.SingleOrDefaultAsync(r=>r.RoomId==request.RoomId&&r.BranchId==request.BranchId&&r.IsActive,ct)??throw new ApiException(404,"ROOM_NOT_FOUND");
         Output.Version(room.RowVersion,request.RoomRowVersion);
+        if(!receptionist){
+            var context=await db.WorkItems.SingleOrDefaultAsync(w=>w.WorkId==request.CleaningWorkId&&w.BranchId==room.BranchId&&w.RoomId==room.RoomId,ct);
+            Output.Require(context!=null&&await CanReportDuringHousekeeping(context,ct),"ROOM_REPORT_EXECUTION_REQUIRED",403);
+        }
         Output.Require(request.Quantity>0&&SupplyMath.ValidQuantity(request.Quantity)&&request.Impact is "READINESS" or "SAFETY","ROOM_ISSUE_DETAILS_REQUIRED",400);
         if(housekeeper){
             if(request.CleaningWorkId!=null)await RequireExistingCleaningExecution(request.CleaningWorkId.Value,request.BranchId,ct);
@@ -33,6 +38,9 @@ public sealed partial class WorkService
         }
         var type=await db.ReferenceValues.AsNoTracking().SingleOrDefaultAsync(r=>r.ReferenceId==request.TypeId&&r.Kind=="WORK_CATEGORY"&&r.IsActive,ct);
         Output.Require(type!=null&&(type.Code==RoomIssueCode(room.BranchId,"BROKEN")||type.Code==RoomIssueCode(room.BranchId,"MISSING")),"ROOM_ISSUE_TYPE_INVALID",400);
+        Output.Require(IssueImpacts(type!.SettingsJson).Any(i=>i.Code==request.Impact&&i.IsActive),"ROOM_ISSUE_IMPACT_UNAVAILABLE",400);
+        // Reporting identifies the room and object; notes are optional even for
+        // older type configurations that previously required them.
         Output.Require(!receptionist||type!.Code.EndsWith("_BROKEN"),"RECEPTION_DAMAGE_REPORT_ONLY",403);
         Output.Require((request.AssetId!=null) != (request.ItemId!=null),"ROOM_ISSUE_OBJECT_REQUIRED",400);
         string? objectName=null;
@@ -46,6 +54,7 @@ public sealed partial class WorkService
             Title=$"{type!.Name} · {objectName} · Phòng {room.Code}",Description=request.Note,AssetId=request.AssetId,CategoryId=type.ReferenceId,CreatedBy=actor.Id,CreatedAt=Now};
         Output.Require(work.Title.Length<=250,"TITLE_TOO_LONG",400);
         db.WorkItems.Add(work);await db.SaveChangesAsync(ct);
+        if(request.CleaningWorkId!=null)db.WorkLinks.Add(new WorkLink{BranchId=work.BranchId,SourceWorkId=work.WorkId,TargetWorkId=request.CleaningWorkId.Value,Relation="SOURCE",CreatedBy=actor.Id,CreatedAt=Now});
         Event(work,"ROOM_ISSUE_REPORTED",request.OperationKey,request.Note,null);
         db.WorkEvents.Local.Last(e=>e.WorkId==work.WorkId).SnapshotJson=JsonSerializer.Serialize(new IssueData(type.Code.EndsWith("_BROKEN")?"BROKEN":"MISSING",request.ItemId,objectName!,request.Quantity,request.Impact,request.CleaningWorkId));
         // The report blocks release until independent inspection, without falsifying the current cleaning result.
@@ -88,7 +97,7 @@ public sealed partial class WorkService
         var canCreateRepair=stage is "ROOM_ISSUE_REPAIR_REQUESTED" or "ROOM_ISSUE_REPAIR_CREATED"
             &&!await db.WorkItems.AnyAsync(w=>w.ParentWorkId==id&&w.Kind=="MAINTENANCE"&&w.CreatedAt>=repairRequested&&w.Status!="CANCELLED",ct);
         var room=await db.Rooms.AsNoTracking().SingleAsync(r=>r.RoomId==work.RoomId,ct);
-        return new{work=Output.Record(work),info,stage,canCreateRepair,canReplaceMaterial=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await CanReplaceMaterial(id,ct),room=new{room.Code,rowVersion=Convert.ToBase64String(room.RowVersion)},
+        return new{work=Output.Record(work),info,stage,canCreateRepair,canRequestInspection=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct)&&await MaterialDelivered(await CurrentIssueMaterial(id,ct),ct),canReplaceMaterial=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await CanReplaceMaterial(id,ct),room=new{room.Code,rowVersion=Convert.ToBase64String(room.RowVersion)},
             head=false,
             supervisor=await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct),
             lead=await access.HasRole("MAINTENANCE_SUPERVISOR",work.BranchId,ct)&&await access.Allows("MAINTENANCE_EXECUTE",work.BranchId,true,ct:ct),

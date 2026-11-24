@@ -1,0 +1,7 @@
+.stock-context { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:14px 16px; margin-bottom:12px; border:1px solid var(--border, #cbdedb); border-radius:10px; background:#edf6f3; }
+.stock-context strong,.stock-context small { display:block; }
+.stock-context strong { font-size:18px; overflow-wrap:anywhere; }
+.stock-branch-list { display:grid; gap:12px; }
+.stock-below-minimum td { background:#fff1f1; }
+.stock-below-minimum .numeric,.stock-below-minimum .numeric small { color:#b42318; font-weight:700; }
+@media(max-width:600px) { .stock-context > * { min-width:0; max-width:100%; } .stock-context button { white-space:normal; } }

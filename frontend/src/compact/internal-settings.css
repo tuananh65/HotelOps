@@ -6,6 +6,10 @@
 .internal-settings-form{display:grid;gap:1rem;padding:0!important;background:transparent!important}
 .internal-settings-form label{margin:0!important}
 .internal-settings-form textarea{min-height:5rem!important}
+.configuration-checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.65rem;max-height:16rem;overflow:auto;padding:.5rem 0}
+.configuration-checklist label{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center;gap:.6rem;text-align:left!important;padding:.35rem 0}
+.configuration-checklist input[type=checkbox]{width:18px!important;height:18px!important;min-height:18px!important;min-width:18px!important;padding:0!important;flex:0 0 18px;margin:0}
+.internal-settings-form fieldset{border:1px solid var(--border,#d4e2df);border-radius:10px;padding:1rem;min-width:0}
 @media(max-width:640px){
  .internal-settings-toolbar{align-items:flex-start;flex-direction:column}
  .internal-settings table,.internal-settings tbody,.internal-settings tr,.internal-settings td{display:block;width:100%}

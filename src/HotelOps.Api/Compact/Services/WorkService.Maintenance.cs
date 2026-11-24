@@ -10,6 +10,7 @@ public sealed partial class WorkService
     {
         if(rows.Length==0)return [];
         var ids=rows.Select(w=>w.WorkId).ToArray();
+        var incidentCompletions=await db.WorkEvents.AsNoTracking().Where(e=>ids.Contains(e.WorkId)&&e.EventType=="CLEANING_WITH_INCIDENT").Select(e=>e.WorkId).Distinct().ToArrayAsync(ct);
         var assetIds=rows.Select(w=>w.AssetId).ToArray();var priorityIds=rows.Select(w=>w.PriorityId).ToArray();var branchIds=rows.Select(w=>w.BranchId).Distinct().ToArray();
         var assignments=await (from a in db.WorkAssignments.AsNoTracking() join u in db.Users on a.AssigneeUserId equals u.UserId
             where ids.Contains(a.WorkId)&&a.AssignmentStatus=="ACTIVE" select new{a.WorkId,u.FullName}).ToArrayAsync(ct);
@@ -21,6 +22,7 @@ public sealed partial class WorkService
             ["assetName"]=assets.FirstOrDefault(a=>a.AssetId==w.AssetId)?.Name,
             ["priorityName"]=priorities.FirstOrDefault(r=>r.ReferenceId==w.PriorityId)?.Name,
             ["roomCode"]=rooms.FirstOrDefault(r=>r.RoomId==w.RoomId)?.Code,
+            ["completedWithIncident"]=incidentCompletions.Contains(w.WorkId),
             ["assigneeName"]=string.Join(", ",assignments.Where(a=>a.WorkId==w.WorkId).Select(a=>a.FullName))})).ToArray();
     }
     private async Task<object?> MaintenanceContext(Entities.WorkItem w,CancellationToken ct)

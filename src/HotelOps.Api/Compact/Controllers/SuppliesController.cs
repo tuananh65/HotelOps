@@ -13,5 +13,7 @@ public sealed class SuppliesController(SupplyConfigurationService configuration,
     [HttpGet("allocations/{id:long}/history")] public Task<IReadOnlyList<SupplyLedgerDto>> History(long id,CancellationToken ct)=>supplies.History(id,ct);
     [HttpGet("documents/{id:long}")] public Task<object> Document(long id,CancellationToken ct)=>supplies.Document(id,ct);
     // Allocation, consumption and return have no standalone public mutation endpoint.
+    [HttpGet("minimum")] public Task<object> Minimum(long branchId,long warehouseId,long itemId,CancellationToken ct)=>configuration.Minimum(branchId,warehouseId,itemId,ct);
+    [HttpPut("minimum")] public Task<object> SaveMinimum(SaveStockMinimumRequest request,CancellationToken ct)=>configuration.SaveMinimum(request,ct);
     // They are called atomically by workday/work/request transitions.
 }

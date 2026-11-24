@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using HotelOps.Api.Compact.Infrastructure;
+using HotelOps.Api.Compact.Data;
 
 namespace HotelOps.Api.Compact.Services;
 
 public sealed partial class RoomService
 {
-    private async Task<bool> CurrentReceptionShift(long branchId, CancellationToken ct)
+    private Task<bool> CurrentReceptionShift(long branchId, CancellationToken ct) =>
+        ReceptionOnShift(db, actor.Id, clock, branchId, ct);
+
+    internal static async Task<bool> ReceptionOnShift(HotelOpsCompactDbContext db, long userId, TimeProvider clock, long branchId, CancellationToken ct)
     {
         var timezone = await db.Branches.AsNoTracking().Where(b => b.BranchId == branchId).Select(b => b.Timezone).SingleAsync(ct);
         var instant = clock.GetUtcNow();
@@ -15,7 +19,8 @@ public sealed partial class RoomService
         var now = instant.UtcDateTime;
         var working = await (from a in db.WorkdayAssignments.AsNoTracking()
             join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
-            where a.UserId == actor.Id && s.BranchId == branchId && s.IsActive
+            join r in db.Roles on s.RoleId equals r.RoleId
+            where a.UserId == userId && s.BranchId == branchId && s.IsActive && r.Code == "RECEPTION" && r.IsActive
                 && a.WorkDate == day && a.Status == "WORKING" && a.StartedAt != null
                 && a.StartedAt <= now && a.EndedAt == null
                 && s.StartMinute <= minute && minute < s.EndMinute

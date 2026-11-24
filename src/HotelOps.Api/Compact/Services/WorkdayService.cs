@@ -19,6 +19,12 @@ public sealed partial class WorkdayService(HotelOpsCompactDbContext db,Access ac
         if(!manages)await access.Require("ATTENDANCE_RECORD",branch,true,ct);
         return manages;
     }
+    private async Task RequireShiftNotEnded(WorkdayShift shift, IEnumerable<DateOnly> dates, CancellationToken ct)
+    {
+        var zone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==shift.BranchId).Select(b=>b.Timezone).SingleAsync(ct);
+        var local=TimeZoneInfo.ConvertTime(clock.GetUtcNow(),TimeZoneInfo.FindSystemTimeZoneById(zone));
+        Output.Require(dates.All(date=>date.ToDateTime(TimeOnly.MinValue).AddMinutes(shift.EndMinute)>local.DateTime),"SHIFT_ALREADY_ENDED",409);
+    }
     public async Task<object> Week(long branch,DateOnly date,CancellationToken ct)
     {
         var manages=await ReadScope(branch,ct);
@@ -45,6 +51,8 @@ public sealed partial class WorkdayService(HotelOpsCompactDbContext db,Access ac
         var shift=await db.WorkdayShifts.AsNoTracking().SingleOrDefaultAsync(s=>s.ShiftId==shiftId,ct)??throw new ApiException(404,"SHIFT_NOT_FOUND");
         await access.Require("SHIFT_MANAGE",shift.BranchId,ct:ct);
         Output.Require(date.Year is >=2000 and <=2100,"INVALID_WORKDAY_DATE",400);
+        Output.Require(shift.IsActive,"SHIFT_INACTIVE");
+        await RequireShiftNotEnded(shift,[date],ct);
         var users=await (await EligibleQuery(shift,date,ct)).OrderBy(u=>u.FullName).Select(u=>new {u.UserId,u.EmployeeCode,u.FullName}).ToArrayAsync(ct);
         var busy=await (from a in db.WorkdayAssignments.AsNoTracking() join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
             where a.WorkDate==date && a.Status!="CANCELLED" && s.StartMinute<shift.EndMinute && s.EndMinute>shift.StartMinute select a.UserId).ToArrayAsync(ct);
@@ -70,6 +78,7 @@ public sealed partial class WorkdayService(HotelOpsCompactDbContext db,Access ac
         await access.Require("SHIFT_MANAGE",shift.BranchId,ct:ct);Output.Version(shift.RowVersion,request.RowVersion);
         var today=await Today(shift.BranchId,ct);
         Output.Require(request.WorkDate>=today&&request.WorkDate<=today.AddDays(366),"SHIFT_DATE_OUT_OF_RANGE",400);
+        await RequireShiftNotEnded(shift,[request.WorkDate],ct);
         Output.Require(shift.IsActive,"SHIFT_INACTIVE");
         Output.Require(await (await EligibleQuery(shift,request.WorkDate,ct)).AnyAsync(u=>u.UserId==request.UserId,ct),"SHIFT_EMPLOYEE_NOT_ELIGIBLE",409);
         await access.EligibleFor(request.UserId,shift.BranchId,"ATTENDANCE_RECORD",ct);

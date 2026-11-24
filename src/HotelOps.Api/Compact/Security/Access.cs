@@ -17,6 +17,7 @@ public sealed class Access(HotelOpsCompactDbContext db,Actor actor,TimeProvider 
             join p in db.Permissions on rp.PermissionId equals p.PermissionId
             where ur.UserId==userId && ur.AssignedAt<=now && ur.RevokedAt==null && (ur.ExpiresAt==null || ur.ExpiresAt>now)
                 && role.IsActive && p.IsActive && p.Code==code
+                && !(role.Code=="HOUSEKEEPING_SUPERVISOR" && p.Code=="ROOM_VIEW")
             select new {ur.BranchId,rp.DataScope}).ToArrayAsync(ct);
         if(branchId!=null && !await db.Branches.AnyAsync(b=>b.BranchId==branchId&&b.IsActive,ct))return false;
         if(paths.Any(p=>p.DataScope=="ALL" && p.BranchId==null))return true;

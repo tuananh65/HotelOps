@@ -44,6 +44,7 @@ public sealed partial class WorkdayService
         await access.Require("SHIFT_MANAGE", shift.BranchId, ct: ct);
         var workDates = SchedulingDates(dates, await Today(shift.BranchId, ct));
         Output.Require(shift.IsActive, "SHIFT_INACTIVE");
+        await RequireShiftNotEnded(shift, workDates, ct);
         WorkdayCandidateDto[]? users = null;
         var slots = new List<WorkdaySlotDto>();
         foreach (var date in workDates)

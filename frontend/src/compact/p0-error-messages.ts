@@ -1,5 +1,6 @@
 /** Business errors shared by work, supply, shift and typed request screens. */
 export const p0Errors: Record<string, string> = {
+  INSPECTION_NOTE_REQUIRED: "Vui lòng ghi lý do không đạt (tối đa 2.000 ký tự).",
   CLEANING_RECONCILIATION_NOT_ALLOWED: "Chỉ đối soát công việc dọn phòng đã bắt đầu và còn đang thực hiện hoặc tạm dừng.",
   CLEANING_SUPPLIES_ALREADY_RECONCILED: "Công việc đã có vật tư giữ chỗ hoặc đã sử dụng. Tải lại để xem kết quả mới nhất.",
   LEGACY_SUPPLY_INITIALIZATION_NOT_ALLOWED: "Chỉ khởi tạo vật tư còn thiếu cho ca và công việc đã bắt đầu trước khi chuyển đổi hệ thống. Không thể cấp lại cho ca mới hoặc lượt cấp đã đóng.",

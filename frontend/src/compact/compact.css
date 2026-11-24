@@ -475,6 +475,10 @@ nav button[aria-current] {
   background: #f8e9e5;
   color: #923e30;
 }
+.badge.warning {
+  background: #ffe49a;
+  color: #704800;
+}
 .room-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));

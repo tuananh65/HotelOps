@@ -5,6 +5,7 @@ import { action, api, fields, message, type Row } from "./api";
 import { useAuth } from "./auth";
 import {
   Badge,
+  ConfirmationActions,
   Dialog,
   Empty,
   History,
@@ -109,7 +110,7 @@ export default function Rooms({
         ? "NEEDS_CLEANING"
         : r.readiness;
   const reception = profile.roles.some(
-    (r) => r.code === "RECEPTION" && r.branchId === branch,
+    (r) => r.code === "RECEPTION" && (r.branchId === branch || r.branchId === null),
   );
   const staff =
     profile.roles.length > 0 &&
@@ -611,7 +612,7 @@ export default function Rooms({
                   Tạo việc dọn phòng
                 </a>
               )}
-            {can("IR_CREATE") && !profile.roles.some(r=>r.code==="OPERATION_MANAGER"&&(r.branchId===branch||r.branchId===null)) && (
+            {can("IR_CREATE") && (!reception || room.canOperate === true) && !profile.roles.some(r=>r.code==="OPERATION_MANAGER"&&(r.branchId===branch||r.branchId===null)) && (
               <a
                 className="button-link"
                 href={`#room-issues?room=${room.roomId}&create=1`}
@@ -621,6 +622,7 @@ export default function Rooms({
             )}
           </div>
           {command && (
+            <Dialog title="Xác nhận thao tác phòng" className="confirmation-popup" close={()=>{if(!pending)setCommand("");}}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -682,12 +684,11 @@ export default function Rooms({
                   : command === "cancel-reservation" ? "Khách chưa sử dụng phòng. Hủy đặt sẽ đưa phòng về sẵn sàng."
                   : "Thao tác sẽ được ghi vào lịch sử phòng."}
               </p>
-              <button className={command === "cancel-reservation" ? "primary room-action-cancel" : command === "move" ? "primary room-action-move" : "primary"} disabled={pending}>
-                Xác nhận
-              </button>
-            </form>
+              <ConfirmationActions pending={pending} cancel={()=>setCommand("")}/>
+              {error && <AlertPopup>{error}</AlertPopup>}
+            </form></Dialog>
           )}
-          {error && (
+          {error && !command && (
             <AlertPopup>
               {error}
             </AlertPopup>

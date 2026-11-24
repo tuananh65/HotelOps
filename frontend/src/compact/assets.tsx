@@ -6,7 +6,7 @@ import { useCatalogRows } from "./use-catalog-rows";
 import { Fragment, useState } from "react";
 import { action, api, fields, message, type Row } from "./api";
 import { useAuth } from "./auth";
-import { Dialog, History, State, useQuery, Pager, Empty, Badge } from "./ui";
+import { ConfirmationActions, Dialog, History, State, useQuery, Pager, Empty, Badge } from "./ui";
 import { SlidersHorizontal } from "lucide-react";
 import { assetConditionLabel, assetConditions } from "./asset-presentation";
 import AssetConditionBar from "./asset-condition-bar";
@@ -362,6 +362,7 @@ export default function Assets({
                   <button className="danger" onClick={() => setCommand("reject")}>Từ chối bàn giao</button>
                 </div>}
                 {command && (
+                  <Dialog title="Xác nhận thao tác tài sản" className="confirmation-popup" close={()=>{if(!pending)setCommand("");}}>
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault();
@@ -431,12 +432,11 @@ export default function Assets({
                         maxLength={2000}
                       />
                     </label>
-                    <button className="primary" disabled={pending}>
-                      Xác nhận
-                    </button>
-                  </form>
+                    <ConfirmationActions pending={pending} cancel={()=>setCommand("")}/>
+                    {error&&<AlertPopup>{error}</AlertPopup>}
+                  </form></Dialog>
                 )}
-                {error && (
+                {error && !command && (
                   <AlertPopup>
                     {error}
                   </AlertPopup>

@@ -14,7 +14,7 @@ import {
   timestamp,
 } from "./api";
 import { useAuth } from "./auth";
-import { Badge, Dialog, Empty, History, Pager, State, useQuery } from "./ui";
+import { Badge, ConfirmationActions, Dialog, Empty, History, Pager, State, useQuery } from "./ui";
 const types = [
   ["MATERIAL_REQUEST", "Yêu cầu vật tư", "MR_VIEW", "MR_CREATE"],
   [
@@ -43,16 +43,18 @@ const types = [
   ["ADJUSTMENT", "Điều chỉnh", "INVENTORY_VIEW", "STOCK_ADJUST_POST"],
   ["REVERSAL", "Đảo chứng từ", "INVENTORY_VIEW", "STOCK_REVERSE"],
 ];
-export default function Documents(props: {materialOnly?:boolean;readScope?:number}) {
+export default function Documents(props: {materialOnly?:boolean;readScope?:number;historyTitle?:boolean}) {
   const transfer=new URLSearchParams(location.hash.split("?")[1]).get("transfer")==="1";
   return transfer && props.readScope===undefined && !props.materialOnly ? <Transfers/> : <DocumentList {...props}/>;
 }
 function DocumentList({
   materialOnly = false,
   readScope,
+  historyTitle = false,
 }: {
   materialOnly?: boolean;
   readScope?: number;
+  historyTitle?: boolean;
 }) {
   const { branch, can, profile } = useAuth(),
     visible = types.filter(
@@ -87,7 +89,7 @@ function DocumentList({
   const [sort, setSort] = useState("latest");
   const [createKey, setCreateKey] = useState(() => crypto.randomUUID());
   const query = useQuery<Page>(
-      `documents?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}kind=${kind}&page=${page}${materialOnly || readScope !== undefined ? `&search=${encodeURIComponent(search)}&sort=${sort}${pendingOnly ? "&status=PENDING_APPROVAL" : ""}` : ""}`,
+      `documents?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}kind=${kind}&page=${page}${historyTitle || materialOnly || readScope !== undefined ? `&search=${encodeURIComponent(search)}&sort=${sort}${pendingOnly ? "&status=PENDING_APPROVAL" : ""}` : ""}`,
       revision,
     ),
     options = useQuery(`workspace/options?branchId=${branch}`),
@@ -191,11 +193,11 @@ function DocumentList({
     <>
       <div className="page-heading">
         <PageTitle>
-          <h1>{materialOnly ? "Yêu cầu vật tư" : "Vật tư & chứng từ"}</h1>
+          <h1>{historyTitle ? "Lịch sử yêu cầu vật tư" : materialOnly ? "Yêu cầu vật tư" : "Vật tư & chứng từ"}</h1>
           <p>Duyệt yêu cầu và ghi sổ kho là hai bước riêng biệt</p>
         </PageTitle>
       </div>
-      {!materialOnly && readScope===undefined && can("INVENTORY_VIEW",false) && <p><a className="button-link" href="#documents?transfer=1">?i?u chuy?n v?t t? gi?a c? s?</a></p>}
+      {!materialOnly && readScope===undefined && can("INVENTORY_VIEW",false) && <p><a className="button-link" href="#documents?transfer=1">Điều chuyển vật tư giữa chi nhánh</a></p>}
       <PageToolbar
         actions={
           write && (
@@ -232,7 +234,7 @@ function DocumentList({
             </select>
           </label>
         )}
-        {materialOnly || readScope !== undefined ? (
+        {historyTitle || materialOnly || readScope !== undefined ? (
           <>
             <label className="search">
               Tìm yêu cầu vật tư
@@ -270,7 +272,7 @@ function DocumentList({
           </div>
         )}
       </PageToolbar>
-      {(materialOnly || readScope !== undefined) && filters && (
+      {(historyTitle || materialOnly || readScope !== undefined) && filters && (
         <PageToolbar>
           <label>
             Trạng thái
@@ -671,7 +673,7 @@ function DocumentList({
                   </Dialog>
                 )}
                 {command && (
-                  <Dialog
+                  <Dialog className="confirmation-popup"
                     title={
                       actions.find(([key]) => key === command)?.[1] ||
                       "Xác nhận"
@@ -710,16 +712,7 @@ function DocumentList({
                           )}
                         />
                       </label>
-                      <button className="primary" disabled={pending}>
-                        Xác nhận
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() => setCommand("")}
-                      >
-                        Quay lại
-                      </button>
+                      <ConfirmationActions pending={pending} cancel={()=>setCommand("")}/>
                       {error && (
                         <AlertPopup>
                           {error}

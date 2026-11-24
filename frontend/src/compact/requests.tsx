@@ -2,7 +2,7 @@ import { usePagedRows } from "./use-paged-rows";
 import { useState } from "react";
 import { api, ApiError, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
-import { Dialog, Empty, State, useQuery } from "./ui";
+import { ConfirmationActions, Dialog, Empty, State, useQuery } from "./ui";
 import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import Work from "./work";
@@ -68,12 +68,12 @@ export default function Requests(){
       {!data.actions.length&&<p>{roomDomain?'Xem kết quả và thao tác được phép trong quy trình phòng.':'Chỉ xem tại bước này.'}</p>}
       <h3>Lịch sử xử lý</h3><ol className="request-timeline">{data.history.map((h:Row)=><li key={h.eventId}><strong>{textStatus(h.newStatus)}</strong><small>{timestamp(h.at)} · {roles[h.actorRole]||h.actorRole} · Nhân viên {h.actorUserId}</small>{h.newQueue&&<p>Chuyển đến: {roles[h.newQueue]||h.newQueue}</p>}{h.reason&&<p>{h.reason}</p>}</li>)}</ol>
     </>}</State></Dialog>}
-    {command&&data&&<Dialog title={actions[command]||command} close={()=>!pending&&setCommand('')}><form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act({reason:f.get('reason')||null,...(command==='receive'?{note:f.get('reason')||null,supplierName:f.get('supplierName')||null,items:data.items.map((r:Row)=>({itemId:r.itemId,quantity:Number(f.get(`qty-${r.itemId}`))})).filter((r:Row)=>r.quantity>0)}:command==='approve'?{approvedItems:data.items.map((r:Row)=>({itemId:r.itemId,quantity:Number(f.get(`qty-${r.itemId}`))}))}:{})});}}>
+    {command&&data&&<Dialog className="confirmation-popup" title={actions[command]||command} close={()=>!pending&&setCommand('')}><form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act({reason:f.get('reason')||null,...(command==='receive'?{note:f.get('reason')||null,supplierName:f.get('supplierName')||null,items:data.items.map((r:Row)=>({itemId:r.itemId,quantity:Number(f.get(`qty-${r.itemId}`))})).filter((r:Row)=>r.quantity>0)}:command==='approve'?{approvedItems:data.items.map((r:Row)=>({itemId:r.itemId,quantity:Number(f.get(`qty-${r.itemId}`))}))}:{})});}}>
       {command==='approve'&&<p>Xác nhận số lượng cần xử lý. Thao tác này chưa làm tăng tồn kho.</p>}
       {command==='receive'&&<><p>Chỉ nhập số lượng hàng đã nhận thực tế. Để 0 với mặt hàng chưa nhận.</p><label>Nguồn giao hàng<input name="supplierName" maxLength={250}/></label></>}
       {['approve','receive'].includes(command)&&data.items.map((r:Row)=>{const max=command==='receive'?(r.approvedQuantity??r.requestedQuantity)-r.receivedQuantity:r.requestedQuantity;return <label className="request-line" key={r.itemId}>{r.name}<input name={`qty-${r.itemId}`} type="number" min={command==='receive'?0:0.0001} max={max} step="0.0001" required defaultValue={command==='receive'?0:max}/></label>;})}
       <label>{command==='reject'?'Lý do từ chối':'Ghi chú'}<textarea name="reason" required={command==='reject'} minLength={command==='reject'?10:undefined} maxLength={2000}/></label>
-      {error&&<AlertPopup>{error}</AlertPopup>}<button className="primary" disabled={pending}>{pending?'Đang xử lý…':actions[command]}</button>
+      {error&&<AlertPopup>{error}</AlertPopup>}<ConfirmationActions pending={pending} cancel={()=>setCommand('')}/>
     </form></Dialog>}
   </div>;
 }

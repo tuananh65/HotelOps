@@ -92,7 +92,13 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         var events=await db.RequestWorkflowEvents.AsNoTracking().Where(e=>e.WorkId==id).OrderBy(e=>e.RequestEventId).ToArrayAsync(ct);
         var roleNames=await db.Roles.AsNoTracking().ToDictionaryAsync(r=>r.RoleId,r=>r.Code,ct);
         var history=events.Select(e=>new RequestWorkflowHistoryDto(e.RequestEventId,e.Action,e.PreviousStatus,e.NewStatus,e.PreviousQueueRoleId is long oldRole?roleNames.GetValueOrDefault(oldRole):null,e.NewQueueRoleId is long newRole?roleNames.GetValueOrDefault(newRole):null,e.PreviousHandlerUserId,e.NewHandlerUserId,e.ActorUserId,roleNames.GetValueOrDefault(e.ActorRoleId,""),e.OccurredAt,e.Reason,e.RelatedDocumentId,e.CorrelationId,e.PreviousVersion==null?null:Convert.ToBase64String(e.PreviousVersion))).ToArray();
-        return new(await Summary(work,flow,ct),work.Description,flow.AllocationId,flow.WarehouseId,flow.DocumentId,flow.ParentRequestWorkId,items,history,await Actions(flow,work,ct));
+        var actions=await Actions(flow,work,ct);
+        string? blockedReason=null;
+        if(!Finished.Contains(flow.Status)&&!actions.Any(a=>a is "claim" or "release")){
+            try{await HandlerAuthority(flow,ct,allowStaleClaim:true);}
+            catch(ApiException e) when(e.Status is 403 or 409){blockedReason=e.Code;}
+        }
+        return new(await Summary(work,flow,ct),work.Description,flow.AllocationId,flow.WarehouseId,flow.DocumentId,flow.ParentRequestWorkId,items,history,actions,blockedReason);
     }
 
     private async Task<RequestWorkflowSummary> Summary(WorkItem w,RequestWorkflow? r,CancellationToken ct)=>new(w.WorkId,w.WorkNo,r?.RequestType??(w.Kind=="INCIDENT"?"INCIDENT":"GENERAL_INTERNAL_REQUEST"),w.Title,w.BranchId,w.RoomId,w.CreatedBy,w.RequesterDepartmentId,w.DepartmentId,r?.Status??w.Status,r?.QueueRoleId is long role?await db.Roles.Where(x=>x.RoleId==role).Select(x=>x.Code).SingleAsync(ct):null,r?.HandlerUserId,w.PriorityId,w.CreatedAt,r?.UpdatedAt??w.CompletedAt??w.CreatedAt,r?.CorrelationId,Convert.ToBase64String(r?.RowVersion??w.RowVersion),r!=null,await db.Users.AsNoTracking().Where(u=>u.UserId==w.CreatedBy).Select(u=>u.FullName).SingleAsync(ct),r!=null&&r.HandlerUserId!=null?await db.Users.AsNoTracking().Where(u=>u.UserId==r.HandlerUserId).Select(u=>u.FullName).SingleOrDefaultAsync(ct):null);

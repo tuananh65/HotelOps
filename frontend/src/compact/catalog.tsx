@@ -354,7 +354,7 @@ export default function Catalog({
           ) : null}
         </div>
         <div
-          className={embedded || mode === "settings" ? "" : "catalog-layout"}
+          className={embedded || mode === "settings" || inventoryMode ? "" : "catalog-layout"}
         >
           {!embedded && mode !== "settings" && !inventoryMode && (
             <nav

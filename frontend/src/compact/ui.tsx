@@ -151,7 +151,7 @@ export const label = (s: string) => labels[s] || s;
 export function Badge({ value }: { value: string }) {
   return (
     <span
-      className={`badge ${value === "WORKING" ? "shift-working" : value === "ENDED" ? "shift-ended" : ["READY", "CLOSED", "PASSED", "POSTED", "COMPLETED"].includes(value) ? "good" : ["BLOCKED", "FAILED", "REJECTED", "REWORK_REQUIRED"].includes(value) ? "bad" : "neutral"}`}
+      className={`badge ${value === "Chờ kiểm tra - sc" ? "inspection-sc" : value === "Chờ kiểm tra - dl" ? "inspection-dl" : value === "WORKING" ? "shift-working" : value === "ENDED" ? "shift-ended" : ["Chờ duyệt","PENDING_INSPECTION","PENDING_REINSPECTION","Chờ kiểm tra","Kiểm tra phòng gặp sự cố"].includes(value) ? "warning" : ["READY", "CLOSED", "PASSED", "POSTED", "COMPLETED"].includes(value) ? "good" : ["BLOCKED", "FAILED", "REJECTED", "REWORK_REQUIRED"].includes(value) ? "bad" : "neutral"}`}
     >
       {label(value)}
     </span>
@@ -221,6 +221,21 @@ export function Dialog({
       {children}
     </dialog>
   );
+}
+export function ConfirmationActions({ cancel, confirm, pending = false, disabled = false }: {
+  cancel: () => void; confirm?: () => void; pending?: boolean; disabled?: boolean;
+}) {
+  return <div className="confirmation-actions">
+    <button type={confirm ? "button" : "submit"} className="confirm-accept" disabled={pending || disabled} onClick={confirm}>{pending ? "Đang xử lý…" : "Xác nhận"}</button>
+    <button type="button" className="confirm-cancel" disabled={pending} onClick={cancel}>Hủy</button>
+  </div>;
+}
+export function ConfirmPopup({ title, children, confirm, cancel, pending = false, disabled = false }: {
+  title: string; children: ReactNode; confirm: () => void; cancel: () => void; pending?: boolean; disabled?: boolean;
+}) {
+  return <Dialog title={title} className="confirmation-popup" close={() => { if (!pending) cancel(); }}>
+    {children}<ConfirmationActions confirm={confirm} cancel={cancel} pending={pending} disabled={disabled}/>
+  </Dialog>;
 }
 export function History({ rows }: { rows: Row[] }) {
   return (

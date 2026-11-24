@@ -33,12 +33,23 @@ public sealed partial class WorkService
             select ur.UserId;
     }
 
-    private async Task RequireCleaningAssignee(long userId, long branchId, CancellationToken ct)
+    private IQueryable<long> UnacceptedHousekeepers(long? exceptWorkId = null) =>
+        from a in db.WorkAssignments
+        join w in db.WorkItems on a.WorkId equals w.WorkId
+        where a.AssignmentStatus == "ACTIVE" && a.AcceptedAt == null && w.WorkId != exceptWorkId
+            && (w.Kind == "CLEANING" || w.Kind == "REWORK") && !WorkRules.Terminal.Contains(w.Status)
+        select a.AssigneeUserId;
+
+    private async Task RequireCleaningAssignee(long userId, long branchId, CancellationToken ct, long? exceptWorkId = null)
     {
+        // Same transaction lock/order as supply reservation and request writers.
+        await StaffSupplyService.Lock(db, ct);
         await access.EligibleFor(userId, branchId, "CLEANING_EXECUTE", ct);
         Output.Require(await HousekeepingStaffIds(branchId).ContainsAsync(userId, ct), "CLEANING_STAFF_REQUIRED");
         Output.Require(await (await CurrentCleaningShift(branchId, ct)).AnyAsync(a => a.UserId == userId, ct),
             "CLEANING_ASSIGNEE_NOT_ON_SHIFT");
+        Output.Require(!await UnacceptedHousekeepers(exceptWorkId).ContainsAsync(userId, ct),
+            "CLEANING_ASSIGNEE_HAS_UNACCEPTED_WORK");
     }
 
     private async Task RequireExistingCleaningExecution(long workId,long branchId,CancellationToken ct)
@@ -82,7 +93,6 @@ public sealed partial class WorkService
     {
         await access.Require("CLEANING_ASSIGN", branchId, ct: ct);
         await access.Require("CLEANING_VIEW", branchId, ct: ct);
-        await access.Require("ROOM_VIEW", branchId, ct: ct);
         var query = RoomsNeedingCleaning(branchId);
         if (roomId != null) query = query.Where(r => r.RoomId == roomId);
         if (!string.IsNullOrWhiteSpace(search))

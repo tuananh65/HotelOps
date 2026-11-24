@@ -1,4 +1,11 @@
 .supply-page { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.supply-group-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.supply-group-tabs button { height: auto; min-width: 0; white-space: normal; text-align: left; display: grid; gap: 6px; padding: 14px; border: 1px solid var(--border, #d6e3e0); }
+.supply-group-tabs button.active { background: #e2f1ed; color: #164e47; border-color: #246b61; }
+.supply-group-tabs span { font-size: 12px; }
+.supply-group-summary { margin-bottom: 16px; }
+.supply-group-summary p { margin: 6px 0; }
+@media(max-width: 600px) { .supply-group-tabs { grid-template-columns: 1fr; gap: 8px; } }
 .supply-page .page-toolbar { flex-wrap: wrap; }
 .supply-page .page-toolbar > label { flex: 1 1 210px; min-width: 0; }
 .supply-page input, .supply-page select, .supply-form input, .supply-form select { min-width: 0; max-width: 100%; box-sizing: border-box; }

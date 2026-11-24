@@ -17,7 +17,7 @@ public sealed partial class WorkService
         if(kind=="BROKEN"&&command is "create-repair" or "start-repair" or "report-remedy" or "inspection-fail" or "inspection-pass"){
             var repair=await CurrentRepair(root,ct);
             var status=command switch{
-                "create-repair"=>"ACCEPTED","start-repair"=>"IN_PROGRESS",
+                "create-repair" or "start-repair"=>"IN_PROGRESS",
                 "report-remedy"=>"PENDING_REINSPECTION","inspection-fail"=>"REWORK_REQUIRED",_=>"COMPLETED"};
             var queue=status=="COMPLETED"?null:status=="PENDING_REINSPECTION"?"HOUSEKEEPING_SUPERVISOR":"MAINTENANCE_SUPERVISOR";
             await ChildTransition(root,repair,"MAINTENANCE_REMEDIATION",status,queue,command,actingRole,input,ct);
@@ -35,12 +35,12 @@ public sealed partial class WorkService
             await ChildTransition(root,child,"DURABLE_ITEM_REMEDIATION","PENDING_STOREKEEPER","STOREKEEPER",command,actingRole,input,ct,documentId);
         }
 
-        if(kind=="MISSING"&&command is "report-remedy" or "inspection-fail" or "inspection-pass"){
+        if(kind=="MISSING"&&command is "report-remedy" or "request-inspection" or "inspection-fail" or "inspection-pass"){
             var material=await CurrentIssueMaterial(root.WorkId,ct);
             var flow=await db.RequestWorkflows.SingleOrDefaultAsync(r=>r.ParentRequestWorkId==root.WorkId&&r.RequestType=="DURABLE_ITEM_REMEDIATION"&&r.DocumentId==material,ct);
             // A pre-cutover issue may already have a document without structured children.
             var child=flow==null?await NewIssueChild(root,"Bổ sung đồ vật",ct):await db.WorkItems.SingleAsync(w=>w.WorkId==flow.WorkId,ct);
-            var status=command=="report-remedy"?"PENDING_REINSPECTION":command=="inspection-pass"?"COMPLETED":"REJECTED";
+            var status=command is "report-remedy" or "request-inspection"?"PENDING_REINSPECTION":command=="inspection-pass"?"COMPLETED":"REJECTED";
             await ChildTransition(root,child,"DURABLE_ITEM_REMEDIATION",status,status=="PENDING_REINSPECTION"?"HOUSEKEEPING_SUPERVISOR":null,command,actingRole,input,ct,material);
         }
 

@@ -6,7 +6,7 @@ import WorkdaySettings from "./workday-settings";
 import type { WorkdayCalendar } from "./workday-scheduling";
 import { api, action, dateKey, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
-import { Badge, Dialog, Empty, History, State, useQuery } from "./ui";
+import { Badge, ConfirmPopup, Dialog, Empty, History, State, useQuery } from "./ui";
 const time = (n: number) =>
   `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 const audienceKey = (shift: Row) => `${shift.departmentId}:${shift.roleId}`;
@@ -19,6 +19,8 @@ function days(start: string) {
 }
 export default function Workday() {
   const { branch, profile } = useAuth();
+  const branchRoles = profile.roles.filter(r => r.branchId == null || r.branchId === branch);
+  const operationsManager = branchRoles.length > 0 && branchRoles.every(r => r.code === "OPERATION_MANAGER");
   const [date, setDate] = useState(dateKey()),
     [audience, setAudience] = useState(""),
     [revision, bump] = useState(0),
@@ -28,6 +30,7 @@ export default function Workday() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [settings, setSettings] = useState(false);
+  const [showHistorical, setShowHistorical] = useState(false);
   const [ending, setEnding] = useState(false);
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -50,7 +53,7 @@ export default function Workday() {
   );
   const audiences = [
     ...new Map<string, string>(
-      (data?.shifts ?? []).map((s: Row) => [
+      (data?.shifts ?? []).filter((s: Row) => !data?.canManage || s.isActive || showHistorical).map((s: Row) => [
         audienceKey(s),
         `${s.role} · ${s.department}`,
       ]),
@@ -60,7 +63,7 @@ export default function Workday() {
     ? audience
     : audiences[0]?.[0] || "";
   const visibleShifts = (data?.shifts ?? []).filter(
-    (s: Row) => audienceKey(s) === selectedAudience,
+    (s: Row) => audienceKey(s) === selectedAudience && (!data?.canManage || s.isActive || showHistorical),
   );
   const history = useQuery<Row[]>(
     detail ? `workday/assignments/${detail.assignmentId}/history` : null,
@@ -133,7 +136,7 @@ export default function Workday() {
         )}
         <div className="toolbar">
           {data?.canManage && (
-            <button onClick={() => setSettings(true)}>Cấu hình ca</button>
+            <button onClick={() => { if (operationsManager) location.hash = "configuration?tab=shifts"; else setSettings(true); }}>Cấu hình ca</button>
           )}
           <button disabled={query.loading} onClick={() => jump(data?.canManage ? -7 : -1)} aria-label={data?.canManage ? "Tuần trước" : "Ngày trước"}>
             ← {data?.canManage ? "Tuần trước" : "Ngày trước"}
@@ -169,6 +172,7 @@ export default function Workday() {
         </AlertPopup>
       )}
       {data?.canManage && calendar.data?.notice && <p className="muted">{calendar.data.notice}</p>}
+      {data?.canManage && <label className="checkbox-label"><input type="checkbox" checked={showHistorical} onChange={e=>setShowHistorical(e.target.checked)}/>Hiện lịch sử ca đã ngừng sử dụng</label>}
       <State {...query} retry={() => bump((x) => x + 1)}>
         {data && (
           <>
@@ -191,14 +195,7 @@ export default function Workday() {
                 {!data.active.canEnd && <p role="status">Hoàn tất công việc, xử lý vật tư giữ chỗ và yêu cầu bổ sung còn mở trước khi kết thúc ca.</p>}
               </section>
             )}
-            {ending && data.active && <Dialog title="Kết thúc ca" close={() => { if (!pending) setEnding(false); }}>
-              <p>Vật tư chưa sử dụng sẽ được hoàn trả về kho khi kết thúc ca.</p>
-              <div className="actions">
-                <button disabled={pending} onClick={() => setEnding(false)}>Quay lại</button>
-                <button className="primary" disabled={pending || !data.active.canEnd}
-                  onClick={() => mutate(`workday/assignments/${data.active.assignmentId}/end`, action(data.active.rowVersion))}>Kết thúc ca</button>
-              </div>
-            </Dialog>}
+            {ending && data.active && <ConfirmPopup title="Kết thúc ca" disabled={!data.active.canEnd} pending={pending} cancel={()=>setEnding(false)} confirm={()=>{if(data.active.canEnd)mutate(`workday/assignments/${data.active.assignmentId}/end`,action(data.active.rowVersion));}}><p>Vật tư chưa sử dụng sẽ được hoàn trả về kho khi kết thúc ca.</p>{error&&<AlertPopup>{error}</AlertPopup>}</ConfirmPopup>}
             <div className="section-title">
               <h2>
                 {data.canManage
@@ -249,6 +246,7 @@ export default function Workday() {
                       <tr key={s.shiftId}>
                         <th>
                           <strong>{s.name}</strong>
+                          {!s.isActive && <small>Đã ngừng sử dụng · chỉ xem lịch sử</small>}
                           <small>
                             {time(s.startMinute)}–{time(s.endMinute)} ·{" "}
                             {s.capacity} người
@@ -283,7 +281,8 @@ export default function Workday() {
                                   <Badge value={a.status} />
                                 </button>
                               ))}
-                              {d >= data.today &&
+                              {s.isActive && d === data.today && s.endMinute <= data.currentMinute && <small>Ca đã hết giờ</small>}
+                              {(d > data.today || (d === data.today && s.endMinute > data.currentMinute)) &&
                                 s.isActive &&
                                 rows.length < s.capacity && (
                                   <button
@@ -291,7 +290,7 @@ export default function Workday() {
                                     aria-label={`Phân ${s.name} ngày ${d}`}
                                     onClick={() => {
                                       setError("");
-                                      setSlot({ ...s, date: d });
+                                      setSlot({ ...s, date: d, currentMinute: data.currentMinute });
                                     }}
                                   >
                                     + Phân ca

@@ -48,6 +48,7 @@ public sealed class AuthService(HotelOpsCompactDbContext db,Atomic atomic,Actor 
         var grants=await (from ur in db.UserRoles.AsNoTracking() join role in db.Roles on ur.RoleId equals role.RoleId
             join grant in db.RolePermissions on role.RoleId equals grant.RoleId join p in db.Permissions on grant.PermissionId equals p.PermissionId
             where ur.UserId==actor.Id && ur.AssignedAt<=now && ur.RevokedAt==null && (ur.ExpiresAt==null||ur.ExpiresAt>now) && role.IsActive && p.IsActive
+                && !(role.Code=="HOUSEKEEPING_SUPERVISOR" && p.Code=="ROOM_VIEW")
             select new {p.Code,grant.DataScope,ur.BranchId}).Distinct().ToArrayAsync(ct);
         var global=grants.Any(g=>g.BranchId==null&&g.DataScope=="ALL");
         var branches=await db.Branches.AsNoTracking().Where(b=>b.IsActive&&(global||db.Memberships.Any(m=>m.UserId==actor.Id&&m.BranchId==b.BranchId&&m.Kind=="BRANCH_ACCESS"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now))))

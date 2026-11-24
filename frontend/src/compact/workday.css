@@ -70,3 +70,9 @@
 .workday-settings table {
   width: 100%;
 }
+.workday-settings .shift-delete,
+button.shift-delete { background:#b42318; border-color:#b42318; color:#fff; }
+button.shift-delete:hover:not(:disabled) { background:#912018; border-color:#912018; }
+.workday-settings td[data-label="Thao tác"] button + button { margin-left:8px; }
+.shift-time-picker{border:1px solid var(--border,#d4e2df);border-radius:10px;padding:.75rem;min-width:0}
+.shift-time-picker .actions{display:flex;gap:1rem}.shift-time-picker label{flex:1;min-width:0}

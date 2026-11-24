@@ -6,3 +6,4 @@ public sealed record StaffSupplyBalanceDto(long BalanceId,long ItemId,string Cod
 public sealed record StaffSupplyAllocationDto(long AllocationId,long BranchId,long UserId,long AssignmentId,string Status,string? ShortageReason,DateTime CreatedAt,DateTime? ClosedAt,string RowVersion,IReadOnlyList<StaffSupplyBalanceDto> Items);
 public sealed record SupplyLedgerDto(long LedgerId,long ItemId,string Kind,decimal Quantity,long? WorkId,long? ReservationId,long? DocumentLineId,long ActorUserId,DateTime OccurredAt);
 public sealed record SupplyIssueQuantity(long ItemId,decimal Quantity);
+public sealed record SaveStockMinimumRequest(long BranchId,long WarehouseId,long ItemId,decimal MinimumStock,string? RowVersion,string? ConfigurationRowVersion);

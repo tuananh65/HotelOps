@@ -68,6 +68,7 @@ public sealed partial class DocumentService
         var children=await db.InventoryDocuments.AsNoTracking().Where(x=>x.SourceDocumentId==d.DocumentId).OrderByDescending(x=>x.DocumentId).Take(50)
             .Select(x=>new{x.DocumentId,x.DocumentNo,x.Kind,x.Status,x.PostedAt}).ToArrayAsync(ct);
         return new{lines=rows,derivations,canPost,
+            receivingRoom=await (from room in db.Rooms.AsNoTracking() join location in db.Locations on room.LocationId equals location.LocationId join branch in db.Branches on room.BranchId equals branch.BranchId where room.RoomId==d.ReceivingRoomId select branch.Name+" · "+location.Name+" · Phòng "+room.Code).SingleOrDefaultAsync(ct),
             canApprove=independent&&write&&d.CreatedBy!=actor.Id&&d.ApprovedBy==null&&d.Status=="DRAFT",
             canEdit=write&&d.ApprovedBy==null&&d.PostedAt==null&&d.Status is "DRAFT" or "IN_PROGRESS" or "REQUESTED",
             creator=await db.Users.AsNoTracking().Where(u=>u.UserId==d.CreatedBy).Select(u=>u.FullName).SingleAsync(ct),

@@ -1117,3 +1117,8 @@ dialog.room-drawer[open] {
   .calendar .shift-person, .calendar .add-shift { max-width: 100%; white-space: normal; }
   .operations-action-center li { overflow-wrap: anywhere; padding: 8px 0; }
 }
+
+.room-report-actions { margin-top: 20px; display: flex; justify-content: flex-start; gap: 12px; }
+
+.badge.inspection-sc { background: #fff0d9; color: #924000; }
+.badge.inspection-dl { background: #eee0d6; color: #69452e; }

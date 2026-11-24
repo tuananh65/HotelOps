@@ -1,0 +1,16 @@
+.operations-configuration { min-width: 0; max-width: 100%; }
+.configuration-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.configuration-tabs a { white-space: normal; max-width: 100%; }
+.configuration-tabs a[aria-current="page"] { background: #246b61; border-color: #246b61; color: #fff; }
+.configuration-heading { font-size: 18px; margin: 0 0 16px; }
+@media(max-width: 600px) {
+  .configuration-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .configuration-tabs a { height: auto; min-height: var(--button-height, 31px); text-align: center; }
+  .operations-configuration .workday-settings .table-scroll { overflow: visible; }
+  .operations-configuration .workday-settings table, .operations-configuration .workday-settings tbody,
+  .operations-configuration .workday-settings tr, .operations-configuration .workday-settings td { display: block; min-width: 0; width: auto; max-width: 100%; }
+  .operations-configuration .workday-settings thead { display: none; }
+  .operations-configuration .workday-settings tr { padding: 12px 0; border-bottom: 1px solid var(--border, #d6e3e0); }
+  .operations-configuration .workday-settings td { display: grid; grid-template-columns: 38% minmax(0, 1fr); gap: 8px; white-space: normal; overflow-wrap: anywhere; border: 0; }
+  .operations-configuration .workday-settings td::before { content: attr(data-label); font-weight: 600; }
+}

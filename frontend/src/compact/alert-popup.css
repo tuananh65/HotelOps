@@ -1,9 +1,10 @@
 .alert-popup {
   position: fixed;
   z-index: 120;
-  bottom: 12px;
-  right: 12px;
-  width: min(420px, calc(100vw - 24px));
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
   margin: 0;
   padding: 0;
   display: flex;
@@ -20,6 +21,7 @@
   overflow-wrap: anywhere;
   text-align: left;
 }
+.alert-popup[hidden] { display: none; }
 .alert-popup.success {
   border-color: #a3c8af;
   background: #eff9f2;
@@ -61,5 +63,19 @@
 .alert-popup-body h3 { margin-top: 8px; }
 .alert-popup-body .workday-check { color: inherit; }
 @media (max-width: 480px) {
-  .alert-popup { right: 12px; font-size: 13px; }
+  .alert-popup { font-size: 13px; }
 }
+
+dialog.confirmation-popup {
+  inset: 0;
+  margin: auto;
+  width: min(600px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.confirmation-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; margin-top: 20px; }
+.confirmation-actions > button.confirm-accept { background: #22685f; border-color: #22685f; color: white; }
+.confirmation-actions > button.confirm-cancel { background: #b42318; border-color: #b42318; color: white; }
+.confirmation-actions > button.confirm-accept:hover { background: #184f48; }
+.confirmation-actions > button.confirm-cancel:hover { background: #912018; }
