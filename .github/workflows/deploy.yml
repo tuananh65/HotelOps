@@ -1,0 +1,51 @@
+name: HotelOps AWS deployment
+on:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: hotelops-production-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    # Deliberately inactive until infrastructure, DNS/TLS, DB and IAM are configured.
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/feature/project2-role-alignment-20261123'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_SHA: ${{ github.sha }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+      RELEASE_BUCKET: ${{ vars.RELEASE_BUCKET }}
+      INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c # v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Validate deployment configuration
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$ECR_REGISTRY" =~ ^[0-9]{12}\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com$ ]]
+          [[ "$RELEASE_BUCKET" =~ ^[a-z0-9][a-z0-9.-]+$ ]]
+          [[ "$INSTANCE_ID" =~ ^i-[a-f0-9]+$ ]]
+      - name: Build and push immutable images
+        run: |
+          aws ecr get-login-password | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+          docker build -f src/HotelOps.Api/Dockerfile -t "$ECR_REGISTRY/hotelops-api:$RELEASE_SHA" .
+          docker build -f frontend/Dockerfile -t "$ECR_REGISTRY/hotelops-frontend:$RELEASE_SHA" .
+          docker push "$ECR_REGISTRY/hotelops-api:$RELEASE_SHA"
+          docker push "$ECR_REGISTRY/hotelops-frontend:$RELEASE_SHA"
+      - name: Upload release scripts and dispatch through SSM
+        run: bash deployment/aws-dispatch.sh

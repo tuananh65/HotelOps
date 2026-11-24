@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "format": "prettier --write src tests playwright.config.ts",
     "test:compact": "node --test tests/compact-workflow.test.mjs",
+    "test:compact:ci": "node --test tests/compact-*.test.mjs",
     "test:compact:department-head": "node tests/compact-department-head.mjs",
     "test:compact:operations-manager": "node tests/compact-operations-manager.mjs",
     "test:compact:housekeeping-staff": "node tests/compact-housekeeping-staff.mjs",

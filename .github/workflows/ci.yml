@@ -1,0 +1,57 @@
+name: HotelOps CI
+on:
+  push:
+    branches: [feature/project2-role-alignment-20261123, develop, main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: dotnet restore HotelOps.slnx
+      - run: dotnet build HotelOps.slnx -c Release --no-restore
+      - run: dotnet test HotelOps.slnx -c Release --no-build --logger 'console;verbosity=normal'
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: npm run test:compact:ci
+        working-directory: frontend
+      - run: node --test deployment/tests/*.test.mjs
+      - name: Validate shell syntax
+        run: for script in deployment/*.sh; do bash -n "$script"; done
+      - name: ShellCheck
+        run: shellcheck -S warning -x deployment/*.sh
+  docker-smoke:
+    needs: build-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Isolated SQL Server, API and trusted HTTPS frontend
+        run: bash deployment/ci-smoke.sh
+  deploy:
+    needs: [build-test, docker-smoke]
+    if: vars.DEPLOY_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/feature/project2-role-alignment-20261123'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy.yml

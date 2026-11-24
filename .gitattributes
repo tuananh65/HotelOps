@@ -24,3 +24,8 @@ scripts/database/development/06-Fe04CancellationReadiness.sql -text whitespace=c
 scripts/database/development/06-Fe04CancellationReadiness.Verify.sql -text whitespace=cr-at-eol
 scripts/database/development/fe04-cancellation-readiness-v1.json -text whitespace=cr-at-eol
 scripts/database/development/fe04-cancellation-readiness-verification-v1.json -text whitespace=cr-at-eol
+
+# Linux container entrypoints and release scripts retain LF.
+*.sh text eol=lf
+*.yml text eol=lf
+Dockerfile text eol=lf

@@ -5,6 +5,12 @@
 
 # dotenv files
 .env
+.env.*
+!.env.example
+*.key
+*.pem
+*.bak
+deployment/private/
 
 # User-specific files
 *.rsuser
