@@ -7,6 +7,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import type { Row } from "./api";
+import { metricClass } from "./metric-tone";
 
 export default function BranchMetrics({ data }: { data: Row }) {
   const s = data.scheduling,
@@ -14,6 +15,7 @@ export default function BranchMetrics({ data }: { data: Row }) {
   const metrics = [
     {
       name: "Nhân sự được phân ca",
+      metric: "assignedStaff",
       value: s?.assignedStaff,
       icon: Users,
       hint: `Tuần bắt đầu ${s?.weekStart}`,
@@ -21,6 +23,7 @@ export default function BranchMetrics({ data }: { data: Row }) {
     },
     {
       name: "Nhân sự đang trong ca",
+      metric: "workingStaff",
       value: s?.workingStaff,
       icon: Clock,
       hint: "Ca đã bắt đầu, chưa kết thúc",
@@ -28,6 +31,7 @@ export default function BranchMetrics({ data }: { data: Row }) {
     },
     {
       name: "Ca chưa đủ người",
+      metric: "underfilledShifts",
       value: s?.underfilledShifts,
       icon: CalendarDays,
       hint: "Trong tuần hiện tại",
@@ -35,24 +39,28 @@ export default function BranchMetrics({ data }: { data: Row }) {
     },
     {
       name: "Công việc chưa kết thúc",
+      metric: "activeTasks",
       value: o?.activeTasks,
       icon: ClipboardList,
       href: "#work?kind=OPERATIONAL",
     },
     {
       name: "Công việc quá hạn",
+      metric: "overdueTasks",
       value: o?.overdueTasks,
       icon: Clock,
       href: "#work?kind=OPERATIONAL",
     },
     {
       name: "Yêu cầu nội bộ chờ xử lý",
+      metric: "pendingRequests",
       value: o?.pendingRequests,
       icon: Inbox,
       href: "#work?kind=INTERNAL_REQUEST",
     },
     {
       name: "Vật tư chờ phê duyệt",
+      metric: "pendingMaterials",
       value: o?.pendingMaterials,
       icon: PackageCheck,
       hint: "Trong chi nhánh; khả năng duyệt tùy từng yêu cầu",
@@ -63,7 +71,7 @@ export default function BranchMetrics({ data }: { data: Row }) {
   return (
     <div className="branch-metrics">
       {metrics.map((m) => (
-        <article className="panel" key={m.name}>
+        <article className={metricClass(m.metric)} key={m.name}>
           <m.icon size={24} aria-hidden="true" />
           <h2>{m.name}</h2>
           <strong className="branch-metric-value">{m.value}</strong>

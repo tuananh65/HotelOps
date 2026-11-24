@@ -50,6 +50,9 @@ const browser = await chromium.launch({
 const errors = [],
   writes = [],
   charts = [];
+const networkErrors = [],
+  navigations = [];
+let page;
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
@@ -131,6 +134,12 @@ try {
       };
     else if (path === "insights/dashboard")
       json = {
+        taskWindow: {
+          period: url.searchParams.get("taskPeriod") || "day",
+          timezone: "Asia/Ho_Chi_Minh",
+          fromDate: "2026-11-23",
+          toDate: "2026-11-23",
+        },
         rooms: [
           { readiness: "READY", isOccupied: false, count: 12 },
           { readiness: "OCCUPIED", isOccupied: true, count: 4 },
@@ -143,9 +152,19 @@ try {
       };
     await route.fulfill({ status: 200, json });
   });
-  const page = await context.newPage();
+  page = await context.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
+  page.on("requestfailed", (request) =>
+    networkErrors.push({
+      url: request.url(),
+      error: request.failure()?.errorText,
+    }),
+  );
+  page.on("framenavigated", (frame) => {
+    if (frame === page.mainFrame()) navigations.push(frame.url());
+  });
   await page.goto(`${base}/#users`);
+  await expect(page.locator(".topbar h1")).toBeVisible({ timeout: 30000 });
   const rows = page.locator("tbody tr:has(td:nth-child(2))"),
     pager = page.getByRole("navigation", { name: "Phân trang tài khoản" });
   const next = pager.getByRole("button", { name: "Tiếp", exact: true }),
@@ -155,7 +174,10 @@ try {
   await expect(page.locator(".account-page-range")).toHaveText(
     "1–10 / 56 tài khoản · 6 trang",
   );
-  for (let i = 0; i < 5; i++) await next.click();
+  for (let i = 0; i < 5; i++) {
+    await next.click();
+    await expect(pager).toContainText(`Trang ${i + 2} / 6`);
+  }
   await expect(rows).toHaveCount(6);
   await expect(next).toBeDisabled();
   await expect(page.locator("tbody")).toContainText("PhuongDH1");
@@ -204,6 +226,24 @@ try {
   for (const width of [1440, 768, 375]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.waitForTimeout(400);
+    const overflow = await page.evaluate(() => ({
+      width: innerWidth,
+      scroll: document.documentElement.scrollWidth,
+      elements: [...document.querySelectorAll("body *")]
+        .map((el) => ({
+          tag: el.tagName,
+          class: el.className,
+          right: el.getBoundingClientRect().right,
+          width: el.getBoundingClientRect().width,
+        }))
+        .filter((el) => el.right > innerWidth + 1)
+        .slice(0, 20),
+    }));
+    if (overflow.scroll > width + 1)
+      fs.writeFileSync(
+        `${out}/overflow-${width}.json`,
+        JSON.stringify(overflow, null, 2),
+      );
     assert(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 1,
@@ -388,6 +428,19 @@ try {
   console.log(
     "PASS account pagination/filter regression, icons, larger charts and bars across admin/operations/owner/personal dashboards at 1440/768/375 (mocked APIs)",
   );
+} catch (error) {
+  if (page) {
+    await page.screenshot({ path: `${out}/failure.png`, fullPage: true });
+    fs.writeFileSync(
+      `${out}/failure.json`,
+      JSON.stringify(
+        { message: String(error), errors, networkErrors, navigations },
+        null,
+        2,
+      ),
+    );
+  }
+  throw error;
 } finally {
   await browser.close();
 }

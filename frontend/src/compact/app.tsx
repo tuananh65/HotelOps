@@ -1,4 +1,5 @@
-import { PageTitleTarget } from "./page-title";
+import { AlertPopup } from "./alert-popup";
+import PageTitle, { PageTitleTarget } from "./page-title";
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
   BedDouble,
@@ -17,7 +18,6 @@ import {
   Building2,
   ListChecks,
   Inbox,
-  PackageCheck,
   Wrench,
   ListTodo,
   ArrowLeftRight,
@@ -25,7 +25,6 @@ import {
   Truck,
   History,
   PackageSearch,
-  CalendarClock,
   HardDrive,
   TriangleAlert,
 } from "lucide-react";
@@ -51,15 +50,22 @@ const Workday = lazy(() => import("./workday")),
   Stock = lazy(() => import("./stock")),
   Templates = lazy(() => import("./templates"));
 const PersonalOverview = lazy(() => import("./personal-overview"));
-const SchedulingStaff = lazy(() => import("./scheduling-staff"));
 const HousekeepingPersonal = lazy(() => import("./housekeeping-personal"));
+const RoomIssues = lazy(() => import("./room-issues"));
 const InventoryDashboard = lazy(() => import("./inventory-dashboard"));
 const InventoryDocuments = lazy(() => import("./inventory-documents"));
 const MaintenanceOverview = lazy(() => import("./maintenance-overview"));
-const MaintenancePlans = lazy(() => import("./maintenance-plans"));
-const MaintenancePersonal = lazy(() => import("./maintenance-personal"));
 const OwnerWorkspace = lazy(() => import("./owner-workspace"));
+const HousekeepingWorkspace = lazy(() => import("./housekeeping-workspace"));
+const PersonalProfile = lazy(() => import("./personal-profile"));
+const OperationsWorkspace = lazy(() => import("./operations-workspace"));
+const AttendanceSummary = lazy(() => import("./attendance-summary"));
+const SupplyConfiguration = lazy(() => import("./supply-configuration"));
+const StaffSupplies = lazy(() => import("./staff-supplies"));
+const Requests = lazy(() => import("./requests"));
+const InternalSettings = lazy(() => import("./internal-settings"));
 function Shell() {
+  const [profileOpen, setProfileOpen] = useState(false);
   const { profile, branch, setBranch, can, canGlobal, logout } = useAuth();
   const [ownerScope, setOwnerScope] = useState(0);
   useStickyHeaders();
@@ -75,20 +81,15 @@ function Shell() {
   const receptionOnly =
     branchRoles.length > 0 && branchRoles.every((r) => r.code === "RECEPTION");
   // A presentation profile, never a substitute for permission guards.
-  const departmentHead =
-    branchRoles.length > 0 &&
-    branchRoles.every((r) => r.code === "DEPT_MANAGER");
   const operationsManager =
     branchRoles.length > 0 &&
     branchRoles.every((r) => r.code === "OPERATION_MANAGER");
   const housekeepingStaff =
     branchRoles.length > 0 && branchRoles.every((r) => r.code === "HK_STAFF");
-  const maintenanceLead =
+  const housekeepingSupervisor =
     branchRoles.length > 0 &&
-    branchRoles.every((r) => r.code === "MAINTENANCE_LEAD");
-  const maintenanceStaff =
-    branchRoles.length > 0 &&
-    branchRoles.every((r) => r.code === "MAINTENANCE_STAFF");
+    branchRoles.every((r) => r.code === "HOUSEKEEPING_SUPERVISOR");
+  const maintenanceSupervisor = branchRoles.length > 0 && branchRoles.every(r => r.code === "MAINTENANCE_SUPERVISOR");
   const storekeeper =
     branchRoles.length > 0 &&
     branchRoles.every((r) => r.code === "STOREKEEPER");
@@ -154,106 +155,16 @@ function Shell() {
             show: canGlobal("AUDIT_VIEW"),
           },
         ]
-      : maintenanceStaff
+      : maintenanceSupervisor
         ? [
-            {
-              id: "dashboard",
-              name: "Tổng quan cá nhân",
-              icon: LayoutDashboard,
-              show: can("MAINTENANCE_VIEW"),
-            },
-            {
-              id: "work",
-              name: "Công việc bảo trì",
-              icon: Wrench,
-              show: can("MAINTENANCE_VIEW"),
-            },
-            {
-              id: "incidents",
-              name: "Sự cố kỹ thuật",
-              icon: TriangleAlert,
-              show: can("INCIDENT_VIEW"),
-            },
-            {
-              id: "assets",
-              name: "Tài sản & Thiết bị",
-              icon: HardDrive,
-              show: can("ASSET_VIEW"),
-            },
-            {
-              id: "materials",
-              name: "Vật tư & Yêu cầu",
-              icon: Package,
-              show: can("MR_VIEW") || can("IR_VIEW") || can("TASK_VIEW"),
-            },
-            {
-              id: "workday",
-              name: "Lịch làm việc",
-              icon: CalendarDays,
-              show: can("ATTENDANCE_RECORD"),
-            },
-            {
-              id: "notifications",
-              name: "Thông báo & Lịch sử",
-              icon: Bell,
-              show: true,
-            },
+            {id:"dashboard",name:"Tổng quan bảo trì",icon:LayoutDashboard,show:can("DASHBOARD_VIEW") && can("MAINTENANCE_VIEW")},
+            {id:"work",name:"Yêu cầu khắc phục",icon:Wrench,show:can("MAINTENANCE_VIEW")},
+            {id:"in-progress",name:"Công việc đang xử lý",icon:ListTodo,show:can("MAINTENANCE_VIEW")},
+            {id:"assets",name:"Tài sản & Thiết bị",icon:HardDrive,show:can("ASSET_VIEW")},
+            {id:"history",name:"Lịch sử sửa chữa",icon:History,show:can("MAINTENANCE_VIEW")},
+            {id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:can("IR_VIEW")},
+            {id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:can("ATTENDANCE_RECORD")},
           ]
-        : maintenanceLead
-          ? [
-              {
-                id: "dashboard",
-                name: "Tổng quan bảo trì",
-                icon: LayoutDashboard,
-                show:
-                  can("DASHBOARD_VIEW", false) &&
-                  can("MAINTENANCE_VIEW", false),
-              },
-              {
-                id: "work",
-                name: "Công việc bảo trì",
-                icon: Wrench,
-                show: can("MAINTENANCE_VIEW", false),
-              },
-              {
-                id: "review",
-                name: "Kiểm tra & Nghiệm thu",
-                icon: ClipboardCheck,
-                show:
-                  can("MAINTENANCE_REVIEW", false) &&
-                  can("MAINTENANCE_VIEW", false),
-              },
-              {
-                id: "incidents",
-                name: "Sự cố kỹ thuật",
-                icon: TriangleAlert,
-                show: can("INCIDENT_VIEW", false),
-              },
-              {
-                id: "templates",
-                name: "Bảo trì định kỳ",
-                icon: CalendarClock,
-                show: can("PM_MANAGE", false),
-              },
-              {
-                id: "assets",
-                name: "Tài sản & Thiết bị",
-                icon: HardDrive,
-                show: can("ASSET_VIEW", false),
-              },
-              {
-                id: "technicians",
-                name: "Nhân viên & Ca trực",
-                icon: Users,
-                show: can("MAINTENANCE_ASSIGN", false),
-              },
-              {
-                id: "requests",
-                name: "Yêu cầu & Thông báo",
-                icon: Inbox,
-                show: can("MR_VIEW", false),
-              },
-            ]
           : storekeeper
             ? [
                 {
@@ -307,41 +218,25 @@ function Shell() {
                   show: can("INVENTORY_VIEW", false),
                 },
               ]
-            : housekeepingStaff
+            : housekeepingSupervisor
               ? [
                   {
                     id: "dashboard",
-                    name: "Tổng quan cá nhân",
+                    name: "Tổng quan Housekeeping",
                     icon: LayoutDashboard,
-                    show: [
-                      "CLEANING_VIEW",
-                      "TASK_VIEW",
-                      "ATTENDANCE_RECORD",
-                    ].some((p) => can(p)),
-                  },
-                  {
-                    id: "cleaning",
-                    name: "Công việc dọn phòng",
-                    icon: ClipboardList,
-                    show: can("CLEANING_VIEW"),
+                    show: can("DASHBOARD_VIEW", false),
                   },
                   {
                     id: "rooms",
-                    name: "Phòng & Checklist",
+                    name: "Tình trạng phòng",
                     icon: BedDouble,
                     show: can("ROOM_VIEW"),
                   },
                   {
                     id: "work",
-                    name: "Công việc khác",
-                    icon: ListTodo,
-                    show: can("TASK_VIEW"),
-                  },
-                  {
-                    id: "requests",
-                    name: "Yêu cầu & Vật tư",
-                    icon: Package,
-                    show: can("IR_VIEW") || can("MR_VIEW"),
+                    name: "Công việc",
+                    icon: ClipboardList,
+                    show: can("CLEANING_VIEW") || can("INSPECTION_VIEW"),
                   },
                   {
                     id: "workday",
@@ -350,335 +245,195 @@ function Shell() {
                     show: can("ATTENDANCE_RECORD"),
                   },
                   {
+                    id: "staff",
+                    name: "Lịch sử vệ sinh",
+                    icon: History,
+                    show: can("CLEANING_VIEW", false),
+                  },
+                  {
                     id: "incidents",
                     name: "Sự cố & Thông báo",
                     icon: Bell,
                     show: can("INCIDENT_VIEW") || can("ROOM_VIEW"),
                   },
                 ]
-              : operationsManager
+              : housekeepingStaff
                 ? [
                     {
                       id: "dashboard",
-                      name: "Tổng quan vận hành",
+                      name: "Tổng quan cá nhân",
                       icon: LayoutDashboard,
-                      show: can("DASHBOARD_VIEW", false),
+                      show: [
+                        "CLEANING_VIEW",
+                        "TASK_VIEW",
+                        "ATTENDANCE_RECORD",
+                      ].some((p) => can(p)),
                     },
                     {
-                      id: "rooms",
-                      name: "Tình trạng phòng",
-                      icon: BedDouble,
-                      show: can("ROOM_VIEW", false),
-                    },
-                    {
-                      id: "housekeeping",
-                      name: "Buồng phòng",
-                      icon: ListChecks,
-                      show:
-                        can("CLEANING_VIEW", false) ||
-                        can("INSPECTION_VIEW", false),
-                    },
-                    {
-                      id: "technical",
-                      name: "Bảo trì & sự cố",
-                      icon: Wrench,
-                      show:
-                        can("MAINTENANCE_VIEW", false) ||
-                        can("INCIDENT_VIEW", false),
+                      id: "cleaning",
+                      name: "Công việc dọn phòng",
+                      icon: ClipboardList,
+                      show: can("CLEANING_VIEW"),
                     },
                     {
                       id: "work",
-                      name: "Công việc & yêu cầu",
-                      icon: ClipboardList,
-                      show: can("TASK_VIEW", false) || can("IR_VIEW", false),
+                      name: "Công việc khác",
+                      icon: ListTodo,
+                      show: can("TASK_VIEW"),
                     },
                     {
-                      id: "assets",
-                      name: "Tài sản",
-                      icon: Boxes,
-                      show: can("ASSET_VIEW", false),
-                    },
-                    {
-                      id: "stock",
-                      name: "Kho & vật tư",
+                      id: "requests",
+                      name: "Yêu cầu nội bộ",
                       icon: Package,
-                      show:
-                        can("INVENTORY_VIEW", false) || can("MR_VIEW", false),
+                      show: can("IR_VIEW"),
                     },
                     {
-                      id: "reports",
-                      name: "Báo cáo & nhật ký",
-                      icon: ChartNoAxesCombined,
-                      show:
-                        can("REPORT_VIEW", false) || can("AUDIT_VIEW", false),
+                      id: "workday",
+                      name: "Lịch làm việc",
+                      icon: CalendarDays,
+                      show: can("ATTENDANCE_RECORD"),
+                    },
+                    {
+                      id: "incidents",
+                      name: "Thông báo",
+                      icon: Bell,
+                      show: true,
                     },
                   ]
-                : departmentHead
+                : operationsManager
                   ? [
-                      {
-                        id: "dashboard",
-                        name: "Tổng quan",
-                        icon: LayoutDashboard,
-                        show: can("DASHBOARD_VIEW", false),
-                      },
-                      {
-                        id: "workday",
-                        name: "Lịch làm việc",
-                        icon: CalendarDays,
-                        show: can("SHIFT_MANAGE", false),
-                      },
-                      {
-                        id: "work",
-                        name: "Công việc",
-                        icon: ClipboardList,
-                        show: can("TASK_VIEW"),
-                      },
-                      {
-                        id: "requests",
-                        name: "Yêu cầu nội bộ",
-                        icon: Inbox,
-                        show: can("IR_VIEW"),
-                      },
-                      {
-                        id: "documents",
-                        name: "Yêu cầu vật tư",
-                        icon: PackageCheck,
-                        show: can("MR_VIEW"),
-                      },
-                      {
-                        id: "reports",
-                        name: "Báo cáo",
-                        icon: ChartNoAxesCombined,
-                        show: can("REPORT_VIEW", false),
-                      },
-                      {
-                        id: "staff",
-                        name: "Nhân sự",
-                        icon: Users,
-                        show: can("SHIFT_MANAGE", false),
-                      },
+                      {id:"dashboard",name:"Tổng quan vận hành",icon:LayoutDashboard,show:can("DASHBOARD_VIEW",false)},
+                      {id:"rooms",name:"Tình trạng phòng",icon:BedDouble,show:can("ROOM_VIEW",false)},
+                      {id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:can("SHIFT_MANAGE",false)},
+                      {id:"work",name:"Nhân sự & Công việc",icon:Users,show:can("TASK_VIEW",false)||can("SHIFT_MANAGE",false)},
+                      {id:"housekeeping",name:"Buồng phòng & Bảo trì",icon:ListChecks,show:["CLEANING_VIEW","INSPECTION_VIEW","MAINTENANCE_VIEW","INCIDENT_VIEW"].some(p=>can(p,false))},
+                      {id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:can("IR_VIEW",false)},
+                      {id:"assets",name:"Tài sản",icon:Boxes,show:can("ASSET_VIEW",false)},
+                      {id:"stock",name:"Kho & Vật tư",icon:Package,show:can("INVENTORY_VIEW",false)||can("MR_VIEW",false)},
+                      {id:"reports",name:"Báo cáo & Nhật ký",icon:ChartNoAxesCombined,show:can("REPORT_VIEW",false)||can("AUDIT_VIEW",false)},
                     ]
-                  : [
-                      {
-                        id: "dashboard",
-                        name: "Tổng quan",
-                        icon: LayoutDashboard,
-                        show: !receptionOnly,
-                      },
-                      {
-                        id: "rooms",
-                        name: "Phòng",
-                        icon: BedDouble,
-                        show: can("ROOM_VIEW"),
-                      },
-                      {
-                        id: "work",
-                        name: "Công việc & yêu cầu",
-                        icon: ClipboardList,
-                        show: kinds.some((k) => can(k[2])),
-                      },
-                      {
-                        id: "workday",
-                        name: "Lịch làm việc",
-                        icon: CalendarDays,
-                        show: can("SHIFT_MANAGE") || can("ATTENDANCE_RECORD"),
-                      },
-                      {
-                        id: "documents",
-                        name: "Vật tư & chứng từ",
-                        icon: Package,
-                        show: [
-                          "INVENTORY_VIEW",
-                          "MR_VIEW",
-                          "REPLENISHMENT_VIEW",
-                        ].some((x) => can(x)),
-                      },
-                      {
-                        id: "assets",
-                        name: "Tài sản",
-                        icon: Boxes,
-                        show: can("ASSET_VIEW"),
-                      },
-                      {
-                        id: "stock",
-                        name: "Tồn kho",
-                        icon: Package,
-                        show: can("INVENTORY_VIEW", false),
-                      },
-                      {
-                        id: "catalog",
-                        name: "Cấu trúc khách sạn",
-                        icon: Building2,
-                        show: can("MASTER_DATA_MANAGE", false),
-                      },
-                      {
-                        id: "settings",
-                        name: "Cấu hình hệ thống",
-                        icon: Settings,
-                        show: ["MASTER_DATA_MANAGE", "ROLE_MANAGE"].some((p) =>
-                          can(p, false),
-                        ),
-                      },
-                      {
-                        id: "supplies",
-                        name: "Danh mục vật tư & tài sản",
-                        icon: Boxes,
-                        show: ["ITEM_MASTER_MANAGE", "ASSET_MANAGE"].some((p) =>
-                          can(p, false),
-                        ),
-                      },
-                      {
-                        id: "templates",
-                        name: "Checklist & lịch định kỳ",
-                        icon: ListChecks,
-                        show: [
-                          "CHECKLIST_MANAGE",
-                          "PM_MANAGE",
-                          "TASK_MANAGE",
-                        ].some((p) => can(p, false)),
-                      },
-                      {
-                        id: "reports",
-                        name: "Báo cáo",
-                        icon: ChartNoAxesCombined,
-                        show: can("REPORT_VIEW"),
-                      },
-                      {
-                        id: "users",
-                        name: "Nhân sự & truy cập",
-                        icon: Users,
-                        show: can("USER_VIEW"),
-                      },
-                    ]
+                    : [
+                        {
+                          id: "dashboard",
+                          name: "Tổng quan",
+                          icon: LayoutDashboard,
+                          show: !receptionOnly || can("ATTENDANCE_RECORD"),
+                        },
+                        {
+                          id: "rooms",
+                          name: "Phòng",
+                          icon: BedDouble,
+                          show: can("ROOM_VIEW"),
+                        },
+                        {
+                          id: "work",
+                          name: "Công việc & yêu cầu",
+                          icon: ClipboardList,
+                          show: receptionOnly ? can("IR_VIEW") : kinds.some((k) => can(k[2])),
+                        },
+                        {
+                          id: "workday",
+                          name: "Lịch làm việc",
+                          icon: CalendarDays,
+                          show: can("SHIFT_MANAGE") || can("ATTENDANCE_RECORD"),
+                        },
+                        {
+                          id: "documents",
+                          name: "Vật tư & chứng từ",
+                          icon: Package,
+                          show: [
+                            "INVENTORY_VIEW",
+                            "MR_VIEW",
+                            "REPLENISHMENT_VIEW",
+                          ].some((x) => can(x)),
+                        },
+                        {
+                          id: "assets",
+                          name: "Tài sản",
+                          icon: Boxes,
+                          show: can("ASSET_VIEW"),
+                        },
+                        {
+                          id: "stock",
+                          name: "Tồn kho",
+                          icon: Package,
+                          show: can("INVENTORY_VIEW", false),
+                        },
+                        {
+                          id: "catalog",
+                          name: "Cấu trúc khách sạn",
+                          icon: Building2,
+                          show: can("MASTER_DATA_MANAGE", false),
+                        },
+                        {
+                          id: "settings",
+                          name: "Cấu hình hệ thống",
+                          icon: Settings,
+                          show: ["MASTER_DATA_MANAGE", "ROLE_MANAGE"].some(
+                            (p) => can(p, false),
+                          ),
+                        },
+                        {
+                          id: "supplies",
+                          name: "Danh mục vật tư & tài sản",
+                          icon: Boxes,
+                          show: ["ITEM_MASTER_MANAGE", "ASSET_MANAGE"].some(
+                            (p) => can(p, false),
+                          ),
+                        },
+                        {
+                          id: "templates",
+                          name: "Checklist & lịch định kỳ",
+                          icon: ListChecks,
+                          show: [
+                            "CHECKLIST_MANAGE",
+                            "PM_MANAGE",
+                            "TASK_MANAGE",
+                          ].some((p) => can(p, false)),
+                        },
+                        {
+                          id: "reports",
+                          name: "Báo cáo",
+                          icon: ChartNoAxesCombined,
+                          show: can("REPORT_VIEW"),
+                        },
+                        {
+                          id: "users",
+                          name: "Nhân sự & truy cập",
+                          icon: Users,
+                          show: can("USER_VIEW"),
+                        },
+                      ]
   ).filter((n) => n.show);
-  const preferred = receptionOnly
-    ? can("ROOM_VIEW")
-      ? "rooms"
-      : nav[0]?.id
-    : housekeepingStaff || storekeeper || maintenanceLead || maintenanceStaff
-      ? nav[0]?.id
-      : management
-        ? "dashboard"
-        : can("SHIFT_MANAGE")
-          ? "workday"
-          : can("USER_MANAGE")
-            ? "users"
-            : can("CLEANING_EXECUTE") ||
-                can("MAINTENANCE_EXECUTE") ||
-                can("CLEANING_ASSIGN")
-              ? "work"
-              : can("DASHBOARD_VIEW", false)
-                ? "dashboard"
-                : can("INVENTORY_VIEW", false)
-                  ? "stock"
-                  : can("ROOM_VIEW")
-                    ? "rooms"
-                    : nav[0]?.id;
-  const requestedPage =
-    ownerOnly && ["assets", "stock", "documents"].includes(page)
-      ? "resources"
-      : ownerOnly &&
-          page === "work" &&
-          ["INCIDENT", "MAINTENANCE"].includes(
-            new URLSearchParams(route.split("?")[1]).get("kind") || "",
-          )
-        ? "technical"
-        : maintenanceStaff && page === "documents"
-          ? "materials"
-          : maintenanceStaff &&
-              page === "work" &&
-              new URLSearchParams(route.split("?")[1]).get("kind") ===
-                "INCIDENT"
-            ? "incidents"
-            : maintenanceStaff &&
-                page === "work" &&
-                new URLSearchParams(route.split("?")[1]).get("kind") ===
-                  "INTERNAL_REQUEST"
-              ? "requests"
-              : maintenanceStaff &&
-                  page === "work" &&
-                  new URLSearchParams(route.split("?")[1]).get("kind") ===
-                    "OPERATIONAL"
-                ? "otherwork"
-                : maintenanceLead && page === "documents"
-                  ? "requests"
-                  : maintenanceLead &&
-                      page === "work" &&
-                      new URLSearchParams(route.split("?")[1]).get("kind") ===
-                        "INCIDENT"
-                    ? "incidents"
-                    : storekeeper && page === "documents"
-                      ? documentRoute(
-                          new URLSearchParams(route.split("?")[1]).get(
-                            "kind",
-                          ) || "RECEIPT",
-                        )
-                      : housekeepingStaff && page === "work"
-                        ? ["CLEANING", "REWORK"].includes(
-                            new URLSearchParams(route.split("?")[1]).get(
-                              "kind",
-                            ) || "",
-                          )
-                          ? "cleaning"
-                          : new URLSearchParams(route.split("?")[1]).get(
-                                "kind",
-                              ) === "INCIDENT"
-                            ? "incidents"
-                            : new URLSearchParams(route.split("?")[1]).get(
-                                  "kind",
-                                ) === "INTERNAL_REQUEST"
-                              ? "requests"
-                              : "work"
-                        : operationsManager && page === "work"
-                          ? ["CLEANING", "INSPECTION", "REWORK"].includes(
-                              new URLSearchParams(route.split("?")[1]).get(
-                                "kind",
-                              ) || "",
-                            )
-                            ? "housekeeping"
-                            : ["INCIDENT", "MAINTENANCE"].includes(
-                                  new URLSearchParams(route.split("?")[1]).get(
-                                    "kind",
-                                  ) || "",
-                                )
-                              ? "technical"
-                              : "work"
-                          : departmentHead &&
-                              page === "work" &&
-                              new URLSearchParams(route.split("?")[1]).get(
-                                "kind",
-                              ) === "INTERNAL_REQUEST"
-                            ? "requests"
-                            : page;
-  const active =
-    page === "notifications"
-      ? page
-      : maintenanceStaff &&
-          ((requestedPage === "history" && can("MAINTENANCE_VIEW")) ||
-            (requestedPage === "requests" && can("IR_VIEW")) ||
-            (requestedPage === "otherwork" && can("TASK_VIEW")))
-        ? requestedPage
-        : (storekeeper || maintenanceLead) &&
-            page === "workday" &&
-            can("ATTENDANCE_RECORD")
-          ? page
-          : housekeepingStaff && page === "documents" && can("MR_VIEW")
-            ? page
-            : operationsManager &&
-                page === "documents" &&
-                (can("MR_VIEW", false) || can("INVENTORY_VIEW", false))
-              ? page
-              : operationsManager &&
-                  page === "audit" &&
-                  can("AUDIT_VIEW", false)
-                ? page
-                : departmentHead &&
-                    ((page === "rooms" && can("ROOM_VIEW")) ||
-                      (page === "stock" && can("INVENTORY_VIEW", false)))
-                  ? page
-                  : nav.some((n) => n.id === requestedPage)
-                    ? requestedPage
-                    : preferred;
+  if (can("ROOM_SUPPLY_CONFIG",false)) nav.push({id:"supply-config",name:"Cấu hình vật tư",icon:Settings,show:true});
+  if (operationsManager && can("IR_VIEW",false)) nav.push({id:"internal-settings",name:"Cấu hình nội bộ",icon:Settings,show:true});
+  if (can("STAFF_SUPPLY_VIEW")) nav.push({id:"staff-supplies",name:housekeepingStaff?"Vật tư của tôi":"Vật tư nhân viên",icon:Package,show:true});
+  if (storekeeper && can("ATTENDANCE_RECORD")) nav.push({id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:true});
+  if (housekeepingStaff && can("CLEANING_VIEW")) nav.push({id:"history",name:"Lịch sử công việc",icon:History,show:true});
+  if ((housekeepingSupervisor || storekeeper) && can("IR_VIEW")) nav.push({id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:true});
+  if (can("INCIDENT_VIEW",false) || ((housekeepingStaff || receptionOnly) && can("IR_CREATE")) || (storekeeper && can("MR_FULFILL",false)))
+    nav.push({id:"room-issues",name:"Sự cố phòng",icon:TriangleAlert,show:true});
+  const preferred = receptionOnly && can("ROOM_VIEW") ? "rooms" : nav[0]?.id || "dashboard";
+  const params = new URLSearchParams(route.split("?")[1]);
+  const kind = params.get("kind");
+  let requestedPage = page;
+  if (receptionOnly && page==="work" && can("IR_VIEW")) requestedPage="requests";
+  if (housekeepingSupervisor && ["cleaning","inspection","rework","templates"].includes(page)) requestedPage="work";
+  if (ownerOnly && ["assets","stock","documents"].includes(page)) requestedPage="resources";
+  if (ownerOnly && page==="work" && ["INCIDENT","MAINTENANCE"].includes(kind || "")) requestedPage="technical";
+  if (storekeeper && page==="documents" && params.get("transfer")!=="1") requestedPage=documentRoute(params.get("kind") || "RECEIPT");
+  if (housekeepingStaff && page==="work" && ["CLEANING","REWORK"].includes(kind || "")) requestedPage="cleaning";
+  if (page==="work" && kind==="INTERNAL_REQUEST" && can("IR_VIEW")) requestedPage="requests";
+  if (operationsManager && (page==="technical" || (page==="work" && ["CLEANING","REWORK","INSPECTION","INCIDENT","MAINTENANCE"].includes(kind || "")))) requestedPage="housekeeping";
+  const extraPages: Record<string,boolean> = {
+    "room-issues":can("INCIDENT_VIEW") || can("IR_CREATE") || (storekeeper && can("MR_FULFILL",false)),
+    "supply-config":can("ROOM_SUPPLY_CONFIG",false), "staff-supplies":can("STAFF_SUPPLY_VIEW"),
+    "internal-settings":operationsManager && can("IR_VIEW",false),
+    notifications:true, documents:can("MR_VIEW") || can("INVENTORY_VIEW",false), audit:can("AUDIT_VIEW",false),
+    staff:operationsManager && can("SHIFT_MANAGE",false), workday:can("ATTENDANCE_RECORD") || can("SHIFT_MANAGE",false),
+    requests:can("IR_VIEW"), history:housekeepingStaff && can("CLEANING_VIEW"),
+  };
+  const active = nav.some(n=>n.id===requestedPage) || extraPages[requestedPage] ? requestedPage : preferred;
   useEffect(() => {
     const handler = () => {
       setPage(location.hash.slice(1).split("?")[0]);
@@ -760,21 +515,9 @@ function Shell() {
                 key={n.id}
                 title={n.name}
                 aria-label={n.name}
-                aria-current={
-                  active === n.id ||
-                  (maintenanceStaff &&
-                    ((active === "history" && n.id === "notifications") ||
-                      (["requests", "otherwork"].includes(active || "") &&
-                        n.id === "materials"))) ||
-                  (housekeepingStaff &&
-                    ((active === "documents" && n.id === "requests") ||
-                      (active === "notifications" && n.id === "incidents"))) ||
-                  (operationsManager &&
-                    ((active === "documents" && n.id === "stock") ||
-                      (active === "audit" && n.id === "reports")))
-                    ? "page"
-                    : undefined
-                }
+                aria-current={active === n.id ||
+                  (operationsManager && ((active === "staff" && n.id === "work") || (active === "documents" && n.id === "stock") || (active === "audit" && n.id === "reports")))
+                    ? "page" : undefined}
                 onClick={() => navigate(n.id)}
               >
                 <n.icon size={19} />
@@ -815,7 +558,11 @@ function Shell() {
               >
                 <Bell size={20} />
               </button>
-              <div className="account">
+              <button
+                className="account account-profile-button"
+                aria-label="Thông tin cá nhân"
+                onClick={() => setProfileOpen(true)}
+              >
                 <strong>{profile.user.fields.fullName}</strong>
                 <small>
                   {profile.roles
@@ -823,7 +570,7 @@ function Shell() {
                     .map((r) => r.name)
                     .join(" · ")}
                 </small>
-              </div>
+              </button>
               <button
                 aria-label="Đăng xuất"
                 title="Đăng xuất"
@@ -839,9 +586,9 @@ function Shell() {
             key={`${branch}-${ownerOnly ? ownerScope : ""}-${active}-${location.hash.split("?")[1] || ""}`}
           >
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             {!branch &&
             !ownerOnly &&
@@ -866,285 +613,57 @@ function Shell() {
                   </div>
                 }
               >
-                {housekeepingStaff &&
-                  [
-                    "requests",
-                    "documents",
-                    "incidents",
-                    "notifications",
-                  ].includes(active) && (
-                    <div className="tabs" aria-label="Nội dung">
-                      {(["requests", "documents"].includes(active)
-                        ? [
-                            ["requests", "Yêu cầu nội bộ", "IR_VIEW"],
-                            ["documents", "Yêu cầu vật tư", "MR_VIEW"],
-                          ]
-                        : [
-                            ["incidents", "Sự cố", "INCIDENT_VIEW"],
-                            ["notifications", "Thông báo", ""],
-                          ]
-                      )
-                        .filter(([, , p]) => !p || can(p))
-                        .map(([id, name]) => (
-                          <button
-                            key={id}
-                            aria-pressed={active === id}
-                            onClick={() => navigate(id)}
-                          >
-                            {name}
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                {operationsManager &&
-                  ["stock", "documents", "reports", "audit"].includes(
-                    active,
-                  ) && (
-                    <div className="tabs" aria-label="Nội dung">
-                      {(["stock", "documents"].includes(active)
-                        ? [
-                            ["stock", "Tồn kho", "INVENTORY_VIEW"],
-                            ["documents", "Yêu cầu & chứng từ", "MR_VIEW"],
-                          ]
-                        : [
-                            ["reports", "Báo cáo", "REPORT_VIEW"],
-                            ["audit", "Nhật ký", "AUDIT_VIEW"],
-                          ]
-                      )
-                        .filter(([, , p]) => can(p, false))
-                        .map(([id, name]) => (
-                          <button
-                            key={id}
-                            aria-pressed={active === id}
-                            onClick={() => navigate(id)}
-                          >
-                            {name}
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                {maintenanceLead &&
-                  ["requests", "notifications"].includes(active || "") && (
-                    <div className="tabs">
-                      <a className="button-link" href="#requests">
-                        Yêu cầu vật tư
-                      </a>
-                      <a className="button-link" href="#notifications">
-                        Thông báo
-                      </a>
-                    </div>
-                  )}
-                {maintenanceStaff &&
-                  ["materials", "requests", "otherwork"].includes(
-                    active || "",
-                  ) && (
-                    <div className="tabs" aria-label="Nội dung yêu cầu">
-                      {[
-                        ["materials", "Vật tư", "MR_VIEW"],
-                        ["requests", "Yêu cầu nội bộ", "IR_VIEW"],
-                        ["otherwork", "Công việc khác", "TASK_VIEW"],
-                      ]
-                        .filter(([, , p]) => can(p))
-                        .map(([id, name]) => (
-                          <a
-                            className="button-link"
-                            aria-current={active === id ? "page" : undefined}
-                            href={`#${id}`}
-                            key={id}
-                          >
-                            {name}
-                          </a>
-                        ))}
-                    </div>
-                  )}
-                {maintenanceStaff &&
-                  ["notifications", "history"].includes(active || "") && (
-                    <div className="tabs">
-                      <a className="button-link" href="#notifications">
-                        Thông báo
-                      </a>
-                      <a className="button-link" href="#history">
-                        Lịch sử công việc
-                      </a>
-                    </div>
-                  )}
-                {ownerOnly ? (
-                  <OwnerWorkspace page={active} scope={ownerScope} />
-                ) : active === "dashboard" && maintenanceStaff ? (
-                  <MaintenancePersonal />
-                ) : active === "history" && maintenanceStaff ? (
-                  <Work
-                    personal
-                    technicalStaff
-                    historyMine
-                    onlyKind="MAINTENANCE"
-                    title="Lịch sử công việc cá nhân"
-                  />
-                ) : active === "materials" && maintenanceStaff ? (
-                  <Documents materialOnly />
-                ) : active === "otherwork" && maintenanceStaff ? (
-                  <Work
-                    personal
-                    technicalStaff
-                    onlyKind="OPERATIONAL"
-                    title="Công việc khác"
-                  />
-                ) : active === "dashboard" && maintenanceLead ? (
-                  <MaintenanceOverview />
-                ) : active === "technicians" && maintenanceLead ? (
-                  <MaintenanceOverview staff />
-                ) : active === "review" && maintenanceLead ? (
-                  <Work
-                    onlyKind="MAINTENANCE"
-                    coordinator
-                    reviewOnly
-                    title="Kiểm tra & Nghiệm thu"
-                  />
-                ) : active === "templates" && maintenanceLead ? (
-                  <MaintenancePlans />
-                ) : active === "dashboard" && storekeeper ? (
-                  <InventoryDashboard />
-                ) : storekeeper &&
-                  [
-                    "transactions",
-                    "fulfillment",
-                    "stocktaking",
-                    "replenishment",
-                    "history",
-                  ].includes(active || "") ? (
-                  <InventoryDocuments
-                    group={
-                      active as
-                        | "transactions"
-                        | "fulfillment"
-                        | "stocktaking"
-                        | "replenishment"
-                        | "history"
-                    }
-                  />
-                ) : active === "dashboard" && housekeepingStaff ? (
-                  <HousekeepingPersonal />
-                ) : active === "dashboard" &&
-                  !management &&
-                  !can("DASHBOARD_VIEW", false) ? (
-                  <PersonalOverview />
-                ) : active === "dashboard" && management ? (
-                  <Management />
-                ) : active === "catalog" ? (
-                  <HotelWorkspace />
-                ) : active === "settings" ? (
-                  <Catalog mode="settings" />
-                ) : active === "supplies" ? (
-                  <>
-                    {storekeeper && (
-                      <p className="catalog-scope-note">
-                        Danh mục mặt hàng dùng chung; định mức và kho áp dụng
-                        theo chi nhánh đang chọn.
-                      </p>
-                    )}
-                    <Catalog mode="supplies" inventoryMode={storekeeper} />
-                  </>
-                ) : active === "stock" ? (
-                  can("INVENTORY_VIEW", false) ? (
-                    <Stock />
-                  ) : (
-                    <Documents materialOnly />
-                  )
-                ) : active === "templates" ? (
-                  <Templates />
-                ) : active === "rooms" ? (
-                  <Rooms />
-                ) : active === "workday" ? (
-                  <Workday />
-                ) : active === "work" ? (
-                  <Work
-                    coordinator={maintenanceLead}
-                    personal={housekeepingStaff || maintenanceStaff}
-                    technicalStaff={maintenanceStaff}
-                    title={
-                      maintenanceLead || maintenanceStaff
-                        ? "Công việc bảo trì"
-                        : housekeepingStaff
-                          ? "Công việc khác"
-                          : undefined
-                    }
-                    onlyKind={
-                      maintenanceLead || maintenanceStaff
-                        ? "MAINTENANCE"
-                        : departmentHead || housekeepingStaff
-                          ? "OPERATIONAL"
-                          : undefined
-                    }
-                    allowedKinds={
-                      operationsManager
-                        ? ["OPERATIONAL", "INTERNAL_REQUEST"]
-                        : undefined
-                    }
-                  />
-                ) : active === "cleaning" ? (
-                  <Work
-                    personal
-                    allowedKinds={["CLEANING", "REWORK"]}
-                    title="Công việc dọn phòng"
-                  />
-                ) : active === "incidents" ? (
-                  can("INCIDENT_VIEW") ? (
-                    <Work
-                      coordinator={maintenanceLead}
-                      technicalStaff={maintenanceStaff}
-                      onlyKind="INCIDENT"
-                      title={maintenanceLead ? "Sự cố kỹ thuật" : "Sự cố"}
-                    />
-                  ) : (
-                    <Insights mode="notifications" />
-                  )
-                ) : active === "housekeeping" ? (
-                  <Work
-                    allowedKinds={["CLEANING", "INSPECTION", "REWORK"]}
-                    title="Theo dõi buồng phòng"
-                  />
-                ) : active === "technical" ? (
-                  <Work
-                    allowedKinds={["INCIDENT", "MAINTENANCE"]}
-                    title="Bảo trì & sự cố"
-                  />
-                ) : active === "requests" ? (
-                  maintenanceLead || (housekeepingStaff && !can("IR_VIEW")) ? (
-                    <Documents materialOnly />
-                  ) : (
-                    <Work
-                      personal={housekeepingStaff || maintenanceStaff}
-                      technicalStaff={maintenanceStaff}
-                      onlyKind="INTERNAL_REQUEST"
-                    />
-                  )
-                ) : active === "staff" ? (
-                  <SchedulingStaff />
-                ) : active === "documents" ? (
-                  <Documents
-                    materialOnly={departmentHead || housekeepingStaff}
-                  />
-                ) : active === "assets" ? (
-                  <Assets maintenance={maintenanceLead || maintenanceStaff} />
-                ) : active === "users" ? (
-                  <Admin />
-                ) : (
-                  <Insights
-                    mode={
-                      (operationsManager &&
-                      active === "reports" &&
-                      !can("REPORT_VIEW", false)
-                        ? "audit"
-                        : active) as
-                        "dashboard" | "reports" | "notifications" | "audit"
-                    }
-                  />
+                {operationsManager && ["stock","documents","reports","audit"].includes(active) && (
+                  <div className="tabs" aria-label="Nội dung">
+                    {( ["stock","documents"].includes(active)
+                      ? [["stock","Tồn kho","INVENTORY_VIEW"],["documents","Yêu cầu & chứng từ","MR_VIEW"]]
+                      : [["reports","Báo cáo","REPORT_VIEW"],["audit","Nhật ký","AUDIT_VIEW"]])
+                      .filter(([, , permission])=>can(permission,false)).map(([id,name])=>(
+                        <a className="button-link" key={id} href={"#"+id} aria-current={active===id?"page":undefined}>{name}</a>
+                      ))}
+                  </div>
                 )}
+                {active === "room-issues" ? <RoomIssues />
+                  : ownerOnly ? <OwnerWorkspace page={active} scope={ownerScope} />
+                  : active === "requests" ? <Requests />
+                  : active === "internal-settings" ? <InternalSettings />
+                  : active === "supply-config" ? <SupplyConfiguration />
+                  : active === "staff-supplies" ? <StaffSupplies onRequestRefill={allocation=>{location.hash=`requests?create=CONSUMABLE_REFILL_REQUEST&allocation=${allocation.allocationId}`;}} />
+                  : housekeepingSupervisor ? <HousekeepingWorkspace page={active} />
+                  : operationsManager && ["work","staff","housekeeping"].includes(active) ? <OperationsWorkspace page={active} />
+                  : maintenanceSupervisor && active === "dashboard" ? <MaintenanceOverview />
+                  : maintenanceSupervisor && ["work","in-progress","history"].includes(active) ? <Work onlyKind="MAINTENANCE" personal={active !== "work"} technicalStaff initialStatus={active === "in-progress"?"IN_PROGRESS":active === "history"?"CLOSED":undefined} historyMine={active === "history"} title={active === "history"?"Lịch sử sửa chữa":active === "in-progress"?"Công việc đang xử lý":"Yêu cầu khắc phục"} />
+                  : housekeepingStaff && active === "history" ? <Work personal historyMine allowedKinds={["CLEANING","REWORK"]} title="Lịch sử công việc" />
+                  : active === "dashboard" && housekeepingStaff ? <HousekeepingPersonal />
+                  : active === "dashboard" && storekeeper ? <InventoryDashboard />
+                  : active === "dashboard" && receptionOnly ? <><PageTitle><h1>Tổng quan cá nhân</h1><p>Lịch làm việc và thời gian đã làm của bạn</p></PageTitle><AttendanceSummary /></>
+                  : active === "dashboard" && management ? <Management />
+                  : active === "dashboard" && !can("DASHBOARD_VIEW",false) ? <PersonalOverview />
+                  : storekeeper && ["transactions","fulfillment","stocktaking","replenishment","history"].includes(active) ? <InventoryDocuments group={active as "transactions"|"fulfillment"|"stocktaking"|"replenishment"|"history"} />
+                  : active === "catalog" ? <HotelWorkspace />
+                  : active === "settings" ? <Catalog mode="settings" />
+                  : active === "supplies" ? <Catalog mode="supplies" inventoryMode={storekeeper} />
+                  : active === "stock" ? (can("INVENTORY_VIEW",false)?<Stock />:<Documents materialOnly />)
+                  : active === "templates" ? <Templates />
+                  : active === "rooms" ? <Rooms />
+                  : active === "workday" ? <Workday />
+                  : active === "cleaning" ? <Work personal allowedKinds={["CLEANING","REWORK"]} title="Công việc dọn phòng" />
+                  : active === "work" ? <Work personal={housekeepingStaff} onlyKind={housekeepingStaff?"OPERATIONAL":receptionOnly?"INTERNAL_REQUEST":undefined} />
+                  : active === "incidents" ? <Insights mode="notifications" />
+                  : active === "documents" ? <Documents materialOnly={housekeepingStaff} />
+                  : active === "assets" ? <Assets maintenance={maintenanceSupervisor} />
+                  : active === "users" ? <Admin />
+                  : <Insights mode={(active === "reports" && !can("REPORT_VIEW",false)?"audit":active) as "dashboard"|"reports"|"notifications"|"audit"} />}
               </Suspense>
             )}
           </main>
         </div>
       </div>
+      {profileOpen && (
+        <Suspense fallback={<p role="status">Đang tải hồ sơ…</p>}>
+          <PersonalProfile close={() => setProfileOpen(false)} />
+        </Suspense>
+      )}
     </PageTitleTarget.Provider>
   );
 }

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import {
   BedDouble,
   Building2,
@@ -60,7 +62,7 @@ export function OwnerComparison({
         />
       </div>
       <div className="table-scroll">
-        <table>
+        <table className="mobile-records">
           <thead>
             <tr>
               <th>Chi nhánh</th>
@@ -78,7 +80,7 @@ export function OwnerComparison({
           <tbody>
             {data.branches.map((b: Row) => (
               <tr key={b.branchId}>
-                <td>
+                <td data-label="Chi nhánh">
                   {b.name}
                   <small>{b.code}</small>
                 </td>
@@ -92,10 +94,10 @@ export function OwnerComparison({
                   "created",
                   "completed",
                 ].map((k) => (
-                  <td key={k}>{b.metrics[k] ?? "—"}</td>
+                  <td key={k} data-label={({rooms:"Phòng",occupied:"Có khách",blocked:"Bảo trì",CLEANING:"Dọn phòng mở",MAINTENANCE:"Bảo trì mở",INCIDENT:"Sự cố mở",created:"Phát sinh trong kỳ",completed:"Hoàn thành trong kỳ"} as Record<string,string>)[k]}>{b.metrics[k] ?? "—"}</td>
                 ))}
                 {open && (
-                  <td>
+                  <td data-label="Chi tiết">
                     <button onClick={() => open(b)}>Xem chi tiết</button>
                   </td>
                 )}
@@ -224,7 +226,7 @@ export default function OwnerOverview({
                 {ownerMetrics
                   .filter(([k]) => data.metrics[k] != null)
                   .map(([k, name, icon]) => (
-                    <article className="panel" key={k}>
+                    <article className={metricClass(k)} key={k}>
                       <MetricHeading icon={icon}>{name}</MetricHeading>
                       <strong className="branch-metric-value">
                         {data.metrics[k]}
@@ -254,6 +256,13 @@ export default function OwnerOverview({
                 ))}
               </div>
             )}
+          </>
+        )}
+      </State>
+      {!branchesOnly && <AttendanceSummary />}
+      {data && !query.error && (
+        <State {...query}>
+          <>
             <OwnerComparison data={data} open={setDetail} />
             <div className="chart-grid">
               <StatChart
@@ -323,8 +332,8 @@ export default function OwnerOverview({
               ))}
             </div>
           </>
-        )}
-      </State>
+        </State>
+      )}
       {detail && (
         <Dialog
           title={detail.name}

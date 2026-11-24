@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { useAuth } from "./auth";
@@ -259,7 +260,7 @@ export default function MaintenancePlans() {
                 const plan = {
                   branchId: branch,
                   kind: "MAINTENANCE",
-                  code: f.get("code"),
+                  code: String(f.get("code") || ""),
                   title: f.get("title"),
                   assetId: num("assetId"),
                   roomId: num("roomId"),
@@ -357,9 +358,9 @@ export default function MaintenancePlans() {
                 />
               </label>
               {error && (
-                <p role="alert" className="alert">
+                <AlertPopup>
                   {error}
-                </p>
+                </AlertPopup>
               )}
               <button disabled={pending} className="primary">
                 Lưu kế hoạch
@@ -380,9 +381,9 @@ export default function MaintenancePlans() {
             sử công việc được giữ lại.
           </p>
           {error && (
-            <p role="alert" className="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
           <button
             disabled={pending}

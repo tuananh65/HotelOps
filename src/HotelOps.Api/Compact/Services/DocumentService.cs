@@ -13,13 +13,16 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
         "RECEIPT"=>action=="read"?"INVENTORY_VIEW":"STOCK_RECEIPT_POST",
         "ISSUE"=>action=="read"?"INVENTORY_VIEW":"STOCK_ISSUE_POST",
         "RETURN"=>action=="read"?"INVENTORY_VIEW":"STOCK_RETURN_POST",
-        "TRANSFER" or "TRANSFER_RECEIPT" or "TRANSFER_REQUEST"=>action=="read"?"INVENTORY_VIEW":"STOCK_TRANSFER_POST",
+        "TRANSFER_REQUEST"=>action=="read"?"INVENTORY_VIEW":action is "approve" or "reject"?"TRANSFER_REQUEST_APPROVE":"TRANSFER_REQUEST_CREATE",
+        "TRANSFER" or "TRANSFER_RECEIPT"=>action=="read"?"INVENTORY_VIEW":"STOCK_TRANSFER_POST",
         "STOCKTAKE"=>action=="read"?"INVENTORY_VIEW":"STOCKTAKE_PERFORM",
         "ADJUSTMENT"=>action=="read"?"INVENTORY_VIEW":"STOCK_ADJUST_POST",
         "REVERSAL"=>action=="read"?"INVENTORY_VIEW":"STOCK_REVERSE",
         _=>throw new ApiException(400,"UNKNOWN_DOCUMENT_KIND")};
     public async Task<InventoryDocument> Load(long id,string action,CancellationToken ct){
         var d=await db.InventoryDocuments.SingleOrDefaultAsync(x=>x.DocumentId==id,ct)??throw new ApiException(404,"DOCUMENT_NOT_FOUND");
+        if(action!="read")await GuardWorkflowDocumentMutation(d,ct);
+        if(TransferKind(d.Kind)){await TransferAuthority(d,action,ct);return d;}
         Output.Require(d.Kind!="MATERIAL_REQUEST"||action!="post","MATERIAL_REQUEST_NOT_STOCK_DOCUMENT",403);
         if(d.Kind=="MATERIAL_REQUEST"&&action is "create" or "submit" or "cancel")
             Output.Require(d.CreatedBy==actor.Id,"DOCUMENT_OWNER_REQUIRED",403);
@@ -28,7 +31,12 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
     }
     public async Task<object> List(long? branchId,string kind,int page,int pageSize,CancellationToken ct,string? status=null,string? search=null,string sort="latest",DateTime? from=null,DateTime? to=null){
         var permission=Permission(kind,"read");var all=await access.Allows(permission,branchId,ct:ct);if(!all)await access.Require(permission,branchId,true,ct);
-        var query=db.InventoryDocuments.AsNoTracking().Where(d=>(branchId==null?db.Branches.Any(b=>b.BranchId==d.BranchId&&b.IsActive):d.BranchId==branchId)&&d.Kind==kind&&(all||d.CreatedBy==actor.Id));page=Math.Max(page,1);pageSize=Math.Clamp(pageSize,1,100);
+        if(TransferKind(kind))Output.Require(branchId!=null&&all&&(await access.HasRole("OPERATION_MANAGER",branchId.Value,ct)||await access.HasRole("STOREKEEPER",branchId.Value,ct)),"PERMISSION_DENIED",403);
+        var query=db.InventoryDocuments.AsNoTracking().Where(d=>d.Kind==kind&&(all||d.CreatedBy==actor.Id));
+        query=TransferKind(kind)?query.Where(d=>d.BranchId==branchId||d.DestinationBranchId==branchId
+            ||d.Kind=="TRANSFER_RECEIPT"&&db.InventoryDocuments.Any(s=>s.DocumentId==d.SourceDocumentId&&s.Kind=="TRANSFER"&&s.BranchId==branchId))
+            :query.Where(d=>branchId==null?db.Branches.Any(b=>b.BranchId==d.BranchId&&b.IsActive):d.BranchId==branchId);
+        page=Math.Max(page,1);pageSize=Math.Clamp(pageSize,1,100);
         if(!string.IsNullOrWhiteSpace(status)&&!(kind=="TRANSFER"&&status is "IN_TRANSIT" or "PARTIALLY_RECEIVED" or "RECEIVED"))query=query.Where(d=>d.Status==status);
         if(!string.IsNullOrWhiteSpace(search)){var term=search.Trim();query=query.Where(d=>d.DocumentNo.Contains(term)||(d.Reason!=null&&d.Reason.Contains(term)));}
         Output.Require(sort is "latest" or "oldest" or "number","INVALID_SORT",400);
@@ -50,28 +58,32 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             try{await ApprovalAuthority(d,ct);canApprove=true;}
             catch(ApiException e) when(e.Status is 403 || e.Code=="REQUESTER_DEPARTMENT_REQUIRED"){ }
         }
-        return new{document=TransferStatusProjection.Record(d,id,statuses),canApprove,inventory=await InventoryContext(d,ct),
+        return new{document=TransferStatusProjection.Record(d,id,statuses),canApprove,transfer=TransferKind(d.Kind)?await TransferContext(d,ct):null,inventory=await InventoryContext(d,ct),
         lines=(await db.InventoryDocumentLines.AsNoTracking().Where(l=>l.DocumentId==id).OrderBy(l=>l.LineNo).ToArrayAsync(ct)).Select(Output.Record),
         fulfillment=(await db.VMaterialFulfillments.AsNoTracking().Where(f=>f.DocumentId==id).ToArrayAsync(ct)).Select(Output.Record),
         events=(await db.DocumentEvents.AsNoTracking().Where(e=>e.DocumentId==id).OrderByDescending(e=>e.DocumentEventId).Take(200).ToArrayAsync(ct)).Select(Output.Record)};}
     public Task<object> Create(CreateDocumentRequest r,CancellationToken ct)=>atomic.Run(async()=>{
-        await access.Require(Permission(r.Kind,"create"),r.BranchId,true,ct);
+        Output.Require(r.Kind!="REPLENISHMENT","USE_REQUEST_WORKFLOW",403);
+        if(r.SourceDocumentId is long workflowSource)await GuardWorkflowDocumentMutation(await db.InventoryDocuments.SingleOrDefaultAsync(d=>d.DocumentId==workflowSource,ct)??throw new ApiException(404,"DOCUMENT_NOT_FOUND"),ct);
+        if(TransferKind(r.Kind))await ValidateTransferCreate(r,ct);
+        else {await access.Require(Permission(r.Kind,"create"),r.BranchId,true,ct);Output.Require(r.DestinationBranchId==null||r.DestinationBranchId==r.BranchId,"SOURCE_BRANCH_MISMATCH");}
         if(r.OperationKey!=null){Output.Key(r.OperationKey.Value);Output.Require(!await db.DocumentEvents.AnyAsync(e=>e.ActorUserId==actor.Id&&e.OperationKey==r.OperationKey,ct),"OPERATION_ALREADY_APPLIED");}
         if(r.Kind=="MATERIAL_REQUEST"){
             var now=clock.GetUtcNow().UtcDateTime;
             Output.Require(r.DepartmentId!=null&&await db.Memberships.AnyAsync(m=>m.UserId==actor.Id&&m.BranchId==r.BranchId&&m.DepartmentId==r.DepartmentId&&m.Kind=="EMPLOYMENT"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now),ct),"REQUESTER_DEPARTMENT_MEMBERSHIP_REQUIRED");
         }
-        if(r.SourceDocumentId!=null){var source=await Load(r.SourceDocumentId.Value,"read",ct);Output.Require(source.BranchId==r.BranchId,"SOURCE_BRANCH_MISMATCH");}
+        long? receivingRoomId=null;
+        if(r.SourceDocumentId!=null){var source=await Load(r.SourceDocumentId.Value,"read",ct);Output.Require(source.BranchId==r.BranchId||r.Kind=="TRANSFER_RECEIPT"&&source.Kind=="TRANSFER"&&source.DestinationBranchId==r.BranchId,"SOURCE_BRANCH_MISMATCH");receivingRoomId=source.BranchId==r.BranchId?source.ReceivingRoomId:null;}
         if(r.SourceWarehouseId!=null)Output.Require(await db.Warehouses.AnyAsync(w=>w.WarehouseId==r.SourceWarehouseId&&w.BranchId==r.BranchId&&w.IsActive,ct),"WAREHOUSE_UNAVAILABLE");
-        if(r.DestinationWarehouseId!=null)Output.Require(await db.Warehouses.AnyAsync(w=>w.WarehouseId==r.DestinationWarehouseId&&w.BranchId==r.BranchId&&w.IsActive,ct),"WAREHOUSE_UNAVAILABLE");
+        if(r.DestinationWarehouseId!=null)Output.Require(await db.Warehouses.AnyAsync(w=>w.WarehouseId==r.DestinationWarehouseId&&w.BranchId==(r.DestinationBranchId??r.BranchId)&&w.IsActive,ct),"WAREHOUSE_UNAVAILABLE");
         if(r.SourceWorkId!=null){
             var source=await db.WorkItems.AsNoTracking().SingleOrDefaultAsync(w=>w.WorkId==r.SourceWorkId&&w.BranchId==r.BranchId&&!WorkRules.Terminal.Contains(w.Status),ct);
             Output.Require(source!=null,"SOURCE_WORK_UNAVAILABLE");
             if(r.Kind=="MATERIAL_REQUEST"&&source!.Kind=="MAINTENANCE")Output.Require(source.CreatedBy==actor.Id||await db.WorkAssignments.AnyAsync(a=>a.WorkId==source.WorkId&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE",ct)||await access.Allows("MAINTENANCE_ASSIGN",r.BranchId,ct:ct),"SOURCE_WORK_UNAVAILABLE");
         }
         var d=new InventoryDocument{DocumentNo=Guid.NewGuid().ToString("N"),BranchId=r.BranchId,Kind=r.Kind,Status=r.Kind=="REPLENISHMENT"?"REQUESTED":r.Kind=="STOCKTAKE"?"IN_PROGRESS":"DRAFT",
-            DepartmentId=r.DepartmentId,SourceWarehouseId=r.SourceWarehouseId,DestinationWarehouseId=r.DestinationWarehouseId,DestinationBranchId=r.DestinationWarehouseId==null?null:r.BranchId,
-            SourceDocumentId=r.SourceDocumentId,SourceWorkId=r.SourceWorkId,SupplierName=r.SupplierName,Reason=r.Reason,ExpectedOn=r.ExpectedOn,CreatedBy=actor.Id};
+            DepartmentId=r.DepartmentId,SourceWarehouseId=r.SourceWarehouseId,DestinationWarehouseId=r.DestinationWarehouseId,DestinationBranchId=r.DestinationWarehouseId==null?null:r.DestinationBranchId??r.BranchId,
+            SourceDocumentId=r.SourceDocumentId,SourceWorkId=r.SourceWorkId,ReceivingRoomId=receivingRoomId,SupplierName=r.SupplierName,Reason=r.Reason,ExpectedOn=r.ExpectedOn,CreatedBy=actor.Id};
         db.InventoryDocuments.Add(d);await db.SaveChangesAsync(ct);await Event(d,"CREATED",r.OperationKey??Guid.NewGuid(),r.Reason,ct);return (object)Output.Record(d);
     },ct);
     public Task<object> Line(long id,long? lineId,DocumentLineRequest r,CancellationToken ct)=>atomic.Run(async()=>{
@@ -82,10 +94,11 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
         var item=await db.InventoryItems.SingleOrDefaultAsync(x=>x.ItemId==r.ItemId&&x.IsActive,ct)??throw new ApiException(409,"ITEM_UNAVAILABLE");
         var unit=await db.ReferenceValues.SingleOrDefaultAsync(x=>x.ReferenceId==r.UnitId&&x.Kind=="UOM"&&x.IsActive,ct)??throw new ApiException(409,"UNIT_UNAVAILABLE");
         Output.Require(unit.ReferenceId==item.BaseUnitId||unit.BaseUnitId==item.BaseUnitId,"UNIT_MISMATCH",400);
-        var factor=unit.ReferenceId==item.BaseUnitId?1:unit.ConversionFactor!.Value;
+        var factor=unit.ReferenceId==item.BaseUnitId?1:unit.ConversionFactor??0;
         var line=lineId==null?new InventoryDocumentLine{BranchId=d.BranchId,DocumentId=id,LineNo=(await db.InventoryDocumentLines.Where(l=>l.DocumentId==id).MaxAsync(l=>(int?)l.LineNo,ct)??0)+1}
             :await db.InventoryDocumentLines.SingleOrDefaultAsync(l=>l.DocumentId==id&&l.LineId==lineId,ct)??throw new ApiException(404,"LINE_NOT_FOUND");
-        line.ItemId=r.ItemId;line.UnitId=r.UnitId;line.ConversionFactor=factor;line.ActualQty=r.Quantity;line.RequestedQty=d.Kind is "MATERIAL_REQUEST" or "REPLENISHMENT"?r.Quantity:null;
+        Output.Require(factor>0,"UNIT_MISMATCH",400);
+        line.ItemId=r.ItemId;line.UnitId=r.UnitId;line.ConversionFactor=factor;line.ActualQty=r.Quantity;line.RequestedQty=d.Kind is "MATERIAL_REQUEST" or "REPLENISHMENT" or "TRANSFER_REQUEST"?r.Quantity:null;
         line.UnitCost=r.UnitCost;line.SourceLineId=r.SourceLineId;line.CountedQty=r.CountedQty;
         if(d.Kind=="STOCKTAKE"){
             Output.Require(d.SourceWarehouseId!=null&&r.CountedQty!=null,"WAREHOUSE_AND_COUNT_REQUIRED",400);
@@ -104,29 +117,36 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
         switch(action){
             case "submit":
                 Output.Require(d.Kind is "MATERIAL_REQUEST" or "TRANSFER_REQUEST"&&d.Status is "DRAFT" or "NEEDS_INFORMATION","INVALID_DOCUMENT_TRANSITION");
-                d.Status="PENDING_APPROVAL";await notifications.ForPermission(d.BranchId,"MR_APPROVE_L1","PENDING_APPROVAL",d.DocumentNo,null,id,r.OperationKey,ct);break;
+                if(d.Kind=="TRANSFER_REQUEST")await ValidateTransferLines(d,lines,ct);
+                d.Status="PENDING_APPROVAL";if(d.Kind!="TRANSFER_REQUEST")await notifications.ForPermission(d.BranchId,"MR_APPROVE_L1","PENDING_APPROVAL",d.DocumentNo,null,id,r.OperationKey,ct);break;
             case "approve":
                 Output.Require(d.Kind is "MATERIAL_REQUEST" or "TRANSFER_REQUEST" or "ADJUSTMENT" or "RETURN" or "REVERSAL"&&d.Status is "PENDING_APPROVAL" or "DRAFT","INVALID_DOCUMENT_TRANSITION");
                 Output.Require(d.CreatedBy!=actor.Id,"INDEPENDENT_APPROVER_REQUIRED",403);
-                if(d.Kind=="MATERIAL_REQUEST")Output.Require(await access.HasRole("DEPT_MANAGER",d.BranchId,ct),"DEPARTMENT_HEAD_REQUIRED",403);
+                if(d.Kind=="TRANSFER_REQUEST"){Output.Require(d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");await ValidateTransferLines(d,lines,ct);}
+                if(d.Kind=="MATERIAL_REQUEST")await access.RequireRolePermission("STOREKEEPER","MR_APPROVE_L1",d.BranchId,ct);
                 d.ApprovedBy=actor.Id;d.ApprovedAt=now;if(d.Kind is "MATERIAL_REQUEST" or "TRANSFER_REQUEST")d.Status="APPROVED";
                 if(r.ApprovedLines!=null)Output.Require(r.ApprovedLines.Count==lines.Length&&r.ApprovedLines.Select(x=>x.LineId).Distinct().Count()==lines.Length,"ALL_APPROVAL_LINES_REQUIRED",400);
                 foreach(var l in lines){var quantity=r.ApprovedLines==null?l.RequestedQty??l.ActualQty:r.ApprovedLines.SingleOrDefault(x=>x.LineId==l.LineId)?.Quantity??-1;
                     Output.Require(quantity>=0&&quantity<=(l.RequestedQty??l.ActualQty),"APPROVED_QUANTITY_EXCEEDS_REQUEST",400);l.ApprovedQty=quantity;}
+                if(d.Kind=="TRANSFER_REQUEST"){Output.Require(lines.Any(l=>l.ApprovedQty>0),"APPROVAL_QUANTITY_REQUIRED",400);await ValidateTransferApprovalStock(d,lines,ct);}
                 break;
             case "reject":
                 Output.Reason(r.Reason);Output.Require(d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");d.Status="REJECTED";d.Reason=r.Reason;break;
             case "request-information":
                 Output.Reason(r.Reason);Output.Require(d.Kind=="MATERIAL_REQUEST"&&d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");d.Status="NEEDS_INFORMATION";break;
             case "count":Output.Require(d.Kind=="STOCKTAKE"&&d.Status=="IN_PROGRESS"&&lines.All(l=>l.CountedQty!=null),"COUNT_INCOMPLETE");d.Status="COUNTED";break;
-            case "cancel":Output.Reason(r.Reason);Output.Require(d.PostedAt==null&&d.Status is "DRAFT" or "IN_PROGRESS" or "PENDING_APPROVAL" or "NEEDS_INFORMATION","DOCUMENT_CANNOT_CANCEL");d.Status="CANCELLED";d.ClosedAt=now;break;
+            case "cancel":Output.Reason(r.Reason);
+                Output.Require(d.PostedAt==null&&(d.Status is "DRAFT" or "IN_PROGRESS" or "PENDING_APPROVAL" or "NEEDS_INFORMATION"||d.Kind=="TRANSFER_REQUEST"&&d.Status=="APPROVED"),"DOCUMENT_CANNOT_CANCEL");
+                if(d.Kind=="TRANSFER_REQUEST")Output.Require(!await db.InventoryDocuments.AnyAsync(x=>x.SourceDocumentId==id&&x.PostedAt!=null,ct),"TRANSFER_ALREADY_DISPATCHED");
+                d.Status="CANCELLED";d.ClosedAt=now;break;
             case "close":Output.Reason(r.Reason);Output.Require(d.Kind is "MATERIAL_REQUEST" or "REPLENISHMENT","INVALID_DOCUMENT_TRANSITION");
                 d.Status=d.Kind=="MATERIAL_REQUEST"?"REMAINDER_CLOSED":"CLOSED";d.ClosedAt=now;break;
             case "post":await Post(d,lines,r,ct);break;
             default:throw new ApiException(400,"UNKNOWN_ACTION");
         }
         await db.SaveChangesAsync(ct);await Event(d,action.ToUpperInvariant(),r.OperationKey,r.Reason,ct);
-        notifications.Add(d.BranchId,d.CreatedBy,"DOCUMENT_"+action.ToUpperInvariant(),d.DocumentNo,null,id,r.OperationKey);
+        if(TransferKind(d.Kind))await NotifyTransfer(d,action,r.OperationKey,ct);
+        else notifications.Add(d.BranchId,d.CreatedBy,"DOCUMENT_"+action.ToUpperInvariant(),d.DocumentNo,null,id,r.OperationKey);
         await db.SaveChangesAsync(ct);return (object)Output.Record(d);
     },ct);
     private async Task Post(InventoryDocument d,InventoryDocumentLine[] lines,ActionRequest r,CancellationToken ct)
@@ -153,11 +173,16 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             Output.Require(source.Status!="CLOSED"&&source.ClosedAt==null,"REPLENISHMENT_CLOSED");
         }
         if(d.Kind is "ISSUE" or "RETURN" or "TRANSFER_RECEIPT" or "ADJUSTMENT" or "REVERSAL")Output.Require(source!=null,"SOURCE_DOCUMENT_REQUIRED");
-        if(d.Kind=="ISSUE")Output.Require(source!.Kind=="MATERIAL_REQUEST"&&source.ApprovedBy!=actor.Id&&source.ApprovedBy!=null&&source.Status is "APPROVED" or "PARTIALLY_ISSUED"&&source.ClosedAt==null,"APPROVED_REQUEST_REQUIRED");
-        if(d.Kind=="TRANSFER")Output.Require(d.SourceWarehouseId!=d.DestinationWarehouseId&&d.DestinationWarehouseId!=null&&await db.Warehouses.AnyAsync(w=>w.WarehouseId==d.DestinationWarehouseId&&w.BranchId==d.BranchId&&w.IsActive,ct),"TRANSFER_DESTINATION_MISMATCH");
+        if(d.Kind=="ISSUE"){
+            Output.Require(source!.Kind=="MATERIAL_REQUEST"&&source.BranchId==d.BranchId&&source.ApprovedBy!=null&&source.Status is "APPROVED" or "PARTIALLY_ISSUED"&&source.ClosedAt==null,"APPROVED_REQUEST_REQUIRED");
+            if(source.ApprovedBy==actor.Id)await access.RequireRolePermission("STOREKEEPER","MR_APPROVE_L1",d.BranchId,ct);
+        }
+        if(d.Kind is "TRANSFER" or "TRANSFER_RECEIPT")await ValidateTransferPost(d,source,lines,ct);
+        if(d.Kind=="TRANSFER")Output.Require(d.SourceWarehouseId!=d.DestinationWarehouseId,"TRANSFER_DESTINATION_MISMATCH");
         if(d.Kind=="REVERSAL"){
             Output.Reason(d.Reason);
             Output.Require(source!.PostedAt!=null&&source.Kind!="REVERSAL","ORIGINAL_MOVEMENT_REQUIRED");
+            Output.Require(!await CrossBranchTransfer(source,ct),"CROSS_BRANCH_TRANSFER_REVERSAL_UNSUPPORTED");
             Output.Require(!await db.InventoryDocuments.AnyAsync(x=>x.SourceDocumentId==source.DocumentId&&x.PostedAt!=null&&x.Kind!="REVERSAL",ct),"DOCUMENT_HAS_POSTED_DEPENDENTS");
         }
         if(d.Kind=="TRANSFER_RECEIPT")Output.Require(source!.Kind=="TRANSFER"&&source.PostedAt!=null&&source.DestinationWarehouseId==d.DestinationWarehouseId,"TRANSFER_DESTINATION_MISMATCH");
@@ -213,22 +238,14 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             foreach(var line in originals){var received=await (from m in db.StockMovements join l in db.InventoryDocumentLines on m.LineId equals l.LineId where l.SourceLineId==line.LineId&&!db.StockMovements.Any(x=>x.ReversalOfMovementId==m.MovementId) select (decimal?)m.SignedBaseQty).SumAsync(ct)??0;full&=received>=line.ActualQty*line.ConversionFactor;any|=received>0;}
             fulfillmentSource.Status=full?"FULLY_RECEIVED":any?"PARTIALLY_RECEIVED":"REQUESTED";
         }
+        await new LowStockService(db,notifications,clock).Reconcile(ct,d.BranchId);
     }
     private async Task ApprovalAuthority(InventoryDocument d,CancellationToken ct)
     {
-        var now=clock.GetUtcNow().UtcDateTime;
         Output.Require(d.CreatedBy!=actor.Id,"INDEPENDENT_APPROVER_REQUIRED",403);
-        var department=d.DepartmentId;
-        Output.Require(department!=null,"REQUESTER_DEPARTMENT_REQUIRED");
-        var requesterIsHead=await (from ur in db.UserRoles join role in db.Roles on ur.RoleId equals role.RoleId
-            where ur.UserId==d.CreatedBy&&ur.BranchId==d.BranchId&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&role.IsActive&&role.Code=="DEPT_MANAGER"
-            select ur.UserRoleId).AnyAsync(ct)&&await db.Memberships.AnyAsync(m=>m.UserId==d.CreatedBy&&m.BranchId==d.BranchId&&m.DepartmentId==department&&m.Kind=="DEPARTMENT_AUTHORITY"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now),ct);
-        if(requesterIsHead)department=await db.Warehouses.Where(w=>w.WarehouseId==d.SourceWarehouseId&&w.IsActive).Select(w=>w.DepartmentId).SingleOrDefaultAsync(ct);
-        var code=requesterIsHead?"MR_APPROVE_FALLBACK":"MR_APPROVE_L1";
-        await access.Require(code,d.BranchId,ct:ct);
-        Output.Require(await access.HasRole("DEPT_MANAGER",d.BranchId,ct)&&department!=null&&await db.Memberships.AnyAsync(m=>m.UserId==actor.Id&&m.BranchId==d.BranchId&&m.DepartmentId==department&&m.Kind=="DEPARTMENT_AUTHORITY"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now),ct),"MAPPED_DEPARTMENT_HEAD_REQUIRED",403);
-        Output.Require(await (from ur in db.UserRoles join role in db.Roles on ur.RoleId equals role.RoleId join grant in db.RolePermissions on role.RoleId equals grant.RoleId join p in db.Permissions on grant.PermissionId equals p.PermissionId
-            where ur.UserId==actor.Id&&ur.BranchId==d.BranchId&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&role.Code=="DEPT_MANAGER"&&role.IsActive&&p.Code==code&&p.IsActive&&(grant.DataScope=="BRANCH"||grant.DataScope=="ALL") select ur.UserRoleId).AnyAsync(ct),"DEPARTMENT_HEAD_GRANT_REQUIRED",403);
+        // A storekeeper may approve and issue, but cannot approve their own request.
+        await access.RequireRolePermission("STOREKEEPER","MR_APPROVE_L1",d.BranchId,ct);
+        Output.Require(d.DestinationBranchId==null||d.DestinationBranchId==d.BranchId,"USE_TRANSFER_REQUEST_FOR_OTHER_BRANCH",400);
     }
     private async Task Event(InventoryDocument d,string action,Guid key,string? reason,CancellationToken ct){
         var revision=(await db.DocumentEvents.Where(e=>e.DocumentId==d.DocumentId).MaxAsync(e=>(int?)e.RevisionNo,ct)??0)+1;

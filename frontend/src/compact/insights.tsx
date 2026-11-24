@@ -1,12 +1,57 @@
+import { AlertPopup } from "./alert-popup";
+import OperationsActionCenter from "./operations-action-center";
+import AttendanceSummary from "./attendance-summary";
 import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
 import { api, dateKey, fields, message, type Row, timestamp } from "./api";
 import { useAuth } from "./auth";
-import { Badge, Empty, Pager, State, useQuery } from "./ui";
+import { Badge, Empty, Pager, State, useQuery, label } from "./ui";
 import OperationalCharts from "./operational-charts";
-import BranchMetrics from "./branch-metrics";
-import OperationsMetrics from "./operations-metrics";
+import OperationsMetrics, { OperationsMetricDetails } from "./operations-metrics";
+import StatChart from "./stat-chart";
+import { assetConditionLabel } from "./asset-presentation";
+const reportLabels: Record<string, string> = {
+                            lineId: "Dòng", item: "Vật tư", unit: "Đơn vị", kind: "Loại",
+                            sourceBranchId: "Chi nhánh xuất", destinationBranchId: "Chi nhánh nhận", sourceDocumentId: "Chứng từ nguồn",
+                            requestedBaseQty: "Đề nghị", approvedBaseQty: "Đã duyệt", actualBaseQty: "Thực xuất/nhận", receivedBaseQty: "Đã nhận",
+                            expectedBaseQty: "Theo sổ", countedBaseQty: "Kiểm đếm", differenceBaseQty: "Chênh lệch", needsAdjustment: "Cần điều chỉnh", recordedStatus: "Trạng thái ghi nhận", postedAt: "Ngày ghi sổ",
+                            workId: "Mã việc",
+                            assetCode: "Mã tài sản",
+                            name: "Tên",
+                            conditionCode: "Tình trạng",
+                            isActive: "Đang sử dụng",
+                            roomId: "Mã phòng",
+                            locationId: "Mã vị trí",
+                            warrantyUntil: "Bảo hành đến",
+                            code: "Mã",
+                            operationalStatus: "Trạng thái vận hành",
+                            readiness: "Mức sẵn sàng",
+                            isOccupied: "Có khách",
+                            workNo: "Số công việc",
+                            status: "Trạng thái",
+                            title: "Tiêu đề",
+                            createdAt: "Ngày tạo",
+                            completedAt: "Hoàn thành",
+                            verifiedAt: "Xác nhận",
+                            dueAt: "Hạn xử lý",
+                            completedSeconds: "Giây thực hiện",
+                            warehouseId: "Kho",
+                            itemId: "Vật tư",
+                            baseQty: "Tồn cơ sở",
+                            documentId: "Mã yêu cầu",
+                            documentNo: "Số yêu cầu",
+                            approvedAt: "Ngày duyệt",
+                            closedAt: "Ngày đóng",
+                            assignmentId: "Mã phân ca",
+                            employeeCode: "Mã nhân viên",
+                            fullName: "Nhân viên",
+                            department: "Bộ phận",
+                            shift: "Ca",
+                            workDate: "Ngày làm việc",
+                            startedAt: "Vào ca",
+                            endedAt: "Ra ca",
+                          };
 export default function Insights({
   mode,
   readScope,
@@ -18,9 +63,6 @@ export default function Insights({
   const branchRoles = profile.roles.filter(
     (r) => r.branchId === null || r.branchId === branch,
   );
-  const departmentHead =
-    branchRoles.length > 0 &&
-    branchRoles.every((r) => r.code === "DEPT_MANAGER");
   const available = [
     ["tasks", "Công việc", "TASK_VIEW"],
     ["cleaning", "Dọn phòng", "CLEANING_VIEW"],
@@ -31,10 +73,15 @@ export default function Insights({
     ["workday", "Lịch phân ca", "SHIFT_MANAGE"],
     ["stock", "Tồn kho", "INVENTORY_VIEW"],
     ["documents", "Chứng từ", "INVENTORY_VIEW"],
+    ["transfers", "Điều chuyển giữa chi nhánh", "INVENTORY_VIEW"],
+    ["stocktake-differences", "Chênh lệch kiểm kê", "INVENTORY_VIEW"],
     ["rooms", "Phòng hiện tại", "ROOM_VIEW"],
     ["assets", "Tài sản hiện tại", "ASSET_VIEW"],
   ].filter((r) => can(r[2], false));
-  const [report, setReport] = useState(available[0]?.[0] || "tasks"),
+  const [report, setReport] = useState(() => {
+      const requested = new URLSearchParams(location.hash.split("?")[1] || "").get("type");
+      return available.find(([key]) => key === requested)?.[0] || available[0]?.[0] || "tasks";
+    }),
     [from, setFrom] = useState(dateKey(new Date(Date.now() - 30 * 86400000))),
     [to, setTo] = useState(dateKey()),
     [revision, bump] = useState(0),
@@ -47,12 +94,13 @@ export default function Insights({
   const [auditPage, setAuditPage] = useState(1),
     [auditSearch, setAuditSearch] = useState("");
   const [notificationPage, setNotificationPage] = useState(1);
+  const [taskPeriod, setTaskPeriod] = useState("day");
   const path =
     mode === "notifications"
       ? `notifications?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}page=${notificationPage}`
       : mode === "reports"
         ? `insights/reports/${report}?branchId=${branch}&from=${from}T00:00:00Z&to=${to}T23:59:59Z`
-        : `insights/${mode}?branchId=${branch}${mode === "audit" ? `&page=${auditPage}&search=${encodeURIComponent(auditSearch)}` : ""}`;
+        : `insights/${mode}?branchId=${branch}${mode === "audit" ? `&page=${auditPage}&search=${encodeURIComponent(auditSearch)}` : operationsManager && can("TASK_VIEW", false) ? `&taskPeriod=${taskPeriod}` : ""}`;
   const query = useQuery(path, revision);
   const titles = {
     dashboard: "Tổng quan vận hành",
@@ -61,7 +109,12 @@ export default function Insights({
     audit: "Nhật ký hệ thống",
   };
   const raw = Array.isArray(query.data) ? query.data : query.data?.items || [],
-    rows: Row[] = raw.map((r: Row) => r.fields || r);
+    rows: Row[] = raw.flatMap((r: Row) => {
+      const record = r.fields || r;
+      if (mode !== "reports" || report !== "transfers") return [record];
+      const { lines, ...header } = record;
+      return lines?.length ? lines.map((line: Row) => ({ ...header, ...line })) : [header];
+    });
   const currentReportPage = Math.min(
     reportPage,
     Math.max(1, Math.ceil(rows.length / 25)),
@@ -180,17 +233,35 @@ export default function Insights({
         </PageToolbar>
       )}
       {error && (
-        <p role="alert" className="alert">
+        <AlertPopup>
           {error}
-        </p>
+        </AlertPopup>
+      )}
+      {mode === "dashboard" && operationsManager && can("TASK_VIEW", false) && (
+        <PageToolbar>
+          <label>
+            Thống kê công việc vận hành
+            <select
+              value={taskPeriod}
+              onChange={(e) => setTaskPeriod(e.target.value)}
+            >
+              <option value="day">Hôm nay</option>
+              <option value="week">Tuần này</option>
+              <option value="month">Tháng này</option>
+            </select>
+          </label>
+          <p className="hint">
+            Theo ngày tạo công việc, trong múi giờ chi nhánh. Các chỉ số khác là
+            tình trạng hiện tại.
+          </p>
+        </PageToolbar>
       )}
       <State {...query} retry={() => bump((x) => x + 1)}>
         {mode === "dashboard" ? (
           query.data && (
             <>
-              {departmentHead && <BranchMetrics data={query.data} />}
               {operationsManager && <OperationsMetrics data={query.data} />}
-              <OperationalCharts data={query.data} />
+              {!operationsManager && <OperationalCharts data={query.data} />}
             </>
           )
         ) : mode === "notifications" ? (
@@ -208,7 +279,15 @@ export default function Insights({
                         setPending(true);
                         setError("");
                         try {
+                          if (r.notificationType?.startsWith("ROOM_ISSUE_")) {
+                            location.hash = `room-issues?id=${r.workId}`;
+                            return;
+                          }
                           const d = await api(`work/${r.workId}`);
+                          if (d.events?.some((e:Row)=>e.fields.eventType==="ROOM_ISSUE_REPORTED")) {
+                            location.hash = `room-issues?id=${r.workId}`;
+                            return;
+                          }
                           location.hash = `work?kind=${encodeURIComponent(d.work.fields.kind)}&id=${r.workId}`;
                         } catch (e) {
                           setError(message(e));
@@ -284,7 +363,7 @@ export default function Insights({
         ) : mode === "audit" ? (
           <>
             <div className="table-scroll">
-              <table>
+              <table className="mobile-records">
                 <thead>
                   <tr>
                     <th>Thời điểm</th>
@@ -296,12 +375,11 @@ export default function Insights({
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.auditId}>
-                      <td>{timestamp(r.occurredAt)}</td>
-                      <td>{r.action}</td>
-                      <td>
-                        {r.entityType} · {r.entityKey}
+                      <td data-label="Thời điểm">{timestamp(r.occurredAt)}</td>
+                      <td data-label="Hành động">{r.action}</td>
+                      <td data-label="Đối tượng">{r.entityType} · {r.entityKey}
                       </td>
-                      <td>{r.actorUserId ?? "Hệ thống"}</td>
+                      <td data-label="Người thực hiện">{r.actorUserId ?? "Hệ thống"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -328,52 +406,14 @@ export default function Insights({
           </>
         ) : (
           <div className="table-scroll">
-            <table>
+            <table className="mobile-records">
               <thead>
                 <tr>
                   {Object.keys(rows[0] || {})
                     .filter((k) => !["rowVersion"].includes(k))
                     .map((k) => (
                       <th key={k}>
-                        {(
-                          {
-                            workId: "Mã việc",
-                            assetCode: "Mã tài sản",
-                            name: "Tên",
-                            conditionCode: "Tình trạng",
-                            isActive: "Đang sử dụng",
-                            roomId: "Mã phòng",
-                            locationId: "Mã vị trí",
-                            warrantyUntil: "Bảo hành đến",
-                            code: "Mã",
-                            operationalStatus: "Trạng thái vận hành",
-                            readiness: "Mức sẵn sàng",
-                            isOccupied: "Có khách",
-                            workNo: "Số công việc",
-                            status: "Trạng thái",
-                            title: "Tiêu đề",
-                            createdAt: "Ngày tạo",
-                            completedAt: "Hoàn thành",
-                            verifiedAt: "Xác nhận",
-                            dueAt: "Hạn xử lý",
-                            completedSeconds: "Giây thực hiện",
-                            warehouseId: "Kho",
-                            itemId: "Vật tư",
-                            baseQty: "Tồn cơ sở",
-                            documentId: "Mã yêu cầu",
-                            documentNo: "Số yêu cầu",
-                            approvedAt: "Ngày duyệt",
-                            closedAt: "Ngày đóng",
-                            assignmentId: "Mã phân ca",
-                            employeeCode: "Mã nhân viên",
-                            fullName: "Nhân viên",
-                            department: "Bộ phận",
-                            shift: "Ca",
-                            workDate: "Ngày làm việc",
-                            startedAt: "Vào ca",
-                            endedAt: "Ra ca",
-                          } as Record<string, string>
-                        )[k] || k}
+                        {reportLabels[k] || k}
                       </th>
                     ))}
                 </tr>
@@ -386,13 +426,15 @@ export default function Insights({
                       {Object.entries(r)
                         .filter(([k]) => k !== "rowVersion")
                         .map(([k, v]) => (
-                          <td key={k}>
+                          <td key={k} data-label={reportLabels[k] || k}>
                             {k === "status" ? (
                               <Badge value={String(v)} />
+                            ) : k === "conditionCode" ? (
+                              assetConditionLabel(String(v))
                             ) : k.endsWith("At") ? (
                               timestamp(v)
                             ) : (
-                              String(v ?? "—")
+                              typeof v === "boolean" ? (v ? "Có" : "Không") : String(v ?? "—")
                             )}
                           </td>
                         ))}
@@ -404,6 +446,45 @@ export default function Insights({
           </div>
         )}
       </State>
+      {mode === "dashboard" && operationsManager && query.data && !query.error && <OperationsActionCenter data={query.data} />}
+      {mode === "dashboard" && <AttendanceSummary />}
+      {mode === "dashboard" && query.data && !query.error && operationsManager && (
+        <State {...query}>
+          {operationsManager && <OperationsMetricDetails data={query.data} />}
+              {operationsManager && query.data.work !== null && (
+                <section
+                  className="operations-task-statistics"
+                  aria-label="Thống kê công việc vận hành"
+                >
+                  {query.data.taskWindow ? (
+                    <>
+                      <p className="hint">
+                        Từ {query.data.taskWindow.fromDate} đến{" "}
+                        {query.data.taskWindow.toDate} ·{" "}
+                        {query.data.taskWindow.timezone} · Theo ngày tạo
+                      </p>
+                      <StatChart
+                        title="Công việc vận hành"
+                        rows={(query.data.work || []).map((r: Row) => ({
+                          name: label(r.status),
+                          value: r.count,
+                        }))}
+                      />
+                    </>
+                  ) : (
+                    <p role="status" className="hint">
+                      Chưa có thống kê công việc theo kỳ từ máy chủ.
+                    </p>
+                  )}
+                </section>
+              )}
+              <OperationalCharts
+                data={
+                  operationsManager ? { ...query.data, work: null } : query.data
+                }
+              />
+        </State>
+      )}
       {mode === "reports" && !query.loading && !query.error && (
         <>
           {rows.length === 10000 && (

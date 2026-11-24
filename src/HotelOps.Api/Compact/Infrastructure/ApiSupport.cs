@@ -72,7 +72,11 @@ public sealed class ErrorMiddleware(RequestDelegate next,ILogger<ErrorMiddleware
         catch(Exception error)
         {
             if(context.Response.HasStarted)throw;
-            var sql=error as SqlException ?? (error as DbUpdateException)?.InnerException as SqlException;
+            // EF can wrap a deadlock in InvalidOperationException before it reaches this boundary.
+            // Classify the actual SQL error without retrying any business transaction here.
+            SqlException? sql=null;
+            for(Exception? cause=error;cause!=null;cause=cause.InnerException)
+                if(cause is SqlException databaseError){sql=databaseError;break;}
             var (status,code)=error switch {
                 ApiException a=>(a.Status,a.Code),
                 DbUpdateConcurrencyException=>(409,"STALE_ROW_VERSION"),

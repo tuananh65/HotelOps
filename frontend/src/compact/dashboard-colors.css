@@ -1,0 +1,38 @@
+.metric-card.metric-green {
+  --metric-bg: #e5f5e9;
+  --metric-color: #186336;
+}
+.metric-card.metric-red {
+  --metric-bg: #fff0ed;
+  --metric-color: #a1271d;
+}
+.metric-card.metric-amber {
+  --metric-bg: #fff5d9;
+  --metric-color: #805300;
+}
+.metric-card.metric-blue {
+  --metric-bg: #eaf3ff;
+  --metric-color: #245c91;
+}
+.metric-card.metric-purple {
+  --metric-bg: #f3edfc;
+  --metric-color: #694292;
+}
+.branch-metrics > .metric-card,
+.metrics > .metric-card {
+  background: var(--metric-bg);
+  border-top: 4px solid var(--metric-color);
+}
+.metric-card .branch-metric-value,
+.metric-card .metric,
+.metric-card > svg,
+.metric-card h3 > svg {
+  color: var(--metric-color);
+}
+.metric-card .metric-icon {
+  background: #ffffffa6;
+}
+.attendance-summary + .chart-grid,
+.attendance-summary + .operations-metrics-details {
+  margin-top: 24px;
+}

@@ -1,3 +1,5 @@
+import { AlertPopup } from "./alert-popup";
+import "./shift-status.css";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, message, type Row, timestamp } from "./api";
 export function useQuery<T = any>(path: string | null, revision = 0) {
@@ -51,9 +53,9 @@ export function State({
     );
   if (error)
     return (
-      <div className="alert" role="alert">
+      <AlertPopup>
         {message(error)} {retry && <button onClick={retry}>Thử lại</button>}
-      </div>
+      </AlertPopup>
     );
   return (
     <div className="query-state" aria-busy={!!loading} inert={!!loading}>
@@ -69,6 +71,24 @@ export function Empty({
   return <div className="empty">{children}</div>;
 }
 const labels: Record<string, string> = {
+  RESERVED: "Đã đặt",
+  RESERVE: "Đặt phòng",
+  "CANCEL-RESERVATION": "Hủy đặt phòng",
+  "CHECK-IN": "Khách đến nhận phòng",
+  "CHECK-OUT": "Trả phòng",
+  CHECKIN: "Khách đến nhận phòng",
+  CHECKOUT: "Trả phòng",
+  MOVE: "Chuyển khách sang phòng khác",
+  OCCUPANCY_MOVE_IN: "Nhận khách chuyển đến",
+  RESERVATION_MOVE_IN: "Nhận đặt phòng chuyển đến",
+  RESERVATION_MOVE_OUT: "Chuyển đặt phòng sang phòng khác",
+  INSPECTION_PASSED: "Kiểm tra phòng đạt",
+  INSPECTION_FAILED: "Kiểm tra phòng không đạt",
+  BLOCK: "Chặn phòng",
+  UNBLOCK: "Gỡ chặn phòng",
+  AUTO_END: "Tự động kết thúc ca",
+  ADMIN_BASELINE_RESET: "Khởi tạo lại trạng thái phòng",
+  NEEDS_CLEANING: "Cần dọn dẹp",
   PLANNED: "Đã phân ca",
   WORKING: "Đang trong ca",
   ENDED: "Đã kết thúc",
@@ -85,7 +105,7 @@ const labels: Record<string, string> = {
   CANCEL: "Hủy ca",
   OCCUPIED: "Có khách",
   AVAILABLE: "Sẵn sàng",
-  BLOCKED: "Đang chặn",
+  BLOCKED: "Bảo trì",
   IN_PROGRESS: "Đang thực hiện",
   ASSIGNED: "Đã giao",
   ACCEPTED: "Đã nhận",
@@ -131,7 +151,7 @@ export const label = (s: string) => labels[s] || s;
 export function Badge({ value }: { value: string }) {
   return (
     <span
-      className={`badge ${["READY", "CLOSED", "ENDED", "PASSED", "POSTED", "COMPLETED"].includes(value) ? "good" : ["BLOCKED", "FAILED", "REJECTED", "REWORK_REQUIRED"].includes(value) ? "bad" : "neutral"}`}
+      className={`badge ${value === "WORKING" ? "shift-working" : value === "ENDED" ? "shift-ended" : ["READY", "CLOSED", "PASSED", "POSTED", "COMPLETED"].includes(value) ? "good" : ["BLOCKED", "FAILED", "REJECTED", "REWORK_REQUIRED"].includes(value) ? "bad" : "neutral"}`}
     >
       {label(value)}
     </span>
@@ -232,7 +252,8 @@ export function Pager({
   return (
     <div className="pager">
       <span role="status" aria-live="polite">
-        {total} bản ghi · Trang {page} /{" "}
+        Hiển thị {total ? (page - 1) * pageSize + 1 : 0}–
+        {Math.min(page * pageSize, total)} / {total} bản ghi · Trang {page} /{" "}
         {Math.max(1, Math.ceil(total / pageSize))}
       </span>
       <button

@@ -12,6 +12,7 @@ const rooms = [
 ].map((r) => ({
   ...r,
   branchId: 1,
+  canOperate: true,
   roomTypeId: 11,
   rowVersion: "fixture",
   operationalStatus: r.isOccupied ? "OCCUPIED" : "READY",
@@ -53,6 +54,8 @@ try {
     if (req.method() !== "GET") {
       writes.push({ path, body: req.postDataJSON() });
       const room = rooms.find((r) => r.roomId === Number(path.split("/")[1]));
+      if (path.endsWith("reserve")) Object.assign(room, { operationalStatus: "RESERVED", isOccupied: false });
+      if (path.endsWith("cancel-reservation")) Object.assign(room, { operationalStatus: "READY", isOccupied: false });
       if (path.endsWith("check-out"))
         Object.assign(room, {
           isOccupied: false,
@@ -67,7 +70,7 @@ try {
       json = {};
     } else if (path === "auth/me") json = profile;
     else if (path === "rooms") json = rooms;
-    else if (path.endsWith("/history")) json = { events: [], blocks: [] };
+    else if (path.endsWith("/history")) json = { events: [{fields:{eventType:"CHECK-IN",occurredAt:"2026-11-23T01:00:00Z"}},{fields:{eventType:"INSPECTION_PASSED",occurredAt:"2026-11-22T01:00:00Z"}}], blocks: [] };
     else if (path === "catalog/room-types") {
       assert.equal(url.searchParams.get("branchId"), "1");
       json = {
@@ -81,7 +84,8 @@ try {
   });
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("http://127.0.0.1:5186/#rooms");
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:5186"}/#rooms`);
+  await expect(page.locator(".topbar h1")).toBeVisible({ timeout: 30000 });
   const occupied = page
     .locator(".room-tile")
     .filter({ has: page.locator("strong", { hasText: /^102$/ }) });
@@ -93,13 +97,13 @@ try {
       .getByRole("button", { name: "Tổng quan", exact: true }),
   ).toHaveCount(0);
   for (const hash of ["#dashboard", "#"]) {
-    await page.goto(`http://127.0.0.1:5186/${hash}`);
+    await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:5186"}/${hash}`);
     await expect(page.locator(".room-tile")).toHaveCount(4);
     await expect(page.locator(".topbar-heading")).toContainText(
       "Tình trạng phòng",
     );
   }
-  await expect(occupied).toContainText("Standard");
+  await expect(occupied).toContainText("Tiêu chuẩn");
   await expect(occupied).toContainText("2 người");
   await expect(page.getByText("Không có khách", { exact: true })).toHaveCount(
     0,
@@ -123,7 +127,9 @@ try {
   await expect(
     drawer.getByRole("button", { name: "Trả phòng", exact: true }),
   ).toBeVisible();
-  await expect(drawer).toContainText("Standard");
+  await expect(drawer).toContainText("Tiêu chuẩn");
+  await expect(drawer).toContainText("Khách đến nhận phòng");
+  await expect(drawer).toContainText("Kiểm tra phòng đạt");
   await expect(drawer).toContainText("2 người");
   await page.waitForTimeout(260);
   const bounds = await drawer.boundingBox();
@@ -141,9 +147,10 @@ try {
   await expect(occupied).toBeFocused();
   await occupied.click();
   await drawer.getByRole("button", { name: "Trả phòng", exact: true }).click();
+  await expect(drawer.locator('textarea')).toHaveCount(0);
   await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
-  await expect(drawer.locator(".badge")).toHaveText("Chờ dọn phòng");
-  await expect(occupied.locator(".badge")).toHaveText("Chờ dọn phòng");
+  await expect(drawer.locator(".badge")).toHaveText("Cần dọn dẹp");
+  await expect(occupied.locator(".badge")).toHaveText("Cần dọn dẹp");
   await drawer.getByRole("button", { name: "Đóng", exact: true }).click();
   const ready = page
     .locator(".room-tile")
@@ -151,17 +158,27 @@ try {
   await ready.click();
   const readyDrawer = page.getByRole("dialog", { name: "Phòng 101" });
   await readyDrawer
-    .getByRole("button", { name: "Nhận phòng", exact: true })
+    .getByRole("button", { name: "Đặt phòng", exact: true })
     .click();
   await readyDrawer
     .getByRole("button", { name: "Xác nhận", exact: true })
     .click();
+  await expect(readyDrawer.locator(".badge")).toHaveText("Đã đặt");
+  await readyDrawer.getByRole("button", { name: "Hủy đặt phòng", exact: true }).click();
+  await readyDrawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
+  await expect(readyDrawer.locator(".badge")).toHaveText("Sẵn sàng");
+  await readyDrawer.getByRole("button", { name: "Đặt phòng", exact: true }).click();
+  await readyDrawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
+  await expect(readyDrawer.locator(".badge")).toHaveText("Đã đặt");
+  await readyDrawer.getByRole("button", { name: "Khách đến nhận phòng", exact: true }).click();
+  await expect(readyDrawer.locator('textarea')).toHaveCount(0);
+  await readyDrawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await expect(readyDrawer.locator(".badge")).toHaveText("Có khách");
   await expect(ready.locator(".badge")).toHaveText("Có khách");
   await page.keyboard.press("Escape");
   rooms[0].readiness = "BLOCKED";
   await page.reload();
-  await expect(ready.locator(".badge")).toHaveText(["Có khách", "Đang chặn"]);
+  await expect(ready.locator(".badge")).toHaveText(["Có khách", "Bảo trì"]);
   for (const width of [768, 375]) {
     await page.setViewportSize({ width, height: 812 });
     await ready.click();
@@ -213,7 +230,7 @@ try {
       rowVersion: "fixture",
     })),
   );
-  await page.goto("http://127.0.0.1:5186/#rooms");
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:5186"}/#rooms`);
   const tiles = page.locator(".room-tile");
   const pagination = page.getByRole("navigation", { name: "Phân trang phòng" });
   const next = pagination.getByRole("button", { name: "Tiếp", exact: true });
@@ -288,7 +305,7 @@ try {
   assert.equal(errors.length, 0);
   assert.deepEqual(
     writes.map((w) => w.path),
-    ["rooms/2/actions/check-out", "rooms/1/actions/check-in"],
+    ["rooms/2/actions/check-out", "rooms/1/actions/reserve", "rooms/1/actions/cancel-reservation", "rooms/1/actions/reserve", "rooms/1/actions/check-in"],
   );
   fs.writeFileSync(
     `${out}/verification.json`,

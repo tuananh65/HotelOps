@@ -1,10 +1,17 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import { useEffect, useRef, useState } from "react";
-import { api, fields, message, type Row, type Resource } from "./api";
+import { api, fields, type Row, type Resource } from "./api";
 import { useAuth } from "./auth";
 import { Dialog, Pager, State, useQuery } from "./ui";
 import AccountManagement from "./account-management";
 import StatusLight from "./status-light";
+import StatusSwitch from "./status-switch";
+import {
+  accountMessage,
+  PasswordChecklist,
+  passwordCriteria,
+} from "./account-policy";
 import AccountFilters, {
   emptyAccountFilter,
   matchesAccountFilter,
@@ -17,7 +24,9 @@ function directoryLabels(rows: Row[] | undefined, key: string) {
 }
 
 export default function Admin() {
-  const { can } = useAuth();
+  const { can, profile } = useAuth();
+  const isAdmin = profile.roles.some(role=>role.code==="SYS_ADMIN");
+  const [accountCommand,setAccountCommand] = useState("");
   const [page, setPage] = useState(1),
     [pageSize, setPageSize] = useState(10);
   const tableScroll = useRef<HTMLDivElement>(null);
@@ -43,7 +52,7 @@ export default function Admin() {
   const filtered = users.filter(
     (u) =>
       matchesAccountFilter(u, filter) &&
-      [u.fullName, u.username, u.employeeCode, u.email].some((v) =>
+      [u.fullName, u.username, u.employeeCode, u.email, u.phone].some((v) =>
         normalize(v).includes(normalize(search)),
       ),
   );
@@ -66,7 +75,7 @@ export default function Admin() {
       setSelected(null);
       bump((x) => x + 1);
     } catch (e) {
-      setError(message(e));
+      setError(accountMessage(e));
     } finally {
       setPending(false);
     }
@@ -106,20 +115,24 @@ export default function Admin() {
           <table className="account-directory">
             <thead>
               <tr>
+                <th>STT</th>
                 <th>Nhân viên</th>
                 <th>Tài khoản</th>
+                <th>Số điện thoại</th>
                 <th>Chi nhánh</th>
                 <th>Chức vụ</th>
+                {isAdmin && <th>Trạng thái</th>}
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {pageUsers.map((u) => (
+              {pageUsers.map((u, index) => (
                 <tr key={u.userId}>
+                  <td>{(currentPage - 1) * pageSize + index + 1}</td>
                   <td>
                     <div className="account-employee-name">
                       <strong>{u.fullName}</strong>
-                      <StatusLight
+                      {!isAdmin && <StatusLight
                         active={u.accountStatus === "ACTIVE"}
                         label={
                           u.accountStatus === "ACTIVE"
@@ -128,7 +141,7 @@ export default function Admin() {
                               ? "Đã khóa"
                               : "Không hoạt động"
                         }
-                      />
+                      />}
                     </div>
                     <small>{u.employeeCode}</small>
                   </td>
@@ -136,6 +149,7 @@ export default function Admin() {
                     {u.username}
                     <small>{u.email || ""}</small>
                   </td>
+                  <td>{u.phone || "—"}</td>
                   <td>
                     {directoryLabels(u.branches ?? u.employments, "branchName")
                       .length ? (
@@ -156,9 +170,11 @@ export default function Admin() {
                       <span className="muted">Chưa gán chức vụ</span>
                     )}
                   </td>
+                  {isAdmin && <td><StatusSwitch active={u.accountStatus==="ACTIVE"} label={u.fullName} disabled={!can("USER_MANAGE")||u.userId===profile.user.fields.userId} onChange={()=>{setAccountCommand(u.accountStatus==="ACTIVE"?"deactivate":"activate");setSelected(u);setError("");}} /></td>}
                   <td>
                     <button
                       onClick={() => {
+                        setAccountCommand("");
                         setSelected(u);
                         setError("");
                       }}
@@ -170,7 +186,7 @@ export default function Admin() {
               ))}
               {!filtered.length && (
                 <tr>
-                  <td colSpan={5} className="empty">
+                  <td colSpan={isAdmin?8:7} className="empty">
                     Không tìm thấy tài khoản phù hợp. Thử tên khác hoặc xóa bộ
                     lọc.
                   </td>
@@ -216,58 +232,218 @@ export default function Admin() {
             if (!pending) setCreating(false);
           }}
         >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              mutate(
-                "users",
-                Object.fromEntries(new FormData(e.currentTarget)),
-              );
-            }}
-          >
-            {[
-              ["employeeCode", "Mã nhân viên"],
-              ["username", "Tên đăng nhập"],
-              ["fullName", "Họ tên"],
-              ["email", "Email"],
-              ["password", "Mật khẩu tạm thời"],
-            ].map(([k, n]) => (
-              <label key={k}>
-                {n}
-                <input
-                  name={k}
-                  type={
-                    k === "password"
-                      ? "password"
-                      : k === "email"
-                        ? "email"
-                        : "text"
-                  }
-                  required={k !== "email"}
-                  minLength={k === "password" ? 12 : 1}
-                  autoComplete={k === "password" ? "new-password" : "off"}
-                />
-              </label>
-            ))}
-            <p>Tài khoản mới phải đổi mật khẩu khi đăng nhập.</p>
-            <button className="primary" disabled={pending}>
-              Tạo tài khoản
-            </button>
-          </form>
+          <CreateAccountForm
+            users={users}
+            pending={pending}
+            submit={(body) => mutate("users", body)}
+          />
           {error && (
-            <p className="alert" role="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
         </Dialog>
       )}
       {selected && (
         <AccountManagement
           user={selected}
+          initialCommand={accountCommand}
           close={() => setSelected(null)}
           changed={() => bump((x) => x + 1)}
         />
       )}
     </>
+  );
+}
+
+function CreateAccountForm({
+  users,
+  pending,
+  submit,
+}: {
+  users: Row[];
+  pending: boolean;
+  submit: (body: Row) => Promise<void>;
+}) {
+  const { branch } = useAuth();
+  const [revision, bump] = useState(0);
+  const options = useQuery<{ branches: Row[]; departments: Row[] }>(
+    "users/creation-options",
+    revision,
+  );
+  const [branchId, setBranchId] = useState(String(branch || ""));
+  const [departmentId, setDepartmentId] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [validation, setValidation] = useState("");
+  const duplicateUsername =
+    !!username.trim() &&
+    users.some(
+      (u) => String(u.username).toLowerCase() === username.trim().toLowerCase(),
+    );
+  const duplicateEmail =
+    !!email.trim() &&
+    users.some(
+      (u) => String(u.email || "").toLowerCase() === email.trim().toLowerCase(),
+    );
+  const validBranch = options.data?.branches.some(
+    (b) => String(b.branchId) === branchId,
+  );
+  const strongPassword = passwordCriteria(password).every((item) => item.met);
+  return (
+    <State {...options} retry={() => bump((value) => value + 1)}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (
+            pending ||
+            duplicateUsername ||
+            duplicateEmail ||
+            !strongPassword ||
+            !validBranch
+          )
+            return;
+          const data = new FormData(event.currentTarget);
+          const fullName = String(data.get("fullName") || "").trim();
+          if (!fullName || !username.trim()) {
+            setValidation("Vui lòng nhập họ tên và tên đăng nhập.");
+            return;
+          }
+          setValidation("");
+          void submit({
+            username: username.trim(),
+            fullName,
+            password,
+            email: email.trim() || null,
+            phone: String(data.get("phone") || "").trim() || null,
+            branchId: Number(branchId),
+            departmentId: departmentId ? Number(departmentId) : null,
+          });
+        }}
+      >
+        <p>Mã nhân viên được hệ thống tự sinh khi tạo tài khoản.</p>
+        <label>
+          Tên đăng nhập
+          <input
+            name="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            required
+            maxLength={100}
+            autoComplete="off"
+            aria-invalid={duplicateUsername}
+            aria-describedby={
+              duplicateUsername ? "account-username-error" : undefined
+            }
+          />
+        </label>
+        {duplicateUsername && (
+          <p id="account-username-error" role="alert">
+            Tên đăng nhập đã được sử dụng.
+          </p>
+        )}
+        <label>
+          Họ tên
+          <input name="fullName" required maxLength={200} autoComplete="off" />
+        </label>
+        <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            maxLength={254}
+            aria-invalid={duplicateEmail}
+            aria-describedby={
+              duplicateEmail ? "account-email-error" : undefined
+            }
+          />
+        </label>
+        {duplicateEmail && (
+          <p id="account-email-error" role="alert">
+            Email đã được sử dụng bởi tài khoản khác.
+          </p>
+        )}
+        <label>
+          Số điện thoại
+          <input name="phone" type="tel" maxLength={30} autoComplete="off" />
+        </label>
+        <label>
+          Chi nhánh
+          <select
+            name="branchId"
+            value={validBranch ? branchId : ""}
+            required
+            onChange={(event) => {
+              setBranchId(event.target.value);
+              setDepartmentId("");
+            }}
+          >
+            <option value="">Chọn chi nhánh</option>
+            {options.data?.branches.map((b) => (
+              <option key={b.branchId} value={b.branchId}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Bộ phận
+          <select
+            name="departmentId"
+            value={departmentId}
+            disabled={!validBranch}
+            onChange={(event) => setDepartmentId(event.target.value)}
+          >
+            <option value="">Chưa gán bộ phận</option>
+            {options.data?.departments
+              .filter((d) => String(d.branchId) === branchId)
+              .map((d) => (
+                <option key={d.departmentId} value={d.departmentId}>
+                  {d.name}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label>
+          Mật khẩu tạm thời
+          <input
+            name="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            minLength={8}
+            maxLength={128}
+            autoComplete="new-password"
+            aria-describedby="account-password-policy"
+          />
+        </label>
+        <PasswordChecklist password={password} id="account-password-policy" />
+        <p>
+          Tài khoản mới phải đổi mật khẩu khi đăng nhập. Mật khẩu tạm có hiệu
+          lực trong 24 giờ.
+        </p>
+        {validation && (
+          <AlertPopup>
+            {validation}
+          </AlertPopup>
+        )}
+        <button
+          className="primary"
+          disabled={
+            pending ||
+            duplicateUsername ||
+            duplicateEmail ||
+            !strongPassword ||
+            !validBranch
+          }
+        >
+          {pending ? "Đang tạo…" : "Tạo tài khoản"}
+        </button>
+      </form>
+    </State>
   );
 }

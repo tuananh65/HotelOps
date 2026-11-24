@@ -1,0 +1,17 @@
+.staff-work-list tr[role="button"] { cursor: pointer; }
+.room-issue-list { display: grid; gap: 12px; margin-top: 16px; }
+.room-issue-card { display: grid; gap: 8px; height: auto; min-height: 64px; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.staff-work-list tr[role="button"]:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+@media (max-width: 600px) {
+  .staff-work-list { overflow: visible; }
+  .staff-work-list table { width: 100%; min-width: 0; table-layout: fixed; }
+  .staff-work-list thead { display: none; }
+  .staff-work-list tbody { display: grid; gap: 12px; }
+  .staff-work-list tr { display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .staff-work-list td { display: block; padding: 5px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+  dialog { max-width: calc(100vw - 16px); box-sizing: border-box; }
+  dialog :is(form,section,fieldset,.toolbar,.action-form) { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  dialog :is(p,small,strong,li,h2,h3,button) { overflow-wrap: anywhere; white-space: normal; }
+  dialog :is(input,select,textarea) { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  dialog .toolbar { flex-wrap: wrap; }
+}

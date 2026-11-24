@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import {
   createContext,
   useContext,
@@ -6,6 +7,8 @@ import {
   type ReactNode,
 } from "react";
 import { api, session, hasSession, message, type Row } from "./api";
+import { useVietnameseValidation } from "./form-validation";
+import { PasswordChecklist, accountMessage } from "./account-policy";
 export type Profile = {
   user: { fields: Row };
   grants: { code: string; dataScope: string; branchId: number | null }[];
@@ -25,6 +28,9 @@ const Context = createContext<{
 }>(null!);
 export const useAuth = () => useContext(Context);
 export function Auth({ children }: { children: ReactNode }) {
+  useVietnameseValidation();
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null),
     [branch, setBranch] = useState(0),
     [loading, setLoading] = useState(true),
@@ -71,8 +77,12 @@ export function Auth({ children }: { children: ReactNode }) {
     return (
       <div className="login-page">
         <section className="login-card">
-          <img className="brand-logo" src="/duc-vuong-logo.jpg" alt="Đức Vượng Group" />
-          <p className="eyebrow">HOTEL OPERATIONS</p>
+          <img
+            className="brand-logo"
+            src="/duc-vuong-logo-transparent.png"
+            alt="Đức Vượng Group"
+          />
+            <p className="eyebrow">VẬN HÀNH KHÁCH SẠN</p>
           <h1>{profile ? "Đổi mật khẩu" : "Chào mừng trở lại"}</h1>
           <p>
             {profile
@@ -104,7 +114,7 @@ export function Auth({ children }: { children: ReactNode }) {
                   await refresh();
                 }
               } catch (e) {
-                setError(message(e));
+                setError(accountMessage(e));
               } finally {
                 setPending(false);
               }
@@ -125,6 +135,7 @@ export function Auth({ children }: { children: ReactNode }) {
               {profile ? "Mật khẩu hiện tại" : "Mật khẩu"}
               <input
                 name="password"
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 type="password"
                 autoComplete="current-password"
                 required
@@ -135,18 +146,26 @@ export function Auth({ children }: { children: ReactNode }) {
                 Mật khẩu mới
                 <input
                   name="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   type="password"
                   autoComplete="new-password"
-                  minLength={12}
+                  minLength={8}
                   maxLength={128}
                   required
                 />
               </label>
             )}
+            {profile && (
+              <PasswordChecklist
+                password={newPassword}
+                currentPassword={currentPassword}
+              />
+            )}
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             <button className="primary" disabled={pending}>
               {pending ? "Đang xử lý…" : profile ? "Lưu mật khẩu" : "Đăng nhập"}

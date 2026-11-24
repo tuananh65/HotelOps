@@ -1,12 +1,13 @@
-param([string]$Server='.\SQLEXPRESS',[int]$Port=5187,[switch]$Extended,[switch]$DepartmentHead,[switch]$OperationsManager,[switch]$HousekeepingStaff,[switch]$Storekeeper,[switch]$MaintenanceLead,[switch]$MaintenanceStaff,[switch]$Owner)
+param([string]$Server='.\SQLEXPRESS',[int]$Port=5187,[switch]$Extended,[switch]$DepartmentHead,[switch]$OperationsManager,[switch]$HousekeepingStaff,[switch]$HousekeepingSupervisor,[switch]$Storekeeper,[switch]$MaintenanceLead,[switch]$MaintenanceStaff,[switch]$Owner,[switch]$UxRefinements,[switch]$CleaningOnShift,[switch]$ReservationShifts,[switch]$WorkdayLimits,[switch]$AttendanceSummary,[switch]$PaperInspection,[switch]$ReceptionAccess,[switch]$CleaningDeadline,[switch]$RoomRemediation,[switch]$AdminCatalog,[switch]$InternalSettings)
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $database='HotelOpsCompactApiTest'+[Guid]::NewGuid().ToString('N').Substring(0,12)
 $artifacts=Join-Path $root 'artifacts/compact-v2/backend'
+if($UxRefinements){$artifacts=Join-Path $artifacts ('ux-'+$database)}
 [void][IO.Directory]::CreateDirectory($artifacts)
 $password='Test!'+[Guid]::NewGuid().ToString('N')
 $api=$null;$connection=$null;$results=New-Object 'System.Collections.Generic.List[object]'
-$envNames=@('ConnectionStrings__HotelOpsDb','ASPNETCORE_ENVIRONMENT','ASPNETCORE_URLS','Compact__WorkerEnabled','Compact__Bootstrap__Username','Compact__Bootstrap__Password','Compact__EvidenceDirectory')
+$envNames=@('ConnectionStrings__HotelOpsDb','ASPNETCORE_ENVIRONMENT','ASPNETCORE_URLS','Compact__WorkerEnabled','Compact__AutoEndShiftsEnabled','Compact__Bootstrap__Username','Compact__Bootstrap__Password','Compact__EvidenceDirectory')
 $saved=@{};foreach($name in $envNames){$saved[$name]=[Environment]::GetEnvironmentVariable($name)}
 function Check($name,$condition){if(-not $condition){throw "FAIL: $name"};$results.Add(@{name=$name;passed=$true});Write-Output "PASS: $name"}
 function Sql($query){$cmd=$connection.CreateCommand();$cmd.CommandText=$query;$cmd.CommandTimeout=60;$table=New-Object Data.DataTable;$reader=$cmd.ExecuteReader();$table.Load($reader);$reader.Dispose();return ,$table}
@@ -19,12 +20,17 @@ function Call($method,$path,$body=$null,$token=$null,$expected=200){
     if($status-ne $expected){throw "$method $path expected $expected, got $status : $content"}
     if($content){return ($content|ConvertFrom-Json)}
 }
-function WorkAction($work,$action,$token,$extra=@{},$expected=200){$body=@{rowVersion=$work.rowVersion;operationKey=[Guid]::NewGuid().ToString();reason='Integration verification reason'};foreach($key in $extra.Keys){$body[$key]=$extra[$key]};return (Call POST "/api/v2/work/$($work.workId)/actions/$action" $body $token $expected)}
+function WorkAction($work,$action,$token,$extra=@{},$expected=200){$body=@{rowVersion=$work.rowVersion;operationKey=[Guid]::NewGuid().ToString();reason='Integration verification reason'};if($action-eq 'assign' -and $work.kind-in @('CLEANING','REWORK')){$body.durationMinutes=30};foreach($key in $extra.Keys){$body[$key]=$extra[$key]};return (Call POST "/api/v2/work/$($work.workId)/actions/$action" $body $token $expected)}
 function DocAction($doc,$action,$token,$expected=200){return (Call POST "/api/v2/documents/$($doc.documentId)/actions/$action" @{rowVersion=$doc.rowVersion;operationKey=[Guid]::NewGuid().ToString();reason='Integration verification reason'} $token $expected)}
 try{
     if([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()|Where-Object Port -eq $Port){throw "Port $Port is already in use."}
     & (Join-Path $PSScriptRoot 'Install-Level2.ps1') -Server $Server -Database $database
     & (Join-Path $PSScriptRoot 'Upgrade-Workday.ps1') -Server $Server -Database $database
+    if($PaperInspection -or $CleaningDeadline -or $RoomRemediation){& (Join-Path $PSScriptRoot 'Enable-PaperInspection.ps1') -Server $Server -Database $database}
+    if($RoomRemediation){& (Join-Path $PSScriptRoot 'Enable-RoomRemediation.ps1') -Server $Server -Database $database}
+    if($ReceptionAccess -or $ReservationShifts -or $HousekeepingStaff -or $HousekeepingSupervisor){& (Join-Path $PSScriptRoot 'Enable-RoomReservations.ps1') -Server $Server -Database $database}
+    $env:Compact__AutoEndShiftsEnabled='false'
+    if($UxRefinements -or $WorkdayLimits -or $AttendanceSummary){& (Join-Path $PSScriptRoot 'Backup-Workday.ps1') -Server $Server -Database $database}
     $env:ConnectionStrings__HotelOpsDb="Server=$Server;Database=$database;Integrated Security=True;Encrypt=True;TrustServerCertificate=True"
     $env:ASPNETCORE_ENVIRONMENT='Development';$env:ASPNETCORE_URLS="http://127.0.0.1:$Port";$env:Compact__WorkerEnabled='false'
     $env:Compact__EvidenceDirectory=Join-Path $artifacts $database
@@ -68,6 +74,52 @@ SELECT @a AS adminId,@b AS workerId,@branch AS branchId,@other AS otherBranchId,
     Check 'anonymous requests denied' $true
     $admin=(Call POST '/api/v2/auth/login' @{username='qa_admin';password=$password}).accessToken
     $worker=(Call POST '/api/v2/auth/login' @{username='qa_worker';password=$password}).accessToken
+    if($InternalSettings){
+        . (Join-Path $PSScriptRoot 'test-internal-settings.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'internal-settings-verification.json') -Encoding UTF8
+        return
+    }
+    if($AdminCatalog){
+        . (Join-Path $PSScriptRoot 'test-admin-catalog.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'admin-catalog-verification.json') -Encoding UTF8
+        return
+    }
+    if($ReceptionAccess){
+        . (Join-Path $PSScriptRoot 'test-reception-access.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'reception-access-verification.json') -Encoding UTF8
+        return
+    }
+    if($PaperInspection -or $CleaningDeadline -or $RoomRemediation){
+        . (Join-Path $PSScriptRoot 'test-cleaning-on-shift.ps1')
+        . (Join-Path $PSScriptRoot 'test-paper-inspection.ps1')
+        if($RoomRemediation){. (Join-Path $PSScriptRoot 'test-room-remediation.ps1')}
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'paper-inspection-verification.json') -Encoding UTF8
+        return
+    }
+    if($AttendanceSummary){
+        . (Join-Path $PSScriptRoot 'test-attendance-summary.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'attendance-summary-verification.json') -Encoding UTF8
+        return
+    }
+    if($WorkdayLimits){
+        . (Join-Path $PSScriptRoot 'test-workday-limits.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'workday-limits-verification.json') -Encoding UTF8
+        return
+    }
+    if($ReservationShifts){
+        . (Join-Path $PSScriptRoot 'test-reservation-shifts.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'reservation-shifts-verification.json') -Encoding UTF8
+        return
+    }
+    if($CleaningOnShift){
+        . (Join-Path $PSScriptRoot 'test-cleaning-on-shift.ps1')
+        @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'cleaning-on-shift-verification.json') -Encoding UTF8
+        return
+    }
+    if($UxRefinements){
+        . (Join-Path $PSScriptRoot 'test-ux-refinements.ps1')
+        return
+    }
     if($Owner){
         & (Join-Path $PSScriptRoot 'Backup-Workday.ps1') -Server $Server -Database $database
         . (Join-Path $PSScriptRoot 'test-owner.ps1')
@@ -92,9 +144,13 @@ SELECT @a AS adminId,@b AS workerId,@branch AS branchId,@other AS otherBranchId,
         @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'storekeeper-verification.json') -Encoding UTF8
         return
     }
-    if($HousekeepingStaff){
+    if($HousekeepingStaff -or $HousekeepingSupervisor){
         & (Join-Path $PSScriptRoot 'Backup-Workday.ps1') -Server $Server -Database $database
         . (Join-Path $PSScriptRoot 'test-housekeeping-staff.ps1')
+        if($HousekeepingSupervisor){
+            . (Join-Path $PSScriptRoot 'test-housekeeping-supervisor.ps1')
+            @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'housekeeping-supervisor-verification.json') -Encoding UTF8
+        }
         @{database=$database;passed=$results.Count;tests=$results;verifiedAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json -Depth 10|Set-Content (Join-Path $artifacts 'housekeeping-staff-verification.json') -Encoding UTF8
         return
     }

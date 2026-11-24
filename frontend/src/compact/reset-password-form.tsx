@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 type Props = {
   recipient?: string;
   sender?: string;
@@ -20,7 +21,7 @@ export default function ResetPasswordForm({ recipient, sender, pending, error, s
           Email người nhận
           <input type="email" value={recipient || ""} readOnly placeholder="Chưa có email" />
         </label>
-        {!recipient && <p className="alert">Hãy bổ sung email trong phần Chỉnh sửa thông tin.</p>}
+        {!recipient && <AlertPopup>Hãy bổ sung email trong phần Chỉnh sửa thông tin.</AlertPopup>}
         <label>
           Gmail của Admin
           <input name="gmailAddress" type="email" required maxLength={254}
@@ -41,7 +42,7 @@ export default function ResetPasswordForm({ recipient, sender, pending, error, s
           <input name="adminPassword" type="password" required maxLength={1024} autoComplete="current-password" />
         </label>
         <p>Mật khẩu tạm được tạo tự động, có hiệu lực 24 giờ. Người nhận phải đổi mật khẩu khi đăng nhập; các phiên cũ sẽ kết thúc.</p>
-        {error && <p className="alert" role="alert">{error}</p>}
+        {error && <AlertPopup>{error}</AlertPopup>}
         <div className="toolbar">
           <button className="primary" disabled={pending || !recipient}>
             {pending ? "Đang gửi…" : "Xác nhận và gửi email"}

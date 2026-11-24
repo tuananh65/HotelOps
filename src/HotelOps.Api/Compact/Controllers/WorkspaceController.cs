@@ -29,7 +29,7 @@ public sealed class WorkspaceService(HotelOpsCompactDbContext db,Access access)
             departments=await db.Departments.AsNoTracking().Where(d=>d.BranchId==branch&&d.IsActive).Select(d=>new{d.DepartmentId,d.Name}).ToArrayAsync(ct),
             rooms=await db.Rooms.AsNoTracking().Where(r=>rooms&&r.BranchId==branch&&r.IsActive).Select(r=>new{r.RoomId,r.Code}).ToArrayAsync(ct),
             incidentAssets=await db.Assets.AsNoTracking().Where(a=>reportIncident&&a.BranchId==branch&&a.IsActive).Select(a=>new{a.AssetId,a.AssetCode,a.Name,a.RoomId}).ToArrayAsync(ct),
-            references=await db.ReferenceValues.AsNoTracking().Where(r=>(work||stock)&&r.IsActive).OrderBy(r=>r.Kind).ThenBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId).Select(r=>new{r.ReferenceId,r.Kind,r.Code,r.Name,r.BaseUnitId}).ToArrayAsync(ct),
+            references=await db.ReferenceValues.AsNoTracking().Where(r=>(work||stock)&&r.IsActive&&r.Kind!="BRANCH_CONTACT"&&!r.Code.StartsWith("IR_TYPE_")&&!r.Code.StartsWith("ROOM_ISSUE_")).OrderBy(r=>r.Kind).ThenBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId).Select(r=>new{r.ReferenceId,r.Kind,r.Code,r.Name,r.BaseUnitId}).ToArrayAsync(ct),
             warehouses=await db.Warehouses.AsNoTracking().Where(w=>stock&&w.BranchId==branch&&w.IsActive).Select(w=>new{w.WarehouseId,w.Name}).ToArrayAsync(ct),
             items=await db.InventoryItems.AsNoTracking().Where(i=>stock&&i.IsActive).Select(i=>new{i.ItemId,i.Name,i.Code,i.BaseUnitId}).ToArrayAsync(ct)
             ,checklists=await db.ChecklistTemplates.AsNoTracking().Where(t=>work&&t.BranchId==branch&&t.IsActive&&t.PublishedAt!=null).Select(t=>new{t.ChecklistTemplateId,t.Name,t.Kind,t.VersionNo}).ToArrayAsync(ct)

@@ -83,12 +83,22 @@ button.primary:hover {
   background: #184f49;
 }
 button:focus-visible,
-a:focus-visible,
+a:focus-visible {
+  outline: 3px solid #ab6816;
+  outline-offset: 3px;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #ab6816;
-  outline-offset: 3px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 h1,
 h2,
@@ -355,7 +365,27 @@ nav button[aria-current] {
   border: 0;
 }
 .account {
+  min-width: 0;
   max-width: 240px;
+}
+.account-profile-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  height: auto;
+  background: transparent;
+  border: 0;
+  padding: 4px 8px;
+}
+.account-profile-button small {
+  white-space: normal;
+}
+[aria-label="Yêu cầu mật khẩu"] {
+  list-style: none;
+  padding-left: 0;
+  font-size: 12px;
+  line-height: 1.8;
 }
 .account strong {
   font-size: 13px;
@@ -649,11 +679,73 @@ tbody tr:hover {
   padding: 6px;
 }
 .pager {
+  flex-wrap: wrap;
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   align-items: center;
   margin: 18px 0;
+}
+.structure-tree {
+  background: var(--surface, white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.structure-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 20px;
+}
+.structure-tree > ul {
+  padding-left: 0;
+}
+.structure-tree li {
+  margin: 4px 0;
+}
+.structure-node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.structure-node > button:first-child {
+  flex: 1;
+  text-align: left;
+  justify-content: flex-start;
+  min-width: 180px;
+}
+.structure-node span {
+  color: var(--muted);
+  margin-left: auto;
+}
+.structure-tree svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.structure-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.branch-information {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 12px 0;
+}
+.branch-information > div {
+  min-width: 160px;
+}
+.branch-information dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.branch-information dd {
+  margin: 4px 0;
 }
 .pager span {
   margin-right: auto;
@@ -784,7 +876,7 @@ dialog form {
   place-items: center;
   padding: 24px;
   background:
-    linear-gradient(rgb(20 35 32 / 28%), rgb(20 35 32 / 28%)),
+    linear-gradient(rgb(20 35 32 / 55%), rgb(20 35 32 / 55%)),
     url("/login-background.jpeg") center / cover no-repeat,
     var(--bg);
 }
@@ -801,9 +893,12 @@ dialog form {
   border-radius: 16px;
 }
 .login-card .brand-logo {
+  display: block;
+  object-fit: contain;
+  background: transparent;
   width: 88px;
   height: 88px;
-  margin-bottom: 28px;
+  margin: 0 auto 28px;
 }
 .login-card h1 {
   font-size: 26px;
@@ -1092,4 +1187,28 @@ dialog form {
   left: 8px;
   top: -100px;
   white-space: nowrap;
+}
+.branch-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.branch-tree > li {
+  border-bottom: 1px solid var(--border, #d5e2df);
+  padding: 0.5rem 0;
+}
+.branch-tree summary {
+  cursor: pointer;
+  padding: 0.6rem;
+  font-weight: 600;
+}
+.branch-tree summary svg {
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+.branch-tree-content {
+  margin-left: 1rem;
+  padding: 0.5rem 1rem;
+  border-left: 1px solid var(--border, #d5e2df);
+  min-width: 0;
 }

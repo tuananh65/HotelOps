@@ -1,11 +1,12 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import { useEffect, useState } from "react";
-import { BedDouble, Layers } from "lucide-react";
+import StructureTree from "./structure-tree";
 import { api, message, type Row } from "./api";
 import { useAuth } from "./auth";
 import { Dialog, Empty, State } from "./ui";
 import { useCatalogRows } from "./use-catalog-rows";
-import HotelSelector from "./hotel-selector";
+import BranchTree from "./branch-tree";
 import Catalog from "./catalog";
 
 function HotelDetail({
@@ -81,6 +82,22 @@ function HotelDetail({
           </div>
         </div>
       )}
+      {section !== "rooms" && (
+        <dl className="branch-information">
+          <div>
+            <dt>Địa chỉ</dt>
+            <dd>{hotel.address || "Chưa cập nhật"}</dd>
+          </div>
+          <div>
+            <dt>Số điện thoại</dt>
+            <dd>{hotel.phone || "Chưa cập nhật"}</dd>
+          </div>
+          <div>
+            <dt>Người đại diện</dt>
+            <dd>{hotel.representativeName || "Chưa cập nhật"}</dd>
+          </div>
+        </dl>
+      )}
       {hotel.isActive ? (
         <>
           {section === "rooms" ? (
@@ -107,42 +124,16 @@ function HotelDetail({
                   <strong>{rooms.data?.length || 0}</strong> phòng
                 </span>
               </div>
-              <div className="floor-grid">
-                {locations.data?.map((loc) => {
-                  const count =
-                    rooms.data?.filter((r) => r.locationId === loc.locationId)
-                      .length || 0;
-                  return (
-                    <article className="floor-card" key={loc.locationId}>
-                      <button
-                        className="floor-open"
-                        onClick={() => go("rooms", loc.locationId)}
-                      >
-                        <Layers size={24} />
-                        <strong>{loc.name}</strong>
-                        <span>
-                          {count} phòng ·{" "}
-                          {loc.isActive ? "Hoạt động" : "Đã ngừng"}
-                        </span>
-                        <span className="floor-cta">
-                          <BedDouble size={16} /> Xem phòng →
-                        </span>
-                      </button>
-                      {canEdit && (
-                        <button
-                          className="floor-edit"
-                          onClick={() =>
-                            setEdit({ resource: "locations", row: loc })
-                          }
-                          aria-label={`Chỉnh sửa ${loc.name}`}
-                        >
-                          Chỉnh sửa
-                        </button>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
+              <StructureTree
+                locations={locations.data || []}
+                rooms={rooms.data || []}
+                onRooms={(id) => go("rooms", id)}
+                onEdit={
+                  canEdit
+                    ? (loc) => setEdit({ resource: "locations", row: loc })
+                    : undefined
+                }
+              />
               {!locations.data?.length && (
                 <Empty>
                   Chưa có tầng / khu vực. Thêm tầng để bắt đầu sắp xếp phòng.
@@ -189,6 +180,12 @@ function HotelDetail({
                   {
                     fields: {
                       name: String(values.get("name")).trim(),
+                      address:
+                        String(values.get("address") || "").trim() || null,
+                      phone: String(values.get("phone") || "").trim() || null,
+                      representativeName:
+                        String(values.get("representativeName") || "").trim() ||
+                        null,
                       isActive: values.get("isActive") === "on",
                     },
                     rowVersion: hotel.rowVersion,
@@ -213,6 +210,33 @@ function HotelDetail({
                 required
               />
             </label>
+            <label>
+              Người đại diện
+              <input
+                name="representativeName"
+                defaultValue={hotel.representativeName || ""}
+                maxLength={150}
+              />
+            </label>
+            <label>
+              Địa chỉ
+              <input
+                name="address"
+                defaultValue={hotel.address || ""}
+                maxLength={500}
+              />
+            </label>
+            <label>
+              Số điện thoại
+              <input
+                name="phone"
+                type="tel"
+                defaultValue={hotel.phone || ""}
+                maxLength={30}
+                pattern={"\\+?[0-9][0-9 \\(\\)\\-]{6,28}[0-9]"}
+                title="Nhập số điện thoại từ 8 đến 30 ký tự, gồm chữ số, dấu +, khoảng trắng hoặc dấu gạch nối."
+              />
+            </label>
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -222,9 +246,9 @@ function HotelDetail({
               Đang hoạt động
             </label>
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             <button className="primary" disabled={pending}>
               Lưu thay đổi
@@ -281,20 +305,11 @@ export default function HotelWorkspace() {
             )}
           </div>
           {id > 0 && (
-            <p className="alert" role="alert">
+            <AlertPopup>
               Không tìm thấy khách sạn trong phạm vi của bạn. Chọn lại bên dưới.
-            </p>
+            </AlertPopup>
           )}
-          <HotelSelector
-            hotels={(query.data || []).map((h) => ({
-              id: h.branchId,
-              name: h.name,
-              active: h.isActive,
-            }))}
-            onSelect={(id) => {
-              location.hash = `catalog?hotel=${id}`;
-            }}
-          />
+          <BranchTree hotels={query.data || []} />
           {!query.data?.length && <Empty>Chưa có khách sạn.</Empty>}
         </>
       )}

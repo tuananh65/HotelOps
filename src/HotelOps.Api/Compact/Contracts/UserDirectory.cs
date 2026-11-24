@@ -4,3 +4,5 @@ public sealed record UserEmploymentDto(long UserId, long BranchId, string Branch
     long? DepartmentId, string? DepartmentName);
 public sealed record UserDirectoryRoleDto(long UserId, long RoleId, string Name, long? BranchId);
 public sealed record UserDirectoryBranchDto(long UserId, long BranchId, string BranchName);
+public sealed record UserDirectoryDepartmentDto(long UserId, long BranchId, string BranchName,
+    long DepartmentId, string DepartmentName, string Kind);

@@ -89,7 +89,7 @@ try {
       if (path.includes("/actions/")) {
         const verb = path.split("/").at(-1);
         if (verb === "accept") assignment.acceptedAt = "2026-11-23T00:00:00Z";
-        if (verb === "start") work.status = "IN_PROGRESS";
+        if (verb === "start") { work.status = "IN_PROGRESS"; work.actualStartAt = "2026-11-23T01:00:00Z"; }
         if (verb === "progress") work.progressPercent = body.progress;
         if (verb === "complete") work.status = "PENDING_INSPECTION";
         work.rowVersion += "x";
@@ -137,6 +137,13 @@ try {
         ),
         requiresPasswordChange: false,
       };
+    else if (path === "workday/personal-summary")
+      json = { timezone: "Asia/Ho_Chi_Minh", updatedAt: "2026-11-23T03:00:00Z", periods: [
+        { period: "WEEK", from: "2026-11-23", to: "2026-11-29", completedShifts: 1, workedHours: 8, workingShifts: 0 },
+        { period: "MONTH", from: "2026-11-01", to: "2026-11-30", completedShifts: 10, workedHours: 80, workingShifts: 0 },
+      ] };
+    else if (path === "workday/calendar")
+      json = { markers: [], notice: "" };
     else if (path === "insights/personal")
       json = {
         today: "2026-11-23",
@@ -349,12 +356,13 @@ try {
   const page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
   const open = async (hash) => {
-    await page.goto(`http://127.0.0.1:5186/#${hash}`);
+    await page.goto(`${process.env.UX_BASE || "http://127.0.0.1:5186"}/#${hash}`);
     await expect(page.locator(".topbar h1")).toBeVisible();
   };
   await open("dashboard");
   const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
-  await expect(nav.getByRole("button")).toHaveCount(7);
+  await expect(nav.getByRole("button")).toHaveCount(6);
+  await expect(nav.getByRole("button", { name: "Phòng & Checklist" })).toHaveCount(0);
   await expect(page.locator(".topbar h1")).toHaveText("Tổng quan cá nhân");
   await expect(page.locator(".branch-metrics .panel")).toHaveCount(8);
   await expect(page.locator("main")).toContainText("Ca làm việc của tôi");
@@ -403,12 +411,15 @@ try {
       0,
     );
   await drawer.getByRole("button", { name: "Nhận việc", exact: true }).click();
+  await expect(drawer.getByLabel("Lý do / ghi chú")).toHaveCount(0);
+  await expect(drawer).not.toContainText("HK-7");
   await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await expect(
     drawer.getByRole("button", { name: "Bắt đầu", exact: true }),
   ).toBeVisible();
   conflict = true;
   await drawer.getByRole("button", { name: "Bắt đầu", exact: true }).click();
+  await expect(drawer.getByLabel("Lý do / ghi chú")).toHaveCount(0);
   await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await expect(drawer.getByRole("alert")).toContainText("Dữ liệu đã thay đổi");
   assert.equal(work.status, "ASSIGNED");
@@ -416,13 +427,8 @@ try {
   await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await expect(
     drawer.getByRole("button", { name: "Cập nhật tiến độ", exact: true }),
-  ).toBeVisible();
-  await drawer
-    .getByRole("button", { name: "Cập nhật tiến độ", exact: true })
-    .click();
-  await drawer.getByLabel("Tiến độ (%)").fill("55");
-  await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
-  await expect(drawer).toContainText("55%");
+  ).toHaveCount(0);
+  await expect(drawer.getByRole("button", { name: "Đề nghị bàn giao", exact: true })).toHaveCount(0);
   await drawer
     .getByLabel("Ảnh / tệp minh chứng")
     .setInputFiles({ name: "staff.png", mimeType: "image/png", buffer: png });
@@ -437,19 +443,15 @@ try {
     drawer.getByRole("button", { name: "staff.png", exact: true }).click(),
   ]);
   assert.equal(download.suggestedFilename(), "staff.png");
-  await drawer.getByLabel("Kết quả Lau bề mặt").selectOption("PASS");
-  await drawer
-    .getByLabel("Ghi chú: Lau bề mặt")
-    .fill("Đã vệ sinh bằng dung dịch phù hợp");
-  await drawer
-    .getByRole("button", { name: "Lưu ghi chú checklist", exact: true })
-    .click();
-  await expect.poll(() => checklist.note).toContain("dung dịch");
+  await expect(drawer.getByLabel("Kết quả Lau bề mặt")).toHaveCount(0);
   await drawer
     .getByRole("button", { name: "Gửi hoàn thành", exact: true })
     .click();
+  await expect(drawer.getByLabel("Lý do / ghi chú")).toHaveCount(0);
   await drawer.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await expect(drawer).toContainText("Chờ kiểm tra");
+  await expect(drawer.getByRole("button", { name: "Đề nghị bàn giao", exact: true })).toHaveCount(0);
+  assert(writes.filter(w => /actions\/(accept|start|complete)$/.test(w.path)).every(w => w.body.reason === null));
   await page.keyboard.press("Escape");
   await open("work?kind=REWORK");
   await expect(page.locator(".topbar h1")).toHaveText("Công việc dọn phòng");
@@ -474,19 +476,12 @@ try {
   await expect(page.getByRole("dialog")).toContainText("MR-1");
   await page.keyboard.press("Escape");
   await open("rooms");
-  await page.locator(".room-tile").click();
-  await expect(page.getByRole("dialog")).toContainText(
-    "Tầng / khu vực: Tầng 1",
-  );
-  await expect(
-    page
-      .getByRole("dialog")
-      .getByRole("link", { name: "Việc dọn phòng & checklist của tôi" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Nhận phòng", exact: true }),
-  ).toHaveCount(0);
-  await page.keyboard.press("Escape");
+  await expect(page.locator(".topbar h1")).toHaveText("Tổng quan cá nhân");
+  await expect(page.locator(".room-tile")).toHaveCount(0);
+  assert(!reads.some((r) => r.path === "rooms"));
+  await open("work");
+  await expect(page.locator(".topbar")).toContainText("Công việc vận hành được giao cho bạn");
+  assert(reads.some((r) => r.path === "work" && new URLSearchParams(r.params).get("kind") === "OPERATIONAL" && new URLSearchParams(r.params).get("assignedToMe") === "true"));
   await open("workday");
   await expect(page.getByLabel("Đối tượng", { exact: true })).toHaveCount(0);
   await expect(
@@ -523,7 +518,7 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   reduced = true;
   await page.reload();
-  await expect(nav.getByRole("button")).toHaveCount(2);
+  await expect(nav.getByRole("button")).toHaveCount(1);
   assert.deepEqual(errors, []);
   assert(
     !reads.some(
@@ -547,7 +542,7 @@ try {
     ),
   );
   console.log(
-    "PASS HK Staff navigation, personal API, assigned paging/filter/sort, drawer, execution/checklist/progress, conflict handling, request capability, material notification links, readonly rooms/Workday and 27 responsive views",
+    "PASS HK Staff navigation, personal API, reasonless execution, paper checklist UI, no progress or handover after start, conflict handling, requests, Workday and 27 responsive views",
   );
 } finally {
   await browser.close();

@@ -7,6 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Compact.Services;
 public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock)
 {
+    public async Task<object> ChecklistDetail(long id,CancellationToken ct){
+        var template=await db.ChecklistTemplates.AsNoTracking().SingleOrDefaultAsync(t=>t.ChecklistTemplateId==id,ct)??throw new ApiException(404,"CHECKLIST_NOT_FOUND");
+        await access.Require("CHECKLIST_MANAGE",template.BranchId,ct:ct);
+        return new{template=Output.Record(template),items=(await db.ChecklistItems.AsNoTracking().Where(i=>i.ChecklistTemplateId==id).OrderBy(i=>i.LineNo).ToArrayAsync(ct)).Select(Output.Record)};
+    }
     private async Task Validate(TemplateRequest r,CancellationToken ct){
         Output.Require(r.Kind is "MAINTENANCE" or "OPERATIONAL","SCHEDULE_KIND_UNSUPPORTED",400);
         Output.Require(!string.IsNullOrWhiteSpace(r.Code)&&!string.IsNullOrWhiteSpace(r.Title),"SCHEDULE_CODE_TITLE_REQUIRED",400);
@@ -31,13 +36,17 @@ public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Ac
         checklists=(await db.ChecklistTemplates.AsNoTracking().Where(t=>checklists&&t.BranchId==branchId).ToArrayAsync(ct)).Select(Output.Record),
         schedules=(await db.WorkTemplates.AsNoTracking().Where(t=>t.BranchId==branchId&&((maintenance&&t.Kind=="MAINTENANCE")||(tasks&&t.Kind=="OPERATIONAL"))).ToArrayAsync(ct)).Select(Output.Record)};}
     public Task<object> Checklist(ChecklistCreateRequest r,CancellationToken ct)=>atomic.Run(async()=>{
+        if(string.IsNullOrWhiteSpace(r.Code))r=r with{Code=$"CHK-{Guid.NewGuid():N}"[..20]};
         await access.Require("CHECKLIST_MANAGE",r.BranchId,ct:ct);Output.Require(r.Items.Count is >0 and <=200&&r.Items.All(i=>!string.IsNullOrWhiteSpace(i.Description)&&i.Weight>=0),"CHECKLIST_ITEMS_REQUIRED",400);
+        Output.Require(!string.IsNullOrWhiteSpace(r.Code)&&!string.IsNullOrWhiteSpace(r.Name),"CHECKLIST_CODE_NAME_REQUIRED",400);
+        Output.Require(!await db.ChecklistTemplates.AnyAsync(t=>t.BranchId==r.BranchId&&t.Code==r.Code&&t.Kind!=r.Kind,ct),"CHECKLIST_KIND_MISMATCH");
         var version=(await db.ChecklistTemplates.Where(t=>t.BranchId==r.BranchId&&t.Code==r.Code).MaxAsync(t=>(int?)t.VersionNo,ct)??0)+1;
         var t=new ChecklistTemplate{BranchId=r.BranchId,Code=r.Code,Name=r.Name,Kind=r.Kind,VersionNo=version,CreatedBy=actor.Id,IsActive=true};db.ChecklistTemplates.Add(t);await db.SaveChangesAsync(ct);
         db.ChecklistItems.AddRange(r.Items.Select((i,n)=>new ChecklistItem{ChecklistTemplateId=t.ChecklistTemplateId,LineNo=n+1,Description=i.Description,IsRequired=i.IsRequired,Weight=i.Weight}));await db.SaveChangesAsync(ct);
         t.PublishedAt=clock.GetUtcNow().UtcDateTime;await db.SaveChangesAsync(ct);audit.Add("ChecklistTemplate",t.ChecklistTemplateId,"PUBLISH",r.BranchId);return (object)Output.Record(t);
     },ct);
     public Task<object> Schedule(TemplateRequest r,CancellationToken ct)=>atomic.Run(async()=>{
+        if(string.IsNullOrWhiteSpace(r.Code))r=r with{Code=$"TPL-{Guid.NewGuid():N}"[..20]};
         Output.Require(r.Kind is "MAINTENANCE" or "OPERATIONAL","SCHEDULE_KIND_UNSUPPORTED",400);
         await access.Require(r.Kind=="MAINTENANCE"?"PM_MANAGE":"TASK_MANAGE",r.BranchId,ct:ct);
         await Validate(r,ct);

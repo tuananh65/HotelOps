@@ -13,6 +13,8 @@ public partial class Department
 
     public string Name { get; set; } = null!;
 
+    public string? Description { get; set; }
+
     public long? ManagerUserId { get; set; }
 
     public bool IsActive { get; set; }

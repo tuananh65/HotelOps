@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import { Building2, Users, BedDouble } from "lucide-react";
 import MetricHeading from "./metric-heading";
 import PageTitle from "./page-title";
@@ -23,7 +25,7 @@ export default function Management() {
       <State {...query} retry={() => bump((n) => n + 1)}>
         <div className="metrics dashboard-metrics">
           {query.data?.branches && (
-            <article className="panel metric-teal">
+            <article className={metricClass("ready")}>
               <MetricHeading icon={Building2}>
                 Chi nhánh hoạt động
               </MetricHeading>
@@ -37,7 +39,7 @@ export default function Management() {
             </article>
           )}
           {query.data?.users && (
-            <article className="panel metric-blue">
+            <article className={metricClass("users")}>
               <MetricHeading icon={Users}>Tài khoản hoạt động</MetricHeading>
               <strong className="metric">
                 {count(query.data.users, (r) => r.status === "ACTIVE")}
@@ -52,7 +54,7 @@ export default function Management() {
             </article>
           )}
           {details.enabled && (
-            <article className="panel metric-amber">
+            <article className={metricClass("rooms")}>
               <MetricHeading icon={BedDouble}>Phòng</MetricHeading>
               <State {...details}>
                 <strong className="metric" data-stat="rooms">
@@ -69,6 +71,10 @@ export default function Management() {
             </article>
           )}
         </div>
+      </State>
+      <AttendanceSummary />
+      {query.data && !query.error && (
+        <State {...query}>
         <div className="chart-grid">
           {details.enabled && details.data && (
             <StatChart
@@ -100,7 +106,8 @@ export default function Management() {
             />
           )}
         </div>
-      </State>
+        </State>
+      )}
     </>
   );
 }

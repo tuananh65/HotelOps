@@ -1,5 +1,9 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import WorkdayAssignment from "./workday-assignment";
+import WorkdaySettings from "./workday-settings";
+import type { WorkdayCalendar } from "./workday-scheduling";
 import { api, action, dateKey, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
 import { Badge, Dialog, Empty, History, State, useQuery } from "./ui";
@@ -23,8 +27,27 @@ export default function Workday() {
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const [settings, setSettings] = useState(false);
+  const [ending, setEnding] = useState(false);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (!pending && !slot && !detail && document.visibilityState === "visible") bump((n) => n + 1);
+    }, 30000);
+    return () => window.clearInterval(timer);
+  }, [pending, slot, detail]);
+  useEffect(() => {
+    setSlot(null);
+    setDetail(null);
+    setSettings(false);
+    setEnding(false);
+    setError("");
+    setNotice("");
+  }, [branch]);
   const query = useQuery(`workday?branchId=${branch}&date=${date}`, revision),
     data = query.data;
+  const calendar = useQuery<WorkdayCalendar>(
+    `workday/calendar?branchId=${branch}&year=${date.slice(0, 4)}`,
+  );
   const audiences = [
     ...new Map<string, string>(
       (data?.shifts ?? []).map((s: Row) => [
@@ -39,11 +62,6 @@ export default function Workday() {
   const visibleShifts = (data?.shifts ?? []).filter(
     (s: Row) => audienceKey(s) === selectedAudience,
   );
-  const candidates = useQuery<Row[]>(
-    slot
-      ? `workday/candidates?shiftId=${slot.shiftId}&date=${slot.date}`
-      : null,
-  );
   const history = useQuery<Row[]>(
     detail ? `workday/assignments/${detail.assignmentId}/history` : null,
     revision,
@@ -57,6 +75,7 @@ export default function Workday() {
       await api(path, body);
       setSlot(null);
       setDetail(null);
+      setEnding(false);
       setNotice("Đã cập nhật lịch làm việc.");
       bump((x) => x + 1);
     } catch (e) {
@@ -72,12 +91,24 @@ export default function Workday() {
     setDate(dateKey(d));
   };
   const mine = (a: Row) => a.userId === profile.user.fields.userId;
+  const dailyAssignments = (data?.assignments ?? []).filter(
+    (a: Row) => a.status !== "CANCELLED" && a.workDate === date,
+  );
+  if (settings && data?.canManage)
+    return (
+      <WorkdaySettings
+        close={() => {
+          setSettings(false);
+          bump((x) => x + 1);
+        }}
+      />
+    );
   return (
     <>
       <div className="page-heading workday-controls">
         <PageTitle>
           <h1>Lịch làm việc</h1>
-          <p>Phân ca theo tuần · Giờ vào, ra được ghi nhận thực tế</p>
+          <p>Phân ca theo tuần · Nhân viên buồng phòng kết thúc ca sau khi hoàn tất công việc</p>
         </PageTitle>
         {data?.canManage && (
           <label className="workday-audience">
@@ -101,18 +132,21 @@ export default function Workday() {
           </label>
         )}
         <div className="toolbar">
-          <button onClick={() => jump(-7)} aria-label="Tuần trước">
-            ←
+          {data?.canManage && (
+            <button onClick={() => setSettings(true)}>Cấu hình ca</button>
+          )}
+          <button disabled={query.loading} onClick={() => jump(data?.canManage ? -7 : -1)} aria-label={data?.canManage ? "Tuần trước" : "Ngày trước"}>
+            ← {data?.canManage ? "Tuần trước" : "Ngày trước"}
           </button>
           <input
             id="week-date"
-            aria-label="Ngày trong tuần"
+            aria-label={data?.canManage ? "Ngày trong tuần" : "Ngày làm việc"}
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value || dateKey())}
           />
-          <button onClick={() => jump(7)} aria-label="Tuần sau">
-            →
+          <button disabled={query.loading} onClick={() => jump(data?.canManage ? 7 : 1)} aria-label={data?.canManage ? "Tuần sau" : "Ngày sau"}>
+            {data?.canManage ? "Tuần sau" : "Ngày sau"} →
           </button>
           <button onClick={() => setDate(data?.today || dateKey())}>
             Hôm nay
@@ -120,20 +154,26 @@ export default function Workday() {
         </div>
       </div>
       {error && (
-        <p role="alert" className="alert">
+        <AlertPopup>
           {error}
-        </p>
+        </AlertPopup>
       )}
       {notice && (
-        <p role="status" className="notice">
+        <AlertPopup tone="success">
           {notice}
-        </p>
+        </AlertPopup>
       )}
+      {calendar.error && (
+        <AlertPopup>
+          Chưa tải được mốc lễ. {message(calendar.error)}
+        </AlertPopup>
+      )}
+      {data?.canManage && calendar.data?.notice && <p className="muted">{calendar.data.notice}</p>}
       <State {...query} retry={() => bump((x) => x + 1)}>
         {data && (
           <>
             {data.active && (
-              <section className="active-shift">
+              <section className="active-shift shift-working">
                 <div>
                   <strong>Ca đang hoạt động: {data.active.name}</strong>
                   <p>
@@ -141,29 +181,33 @@ export default function Workday() {
                     được quản lý riêng.
                   </p>
                 </div>
-                <button
+                {data.active.canEnd && <button
                   className="primary"
                   disabled={pending}
-                  onClick={() =>
-                    mutate(
-                      `workday/assignments/${data.active.assignmentId}/end`,
-                      action(data.active.rowVersion),
-                    )
-                  }
+                  onClick={() => setEnding(true)}
                 >
                   Kết thúc ca
-                </button>
+                </button>}
+                {!data.active.canEnd && <p role="status">Hoàn tất công việc, xử lý vật tư giữ chỗ và yêu cầu bổ sung còn mở trước khi kết thúc ca.</p>}
               </section>
             )}
+            {ending && data.active && <Dialog title="Kết thúc ca" close={() => { if (!pending) setEnding(false); }}>
+              <p>Vật tư chưa sử dụng sẽ được hoàn trả về kho khi kết thúc ca.</p>
+              <div className="actions">
+                <button disabled={pending} onClick={() => setEnding(false)}>Quay lại</button>
+                <button className="primary" disabled={pending || !data.active.canEnd}
+                  onClick={() => mutate(`workday/assignments/${data.active.assignmentId}/end`, action(data.active.rowVersion))}>Kết thúc ca</button>
+              </div>
+            </Dialog>}
             <div className="section-title">
               <h2>
                 {data.canManage
                   ? "Lịch theo đối tượng"
-                  : "Ca được phân cho tôi"}
+                  : "Công việc"}
               </h2>
               <span>
-                Tuần bắt đầu{" "}
-                {new Date(data.weekStart + "T12:00:00").toLocaleDateString(
+                {data.canManage ? "Tuần bắt đầu " : "Ngày "}
+                {new Date((data.canManage ? data.weekStart : date) + "T12:00:00").toLocaleDateString(
                   "vi-VN",
                 )}
               </span>
@@ -186,6 +230,16 @@ export default function Workday() {
                               month: "2-digit",
                             },
                           )}
+                          {calendar.data?.markers
+                            .filter((m) => m.date === d)
+                            .map((m) => (
+                              <small
+                                key={m.name}
+                                className="workday-calendar-marker"
+                              >
+                                {m.name}
+                              </small>
+                            ))}
                         </th>
                       ))}
                     </tr>
@@ -210,6 +264,7 @@ export default function Workday() {
                           return (
                             <td
                               key={d}
+                              data-label={new Date(d + "T12:00:00").toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit" })}
                               className={d === data.today ? "today" : ""}
                             >
                               <span className="capacity">
@@ -252,8 +307,7 @@ export default function Workday() {
               </div>
             ) : (
               <div className="shift-list">
-                {data.assignments
-                  .filter((a: Row) => a.status !== "CANCELLED")
+                {dailyAssignments
                   .map((a: Row) => {
                     const s = data.shifts.find(
                       (s: Row) => s.shiftId === a.shiftId,
@@ -275,10 +329,21 @@ export default function Workday() {
                             {time(s.startMinute)}–{time(s.endMinute)}
                           </p>
                           <Badge value={a.status} />
+                          {calendar.data?.markers
+                            .filter((m) => m.date === a.workDate)
+                            .map((m) => (
+                              <small
+                                key={m.name}
+                                className="workday-calendar-marker"
+                              >
+                                {m.name}
+                              </small>
+                            ))}
                         </div>
                         <div className="toolbar">
                           {a.status === "PLANNED" &&
                             a.workDate === data.today &&
+                            data.currentMinute >= s.startMinute && data.currentMinute < s.endMinute &&
                             !data.active && (
                               <button
                                 className="primary"
@@ -298,8 +363,8 @@ export default function Workday() {
                       </article>
                     );
                   })}
-                {!data.assignments.length && (
-                  <Empty>Bạn chưa được phân ca trong tuần này.</Empty>
+                {!dailyAssignments.length && (
+                  <Empty>Bạn chưa được phân ca trong ngày này.</Empty>
                 )}
               </div>
             )}
@@ -307,63 +372,19 @@ export default function Workday() {
         )}
       </State>
       {slot && (
-        <Dialog
-          title="Phân công ca"
-          close={() => {
-            if (!pending) setSlot(null);
+        <WorkdayAssignment
+          key={`${branch}:${slot.shiftId}:${slot.date}`}
+          slot={slot}
+          today={data.today}
+          branch={branch}
+          close={() => setSlot(null)}
+          invalidate={() => bump((x) => x + 1)}
+          saved={(count) => {
+            setSlot(null);
+            setNotice(`Đã tạo ${count} lượt phân công.`);
+            bump((x) => x + 1);
           }}
-        >
-          <p>
-            {slot.name} · {slot.date} · {time(slot.startMinute)}–
-            {time(slot.endMinute)}
-          </p>
-          <State {...candidates}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                mutate(
-                  "workday/assignments",
-                  action(slot.rowVersion, {
-                    shiftId: slot.shiftId,
-                    userId: Number(f.get("userId")),
-                    workDate: slot.date,
-                  }),
-                );
-              }}
-            >
-              <label>
-                Nhân viên đủ điều kiện
-                <select name="userId" required defaultValue="">
-                  <option value="" disabled>
-                    Chọn nhân viên
-                  </option>
-                  {candidates.data?.map((u) => (
-                    <option key={u.userId} value={u.userId}>
-                      {u.fullName} · {u.employeeCode}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {!candidates.data?.length && (
-                <Empty>
-                  Không có nhân viên đúng nhóm, bộ phận và không trùng lịch.
-                </Empty>
-              )}
-              <button
-                className="primary"
-                disabled={pending || !candidates.data?.length}
-              >
-                Xác nhận phân ca
-              </button>
-            </form>
-          </State>
-          {error && (
-            <p role="alert" className="alert">
-              {error}
-            </p>
-          )}
-        </Dialog>
+        />
       )}
       {detail && (
         <Dialog
@@ -426,9 +447,9 @@ export default function Workday() {
             <History rows={history.data || []} />
           </State>
           {error && (
-            <p role="alert" className="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
         </Dialog>
       )}

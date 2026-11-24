@@ -657,6 +657,10 @@ body:has(dialog[open]) {
   background: #e3eefb;
   border-color: #7e9fc4;
 }
+.room-tile.reserved {
+  background: #f4ecd7;
+  border-color: #bca36b;
+}
 .room-tile.to_service {
   background: #fff0d9;
   border-color: #cba269;
@@ -1094,4 +1098,22 @@ dialog.room-drawer[open] {
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
   margin-bottom: 12px;
+}
+/* Readable records on narrow screens: retain every value and its column label. */
+@media (max-width: 680px) {
+  .table-scroll:has(.mobile-records), .calendar-scroll { max-height: none; overflow: visible; }
+  .table-scroll table.mobile-records, .calendar-scroll .calendar { display: block; width: 100%; min-width: 0; table-layout: auto; }
+  .mobile-records thead, .calendar thead { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .mobile-records tbody, .calendar tbody { display: block; width: 100%; }
+  .mobile-records tbody tr, .calendar tbody tr { display: block; width: 100%; padding: 12px; border-bottom: 2px solid var(--line); box-sizing: border-box; }
+  .mobile-records tbody td, .mobile-records tbody th { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; width: auto; min-width: 0; min-height: 0; padding: 8px 0; text-align: left; overflow-wrap: anywhere; }
+  .mobile-records tbody [data-label]::before { content: attr(data-label); font-size: 11px; font-weight: 650; color: var(--muted); }
+  .mobile-records tbody td > *, .mobile-records tbody th > * { min-width: 0; max-width: 100%; }
+  .mobile-records tbody td > small { grid-column: 2; }
+  .mobile-records tbody td > button, .mobile-records tbody td > a { white-space: normal; height: auto; min-height: 31px; }
+  .calendar tbody th, .calendar tbody td, .calendar th:first-child { display: block; width: auto; min-width: 0; border-right: 0; }
+  .calendar tbody th { padding: 12px; }
+  .calendar tbody td::before { content: attr(data-label); display: block; margin-bottom: 8px; font-weight: 650; color: var(--ink); }
+  .calendar .shift-person, .calendar .add-shift { max-width: 100%; white-space: normal; }
+  .operations-action-center li { overflow-wrap: anywhere; padding: 8px 0; }
 }

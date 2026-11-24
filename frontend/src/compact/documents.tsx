@@ -1,3 +1,5 @@
+import Transfers from "./transfers";
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
@@ -41,7 +43,11 @@ const types = [
   ["ADJUSTMENT", "Điều chỉnh", "INVENTORY_VIEW", "STOCK_ADJUST_POST"],
   ["REVERSAL", "Đảo chứng từ", "INVENTORY_VIEW", "STOCK_REVERSE"],
 ];
-export default function Documents({
+export default function Documents(props: {materialOnly?:boolean;readScope?:number}) {
+  const transfer=new URLSearchParams(location.hash.split("?")[1]).get("transfer")==="1";
+  return transfer && props.readScope===undefined && !props.materialOnly ? <Transfers/> : <DocumentList {...props}/>;
+}
+function DocumentList({
   materialOnly = false,
   readScope,
 }: {
@@ -189,6 +195,7 @@ export default function Documents({
           <p>Duyệt yêu cầu và ghi sổ kho là hai bước riêng biệt</p>
         </PageTitle>
       </div>
+      {!materialOnly && readScope===undefined && can("INVENTORY_VIEW",false) && <p><a className="button-link" href="#documents?transfer=1">?i?u chuy?n v?t t? gi?a c? s?</a></p>}
       <PageToolbar
         actions={
           write && (
@@ -477,9 +484,9 @@ export default function Documents({
             </form>
           </State>
           {error && (
-            <p className="alert" role="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
         </Dialog>
       )}
@@ -656,9 +663,9 @@ export default function Documents({
                       </label>
                       <button disabled={pending}>Lưu vật tư</button>
                       {error && (
-                        <p className="alert" role="alert">
+                        <AlertPopup>
                           {error}
-                        </p>
+                        </AlertPopup>
                       )}
                     </form>
                   </Dialog>
@@ -714,17 +721,17 @@ export default function Documents({
                         Quay lại
                       </button>
                       {error && (
-                        <p className="alert" role="alert">
+                        <AlertPopup>
                           {error}
-                        </p>
+                        </AlertPopup>
                       )}
                     </form>
                   </Dialog>
                 )}
                 {error && !adding && !command && (
-                  <p className="alert" role="alert">
+                  <AlertPopup>
                     {error}
-                  </p>
+                  </AlertPopup>
                 )}
                 <h3>Lịch sử</h3>
                 <History rows={fields(detail.data?.events)} />

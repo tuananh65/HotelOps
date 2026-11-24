@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import {
   Boxes,
   PackageCheck,
@@ -67,7 +69,7 @@ export default function InventoryDashboard() {
               {metrics
                 .filter(([key]) => data.metrics[key] !== null)
                 .map(([key, name, icon]) => (
-                  <article className="panel" key={key}>
+                  <article className={metricClass(key)} key={key}>
                     <MetricHeading icon={icon}>{name}</MetricHeading>
                     <strong className="branch-metric-value">
                       {data.metrics[key]}
@@ -75,6 +77,13 @@ export default function InventoryDashboard() {
                   </article>
                 ))}
             </div>
+          </>
+        )}
+      </State>
+      <AttendanceSummary />
+      {data && !query.error && (
+        <State {...query}>
+          <>
             <div className="chart-grid inventory-panels">
               <section className="panel">
                 <MetricHeading icon={ArrowLeftRight}>
@@ -173,8 +182,8 @@ export default function InventoryDashboard() {
               </section>
             </div>
           </>
-        )}
-      </State>
+        </State>
+      )}
     </>
   );
 }

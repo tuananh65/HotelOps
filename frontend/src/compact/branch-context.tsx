@@ -8,7 +8,7 @@ export default function BranchContext() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(branch);
   const current = profile.branches.find((b) => b.branchId === branch);
-  if (!current) return null;
+  if (!current || profile.roles.some(role=>role.code==="SYS_ADMIN")) return null;
   return (
     <div className="branch-context">
       <div className="branch-current" title={current.name}>

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import {
   Wrench,
   ClipboardCheck,
@@ -61,7 +63,7 @@ export default function MaintenancePersonal() {
               {metrics
                 .filter(([key]) => data.metrics[key] != null)
                 .map(([key, name, icon]) => (
-                  <article className="panel" key={key}>
+                  <article className={metricClass(key)} key={key}>
                     <MetricHeading icon={icon}>{name}</MetricHeading>
                     <strong className="branch-metric-value">
                       {data.metrics[key]}
@@ -69,7 +71,7 @@ export default function MaintenancePersonal() {
                   </article>
                 ))}
               {can("ATTENDANCE_RECORD") && (
-                <article className="panel">
+                <article className={metricClass("shiftsToday")}>
                   <MetricHeading icon={CalendarDays}>Ca hôm nay</MetricHeading>
                   <strong className="branch-metric-value">
                     {
@@ -81,6 +83,13 @@ export default function MaintenancePersonal() {
                 </article>
               )}
             </div>
+          </>
+        )}
+      </State>
+      <AttendanceSummary />
+      {data && !query.error && (
+        <State {...query}>
+          <>
             <div className="chart-grid">
               <section className="panel">
                 <MetricHeading icon={Wrench}>
@@ -154,8 +163,8 @@ export default function MaintenancePersonal() {
               </a>
             </PageToolbar>
           </>
-        )}
-      </State>
+        </State>
+      )}
     </>
   );
 }

@@ -10,6 +10,8 @@ public sealed partial class DocumentService
     private async Task<string[]> Derivations(InventoryDocument d,CancellationToken ct)
     {
         var kinds=new List<string>();
+        if(d.Kind=="TRANSFER_REQUEST"&&d.Status=="APPROVED"&&d.ClosedAt==null
+            &&await access.HasRole("STOREKEEPER",d.BranchId,ct))kinds.Add("TRANSFER");
         if(d.Kind=="MATERIAL_REQUEST"&&d.Status is "APPROVED" or "PARTIALLY_ISSUED"&&d.ApprovedBy!=actor.Id&&d.ClosedAt==null
             &&await access.Allows("MR_FULFILL",d.BranchId,ct:ct)&&await access.HasRole("STOREKEEPER",d.BranchId,ct))kinds.Add("ISSUE");
         if(d.Kind=="REPLENISHMENT"&&d.Status is "REQUESTED" or "PARTIALLY_RECEIVED"&&d.ClosedAt==null
@@ -17,14 +19,16 @@ public sealed partial class DocumentService
         if(d.Kind=="ISSUE"&&d.PostedAt!=null)kinds.Add("RETURN");
         if(d.Kind=="TRANSFER"&&d.PostedAt!=null)kinds.Add("TRANSFER_RECEIPT");
         if(d.Kind=="STOCKTAKE"&&d.Status=="COUNTED")kinds.Add("ADJUSTMENT");
-        if(d.PostedAt!=null&&d.Kind!="REVERSAL"&&!await db.InventoryDocuments.AnyAsync(x=>x.SourceDocumentId==d.DocumentId&&x.PostedAt!=null&&x.Kind!="REVERSAL",ct))kinds.Add("REVERSAL");
+        if(d.PostedAt!=null&&d.Kind!="REVERSAL"&&!await CrossBranchTransfer(d,ct)&&!await db.InventoryDocuments.AnyAsync(x=>x.SourceDocumentId==d.DocumentId&&x.PostedAt!=null&&x.Kind!="REVERSAL",ct))kinds.Add("REVERSAL");
         var allowed=new List<string>();
-        foreach(var kind in kinds)if(await access.Allows(Permission(kind,"create"),d.BranchId,ct:ct))allowed.Add(kind);
+        foreach(var kind in kinds){var branch=kind=="TRANSFER_RECEIPT"?d.DestinationBranchId??d.BranchId:d.BranchId;
+            if(await access.Allows(Permission(kind,"create"),branch,ct:ct)&&(!TransferKind(kind)||await access.HasRole("STOREKEEPER",branch,ct)))allowed.Add(kind);}
         return allowed.ToArray();
     }
 
     private async Task<decimal> Remaining(InventoryDocument d,InventoryDocumentLine line,string target,CancellationToken ct)
     {
+        if(target=="TRANSFER")return await TransferRemaining(line,ct);
         if(target=="ISSUE")return (await db.VMaterialFulfillments.Where(f=>f.LineId==line.LineId).Select(f=>f.MissingBaseQty).SingleOrDefaultAsync(ct)??0)/line.ConversionFactor;
         if(target=="ADJUSTMENT")return await db.InventoryDocumentLines.AnyAsync(l=>l.SourceLineId==line.LineId&&db.StockMovements.Any(m=>m.LineId==l.LineId),ct)?0:Math.Abs((line.CountedQty??0)-(line.ExpectedQty??0));
         if(target=="REVERSAL"){
@@ -40,7 +44,7 @@ public sealed partial class DocumentService
 
     private async Task<object?> InventoryContext(InventoryDocument d,CancellationToken ct)
     {
-        if(!await access.Allows("INVENTORY_VIEW",d.BranchId,ct:ct))return null;
+        if(!await access.Allows("INVENTORY_VIEW",d.BranchId,ct:ct)&&!(TransferKind(d.Kind)&&await CanReadTransfer(db,access,d,ct)))return null;
         var derivations=await Derivations(d,ct);
         var lines=await db.InventoryDocumentLines.AsNoTracking().Where(l=>l.DocumentId==d.DocumentId).OrderBy(l=>l.LineNo).ToArrayAsync(ct);
         var rows=new List<object>();
@@ -53,7 +57,9 @@ public sealed partial class DocumentService
             foreach(var kind in derivations)remaining[kind]=await Remaining(d,line,kind,ct);
             rows.Add(new{line.LineId,item.Name,item.Code,unit,balance,remaining});
         }
-        var write=await access.Allows(Permission(d.Kind,"create"),d.BranchId,d.CreatedBy==actor.Id,ct:ct);
+        var write=await access.Allows(Permission(d.Kind,"create"),d.Kind=="TRANSFER_REQUEST"?d.DestinationBranchId:d.BranchId,d.CreatedBy==actor.Id,ct:ct);
+        if(d.Kind=="TRANSFER_REQUEST")write&=d.CreatedBy==actor.Id&&await access.HasRole("OPERATION_MANAGER",d.DestinationBranchId??d.BranchId,ct);
+        else if(TransferKind(d.Kind))write&=await access.HasRole("STOREKEEPER",d.BranchId,ct);
         var independent=d.Kind is "RETURN" or "ADJUSTMENT" or "REVERSAL";
         var canPost=write&&d.Status=="DRAFT"&&d.PostedAt==null&&d.Kind is "RECEIPT" or "ISSUE" or "RETURN" or "TRANSFER" or "TRANSFER_RECEIPT" or "ADJUSTMENT" or "REVERSAL"
             &&(!independent||d.ApprovedBy!=null&&d.ApprovedBy!=actor.Id);
@@ -74,6 +80,7 @@ public sealed partial class DocumentService
     // Create a linked draft and all selected lines atomically; posting remains a separate confirmation.
     public Task<object> Derive(long id,DeriveDocumentRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         var source=await Load(id,"read",ct);Output.Version(source.RowVersion,r.RowVersion);Output.Key(r.OperationKey);
+        await GuardWorkflowDocumentMutation(source,ct);
         Output.Require(!await db.DocumentEvents.AnyAsync(e=>e.DocumentId==id&&e.ActorUserId==actor.Id&&e.OperationKey==r.OperationKey,ct),"OPERATION_ALREADY_APPLIED");
         Output.Require((await Derivations(source,ct)).Contains(r.Kind),"DERIVATION_NOT_ALLOWED",403);
         Output.Require(r.Lines is {Count:>0 and <=100}&&r.Lines.Select(x=>x.LineId).Distinct().Count()==r.Lines.Count,"DOCUMENT_LINES_REQUIRED",400);
@@ -83,10 +90,13 @@ public sealed partial class DocumentService
         if(r.Kind=="RECEIPT")to=source.DestinationWarehouseId??r.WarehouseId;
         if(r.Kind=="RETURN")to=source.SourceWarehouseId;
         if(r.Kind=="TRANSFER_RECEIPT")to=source.DestinationWarehouseId;
+        if(r.Kind=="TRANSFER"){from=source.SourceWarehouseId;to=source.DestinationWarehouseId;}
         if(r.Kind=="ADJUSTMENT")from=source.SourceWarehouseId;
         if(r.Kind=="REVERSAL")from=source.SourceWarehouseId??source.DestinationWarehouseId;
         Output.Require(from!=null||to!=null,"WAREHOUSE_REQUIRED",400);
-        var child=(ResourceDto)await Create(new CreateDocumentRequest(source.BranchId,r.Kind,source.DepartmentId,from,to,id,source.SourceWorkId,source.SupplierName,r.Reason,null),ct);
+        var branch=r.Kind=="TRANSFER_RECEIPT"?source.DestinationBranchId??source.BranchId:source.BranchId;
+        var child=(ResourceDto)await Create(new CreateDocumentRequest(branch,r.Kind,branch==source.BranchId?source.DepartmentId:null,from,to,id,
+            branch==source.BranchId?source.SourceWorkId:null,source.SupplierName,r.Reason,null,null,r.Kind=="TRANSFER"?source.DestinationBranchId:branch),ct);
         var childId=Convert.ToInt64(child.Fields["documentId"]);
         foreach(var selected in r.Lines){
             var line=await db.InventoryDocumentLines.AsNoTracking().SingleOrDefaultAsync(l=>l.DocumentId==id&&l.LineId==selected.LineId,ct)??throw new ApiException(400,"SOURCE_LINE_MISMATCH");

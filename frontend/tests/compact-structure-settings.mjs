@@ -98,27 +98,22 @@ try {
   await expect(page.getByLabel("Nội dung cấu hình")).toHaveValue("roles");
   await expect(
     page.getByLabel("Nội dung cấu hình").locator("option"),
-  ).toHaveText(["Bộ phận", "Loại phòng", "Vai trò"]);
+  ).toHaveText([
+    "Danh mục dùng chung",
+    "Bộ phận",
+    "Loại phòng",
+    "Vai trò",
+    "Quyền hệ thống",
+  ]);
   for (const [resource, title, label] of [
     ["departments", "Bộ phận", "Buồng phòng"],
     ["room-types", "Loại phòng", "Phòng tiêu chuẩn"],
   ]) {
     await page.getByLabel("Nội dung cấu hình").selectOption(resource);
     await expect(page.locator(".topbar h1")).toHaveText("Cấu hình hệ thống");
-    await expect(page.locator(".branch-context")).toContainText(
-      branches[0].name,
-    );
+    await expect(page.locator(".branch-context")).toHaveCount(0);
     await expect(page.locator("tbody")).toContainText(`${label} 1`);
-    await page
-      .getByRole("button", { name: "Đổi khách sạn", exact: true })
-      .click();
-    await page
-      .locator("dialog")
-      .getByRole("button", { name: /Khách sạn Cao Thắng/ })
-      .click();
-    await page
-      .getByRole("button", { name: "Sử dụng khách sạn này", exact: true })
-      .click();
+    await page.goto(`${base}/#catalog?hotel=2&resource=${resource}`);
     await expect(page.locator("tbody")).toContainText(`${label} 2`);
     await expect(page.locator("tbody")).not.toContainText(`${label} 1`);
     await page.getByRole("button", { name: "Chỉnh sửa", exact: true }).click();
@@ -138,27 +133,24 @@ try {
         exact: true,
       })
       .click();
-    await page.locator("dialog input[name=code]").fill("NEW");
+    await expect(page.locator("dialog input[name=code]")).toHaveCount(0);
     await page.locator("dialog input[name=name]").fill("Danh mục kiểm thử");
     await page.locator("dialog button.primary").click();
     await expect(page.locator("dialog")).toHaveCount(0);
     assert.equal(writes.at(-1).path, `catalog/${resource}`);
     assert.equal(writes.at(-1).branch, 2);
     assert.equal(writes.at(-1).method, "POST");
+    assert.equal(Object.hasOwn(writes.at(-1).body.fields, "code"), false);
     // Reload auth to start the next check from hotel 1.
     await page.reload();
-    await expect(page.locator(".branch-context")).toContainText(
-      branches[0].name,
-    );
+    await expect(page.locator(".branch-context")).toHaveCount(0);
   }
   for (const resource of ["departments", "room-types"]) {
     await page.goto(`${base}/#catalog?hotel=2&resource=${resource}`);
     await expect(page).toHaveURL(
       new RegExp(`#settings\\?resource=${resource}$`),
     );
-    await expect(page.locator(".branch-context")).toContainText(
-      branches[1].name,
-    );
+    await expect(page.locator(".branch-context")).toHaveCount(0);
     await expect(page.getByLabel("Nội dung cấu hình")).toHaveValue(resource);
   }
   for (const width of [1440, 375]) {
@@ -173,13 +165,7 @@ try {
         .getByRole("button", { name: "Mở điều hướng", exact: true })
         .click();
     }
-    await page
-      .getByRole("button", { name: "Đổi khách sạn", exact: true })
-      .click();
-    await expect(
-      page.getByRole("dialog", { name: "Chọn khách sạn" }),
-    ).toBeVisible();
-    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", {name:"Đổi khách sạn",exact:true})).toHaveCount(0);
     if (width === 1440) {
       await page
         .getByRole("button", { name: "Mở rộng điều hướng", exact: true })

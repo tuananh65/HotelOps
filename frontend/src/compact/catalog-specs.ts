@@ -37,6 +37,31 @@ const location: Field = {
 };
 export const catalogs: Catalog[] = [
   {
+    id: "references",
+    name: "Danh mục dùng chung",
+    key: "referenceId",
+    read: "MASTER_DATA_MANAGE",
+    write: "MASTER_DATA_MANAGE",
+    scoped: false,
+    fields: [
+      {
+        key: "kind",
+        label: "Loại danh mục",
+        required: true,
+        choices: [
+          ["WORK_CATEGORY", "Loại công việc"],
+          ["ASSET_TYPE", "Loại tài sản"],
+          ["ITEM_CATEGORY", "Nhóm vật tư"],
+          ["UOM", "Đơn vị tính"],
+        ],
+      },
+      code,
+      name,
+      { key: "sortOrder", label: "Thứ tự", type: "number", default: 0 },
+      active,
+    ],
+  },
+  {
     id: "branches",
     name: "Chi nhánh",
     key: "branchId",
@@ -48,6 +73,7 @@ export const catalogs: Catalog[] = [
       name,
       { key: "address", label: "Địa chỉ", max: 500 },
       { key: "phone", label: "Điện thoại", max: 30 },
+      { key: "representativeName", label: "Người đại diện", max: 150 },
       {
         key: "timezone",
         label: "Múi giờ",
@@ -65,7 +91,7 @@ export const catalogs: Catalog[] = [
     read: "ROOM_VIEW",
     write: "MASTER_DATA_MANAGE",
     scoped: true,
-    fields: [code, name, active],
+    fields: [code, name, { key: "description", label: "Mô tả", max: 2000 }, active],
   },
   {
     id: "locations",
@@ -251,12 +277,13 @@ export const catalogs: Catalog[] = [
     name: "Quyền hệ thống",
     key: "permissionId",
     read: "ROLE_MANAGE",
-    write: "",
+    write: "ROLE_MANAGE",
     scoped: false,
     fields: [
       code,
       { key: "moduleCode", label: "Nhóm" },
       { key: "description", label: "Mô tả" },
+      active,
     ],
   },
 ];

@@ -135,7 +135,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
       )}
       <State {...query} retry={() => bump((n) => n + 1)}>
         <div className="table-scroll">
-          <table>
+          <table className="mobile-records">
             <thead>
               <tr>
                 <th>Kho</th>
@@ -152,23 +152,21 @@ export default function Stock({ readScope }: { readScope?: number }) {
             <tbody>
               {rows.slice((page - 1) * 25, page * 25).map((r) => (
                 <tr key={`${r.warehouseId}-${r.itemId}`}>
-                  <td>{r.warehouse}</td>
+                  <td data-label="Kho">{r.warehouse}</td>
                   {readScope !== undefined && (
-                    <td>
-                      {profile.branches.find((b) => b.branchId === r.branchId)
+                    <td data-label="Chi nhánh">{profile.branches.find((b) => b.branchId === r.branchId)
                         ?.name || "—"}
                     </td>
                   )}
-                  <td>{r.code}</td>
-                  <td>{r.item}</td>
-                  <td className="numeric">
+                  <td data-label="Mã vật tư">{r.code}</td>
+                  <td data-label="Vật tư">{r.item}</td>
+                  <td className="numeric" data-label="Tồn cơ sở">
                     {Number(r.baseQty || 0).toLocaleString("vi-VN")}
                   </td>
-                  <td>{r.unit || "—"}</td>
-                  <td>{r.minimumQty ?? "—"}</td>
-                  <td>{r.lastMovement ? timestamp(r.lastMovement) : "—"}</td>
-                  <td>
-                    <button
+                  <td data-label="Đơn vị">{r.unit || "—"}</td>
+                  <td data-label="Tối thiểu">{r.minimumQty ?? "—"}</td>
+                  <td data-label="Biến động cuối">{r.lastMovement ? timestamp(r.lastMovement) : "—"}</td>
+                  <td data-label="Thao tác"><button
                       onClick={() => {
                         setSelected(r);
                         setLedgerPage(1);
@@ -196,7 +194,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
           </p>
           <State {...ledger}>
             <div className="table-scroll">
-              <table>
+              <table className="mobile-records">
                 <thead>
                   <tr>
                     <th>Chứng từ</th>
@@ -207,8 +205,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
                 <tbody>
                   {ledger.data?.items.map((r: Row) => (
                     <tr key={r.movementId}>
-                      <td>
-                        <a
+                      <td data-label="Chứng từ"><a
                           href={
                             storekeeper
                               ? documentHref(
@@ -221,15 +218,13 @@ export default function Stock({ readScope }: { readScope?: number }) {
                           <small>{r.documentNo}</small>
                         </a>
                       </td>
-                      <td>
-                        {r.signedBaseQty > 0 ? "+" : ""}
+                      <td data-label="Biến động">{r.signedBaseQty > 0 ? "+" : ""}
                         {r.signedBaseQty}
                         {r.reversalOfMovementId && (
                           <small>Đảo giao dịch #{r.reversalOfMovementId}</small>
                         )}
                       </td>
-                      <td>
-                        {timestamp(r.occurredAt)}
+                      <td data-label="Thời gian / người ghi">{timestamp(r.occurredAt)}
                         <small>{r.actor}</small>
                       </td>
                     </tr>

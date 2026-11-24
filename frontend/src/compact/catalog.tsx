@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { api, fields, message, type Page, type Row } from "./api";
@@ -9,6 +10,7 @@ import HotelSelector from "./hotel-selector";
 import { useCatalogRows } from "./use-catalog-rows";
 import { permissionText } from "./permission-copy";
 import StatusLight from "./status-light";
+import StatusSwitch from "./status-switch";
 import { SlidersHorizontal } from "lucide-react";
 function Lookup({
   field,
@@ -82,14 +84,21 @@ export default function Catalog({
   toolbarAction?: ReactNode;
   inventoryMode?: boolean;
 }) {
-  const { branch, can, canGlobal, refresh, setBranch } = useAuth();
+  const { branch, can, canGlobal, refresh, setBranch, profile } = useAuth();
+  const isAdmin = profile.roles.some((role) => role.code === "SYS_ADMIN");
   const visible = catalogs.filter(
     (c) =>
       (can(c.read, false) || (c.write && can(c.write, false))) &&
       (mode === "hotels"
         ? ["branches", "locations", "rooms"].includes(c.id)
         : mode === "settings"
-          ? ["roles", "room-types", "departments"].includes(c.id)
+          ? [
+              "roles",
+              "permissions",
+              "room-types",
+              "departments",
+              "references",
+            ].includes(c.id)
           : ["items", "stock-policies", "warehouses", "assets"].includes(c.id)),
   );
   const [resource, setResource] = useState(
@@ -200,14 +209,14 @@ export default function Catalog({
   const simpleStructureList = ["room-types", "departments"].includes(spec.id);
   const showStatus =
     spec.id !== "roles" &&
-    !simpleStructureList &&
+    (!simpleStructureList || isAdmin) &&
     (!inventoryMode || spec.fields.some((f) => f.key === "isActive"));
   const roomList = embedded && spec.id === "rooms";
   const columns = spec.fields
     .filter(
       (f) =>
         f.key !== "isActive" &&
-        !(simpleStructureList && ["code", "description"].includes(f.key)) &&
+        !(simpleStructureList && f.key === "code") &&
         !(roomList && f.key === "departmentId") &&
         !(spec.id === "roles" && f.key === "code") &&
         !(embedded && locationFilter && f.key === "locationId"),
@@ -255,6 +264,9 @@ export default function Catalog({
     const values = new FormData(form),
       data: Row = {};
     for (const f of spec.fields) {
+      if (isAdmin && f.key === "isActive") continue;
+      if (spec.id === "permissions" && f.key !== "isActive") continue;
+      if (!editing[spec.key] && ["code", "assetCode"].includes(f.key)) continue;
       if (spec.id === "references" && editing[spec.key] && f.key === "kind")
         continue;
       if (spec.id === "roles" && editing[spec.key] && f.key === "code")
@@ -292,7 +304,17 @@ export default function Catalog({
       setPending(false);
     }
   }
-  const createAction = writable && !roomList && (
+  async function toggleStatus(row: Row) {
+    if (pending || !writable) return;
+    setPending(true);setError("");setNotice("");
+    try {
+      await api(`catalog/${spec.id}/${row[spec.key]}${spec.scoped?`?branchId=${branch}`:""}`,{rowVersion:row.rowVersion,fields:{isActive:!row.isActive}},"PUT");
+      setNotice(row.isActive?"Đã ngừng sử dụng.":"Đã kích hoạt.");
+      if(spec.id==="branches")await refresh();
+    } catch(e) { setError(message(e)); }
+    finally { bump(n=>n+1);setPending(false); }
+  }
+  const createAction = writable && !roomList && spec.id !== "permissions" && (
     <button
       className="primary"
       onClick={() => {
@@ -466,10 +488,11 @@ export default function Catalog({
               </div>
             )}
             {notice && (
-              <p role="status" className="notice">
+              <AlertPopup tone="success">
                 {notice}
-              </p>
+              </AlertPopup>
             )}
+            {!editing && error && <AlertPopup>{error}</AlertPopup>}
             {spec.scoped && !branch ? (
               <Empty>
                 Chưa có khách sạn trong phạm vi được cấp để cấu hình danh mục
@@ -520,11 +543,12 @@ export default function Catalog({
                   <div className="table-scroll">
                     <table
                       className={
-                        spec.id === "roles" ? "roles-table" : undefined
+                        spec.id === "roles" ? "roles-table mobile-records" : "mobile-records"
                       }
                     >
                       <thead>
                         <tr>
+                          <th scope="col">STT</th>
                           {spec.id === "permissions" ? (
                             <>
                               <th>Quyền</th>
@@ -534,23 +558,23 @@ export default function Catalog({
                             columns.map((f) => <th key={f.key}>{f.label}</th>)
                           )}
                           {showStatus && <th>Trạng thái</th>}
-                          {(writable ||
+                          {((writable && !(isAdmin && spec.id === "permissions")) ||
                             (inventoryMode && spec.id === "items")) && (
                             <th>Thao tác</th>
                           )}
                         </tr>
                       </thead>
                       <tbody>
-                        {rows.map((r) => (
+                        {rows.map((r, index) => (
                           <tr key={r[spec.key]}>
+                            <td data-label="STT">{(page - 1) * 50 + index + 1}</td>
                             {spec.id === "permissions" ? (
                               <>
-                                <td>
-                                  <strong>
+                                <td data-label="Quyền"><strong>
                                     {permissionText(r.code, r.description).name}
                                   </strong>
                                 </td>
-                                <td className="permission-description">
+                                <td className="permission-description" data-label="Mô tả">
                                   {
                                     permissionText(r.code, r.description)
                                       .description
@@ -559,7 +583,7 @@ export default function Catalog({
                               </>
                             ) : (
                               columns.map((f) => (
-                                <td key={f.key}>
+                                <td key={f.key} data-label={f.label}>
                                   {f.type === "checkbox"
                                     ? r[f.key]
                                       ? "Có"
@@ -584,14 +608,12 @@ export default function Catalog({
                               ))
                             )}
                             {showStatus && (
-                              <td>
-                                <StatusLight active={r.isActive} />
+                              <td data-label="Trạng thái">{isAdmin ? <StatusSwitch active={!!r.isActive} label={spec.id==="permissions"?permissionText(r.code,r.description).name:r.name||r.code||spec.name} disabled={pending||!writable||(spec.id==="references"&&["PRIORITY","SEVERITY"].includes(r.kind))} onChange={()=>toggleStatus(r)} /> : <StatusLight active={r.isActive} />}
                               </td>
                             )}
-                            {(writable ||
+                            {((writable && !(isAdmin && spec.id === "permissions")) ||
                               (inventoryMode && spec.id === "items")) && (
-                              <td>
-                                <div
+                              <td data-label="Thao tác"><div
                                   className={
                                     spec.id === "roles"
                                       ? "role-actions"
@@ -625,22 +647,26 @@ export default function Catalog({
                                       Chi tiết
                                     </button>
                                   )}
-                                  {writable && (
-                                    <button
-                                      className={
-                                        spec.id === "roles"
-                                          ? "role-edit"
-                                          : undefined
-                                      }
-                                      onClick={() => {
-                                        setEditing(r);
-                                        setLookupReady({});
-                                        setError("");
-                                      }}
-                                    >
-                                      Chỉnh sửa
-                                    </button>
-                                  )}
+                                  {writable &&
+                                    !(
+                                      spec.id === "references" &&
+                                      ["PRIORITY", "SEVERITY"].includes(r.kind)
+                                    ) && (
+                                      <button
+                                        className={
+                                          spec.id === "roles"
+                                            ? "role-edit"
+                                            : undefined
+                                        }
+                                        onClick={() => {
+                                          setEditing(r);
+                                          setLookupReady({});
+                                          setError("");
+                                        }}
+                                      >
+                                        Chỉnh sửa
+                                      </button>
+                                    )}
                                   {spec.id === "roles" && (
                                     <button
                                       className="role-grants"
@@ -723,6 +749,10 @@ export default function Catalog({
             {spec.fields
               .filter(
                 (f) =>
+                  !(isAdmin && f.key === "isActive") &&
+                  (spec.id !== "permissions" || f.key === "isActive") &&
+                  (editing[spec.key] ||
+                    !["code", "assetCode"].includes(f.key)) &&
                   !(
                     spec.id === "assets" &&
                     editing[spec.key] &&
@@ -767,6 +797,11 @@ export default function Catalog({
                     <input
                       name={f.key}
                       type={f.type || "text"}
+                      pattern={
+                        f.key === "phone"
+                          ? "\\+?[0-9][0-9 \\(\\)\\-]{6,28}[0-9]"
+                          : undefined
+                      }
                       required={f.required}
                       maxLength={f.max}
                       defaultValue={
@@ -788,16 +823,16 @@ export default function Catalog({
                   )}
                 </label>
               ))}
-            {spec.fields.some((f) => f.key === "isActive") && (
+            {!isAdmin && spec.fields.some((f) => f.key === "isActive") && (
               <p className="hint">
                 Bỏ chọn “Đang hoạt động” để ngừng sử dụng. Hệ thống sẽ kiểm tra
                 các dữ liệu còn liên quan trước khi lưu.
               </p>
             )}
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             <button
               className="primary"

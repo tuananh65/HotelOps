@@ -21,14 +21,24 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
     {
         return await StockRows(branchId,ct);
     }
-    public async Task<object> Dashboard(long branchId,CancellationToken ct){
+    public async Task<object> Dashboard(long branchId,CancellationToken ct,string? taskPeriod=null){
         await access.Require("DASHBOARD_VIEW",branchId,ct:ct);
+        Output.Require(taskPeriod is null or "day" or "week" or "month","INVALID_TASK_PERIOD",400);
+        var now=clock.GetUtcNow().UtcDateTime;
+        TaskWindow? taskWindow=null;
         // A dashboard grant does not grant access to the underlying operational domains.
         object? rooms=null,work=null,stock=null;
-        if(await access.Allows("ROOM_VIEW",branchId,ct:ct))rooms=await db.VRoomReadinesses.Where(x=>x.BranchId==branchId).GroupBy(x=>new{x.Readiness,x.IsOccupied}).Select(g=>new{g.Key.Readiness,g.Key.IsOccupied,Count=g.Count()}).ToArrayAsync(ct);
-        if(await access.Allows("TASK_VIEW",branchId,ct:ct))work=await db.WorkItems.Where(x=>x.BranchId==branchId&&x.Kind=="OPERATIONAL").GroupBy(x=>x.Status).Select(g=>new{Status=g.Key,Count=g.Count()}).ToArrayAsync(ct);
+        if(await access.Allows("ROOM_VIEW",branchId,ct:ct))rooms=await db.VRoomReadinesses.Where(x=>x.BranchId==branchId).GroupBy(x=>new{Readiness=x.OperationalStatus=="RESERVED"?"RESERVED":x.Readiness,x.IsOccupied}).Select(g=>new{g.Key.Readiness,g.Key.IsOccupied,Count=g.Count()}).ToArrayAsync(ct);
+        if(await access.Allows("TASK_VIEW",branchId,ct:ct)){
+            var query=db.WorkItems.AsNoTracking().Where(x=>x.BranchId==branchId&&x.Kind=="OPERATIONAL");
+            if(taskPeriod!=null){
+                var timezone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
+                taskWindow=TaskWindow.For(now,timezone,taskPeriod);
+                query=query.Where(w=>w.CreatedAt>=taskWindow.FromUtc&&w.CreatedAt<taskWindow.ToUtc);
+            }
+            work=await query.GroupBy(x=>x.Status).Select(g=>new{Status=g.Key,Count=g.Count()}).ToArrayAsync(ct);
+        }
         if(await access.Allows("INVENTORY_VIEW",branchId,ct:ct))stock=await db.VStockBalances.Where(x=>x.BranchId==branchId).Select(x=>new{x.WarehouseId,x.ItemId,x.BaseQty}).ToArrayAsync(ct);
-        var now=clock.GetUtcNow().UtcDateTime;
         object? scheduling=null;
         if(await access.Allows("SHIFT_MANAGE",branchId,ct:ct)){
             var zone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
@@ -46,7 +56,7 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
         var tasks=await access.Allows("TASK_VIEW",branchId,ct:ct);
         var requests=await access.Allows("IR_VIEW",branchId,ct:ct);
         var materials=await access.Allows("MR_VIEW",branchId,ct:ct);
-        var active=db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branchId&&!WorkRules.Terminal.Contains(w.Status));
+        var active=InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now).Where(w=>w.BranchId==branchId&&!WorkRules.Terminal.Contains(w.Status));
         var monitoring=new List<object>();
         var attention=new List<object>();
         foreach(var kind in new[]{"CLEANING","INSPECTION","REWORK","MAINTENANCE","INCIDENT","INTERNAL_REQUEST"}){
@@ -59,15 +69,18 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
         object? assets=null;
         if(await access.Allows("ASSET_VIEW",branchId,ct:ct))assets=await db.Assets.AsNoTracking().Where(a=>a.BranchId==branchId&&a.IsActive)
             .GroupBy(a=>a.ConditionCode).Select(g=>new{condition=g.Key,count=g.Count()}).ToArrayAsync(ct);
-        return new{branchId,rooms,work,stock,scheduling,monitoring,attention,assets,operations=new{
+        var actionCenter=await ActionCenter(branchId,now,ct);
+        return new{branchId,rooms,work,taskWindow,stock,scheduling,monitoring,attention,assets,actionCenter,operations=new{
             activeTasks=tasks?(int?)await active.CountAsync(w=>w.Kind=="OPERATIONAL",ct):null,
             overdueTasks=tasks?(int?)await active.CountAsync(w=>w.Kind=="OPERATIONAL"&&w.DueAt<now,ct):null,
             pendingRequests=requests?(int?)await active.CountAsync(w=>w.Kind=="INTERNAL_REQUEST"&&(w.Status=="SUBMITTED"||w.Status=="PENDING_ACCEPTANCE"),ct):null,
             pendingMaterials=materials?(int?)await db.InventoryDocuments.AsNoTracking().CountAsync(d=>d.BranchId==branchId&&d.Kind=="MATERIAL_REQUEST"&&d.Status=="PENDING_APPROVAL",ct):null}};
     }
     public async Task<object> Report(string report,long branchId,DateTime? from,DateTime? to,CancellationToken ct){
-        await access.Require("REPORT_VIEW",branchId,ct:ct);var start=from??DateTime.UtcNow.AddDays(-30);var end=to??DateTime.UtcNow;
+        await access.Require("REPORT_VIEW",branchId,ct:ct);var start=from??clock.GetUtcNow().UtcDateTime.AddDays(-30);var end=to??clock.GetUtcNow().UtcDateTime;
         Output.Require(start<=end&&(end-start).TotalDays<=366,"REPORT_RANGE_MAX_366_DAYS",400);
+        if(report=="transfers")return await TransferReport(branchId,start,end,ct);
+        if(report=="stocktake-differences")return await StocktakeDifferencesReport(branchId,start,end,ct);
         if(report=="assets"){
             await access.Require("ASSET_VIEW",branchId,ct:ct);
             return await db.Assets.AsNoTracking().Where(a=>a.BranchId==branchId).OrderBy(a=>a.AssetId).Take(10000)
@@ -103,7 +116,7 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
         }
         var kind=report switch{"tasks"=>"OPERATIONAL","cleaning"=>"CLEANING","incidents"=>"INCIDENT","maintenance"=>"MAINTENANCE","requests"=>"INTERNAL_REQUEST",_=>throw new ApiException(404,"REPORT_NOT_FOUND")};
         await access.Require(WorkRules.Permission(kind,"read"),branchId,ct:ct);
-        return await db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branchId&&w.Kind==kind&&w.CreatedAt>=start&&w.CreatedAt<=end)
+        return await InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,clock.GetUtcNow().UtcDateTime).Where(w=>w.BranchId==branchId&&w.Kind==kind&&w.CreatedAt>=start&&w.CreatedAt<=end)
             .OrderBy(w=>w.WorkId).Take(10000).Select(w=>new{w.WorkId,w.WorkNo,w.Status,w.Title,w.CreatedAt,w.CompletedAt,w.VerifiedAt,w.DueAt,
                 completedSeconds=db.VWorkDurations.Where(t=>t.WorkId==w.WorkId).Sum(t=>t.CompletedSeconds)}).ToArrayAsync(ct);
     }

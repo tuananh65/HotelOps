@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import {
   Bell,
   CalendarDays,
@@ -61,7 +63,7 @@ export default function HousekeepingPersonal() {
           <>
             <div className="branch-metrics">
               {metrics.map(([key, name, icon, href]) => (
-                <article className="panel" key={key}>
+                <article className={metricClass(key)} key={key}>
                   <MetricHeading icon={icon}>{name}</MetricHeading>
                   <strong className="branch-metric-value">
                     {data.metrics[key]}
@@ -73,6 +75,13 @@ export default function HousekeepingPersonal() {
                 </article>
               ))}
             </div>
+          </>
+        )}
+      </State>
+      <AttendanceSummary />
+      {data && !query.error && (
+        <State {...query}>
+          <>
             <div className="chart-grid personal-hk-details">
               <section className="panel">
                 <MetricHeading icon={ClipboardList}>
@@ -138,8 +147,8 @@ export default function HousekeepingPersonal() {
               )}
             </div>
           </>
-        )}
-      </State>
+        </State>
+      )}
     </>
   );
 }

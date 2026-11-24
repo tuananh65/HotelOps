@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import { useState } from "react";
 import { api, action, fields, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
@@ -15,14 +16,16 @@ export default function AccountManagement({
   user,
   close,
   changed,
+  initialCommand = "",
 }: {
   user: Row;
   close: () => void;
   changed: () => void;
+  initialCommand?: string;
 }) {
   const { can, branch, profile } = useAuth();
   const [revision, bump] = useState(0),
-    [command, setCommand] = useState(""),
+    [command, setCommand] = useState(initialCommand),
     [revoking, setRevoking] = useState<Row | null>(null);
   const [pending, setPending] = useState(false),
     [error, setError] = useState(""),
@@ -150,9 +153,9 @@ export default function AccountManagement({
           </div>
         </div>
         {success && (
-          <p className="account-success" role="status">
+          <AlertPopup tone="success">
             {success}
-          </p>
+          </AlertPopup>
         )}
         <div className="account-management-actions">
           {can("USER_MANAGE") && (
@@ -167,7 +170,7 @@ export default function AccountManagement({
               <button disabled={pending} onClick={() => choose("membership")}>
                 Thêm phạm vi
               </button>
-              {!self && (
+              {!self && !profile.roles.some(role=>role.code==="SYS_ADMIN") && (
                 <button
                   disabled={pending}
                   onClick={() =>
@@ -273,7 +276,7 @@ export default function AccountManagement({
                     </select>
                   </label>
                   {departments.error && (
-                    <p className="alert">{message(departments.error)}</p>
+                    <AlertPopup>{message(departments.error)}</AlertPopup>
                   )}
                 </>
               )}
@@ -285,7 +288,7 @@ export default function AccountManagement({
                     <select name="roleId" required defaultValue="">
                       <option value="">Chọn vai trò</option>
                       {fields(roles.data?.items)
-                        .filter((r) => r.isActive && r.code !== "SYS_ADMIN")
+                        .filter((r) => r.isActive && ["OWNER", "OPERATION_MANAGER", "HOUSEKEEPING_SUPERVISOR", "HK_STAFF", "MAINTENANCE_SUPERVISOR", "RECEPTION", "STOREKEEPER"].includes(r.code))
                         .map((r) => (
                           <option key={r.roleId} value={r.roleId}>
                             {r.name}
@@ -294,7 +297,7 @@ export default function AccountManagement({
                     </select>
                   </label>
                   {roles.error && (
-                    <p className="alert">{message(roles.error)}</p>
+                    <AlertPopup>{message(roles.error)}</AlertPopup>
                   )}
                 </>
               )}
@@ -327,9 +330,9 @@ export default function AccountManagement({
                 </>
               )}
               {error && (
-                <p className="alert" role="alert">
+                <AlertPopup>
                   {error}
-                </p>
+                </AlertPopup>
               )}
               <div className="toolbar">
                 <button

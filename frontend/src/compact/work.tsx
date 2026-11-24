@@ -1,4 +1,6 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
+import "./housekeeping-mobile.css";
 import PageToolbar from "./page-toolbar";
 import { useState, type ReactNode } from "react";
 import { SlidersHorizontal } from "lucide-react";
@@ -24,6 +26,9 @@ import {
   label,
 } from "./ui";
 import CleaningQueue from "./cleaning-queue";
+import CleaningRooms from "./cleaning-rooms";
+import PaperInspection from "./paper-inspection";
+import CleaningSupplyReconciliation from "./cleaning-supply-reconciliation";
 import {
   commands,
   kinds,
@@ -40,7 +45,11 @@ export default function Work({
   reviewOnly = false,
   technicalStaff = false,
   historyMine = false,
+  housekeeping = false,
+  hideKindTabs = false,
+  initialKind,
   readScope,
+  initialStatus,
 }: {
   onlyKind?: string;
   allowedKinds?: string[];
@@ -50,16 +59,34 @@ export default function Work({
   reviewOnly?: boolean;
   technicalStaff?: boolean;
   historyMine?: boolean;
+  housekeeping?: boolean;
+  hideKindTabs?: boolean;
+  initialKind?: string;
   readScope?: number;
+  initialStatus?: string;
 }) {
-  const { branch, can, profile } = useAuth(),
+  const { branch, can, profile } = useAuth();
+  const branchRoles = profile.roles.filter(r => r.branchId === null || r.branchId === branch);
+  const housekeepingStaff = branchRoles.some(r => r.code === "HK_STAFF");
+  const receptionOnly = branchRoles.length > 0 && branchRoles.every(r => r.code === "RECEPTION");
+  const operationsManager = branchRoles.some(r => r.code === "OPERATION_MANAGER");
+  const maintenanceSupervisor = branchRoles.some(r => r.code === "MAINTENANCE_SUPERVISOR");
+  const requestCoordinator = branchRoles.some(r => ["OPERATION_MANAGER", "OWNER"].includes(r.code))
+    || profile.memberships.some(m => m.branchId === branch && m.kind === "DEPARTMENT_AUTHORITY");
+  const
     visible = kinds.filter(
       (k) =>
         can(k[2]) &&
+        !(housekeepingStaff && k[0] === "INCIDENT") &&
+        (!receptionOnly || k[0] === "INTERNAL_REQUEST") &&
         (!onlyKind || k[0] === onlyKind) &&
         (!allowedKinds || allowedKinds.includes(k[0])),
     );
   const serverFilters = !!onlyKind || !!allowedKinds || personal;
+  const reception = profile.roles.some(
+    (r) =>
+      r.code === "RECEPTION" && (r.branchId === null || r.branchId === branch),
+  );
   const [mine, setMine] = useState(
     readScope !== undefined
       ? false
@@ -70,7 +97,8 @@ export default function Work({
             )),
   );
   const [kind, setKind] = useState(
-      onlyKind ||
+      (initialKind && visible.some(k => k[0] === initialKind) ? initialKind : null) ||
+        (onlyKind && visible.some(k => k[0] === onlyKind) ? onlyKind : null) ||
         visible.find(
           (k) =>
             k[0] ===
@@ -91,15 +119,26 @@ export default function Work({
     [creating, setCreating] = useState(
       new URLSearchParams(location.hash.split("?")[1]).get("create") === "1",
     ),
-    [command, setCommand] = useState(""),
+    [command, setCommand] = useState(
+      housekeeping &&
+        new URLSearchParams(location.hash.split("?")[1]).get("assign") === "1"
+        ? "assign"
+        : "",
+    ),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false),
     [search, setSearch] = useState(
       new URLSearchParams(location.hash.split("?")[1]).get("search") || "",
     ),
     [parentDraft, setParentDraft] = useState<Row | null>(null);
+  const [cleaningRoom, setCleaningRoom] = useState<Row | null>(null);
+  const requestTypes=useQuery(kind==="INTERNAL_REQUEST"&&creating?`work/internal-request-types?branchId=${branch}`:null,revision);
+  const [requestedRoom, setRequestedRoom] = useState(
+    Number(new URLSearchParams(location.hash.split("?")[1]).get("room")) ||
+      undefined,
+  );
   const [filters, setFilters] = useState(false),
-    [status, setStatus] = useState(reviewOnly ? "COMPLETED" : ""),
+    [status, setStatus] = useState(initialStatus || (reviewOnly ? "COMPLETED" : "")),
     [department, setDepartment] = useState("");
   const [sort, setSort] = useState("latest"),
     [from, setFrom] = useState(""),
@@ -110,7 +149,7 @@ export default function Work({
     ["CLEANING", "REWORK", "OPERATIONAL", "MAINTENANCE"].includes(kind);
   const [deriving, setDeriving] = useState(false),
     [deriveKey, setDeriveKey] = useState("");
-  const modalActions = coordinator || technicalStaff;
+  const modalActions = coordinator || technicalStaff || housekeeping;
   const technical =
     readScope !== undefined ||
     coordinator ||
@@ -120,7 +159,9 @@ export default function Work({
     new URLSearchParams(location.hash.split("?")[1]).get("queue") || "",
   );
   const commandText = (command: string) =>
-    coordinator && kind === "MAINTENANCE"
+    ["CLEANING", "REWORK"].includes(kind) && command === "assign" && assignments.some(a => a.assignmentStatus === "ACTIVE")
+      ? "Phân công lại"
+      : coordinator && kind === "MAINTENANCE"
       ? command === "verify"
         ? "Chấp nhận"
         : command === "reopen"
@@ -200,11 +241,12 @@ export default function Work({
                   ];
   const supervisor =
     kind === "CLEANING" && can("CLEANING_ASSIGN", false) && !mine;
+  const requestPersonal = kind === "INTERNAL_REQUEST" && !requestCoordinator;
   const technicalQuery = `${historyMine ? "&historyMine=true" : ""}${priority ? `&priorityId=${priority}` : ""}${queue && kind === "MAINTENANCE" ? `&queue=${queue}` : ""}`;
   const query = useQuery<Page>(
       supervisor
         ? null
-        : `work?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}kind=${kind}&page=${page}${technicalQuery}&mine=${assignedOnly || historyMine ? false : mine}${assignedOnly ? "&assignedToMe=true" : ""}${serverFilters ? `&search=${encodeURIComponent(search)}&sort=${sort}${from ? `&from=${dateFilter(from)}` : ""}${to ? `&to=${dateFilter(to, 1)}` : ""}${department ? `&departmentId=${department}` : ""}${status === "OVERDUE" ? "&overdue=true" : status ? `&status=${status}` : ""}` : ""}`,
+        : `work?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}kind=${kind}&page=${page}${technicalQuery}&mine=${requestPersonal ? true : assignedOnly || historyMine ? false : mine}${assignedOnly ? "&assignedToMe=true" : ""}${serverFilters ? `&search=${encodeURIComponent(search)}&sort=${sort}${from ? `&from=${dateFilter(from)}` : ""}${to ? `&to=${dateFilter(to, 1)}` : ""}${department ? `&departmentId=${department}` : ""}${status === "OVERDUE" ? "&overdue=true" : status ? `&status=${status}` : ""}` : ""}`,
       revision,
     ),
     detail = useQuery(id ? `work/${id}` : null, revision),
@@ -220,12 +262,27 @@ export default function Work({
       ? `work/candidates?branchId=${branch}&kind=${kind}${command === "handover-offer" ? "&workId=" + id : ""}`
       : null,
   );
+  const cleaningOptions = useQuery<{ canCreate: boolean; candidates: Row[] }>(
+    creating && kind === "CLEANING" && can("CLEANING_ASSIGN")
+      ? `work/cleaning-creation-options?branchId=${branch}`
+      : null,
+    revision,
+  );
   const parents = useQuery<Page>(
     creating && ["INSPECTION", "REWORK"].includes(kind)
       ? `work?branchId=${branch}&kind=CLEANING&pageSize=100`
       : null,
   );
-  const w = detail.data?.work?.fields,
+  const parentId = Number(
+    new URLSearchParams(location.hash.split("?")[1]).get("parent"),
+  );
+  const exactParent = useQuery(
+    creating && parentId && ["INSPECTION", "REWORK"].includes(kind)
+      ? `work/${parentId}`
+      : null,
+  );
+  const creationParent = parentDraft || exactParent.data?.work?.fields;
+  const w = receptionOnly && detail.data?.work?.fields?.kind !== "INTERNAL_REQUEST" ? undefined : detail.data?.work?.fields,
     assignments = fields(detail.data?.assignments),
     ownAssignment = assignments.find(
       (a) =>
@@ -243,15 +300,28 @@ export default function Work({
           ["HANDOVER_ACCEPTED", "HANDOVER_REJECTED"].includes(x.eventType),
       ),
   );
-  const choices = w
+  const readOnlyWork = operationsManager && ["INCIDENT", "INTERNAL_REQUEST"].includes(w?.kind || kind);
+  const choices = w && !readOnlyWork
     ? nextCommands(
         kind,
         w.status,
-        !!ownAssignment,
+        !!ownAssignment || (w.kind === "MAINTENANCE" && detail.data?.capabilities?.canClaimMaintenance === true),
         !!ownAssignment?.acceptedAt,
         w.createdBy === profile.user.fields.userId,
-      ).filter(
+      ).map(a => ["CLEANING", "REWORK"].includes(kind) && a === "accept" ? "start" : a).filter(
         (a) =>
+          !(w.kind === "INSPECTION" && a !== "cancel") &&
+          !(maintenanceSupervisor && w.kind === "MAINTENANCE" && ["assign", "verify", "reopen", "cancel"].includes(a)) &&
+          !(
+            a === "assign" &&
+            ((["CLEANING", "REWORK"].includes(w.kind) &&
+              [
+                "PENDING_INSPECTION",
+                "REWORK_REQUIRED",
+                "PENDING_REINSPECTION",
+              ].includes(w.status)) ||
+              (w.kind === "INSPECTION" && w.status === "PENDING_CONCLUSION"))
+          ) &&
           !(
             w.kind === "INCIDENT" &&
             ["assign", "cancel", "verify", "reopen"].includes(a) &&
@@ -271,17 +341,20 @@ export default function Work({
           ) &&
           !(
             (a === "verify" || (w.kind === "MAINTENANCE" && a === "reopen")) &&
+            !(w.kind === "OPERATIONAL" && detail.data?.capabilities?.canSelfVerifyOperational === true) &&
             assignments.some(
               (x) => x.assigneeUserId === profile.user.fields.userId,
             )
           ),
       )
     : [];
+  const paperHousekeeping = ["CLEANING", "REWORK", "INSPECTION"].includes(kind);
   const canExecute =
-    w && !!ownAssignment && can(permission(w.kind, "execute"), true);
-  if (canExecute && ["IN_PROGRESS", "INSPECTING"].includes(w.status))
+    w && !readOnlyWork && !!ownAssignment && can(permission(w.kind, "execute"), true);
+  if (canExecute && !paperHousekeeping && ["IN_PROGRESS", "INSPECTING"].includes(w.status))
     choices.push("progress");
-  if (w && !terminal.includes(w.status)) {
+  if (w && !readOnlyWork && !(maintenanceSupervisor && w.kind === "MAINTENANCE") && !terminal.includes(w.status) && (!["CLEANING", "REWORK"].includes(w.kind) ||
+    (!assignments.some(a => a.assignmentStatus === "ACTIVE" && a.acceptedAt) && !w.actualStartAt && !fields(detail.data?.time).length && ["ASSIGNED", "PENDING_ACCEPTANCE"].includes(w.status)))) {
     if (
       ownAssignment &&
       can(permission(kind, "handover-offer")) &&
@@ -304,15 +377,32 @@ export default function Work({
     )
       choices.push("handover-accept", "handover-reject");
   }
+  const roomIssue = w?.kind === "INCIDENT" && events.some(e=>e.eventType==="ROOM_ISSUE_REPORTED");
+  if (roomIssue) choices.length=0;
   async function mutate(path: string, body: Row, method = "POST") {
     if (pending) return;
     setPending(true);
     setError("");
     try {
       const result = await api(path, body, method);
-      setCommand("");
+      setCommand(housekeepingStaff && ["CLEANING", "REWORK"].includes(kind) && path.endsWith("/actions/start") ? "complete" : "");
       setCreating(false);
-      if (path === "work") setId(result.fields.workId);
+      if (path === "work") {
+        setId(result.fields.workId);
+        if (
+          housekeeping && ["INSPECTION", "REWORK"].includes(kind)
+        )
+          setCommand("assign");
+        if (housekeeping && kind !== initialKind)
+          location.hash = `work?kind=${kind}&id=${result.fields.workId}${kind === "CLEANING" ? "" : "&assign=1"}`;
+        else if (housekeeping)
+          history.replaceState(
+            null,
+            "",
+            `#work?kind=${kind}&id=${result.fields.workId}`,
+          );
+        setCleaningRoom(null);
+      }
       if (path.endsWith("/maintenance")) {
         setDeriving(false);
         location.hash = `work?kind=MAINTENANCE&id=${result.fields.workId}`;
@@ -320,7 +410,7 @@ export default function Work({
       bump((x) => x + 1);
     } catch (e) {
       setError(message(e));
-      if (!creating) bump((x) => x + 1);
+      if (!creating || kind === "CLEANING") bump((x) => x + 1);
     } finally {
       setPending(false);
     }
@@ -339,25 +429,40 @@ export default function Work({
       serverFilters ||
       r.title.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
   );
-  const createAction = !reviewOnly &&
-    can(visible.find((k) => k[0] === kind)?.[3] || "") && (
-      <button
-        className="primary"
-        onClick={() => {
-          setError("");
-          setParentDraft(null);
-          setCreating(true);
-        }}
-      >
-        + Tạo mới
-      </button>
-    );
+  const mayCreate =
+    kind !== "INSPECTION" &&
+    !(operationsManager && ["INCIDENT", "INTERNAL_REQUEST"].includes(kind)) &&
+    !(maintenanceSupervisor && kind === "MAINTENANCE") &&
+    !(reception && kind === "INCIDENT") &&
+    can(visible.find((k) => k[0] === kind)?.[3] || "");
+  const createAction = !reviewOnly && mayCreate && (
+    <button
+      className="primary"
+      onClick={() => {
+        setError("");
+        setParentDraft(null);
+        setCleaningRoom(null);
+        setRequestedRoom(undefined);
+        setCreating(true);
+      }}
+    >
+      + Tạo mới
+    </button>
+  );
   return (
     <>
       <div className="page-heading">
         <PageTitle>
           <h1>
             {title ||
+              (housekeeping
+                ? {
+                    CLEANING: "Phân công dọn phòng",
+                    INSPECTION: "Kiểm tra phòng",
+                    REWORK: "Xử lý làm lại",
+                    INCIDENT: "Sự cố & Thông báo",
+                  }[kind] || "Buồng phòng"
+                : null) ||
               (onlyKind === "INTERNAL_REQUEST"
                 ? "Yêu cầu nội bộ"
                 : onlyKind
@@ -366,10 +471,12 @@ export default function Work({
                     ? "Điều phối buồng phòng"
                     : "Công việc & yêu cầu")}
           </h1>
-          <p>Theo dõi từ phân công đến kiểm tra và xác nhận</p>
+          <p>{personal && onlyKind === "OPERATIONAL"
+            ? "Công việc vận hành được giao cho bạn, ngoài việc dọn phòng · Hoàn thành để chờ xác nhận"
+            : "Theo dõi từ phân công đến kiểm tra và xác nhận"}</p>
         </PageTitle>
       </div>
-      {visible.length > 1 && (
+      {!hideKindTabs && visible.length > 1 && (
         <div className="tabs">
           {visible.map((k) => (
             <button
@@ -392,26 +499,30 @@ export default function Work({
         </div>
       )}
       <PageToolbar actions={createAction}>
-        {!supervisor && (
-          <label className="search">
-            {serverFilters ? "Tìm công việc / yêu cầu" : "Tìm trong trang"}
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                if (serverFilters) setPage(1);
-              }}
-              placeholder="Tên công việc…"
-            />
-          </label>
-        )}
-        {serverFilters && (
+        <label className="search">
+          {supervisor
+            ? "Tìm phòng / công việc"
+            : serverFilters
+              ? "Tìm công việc / yêu cầu"
+              : "Tìm trong trang"}
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (serverFilters) setPage(1);
+            }}
+            placeholder={
+              supervisor ? "Số phòng hoặc tên công việc…" : "Tên công việc…"
+            }
+          />
+        </label>
+        {serverFilters && !supervisor && (
           <button aria-expanded={filters} onClick={() => setFilters(!filters)}>
             <SlidersHorizontal size={18} /> Bộ lọc
             {status || department ? " •" : ""}
           </button>
         )}
-        {!personal && (
+        {!personal && !requestPersonal && !receptionOnly && (
           <button
             aria-pressed={mine}
             onClick={() => {
@@ -423,7 +534,7 @@ export default function Work({
           </button>
         )}
       </PageToolbar>
-      {serverFilters && filters && (
+      {serverFilters && !supervisor && filters && (
         <PageToolbar>
           <label>
             Trạng thái
@@ -559,7 +670,7 @@ export default function Work({
       {activeTimer && (
         <section className="active-shift">
           <div>
-            <strong>Bạn đang thực hiện công việc #{activeTimer.workId}</strong>
+            <strong>Bạn đang thực hiện {paperHousekeeping ? "một công việc" : `công việc #${activeTimer.workId}`}</strong>
             <p>
               Tạm dừng công việc đang chạy trước khi bắt đầu một công việc khác.
             </p>
@@ -589,6 +700,17 @@ export default function Work({
       {supervisor ? (
         <CleaningQueue
           revision={revision}
+          search={search}
+          sort={sort}
+          onSort={setSort}
+          create={(room) => {
+            setCleaningRoom(room);
+            setParentDraft(null);
+            setId(null);
+            setCommand("");
+            setError("");
+            setCreating(true);
+          }}
           open={(r) => {
             setId(r.workId);
             setError("");
@@ -606,7 +728,7 @@ export default function Work({
         />
       ) : (
         <State {...query} retry={() => bump((x) => x + 1)}>
-          <div className="table-scroll">
+          <div className={`table-scroll ${housekeepingStaff ? "staff-work-list" : ""}`}>
             <table>
               <thead>
                 <tr>
@@ -615,16 +737,20 @@ export default function Work({
                   {technical && <th>Ưu tiên / Phụ trách</th>}
                   <th>Trạng thái</th>
                   <th>Hạn xử lý</th>
-                  <th>Thao tác</th>
+                  {!housekeepingStaff && <th>Thao tác</th>}
                 </tr>
               </thead>
               <tbody>
                 {visibleRows.map((r) => (
-                  <tr key={r.workId}>
+                  <tr key={r.workId} tabIndex={housekeepingStaff ? 0 : undefined}
+                    role={housekeepingStaff ? "button" : undefined}
+                    aria-label={housekeepingStaff ? `Mở ${r.title}` : undefined}
+                    onClick={housekeepingStaff ? () => { setId(r.workId); setError(""); setCommand(""); } : undefined}
+                    onKeyDown={housekeepingStaff ? e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setId(r.workId); setError(""); setCommand(""); } } : undefined}>
                     <td>
                       <strong>{r.title}</strong>
                       <small>
-                        {r.workNo || `#${r.workId}`}
+                        {!paperHousekeeping && (r.workNo || `#${r.workId}`)}
                         {r.roomId
                           ? " · Phòng " +
                             (r.roomCode ||
@@ -658,7 +784,7 @@ export default function Work({
                       />
                     </td>
                     <td>{timestamp(r.dueAt)}</td>
-                    <td>
+                    {!housekeepingStaff && <td>
                       <button
                         onClick={() => {
                           setId(r.workId);
@@ -670,7 +796,7 @@ export default function Work({
                           ? "Chi tiết"
                           : "Xử lý"}
                       </button>
-                    </td>
+                    </td>}
                   </tr>
                 ))}
               </tbody>
@@ -693,7 +819,7 @@ export default function Work({
           <Pager page={page} total={query.data?.total || 0} onPage={setPage} />
         </State>
       )}
-      {creating && can(visible.find((k) => k[0] === kind)?.[3] || "") && (
+      {creating && mayCreate && (
         <Dialog
           title={`Tạo ${visible.find((k) => k[0] === kind)?.[1].toLowerCase()}`}
           close={() => {
@@ -701,211 +827,289 @@ export default function Work({
           }}
         >
           <State {...options}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                const num = (k: string) => (f.get(k) ? Number(f.get(k)) : null);
-                const parent =
-                  parentDraft ||
-                  fields(parents.data?.items).find(
-                    (p) => p.workId === num("parentWorkId"),
-                  );
-                mutate("work", {
-                  branchId: branch,
-                  kind,
-                  title: f.get("title"),
-                  description: f.get("description") || null,
-                  roomId: parent?.roomId || num("roomId"),
-                  parentWorkId: parent?.workId || num("parentWorkId"),
-                  departmentId: num("departmentId"),
-                  requesterDepartmentId:
-                    kind === "INTERNAL_REQUEST"
-                      ? num("requesterDepartmentId")
+            {kind === "CLEANING" && can("ROOM_VIEW") && !cleaningRoom ? (
+              <CleaningRooms
+                revision={revision}
+                create={setCleaningRoom}
+                roomId={requestedRoom}
+              />
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (kind === "CLEANING" &&
+                      (cleaningOptions.loading || cleaningOptions.error || !cleaningOptions.data?.canCreate)) return;
+                  if(kind==="INTERNAL_REQUEST"&&(requestTypes.loading||requestTypes.error))return;
+                  const f = new FormData(e.currentTarget);
+                  const num = (k: string) =>
+                    f.get(k) ? Number(f.get(k)) : null;
+                  const parent =
+                    creationParent ||
+                    fields(parents.data?.items).find(
+                      (p) => p.workId === num("parentWorkId"),
+                    );
+                  mutate("work", {
+                    branchId: branch,
+                    kind,
+                    title: f.get("title"),
+                    description: f.get("description") || null,
+                    roomId: parent?.roomId || num("roomId"),
+                    roomRowVersion:
+                      kind === "CLEANING"
+                        ? cleaningRoom?.rowVersion
+                        : undefined,
+                    parentWorkId: parent?.workId || num("parentWorkId"),
+                    departmentId: num("departmentId"),
+                    categoryId: kind==="INTERNAL_REQUEST"?num("categoryId"):null,
+                    assigneeUserId: kind === "CLEANING" ? num("assigneeUserId") : undefined,
+                    durationMinutes: ["CLEANING", "REWORK"].includes(kind) ? num("durationMinutes") : undefined,
+                    requesterDepartmentId:
+                      kind === "INTERNAL_REQUEST"
+                        ? num("requesterDepartmentId")
+                        : null,
+                    checklistTemplateId: num("checklistTemplateId"),
+                    priorityId: num("priorityId"),
+                    severityId: num("severityId"),
+                    assetId: kind === "INCIDENT" ? num("assetId") : null,
+                    dueAt: f.get("dueAt")
+                      ? new Date(String(f.get("dueAt"))).toISOString()
                       : null,
-                  checklistTemplateId: num("checklistTemplateId"),
-                  priorityId: num("priorityId"),
-                  severityId: num("severityId"),
-                  assetId: kind === "INCIDENT" ? num("assetId") : null,
-                  dueAt: f.get("dueAt")
-                    ? new Date(String(f.get("dueAt"))).toISOString()
-                    : null,
-                });
-              }}
-            >
-              <label>
-                Tiêu đề
-                <input
-                  name="title"
-                  required
-                  maxLength={250}
-                  defaultValue={
-                    parentDraft
-                      ? `${kind === "INSPECTION" ? "Kiểm tra" : kind === "REWORK" ? "Dọn lại" : "Bảo trì"} · ${parentDraft.title}`
-                      : ""
-                  }
-                />
-              </label>
-              <label>
-                Mô tả
-                <textarea name="description" maxLength={4000} />
-              </label>
-              {["INSPECTION", "REWORK"].includes(kind) ? (
+                  });
+                }}
+              >
+                {kind==="INTERNAL_REQUEST"&&<State {...requestTypes} retry={()=>bump(n=>n+1)}>{requestTypes.data?.configured&&<label>Loại yêu cầu<select name="categoryId" required defaultValue="" onChange={e=>{const type=requestTypes.data.items.find((r:Row)=>r.referenceId===Number(e.target.value));const department=e.currentTarget.form?.elements.namedItem("departmentId") as HTMLSelectElement|null;if(department)department.value=String(type?.defaultDepartmentId||"");}}><option value="">Chọn loại yêu cầu</option>{(requestTypes.data?.items||[]).filter((r:Row)=>r.isActive).map((r:Row)=><option key={r.referenceId} value={r.referenceId}>{r.name}</option>)}</select>{!requestTypes.data.items.some((r:Row)=>r.isActive)&&<span>Chưa có loại yêu cầu đang hoạt động. Liên hệ Trưởng bộ phận.</span>}</label>}</State>}
                 <label>
-                  Công việc dọn phòng gốc
-                  {parentDraft ? (
-                    <>
-                      <input
-                        type="hidden"
-                        name="parentWorkId"
-                        value={parentDraft.workId}
-                      />
-                      <p>
-                        {parentDraft.title} · #{parentDraft.workId}
-                      </p>
-                    </>
-                  ) : (
-                    <select name="parentWorkId" required defaultValue="">
-                      <option value="">Chọn công việc</option>
-                      {fields(parents.data?.items)
-                        .filter((p) =>
-                          ["PENDING_INSPECTION", "REWORK_REQUIRED"].includes(
-                            p.status,
-                          ),
-                        )
-                        .map((p) => (
-                          <option key={p.workId} value={p.workId}>
-                            {p.title} · #{p.workId}
-                          </option>
-                        ))}
-                    </select>
-                  )}
-                </label>
-              ) : (
-                <label>
-                  Phòng
-                  <select
-                    name="roomId"
-                    required={kind === "CLEANING"}
+                  Tiêu đề
+                  <input
+                    name="title"
+                    required
+                    maxLength={250}
                     defaultValue={
-                      new URLSearchParams(location.hash.split("?")[1]).get(
-                        "room",
-                      ) || ""
+                      cleaningRoom && kind === "CLEANING"
+                        ? `Dọn phòng ${cleaningRoom.code}`
+                        : creationParent
+                          ? `${kind === "INSPECTION" ? "Kiểm tra" : kind === "REWORK" ? "Dọn lại" : "Bảo trì"} · ${creationParent.title}`
+                          : ""
                     }
-                  >
-                    <option value="">Không gắn phòng</option>
-                    {options.data?.rooms.map((r: Row) => (
-                      <option key={r.roomId} value={r.roomId}>
-                        {r.code}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </label>
-              )}
-              {kind === "INCIDENT" && (
-                <>
+                <label>
+                  Mô tả
+                  <textarea name="description" maxLength={4000} />
+                </label>
+                {kind === "CLEANING" && cleaningRoom ? (
+                  <section className="panel">
+                    <strong>Phòng {cleaningRoom.code}</strong>
+                    <p>
+                      {cleaningRoom.floor} · {cleaningRoom.roomType} ·{" "}
+                      {cleaningRoom.capacity} người
+                    </p>
+                    <input
+                      type="hidden"
+                      name="roomId"
+                      value={cleaningRoom.roomId}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCleaningRoom(null);
+                        setRequestedRoom(undefined);
+                      }}
+                    >
+                      Chọn phòng khác
+                    </button>
+                  </section>
+                ) : ["INSPECTION", "REWORK"].includes(kind) ? (
                   <label>
-                    Tài sản liên quan
-                    <select name="assetId" defaultValue="">
-                      <option value="">Không gắn tài sản</option>
-                      {(options.data?.incidentAssets || []).map((a: Row) => (
-                        <option key={a.assetId} value={a.assetId}>
-                          {a.assetCode} · {a.name}
+                    Công việc dọn phòng gốc
+                    {creationParent ? (
+                      <>
+                        <input
+                          type="hidden"
+                          name="parentWorkId"
+                          value={creationParent.workId}
+                        />
+                        <p>
+                          {creationParent.title}
+                        </p>
+                      </>
+                    ) : (
+                      <select name="parentWorkId" required defaultValue="">
+                        <option value="">Chọn công việc</option>
+                        {fields(parents.data?.items)
+                          .filter((p) =>
+                            ["PENDING_INSPECTION", "REWORK_REQUIRED"].includes(
+                              p.status,
+                            ),
+                          )
+                          .map((p) => (
+                            <option key={p.workId} value={p.workId}>
+                              {p.title}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                  </label>
+                ) : (
+                  <label>
+                    Phòng
+                    <select
+                      name="roomId"
+                      required={kind === "CLEANING"}
+                      defaultValue={
+                        new URLSearchParams(location.hash.split("?")[1]).get(
+                          "room",
+                        ) || ""
+                      }
+                    >
+                      <option value="">Không gắn phòng</option>
+                      {options.data?.rooms.map((r: Row) => (
+                        <option key={r.roomId} value={r.roomId}>
+                          {r.code}
                         </option>
                       ))}
                     </select>
                   </label>
+                )}
+                {kind === "INCIDENT" && (
+                  <>
+                    <label>
+                      Tài sản liên quan
+                      <select name="assetId" defaultValue="">
+                        <option value="">Không gắn tài sản</option>
+                        {(options.data?.incidentAssets || []).map((a: Row) => (
+                          <option key={a.assetId} value={a.assetId}>
+                            {a.assetCode} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Mức độ nghiêm trọng
+                      <select name="severityId" defaultValue="">
+                        <option value="">Chưa chọn</option>
+                        {refs("SEVERITY").map((r: Row) => (
+                          <option key={r.referenceId} value={r.referenceId}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </>
+                )}
+                {kind === "CLEANING" ? (
+                  <State {...cleaningOptions} retry={() => bump((x) => x + 1)}>
+                    {!cleaningOptions.data?.canCreate && (
+                      <AlertPopup>
+                        Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để tạo yêu cầu dọn phòng.
+                      </AlertPopup>
+                    )}
+                    <label>
+                      Nhân viên dọn phòng
+                      <select name="assigneeUserId" required defaultValue=""
+                        disabled={pending || !cleaningOptions.data?.canCreate}>
+                        <option value="">Chọn nhân viên đang trong ca</option>
+                        {(cleaningOptions.data?.candidates || []).map((person) => (
+                          <option key={person.userId} value={person.userId}>
+                            {person.fullName} · {person.employeeCode}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {cleaningOptions.data?.candidates.length === 0 && (
+                      <Empty>Chưa có nhân viên dọn phòng đang trong ca tại chi nhánh này.</Empty>
+                    )}
+                  </State>
+                ) : (
                   <label>
-                    Mức độ nghiêm trọng
-                    <select name="severityId" defaultValue="">
+                    Bộ phận xử lý
+                    <select name="departmentId" defaultValue="">
                       <option value="">Chưa chọn</option>
-                      {refs("SEVERITY").map((r: Row) => (
-                        <option key={r.referenceId} value={r.referenceId}>
+                      {options.data?.departments.map((r: Row) => (
+                        <option key={r.departmentId} value={r.departmentId}>
                           {r.name}
                         </option>
                       ))}
                     </select>
                   </label>
-                </>
-              )}
-              <label>
-                Bộ phận xử lý
-                <select name="departmentId" defaultValue="">
-                  <option value="">Chưa chọn</option>
-                  {options.data?.departments.map((r: Row) => (
-                    <option key={r.departmentId} value={r.departmentId}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {kind === "INTERNAL_REQUEST" && (
-                <label>
-                  Bộ phận yêu cầu
-                  <select name="requesterDepartmentId" required defaultValue="">
-                    <option value="">Chọn bộ phận của bạn</option>
-                    {options.data?.departments
-                      .filter(
-                        (d: Row) =>
-                          profile.roles.some(
-                            (r) =>
-                              ["OPERATION_MANAGER", "DEPT_MANAGER"].includes(
-                                r.code,
-                              ) && r.branchId === branch,
-                          ) ||
-                          profile.memberships.some(
-                            (m) =>
-                              m.branchId === branch &&
-                              m.kind === "EMPLOYMENT" &&
-                              m.departmentId === d.departmentId,
-                          ),
-                      )
-                      .map((d: Row) => (
-                        <option key={d.departmentId} value={d.departmentId}>
-                          {d.name}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              )}
-              {options.data?.checklists && (
-                <label>
-                  Mẫu checklist
-                  <select
-                    name="checklistTemplateId"
-                    defaultValue=""
-                    required={kind === "INSPECTION"}
-                  >
-                    <option value="">Không chọn</option>
-                    {options.data.checklists
-                      .filter(
-                        (t: Row) =>
-                          t.kind === (kind === "REWORK" ? "CLEANING" : kind),
-                      )
-                      .map((t: Row) => (
-                        <option
-                          key={t.checklistTemplateId}
-                          value={t.checklistTemplateId}
-                        >
-                          {t.name}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              )}
-              <label>
-                Hạn hoàn thành
-                <input type="datetime-local" name="dueAt" />
-              </label>
-              <button className="primary" disabled={pending}>
-                Tạo công việc
-              </button>
-            </form>
+                )}
+                {kind === "INTERNAL_REQUEST" && (
+                  <label>
+                    Bộ phận yêu cầu
+                    <select
+                      name="requesterDepartmentId"
+                      required
+                      defaultValue=""
+                    >
+                      <option value="">Chọn bộ phận của bạn</option>
+                      {options.data?.departments
+                        .filter(
+                          (d: Row) =>
+                            profile.roles.some(
+                              (r) =>
+                                ["OPERATION_MANAGER"].includes(
+                                  r.code,
+                                ) && r.branchId === branch,
+                            ) ||
+                            profile.memberships.some(
+                              (m) =>
+                                m.branchId === branch &&
+                                m.kind === "EMPLOYMENT" &&
+                                m.departmentId === d.departmentId,
+                            ),
+                        )
+                        .map((d: Row) => (
+                          <option key={d.departmentId} value={d.departmentId}>
+                            {d.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+                {!paperHousekeeping && options.data?.checklists && (
+                  <label>
+                    Mẫu checklist
+                    <select
+                      name="checklistTemplateId"
+                      defaultValue=""
+                      required={kind === "INSPECTION"}
+                    >
+                      <option value="">Không chọn</option>
+                      {options.data.checklists
+                        .filter(
+                          (t: Row) =>
+                            t.kind === (kind === "REWORK" ? "CLEANING" : kind),
+                        )
+                        .map((t: Row) => (
+                          <option
+                            key={t.checklistTemplateId}
+                            value={t.checklistTemplateId}
+                          >
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+                {["CLEANING", "REWORK"].includes(kind) ? <CleaningDuration /> : <label>
+                  Hạn hoàn thành
+                  <input type="datetime-local" name="dueAt" />
+                </label>}
+                <button
+                  className="primary"
+                  disabled={pending || !!(parentId && exactParent.loading) ||
+                    (kind === "CLEANING" && (cleaningOptions.loading || !!cleaningOptions.error ||
+                      !cleaningOptions.data?.canCreate || !cleaningOptions.data?.candidates.length))}
+                >
+                  Tạo công việc
+                </button>
+              </form>
+            )}
           </State>
           {error && (
-            <p className="alert" role="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
         </Dialog>
       )}
@@ -949,9 +1153,9 @@ export default function Work({
               <textarea name="reason" minLength={10} required />
             </label>
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             <button disabled={pending} className="primary">
               Tạo công việc
@@ -961,11 +1165,7 @@ export default function Work({
       )}
       {id && (
         <Dialog
-          className={
-            personal || coordinator || technicalStaff || readScope !== undefined
-              ? "room-drawer"
-              : undefined
-          }
+          className="room-drawer"
           title={w?.title || "Chi tiết công việc"}
           close={close}
         >
@@ -980,10 +1180,13 @@ export default function Work({
                         : w.status
                     }
                   />
-                  <span>#{w.workId}</span>
+                  {!paperHousekeeping && <span>#{w.workId}</span>}
                 </div>
                 <p>{w.description}</p>
-                {(personal || coordinator || readScope !== undefined) && (
+                {(personal ||
+                  coordinator ||
+                  housekeeping ||
+                  readScope !== undefined) && (
                   <>
                     <p>
                       {detail.data?.context?.branch} ·{" "}
@@ -992,7 +1195,7 @@ export default function Work({
                         `· Phòng ${detail.data.context.room}`}
                     </p>
                     <p>
-                      Số công việc: {w.workNo} · Tiến độ: {w.progressPercent}% ·
+                      {!paperHousekeeping && <>Số công việc: {w.workNo} · Tiến độ: {w.progressPercent}% · </>}
                       Hạn: {timestamp(w.dueAt)}
                     </p>
                     {(detail.data?.assignmentDetails || []).map((a: Row) => (
@@ -1001,10 +1204,10 @@ export default function Work({
                         {label(a.assignmentStatus)}
                       </p>
                     ))}
-                    {w.roomId && can("INCIDENT_CREATE") && (
+                    {w.roomId && !operationsManager && can("IR_CREATE") && (
                       <a
                         className="button-link"
-                        href={`#work?kind=INCIDENT&room=${w.roomId}&create=1`}
+                        href={`#room-issues?room=${w.roomId}&create=1&work=${w.workId}`}
                       >
                         Báo sự cố
                       </a>
@@ -1012,6 +1215,8 @@ export default function Work({
                   </>
                 )}
                 <section className="workflow-next" aria-label="Bước tiếp theo">
+                  {roomIssue&&<a className="button-link" href={`#room-issues?id=${w.workId}`}>Mở quy trình khắc phục sự cố phòng</a>}
+                  {w.kind === "INSPECTION" && !terminal.includes(w.status) && can("INSPECTION_PERFORM") && <a className="button-link" href={`#work?kind=CLEANING&id=${w.parentWorkId}`}>Mở công việc để ghi kết quả kiểm tra</a>}
                   {w.kind === "CLEANING" &&
                     ["PENDING_INSPECTION", "REWORK_REQUIRED"].includes(
                       w.status,
@@ -1025,14 +1230,10 @@ export default function Work({
                         <p>
                           {personal
                             ? "Công việc đã được gửi kiểm tra. Xem kết quả và việc làm lại được giao bên dưới."
-                            : "Mở phiếu đang xử lý bên dưới hoặc tạo phiếu mới. Người kiểm tra phải độc lập với người dọn."}
+                            : "Kiểm tra thực tế theo checklist giấy và ghi kết quả Đạt/Không đạt."}
                         </p>
+                        {related.data && detail.data?.capabilities?.canRecordPaperInspection !== false && <PaperInspection work={w} related={fields(related.data)} reviews={detail.data?.reviews || []} saved={() => bump(n => n + 1)} />}
                         {[
-                          [
-                            "INSPECTION",
-                            "Tạo phiếu kiểm tra",
-                            "INSPECTION_PERFORM",
-                          ],
                           ["REWORK", "Tạo việc dọn lại", "CLEANING_ASSIGN"],
                         ]
                           .filter(
@@ -1041,11 +1242,52 @@ export default function Work({
                               !(
                                 k === "REWORK" && w.status !== "REWORK_REQUIRED"
                               ) &&
+                              !(
+                                k === "INSPECTION" &&
+                                w.status === "REWORK_REQUIRED" &&
+                                !fields(related.data).some(
+                                  (r) =>
+                                    r.kind === "REWORK" &&
+                                    r.status === "PENDING_REINSPECTION" &&
+                                    !fields(related.data).some(
+                                      (i) =>
+                                        i.kind === "INSPECTION" &&
+                                        i.status === "FAILED" &&
+                                        i.workId > r.workId &&
+                                        i.verifiedAt &&
+                                        r.completedAt &&
+                                        new Date(i.verifiedAt) >=
+                                          new Date(r.completedAt),
+                                    ),
+                                )
+                              ) &&
+                              !(
+                                k === "INSPECTION" &&
+                                fields(related.data).some(
+                                  (r) =>
+                                    r.kind === "REWORK" &&
+                                    !terminal.includes(r.status) &&
+                                    r.status !== "PENDING_REINSPECTION",
+                                )
+                              ) &&
                               !fields(related.data).some(
                                 (r) =>
                                   r.kind === k &&
                                   !terminal.includes(r.status) &&
-                                  r.status !== "PENDING_REINSPECTION",
+                                  !(
+                                    r.kind === "REWORK" &&
+                                    r.status === "PENDING_REINSPECTION" &&
+                                    fields(related.data).some(
+                                      (i) =>
+                                        i.kind === "INSPECTION" &&
+                                        i.status === "FAILED" &&
+                                        i.workId > r.workId &&
+                                        i.verifiedAt &&
+                                        r.completedAt &&
+                                        new Date(i.verifiedAt) >=
+                                          new Date(r.completedAt),
+                                    )
+                                  ),
                               ),
                           )
                           .map(([k, n]) => (
@@ -1066,7 +1308,7 @@ export default function Work({
                       </>
                     )}
                   {!coordinator &&
-                    w.kind === "INCIDENT" &&
+                    w.kind === "INCIDENT" && !readOnlyWork && !maintenanceSupervisor &&
                     can("MAINTENANCE_ASSIGN") &&
                     !terminal.includes(w.status) && (
                       <button
@@ -1088,8 +1330,11 @@ export default function Work({
                         <button
                           key={r.workId}
                           onClick={() => {
-                            if (coordinator && r.kind === "MAINTENANCE") {
-                              location.hash = `work?kind=MAINTENANCE&id=${r.workId}`;
+                            if (
+                              housekeeping ||
+                              (coordinator && r.kind === "MAINTENANCE")
+                            ) {
+                              location.hash = `work?kind=${r.kind}&id=${r.workId}`;
                               return;
                             }
                             setKind(r.kind);
@@ -1118,6 +1363,7 @@ export default function Work({
                     </button>
                   ))}
                 </div>
+                {detail.data?.capabilities?.canReconcileCleaningSupplies === true && <CleaningSupplyReconciliation key={w.workId} work={w} saved={() => bump(n => n + 1)} />}
                 {command && (
                   <WorkActionModal
                     modal={modalActions}
@@ -1142,6 +1388,7 @@ export default function Work({
                             userId: f.get("userId")
                               ? Number(f.get("userId"))
                               : null,
+                            durationMinutes: command === "assign" && ["CLEANING", "REWORK"].includes(kind) ? Number(f.get("durationMinutes")) : undefined,
                             relatedId: command.startsWith("handover-")
                               ? offer?.workEventId
                               : f.get("relatedId")
@@ -1186,6 +1433,7 @@ export default function Work({
                           </label>
                         </State>
                       )}
+                      {command === "assign" && ["CLEANING", "REWORK"].includes(kind) && <CleaningDuration />}
                       {command === "route" && (
                         <label>
                           Bộ phận nhận
@@ -1228,7 +1476,7 @@ export default function Work({
                           </label>
                         </>
                       )}
-                      <label>
+                      {!(paperHousekeeping && ["accept", "start", "complete", "assign"].includes(command)) && <label>
                         Lý do / ghi chú
                         <textarea
                           name="reason"
@@ -1251,25 +1499,25 @@ export default function Work({
                               ))
                           }
                         />
-                      </label>
+                      </label>}
                       <button className="primary" disabled={pending}>
-                        Xác nhận
+                        {paperHousekeeping && command === "start" ? "Bắt đầu" : command === "complete" ? "Báo cáo hoàn thành" : "Xác nhận"}
                       </button>
                       <button type="button" onClick={() => setCommand("")}>
                         Quay lại
                       </button>
                     </form>
                     {modalActions && error && (
-                      <p className="alert" role="alert">
+                      <AlertPopup>
                         {error}
-                      </p>
+                      </AlertPopup>
                     )}
                   </WorkActionModal>
                 )}
                 {error && !(modalActions && command) && (
-                  <p className="alert" role="alert">
+                  <AlertPopup>
                     {error}
-                  </p>
+                  </AlertPopup>
                 )}
                 {technical && detail.data?.maintenance && (
                   <section>
@@ -1342,7 +1590,7 @@ export default function Work({
                       )}
                   </section>
                 )}
-                <h3>Checklist</h3>
+                {!paperHousekeeping && <><h3>Checklist</h3>
                 {fields(detail.data?.checklist).map((c) => (
                   <div className="check-item" key={c.workChecklistItemId}>
                     <div>
@@ -1418,7 +1666,8 @@ export default function Work({
                 {!detail.data?.checklist?.length && (
                   <p className="hint">Công việc không có checklist đính kèm.</p>
                 )}
-                <h3>Minh chứng</h3>
+                </>}
+                {!housekeepingStaff && <><h3>Minh chứng</h3>
                 {(detail.data?.attachments || []).map((file: Row) => (
                   <button
                     key={file.attachmentId}
@@ -1444,7 +1693,7 @@ export default function Work({
                 {!detail.data?.attachments?.length && (
                   <p className="hint">Chưa có tệp minh chứng.</p>
                 )}
-                {!terminal.includes(w.status) &&
+                {!readOnlyWork && !terminal.includes(w.status) &&
                   ((canExecute &&
                     ["IN_PROGRESS", "INSPECTING"].includes(w.status)) ||
                     (w.kind === "INCIDENT" &&
@@ -1484,6 +1733,7 @@ export default function Work({
                       <button disabled={pending}>Tải minh chứng</button>
                     </form>
                   )}
+                </>}
                 {kind === "INSPECTION" &&
                   ownAssignment &&
                   ["INSPECTING", "PENDING_CONCLUSION"].includes(w.status) && (
@@ -1510,6 +1760,7 @@ export default function Work({
                       {f.description} · <Badge value={f.status} />
                     </p>
                     {f.status === "OPEN" &&
+                      can("DEFECT_RESOLVE") &&
                       can("INSPECTION_PERFORM") &&
                       w.status !== "PASSED" && (
                         <form
@@ -1561,10 +1812,10 @@ export default function Work({
                   </section>
                 ))}
                 <h3>Lịch sử xử lý</h3>
-                {personal &&
+                {(personal || housekeeping) &&
                   (detail.data?.reviews || []).map((review: Row) => (
                     <section className="panel" key={review.workId}>
-                      <h3>Kết quả kiểm tra #{review.workId}</h3>
+                      <h3>Kết quả kiểm tra · {timestamp(review.verifiedAt)}</h3>
                       <Badge value={review.status} />
                       <p>{review.completionNote}</p>
                       {(review.findings || []).map(
@@ -1592,7 +1843,7 @@ export default function Work({
   );
 }
 function workHistory(rows: Row[], kind: string) {
-  if (kind !== "MAINTENANCE") return rows;
+  if (!["MAINTENANCE", "CLEANING", "REWORK", "INSPECTION"].includes(kind)) return rows;
   const labels: Record<string, string> = {
     ASSIGN: "Phân công công việc",
     ACCEPT: "Đã nhận công việc",
@@ -1604,6 +1855,11 @@ function workHistory(rows: Row[], kind: string) {
     VERIFY: "Đã nghiệm thu",
     REOPEN: "Yêu cầu xử lý lại",
     CANCEL: "Hủy công việc",
+    INSPECTION_PASSED: "Kiểm tra đạt",
+    INSPECTION_FAILED: "Kiểm tra không đạt",
+    PAPER_INSPECTION_RECORDED: "Ghi nhận kiểm tra theo checklist giấy",
+    PASS: "Kiểm tra đạt",
+    FAIL: "Kiểm tra không đạt",
   };
   return rows.map((row) => ({
     ...row,
@@ -1628,4 +1884,13 @@ function WorkActionModal({
   ) : (
     <>{children}</>
   );
+}
+
+function CleaningDuration() {
+  return <label>Thời gian hoàn thành tính từ lúc giao việc
+    <select name="durationMinutes" required defaultValue="30">
+      {Array.from({length: 21}, (_, i) => i + 10).map(minutes =>
+        <option key={minutes} value={minutes}>{minutes} phút</option>)}
+    </select>
+  </label>;
 }

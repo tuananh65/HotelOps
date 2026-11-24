@@ -14,6 +14,8 @@ public sealed class EvidenceService(HotelOpsCompactDbContext db,Access access,Ac
         if(workId!=null){
             var w=await work.Load(workId.Value,"read",ct);Output.Require(w.BranchId==branch,"BRANCH_MISMATCH",404);
             if(write){
+                Output.Require(!await db.RequestWorkflows.AnyAsync(r=>r.WorkId==w.WorkId&&(r.RequestType==RequestWorkflowService.RefillType||r.RequestType==RequestWorkflowService.ReplenishmentType),ct),"USE_REQUEST_WORKFLOW",403);
+                Output.Require(!(w.Kind is "CLEANING" or "REWORK")||!await access.HasRole("HK_STAFF",branch,ct),"HOUSEKEEPING_EVIDENCE_NOT_SUPPORTED",403);
                 var creator=w.CreatedBy==actor.Id;
                 await access.Require(WorkRules.Permission(w.Kind,w.Kind=="INCIDENT"&&creator?"create":"execute"),branch,creator||await work.Owns(w,ct),ct);
                 Output.Require((creator&&w.Kind!="MAINTENANCE")||await db.WorkAssignments.AnyAsync(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE",ct),"CURRENT_ASSIGNEE_REQUIRED",403);

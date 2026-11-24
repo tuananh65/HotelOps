@@ -1,0 +1,7 @@
+.status-switch { display: inline-flex; align-items: center; flex: 0 0 auto; width: 46px; min-width: 46px; height: 26px; min-height: 26px; padding: 3px; border: 1px solid #a92d34; border-radius: 999px; background: #b7353d; vertical-align: middle; }
+.status-switch[aria-checked="true"] { background: #237a50; border-color: #1c6742; }
+.status-switch span { display: block; width: 18px; height: 18px; border-radius: 50%; background: #fff; transform: translateX(0); transition: transform .15s; }
+.status-switch[aria-checked="true"] span { transform: translateX(20px); }
+.status-switch:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.status-switch:disabled { opacity: .55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .status-switch span { transition: none; } }

@@ -1,0 +1,52 @@
+.asset-condition-bar {
+  display: flex;
+  width: 100%;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+.asset-condition-good {
+  background: #15803d;
+}
+.asset-condition-faulty {
+  background: #b91c1c;
+}
+.asset-condition-other {
+  background: #64748b;
+}
+.asset-condition-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+.asset-condition-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.asset-condition-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.asset-group-heading th {
+  text-align: left;
+  background: #f1f5f9;
+}
+.operations-task-statistics {
+  min-width: 0;
+  margin-block: 12px;
+}
+.operations-task-statistics .hint {
+  overflow-wrap: anywhere;
+}
+.operations-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}

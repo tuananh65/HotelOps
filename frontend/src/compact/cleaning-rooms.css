@@ -1,0 +1,31 @@
+@media (max-width: 600px) {
+  .table-scroll > .cleaning-room-table,
+  .cleaning-room-table tbody {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .cleaning-room-table thead {
+    display: none;
+  }
+  .cleaning-room-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cleaning-room-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-height: 0;
+    grid-column: 1;
+    overflow-wrap: anywhere;
+  }
+  .cleaning-room-table td:last-child {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+  }
+}

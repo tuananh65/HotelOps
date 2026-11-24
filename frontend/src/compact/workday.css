@@ -1,0 +1,72 @@
+.workday-assignment fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+.workday-assignment .workday-check,
+.workday-settings .workday-check {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: left;
+  gap: 8px;
+}
+.workday-check input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+}
+.workday-check small {
+  display: block;
+}
+.workday-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.workday-date-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  max-height: 230px;
+  overflow: auto;
+  gap: 8px;
+}
+.workday-date-options label {
+  border: 1px solid #dbe3e8;
+  border-radius: 6px;
+  padding: 8px;
+}
+.workday-holiday {
+  background: #fff4dd;
+  color: #744b09;
+}
+.workday-people {
+  display: grid;
+  gap: 10px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 4px;
+}
+.calendar .workday-calendar-marker {
+  display: block;
+  white-space: normal;
+  color: #875c17;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.workday-settings {
+  min-width: 0;
+}
+.workday-settings .table-scroll {
+  overflow: auto;
+  max-width: 100%;
+}
+.workday-settings table {
+  width: 100%;
+}

@@ -1,0 +1,15 @@
+.housekeeping-history{min-width:0;max-width:100%}
+.housekeeping-history table{width:100%;table-layout:fixed}
+.housekeeping-history td{overflow-wrap:anywhere;white-space:normal}
+.housekeeping-history td a{font-weight:600}
+.housekeeping-history .history-day{margin:1rem 0}
+@media(max-width:640px){
+ .housekeeping-history .table-scroll{overflow:visible;max-height:none}
+ .housekeeping-history table,.housekeeping-history tbody,.housekeeping-history tr,.housekeeping-history td{display:block;width:100%;min-width:0}
+ .housekeeping-history thead{display:none}
+ .housekeeping-history tr{padding:.75rem;border-bottom:1px solid var(--line)}
+ .housekeeping-history td{display:flex;gap:.75rem;justify-content:space-between;padding:.5rem 0;border:0}
+ .housekeeping-history td::before{content:attr(data-label);font-weight:600;flex:0 0 40%}
+ .housekeeping-history .page-toolbar{flex-wrap:wrap}
+ .housekeeping-history .page-toolbar label{min-width:0;max-width:100%}
+}

@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import { useState } from "react";
 import { api, fields, message, type Row } from "./api";
 import { Dialog, State, useQuery } from "./ui";
@@ -104,9 +105,9 @@ export default function RolePermissions({
               </table>
             </div>
             {error && (
-              <p className="alert" role="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             {!locked && (
               <button className="primary" disabled={pending}>

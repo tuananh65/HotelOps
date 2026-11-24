@@ -10,6 +10,8 @@ type Employment = {
 };
 type Role = { roleId: number; name: string; branchId: number | null };
 type Branch = { branchId: number; branchName: string };
+const accountDepartments = (user: Row): Employment[] =>
+  user.departments ?? user.employments ?? [];
 // Older directory responses contain employment only; current responses also
 // include valid branch access without inventing a department/employment record.
 const accountBranches = (user: Row): Branch[] =>
@@ -26,7 +28,7 @@ export const emptyAccountFilter: AccountFilter = {
 };
 
 export function matchesAccountFilter(user: Row, filter: AccountFilter) {
-  const employments: Employment[] = user.employments || [];
+  const employments = accountDepartments(user);
   const roles: Role[] = user.roles || [];
   const matchesRole = (branchId?: number) =>
     !filter.role ||
@@ -68,7 +70,7 @@ export default function AccountFilters({
   create?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const employments: Employment[] = users.flatMap((u) => u.employments || []);
+  const employments = users.flatMap(accountDepartments);
   const roles: Role[] = users.flatMap((u) => u.roles || []);
   const options = (items: { id: number; name: string }[]) =>
     [...new Map(items.map((item) => [item.id, item])).values()].sort((a, b) =>
@@ -83,7 +85,8 @@ export default function AccountFilters({
     employments
       .filter(
         (m) =>
-          m.departmentId !== null &&
+          m.departmentId != null &&
+          !!m.departmentName &&
           (!filter.branch || String(m.branchId) === filter.branch),
       )
       .map((m) => ({

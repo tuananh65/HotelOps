@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.Compact.Contracts;
 using HotelOps.Api.Compact.Data;
 using HotelOps.Api.Compact.Entities;
@@ -40,16 +41,47 @@ public sealed class AccountManagementService(HotelOpsCompactDbContext db,Access 
         await access.Require("USER_MANAGE",ct:ct);
         var user=await db.Users.SingleOrDefaultAsync(u=>u.UserId==id&&u.DeletedAt==null,ct)??throw new ApiException(404,"NOT_FOUND");
         Output.Version(user.RowVersion,request.RowVersion);
-        var name=request.FullName.Trim();var address=NullIfBlank(request.Email);var phone=NullIfBlank(request.Phone);
-        Output.Require(name.Length is >0 and <=200,"INVALID_ACCOUNT_NAME",400);
-        Output.Require(address==null||ValidEmail(address),"INVALID_ACCOUNT_EMAIL",400);
-        Output.Require(address==null||!await db.Users.AnyAsync(u=>u.UserId!=id&&u.Email==address,ct),"EMAIL_ALREADY_USED",409);
+        var (name,address,phone)=await ValidateProfile(db,id,request.FullName,request.Email,request.Phone,ct);
         var before=new{user.FullName,user.Email,user.Phone};
         user.FullName=name;user.Email=address;user.Phone=phone;
         audit.Add("User",id,"UPDATE_PROFILE",before:before,after:new{user.FullName,user.Email,user.Phone});
         await db.SaveChangesAsync(ct);
         return (object)Output.Record(user);
     },ct);
+
+    public async Task<object> PersonalProfile(CancellationToken ct)
+    {
+        var user=await db.Users.AsNoTracking().SingleOrDefaultAsync(u=>u.UserId==actor.Id&&u.DeletedAt==null,ct)
+            ??throw new ApiException(404,"NOT_FOUND");
+        return PersonalRecord(user);
+    }
+
+    public Task<object> UpdatePersonalProfile(UpdatePersonalProfileRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+        var user=await db.Users.SingleOrDefaultAsync(u=>u.UserId==actor.Id&&u.DeletedAt==null,ct)
+            ??throw new ApiException(404,"NOT_FOUND");
+        // Never accept an id or role from the caller, even for administrators.
+        Output.Version(user.RowVersion,request.RowVersion);
+        var values=await ValidateProfile(db,user.UserId,request.FullName,request.Email,request.Phone,ct);
+        var before=new{user.FullName,user.Email,user.Phone};
+        user.FullName=values.Name;user.Email=values.Email;user.Phone=values.Phone;
+        audit.Add("User",user.UserId,"UPDATE_PROFILE",before:before,after:new{user.FullName,user.Email,user.Phone});
+        await db.SaveChangesAsync(ct);
+        return PersonalRecord(user);
+    },ct);
+
+    private static object PersonalRecord(User user)=>new{user.UserId,user.EmployeeCode,user.Username,
+        user.FullName,user.Email,user.Phone,user.RowVersion};
+
+    internal static async Task<(string Name,string? Email,string? Phone)> ValidateProfile(
+        HotelOpsCompactDbContext db,long? userId,string fullName,string? email,string? phone,CancellationToken ct)
+    {
+        var name=fullName.Trim();var address=NullIfBlank(email);var number=NullIfBlank(phone);
+        Output.Require(name.Length is >0 and <=200,"INVALID_ACCOUNT_NAME",400);
+        Output.Require(address==null||(address.Length<=254&&ValidEmail(address)),"INVALID_ACCOUNT_EMAIL",400);
+        Output.Require(number==null||(number.Length<=30&&new PhoneAttribute().IsValid(number)),"INVALID_ACCOUNT_PHONE",400);
+        Output.Require(address==null||!await db.Users.AnyAsync(u=>(userId==null||u.UserId!=userId)&&u.Email==address,ct),"EMAIL_ALREADY_USED",409);
+        return (name,address,number);
+    }
 
     public Task<object> ResetPassword(long id,ResetAccountPasswordRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("USER_MANAGE",ct:ct);

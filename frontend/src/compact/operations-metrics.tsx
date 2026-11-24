@@ -1,7 +1,7 @@
 import { ClipboardList, Wrench, AlertTriangle } from "lucide-react";
+import { metricClass } from "./metric-tone";
 import { timestamp, type Row } from "./api";
-import { label } from "./ui";
-import StatChart from "./stat-chart";
+import AssetConditionBar from "./asset-condition-bar";
 
 const names: Record<string, string> = {
   CLEANING: "Dọn phòng",
@@ -13,9 +13,6 @@ const names: Record<string, string> = {
 };
 export default function OperationsMetrics({ data }: { data: Row }) {
   const metrics: Row[] = data.monitoring || [];
-  const attention: Row[] = [...(data.attention || [])].sort((a, b) =>
-    String(a.dueAt).localeCompare(String(b.dueAt)),
-  );
   return (
     <>
       <div className="branch-metrics">
@@ -27,7 +24,7 @@ export default function OperationsMetrics({ data }: { data: Row }) {
                 ? Wrench
                 : ClipboardList;
           return (
-            <article className="panel" key={m.kind}>
+            <article className={metricClass(m.overdue > 0 ? "overdue" : m.kind)} key={m.kind}>
               <h3>
                 <Icon size={20} aria-hidden="true" /> {names[m.kind]}
               </h3>
@@ -38,26 +35,19 @@ export default function OperationsMetrics({ data }: { data: Row }) {
           );
         })}
       </div>
+    </>
+  );
+}
+
+export function OperationsMetricDetails({ data }: { data: Row }) {
+  const attention: Row[] = [...(data.attention || [])].sort((a, b) =>
+    String(a.dueAt).localeCompare(String(b.dueAt)),
+  );
+  return (
+    <>
       <div className="chart-grid operations-metrics-details">
         {data.assets != null && (
-          <StatChart
-            title="Tình trạng tài sản đang sử dụng"
-            rows={data.assets.map((a: Row) => ({
-              name:
-                (
-                  {
-                    GOOD: "Tốt",
-                    FAIR: "Bình thường",
-                    POOR: "Kém",
-                    FAULTY: "Hỏng",
-                    UNDER_REPAIR: "Đang sửa chữa",
-                    LOST: "Thất lạc",
-                  } as Record<string, string>
-                )[a.condition] || label(a.condition),
-              value: a.count,
-            }))}
-            href="#assets"
-          />
+          <AssetConditionBar rows={data.assets} href="#assets" />
         )}
         {attention.length > 0 && (
           <section className="panel">
@@ -68,7 +58,7 @@ export default function OperationsMetrics({ data }: { data: Row }) {
               Tối đa 5 công việc quá hạn lâu nhất mỗi nhóm.
             </p>
             <div className="table-scroll">
-              <table>
+              <table className="mobile-records">
                 <thead>
                   <tr>
                     <th>Công việc</th>
@@ -80,12 +70,12 @@ export default function OperationsMetrics({ data }: { data: Row }) {
                 <tbody>
                   {attention.map((w) => (
                     <tr key={w.workId}>
-                      <td>
+                      <td data-label="Công việc">
                         {w.workNo} · {w.title}
                       </td>
-                      <td>{names[w.kind]}</td>
-                      <td>{timestamp(w.dueAt)}</td>
-                      <td>
+                      <td data-label="Nhóm">{names[w.kind]}</td>
+                      <td data-label="Hạn xử lý">{timestamp(w.dueAt)}</td>
+                      <td data-label="Thao tác">
                         <a
                           className="button-link"
                           href={`#work?kind=${w.kind}&id=${w.workId}`}

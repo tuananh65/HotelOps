@@ -22,6 +22,9 @@ public static class CompactHost
             ?? throw new InvalidOperationException("Configure ConnectionStrings:HotelOpsDb for Compact v2 using local secrets or environment.");
         builder.Services.AddDbContext<HotelOpsCompactDbContext>(o=>o.UseSqlServer(connection));
         builder.Services.AddHttpContextAccessor();
+        builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(
+            options=>ProxyConfiguration.Configure(options,builder.Configuration));
+        builder.Services.AddHttpsRedirection(options=>options.HttpsPort=443);
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<Actor>();builder.Services.AddScoped<Access>();builder.Services.AddScoped<Atomic>();builder.Services.AddScoped<Audit>();
         builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
@@ -29,9 +32,15 @@ public static class CompactHost
         builder.Services.AddScoped<AuthService>();builder.Services.AddScoped<UserService>();builder.Services.AddScoped<CatalogService>();
         builder.Services.AddScoped<AccountManagementService>();builder.Services.AddScoped<IPasswordResetEmail,PasswordResetEmail>();
         builder.Services.AddScoped<WorkService>();builder.Services.AddScoped<RoomService>();builder.Services.AddScoped<DocumentService>();
+        builder.Services.AddScoped<RoomReadinessService>();
+        builder.Services.AddScoped<SupplyConfigurationService>();builder.Services.AddScoped<StaffSupplyService>();
+        builder.Services.AddScoped<RequestWorkflowService>();
+        builder.Services.AddScoped<LowStockService>();
         builder.Services.AddScoped<AssetService>();builder.Services.AddScoped<TemplateService>();builder.Services.AddScoped<InsightService>();
         builder.Services.AddScoped<NotificationService>();builder.Services.AddScoped<EvidenceService>();
         builder.Services.AddScoped<WorkdayService>();
+        builder.Services.AddScoped<ShiftExpiryService>();
+        builder.Services.AddHostedService<ShiftExpiryWorker>();
         builder.Services.AddScoped<HotelOps.Api.Compact.Controllers.WorkspaceService>();
         builder.Services.AddHostedService<OperationsWorker>();
         builder.Services.AddAuthentication(SessionAuthentication.SchemeName)
@@ -59,6 +68,7 @@ public static class CompactHost
                 return;
             }
         }
+        app.UseForwardedHeaders();
         app.UseMiddleware<ErrorMiddleware>();
         if(!app.Environment.IsDevelopment())app.UseHttpsRedirection();
         app.UseCors();app.UseRateLimiter();app.UseAuthentication();
@@ -70,7 +80,7 @@ public static class CompactHost
         });
         app.UseAuthorization();
         if(app.Environment.IsDevelopment())app.MapOpenApi();
-        app.MapGet("/health",()=>new{status="ok",schema="2.1.0",tables=40});
+        app.MapGet("/health",()=>new{status="ok",schema="3.0.0",tables=49});
         app.MapControllers();await app.RunAsync();
     }
     private sealed class CompactControllersOnly:IApplicationFeatureProvider<ControllerFeature>

@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Compact.Services;
 
-public sealed record AssignShiftRequest(long ShiftId,long UserId,DateOnly WorkDate,string RowVersion,Guid OperationKey);
-public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock)
+public sealed record AssignShiftRequest(long ShiftId,long UserId,DateOnly WorkDate,string RowVersion,Guid OperationKey,string? HoursAcknowledgement=null);
+public sealed partial class WorkdayService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock,ShiftExpiryService expiry,StaffSupplyService supplies)
 {
     private DateTime Now => clock.GetUtcNow().UtcDateTime;
     public static DateOnly LocalDate(DateTimeOffset now,string timezone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now,TimeZoneInfo.FindSystemTimeZoneById(timezone)).DateTime);
@@ -23,6 +23,7 @@ public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Act
     {
         var manages=await ReadScope(branch,ct);
         Output.Require(date.Year is >=2000 and <=2100,"INVALID_WORKDAY_DATE",400);
+        await expiry.CloseExpired(branch,ct);
         var start=date.AddDays(-(((int)date.DayOfWeek+6)%7));var end=start.AddDays(7);
         var shifts=await (from s in db.WorkdayShifts.AsNoTracking() join d in db.Departments on s.DepartmentId equals d.DepartmentId
             join r in db.Roles on s.RoleId equals r.RoleId where s.BranchId==branch
@@ -31,9 +32,13 @@ public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Act
             join u in db.Users on a.UserId equals u.UserId where s.BranchId==branch && a.WorkDate>=start && a.WorkDate<end && (manages||a.UserId==actor.Id)
             orderby a.WorkDate,s.StartMinute,u.FullName select new {a.AssignmentId,a.ShiftId,a.UserId,u.FullName,a.WorkDate,a.Status,a.StartedAt,a.EndedAt,a.RowVersion}).ToArrayAsync(ct);
         // Own view includes an active shift from a previous date so End never becomes inaccessible.
-        var active=await (from a in db.WorkdayAssignments.AsNoTracking() join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
+        var activeRow=await (from a in db.WorkdayAssignments.AsNoTracking() join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
             where a.UserId==actor.Id && a.Status=="WORKING" select new {a.AssignmentId,a.ShiftId,s.BranchId,s.Name,a.WorkDate,a.StartedAt,a.RowVersion}).SingleOrDefaultAsync(ct);
-        return new {weekStart=start,today=await Today(branch,ct),canManage=manages,shifts,assignments,active};
+        var endBlockedReason=activeRow==null?null:await supplies.EndBlocker(activeRow.AssignmentId,ct);
+        var active=activeRow==null?null:new {activeRow.AssignmentId,activeRow.ShiftId,activeRow.BranchId,activeRow.Name,activeRow.WorkDate,activeRow.StartedAt,activeRow.RowVersion,canEnd=endBlockedReason==null,endBlockedReason};
+        var zone=await db.Branches.Where(b=>b.BranchId==branch).Select(b=>b.Timezone).SingleAsync(ct);
+        var local=TimeZoneInfo.ConvertTime(clock.GetUtcNow(),TimeZoneInfo.FindSystemTimeZoneById(zone));
+        return new {weekStart=start,today=DateOnly.FromDateTime(local.DateTime),currentMinute=local.Hour*60+local.Minute,timezone=zone,canManage=manages,shifts,assignments,active};
     }
     public async Task<object> Candidates(long shiftId,DateOnly date,CancellationToken ct)
     {
@@ -70,9 +75,12 @@ public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Act
         await access.EligibleFor(request.UserId,shift.BranchId,"ATTENDANCE_RECORD",ct);
         Output.Require(await db.WorkdayAssignments.CountAsync(a=>a.ShiftId==shift.ShiftId&&a.WorkDate==request.WorkDate&&a.Status!="CANCELLED",ct)<shift.Capacity,"SHIFT_CAPACITY_REACHED");
         Output.Require(!await (from a in db.WorkdayAssignments join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId where a.UserId==request.UserId&&a.WorkDate==request.WorkDate&&a.Status!="CANCELLED"&&s.StartMinute<shift.EndMinute&&s.EndMinute>shift.StartMinute select a.AssignmentId).AnyAsync(ct),"SHIFT_OVERLAP");
+        var hours=(await HoursReviews(shift,[request.WorkDate],[request.UserId],ct))[request.UserId];
+        ConfirmHours(hours,request.HoursAcknowledgement);
         var row=new WorkdayAssignment{ShiftId=shift.ShiftId,UserId=request.UserId,WorkDate=request.WorkDate,CreatedBy=actor.Id,CreatedAt=Now};
         db.WorkdayAssignments.Add(row);await db.SaveChangesAsync(ct);
-        Event(row,"ASSIGN",request.OperationKey,null);audit.Add("Workday",row.AssignmentId,"ASSIGN",shift.BranchId,null,Output.Record(row),request.OperationKey);
+        Event(row,"ASSIGN",request.OperationKey,HoursReason(hours, row.WorkDate));audit.Add("Workday",row.AssignmentId,"ASSIGN",shift.BranchId,null,
+            hours.Warnings.Length==0?(object)Output.Record(row):new{assignment=Output.Record(row),hoursOverride=hours.Warnings},request.OperationKey);
         return (object)Output.Record(row);
     },ct);
     public Task<object> Action(long id,string command,ActionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
@@ -81,15 +89,24 @@ public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Act
         var shift=await db.WorkdayShifts.SingleAsync(s=>s.ShiftId==row.ShiftId,ct);
         if(command=="cancel")await access.Require("SHIFT_MANAGE",shift.BranchId,ct:ct);
         else {await access.Require("ATTENDANCE_RECORD",shift.BranchId,true,ct);Output.Require(row.UserId==actor.Id,"OWN_SHIFT_REQUIRED",403);}
+        var previous=await db.WorkdayEvents.AsNoTracking().SingleOrDefaultAsync(e=>e.AssignmentId==id&&e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct);
+        if(previous!=null){Output.Require(previous.Action==command.ToUpperInvariant(),"OPERATION_KEY_REUSED");return (object)Output.Record(row);}
         Output.Version(row.RowVersion,request.RowVersion);var before=Output.Record(row);
         if(command=="start"){
             Output.Require(row.Status=="PLANNED","SHIFT_NOT_PLANNED");Output.Require(row.WorkDate==await Today(shift.BranchId,ct),"SHIFT_NOT_TODAY");
+            var zone=await db.Branches.Where(b=>b.BranchId==shift.BranchId).Select(b=>b.Timezone).SingleAsync(ct);
+            Output.Require(Now>=ShiftExpiryService.Boundary(row.WorkDate,shift.StartMinute,zone)&&Now<ShiftExpiryService.Boundary(row.WorkDate,shift.EndMinute,zone),"SHIFT_OUTSIDE_WORKING_HOURS");
+            await expiry.CloseExpired(shift.BranchId,ct);
             Output.Require(shift.IsActive&&await (await EligibleQuery(shift,row.WorkDate,ct)).AnyAsync(u=>u.UserId==actor.Id,ct),"SHIFT_EMPLOYEE_NOT_ELIGIBLE");
             await access.EligibleFor(actor.Id,shift.BranchId,"ATTENDANCE_RECORD",ct);
             Output.Require(!await db.WorkdayAssignments.AnyAsync(a=>a.UserId==actor.Id&&a.Status=="WORKING",ct),"SHIFT_ALREADY_ACTIVE");
             row.Status="WORKING";row.StartedAt=Now;
+            await db.SaveChangesAsync(ct);
+            if(await db.Roles.AnyAsync(r=>r.RoleId==shift.RoleId&&r.Code=="HK_STAFF"&&r.IsActive,ct))await supplies.Start(id,ct);
         }else if(command=="end"){
-            Output.Require(row.Status=="WORKING","SHIFT_NOT_WORKING");row.Status="ENDED";row.EndedAt=Now;
+            Output.Require(row.Status=="WORKING","SHIFT_NOT_WORKING");
+            await supplies.End(id,request.OperationKey,ct);
+            row.Status="ENDED";row.EndedAt=Now;
         }else if(command=="cancel"){
             Output.Require(row.Status=="PLANNED","ONLY_PLANNED_SHIFT_CAN_CANCEL");Output.Reason(request.Reason);row.Status="CANCELLED";
         }else throw new ApiException(400,"UNKNOWN_SHIFT_ACTION");
@@ -103,6 +120,12 @@ public sealed class WorkdayService(HotelOpsCompactDbContext db,Access access,Act
         var row=await db.WorkdayAssignments.AsNoTracking().SingleOrDefaultAsync(a=>a.AssignmentId==id,ct)??throw new ApiException(404,"SHIFT_ASSIGNMENT_NOT_FOUND");
         var branch=await db.WorkdayShifts.Where(s=>s.ShiftId==row.ShiftId).Select(s=>s.BranchId).SingleAsync(ct);
         var manages=await ReadScope(branch,ct);Output.Require(manages||row.UserId==actor.Id,"OWN_SHIFT_REQUIRED",403);
-        return await (from e in db.WorkdayEvents.AsNoTracking() join u in db.Users on e.ActorUserId equals u.UserId where e.AssignmentId==id orderby e.EventId select new {e.EventId,e.Action,e.OccurredAt,e.Reason,actor=u.FullName}).ToArrayAsync(ct);
+        var manual=await (from e in db.WorkdayEvents.AsNoTracking() join u in db.Users on e.ActorUserId equals u.UserId where e.AssignmentId==id
+            select new ShiftHistory(e.EventId,e.Action,e.OccurredAt,e.Reason,u.FullName)).ToArrayAsync(ct);
+        var key=id.ToString();
+        var automatic=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="Workday"&&a.EntityKey==key&&a.BranchId==branch&&a.Action=="AUTO_END"&&a.ActorUserId==null)
+            .Select(a=>new ShiftHistory(-a.AuditId,a.Action,a.OccurredAt,"Hệ thống tự động kết thúc ca khi hết giờ làm việc.","Hệ thống")).ToArrayAsync(ct);
+        return manual.Concat(automatic).OrderBy(h=>h.OccurredAt).ToArray();
     }
+    private sealed record ShiftHistory(long EventId,string Action,DateTime OccurredAt,string? Reason,string Actor);
 }

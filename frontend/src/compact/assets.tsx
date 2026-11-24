@@ -1,12 +1,15 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 import Catalog from "./catalog";
 import { useCatalogRows } from "./use-catalog-rows";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { action, api, fields, message, type Row } from "./api";
 import { useAuth } from "./auth";
 import { Dialog, History, State, useQuery, Pager, Empty, Badge } from "./ui";
 import { SlidersHorizontal } from "lucide-react";
+import { assetConditionLabel, assetConditions } from "./asset-presentation";
+import AssetConditionBar from "./asset-condition-bar";
 export default function Assets({
   maintenance = false,
   readScope,
@@ -14,22 +17,26 @@ export default function Assets({
   maintenance?: boolean;
   readScope?: number;
 }) {
-  const { branch, can } = useAuth();
+  const { branch, can, profile } = useAuth();
+  const branchRoles = profile.roles.filter(
+    (r) => r.branchId === null || r.branchId === branch,
+  );
+  const groupedByRoom =
+    readScope === undefined &&
+    branchRoles.length > 0 &&
+    branchRoles.every((r) => r.code === "OPERATION_MANAGER");
   const [editing, setEditing] = useState<Row | null>(null),
     [search, setSearch] = useState("");
   const [page, setPage] = useState(1),
     [revision, bump] = useState(0),
     [id, setId] = useState<number | null>(
-      readScope !== undefined
-        ? Number(new URLSearchParams(location.hash.split("?")[1]).get("id")) ||
-            null
-        : null,
+      Number(new URLSearchParams(location.hash.split("?")[1]).get("id")) || null,
     ),
     [command, setCommand] = useState(""),
     [error, setError] = useState(""),
     [pending, setPending] = useState(false);
   const catalog = useCatalogRows(
-    readScope === undefined ? "assets" : null,
+    readScope === undefined && !groupedByRoom ? "assets" : null,
     branch,
     revision,
   );
@@ -39,26 +46,47 @@ export default function Assets({
       : null,
     revision,
   );
-  const query = readScope !== undefined ? monitoring : catalog,
+  const roomAssets = useQuery<Row[]>(
+    groupedByRoom ? `assets?branchId=${branch}` : null,
+    revision,
+  );
+  const query =
+      readScope !== undefined
+        ? monitoring
+        : groupedByRoom
+          ? roomAssets
+          : catalog,
     detail = useQuery(id ? `assets/${id}` : null, revision),
     options = useQuery(
       can("ROOM_VIEW") ? `workspace/options?branchId=${branch}` : null,
     );
   const asset = detail.data?.asset?.fields;
+  const pendingHandover = fields(detail.data?.history).find((event) => event.handoverStatus);
+  const canReceiveHandover = asset?.isActive && pendingHandover?.handoverStatus === "PENDING"
+    && pendingHandover.toUserId === profile.user.fields.userId && readScope === undefined;
   const [filters, setFilters] = useState(false),
     [condition, setCondition] = useState(""),
     [sort, setSort] = useState("name");
   const rows = (query.data || [])
     .filter((a) => !condition || a.conditionCode === condition)
     .filter((a) =>
-      `${a.name} ${a.assetCode} ${a.serialNumber || ""}`
+      `${a.name} ${a.assetCode} ${a.serialNumber || ""} ${a.roomCode || ""} ${a.locationName || ""}`
         .toLocaleLowerCase()
         .includes(search.trim().toLocaleLowerCase()),
     )
-    .sort((a, b) =>
-      String(a[sort] || "").localeCompare(String(b[sort] || ""), "vi"),
+    .sort(
+      (a, b) =>
+        (groupedByRoom
+          ? String(a.roomCode || "\uffff").localeCompare(
+              String(b.roomCode || "\uffff"),
+              "vi",
+              { numeric: true },
+            ) || Number(a.roomId || 0) - Number(b.roomId || 0)
+          : 0) ||
+        String(a[sort] || "").localeCompare(String(b[sort] || ""), "vi"),
     );
   const currentPage = Math.min(page, Math.max(1, Math.ceil(rows.length / 25)));
+  const pageRows = rows.slice((currentPage - 1) * 25, currentPage * 25);
   return (
     <>
       <div className="page-heading">
@@ -80,20 +108,24 @@ export default function Assets({
           Tìm tài sản
           <input
             value={search}
-            placeholder="Tên, mã tài sản hoặc số sê-ri…"
+            placeholder={
+              groupedByRoom
+                ? "Tên, mã, số sê-ri hoặc phòng…"
+                : "Tên, mã tài sản hoặc số sê-ri…"
+            }
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
             }}
           />
         </label>
-        {maintenance && (
+        {(maintenance || groupedByRoom) && (
           <button aria-expanded={filters} onClick={() => setFilters(!filters)}>
             <SlidersHorizontal size={16} /> Bộ lọc
           </button>
         )}
       </PageToolbar>
-      {maintenance && filters && (
+      {(maintenance || groupedByRoom) && filters && (
         <PageToolbar>
           <label>
             Tình trạng
@@ -105,16 +137,22 @@ export default function Assets({
               }}
             >
               <option value="">Tất cả</option>
-              {["GOOD", "FAIR", "POOR", "FAULTY", "UNDER_REPAIR", "LOST"].map(
-                (s) => (
-                  <option key={s}>{s}</option>
-                ),
-              )}
+              {Object.entries(assetConditions).map(([s, name]) => (
+                <option key={s} value={s}>
+                  {name}
+                </option>
+              ))}
             </select>
           </label>
           <label>
             Sắp xếp
-            <select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <select
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value);
+                setPage(1);
+              }}
+            >
               <option value="name">Tên</option>
               <option value="assetCode">Mã</option>
             </select>
@@ -132,41 +170,98 @@ export default function Assets({
         </PageToolbar>
       )}
       <State {...query} retry={() => bump((n) => n + 1)}>
+        {groupedByRoom && (
+          <AssetConditionBar
+            rows={rows
+              .filter((a) => a.isActive)
+              .map((a) => ({ condition: a.conditionCode, count: 1 }))}
+          />
+        )}
+        {groupedByRoom && (
+          <p className="hint">
+            Nhóm theo phòng · Thống kê theo kết quả tìm kiếm và bộ lọc, chỉ tính
+            tài sản đang sử dụng.
+          </p>
+        )}
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
                 <th>Tài sản</th>
                 {readScope !== undefined && <th>Chi nhánh</th>}
+                {groupedByRoom && <th>Vị trí</th>}
                 <th>Mã</th>
                 <th>Tình trạng</th>
+                {groupedByRoom && <th>Sử dụng</th>}
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {rows.slice((currentPage - 1) * 25, currentPage * 25).map((a) => (
-                <tr key={a.assetId}>
-                  <td>{a.name}</td>
-                  {readScope !== undefined && <td>{a.branchName}</td>}
-                  <td>{a.assetCode}</td>
-                  <td>{a.conditionCode}</td>
-                  <td>
-                    <button
-                      onClick={() => {
-                        setId(a.assetId);
-                        setCommand("");
-                        setError("");
-                      }}
-                    >
-                      Chi tiết
-                    </button>
-                  </td>
-                </tr>
+              {pageRows.map((a, index) => (
+                <Fragment key={a.assetId}>
+                  {groupedByRoom &&
+                    (index === 0 ||
+                      a.roomId !== pageRows[index - 1].roomId) && (
+                      <tr className="asset-group-heading">
+                        <th colSpan={6} scope="rowgroup">
+                          {a.roomId
+                            ? `Phòng ${a.roomCode || a.roomId}`
+                            : "Ngoài phòng / chưa bố trí"}
+                        </th>
+                      </tr>
+                    )}
+                  <tr key={a.assetId}>
+                    <td>{a.name}</td>
+                    {readScope !== undefined && <td>{a.branchName}</td>}
+                    {groupedByRoom && (
+                      <td>
+                        {a.roomId
+                          ? `Phòng ${a.roomCode || a.roomId}`
+                          : a.locationName || "Chưa bố trí"}
+                      </td>
+                    )}
+                    <td>{a.assetCode}</td>
+                    <td>{assetConditionLabel(a.conditionCode)}</td>
+                    {groupedByRoom && (
+                      <td>{a.isActive ? "Đang sử dụng" : "Đã ngừng"}</td>
+                    )}
+                    <td>
+                      <button
+                        onClick={() => {
+                          setId(a.assetId);
+                          setCommand("");
+                          setError("");
+                        }}
+                      >
+                        Chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                </Fragment>
               ))}
             </tbody>
           </table>
         </div>
-        {!rows.length && <Empty />}
+        {!rows.length && (
+          <Empty>
+            {search || condition ? (
+              <>
+                Không có tài sản phù hợp.{" "}
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setCondition("");
+                    setPage(1);
+                  }}
+                >
+                  Xóa bộ lọc
+                </button>
+              </>
+            ) : (
+              "Chưa có tài sản trong phạm vi đã chọn."
+            )}
+          </Empty>
+        )}
         <Pager
           page={currentPage}
           total={rows.length}
@@ -198,11 +293,11 @@ export default function Assets({
             {asset && (
               <>
                 <p>
-                  {asset.assetCode} · {asset.conditionCode} ·{" "}
-                  {asset.isActive ? "Đang sử dụng" : "Đã ngừng sử dụng"}
+                  {asset.assetCode} · {assetConditionLabel(asset.conditionCode)}{" "}
+                  · {asset.isActive ? "Đang sử dụng" : "Đã ngừng sử dụng"}
                 </p>
                 <div className="toolbar">
-                  {maintenance && (
+                  {(maintenance || groupedByRoom) && (
                     <section>
                       <p>
                         Vị trí:{" "}
@@ -262,6 +357,10 @@ export default function Assets({
                         </button>
                       ))}
                 </div>
+                {canReceiveHandover && <div className="toolbar">
+                  <button className="primary" onClick={() => setCommand("accept")}>Xác nhận nhận bàn giao</button>
+                  <button className="danger" onClick={() => setCommand("reject")}>Từ chối bàn giao</button>
+                </div>}
                 {command && (
                   <form
                     onSubmit={async (e) => {
@@ -338,12 +437,26 @@ export default function Assets({
                   </form>
                 )}
                 {error && (
-                  <p className="alert" role="alert">
+                  <AlertPopup>
                     {error}
-                  </p>
+                  </AlertPopup>
                 )}
                 <h3>Lịch sử tài sản</h3>
-                <History rows={fields(detail.data?.events)} />
+                <History
+                  rows={fields(detail.data?.history).map((event) => ({
+                    ...event,
+                    ...(event.oldCondition
+                      ? {
+                          oldCondition: assetConditionLabel(event.oldCondition),
+                        }
+                      : {}),
+                    ...(event.newCondition
+                      ? {
+                          newCondition: assetConditionLabel(event.newCondition),
+                        }
+                      : {}),
+                  }))}
+                />
               </>
             )}
           </State>

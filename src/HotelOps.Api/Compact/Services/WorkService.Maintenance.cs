@@ -41,6 +41,7 @@ public sealed partial class WorkService
 
     public async Task<object> Technicians(long branchId,CancellationToken ct)
     {
+        await RequireWorkMutation("MAINTENANCE",branchId,ct);
         await access.Require("MAINTENANCE_ASSIGN",branchId,ct:ct);
         var candidates=await CandidateRows(branchId,"MAINTENANCE",ct);
         var zone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
@@ -61,6 +62,7 @@ public sealed partial class WorkService
 
     public Task<object> FromIncident(long id,MaintenanceFromIncidentRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         var source=await Load(id,"read",ct);await access.Require("MAINTENANCE_ASSIGN",source.BranchId,ct:ct);
+        await RequireWorkMutation("MAINTENANCE",source.BranchId,ct);
         Output.Version(source.RowVersion,r.RowVersion);Output.Key(r.OperationKey);Output.Reason(r.Reason);
         Output.Require(source.Kind=="INCIDENT"&&!WorkRules.Terminal.Contains(source.Status),"ACTIVE_INCIDENT_REQUIRED");
         Output.Require(!await db.WorkEvents.AnyAsync(e=>e.WorkId==id&&e.ActorUserId==actor.Id&&e.OperationKey==r.OperationKey,ct),"OPERATION_ALREADY_APPLIED");

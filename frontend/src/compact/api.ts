@@ -1,3 +1,4 @@
+import { p0Errors } from "./p0-error-messages";
 export type Row = Record<string, any>;
 export type Resource = { type: string; fields: Row };
 export type Page<T = Resource> = {
@@ -88,6 +89,34 @@ export async function downloadEvidence(id: number, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 const errors: Record<string, string> = {
+  ROOM_NOT_RESERVED: "Phòng chưa được đặt. Vui lòng đặt phòng trước khi xác nhận khách đến.",
+  TARGET_ROOM_MUST_DIFFER: "Phòng chuyển đến phải khác phòng hiện tại.",
+  SHIFT_OUTSIDE_WORKING_HOURS: "Chỉ được bắt đầu ca trong khung giờ đã phân công.",
+  CLEANING_CREATOR_NOT_ON_SHIFT: "Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để tạo yêu cầu dọn phòng.",
+  RECEPTION_NOT_ON_SHIFT: "Bạn phải bắt đầu ca và đang trong giờ làm việc tại chi nhánh này để thay đổi trạng thái phòng.",
+  REQUEST_VISIBILITY_DENIED: "Bạn chỉ được xem yêu cầu nội bộ do mình tạo hoặc được giao cho mình.",
+  CLEANING_ASSIGNEE_REQUIRED: "Vui lòng chọn nhân viên dọn phòng đang trong ca.",
+  CLEANING_STAFF_REQUIRED: "Chỉ được phân công cho nhân viên buồng phòng hợp lệ tại chi nhánh này.",
+  CLEANING_ASSIGNEE_NOT_ON_SHIFT: "Nhân viên được chọn hiện không trong ca. Vui lòng chọn lại nhân viên đang làm việc.",
+  INVALID_TASK_PERIOD:
+    "Khoảng thống kê không hợp lệ. Chọn ngày, tuần hoặc tháng.",
+  USE_BRANCH_CONTACT_FORM:
+    "Chỉnh sửa người đại diện trong màn thông tin chi nhánh.",
+  DUPLICATE_NAME: "Tên đã tồn tại trong danh mục này. Vui lòng chọn tên khác.",
+  INVALID_PHONE:
+    "Số điện thoại không hợp lệ. Nhập từ 8 đến 30 ký tự, bắt đầu bằng số hoặc dấu +.",
+  NAME_REQUIRED: "Vui lòng nhập tên.",
+  PERMISSION_USED_BY_ACTIVE_USER:
+    "Không thể ẩn quyền đang được cấp cho tài khoản hoạt động.",
+  HOUSEKEEPING_WORK_ALREADY_ACTIVE:
+    "Đã có phiếu cùng loại đang xử lý. Mở phiếu hiện tại để tiếp tục.",
+  REWORK_NOT_SUBMITTED:
+    "Cần hoàn thành công việc làm lại trước khi kiểm tra lại hoặc xác nhận sửa lỗi.",
+  SUBMITTED_HOUSEKEEPING_IMMUTABLE:
+    "Công việc đã gửi kiểm tra hoặc kết luận; không thể phân công lại ở bước này.",
+  FINDING_ALREADY_RESOLVED:
+    "Lỗi đã được xử lý. Vui lòng tải lại phiếu kiểm tra.",
+  CHECKLIST_CODE_NAME_REQUIRED: "Nhập mã và tên mẫu checklist.",
   ACTIVE_INCIDENT_REQUIRED: "Chỉ tạo công việc bảo trì từ sự cố đang mở.",
   MAINTENANCE_ALREADY_ACTIVE:
     "Sự cố đã có công việc bảo trì đang xử lý hoặc chờ nghiệm thu.",
@@ -138,6 +167,15 @@ const errors: Record<string, string> = {
   DUPLICATE_RECORD: "Mã hoặc dữ liệu này đã tồn tại. Hãy kiểm tra lại.",
   OPERATION_ALREADY_APPLIED:
     "Thao tác này đã được ghi nhận. Kiểm tra lại chứng từ trước khi thử tiếp.",
+  HOUSEKEEPING_PROGRESS_NOT_SUPPORTED: "Công việc dọn phòng không sử dụng cập nhật tiến độ.",
+  HOUSEKEEPING_HANDOVER_BEFORE_START_ONLY: "Chỉ được bàn giao trước khi bắt đầu công việc.",
+  HOUSEKEEPING_HANDOVER_BEFORE_ACCEPT_ONLY: "Không thể bàn giao sau khi đã nhận hoặc bắt đầu công việc.",
+  HOUSEKEEPING_STAFF_CANNOT_REPORT_INCIDENT: "Nhân viên dọn phòng không báo cáo sự cố. Giám sát sẽ kiểm tra và ghi nhận sau khi hoàn thành.",
+  HOUSEKEEPING_EVIDENCE_NOT_SUPPORTED: "Công việc dọn phòng không yêu cầu nhân viên gửi minh chứng.",
+  CLEANING_DURATION_REQUIRED: "Chọn thời gian hoàn thành từ 10 đến 30 phút, tính từ lúc giao việc.",
+  INSPECTION_VERSION_REQUIRED: "Kết quả kiểm tra đã thay đổi. Đóng và mở lại chi tiết công việc.",
+  INSPECTION_ASSIGNED_TO_ANOTHER: "Công việc kiểm tra đang được giao cho giám sát khác.",
+  PAPER_FINDINGS_CONFIRMATION_REQUIRED: "Cần hoàn thành việc làm lại và xác nhận các lỗi đã được khắc phục.",
   INSPECTION_CHECKLIST_REQUIRED:
     "Phiếu kiểm tra phải có checklist. Hãy chọn mẫu kiểm tra đã công bố.",
   CHECKLIST_INCOMPLETE:
@@ -145,6 +183,8 @@ const errors: Record<string, string> = {
   INVALID_CREDENTIALS: "Tên đăng nhập hoặc mật khẩu chưa đúng.",
   ACCOUNT_LOCKED: "Tài khoản tạm khóa. Vui lòng thử lại sau 15 phút.",
   STALE_ROW_VERSION: "Dữ liệu đã thay đổi. Tải lại trước khi thao tác tiếp.",
+  ROOM_NO_LONGER_NEEDS_CLEANING:
+    "Phòng không còn đủ điều kiện tạo yêu cầu dọn. Hãy chọn lại phòng từ danh sách mới.",
   SHIFT_CAPACITY_REACHED: "Ca này đã đủ người.",
   SHIFT_OVERLAP: "Nhân viên đã có lịch trùng giờ.",
   SHIFT_ALREADY_ACTIVE: "Bạn đang có một ca chưa kết thúc.",
@@ -185,6 +225,13 @@ const errors: Record<string, string> = {
   RECEIVING_DEPARTMENT_AUTHORITY_REQUIRED:
     "Chỉ người được giao xử lý hoặc người điều phối bộ phận mới được thực hiện thao tác này.",
   PERMISSION_DENIED: "Bạn không có quyền thực hiện thao tác này.",
+  ROOM_ISSUE_WRONG_STAGE: "Sự cố chưa đến bước này hoặc vừa được người khác xử lý. Vui lòng kiểm tra lại.",
+  ROOM_ISSUE_USE_WORKFLOW: "Mở Sự cố phòng để duyệt, khắc phục và kiểm tra theo đúng quy trình.",
+  ROOM_ISSUE_MATERIAL_NOT_FULFILLED: "Phiếu của lần khắc phục này chưa được kho cấp đủ.",
+  ROOM_ISSUE_OBJECT_NOT_IN_ROOM: "Đồ vật không còn được ghi nhận thuộc phòng này.",
+  ROOM_ISSUE_ROOM_IN_USE: "Phòng đang có khách hoặc đã đặt, chưa thể thực hiện kiểm tra sự cố này.",
+  ROOM_ISSUE_TYPE_INVALID: "Loại báo cáo chưa được cấu hình hoặc đã ngừng sử dụng.",
+  ROOM_ISSUE_MATERIAL_REQUIRED: "Chọn bộ phận, kho, vật tư, đơn vị và số lượng cần bổ sung.",
   NETWORK_UNAVAILABLE:
     "Không kết nối được máy chủ. Kiểm tra kết nối rồi thử lại.",
   REQUIRED_CHECKLIST_INCOMPLETE: "Hoàn tất checklist bắt buộc trước khi gửi.",
@@ -193,7 +240,14 @@ const errors: Record<string, string> = {
 };
 export function message(error: unknown) {
   return error instanceof ApiError
-    ? errors[error.code] || `Thao tác chưa hoàn tất (${error.code}).`
+    ? p0Errors[error.code] || errors[error.code] ||
+        (error.status === 403
+          ? "Bạn không có quyền thực hiện thao tác này."
+          : error.status === 409
+            ? "Dữ liệu đã thay đổi hoặc đang được sử dụng. Vui lòng tải lại và kiểm tra."
+            : error.status === 400
+              ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra các trường đã nhập."
+              : "Thao tác chưa hoàn tất. Vui lòng thử lại.")
     : "Có lỗi xảy ra. Vui lòng thử lại.";
 }
 export const fields = (items: Resource[] = []) => items.map((x) => x.fields);

@@ -26,6 +26,7 @@ CREATE TABLE dbo.departments (
     code varchar(30) NOT NULL,
     name nvarchar(150) NOT NULL,
     manager_user_id bigint NULL,
+    description nvarchar(2000) NULL,
     is_active bit NOT NULL DEFAULT 1,
     row_version rowversion NOT NULL
 );

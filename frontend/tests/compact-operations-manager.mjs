@@ -60,6 +60,12 @@ try {
       };
     else if (path === "insights/dashboard")
       json = {
+        taskWindow: {
+          period: u.searchParams.get("taskPeriod") || "day",
+          timezone: "Asia/Ho_Chi_Minh",
+          fromDate: "2026-11-23",
+          toDate: "2026-11-23",
+        },
         rooms: [{ readiness: "READY", isOccupied: false, count: 2 }],
         work: [],
         stock: [],
@@ -123,17 +129,18 @@ try {
       json = paged([
         { roomTypeId: 1, name: "Standard", capacity: 2, isActive: true },
       ]);
-    else if (path === "catalog/assets")
-      json = paged(
-        Array.from({ length: 26 }, (_, i) => ({
-          assetId: i + 1,
-          name: `Tài sản ${i + 1}`,
-          assetCode: `A${i + 1}`,
-          conditionCode: "GOOD",
-          isActive: true,
-          rowVersion: "fixture",
-        })),
-      );
+    else if (path === "assets")
+      json = Array.from({ length: 26 }, (_, i) => ({
+        assetId: i + 1,
+        name: `Tài sản ${i + 1}`,
+        assetCode: `A${i + 1}`,
+        conditionCode: "GOOD",
+        roomId: 1,
+        roomCode: "101",
+        locationName: "Tầng 1",
+        isActive: true,
+        rowVersion: "fixture",
+      }));
     else if (path === "catalog/rooms")
       json = paged([{ roomId: 1, code: "101", isActive: true }]);
     else if (path === "catalog/locations")
@@ -166,7 +173,7 @@ try {
   const page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
   const open = async (hash) => {
-    await page.goto(`http://127.0.0.1:5186/#${hash}`);
+    await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:5186"}/#${hash}`);
     await expect(page.locator(".topbar h1")).toBeVisible();
   };
   await open("dashboard");
@@ -174,7 +181,7 @@ try {
     page
       .getByRole("navigation", { name: "Điều hướng chính" })
       .getByRole("button"),
-  ).toHaveCount(8);
+  ).toHaveCount(9);
   await expect(
     page.getByRole("navigation", { name: "Điều hướng chính" }),
   ).not.toContainText("Lịch làm việc");
@@ -214,7 +221,7 @@ try {
   await expect(page.getByLabel(/^Trạng thái/)).toHaveValue("");
   await open("rooms");
   await expect(page.locator(".room-tile")).toHaveCount(15);
-  await page.getByRole("button", { name: /Đang chặn 1/ }).click();
+  await page.getByRole("button", { name: /Bảo trì 1/ }).click();
   await expect(page.locator(".room-tile")).toHaveCount(1);
   await expect(page.locator(".room-tile")).toContainText("102");
   await page.locator(".room-tile").click();
@@ -224,9 +231,13 @@ try {
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await open("assets");
-  await expect(page.locator("tbody tr")).toHaveCount(25);
+  await expect(page.locator("tbody tr:not(.asset-group-heading)")).toHaveCount(
+    25,
+  );
   await page.getByRole("button", { name: "Tiếp", exact: true }).click();
-  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await expect(page.locator("tbody tr:not(.asset-group-heading)")).toHaveCount(
+    1,
+  );
   await page
     .getByRole("button", { name: "+ Thêm tài sản", exact: true })
     .click();
@@ -259,6 +270,7 @@ try {
       "assets",
       "stock",
       "audit",
+      "settings",
     ]) {
       await open(hash);
       await expect(page.locator("main .page-heading h1")).toHaveCount(0);
@@ -279,18 +291,21 @@ try {
     page
       .getByRole("navigation", { name: "Điều hướng chính" })
       .getByRole("button"),
-  ).toHaveCount(1);
+  ).toHaveCount(2);
+  await open("settings");
+  await expect(page.locator(".topbar h1")).toHaveText("Cấu hình vận hành");
+  await expect(page.getByRole("button", { name: /^\+ Thêm/ })).toHaveCount(0);
   assert.deepEqual(errors, []);
   fs.writeFileSync(
     `${out}/ui-verification.json`,
     JSON.stringify(
-      { passed: true, responsiveChecks: 24, readRequests: reads.length },
+      { passed: true, responsiveChecks: 27, readRequests: reads.length },
       null,
       2,
     ),
   );
   console.log(
-    "PASS OM navigation, permission guards, monitoring filters, occupied blocked room, asset form/paging, audit search/paging and 24 responsive views",
+    "PASS OM navigation, permission guards, monitoring filters, occupied blocked room, asset form/paging, audit search/paging, read-only settings and 27 responsive views",
   );
 } finally {
   await browser.close();

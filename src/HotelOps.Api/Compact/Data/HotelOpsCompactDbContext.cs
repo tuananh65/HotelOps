@@ -398,6 +398,8 @@ public partial class HotelOpsCompactDbContext : DbContext
         {
             entity.ToTable("departments");
 
+            entity.Property(e => e.Description).HasMaxLength(2000).HasColumnName("description");
+
             entity.HasIndex(e => new { e.BranchId, e.Code }, "UX_departments_branch_id_code").IsUnique();
 
             entity.HasIndex(e => new { e.DepartmentId, e.BranchId }, "UX_departments_department_id_branch_id").IsUnique();

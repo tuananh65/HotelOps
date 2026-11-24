@@ -17,7 +17,7 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
         var now=clock.GetUtcNow().UtcDateTime;
         var recipients=await (from ur in db.UserRoles join role in db.Roles on ur.RoleId equals role.RoleId join rp in db.RolePermissions on ur.RoleId equals rp.RoleId
             join p in db.Permissions on rp.PermissionId equals p.PermissionId join u in db.Users on ur.UserId equals u.UserId
-            where role.IsActive&&p.IsActive&&p.Code==code&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>now)
+            where role.IsActive&&p.IsActive&&p.Code==code&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)
                 &&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
                 &&((ur.BranchId==null&&rp.DataScope=="ALL")||(ur.BranchId==branch&&(rp.DataScope=="ALL"||rp.DataScope=="BRANCH")
                 &&db.Memberships.Any(m=>m.UserId==u.UserId&&m.BranchId==branch&&m.Kind=="BRANCH_ACCESS"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now))))
@@ -26,12 +26,12 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
     }
     public async Task<int> UnreadCount(long branchId,CancellationToken ct){
         var now=clock.GetUtcNow().UtcDateTime;
-        var rows=await db.Notifications.AsNoTracking().Where(n=>n.BranchId==branchId&&n.RecipientUserId==actor.Id&&n.ReadAt==null&&n.AvailableAt<=now&&(n.ExpiresAt==null||n.ExpiresAt>now)).ToArrayAsync(ct);
+        var rows=await InBranch(branchId).Where(n=>n.RecipientUserId==actor.Id&&n.ReadAt==null&&n.AvailableAt<=now&&(n.ExpiresAt==null||n.ExpiresAt>now)).ToArrayAsync(ct);
         var count=0;foreach(var n in rows)if(await Visible(n,ct))count++;return count;
     }
     public async Task<object> Inbox(int page,int pageSize,CancellationToken ct,long? branchId=null){
         page=Math.Max(1,page);pageSize=Math.Clamp(pageSize,1,100);var now=clock.GetUtcNow().UtcDateTime;
-        var candidates=await db.Notifications.AsNoTracking().Where(n=>n.RecipientUserId==actor.Id&&(branchId==null||n.BranchId==branchId)&&n.AvailableAt<=now&&(n.ExpiresAt==null||n.ExpiresAt>now)).OrderByDescending(n=>n.NotificationId).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
+        var candidates=await InBranch(branchId).Where(n=>n.RecipientUserId==actor.Id&&n.AvailableAt<=now&&(n.ExpiresAt==null||n.ExpiresAt>now)).OrderByDescending(n=>n.NotificationId).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
         var visible=new List<Notification>();foreach(var n in candidates)if(await Visible(n,ct))visible.Add(n);
         // Concurrent inbox reads must not promote Serializable shared locks to writes.
         // Delivery is idempotent; update only this recipient's authorized, undelivered rows.
@@ -41,13 +41,27 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
         var visibleIds=visible.Select(n=>n.NotificationId).ToArray();
         return new{items=(await db.Notifications.AsNoTracking().Where(n=>visibleIds.Contains(n.NotificationId)&&n.RecipientUserId==actor.Id).OrderByDescending(n=>n.NotificationId).ToArrayAsync(ct)).Select(Output.Record),page,pageSize,hasMore=candidates.Length==pageSize};
     }
+    private IQueryable<Notification> InBranch(long? branchId) => db.Notifications.AsNoTracking().Where(n=>branchId==null||n.BranchId==branchId
+        ||db.InventoryDocuments.Any(d=>d.DocumentId==n.DocumentId
+            &&((d.Kind=="TRANSFER_REQUEST"||d.Kind=="TRANSFER")&&d.DestinationBranchId==branchId
+                ||d.Kind=="TRANSFER_RECEIPT"&&db.InventoryDocuments.Any(source=>source.DocumentId==d.SourceDocumentId&&source.Kind=="TRANSFER"&&source.BranchId==branchId))));
     private async Task<bool> Visible(Notification n,CancellationToken ct)
     {
-        if(n.WorkId!=null){var w=await db.WorkItems.AsNoTracking().SingleAsync(w=>w.WorkId==n.WorkId,ct);
+        if(n.NotificationType=="LOW_STOCK")return await access.HasRole("STOREKEEPER",n.BranchId,ct)&&await access.Allows("INVENTORY_VIEW",n.BranchId,ct:ct);
+        if(n.NotificationType=="SUPPLY_INITIAL_SHORT")return n.RecipientUserId==actor.Id&&await access.Allows("STAFF_SUPPLY_VIEW",n.BranchId,true,ct:ct);
+        if(n.WorkId!=null){var requestAccess=await RequestWorkflowVisibility.CanRead(db,access,actor.Id,n.WorkId.Value,clock.GetUtcNow().UtcDateTime,ct);
+            if(requestAccess!=null)return requestAccess.Value;
+            var w=await db.WorkItems.AsNoTracking().SingleAsync(w=>w.WorkId==n.WorkId,ct);
+            if(n.NotificationType.StartsWith("ROOM_ISSUE_")&&w.CreatedBy==actor.Id&&await access.Allows("IR_VIEW",n.BranchId,true,ct:ct))return true;
+            if(n.NotificationType.StartsWith("ROOM_ISSUE_")&&await access.HasRole("STOREKEEPER",n.BranchId,ct)
+                &&await access.Allows("MR_FULFILL",n.BranchId,ct:ct)
+                &&await db.WorkEvents.AnyAsync(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_MATERIAL_REQUESTED",ct))return true;
             var owns=w.CreatedBy==actor.Id||await db.WorkAssignments.AnyAsync(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE",ct);
             if(!owns)owns=await db.WorkEvents.AnyAsync(e=>e.WorkId==w.WorkId&&e.EventType=="HANDOVER_OFFERED"&&e.RecipientUserId==actor.Id&&!db.WorkEvents.Any(d=>d.RelatedEventId==e.WorkEventId&&(d.EventType=="HANDOVER_ACCEPTED"||d.EventType=="HANDOVER_REJECTED")),ct);
             return await access.Allows(WorkRules.Permission(w.Kind,"read"),n.BranchId,owns,ct:ct);}
-        if(n.DocumentId!=null){var d=await db.InventoryDocuments.AsNoTracking().SingleAsync(d=>d.DocumentId==n.DocumentId,ct);return await access.Allows(d.Kind=="MATERIAL_REQUEST"?"MR_VIEW":"INVENTORY_VIEW",n.BranchId,d.CreatedBy==actor.Id,ct:ct);}
+        if(n.DocumentId!=null){var d=await db.InventoryDocuments.AsNoTracking().SingleAsync(d=>d.DocumentId==n.DocumentId,ct);
+            if(d.Kind is "TRANSFER_REQUEST" or "TRANSFER" or "TRANSFER_RECEIPT")return await DocumentService.CanReadTransfer(db,access,d,ct);
+            return await access.Allows(d.Kind=="MATERIAL_REQUEST"?"MR_VIEW":"INVENTORY_VIEW",n.BranchId,d.CreatedBy==actor.Id,ct:ct);}
         return await access.Allows(n.NotificationType=="LOW_STOCK"?"INVENTORY_VIEW":"ROOM_VIEW",n.BranchId,ct:ct);
     }
     public Task<object> Read(long id,bool acknowledge,CancellationToken ct)=>atomic.Run(async()=>{

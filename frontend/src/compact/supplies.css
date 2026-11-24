@@ -1,0 +1,29 @@
+.supply-page { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.supply-page .page-toolbar { flex-wrap: wrap; }
+.supply-page .page-toolbar > label { flex: 1 1 210px; min-width: 0; }
+.supply-page input, .supply-page select, .supply-form input, .supply-form select { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.supply-table { width: 100%; table-layout: fixed; }
+.supply-table th, .supply-table td { white-space: normal; overflow-wrap: anywhere; }
+.supply-table small { display: block; margin-top: 5px; color: var(--muted, #526c68); }
+.supply-form { display: grid; gap: 16px; min-width: 0; }
+.supply-form label { display: grid; gap: 8px; min-width: 0; }
+.supply-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 12px; }
+.supply-allocation { border: 1px solid var(--border, #d6e3e0); border-radius: 12px; padding: 16px; margin: 16px 0; background: var(--surface, #fff); min-width: 0; }
+.supply-section-heading, .supply-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.supply-section-heading { justify-content: space-between; }
+.supply-section-heading h2 { margin: 0 0 6px; font-size: 17px; }
+.supply-actions { margin: 14px 0 0; }
+.supply-available { color: #176a40; background: #e6f4eb; border-radius: 4px; padding: 3px 6px; }
+.supply-none { color: #a42e35; background: #ffebeb; border-radius: 4px; padding: 3px 6px; }
+.supply-reserved { color: #825511; background: #fff1d7; border-radius: 4px; padding: 3px 6px; }
+.supply-shortage { color: #9c3036; }
+@media(max-width: 900px) {
+  .supply-table, .supply-table tbody, .supply-table tr, .supply-table td { display: block; width: auto; max-width: 100%; min-width: 0; }
+  .supply-table thead { display: none; }
+  .supply-table tr { border-bottom: 1px solid var(--border, #d6e3e0); padding: 10px 0; }
+  .supply-table td { display: grid; grid-template-columns: minmax(90px, 38%) minmax(0, 1fr); gap: 6px 10px; padding: 7px 10px; border: 0; }
+  .supply-table td::before { content: attr(data-label); font-weight: 600; color: var(--muted, #526c68); }
+  .supply-table td > small, .supply-table td > div + div { grid-column: 2; }
+  .supply-table td button { justify-self: start; max-width: 100%; }
+  .supply-allocation { padding: 12px; }
+}

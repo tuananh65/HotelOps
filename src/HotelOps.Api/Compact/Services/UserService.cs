@@ -4,6 +4,7 @@ using HotelOps.Api.Compact.Entities;
 using HotelOps.Api.Compact.Infrastructure;
 using HotelOps.Api.Compact.Security;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Compact.Services;
@@ -20,7 +21,7 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
     {
         await access.Require("USER_VIEW",ct:ct);
         var now=clock.GetUtcNow().UtcDateTime;
-        var users=await db.Users.AsNoTracking().OrderBy(u=>u.UserId).Take(500).ToArrayAsync(ct);
+        var users=await db.Users.AsNoTracking().Where(u=>u.DeletedAt==null).OrderBy(u=>u.UserId).ToArrayAsync(ct);
         var ids=users.Select(u=>u.UserId).ToArray();
         var branches=(await (from m in db.Memberships.AsNoTracking()
             join b in db.Branches on m.BranchId equals b.BranchId
@@ -40,22 +41,77 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
             where ids.Contains(ur.UserId) && r.IsActive && ur.AssignedAt<=now && ur.RevokedAt==null && (ur.ExpiresAt==null || ur.ExpiresAt>now)
             select new UserDirectoryRoleDto(ur.UserId,ur.RoleId,r.Name,ur.BranchId))
             .ToArrayAsync(ct)).ToLookup(r=>r.UserId);
+        var directoryDepartments=(await (from m in db.Memberships.AsNoTracking()
+            join b in db.Branches on m.BranchId equals b.BranchId
+            join d in db.Departments on m.DepartmentId equals (long?)d.DepartmentId
+            where ids.Contains(m.UserId) && d.BranchId==m.BranchId && d.IsActive && b.IsActive
+                && (m.Kind=="EMPLOYMENT" || m.Kind=="DEPARTMENT_AUTHORITY" || m.Kind=="BRANCH_ACCESS")
+                && m.ValidFrom<=now && (m.ValidTo==null || m.ValidTo>now)
+            select new UserDirectoryDepartmentDto(m.UserId,m.BranchId,b.Name,d.DepartmentId,d.Name,m.Kind))
+            .Distinct().ToArrayAsync(ct)).ToLookup(d=>d.UserId);
         return users.Select(user=>{
             var record=Output.Record(user);
             var fields=new Dictionary<string,object?>(record.Fields){
                 ["employments"]=employment[user.UserId].ToArray(),
                 ["branches"]=branches[user.UserId].ToArray(),
+                ["departments"]=directoryDepartments[user.UserId].ToArray(),
                 ["roles"]=roles[user.UserId].ToArray()
             };
             return new ResourceDto(record.Type,fields);
         }).ToArray();
     }
-    public Task<object> Create(CreateUserRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+    public async Task<object> CreationOptions(CancellationToken ct)
+    {
         await access.Require("USER_MANAGE",ct:ct);
-        var user=new User{EmployeeCode=request.EmployeeCode.Trim(),Username=request.Username.Trim(),FullName=request.FullName.Trim(),Email=request.Email,
-            AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",SecurityStamp=Guid.NewGuid(),CreatedAt=clock.GetUtcNow().UtcDateTime};
-        user.PasswordHash=passwords.HashPassword(user,request.Password);user.TemporaryPasswordExpiresAt=clock.GetUtcNow().UtcDateTime.AddDays(1);
-        db.Users.Add(user);await db.SaveChangesAsync(ct);audit.Add("User",user.UserId,"CREATE");return (object)Output.Record(user);},ct);
+        return new {
+            branches=await db.Branches.AsNoTracking().Where(b=>b.IsActive).OrderBy(b=>b.Name)
+                .Select(b=>new{b.BranchId,b.Name}).ToArrayAsync(ct),
+            departments=await (from d in db.Departments.AsNoTracking() join b in db.Branches on d.BranchId equals b.BranchId
+                where d.IsActive&&b.IsActive orderby d.Name select new{d.DepartmentId,d.BranchId,d.Name}).ToArrayAsync(ct)
+        };
+    }
+    public Task<object> Create(CreateAccountRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+        await access.Require("USER_MANAGE",ct:ct);
+        Output.Require(AccountPasswordPolicy.IsValid(request.Password),"PASSWORD_POLICY_NOT_MET",400);
+        var username=request.Username.Trim();
+        Output.Require(username.Length is >0 and <=100,"INVALID_USERNAME",400);
+        // Serialize allocation across API instances; the existing unique index is the final guard.
+        // Acquire before reading users so concurrent creates cannot deadlock while upgrading range locks.
+        try{await db.Database.ExecuteSqlRawAsync("""
+            DECLARE @result int;
+            EXEC @result=sys.sp_getapplock @Resource=N'HotelOps.Compact.Users.Create',
+                @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=10000;
+            IF @result < 0 THROW 51000, 'Account creation lock unavailable', 1;
+            """,ct);}
+        catch(SqlException error) when(error.Number==51000){throw new ApiException(409,"TRANSACTION_RETRY_REQUIRED");}
+        Output.Require(!await db.Users.AnyAsync(u=>u.Username==username,ct),"USERNAME_ALREADY_USED",409);
+        var values=await AccountManagementService.ValidateProfile(db,null,request.FullName,request.Email,request.Phone,ct);
+        Output.Require(await db.Branches.AnyAsync(b=>b.BranchId==request.BranchId&&b.IsActive,ct),"INVALID_ACCOUNT_BRANCH",400);
+        Output.Require(request.DepartmentId==null||await db.Departments.AnyAsync(d=>d.DepartmentId==request.DepartmentId&&d.BranchId==request.BranchId&&d.IsActive,ct),
+            "INVALID_ACCOUNT_DEPARTMENT",400);
+        var next=(await db.Users.MaxAsync(u=>(long?)u.UserId,ct)??0)+1;
+        string code;
+        do{code="NV"+next.ToString("D6",System.Globalization.CultureInfo.InvariantCulture);next++;}
+        while(await db.Users.AnyAsync(u=>u.EmployeeCode==code,ct));
+        var now=clock.GetUtcNow().UtcDateTime;
+        var user=new User{EmployeeCode=code,Username=username,FullName=values.Name,Email=values.Email,Phone=values.Phone,
+            AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",SecurityStamp=Guid.NewGuid(),CreatedAt=now};
+        user.PasswordHash=passwords.HashPassword(user,request.Password);user.TemporaryPasswordExpiresAt=now.AddDays(1);
+        db.Users.Add(user);await db.SaveChangesAsync(ct);
+        var membership=new Membership{UserId=user.UserId,BranchId=request.BranchId,Kind="BRANCH_ACCESS",IsPrimary=true,
+            RecordedBy=actor.Id,ValidFrom=now,Provenance="COMPACT_API"};
+        db.Memberships.Add(membership);
+        Membership? employment=null;
+        if(request.DepartmentId!=null){
+            employment=new Membership{UserId=user.UserId,BranchId=request.BranchId,DepartmentId=request.DepartmentId,Kind="EMPLOYMENT",
+                RecordedBy=actor.Id,ValidFrom=now,Provenance="COMPACT_API"};
+            db.Memberships.Add(employment);
+        }
+        await db.SaveChangesAsync(ct);
+        audit.Add("User",user.UserId,"CREATE",request.BranchId);
+        audit.Add("Membership",membership.MembershipId,"GRANT",request.BranchId);
+        if(employment!=null)audit.Add("Membership",employment.MembershipId,"GRANT",request.BranchId);
+        return (object)Output.Record(user);},ct);
     public Task<object> Status(long id,string action,ActionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("USER_MANAGE",ct:ct);var user=await db.Users.SingleOrDefaultAsync(u=>u.UserId==id,ct)??throw new ApiException(404,"NOT_FOUND");
         Output.Version(user.RowVersion,request.RowVersion);Output.Reason(request.Reason);

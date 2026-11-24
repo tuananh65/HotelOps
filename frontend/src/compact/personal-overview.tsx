@@ -1,4 +1,6 @@
 import PageTitle from "./page-title";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
 import {
@@ -23,7 +25,7 @@ function WorkCard({ kind, name }: { kind: string; name: string }) {
     revision,
   );
   return (
-    <article className="panel">
+    <article className={metricClass(kind)}>
       <MetricHeading
         icon={
           (
@@ -112,6 +114,7 @@ export default function PersonalOverview() {
       {!visible.length && (
         <Empty>Chọn chức năng phía trên để bắt đầu công việc.</Empty>
       )}
+      <AttendanceSummary />
     </>
   );
 }

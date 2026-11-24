@@ -46,6 +46,7 @@ table('departments', 'department_id', `
 code varchar(30) NOT NULL
 name nvarchar(150) NOT NULL
 manager_user_id bigint NULL
+description nvarchar(2000) NULL
 ${active}`, { branch: true });
 unique('departments', 'branch_id,code');
 fk('departments', 'manager_user_id', 'users', 'user_id');

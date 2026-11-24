@@ -1,4 +1,6 @@
 import { useState } from "react";
+import AttendanceSummary from "./attendance-summary";
+import { metricClass } from "./metric-tone";
 import {
   Wrench,
   ClipboardCheck,
@@ -21,7 +23,8 @@ export default function MaintenanceOverview({
 }: {
   staff?: boolean;
 }) {
-  const { branch, can } = useAuth();
+  const { branch, can, profile } = useAuth();
+  const supervisor = profile.roles.some(r=>r.code === "MAINTENANCE_SUPERVISOR" && (r.branchId === null || r.branchId === branch));
   const [revision, bump] = useState(0),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(1);
@@ -37,7 +40,7 @@ export default function MaintenanceOverview({
   );
   const metrics = [
     ["open", "Bảo trì đang mở", Wrench],
-    ["unassigned", "Chờ phân công", Users],
+    ["unassigned", "Chờ tiếp nhận", Users],
     ["inProgress", "Đang thực hiện", Clock],
     ["pendingReview", "Chờ nghiệm thu", ClipboardCheck],
     ["closed", "Đã nghiệm thu", ClipboardCheck],
@@ -56,7 +59,7 @@ export default function MaintenanceOverview({
         <p>
           {staff
             ? "Kỹ thuật viên đủ điều kiện giao việc trong chi nhánh"
-            : "Theo dõi riêng công việc bảo trì, sự cố và kế hoạch định kỳ"}
+            : "Tiếp nhận yêu cầu, phối hợp sửa chữa và theo dõi kết quả kiểm tra"}
         </p>
       </PageTitle>
       <PageToolbar>
@@ -78,7 +81,7 @@ export default function MaintenanceOverview({
             <CalendarDays size={16} /> Lịch cá nhân
           </a>
         )}
-        {!staff && can("MAINTENANCE_ASSIGN", false) && (
+        {!staff && !supervisor && can("MAINTENANCE_ASSIGN", false) && (
           <a className="button-link" href="#work?kind=MAINTENANCE">
             Phân công bảo trì
           </a>
@@ -152,9 +155,9 @@ export default function MaintenanceOverview({
             <>
               <div className="branch-metrics">
                 {metrics
-                  .filter(([key]) => data.metrics[key] != null)
+                  .filter(([key]) => data.metrics[key] != null && !(supervisor && ["pmDue", "pmOverdueWork"].includes(key)))
                   .map(([key, title, icon]) => (
-                    <article className="panel" key={key}>
+                    <article className={metricClass(key)} key={key}>
                       <MetricHeading icon={icon}>{title}</MetricHeading>
                       <strong className="branch-metric-value">
                         {data.metrics[key]}
@@ -162,9 +165,16 @@ export default function MaintenanceOverview({
                     </article>
                   ))}
               </div>
+
+            </>
+          ))}
+      </State>
+      {!staff && <AttendanceSummary />}
+      {!staff && data && !query.error && (
+        <State {...query}>
               <div className="chart-grid">
                 {[
-                  ["unassigned", "Cần phân công", Users],
+                  ["unassigned", "Chờ tiếp nhận", Users],
                   ["review", "Chờ nghiệm thu", ClipboardCheck],
                   ["incidents", "Sự cố ưu tiên", TriangleAlert],
                 ].map(
@@ -193,7 +203,7 @@ export default function MaintenanceOverview({
                       </section>
                     ),
                 )}
-                {data.pm && (
+                {!supervisor && data.pm && (
                   <section className="panel">
                     <MetricHeading icon={CalendarClock}>
                       PM đến hạn
@@ -232,9 +242,8 @@ export default function MaintenanceOverview({
                   {!data.progress.length && <Empty />}
                 </section>
               </div>
-            </>
-          ))}
-      </State>
+        </State>
+      )}
     </>
   );
 }

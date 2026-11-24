@@ -109,7 +109,11 @@ CREATE VIEW dbo.v_room_readiness AS
    CASE WHEN room.is_active=0 THEN 'INACTIVE'
     WHEN EXISTS(SELECT 1 FROM dbo.room_blocks b WHERE b.room_id=room.room_id AND b.blocked_at<=SYSUTCDATETIME()
       AND (b.released_at IS NULL OR b.released_at>SYSUTCDATETIME())) THEN 'BLOCKED'
-    WHEN cleaning.work_id IS NULL THEN 'PENDING_CLEANING'
+         WHEN cleaning.work_id IS NULL AND room.current_cleaning_work_id IS NULL
+              AND room.operational_status IN ('READY','AVAILABLE','OCCUPIED')
+              AND EXISTS(SELECT 1 FROM dbo.room_events reset_event WHERE reset_event.room_id=room.room_id
+                  AND reset_event.turnover_no=room.turnover_no AND reset_event.event_type='ADMIN_BASELINE_RESET') THEN 'READY'
+         WHEN cleaning.work_id IS NULL THEN 'PENDING_CLEANING'
     WHEN cleaning.status='IN_PROGRESS' THEN 'CLEANING_IN_PROGRESS'
     WHEN cleaning.status='REWORK_REQUIRED' OR inspection.status='FAILED' OR EXISTS(
       SELECT 1 FROM dbo.work_items r WHERE r.parent_work_id=cleaning.work_id AND r.kind='REWORK'

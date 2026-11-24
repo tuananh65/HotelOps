@@ -49,17 +49,18 @@ public sealed partial class InsightService
             var m=new Dictionary<string,int?>();
             if(roomsAllowed){
                 var rooms=await (from r in db.Rooms.AsNoTracking() join v in db.VRoomReadinesses on r.RoomId equals v.RoomId
-                    where r.BranchId==b.BranchId&&r.IsActive select new{v.Readiness,v.IsOccupied,
+                    where r.BranchId==b.BranchId&&r.IsActive select new{v.Readiness,v.IsOccupied,r.OperationalStatus,
                         cleaning=db.WorkItems.Where(w=>w.WorkId==r.CurrentCleaningWorkId&&w.RoomId==r.RoomId&&w.TurnoverNo==r.TurnoverNo&&w.Kind=="CLEANING").Select(w=>w.Status).FirstOrDefault(),
                         blocked=v.Readiness=="BLOCKED"}).ToArrayAsync(ct);
                 m["rooms"]=rooms.Length;
-                m["ready"]=rooms.Count(r=>r.Readiness=="READY"&&r.IsOccupied==false&&!r.blocked);
+                m["ready"]=rooms.Count(r=>r.Readiness=="READY"&&r.IsOccupied==false&&r.OperationalStatus!="RESERVED"&&!r.blocked);
+                m["reserved"]=rooms.Count(r=>r.OperationalStatus=="RESERVED");
                 m["occupied"]=rooms.Count(r=>r.IsOccupied==true);
                 m["needCleaning"]=rooms.Count(r=>r.cleaning==null||r.cleaning is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "ON_HOLD" or "REWORK_REQUIRED"||r.Readiness=="REWORK_REQUIRED");
                 m["pendingInspection"]=rooms.Count(r=>r.cleaning=="PENDING_INSPECTION");
                 m["blocked"]=rooms.Count(r=>r.blocked||r.Readiness=="BLOCKED");
             }
-            var work=await db.WorkItems.AsNoTracking().Where(w=>w.BranchId==b.BranchId&&kinds.Contains(w.Kind))
+            var work=await InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now).Where(w=>w.BranchId==b.BranchId&&kinds.Contains(w.Kind))
                 .Select(w=>new{w.WorkId,w.WorkNo,w.Title,w.Kind,w.Status,w.DueAt,w.CreatedAt,w.CompletedAt,w.SeverityId}).ToArrayAsync(ct);
             foreach(var k in kinds){var open=work.Where(w=>w.Kind==k&&OpenForMonitoring(w.Kind,w.Status)).ToArray();
                 m[k]=open.Length;m[k+"_overdue"]=open.Count(w=>w.DueAt<now);}

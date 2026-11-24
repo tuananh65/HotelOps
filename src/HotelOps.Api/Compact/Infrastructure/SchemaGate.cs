@@ -10,11 +10,11 @@ public static class SchemaGate
             await using var command=db.Database.GetDbConnection().CreateCommand();
             command.CommandText="""
                 SELECT CASE WHEN DB_NAME() LIKE 'HotelOpsCompact%'
-                AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOpsCompactSchema' AND CONVERT(nvarchar(20),value)='2.1.0')
-                AND (SELECT COUNT(*) FROM sys.tables WHERE is_ms_shipped=0)=40
-                AND (SELECT COUNT(*) FROM sys.foreign_keys)=160
-                AND (SELECT COUNT(*) FROM sys.check_constraints)=82
-                AND (SELECT COUNT(*) FROM sys.triggers WHERE parent_class=1)=27
+                AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOpsCompactSchema' AND CONVERT(nvarchar(20),value)='3.0.0')
+                AND (SELECT COUNT(*) FROM sys.tables WHERE is_ms_shipped=0)=49
+                AND (SELECT COUNT(*) FROM sys.foreign_keys)=205
+                AND (SELECT COUNT(*) FROM sys.check_constraints)=97
+                AND (SELECT COUNT(*) FROM sys.triggers WHERE parent_class=1)=38
                 AND NOT EXISTS(SELECT 1 FROM sys.foreign_keys WHERE is_disabled=1 OR is_not_trusted=1)
                 AND NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE is_disabled=1 OR is_not_trusted=1)
                 AND NOT EXISTS(SELECT 1 FROM sys.triggers WHERE parent_class=1 AND is_disabled=1)

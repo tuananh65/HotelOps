@@ -60,11 +60,12 @@ public sealed class AuthService(HotelOpsCompactDbContext db,Atomic atomic,Actor 
     public Task<object> Logout(CancellationToken ct)=>atomic.Run(async()=>{
         var session=await db.UserSessions.SingleAsync(s=>s.SessionId==actor.SessionId && s.UserId==actor.Id,ct);
         session.RevokedAt=clock.GetUtcNow().UtcDateTime;return (object)new {revoked=true};},ct);
-    public Task<object> ChangePassword(PasswordRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+    public Task<object> ChangePassword(ChangeAccountPasswordRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         var user=await db.Users.SingleAsync(u=>u.UserId==actor.Id,ct);
         Output.Require(user.TemporaryPasswordExpiresAt==null||user.TemporaryPasswordExpiresAt>clock.GetUtcNow().UtcDateTime,"TEMPORARY_PASSWORD_EXPIRED",403);
         Output.Require(passwords.VerifyHashedPassword(user,user.PasswordHash!,request.CurrentPassword)!=PasswordVerificationResult.Failed,"INVALID_CURRENT_PASSWORD",400);
         Output.Require(request.CurrentPassword!=request.NewPassword,"PASSWORD_MUST_CHANGE",400);
+        Output.Require(AccountPasswordPolicy.IsValid(request.NewPassword),"PASSWORD_POLICY_NOT_MET",400);
         user.PasswordHash=passwords.HashPassword(user,request.NewPassword);user.SecurityStamp=Guid.NewGuid();user.TemporaryPasswordExpiresAt=null;
         var now=clock.GetUtcNow().UtcDateTime;
         foreach(var s in await db.UserSessions.Where(s=>s.UserId==user.UserId && s.RevokedAt==null).ToArrayAsync(ct))s.RevokedAt=now;

@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
@@ -63,9 +64,9 @@ export default function Templates() {
         }
       />
       {!form && error && (
-        <p className="alert" role="alert">
+        <AlertPopup>
           {error}
-        </p>
+        </AlertPopup>
       )}
       <State {...query} retry={() => bump((n) => n + 1)}>
         {can("CHECKLIST_MANAGE", false) && (
@@ -168,7 +169,7 @@ export default function Templates() {
               if (form === "checklist")
                 mutate("templates/checklists", {
                   branchId: branch,
-                  code: f.get("code"),
+                  code: String(f.get("code") || ""),
                   name: f.get("title"),
                   kind: f.get("kind"),
                   items: String(f.get("items"))
@@ -184,7 +185,7 @@ export default function Templates() {
               else
                 mutate("templates/schedules", {
                   branchId: branch,
-                  code: f.get("code"),
+                  code: String(f.get("code") || ""),
                   title: f.get("title"),
                   kind: f.get("kind"),
                   frequency: f.get("frequency"),
@@ -262,9 +263,9 @@ export default function Templates() {
               </>
             )}
             {error && (
-              <p role="alert" className="alert">
+              <AlertPopup>
                 {error}
-              </p>
+              </AlertPopup>
             )}
             <button className="primary" disabled={pending}>
               {form === "checklist" ? "Công bố checklist" : "Lưu lịch"}

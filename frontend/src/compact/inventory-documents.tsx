@@ -1,3 +1,4 @@
+import { AlertPopup } from "./alert-popup";
 import { useState } from "react";
 import { SlidersHorizontal, Plus } from "lucide-react";
 import { useAuth } from "./auth";
@@ -149,6 +150,7 @@ export default function InventoryDocuments({
         <h1>{titles[group]}</h1>
         <p>Chứng từ và số lượng trong chi nhánh</p>
       </PageTitle>
+      {group === "transactions" && <p><a className="button-link" href="#documents?transfer=1">?i?u chuy?n v?t t? gi?a c? s?</a></p>}
       <PageToolbar>
         {allowed.length > 1 && (
           <label>
@@ -282,7 +284,7 @@ export default function InventoryDocuments({
           </button>
         </PageToolbar>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {notice && <AlertPopup tone="success">{notice}</AlertPopup>}
       <State {...query} retry={() => bump((x) => x + 1)}>
         <div className="table-scroll">
           <table>
@@ -555,9 +557,9 @@ export default function InventoryDocuments({
             />
           </State>
           {error && (
-            <p className="alert" role="alert">
+            <AlertPopup>
               {error}
-            </p>
+            </AlertPopup>
           )}
         </Dialog>
       )}

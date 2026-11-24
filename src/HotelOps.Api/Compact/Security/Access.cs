@@ -32,7 +32,7 @@ public sealed class Access(HotelOpsCompactDbContext db,Actor actor,TimeProvider 
     {if(!await Allows(code,branchId,owns,ct:ct))throw new ApiException(403,"PERMISSION_DENIED");}
     public Task<bool> HasRole(string code,long branchId,CancellationToken ct){var now=clock.GetUtcNow().UtcDateTime;
         return (from ur in db.UserRoles join r in db.Roles on ur.RoleId equals r.RoleId
-            where ur.UserId==actor.Id&&ur.BranchId==branchId&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&r.IsActive&&r.Code==code select ur.UserRoleId).AnyAsync(ct);}
+            where ur.UserId==actor.Id&&ur.BranchId==branchId&&ur.AssignedAt<=now&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&r.IsActive&&r.Code==code select ur.UserRoleId).AnyAsync(ct);}
     public async Task RequireRolePermission(string roleCode,string permission,long branchId,CancellationToken ct){
         await Require(permission,branchId,ct:ct);var now=clock.GetUtcNow().UtcDateTime;
         var valid=await (from ur in db.UserRoles join role in db.Roles on ur.RoleId equals role.RoleId join grant in db.RolePermissions on role.RoleId equals grant.RoleId join p in db.Permissions on grant.PermissionId equals p.PermissionId

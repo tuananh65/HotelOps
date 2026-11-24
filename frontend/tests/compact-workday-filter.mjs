@@ -59,11 +59,13 @@ try {
       const body = req.postDataJSON();
       assignments.push({
         ...body,
+        userId: body.userIds[0],
+        workDate: body.workDates[0],
         assignmentId: 1,
         fullName: "Trần An",
         status: "PLANNED",
       });
-      json = {};
+      json = { count: body.userIds.length * body.workDates.length };
     } else if (path === "auth/me")
       json = {
         user: { fields: { userId: 1, fullName: "Hoàng Gia Bảo" } },
@@ -95,9 +97,19 @@ try {
         assignments,
         active: null,
       };
-    } else if (path === "workday/candidates") {
+    } else if (path === "workday/calendar") {
+      json = {
+        markers: [],
+        notice: "Mốc lịch tham khảo; không tự ghi nhận nghỉ phép.",
+      };
+    } else if (path === "workday/candidates/batch") {
       reads.push(`shift:${url.searchParams.get("shiftId")}`);
-      json = [{ userId: 8, fullName: "Trần An", employeeCode: "EMP008" }];
+      json = {
+        users: [{ userId: 8, fullName: "Trần An", employeeCode: "EMP008" }],
+        slots: url.searchParams
+          .getAll("dates")
+          .map((workDate) => ({ workDate, remaining: 4 })),
+      };
     }
     await route.fulfill({ status: 200, json });
   });
@@ -124,13 +136,14 @@ try {
   await expect(rows).toHaveCount(3);
   await rows.first().locator("button.add-shift").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await page.locator('select[name="userId"]').selectOption("8");
+  await page.getByRole("checkbox", { name: "Trần An · EMP008" }).check();
   await page
     .getByRole("button", { name: "Xác nhận phân ca", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   assert.equal(writes[0].body.shiftId, 10);
-  assert.equal(writes[0].body.workDate, "2026-11-23");
+  assert.deepEqual(writes[0].body.workDates, ["2026-11-23"]);
+  assert.deepEqual(writes[0].body.userIds, [8]);
   assert.ok(reads.includes("shift:10"));
   await expect(filter).toHaveValue("3:4");
   await expect(rows.first()).toContainText("Trần An");

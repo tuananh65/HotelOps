@@ -38,10 +38,10 @@ public sealed partial class InsightService
         if(report=="rooms"){
             await access.Require("ROOM_VIEW",branchId,ct:ct);
             var query=from r in db.Rooms.AsNoTracking() join v in db.VRoomReadinesses on r.RoomId equals v.RoomId join b in db.Branches on r.BranchId equals b.BranchId
-                where ids.Contains(r.BranchId)&&r.IsActive&&(term==""||r.Code.Contains(term))&&(status==null||status==""||(status=="OCCUPIED"?v.IsOccupied==true:status=="BLOCKED"?v.Readiness=="BLOCKED":v.IsOccupied==false&&v.Readiness==status))
-                select new{r.RoomId,r.BranchId,b.Name,r.Code,v.Readiness,v.IsOccupied};
+                where ids.Contains(r.BranchId)&&r.IsActive&&(term==""||r.Code.Contains(term))&&(status==null||status==""||(status=="OCCUPIED"?v.IsOccupied==true:status=="RESERVED"?r.OperationalStatus=="RESERVED":status=="BLOCKED"?v.Readiness=="BLOCKED":r.OperationalStatus!="RESERVED"&&v.IsOccupied==false&&v.Readiness==status))
+                select new{r.RoomId,r.BranchId,b.Name,r.Code,v.Readiness,v.IsOccupied,r.OperationalStatus};
             var ordered=sort=="oldest"?query.OrderBy(r=>r.RoomId):sort=="title"?query.OrderBy(r=>r.Code):query.OrderByDescending(r=>r.RoomId);
-            return await ReadPage(ordered.Select(r=>new MonitoringRow(r.RoomId,r.BranchId,r.Name,r.Code,"Phòng "+r.Code,"ROOM",r.IsOccupied==true?"OCCUPIED":r.Readiness??"UNKNOWN",null,null,null,null,null,null)),page,ct);
+            return await ReadPage(ordered.Select(r=>new MonitoringRow(r.RoomId,r.BranchId,r.Name,r.Code,"Phòng "+r.Code,"ROOM",r.OperationalStatus=="RESERVED"?"RESERVED":r.IsOccupied==true?"OCCUPIED":r.Readiness??"UNKNOWN",null,null,null,null,null,null)),page,ct);
         }
         if(report=="assets"){
             await access.Require("ASSET_VIEW",branchId,ct:ct);
@@ -68,7 +68,7 @@ public sealed partial class InsightService
         }
         var kind=report switch{"tasks"=>"OPERATIONAL","cleaning"=>"CLEANING","inspection"=>"INSPECTION","maintenance"=>"MAINTENANCE","incidents"=>"INCIDENT","requests"=>"INTERNAL_REQUEST",_=>throw new ApiException(404,"REPORT_NOT_FOUND")};
         await access.Require(WorkRules.Permission(kind,"read"),branchId,ct:ct);
-        var work=from w in db.WorkItems.AsNoTracking() join b in db.Branches on w.BranchId equals b.BranchId
+        var work=from w in InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,clock.GetUtcNow().UtcDateTime) join b in db.Branches on w.BranchId equals b.BranchId
             where ids.Contains(w.BranchId)&&w.Kind==kind&&w.CreatedAt>=period.Start&&w.CreatedAt<period.End
                 &&(term==""||w.Title.Contains(term)||w.WorkNo.Contains(term))&&(status==null||status==""||w.Status==status) select new{w,b.Name};
         var sorted=sort=="oldest"?work.OrderBy(x=>x.w.WorkId):sort=="title"?work.OrderBy(x=>x.w.Title):work.OrderByDescending(x=>x.w.WorkId);

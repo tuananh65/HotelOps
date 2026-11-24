@@ -8,9 +8,14 @@ public sealed class OperationsWorker(IServiceScopeFactory scopes,ILogger<Operati
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if(!config.GetValue("Compact:WorkerEnabled",true))return;
-        using var timer=new PeriodicTimer(TimeSpan.FromSeconds(60));
-        do{try{await Tick(stoppingToken);}catch(OperationCanceledException) when(stoppingToken.IsCancellationRequested){break;}catch(Exception e){logger.LogError(e,"Compact scheduled operations failed; transaction rolled back");}}
+        var scheduled=config.GetValue("Compact:WorkerEnabled",true);
+        var cleaning=config.GetValue("Compact:CleaningOverdueEnabled",true);
+        if(!scheduled&&!cleaning)return;
+        using var timer=new PeriodicTimer(TimeSpan.FromSeconds(30));
+        do{try{
+            if(cleaning){await using var scope=scopes.CreateAsyncScope();await CleaningDeadline.Scan(scope.ServiceProvider.GetRequiredService<HotelOpsCompactDbContext>(),DateTime.UtcNow,stoppingToken);}
+            if(scheduled)await Tick(stoppingToken);
+        }catch(OperationCanceledException) when(stoppingToken.IsCancellationRequested){break;}catch(Exception e){logger.LogError(e,"Compact scheduled operations failed; transaction rolled back");}}
         while(await timer.WaitForNextTickAsync(stoppingToken));
     }
     public async Task Tick(CancellationToken ct)
@@ -38,15 +43,7 @@ public sealed class OperationsWorker(IServiceScopeFactory scopes,ILogger<Operati
             var key=Key($"overdue:{w.WorkId}:{w.DueAt:O}");
             if(!await db.Notifications.AnyAsync(n=>n.EventKey==key,ct))await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"assign"),"WORK_OVERDUE",w.Title,w.WorkId,null,key,ct);
         }
-        foreach(var p in await db.InventoryPolicies.ToArrayAsync(ct)){
-            var qty=await db.StockMovements.Where(m=>m.WarehouseId==p.WarehouseId&&m.ItemId==p.ItemId).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
-            if(qty>=p.MinimumQty){p.LowStockEpisode=null;p.AlertedAt=null;continue;}
-            p.LowStockEpisode??=Guid.NewGuid();var key=p.LowStockEpisode.Value;
-            if(p.AlertedAt==null){
-                await notifications.ForPermission(p.BranchId,"INVENTORY_VIEW","LOW_STOCK",$"Item {p.ItemId}: {qty}",null,null,key,ct);
-                if(db.Notifications.Local.Any(n=>n.EventKey==key))p.AlertedAt=now;
-            }
-        }
+        await scope.ServiceProvider.GetRequiredService<LowStockService>().Reconcile(ct);
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
     }
     private static Guid Key(string value)=>new(SHA256.HashData(Encoding.UTF8.GetBytes(value)).AsSpan(0,16));
