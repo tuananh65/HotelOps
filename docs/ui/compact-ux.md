@@ -1,5 +1,17 @@
 # Quy ước UX giao diện HotelOps compact
 
+## Quyết định popup và báo sự cố — 24/11/2026, cập nhật sau cùng
+
+- Thông báo không cần xác nhận nằm phía trên, có nút × để đóng; thay thế quy ước popup góc dưới/Thu gọn trước đây. Nhiều thông báo xếp riêng theo dialog, không chồng nhau.
+- Hộp xác nhận thao tác ở giữa màn hình, Xác nhận màu xanh và Hủy màu đỏ. Màu nút xác nhận này thay thế ngoại lệ màu xác nhận hủy/chuyển phòng trước đây; màu nút mở thao tác giữ nguyên. Hủy hoặc đóng không gửi API; khóa thao tác khi đang xử lý.
+- Cảnh báo vượt giờ phân ca dùng hộp xác nhận. Hủy giữ lựa chọn nhưng chưa cho lưu; đổi ngày/nhân viên hoặc phiên số giờ phải xác nhận lại.
+- Form tạo báo sự cố bỏ cả Mức ảnh hưởng và Ghi chú theo trả lời trực tiếp của người dùng. Tự chọn mức ảnh hưởng hoạt động đã cấu hình; API không bắt buộc ghi chú kể cả cấu hình cũ RequireNote=true. OM không còn checkbox bắt buộc ghi chú. Các ghi chú xử lý/kiểm tra ở bước sau giữ quy tắc hiện hành.
+
+
+Xóa ca cấu hình (24/11/2026): nút Xóa ca màu đỏ mở dialog xác nhận, dùng cơ chế ngừng sử dụng hiện có (IsActive=false), giữ lịch sử. Mặc định chỉ hiện ca đang dùng; bật Hiện ca đã xóa / ngừng sử dụng để xem lại. Backend giữ SHIFT_MANAGE, branch, row version, audit và chặn PLANNED/WORKING trước khi ngừng ca. Không xóa phân công hoặc chấm công.
+
+Kho chi nhánh (24/11/2026): hiển thị tên kho hoạt động ở đầu trang; bảng STT, vật tư, tồn cơ sở, đơn vị, tối thiểu, thao tác. Không lặp tên kho/mã vật tư/biến động cuối trong bảng. Tồn dưới tối thiểu tô đỏ kèm chữ để không phụ thuộc riêng màu. OM có ROOM_SUPPLY_CONFIG sửa tối thiểu trong dialog ngay tại tồn kho, kiểm tra version và đồng bộ cấu hình mà giữ phiên bản ca đã mở. Nút xem kho chi nhánh khác chỉ cho chọn chi nhánh có INVENTORY_VIEW trong hồ sơ, không tự mở rộng quyền. OM có trang Lịch sử yêu cầu vật tư riêng với phân loại chứng từ và tìm/lọc. Kho cũ inactive giữ lịch sử, không hiện trong tồn kho hoạt động.
+
 Áp dụng khi bổ sung/sửa trang tại `frontend/src/compact`. Duy trì lựa chọn đã được người dùng chấp nhận; không dùng thay đổi giao diện để thay đổi quyền, phạm vi chi nhánh hoặc trạng thái nghiệp vụ.
 
 ## Tiếp nhận tài liệu mới
@@ -140,7 +152,68 @@ Xem ảnh trong `artifacts/navbar-page-titles`, `reception-rooms`, `structure-se
 
 ## Quyết định 24/11 — dashboard và nhóm yêu cầu
 
+- OM gộp Cấu hình ca, Cấu hình vật tư và Cấu hình nội bộ vào một menu Cấu hình, route `#configuration`, gồm tab Ca làm việc / Vật tư phòng / Yêu cầu nội bộ / Báo cáo phòng. Tab theo grant hiện có; báo cáo phòng cần cả quyền cấu hình và quyền đọc loại báo cáo. Nút Cấu hình ca ở Lịch làm việc đi thẳng `#configuration?tab=shifts`, có Quay lại lịch. Giữ deep-link `#supply-config`, `#internal-settings` và `?tab=room`; tải lại giữ tab, đổi chi nhánh làm mới dữ liệu/form. Nhóm A/B/C vẫn nằm trong tab Vật tư phòng. Admin và các vai trò khác giữ điều hướng hiện có.
+
+- Cấu hình vật tư OM chia ba tab A (Vật tư cấp theo ca), B (Đồ dùng bền), C (Thiết bị sửa chữa bên ngoài), kèm số cấu hình và hướng dẫn riêng. Form tạo kế thừa nhóm đang mở; form sửa vật tư vẫn cho đổi nhóm. Chỉ nhóm A nhập cấp đầu ca/mỗi khách; vật tư lưu kho nhập tồn tối thiểu, tài sản thuộc phòng không nhập định mức kho. Mỗi chi nhánh có đúng một kho hoạt động: hiển thị kho chung, bỏ dropdown chọn kho ở từng cấu hình; API tự xác định kho và từ chối kho khác/chi nhánh có số kho không hợp lệ. Giữ phiên bản, audit và định mức đã chụp của ca đang mở.
+
 - Các dashboard đặt thẻ số liệu trước bảng Ca làm của tôi, rồi đến thông tin chi tiết. Bảng ca chỉ tải khi có ATTENDANCE_RECORD và giữ nguyên cách tính giờ vào/ra thực tế theo tuần/tháng.
 - Màu thẻ theo ý nghĩa chỉ số: xanh lá cho sẵn sàng/hoàn thành, vàng cho chờ xử lý, đỏ cho quá hạn/sự cố, xanh dương cho số liệu chung, tím cho thông báo/yêu cầu. Luôn giữ tên và con số để không phụ thuộc riêng vào màu.
 - Trạng thái Đang trong ca có nền xanh và chữ trắng; Đã kết thúc có nền đỏ và chữ trắng trong lịch và thông tin ca. Không thay đổi quy tắc bắt đầu/kết thúc ca.
 - Riêng Trưởng bộ phận gộp Công việc, Yêu cầu nội bộ, Yêu cầu vật tư vào menu Yêu cầu, với ba tab tương ứng theo grant TASK_VIEW/IR_VIEW/MR_VIEW. Giữ các URL cũ và phạm vi chi nhánh; các vai trò khác giữ điều hướng hiện có.
+# Phân ca sau chuyển vai trò và báo sự cố lễ tân (24/11/2026)
+
+- Lịch quản lý mặc định chỉ hiển thị mẫu ca đang dùng. Tùy chọn “Hiện lịch sử ca đã ngừng sử dụng” cho phép xem lại ca cũ; không tạo phân công mới trên ca đã ngừng. Lịch cá nhân vẫn giữ lịch sử.
+- Ca đã hết giờ không có nút phân công; API ứng viên và phân công cũng từ chối. Vai trò và membership vẫn phải có hiệu lực suốt ca, không sửa hồi tố quyền để phân vào ca trước thời điểm chuyển vai trò.
+- Lễ tân chỉ thấy nút báo sự cố khi đã bắt đầu và còn trong giờ ca lễ tân tại chi nhánh hiện tại. Mở biểu mẫu trực tiếp và gửi API đều kiểm tra lại điều kiện này. Ngoài ca vẫn được xem dữ liệu theo quyền hiện có.
+
+
+## Điều chỉnh vệ sinh ngày 24/11/2026 (đã xác nhận)
+
+- Nhân viên và giám sát dùng hai tab Công việc hiện tại / Lịch sử vệ sinh; lịch sử ngày/tuần, lọc đóng mặc định, tìm kiếm/trạng thái/sắp xếp và phân trang. HK Staff chỉ đọc lịch sử việc mình hoàn thành ở backend.
+- Giám sát không được truy cập trang/API Tình trạng phòng bằng đường quyền HOUSEKEEPING_SUPERVISOR; quyền phân công vệ sinh vẫn cho đọc danh sách phòng cần tạo việc.
+- Hàng đợi bắt đầu bằng Tất cả, tách Đã giao khỏi Đang dọn, đặt trên khung chung tìm kiếm và sắp xếp.
+- Thời lượng mới chỉ 20/25/30 phút tính từ giao việc. Tạo dọn lại chọn nhân viên và phân công cùng transaction; đóng biểu mẫu giữ trang hiện tại.
+- Báo sự cố màu cam chỉ ở bước dọn/kiểm tra đủ điều kiện; API kiểm tra lại work context. Drawer vệ sinh bỏ hủy/minh chứng/ACTIVE, hiển thị người nhận và giờ nhận; báo sự cố cùng hàng với xác nhận hoàn thành.
+- Bằng chứng và giới hạn: `plans/reports/implementation-261124-1833-housekeeping-workspace.md`.
+
+## Cấu hình và vệ sinh có sự cố — quyết định bổ sung 24/11/2026
+
+- Loại yêu cầu nội bộ gồm tên, mô tả, danh sách tích vai trò được gửi và danh sách tích người/bộ phận được nhận. Người gửi chọn đúng một nơi nhận trong danh sách được cấu hình; API kiểm tra vai trò, nơi nhận và chi nhánh. Cấu hình cũ chưa có danh sách giữ tương thích.
+- Giờ bắt đầu/kết thúc ca dùng cùng bộ chọn 24 giờ; kết thúc cho phép 24:00. API từ chối ca trùng, kể cả hai yêu cầu tạo đồng thời.
+- Báo sự cố chỉ hiện các trường phụ thuộc sau khi chọn loại. OM cấu hình tên và bật/tắt hai mức ảnh hưởng nghiệp vụ hiện có (READINESS/SAFETY), cùng yêu cầu ghi chú. Không thay đổi ý nghĩa xử lý của hai mức này.
+- Báo sự cố từ công việc quay lại đúng công việc đang làm. Hoàn thành vệ sinh có sự cố giữ phân loại riêng trong lịch sử và vào hàng đợi “Kiểm tra phòng gặp sự cố”, không lẫn kiểm tra vệ sinh thông thường.
+- Giám sát xác nhận báo cáo đã liên kết từ công việc: thiếu đồ chuyển kho, hỏng đồ chuyển kỹ thuật. Gửi lại thao tác không tạo yêu cầu khắc phục trùng. Không cho kiểm tra vệ sinh đạt khi còn sự cố chưa xử lý; chỉ xét sẵn sàng sau khắc phục, kiểm tra lại sự cố và kiểm tra vệ sinh cuối cùng.
+- Bằng chứng thực tế, phiên bản local và giới hạn kiểm thử: `plans/reports/implementation-261124-1915-internal-config-incident-workflow.md`.
+
+## Vật phẩm trong phòng — bổ sung 24/11/2026
+
+- Đồ dùng bền nhận diện theo cặp ID phòng–ID vật phẩm đã cấp vào phòng; không dùng tên hoặc tồn kho chung để suy ra đồ thuộc phòng. Báo thiếu chỉ chọn đồ dùng bền nhóm B đã được gán.
+- Đồ fill nhóm A dùng ID vật phẩm và số lượng bằng sức chứa tối đa phòng nhân định mức mỗi khách. Giữ chỗ khi phân công, trừ vật tư nhân viên khi hoàn thành, gửi lại không trừ lặp. Dọn lại không tự tiêu hao thêm một bộ fill đầy đủ.
+- Dữ liệu kiểm thử đã duyệt cho 96 phòng: 8 loại fill, cùng ấm đun/ly uống nước/móc áo/thùng rác mỗi loại 1/phòng; chứng từ ghi rõ dữ liệu kiểm thử. Chi tiết và số lượng kho còn lại: `plans/reports/implementation-261124-1957-room-supplies.md`.
+
+## Hàng đợi và workspace bảo trì — bổ sung 24/11/2026
+
+- “Tất cả” của giám sát buồng phòng gồm công việc hiện tại và phòng cần dọn chưa có việc mở. Tab “Phòng cần dọn” đứng thứ hai; bỏ tab “Chưa phân công”, nhưng công việc chưa giao vẫn nằm trong “Tất cả”. Phòng chưa có việc có nút tạo yêu cầu ngay trong bảng chung; tổng và phân trang tính trên danh sách gộp.
+- Menu HK Staff ẩn Công việc khác, Thông báo, Vật tư của tôi, Sự cố phòng và Lịch sử công việc. Vẫn giữ báo sự cố từ công việc đang thực hiện, lịch sử vệ sinh trong trang dọn phòng và các quyền nghiệp vụ đã duyệt.
+- Badge Chờ kiểm tra / Kiểm tra phòng gặp sự cố dùng màu vàng, kèm nhãn trạng thái.
+- Maintenance Supervisor dùng một trang Công việc bảo trì cho sự cố đã chuyển kỹ thuật và việc bảo trì độc lập. Các lần sửa chữa con được theo dõi trong sự cố gốc, không nhân đôi dòng. Có các nhóm Tất cả hiện tại, Chờ tiếp nhận, Đang xử lý, Chờ kiểm tra, Lịch sử; tìm kiếm và phân trang.
+- Tiếp nhận vẫn yêu cầu bắt đầu ca hợp lệ và đúng quyền/chi nhánh/người xử lý. Khi chưa bắt đầu ca, drawer giải thích rõ và dẫn tới Lịch làm việc; không tự ghi nhận chấm công thay nhân viên. URL cũ room-issues/in-progress của giám sát bảo trì mở workspace chung.
+
+## Giao việc chờ nhận và cấp đồ thiếu — bổ sung 24/11/2026
+
+- Không giao thêm dọn mới hoặc dọn lại cho nhân viên đang có assignment ACTIVE chưa AcceptedAt. Kiểm tra tại API trong transaction và loại khỏi danh sách ứng viên; sau khi nhận, nhân viên đủ điều kiện xuất hiện trở lại. Hai yêu cầu giao đồng thời không tạo hai việc chờ nhận.
+- HK Staff hiển thị cả ASSIGNED và PENDING_ACCEPTANCE là Chờ nhận. Bỏ nút tạm dừng trong chi tiết vệ sinh và bỏ hướng dẫn tạm dừng; form báo sự cố có khoảng cách riêng giữa ghi chú và nút gửi. Form tạo từ phòng đã chọn không có Chọn phòng khác.
+- Giám sát buồng phòng ẩn menu Sự cố & Thông báo, Vật tư nhân viên, Lịch sử vệ sinh; lịch sử vẫn trong Công việc. Thủ kho ẩn Vật tư nhân viên và Sự cố phòng; quyền nghiệp vụ/deep-link vẫn giữ.
+- Công việc vệ sinh chỉ chờ kho/kỹ thuật xử lý được ẩn khỏi hàng đợi hiện tại, giữ dữ liệu và lịch sử. Nếu còn sự cố cần giám sát xác nhận hoặc kiểm tra thì vẫn hiện. Sau cấp đủ/sửa xong, việc quay lại hàng đợi kiểm tra.
+- Ghi sổ cấp đủ phiếu thiếu đồ tự chuyển sự cố và các yêu cầu con sang kiểm tra trong cùng transaction. Cấp một phần không chuyển. Giám sát kiểm tra bằng nút Kiểm tra sau khắc phục ngay trong drawer Công việc; chưa kiểm tra đạt không tự giải phóng phòng.
+- Phiếu cũ đã xuất đủ nhưng chưa ghi bước bàn giao vẫn xuất hiện để giám sát đang trong ca Tiếp nhận kiểm tra phòng. API đối soát lượng cấp thực, hoàn/đảo chứng từ và phiếu mới nhất; chưa cấp đủ thì từ chối. Tiếp nhận không thay cho kết luận kiểm tra.
+- Danh mục vật tư dùng toàn chiều rộng khi không có danh mục phụ. Trong workspace Yêu cầu vật tư, APPROVED được trình bày là Chờ duyệt màu vàng theo quyết định người dùng; trạng thái lưu và bằng chứng duyệt không bị viết lại. Địa điểm cấp hiển thị chi nhánh/tầng/phòng từ ReceivingRoomId trong chi tiết và form cấp phát.
+
+## Kiểm tra sau khắc phục và dọn lại — 24/11/2026
+
+- Tiếp nhận giám sát sửa chữa đồng thời bắt đầu việc bảo trì trong transaction, không hỏi ghi chú ở bước nhận. Drawer chuyển sang Kết thúc sửa chữa; số đếm workspace tải lại sau thao tác. Việc cũ chưa bắt đầu vẫn có thao tác bắt đầu tương thích.
+- Vệ sinh có sự cố đã khắc phục/đã cấp đủ hiện trong Chờ kiểm tra với nhãn Chờ kiểm tra - sc màu cam. Dọn lại đã gửi kiểm tra hiện cùng tab, nhãn Chờ kiểm tra - dl màu nâu. Đây là phân loại hiển thị, không thêm trạng thái database.
+- PASS sự cố cuối cùng của lần vệ sinh hiện tại đồng thời ghi kết quả kiểm tra vệ sinh, kết thúc dọn lại nếu đủ điều kiện và đánh giá READY. Không yêu cầu người dùng kiểm tra lần nữa. Giữ kiểm tra độc lập, chu kỳ phòng, việc dọn lại thực sự đã gửi, sự cố khác và các chặn an toàn/chiếm dụng.
+- PASS không cần ghi chú hay checkbox xác nhận lỗi. Các finding được giải quyết bằng bằng chứng PASS và lần dọn lại đã hoàn tất; hệ thống ghi lý do chuẩn nếu không nhập ghi chú. FAIL cần ghi chú không rỗng, tối đa 2.000 ký tự, không có mức tối thiểu 10.
+- Form báo sự cố bỏ bộ chọn Mức ảnh hưởng; ưu tiên READINESS đang bật, nếu cấu hình chỉ bật mức khác thì dùng mức đó. Giữ mô tả Ghi chú và cấu hình OM. Panel dùng tên Sự cố đã phát hiện.
+- Audit phòng 104 (room 416) cho thấy vệ sinh 652/rework 663 đã COMPLETED, inspection 670 PASSED, nhưng incident 653 OPEN làm readiness BLOCKED. Quá hạn dọn chỉ ghi audit/thông báo, không tạo incident hoặc đổi phòng thành bảo trì. Không tự đóng sự cố chưa được xác minh để ép READY.

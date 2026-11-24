@@ -1,0 +1,3 @@
+# Parent integration notes for delegates
+
+Parent has changed shared Pager status to display range/total, Vietnamese native validation in Auth, global focus CSS, catalog server auto codes/duplicate names, permission activation guard, Reception statuses, tree structure/branch contact metadata, logo cutout. Common PasswordRequest/CreateUserRequest now min8. If you need additional Common CreateUserRequest fields, leave exact requested signature in report for parent. Do not change shared files. Existing API remains PID3144 until coordinated final build. Delegates should write integration report and stop when owned scope/tests complete. No full builds or primary writes.
