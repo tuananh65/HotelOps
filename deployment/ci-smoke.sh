@@ -40,5 +40,12 @@ docker compose --env-file "$ENV_FILE" -p hotelops -f "$root/docker-compose.yml" 
 bash "$root/deployment/healthcheck.sh"
 # An initialized database must never be silently reset on retry.
 if bash "$root/deployment/init-database.sh" --schema-only; then echo 'Init unexpectedly accepted an existing/live database' >&2; exit 1; fi
-bash "$root/deployment/backup-database.sh"
-echo 'PASS isolated Linux Docker build, fresh schema, HTTPS, auth, persistent backup and reinitialization guard'
+backup=$(bash "$root/deployment/backup-database.sh")
+docker compose --env-file "$ENV_FILE" -p hotelops -f "$root/docker-compose.yml" stop api frontend
+# Exercise the real Linux restore path, not VERIFYONLY alone. Keep the source DB.
+sed -i 's/DATABASE_NAME=HotelOpsCompactCiTest/DATABASE_NAME=HotelOpsCompactRestoreTest/' "$ENV_FILE"
+bash "$root/deployment/init-database.sh" --restore "$backup"
+printf 'Server=db;Database=HotelOpsCompactRestoreTest;User ID=sa;Password=%s;Encrypt=True;TrustServerCertificate=True\n' "$password" > "$private/connection"
+docker compose --env-file "$ENV_FILE" -p hotelops -f "$root/docker-compose.yml" up -d api frontend
+bash "$root/deployment/healthcheck.sh"
+echo 'PASS isolated Linux Docker build, fresh schema, HTTPS, auth, actual backup restore and reinitialization guard'
