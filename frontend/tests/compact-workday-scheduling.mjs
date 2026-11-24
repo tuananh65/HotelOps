@@ -88,7 +88,7 @@ try {
     else if (path === "workday")
       json = {
         weekStart: yearBoundary ? "2026-12-28" : "2026-11-23",
-        today: "2026-11-23",
+        today: "2026-11-23", currentMinute: 360,
         canManage: manages,
         shifts: [shift],
         assignments: [],
@@ -137,7 +137,7 @@ try {
   await page
     .getByRole("button", { name: "Phân Ca sáng ngày 2026-11-23", exact: true })
     .click();
-  const dialog = page.getByRole("dialog"),
+  const dialog = page.getByRole("dialog").first(),
     submit = dialog.getByRole("button", {
       name: "Xác nhận phân ca",
       exact: true,
@@ -217,7 +217,7 @@ try {
   await expect(
     dialog.getByRole("combobox", { name: "Đối tượng", exact: true }),
   ).toBeDisabled();
-  await expect(dialog.getByLabel("Bắt đầu", { exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("combobox", {name:"Bắt đầu — giờ",exact:true})).toBeDisabled();
   await dialog.getByLabel("Tên ca", { exact: true }).fill("Ca sáng mới");
   await dialog.getByRole("button", { name: "Lưu ca", exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -243,8 +243,8 @@ try {
   await dialog
     .getByRole("combobox", { name: "Đối tượng", exact: true })
     .selectOption("2");
-  await dialog.getByLabel("Bắt đầu", { exact: true }).fill("16:00");
-  await dialog.getByLabel("Kết thúc", { exact: true }).fill("24:00");
+  await dialog.getByRole("combobox", {name:"Bắt đầu — giờ",exact:true}).selectOption("16");
+  await dialog.getByRole("combobox",{name:"Kết thúc — giờ",exact:true}).selectOption("24");
   await dialog.getByRole("button", { name: "Lưu ca", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   assert.equal(writes[4].body.endMinute, 1440);
@@ -255,26 +255,31 @@ try {
   await dialog.getByLabel("Phạm vi phân ca").selectOption("week");
   await expect(dialog.getByText(/tất cả 7 ngày/)).toBeVisible();
   await dialog.getByRole("checkbox", {name:/Trần An/}).check();
-  const warning = dialog.getByRole("region", {name:"Cảnh báo vượt giờ"});
+  const warning = page.getByRole("dialog", {name:"Cảnh báo vượt giờ",exact:true});
   await expect(warning).toContainText("9 giờ");
   await expect(warning).toContainText("48 giờ");
+  await page.screenshot({path:out+"/overtime-confirmation.png"});
+  const beforeCancel = writes.length;
+  await warning.getByRole("button",{name:"Hủy",exact:true}).click();
+  assert.equal(writes.length,beforeCancel);
+  await expect(warning).toHaveCount(0);
   await dialog.getByRole("checkbox", {name:/Tôi đã xem 1 ngày/}).check();
   await expect(submit).toBeDisabled();
-  const confirmHours = dialog.getByRole("checkbox", {name:/Tôi đã xem số giờ vượt/});
-  await confirmHours.check();
+  await dialog.getByRole("button",{name:"Xem cảnh báo vượt giờ",exact:true}).click();
+  const confirmHours = warning.getByRole("button", {name:"Xác nhận",exact:true});
+  await confirmHours.click();
   await expect(submit).toBeEnabled();
   await dialog.getByRole("checkbox", {name:/Nguyễn Bình/}).check();
-  await expect(confirmHours).not.toBeChecked();
+  await expect(warning).toBeVisible();
   await expect(submit).toBeDisabled();
-  await confirmHours.check();
+  await confirmHours.click();
   rejectSave = true;
   hoursRevision++;
   await submit.click();
-  await expect(dialog.getByRole("alert").filter({ hasText: /^Lịch vượt/ })).toContainText("xác nhận");
-  await expect(confirmHours).not.toBeChecked();
+  await expect(warning).toBeVisible();
   await expect(submit).toBeDisabled();
   rejectSave = false;
-  await confirmHours.check();
+  await confirmHours.click();
   await page.screenshot({path:`${out}/weekly-overtime.png`});
   await submit.click();
   await expect(dialog).toHaveCount(0);

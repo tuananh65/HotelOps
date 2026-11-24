@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { chromium, expect } from "@playwright/test";
 
 const base = process.env.BASE_URL || "https://127.0.0.1:5082";
-const out = "../artifacts/room-alert-popups";
+const out = "../artifacts/alert-modal";
 fs.mkdirSync(out, { recursive: true });
 const profile = {
   user: { fields: { userId: 1, fullName: "Lễ tân kiểm thử" } },
@@ -45,7 +45,7 @@ try {
   await page.goto(`${base}/#rooms`);
   await expect(page.locator(".alert-popup")).toHaveCount(2);
   async function assertLayout() {
-    const result = await page.locator(".alert-popup").evaluateAll(nodes => nodes.map(n => {
+    const result = await page.locator(".alert-popup:visible").evaluateAll(nodes => nodes.map(n => {
       const r = n.getBoundingClientRect();
       return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, position:getComputedStyle(n).position };
     }));
@@ -55,6 +55,7 @@ try {
       assert.ok(r.x >= 0 && r.right <= size.width + 1 && r.y >= 0 && r.bottom <= size.height + 1, JSON.stringify(r));
     }
     const sorted = result.sort((a,b) => a.y-b.y);
+    if(sorted.length) assert.ok(Math.abs(sorted[0].y-12)<2, "Notification at top");
     for(let i=1;i<sorted.length;i++) assert.ok(sorted[i].y >= sorted[i-1].bottom, "Alerts must not overlap");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "No horizontal overflow");
   }
@@ -69,14 +70,12 @@ try {
   await assertLayout();
   await page.setViewportSize({ width:320, height:812 });
   const first = page.locator(".alert-popup").first();
-  await first.getByRole("button", { name: "Thu gọn", exact: true }).click();
-  await expect(first.getByRole("button", { name: "Mở ra", exact: true })).toHaveAttribute("aria-expanded", "false");
-  await expect(first.locator(".alert-popup-body")).toBeHidden();
-  await first.getByRole("button", { name: "Mở ra", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(first.locator(".alert-popup-body")).toBeVisible();
+  await first.getByRole("button", { name: "Đóng thông báo", exact: true }).click();
+  await expect(first).toBeHidden();
+  await expect(page.locator(".alert-popup:visible")).toHaveCount(1);
+  await assertLayout();
   failRooms = false; failTypes = false;
-  await first.getByRole("button", { name: "Thử lại", exact: true }).click();
+  await page.locator(".alert-popup:visible").getByRole("button", { name: "Thử lại", exact: true }).click();
   await expect(page.locator(".alert-popup")).toHaveCount(0);
   await expect(page.locator(".room-tile")).toHaveCount(3);
   await expect(page.getByRole("button", { name: /^Bảo trì\s+1$/ })).toBeVisible();
@@ -91,31 +90,41 @@ try {
   assert.match(await cancel.getAttribute("class"), /room-action-cancel/);
   assert.match(await move.getAttribute("class"), /room-action-move/);
   await cancel.click();
-  await dialog.getByRole("button", { name: "Xác nhận", exact:true }).click();
-  await expect(dialog.getByRole("alert")).toContainText("Dữ liệu đã thay đổi");
-  await dialog.getByRole("button", { name: "Thu gọn", exact:true }).click();
-  await dialog.getByRole("button", { name: "Mở ra", exact:true }).click();
-  assert.equal(writes.length, 1, "Toggling popup must never submit the form");
-  await dialog.getByRole("button", { name:"Đóng", exact:true }).click({trial:true});
+  const confirm = page.getByRole("dialog", {name:"Xác nhận thao tác phòng",exact:true});
+  const confirmColors = await Promise.all(["Xác nhận","Hủy"].map(name=>confirm.getByRole("button",{name,exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor)));
+  assert.deepEqual(confirmColors,["rgb(34, 104, 95)","rgb(180, 35, 24)"]);
+  const bounds=await confirm.boundingBox(), viewport=page.viewportSize();
+  assert.ok(Math.abs(bounds.y+bounds.height/2-viewport.height/2)<2,"Confirmation centered vertically");
+  assert.ok(Math.abs(bounds.x+bounds.width/2-viewport.width/2)<2,"Confirmation centered horizontally");
+  await confirm.getByRole("button",{name:"Hủy",exact:true}).click();
+  assert.equal(writes.length,0,"Cancel must not mutate");
+  await expect(confirm).toHaveCount(0);
+  await cancel.click();
+  await confirm.getByRole("button",{name:"Xác nhận",exact:true}).click();
+  await expect(confirm.getByRole("alert")).toContainText("Dữ liệu đã thay đổi");
   await assertLayout();
-  await page.screenshot({ path: `${out}/dialog-320.png` });
+  await page.screenshot({path:out+"/confirmation-error-320.png"});
+  await confirm.getByRole("button",{name:"Đóng thông báo",exact:true}).click();
+  await expect(confirm.locator(".alert-popup")).toBeHidden();
+  assert.equal(writes.length,1,"Close notification must not submit");
   rejectAction = false;
-  await dialog.getByRole("button", { name: "Xác nhận", exact:true }).click();
+  await confirm.getByRole("button", { name: "Xác nhận", exact:true }).click();
   await expect(dialog.locator(".badge")).toHaveText("Sẵn sàng");
   await expect(dialog.locator(".alert-popup")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("Đã cập nhật phòng");
-  await page.locator(".alert-popup.success").getByRole("button", {name:"Thu gọn",exact:true}).click();
+  await page.locator(".alert-popup.success").getByRole("button", {name:"Đóng thông báo",exact:true}).click();
   await expect(page.locator(".alert-popup.success .alert-popup-body")).toBeHidden();
   await page.getByRole("button", {name:"Thông tin cá nhân",exact:true}).click();
   const personal = page.getByRole("dialog", {name:"Thông tin cá nhân",exact:true});
   await personal.getByLabel("Họ tên",{exact:true}).fill("Tên kiểm thử mới");
   await personal.getByRole("button",{name:"Lưu thông tin",exact:true}).click();
   await expect(personal.locator(".alert-popup.success")).toContainText("Đã lưu thông tin cá nhân.");
-  await personal.getByRole("button",{name:"Thu gọn",exact:true}).click();
+  await personal.getByRole("button",{name:"Đóng thông báo",exact:true}).click();
   await expect(personal.locator(".alert-popup-body")).toBeHidden();
-  await personal.getByRole("button",{name:"Mở ra",exact:true}).click();
+  await personal.getByLabel("Họ tên",{exact:true}).fill("Tên tiếp theo");
+  await personal.getByRole("button",{name:"Lưu thông tin",exact:true}).click();
   await expect(personal.getByRole("status")).toBeVisible();
   await personal.getByRole("button",{name:"Đóng",exact:true}).click();
   assert.deepEqual(errors, []);
@@ -133,10 +142,10 @@ try {
   await loginPage.getByLabel("Mật khẩu",{exact:true}).fill("fixture-password");
   await loginPage.getByRole("button",{name:"Đăng nhập",exact:true}).click();
   await expect(loginPage.getByRole("alert")).toBeVisible();
-  await loginPage.getByRole("button",{name:"Thu gọn",exact:true}).click();
-  await loginPage.getByRole("button",{name:"Mở ra",exact:true}).click();
+  await loginPage.getByRole("button",{name:"Đóng thông báo",exact:true}).click();
+  await expect(loginPage.getByRole("alert")).toBeHidden();
   assert.equal(logins,1);
   await login.close();
-  fs.writeFileSync(`${out}/verification.json`,JSON.stringify({passed:true,fixtureOnly:true,primaryWrites:false,checks:["multiple alerts stack","collapse and keyboard reopen","retry","modal alert interaction","320px no overflow","login no accidental submit","maintenance label","room button colors"],colors,writes,errors},null,2));
-  console.log("PASS popup stacking, collapse, retry, modal, login, mobile and room actions");
+  fs.writeFileSync(`${out}/verification.json`,JSON.stringify({passed:true,fixtureOnly:true,primaryWrites:false,checks:["multiple alerts stack","close and reopen on next message","retry","modal alert interaction","320px no overflow","login no accidental submit","maintenance label","room button colors"],colors,writes,errors},null,2));
+  console.log("PASS popup stacking, close, retry, modal, login, mobile and room actions");
 } finally { await browser.close(); }

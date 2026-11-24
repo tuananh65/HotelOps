@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { chromium, expect } from '@playwright/test';
+const origin=process.env.HK_UI_ORIGIN||'http://127.0.0.1:5174';
+assert(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
+const out='../artifacts/remediation-inspection/maintenance-ui';fs.mkdirSync(out,{recursive:true});
+const browser=await chromium.launch({channel:'msedge',headless:true});const checks=[],errors=[];
+try{for(const width of [1440,390]){
+ let onShift=false,accepted=0;
+ const context=await browser.newContext({viewport:{width,height:1000},ignoreHTTPSErrors:true});
+ await context.addInitScript(()=>sessionStorage.setItem('hotelops.compact.session','maintenance-ui-fixture'));
+ await context.route('**/api/v2/**',async route=>{
+  const url=new URL(route.request().url()),path=url.pathname.replace('/api/v2/','');let json={};
+  if(path==='auth/me')json={user:{fields:{userId:1,fullName:'Giám sát thử'}},branches:[{branchId:1,name:'Bùi Viện'}],roles:[{code:'MAINTENANCE_SUPERVISOR',branchId:1}],memberships:[],grants:['MAINTENANCE_VIEW','MAINTENANCE_EXECUTE','INCIDENT_VIEW','IR_VIEW','ATTENDANCE_RECORD'].map(code=>({code,branchId:1,dataScope:'BRANCH'}))};
+  else if(path==='work/maintenance-inbox')json={items:[{workId:8,kind:'INCIDENT',title:'Điều hòa phòng 101 bị hỏng',room:'101',queue:'waiting',updatedAt:'2026-11-24T13:00:00Z'},{workId:9,kind:'MAINTENANCE',title:'Bảo trì độc lập',queue:'doing',updatedAt:'2026-11-24T13:01:00Z'}],total:2,counts:[{queue:'waiting',count:1},{queue:'doing',count:1}]};
+  else if(path==='work/9')json={work:{fields:{workId:9,kind:'MAINTENANCE',branchId:1,title:'Bảo trì độc lập',status:'IN_PROGRESS',rowVersion:'AAAA'}},context:{branch:'Bùi Viện'},assignments:[],assignmentDetails:[],capabilities:{},events:[],reviews:[],attachments:[]};
+  else if(path==='work/9/related')json=[];
+  else if(path==='workspace/options')json={rooms:[],departments:[],references:[]};
+  else if(path==='work/room-issues/8')json={work:{fields:{workId:8,title:'Điều hòa phòng 101 bị hỏng',rowVersion:'AAAA'}},room:{code:'101',rowVersion:'BBBB'},info:{kind:'BROKEN',objectName:'Điều hòa'},stage:accepted?'ROOM_ISSUE_REPAIR_CREATED':'ROOM_ISSUE_REPAIR_REQUESTED',lead:true,canCreateRepair:!accepted,maintenance:accepted?[{workId:10,title:'Sửa chữa',status:'IN_PROGRESS'}]:[],materials:[],events:[]};
+  else if(path==='requests/8')json={request:{},actions:onShift?['claim']:[],actionBlockedReason:onShift?null:'ACTIVE_SHIFT_REQUIRED'};
+  else if(path==='work/room-issues/8/create-repair'){assert(onShift);assert.equal(route.request().postDataJSON().note,undefined);accepted++;}
+  else if(path.includes('notifications'))json=[];
+  await route.fulfill({json});
+ });
+ const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(`${origin}/login#room-issues?id=8`);
+ await expect(page.getByRole('heading',{name:'Công việc bảo trì',exact:true})).toBeVisible();
+ for(const name of ['Yêu cầu khắc phục','Công việc đang xử lý','Sự cố phòng'])await expect(page.locator('nav').getByRole('link',{name,exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Tiếp nhận giám sát sửa chữa',exact:true})).toBeDisabled();
+ await expect(page.getByText(/Bạn chưa bắt đầu ca làm việc hợp lệ/)).toBeVisible();
+ await expect(page.getByRole('link',{name:'Đến lịch làm việc'})).toHaveAttribute('href','#workday');
+ await page.screenshot({path:`${out}/off-shift-${width}.png`,fullPage:true});
+ onShift=true;await page.getByRole('button',{name:'Kiểm tra lại',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Tiếp nhận giám sát sửa chữa',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Tiếp nhận giám sát sửa chữa',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Kết thúc sửa chữa',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Bắt đầu giám sát sửa chữa',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('dialog')).toHaveCount(1);
+ await expect.poll(()=>accepted).toBe(1);
+ await page.getByRole('dialog').getByRole('button',{name:/Đóng/}).click();
+  await page.getByRole('row').filter({hasText:'Bảo trì độc lập'}).getByRole('button',{name:'Xem chi tiết'}).click();
+  await expect(page.getByRole('dialog').getByRole('heading',{name:'Bảo trì độc lập',exact:true})).toBeVisible();
+  await page.getByRole('dialog').getByRole('button',{name:/Đóng/}).click();
+ await page.getByRole('button',{name:'Tiếp nhận / xem',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await page.getByRole('dialog').getByRole('button',{name:/Đóng/}).click();
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'page overflow');
+ await page.screenshot({path:`${out}/inbox-${width}.png`,fullPage:true});
+ checks.push({width,alias:true,hiddenDuplicates:true,blockedReason:true,refresh:true,accept:true,drawerReopen:true,standaloneMaintenance:true});await context.close();
+}assert.deepEqual(errors,[]);fs.writeFileSync(`${out}/browser.json`,JSON.stringify({checks,errors},null,2));console.log(JSON.stringify({checks,errors}));}finally{await browser.close();}
