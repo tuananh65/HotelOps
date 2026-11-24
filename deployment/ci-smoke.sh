@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+[[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted ]] || {
+  echo 'Run this destructive container lifecycle test only on an ephemeral GitHub-hosted runner' >&2; exit 1;
+}
+if docker volume inspect hotelops_sql-data >/dev/null 2>&1 || [[ -n "$(docker ps -aq --filter label=com.docker.compose.project=hotelops)" ]]; then
+  echo 'Existing HotelOps containers/data detected; CI test refused' >&2; exit 1;
+fi
 root=$(cd "$(dirname "$0")/.." && pwd)
 private=$(mktemp -d)
 export ENV_FILE="$private/ci.env"
@@ -42,6 +48,7 @@ bash "$root/deployment/healthcheck.sh"
 if bash "$root/deployment/init-database.sh" --schema-only; then echo 'Init unexpectedly accepted an existing/live database' >&2; exit 1; fi
 backup=$(bash "$root/deployment/backup-database.sh")
 docker compose --env-file "$ENV_FILE" -p hotelops -f "$root/docker-compose.yml" stop api frontend
+if bash "$root/deployment/init-database.sh" --schema-only; then echo 'Existing database was unexpectedly accepted' >&2; exit 1; fi
 # Exercise the real Linux restore path, not VERIFYONLY alone. Keep the source DB.
 sed -i 's/DATABASE_NAME=HotelOpsCompactCiTest/DATABASE_NAME=HotelOpsCompactRestoreTest/' "$ENV_FILE"
 bash "$root/deployment/init-database.sh" --restore "$backup"
