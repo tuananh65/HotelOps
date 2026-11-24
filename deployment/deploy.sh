@@ -22,7 +22,9 @@ if ! dc up -d --no-deps api frontend || ! bash "$DEPLOY_ROOT/deployment/healthch
   restore_previous
   exit 1
 fi
-[[ -z "$previous" ]] || printf '%s\n' "$previous" > "$STATE_DIRECTORY/previous"
+if [[ -n "$previous" && "$previous" != "$DEPLOY_ROOT|$requested" ]]; then
+  printf '%s\n' "$previous" > "$STATE_DIRECTORY/previous"
+fi
 printf '%s|%s\n' "$DEPLOY_ROOT" "$requested" > "$STATE_DIRECTORY/current.tmp"
 mv "$STATE_DIRECTORY/current.tmp" "$STATE_DIRECTORY/current"
 echo "Deployed $requested"

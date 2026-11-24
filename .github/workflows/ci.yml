@@ -2,13 +2,16 @@ name: HotelOps CI
 on:
   push:
     branches: [feature/project2-role-alignment-20261123, develop, main]
+    paths-ignore: ['docs/**', 'plans/**']
   pull_request:
+    paths-ignore: ['docs/**', 'plans/**']
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never abandon a running SSM deployment when another push arrives.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build-test:
     runs-on: ubuntu-24.04
