@@ -11,6 +11,10 @@
 *.pem
 *.bak
 deployment/private/
+# Local personnel source documents are not public deployment artifacts.
+docs/database/compact-v2/HotelOps_Users_Chinh_Sua_2026-11-22.xlsx
+docs/database/compact-v2/staffing-v3-dry-run/HotelOps_Staffing_V3_DryRun.xlsx
+docs/requirements/HotelOps_Danh_Muc_Va_Phieu_Du_Lieu_Thuc_Te_2026-11-22.docx
 
 # User-specific files
 *.rsuser

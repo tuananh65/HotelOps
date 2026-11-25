@@ -1,0 +1,44 @@
+.login-card.login-refreshed { width: min(460px, 100%); padding: 32px; box-shadow: 0 16px 48px rgb(10 35 31 / 18%); }
+.login-card.login-refreshed > .brand-logo { width: 64px; height: 64px; margin: 0 auto 20px; }
+.login-card.login-refreshed > .eyebrow { margin: 0 0 10px; font-size: 11px; letter-spacing: 1.3px; }
+.login-card.login-refreshed h1 { margin: 0 0 10px; font-size: 30px; line-height: 1.2; }
+.login-refreshed > p:last-of-type { margin: 0; font-size: 14px; line-height: 1.6; }
+.login-refreshed form { display: grid; gap: 18px; margin-top: 24px; }
+.login-refreshed label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.login-input-wrap {
+  /* The shared input selector uses these tokens with higher specificity. */
+  --control-height: 48px;
+  --control-padding: 12px 48px 12px 44px;
+  --control-font-size: 15px;
+  position: relative; display: flex; align-items: center; min-width: 0;
+}
+.login-input-wrap > svg { position: absolute; left: 14px; width: 20px; height: 20px; pointer-events: none; color: var(--muted); }
+.login-input-wrap input { width: 100%; font-weight: 400; }
+.login-input-wrap input::placeholder { color: var(--muted); opacity: 1; }
+.login-refreshed .login-input-wrap input:focus { outline: 2px solid rgb(33 109 98 / 20%); outline-offset: 2px; box-shadow: none; border-color: var(--primary, #216d62); }
+.login-input-wrap .login-password-toggle { position: absolute; right: 4px; width: 40px; height: 40px; min-height: 40px; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink); }
+.login-password-toggle:focus-visible { outline: 2px solid var(--primary, #216d62); outline-offset: 1px; border-radius: 6px; }
+.login-refreshed .login-forgot { justify-self: end; border: 0; padding: 2px 0; margin-top: -4px; background: transparent; text-decoration: underline; font-weight: 600; }
+.login-refreshed form > .primary { min-height: 48px; margin-top: 0; font-size: 15px; }
+dialog.login-recovery-dialog { width: min(420px, calc(100vw - 32px)); padding: 24px; }
+.login-recovery-dialog > header { margin-bottom: 16px; }
+.login-recovery-dialog > form { gap: 14px; margin: 0; padding: 0; background: transparent; border: 0; }
+.login-recovery-dialog p { margin: 0; font-size: 14px; line-height: 1.6; }
+.login-recovery-dialog label { gap: 8px; }
+.login-recovery-dialog .recovery-expiry { margin-top: -6px; color: var(--muted); font-size: 12px; }
+.login-recovery-dialog .recovery-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.login-recovery-dialog .recovery-actions button { width: auto; min-height: 40px; padding: 8px 14px; margin: 0; white-space: nowrap; }
+.login-recovery-dialog .recovery-actions .danger { background: #b42318; border-color: #b42318; color: white; }
+.login-recovery-dialog > p + p { margin-top: 10px; }
+.login-recovery-dialog > .primary { margin-top: 20px; }
+@media (max-width: 480px) {
+  .login-page:has(.login-refreshed) { padding: 20px 16px; }
+  .login-card.login-refreshed { padding: 24px; }
+  .login-card.login-refreshed h1 { font-size: 28px; }
+}
+@media (max-height: 620px) and (min-width: 481px) {
+  .login-page:has(.login-refreshed) { padding: 16px; }
+  .login-card.login-refreshed { padding: 24px 32px; }
+  .login-card.login-refreshed > .brand-logo { width: 52px; height: 52px; margin-bottom: 14px; }
+  .login-refreshed form { margin-top: 18px; gap: 14px; }
+}

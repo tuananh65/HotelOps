@@ -11,7 +11,7 @@ export default function CleaningSupplyReconciliation({ work, saved }: { work: Ro
   return <>
     <button onClick={() => { setKey(crypto.randomUUID()); setReason(""); setError(""); }}>Đối soát vật tư công việc</button>
     {key && <Dialog title="Đối soát vật tư công việc" close={() => { if (!pending) setKey(""); }}>
-      <p>Giữ chỗ vật tư cho công việc đang dở. Nếu ca cũ chưa được cấp vật tư, hệ thống xuất đủ định mức hiện tại từ kho và lưu định mức cho ca. Không đủ tồn kho hoặc vật tư thì toàn bộ thao tác không được ghi nhận.</p>
+      <p>Đối soát và giữ chỗ vật tư cho công việc đang dở theo định mức phòng. Phần còn thiếu được cấp từ kho; vật tư đang giữ và số đã bổ sung được tính để tránh cấp trùng. Nếu kho không đủ vật tư hợp lệ, thao tác không được ghi nhận.</p>
       <p>Chỉ xác nhận sau khi nhân viên nhận đúng vật tư thực tế. Thao tác không ghi nhận thay việc sử dụng vật tư trước đây.</p>
       <form onSubmit={async e => {
         e.preventDefault(); setPending(true); setError("");

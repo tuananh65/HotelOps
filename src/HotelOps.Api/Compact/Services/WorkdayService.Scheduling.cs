@@ -164,6 +164,9 @@ public sealed partial class WorkdayService
             Output.Require(departmentRoles.Any(x => x.DepartmentId == request.DepartmentId && x.RoleId == request.RoleId),
                 "SHIFT_ROLE_DEPARTMENT_MISMATCH", 400);
         }
+        // Reconcile elapsed assignments under the same transaction/Workday lock before
+        // checking blockers; future assignments and genuinely active attendance still block.
+        if (id != null && !request.IsActive) await expiry.CloseExpired(request.BranchId, ct);
         Output.Require(request.IsActive || !await db.WorkdayAssignments.AnyAsync(a => a.ShiftId == id
             && (a.Status == "PLANNED" || a.Status == "WORKING"), ct), "SHIFT_HAS_OPEN_ASSIGNMENTS");
         Output.Require(!await db.WorkdayAssignments.Where(a => a.ShiftId == id && a.Status != "CANCELLED")

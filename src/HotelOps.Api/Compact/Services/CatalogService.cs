@@ -148,6 +148,7 @@ public sealed class CatalogService(HotelOpsCompactDbContext db,Access access,Ato
                 await new DependencyGuard(db).BeforeDeactivate(row,ct);
             if(row is Room room && id==null)room.OperationalStatus="DIRTY";
             if(row is Asset asset && id!=null){
+                if(asset.ConditionCode=="PENDING_INSPECTION")Output.Require(!entry.Property(nameof(Asset.IsActive)).IsModified,"PHYSICAL_ASSET_RECONCILIATION_REQUIRED");
                 Output.Require(!entry.Property(nameof(Asset.RoomId)).IsModified && !entry.Property(nameof(Asset.LocationId)).IsModified
                     && !entry.Property(nameof(Asset.ConditionCode)).IsModified,"USE_ASSET_ACTION_ENDPOINT");}
             if(row is ReferenceValue reference && id!=null && (entry.Property(nameof(ReferenceValue.Kind)).IsModified || entry.Property(nameof(ReferenceValue.ConversionFactor)).IsModified))

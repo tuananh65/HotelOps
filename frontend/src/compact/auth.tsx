@@ -9,6 +9,9 @@ import {
 import { api, session, hasSession, message, type Row } from "./api";
 import { useVietnameseValidation } from "./form-validation";
 import { PasswordChecklist, accountMessage } from "./account-policy";
+import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
+import ForgotPassword from "./forgot-password";
+import "./login-refresh.css";
 export type Profile = {
   user: { fields: Row };
   grants: { code: string; dataScope: string; branchId: number | null }[];
@@ -31,6 +34,8 @@ export function Auth({ children }: { children: ReactNode }) {
   useVietnameseValidation();
   const [newPassword, setNewPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null),
     [branch, setBranch] = useState(0),
     [loading, setLoading] = useState(true),
@@ -76,18 +81,18 @@ export function Auth({ children }: { children: ReactNode }) {
   if (!profile || profile.requiresPasswordChange)
     return (
       <div className="login-page">
-        <section className="login-card">
+        <section className="login-card login-refreshed">
           <img
             className="brand-logo"
             src="/duc-vuong-logo-transparent.png"
             alt="Đức Vượng Group"
           />
             <p className="eyebrow">VẬN HÀNH KHÁCH SẠN</p>
-          <h1>{profile ? "Đổi mật khẩu" : "Chào mừng trở lại"}</h1>
+          <h1>{profile ? "Đổi mật khẩu" : "Đăng nhập"}</h1>
           <p>
             {profile
               ? "Đặt mật khẩu mới để tiếp tục."
-              : "Đăng nhập để bắt đầu ngày làm việc."}
+              : "Đăng nhập bằng tên đăng nhập và mật khẩu của bạn."}
           </p>
           <form
             onSubmit={async (e) => {
@@ -122,25 +127,39 @@ export function Auth({ children }: { children: ReactNode }) {
           >
             {!profile && (
               <label>
+                {/* Owner 25/11 14:11: username only; employee code must not be used. */}
                 Tên đăng nhập
+                <span className="login-input-wrap">
+                <UserRound aria-hidden="true" size={20} />
                 <input
                   name="username"
                   autoComplete="username"
                   required
                   maxLength={100}
+                  placeholder="Nhập tên đăng nhập"
                 />
+                </span>
               </label>
             )}
             <label>
               {profile ? "Mật khẩu hiện tại" : "Mật khẩu"}
+              <span className="login-input-wrap">
+              <LockKeyhole aria-hidden="true" size={20} />
               <input
+                id="login-password"
                 name="password"
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                type="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Nhập mật khẩu"
                 autoComplete="current-password"
                 required
               />
+              <button type="button" className="login-password-toggle" aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={showPassword} aria-controls="login-password" onClick={() => setShowPassword(value => !value)}>
+                {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+              </button>
+              </span>
             </label>
+            {!profile && <button type="button" className="login-forgot" onClick={() => setForgotPassword(true)}>Quên mật khẩu?</button>}
             {profile && (
               <label>
                 Mật khẩu mới
@@ -171,6 +190,7 @@ export function Auth({ children }: { children: ReactNode }) {
               {pending ? "Đang xử lý…" : profile ? "Lưu mật khẩu" : "Đăng nhập"}
             </button>
           </form>
+          {forgotPassword && <ForgotPassword close={() => setForgotPassword(false)} />}
         </section>
       </div>
     );

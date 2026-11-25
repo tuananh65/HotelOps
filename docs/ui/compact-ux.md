@@ -38,7 +38,7 @@ Phân ca Department Head (23/11/2026): chọn Bộ phận trước rồi mới c
 
 Quyết định bổ sung 23/11/2026 về lễ tân: Sẵn sàng → Đặt phòng (RESERVED, Đã đặt) → Khách đến nhận phòng (OCCUPIED). Hủy đặt hoặc chuyển đặt khi khách chưa ở trả phòng nguồn về Sẵn sàng, không tăng lượt vệ sinh; phòng đích của chuyển đặt vẫn Đã đặt. Chuyển khách đã ở/trả phòng chuyển nguồn sang Cần dọn và tăng lượt vệ sinh. Không có ô lý do khi đặt/hủy đặt/nhận/trả; chuyển phòng và block vẫn giữ lý do. Các hành động mới dùng quyền Reception hiện có, không thêm grants. Đã đặt được hiển thị riêng; không tính vào phòng sẵn sàng để đón khách khác.
 
-Ca WORKING tự kết thúc tại giờ hết ca theo múi giờ chi nhánh; tác vụ nền chạy mỗi 30 giây và Workday kiểm tra lại khi tải. Ca PLANNED không tự bắt đầu/kết thúc. Hệ thống ghi audit AUTO_END (không giả danh nhân viên); lịch sử cá nhân hiển thị sự kiện này. Chỉ cho bắt đầu trong khoảng giờ của ca; giao diện cá nhân cập nhật mỗi 30 giây khi không mở form/chi tiết.
+Ca WORKING tự kết thúc tại giờ hết ca theo múi giờ chi nhánh; tác vụ nền chạy mỗi 30 giây và Workday kiểm tra lại khi tải. Quyết định 25/11/2026: ca PLANNED chưa bắt đầu được tự đóng khi đến giờ kết thúc + 1 giờ, lưu CANCELLED cùng audit AUTO_CANCEL_EXPIRED; không tạo StartedAt/EndedAt giả. API đánh dấu expiredWithoutStart để lịch cá nhân và lịch quản lý vẫn hiển thị “Đã kết thúc · chưa vào ca”, không tính vào sức chứa và không cho bắt đầu/hủy lại. Phân công hủy thủ công vẫn ẩn khỏi lịch. Hệ thống ghi audit AUTO_END (không giả danh nhân viên); lịch sử cá nhân hiển thị sự kiện này. Chỉ cho bắt đầu trong khoảng giờ của ca; giao diện cá nhân cập nhật mỗi 30 giây khi không mở form/chi tiết.
 
 Quyết định bổ sung ngày 23/11/2026: logo login dùng PNG nền trong suốt; focus ô nhập mảnh, không che chữ và vẫn rõ khi dùng bàn phím. Hồ sơ cá nhân mở từ tên tài khoản trên navbar cho mọi vai trò. Cấu trúc khách sạn dùng cây chi nhánh/tầng/khu/phòng, có form liên hệ chi nhánh. Reception gom chờ dọn/chờ kiểm tra/cần làm lại thành nhãn Cần dọn dẹp ở bảng phòng, tách Đang dọn dẹp; giữ thông tin block, không đổi lifecycle backend. Không hiện tạo sự cố cho Reception. Phân trang dùng chung hiển thị khoảng bản ghi/tổng.
 
@@ -217,3 +217,10 @@ Xem ảnh trong `artifacts/navbar-page-titles`, `reception-rooms`, `structure-se
 - PASS không cần ghi chú hay checkbox xác nhận lỗi. Các finding được giải quyết bằng bằng chứng PASS và lần dọn lại đã hoàn tất; hệ thống ghi lý do chuẩn nếu không nhập ghi chú. FAIL cần ghi chú không rỗng, tối đa 2.000 ký tự, không có mức tối thiểu 10.
 - Form báo sự cố bỏ bộ chọn Mức ảnh hưởng; ưu tiên READINESS đang bật, nếu cấu hình chỉ bật mức khác thì dùng mức đó. Giữ mô tả Ghi chú và cấu hình OM. Panel dùng tên Sự cố đã phát hiện.
 - Audit phòng 104 (room 416) cho thấy vệ sinh 652/rework 663 đã COMPLETED, inspection 670 PASSED, nhưng incident 653 OPEN làm readiness BLOCKED. Quá hạn dọn chỉ ghi audit/thông báo, không tạo incident hoặc đổi phòng thành bảo trì. Không tự đóng sự cố chưa được xác minh để ép READY.
+
+
+## Quyết định 25/11 — cấp vật tư khi nhận công việc
+
+- Bắt đầu ca không cấp vật tư đầu ca. Khi nhân viên nhận công việc dọn phòng, cấp phần cần thêm để đủ định mức theo sức chứa khách tối đa của phòng, tính đến vật tư khả dụng đang giữ để tránh cấp trùng.
+- Cấu hình nhóm A hiển thị định mức mỗi khách và tồn tối thiểu; bỏ trường cấp đầu ca khỏi biểu mẫu. Trường `initialQuantity` cũ được bảo toàn trong hợp đồng API để tương thích dữ liệu, không phải chỉ dẫn cấp phát mới.
+- Kiểm đếm vật tư trong phòng vẫn giải phóng phần giữ chỗ dư; tiêu hao chỉ ghi nhận số thực tế bổ sung. Lịch sử cấp phát cũ không bị đổi tên hoặc sửa số lượng.

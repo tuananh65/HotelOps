@@ -7,11 +7,11 @@ using Xunit;
 namespace HotelOps.Compact.Tests;
 public sealed class CompactV2Tests
 {
-    [Fact]public void ModelMatchesP0TablesAndSixViews()
+    [Fact]public void ModelMatchesRestructureTablesAndSixViews()
     {
         using var db=new HotelOpsCompactDbContext(new DbContextOptionsBuilder<HotelOpsCompactDbContext>().UseSqlServer("Server=localhost;Database=ModelOnly;Integrated Security=true").Options);
         var entities=db.Model.GetEntityTypes().ToArray();
-        Assert.Equal(49,entities.Count(e=>e.GetTableName()!=null));Assert.Equal(6,entities.Count(e=>e.GetViewName()!=null));
+        Assert.Equal(57,entities.Count(e=>e.GetTableName()!=null));Assert.Equal(6,entities.Count(e=>e.GetViewName()!=null));
         foreach(var table in new[]{"supply_configurations","staff_supply_allocations","staff_supply_balances","supply_reservations","supply_stock_documents","staff_supply_ledger","request_workflows","request_workflow_lines","request_workflow_events"})
             Assert.Contains(entities,e=>e.GetTableName()==table);
         Assert.DoesNotContain(entities,e=>e.GetTableName() is "workdays" or "shifts" or "time_corrections");

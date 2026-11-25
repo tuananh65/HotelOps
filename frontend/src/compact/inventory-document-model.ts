@@ -10,6 +10,8 @@ export const documentNames: Record<string, string> = {
   ADJUSTMENT: "Điều chỉnh",
   REVERSAL: "Đảo giao dịch",
   REPLENISHMENT: "Bổ sung vật tư",
+  REUSABLE_ISSUE: "Bàn giao vật tư tái sử dụng",
+  REUSABLE_RETURN: "Thu hồi vật tư tái sử dụng",
 };
 export const documentPermission: Record<string, string> = {
   RECEIPT: "STOCK_RECEIPT_POST",

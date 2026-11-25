@@ -3,6 +3,13 @@ import { api, type Row } from './api';
 
 /** Read every authorized page before client filtering/sorting; never sort only a visible page. */
 export function usePagedRows(path: string | null, revision = 0) {
+  const [notificationRevision, refresh] = useState(0);
+  useEffect(() => {
+    if (!path) return;
+    const changed = () => refresh(value => value + 1);
+    window.addEventListener('compact:notification-change', changed);
+    return () => window.removeEventListener('compact:notification-change', changed);
+  }, [path]);
   const [state, set] = useState<{path:string|null;data?:Row[];loading:boolean;error?:unknown}>({path:null,loading:false});
   useEffect(() => {
     const controller = new AbortController();
@@ -19,6 +26,6 @@ export function usePagedRows(path: string | null, revision = 0) {
       if (!controller.signal.aborted) set({path,data:rows,loading:false});
     })().catch(error=>{if(!controller.signal.aborted)set({path,error,loading:false});});
     return ()=>controller.abort();
-  },[path,revision]);
+  },[path,revision,notificationRevision]);
   return state.path===path?state:{loading:!!path,data:undefined,error:undefined};
 }

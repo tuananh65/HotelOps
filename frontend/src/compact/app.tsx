@@ -1,4 +1,5 @@
 import { AlertPopup } from "./alert-popup";
+import { useNotificationRealtime } from "./notification-realtime";
 import PageTitle, { PageTitleTarget } from "./page-title";
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
@@ -29,6 +30,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Auth, useAuth } from "./auth";
+import SetupPassword from "./setup-password";
 import { message } from "./api";
 import { kinds } from "./workflow";
 import { useStickyHeaders } from "./use-sticky-headers";
@@ -63,13 +65,13 @@ const PersonalProfile = lazy(() => import("./personal-profile"));
 const OperationsWorkspace = lazy(() => import("./operations-workspace"));
 const AttendanceSummary = lazy(() => import("./attendance-summary"));
 const SupplyConfiguration = lazy(() => import("./supply-configuration"));
-const StaffSupplies = lazy(() => import("./staff-supplies"));
 const Requests = lazy(() => import("./requests"));
 const InternalSettings = lazy(() => import("./internal-settings"));
 const OperationsConfiguration = lazy(() => import("./operations-configuration"));
 function Shell() {
   const [profileOpen, setProfileOpen] = useState(false);
   const { profile, branch, setBranch, can, canGlobal, logout } = useAuth();
+  const realtime = useNotificationRealtime(branch);
   const [ownerScope, setOwnerScope] = useState(0);
   useStickyHeaders();
   const [titleTarget, setTitleTarget] = useState<HTMLDivElement | null>(null);
@@ -93,6 +95,7 @@ function Shell() {
     branchRoles.length > 0 &&
     branchRoles.every((r) => r.code === "HOUSEKEEPING_SUPERVISOR");
   const maintenanceSupervisor = branchRoles.length > 0 && branchRoles.every(r => r.code === "MAINTENANCE_SUPERVISOR");
+  const maintenanceStaff = branchRoles.length > 0 && branchRoles.every(r => r.code === "MAINTENANCE_STAFF");
   const storekeeper =
     branchRoles.length > 0 &&
     branchRoles.every((r) => r.code === "STOREKEEPER");
@@ -158,6 +161,15 @@ function Shell() {
             show: canGlobal("AUDIT_VIEW"),
           },
         ]
+      : maintenanceStaff
+        ? [
+            {id:"dashboard",name:"Tổng quan cá nhân",icon:LayoutDashboard,show:true},
+            {id:"work",name:"Công việc sửa chữa",icon:Wrench,show:can("MAINTENANCE_VIEW")},
+            {id:"history",name:"Lịch sử sửa chữa",icon:History,show:can("MAINTENANCE_VIEW")},
+            {id:"assets",name:"Tài sản & Thiết bị",icon:HardDrive,show:can("ASSET_VIEW")},
+            {id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:can("IR_VIEW")},
+            {id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:can("ATTENDANCE_RECORD")},
+          ]
       : maintenanceSupervisor
         ? [
             {id:"dashboard",name:"Tổng quan bảo trì",icon:LayoutDashboard,show:can("DASHBOARD_VIEW") && can("MAINTENANCE_VIEW")},
@@ -408,10 +420,11 @@ function Shell() {
                         },
                       ]
   ).filter((n) => n.show);
+  if (can("CHECKLIST_MANAGE", false) && !nav.some(n => n.id === "templates"))
+    nav.push({id:"templates",name:"Checklist",icon:ListChecks,show:true});
   if (operationsManager && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)))
     nav.push({id:"configuration",name:"Cấu hình",icon:Settings,show:true});
   if (!operationsManager && can("ROOM_SUPPLY_CONFIG",false)) nav.push({id:"supply-config",name:"Cấu hình vật tư",icon:Settings,show:true});
-  if (!housekeepingStaff && !housekeepingSupervisor && !storekeeper && can("STAFF_SUPPLY_VIEW")) nav.push({id:"staff-supplies",name:"Vật tư nhân viên",icon:Package,show:true});
   if (storekeeper && can("ATTENDANCE_RECORD")) nav.push({id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:true});
   if ((housekeepingSupervisor || storekeeper) && can("IR_VIEW")) nav.push({id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:true});
   if (!housekeepingStaff && !maintenanceSupervisor && !storekeeper && (can("INCIDENT_VIEW",false) || (receptionOnly && can("IR_CREATE")) || (storekeeper && can("MR_FULFILL",false))))
@@ -420,10 +433,11 @@ function Shell() {
   const params = new URLSearchParams(route.split("?")[1]);
   const kind = params.get("kind");
   let requestedPage = page;
+  if(operationsManager&&page==="documents"&&kind==="ADJUSTMENT")requestedPage="stocktaking";
   if (maintenanceSupervisor && ["room-issues","in-progress"].includes(page)) requestedPage="work";
   if (operationsManager && ["supply-config","internal-settings"].includes(page)) requestedPage="configuration";
   if (receptionOnly && page==="work" && can("IR_VIEW")) requestedPage="requests";
-  if (housekeepingSupervisor && ["cleaning","inspection","rework","templates"].includes(page)) requestedPage="work";
+  if (housekeepingSupervisor && ["cleaning","inspection","rework"].includes(page)) requestedPage="work";
   if (ownerOnly && ["assets","stock","documents"].includes(page)) requestedPage="resources";
   if (ownerOnly && page==="work" && ["INCIDENT","MAINTENANCE"].includes(kind || "")) requestedPage="technical";
   if (storekeeper && page==="documents" && params.get("transfer")!=="1") requestedPage=documentRoute(params.get("kind") || "RECEIPT");
@@ -433,9 +447,10 @@ function Shell() {
   const extraPages: Record<string,boolean> = {
     configuration:operationsManager && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)),
     "room-issues":can("INCIDENT_VIEW") || can("IR_CREATE") || (storekeeper && can("MR_FULFILL",false)),
-    "supply-config":can("ROOM_SUPPLY_CONFIG",false), "staff-supplies":can("STAFF_SUPPLY_VIEW"),
+    "supply-config":can("ROOM_SUPPLY_CONFIG",false),
     "internal-settings":operationsManager && can("IR_VIEW",false),
     notifications:true, documents:can("MR_VIEW") || can("INVENTORY_VIEW",false), audit:can("AUDIT_VIEW",false),
+    stocktaking:operationsManager&&can("INVENTORY_VIEW",false)&&can("ROOM_SUPPLY_CONFIG",false),
     staff:operationsManager && can("SHIFT_MANAGE",false), workday:can("ATTENDANCE_RECORD") || can("SHIFT_MANAGE",false),
     requests:can("IR_VIEW"), history:housekeepingStaff && can("CLEANING_VIEW"),
   };
@@ -563,6 +578,7 @@ function Shell() {
                 onClick={() => navigate("notifications")}
               >
                 <Bell size={20} />
+                {realtime.count > 0 && <span aria-label={`${realtime.count} thông báo chưa đọc`}>{realtime.count > 99 ? "99+" : realtime.count}</span>}
               </button>
               <button
                 className="account account-profile-button"
@@ -586,6 +602,7 @@ function Shell() {
               </button>
             </div>
           </header>
+          {realtime.popup}
           <main
             id="main-content"
             tabIndex={-1}
@@ -633,11 +650,12 @@ function Shell() {
                   : active === "configuration" ? <OperationsConfiguration />
                   : active === "internal-settings" ? <InternalSettings />
                   : active === "supply-config" ? <SupplyConfiguration />
-                  : active === "staff-supplies" ? <StaffSupplies onRequestRefill={allocation=>{location.hash=`requests?create=CONSUMABLE_REFILL_REQUEST&allocation=${allocation.allocationId}`;}} />
                   : housekeepingSupervisor ? <HousekeepingWorkspace page={active} />
                   : operationsManager && ["work","staff","housekeeping"].includes(active) ? <OperationsWorkspace page={active} />
                   : maintenanceSupervisor && active === "dashboard" ? <MaintenanceOverview />
                   : maintenanceSupervisor && active === "work" ? <MaintenanceWorkspace />
+                  : maintenanceStaff && active === "work" ? <Work onlyKind="MAINTENANCE" personal technicalStaff title="Công việc sửa chữa" />
+                  : maintenanceStaff && active === "history" ? <Work onlyKind="MAINTENANCE" personal technicalStaff historyMine initialStatus="CLOSED" title="Lịch sử sửa chữa" />
                   : maintenanceSupervisor && active === "history" ? <Work onlyKind="MAINTENANCE" personal technicalStaff initialStatus="CLOSED" historyMine title="Lịch sử sửa chữa" />
                   : housekeepingStaff && active === "history" ? <CleaningPersonal historyPage />
                   : active === "dashboard" && housekeepingStaff ? <HousekeepingPersonal />
@@ -645,7 +663,7 @@ function Shell() {
                   : active === "dashboard" && receptionOnly ? <><PageTitle><h1>Tổng quan cá nhân</h1><p>Lịch làm việc và thời gian đã làm của bạn</p></PageTitle><AttendanceSummary /></>
                   : active === "dashboard" && management ? <Management />
                   : active === "dashboard" && !can("DASHBOARD_VIEW",false) ? <PersonalOverview />
-                  : storekeeper && ["transactions","fulfillment","stocktaking","replenishment","history"].includes(active) ? <InventoryDocuments group={active as "transactions"|"fulfillment"|"stocktaking"|"replenishment"|"history"} />
+                  : (storekeeper || operationsManager&&active==="stocktaking") && ["transactions","fulfillment","stocktaking","replenishment","history"].includes(active) ? <InventoryDocuments group={active as "transactions"|"fulfillment"|"stocktaking"|"replenishment"|"history"} />
                   : active === "catalog" ? <HotelWorkspace />
                   : active === "settings" ? <Catalog mode="settings" />
                   : active === "supplies" ? <Catalog mode="supplies" inventoryMode={storekeeper} />
@@ -674,6 +692,9 @@ function Shell() {
   );
 }
 export default function App() {
+  const [route, setRoute] = useState(location.hash);
+  useEffect(() => { const changed = () => setRoute(location.hash); window.addEventListener("hashchange", changed); return () => window.removeEventListener("hashchange", changed); }, []);
+  if (route.split("?")[0] === "#setup-password") return <SetupPassword />;
   return (
     <Auth>
       <Shell />

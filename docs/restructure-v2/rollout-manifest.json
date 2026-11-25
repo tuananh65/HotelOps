@@ -1,0 +1,149 @@
+{
+  "formatVersion": 1,
+  "scope": "Reviewed TEST-specific V2 delta; not an executable migration or production release",
+  "databaseMutationAllowed": false,
+  "allowedScriptDatabase": "HotelOpsCompactWorkdayTestV22611250010",
+  "sourceBaseline": {
+    "tables": 49,
+    "schemaProperty": "3.0.0",
+    "requires": "P0 provenance and exact existing mappings; fresh restored rehearsal required"
+  },
+  "expectedSchema": {
+    "tables": 57,
+    "foreignKeys": 234,
+    "checkConstraints": 116,
+    "tableTriggers": 38,
+    "schemaProperty": "3.0.0",
+    "trustedConstraints": true,
+    "enabledTriggers": true,
+    "scalarMappingsAndViews": true
+  },
+  "schemaGate": {
+    "path": "src/HotelOps.Api/Compact/Infrastructure/SchemaGate.cs",
+    "sha256": "bac29a45036241a11a06a782a3c5c9839b837bef40c808a62fd74c562d59c665"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "id": "provenance",
+      "path": "scripts/database/compact-v2/v2-role-provenance.sql",
+      "sha256": "126e50c025fb7d6ca5098c7855ded387e936e08ba837efb62dbbb5527ab2c0ba",
+      "dependsOn": [],
+      "mutatesDatabase": false,
+      "conditions": "Requires P0_ROLE_MIGRATION/261124-v1 before_json; no role inferred from names."
+    },
+    {
+      "order": 2,
+      "id": "maintenance",
+      "path": "scripts/database/compact-v2/v2-recover-maintenance.sql",
+      "sha256": "7319f0958066bc0059aacac360857dcca95040878261db83b6876f1b0a1c0f4f",
+      "dependsOn": [
+        "provenance"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Exact conversion provenance; no active CLEANING/REWORK or open allocation for recovered staff; ambiguous membership and missing permission halt. Preserves passwords and started schedules; revokes affected sessions."
+    },
+    {
+      "order": 3,
+      "id": "checklists",
+      "path": "scripts/database/compact-v2/v2-checklist-permissions.sql",
+      "sha256": "ab2328b08ad1ddb5b67a2ab9e0635ace32a374c61342fec743c29f66ba45d4ae",
+      "dependsOn": [
+        "maintenance"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Adds existing CHECKLIST_MANAGE permission to HKS/MS in BRANCH scope; service enforces checklist kind."
+    },
+    {
+      "order": 4,
+      "id": "assessment",
+      "path": "scripts/database/compact-v2/v2-room-assessment.sql",
+      "sha256": "42cce69537ed8fba6a9c317273034d7ae5ad2472e626b7e4ba55c456c56ef96e",
+      "dependsOn": [],
+      "mutatesDatabase": true,
+      "conditions": "Existing supply_reservations and CK_supply_reservation_qty baseline; adds assessed quantities without inventing usable inventory."
+    },
+    {
+      "order": 5,
+      "id": "assessment-guards",
+      "path": "scripts/database/compact-v2/v2-assessment-guards.sql",
+      "sha256": "acb38abf1f5a316870d576c142254a74e9cb7e95d13941d54aa02dbfefc56098",
+      "dependsOn": [
+        "assessment"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Reservation trigger validates work/room/branch/allocation and assessed quantity."
+    },
+    {
+      "order": 6,
+      "id": "invitations",
+      "path": "scripts/database/compact-v2/v2-invitations.sql",
+      "sha256": "7bbff2112c4a4f062e08718638cb69c76f6c949374367323b8cdb03f78a6fdb8",
+      "dependsOn": [],
+      "mutatesDatabase": true,
+      "conditions": "Existing users/audit baseline; token hashes/outbox only; no password reset or live email."
+    },
+    {
+      "order": 7,
+      "id": "batches",
+      "path": "scripts/database/compact-v2/v2-inventory-batches.sql",
+      "sha256": "c585a6a6a2d010013024cdcd8bb423de4e3148c71b05a6ae44ba3c44d78a519e",
+      "dependsOn": [],
+      "mutatesDatabase": true,
+      "conditions": "Refuses existing lifecycle foundation; approved item IDs/codes must match (213 DEMO-ITEM-3,222 TEST-DURABLE-KETTLE); preserves ledger, unknown expiry stays LEGACY_REVIEW."
+    },
+    {
+      "order": 8,
+      "id": "reusable",
+      "path": "scripts/database/compact-v2/v2-reusable-inventory.sql",
+      "sha256": "fb2c5fff3cf3426382b89b06bfaf38b775850c06a12e24018ff3fe79b7aa8732",
+      "dependsOn": [
+        "batches",
+        "assessment-guards"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Refuses reseed; requires known stock trigger/index baseline. Reconstructs evidenced warehouse/staff custody; old room placements stay LEGACY_REVIEW."
+    },
+    {
+      "order": 9,
+      "id": "legacy-settlement",
+      "path": "scripts/database/compact-v2/v2-reusable-legacy-settlement.sql",
+      "sha256": "2bfe6ed48c9d73fe9886cfaa5a12ddf3ddb7d7cbeaf3cc819668bc8a05a0a306",
+      "dependsOn": [
+        "reusable"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Reclassified quantity cannot exceed evidenced custody; checks balance guard before change; preserves historical consumption ledger."
+    },
+    {
+      "order": 10,
+      "id": "kettle-register",
+      "path": "scripts/database/compact-v2/v2-kettle-pending-assets.sql",
+      "sha256": "3c76586b38be6d032748221206181ce3cd0ed5c42a08fc8313e02c3ef714be16",
+      "dependsOn": [
+        "batches"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Exact item222 identity and 200 total=103 warehouse+97 issued; partial/conflicting registration halts. Assets inactive PENDING_INSPECTION, one audit mapping each; no new stock movement."
+    },
+    {
+      "order": 11,
+      "id": "reusable-shifts",
+      "path": "scripts/database/compact-v2/v2-reusable-shift-configuration.sql",
+      "sha256": "6dab449a7fb007fc269e010419fd748e88f8dfa13ad37d39d2a732b6f188b87c",
+      "dependsOn": [
+        "legacy-settlement"
+      ],
+      "mutatesDatabase": true,
+      "conditions": "Lifecycle foundation and existing configuration constraint/trigger required; preserves revision history, per-guest consumption only group A."
+    }
+  ],
+  "requiredPostconditions": [
+    "Original user passwords and usernames unchanged; sessions may be deliberately revoked.",
+    "Historical documents and stock movements retained; no fabricated expiry or physical inventory.",
+    "Ledger/warehouse/custody/reservations/in-transit reconcile by item and unit; pending discrepancies remain pending.",
+    "200 kettle assets remain inactive pending physical inspection with unique provenance mappings.",
+    "SchemaGate and DBCC CHECKCONSTRAINTS pass; current API/browser regression passes."
+  ],
+  "releaseStatus": "BLOCKED_REHEARSAL_AND_TARGET_SPECIFIC_MIGRATION_REVIEW"
+}

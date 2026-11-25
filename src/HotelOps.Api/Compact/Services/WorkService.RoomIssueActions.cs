@@ -24,7 +24,12 @@ public sealed partial class WorkService
         // Older fully posted deliveries did not record the warehouse handoff. An
         // on-duty supervisor can receive these for inspection from delivery evidence.
         var deliveredLegacy=command=="request-inspection"&&info.Kind=="MISSING"&&stage=="ROOM_ISSUE_MATERIAL_REQUESTED";
-        if(deliveredLegacy){
+        if(command=="request-material"&&info.Kind=="MISSING"&&stage=="ROOM_ISSUE_MATERIAL_REQUESTED")
+            await ReclaimRoomMaterialRequest(work,ct);
+        if(command=="reopen-technical-review"){
+            await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_REVIEW",work.BranchId,ct);
+            await WorkdayAuthority.Require(db,access,actor,clock,work.BranchId,"MAINTENANCE_SUPERVISOR",ct);
+        }else if(deliveredLegacy){
             await StaffSupplyService.Lock(db,ct);
             await RequireRoomIssueSupervisor(work.BranchId,ct);
             await access.Require("INSPECTION_PERFORM",work.BranchId,ct:ct);
@@ -33,6 +38,22 @@ public sealed partial class WorkService
         }else await requests.RequireDomainHandler(id,expectedRole,new[]{"PENDING_SUPERVISOR","PENDING_STOREKEEPER","PENDING_MAINTENANCE_SUPERVISOR","ACCEPTED","IN_PROGRESS","PENDING_REINSPECTION","REWORK_REQUIRED"},ct);
         string next;string recipient;long? materialId=null;var finished=false;
         switch(command){
+            case "reopen-technical-review":
+                Output.Require(info.Kind=="BROKEN"&&stage=="ROOM_ISSUE_INSPECTION_REQUESTED","ROOM_ISSUE_WRONG_STAGE");
+                Output.Reason(request.Note);
+                var legacy=await CurrentRepair(work,ct);
+                Output.Require(legacy.Status=="COMPLETED"&&!await db.WorkEvents.AnyAsync(e=>e.WorkId==legacy.WorkId&&e.EventType=="TECHNICAL_REVIEW_PASSED"&&e.OccurredAt>=legacy.CompletedAt,ct),"TECHNICAL_REVIEW_ALREADY_RECORDED");
+                Event(legacy,"LEGACY_TECHNICAL_REVIEW_REOPENED",request.OperationKey,request.Note,legacy.Status);
+                db.WorkEvents.Local.Single(e=>e.WorkId==legacy.WorkId&&e.OperationKey==request.OperationKey&&e.EventType=="LEGACY_TECHNICAL_REVIEW_REOPENED").SnapshotJson=System.Text.Json.JsonSerializer.Serialize(new{legacy.CompletedAt,legacy.CompletionNote});
+                legacy.Status="PENDING";legacy.CompletedAt=null;legacy.ProgressPercent=0;
+                foreach(var assignee in await db.WorkAssignments.Where(a=>a.WorkId==legacy.WorkId&&a.AssignmentStatus=="ACTIVE").Select(a=>a.AssigneeUserId).Distinct().ToArrayAsync(ct))
+                    notifications.Add(work.BranchId,assignee,"REPAIR_REWORK_REQUIRED",legacy.Title,legacy.WorkId,null,request.OperationKey,true);
+                foreach(var item in await db.WorkChecklistItems.Where(i=>i.WorkId==legacy.WorkId).ToArrayAsync(ct)){
+                    audit.Add("ChecklistResult",item.WorkChecklistItemId,"TECHNICAL_REVIEW_RESET",legacy.BranchId,before:new{item.Outcome,item.Note,item.CheckedAt,item.CheckedBy},key:request.OperationKey);
+                    item.Outcome=null;item.Note=null;item.CheckedAt=null;item.CheckedBy=null;
+                }
+                work.Status="IN_PROGRESS";next="REPAIR_CREATED";recipient="MAINTENANCE_SUPERVISOR";
+                break;
             case "approve":
                 await RequireRoomIssueSupervisor(work.BranchId,ct);
                 if(info.CleaningWorkId!=null){
@@ -55,17 +76,23 @@ public sealed partial class WorkService
                 Output.Require(stage=="ROOM_ISSUE_APPROVED"&&info.Kind=="BROKEN","ROOM_ISSUE_WRONG_STAGE");
                 next="REPAIR_REQUESTED";recipient="MAINTENANCE_SUPERVISOR";break;
             case "create-repair":
-                await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_EXECUTE",work.BranchId,ct);
+                await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_ASSIGN",work.BranchId,ct);
                 Output.Require(stage=="ROOM_ISSUE_REPAIR_REQUESTED","ROOM_ISSUE_WRONG_STAGE");
                 Output.Require(!await db.WorkItems.AnyAsync(w=>w.ParentWorkId==id&&w.Kind=="MAINTENANCE"&&w.Status!="CLOSED"&&w.Status!="CANCELLED",ct),"MAINTENANCE_ALREADY_ACTIVE");
                 var title=$"Khắc phục · {work.Title}";
                 var repair=new WorkItem{BranchId=work.BranchId,Kind="MAINTENANCE",Status="PENDING",WorkNo=Guid.NewGuid().ToString("N"),
                     Title=title[..Math.Min(250,title.Length)],RoomId=work.RoomId,TurnoverNo=work.TurnoverNo,AssetId=work.AssetId,ParentWorkId=id,CreatedBy=actor.Id,CreatedAt=Now};
                 db.WorkItems.Add(repair);await db.SaveChangesAsync(ct);
-                db.WorkAssignments.Add(new WorkAssignment{WorkId=repair.WorkId,BranchId=work.BranchId,AssigneeUserId=actor.Id,AssignedBy=actor.Id,AssignedAt=Now,AcceptedAt=Now,AssignmentStatus="ACTIVE"});
-                Event(repair,"EXTERNAL_REPAIR_ACCEPTED",request.OperationKey,request.Note,null);
+                var technician=request.ExternalRepair?actor.Id:request.UserId;
+                Output.Require(technician!=null&&await EligibleMaintenanceAssignee(technician.Value,work.BranchId,ct),"MAINTENANCE_ASSIGNEE_REQUIRED",400);
+                Output.Require(request.ExternalRepair||technician!=actor.Id,"INTERNAL_REPAIR_REQUIRES_STAFF",400);
+                await access.EligibleFor(technician!.Value,work.BranchId,"MAINTENANCE_EXECUTE",ct);
+                db.WorkAssignments.Add(new WorkAssignment{WorkId=repair.WorkId,BranchId=work.BranchId,AssigneeUserId=technician.Value,AssignedBy=actor.Id,AssignedAt=Now,AcceptedAt=request.ExternalRepair?Now:null,AssignmentStatus="ACTIVE"});
+                if(request.ChecklistTemplateId!=null)await SnapshotExecutionChecklist(repair,request.ChecklistTemplateId.Value,ct);
+                Event(repair,request.ExternalRepair?"EXTERNAL_REPAIR_ACCEPTED":"INTERNAL_REPAIR_ASSIGNED",request.OperationKey,request.Note,null);
+                notifications.Add(work.BranchId,technician.Value,"WORK_ASSIGNED",repair.Title,repair.WorkId,null,request.OperationKey,true);
                 await db.SaveChangesAsync(ct);
-                await ActCore(repair.WorkId,"start",new ActionRequest(Convert.ToBase64String(repair.RowVersion),Guid.NewGuid(),null),ct,roomWorkflow:true);
+                if(request.ExternalRepair)await ActCore(repair.WorkId,"start",new ActionRequest(Convert.ToBase64String(repair.RowVersion),Guid.NewGuid(),null),ct,roomWorkflow:true);
                 next="REPAIR_CREATED";recipient="MAINTENANCE_SUPERVISOR";break;
             case "start-repair":
                 await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_EXECUTE",work.BranchId,ct);
@@ -88,8 +115,14 @@ public sealed partial class WorkService
                     await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_EXECUTE",work.BranchId,ct);
                     Output.Require(stage=="ROOM_ISSUE_REPAIR_CREATED","ROOM_ISSUE_WRONG_STAGE");
                     var completed=await CurrentRepair(work,ct);
-                    if(completed.Status=="IN_PROGRESS")await ActCore(completed.WorkId,"complete",new ActionRequest(Convert.ToBase64String(completed.RowVersion),request.OperationKey,request.Note),ct,roomWorkflow:true);
-                    Output.Require(completed.Status=="COMPLETED"&&await db.WorkAssignments.AnyAsync(a=>a.WorkId==completed.WorkId&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE",ct),"REPAIR_COMPLETION_REQUIRED",403);
+                    await RequireReplacementSettled(completed.WorkId,ct);
+                    var external=await db.WorkEvents.AnyAsync(e=>e.WorkId==completed.WorkId&&e.EventType=="EXTERNAL_REPAIR_ACCEPTED",ct);
+                    if(external&&completed.Status=="IN_PROGRESS")await ActCore(completed.WorkId,"complete",new ActionRequest(Convert.ToBase64String(completed.RowVersion),request.OperationKey,request.Note),ct,roomWorkflow:true);
+                    Output.Require(completed.Status=="COMPLETED","REPAIR_COMPLETION_REQUIRED");
+                    if(!external)Output.Require(!await db.WorkAssignments.AnyAsync(a=>a.WorkId==completed.WorkId&&a.AssigneeUserId==actor.Id,ct),"INDEPENDENT_VERIFIER_REQUIRED",403);
+                    Output.Require(await db.WorkChecklistItems.AnyAsync(i=>i.WorkId==completed.WorkId&&i.RequiredSnapshot,ct)
+                        &&!await db.WorkChecklistItems.AnyAsync(i=>i.WorkId==completed.WorkId&&i.RequiredSnapshot&&i.Outcome!="PASS",ct),"CHECKLIST_INCOMPLETE");
+                    Event(completed,"TECHNICAL_REVIEW_PASSED",Guid.NewGuid(),request.Note,completed.Status);
                 }else{
                     await access.RequireRolePermission("STOREKEEPER","MR_FULFILL",work.BranchId,ct);
                     Output.Require(stage=="ROOM_ISSUE_MATERIAL_REQUESTED","ROOM_ISSUE_WRONG_STAGE");
@@ -112,8 +145,14 @@ public sealed partial class WorkService
                     if(info.Kind=="BROKEN"){
                         var rework=await CurrentRepair(work,ct);Output.Require(rework.Status=="COMPLETED","REPAIR_COMPLETION_REQUIRED");
                         Event(rework,"REPAIR_REINSPECTION_FAILED",request.OperationKey,request.Note,rework.Status);
-                        db.WorkEvents.Local.Last(e=>e.WorkId==rework.WorkId).SnapshotJson=System.Text.Json.JsonSerializer.Serialize(new{rework.CompletedAt,rework.CompletionNote,rework.ProgressPercent});
+                        db.WorkEvents.Local.Single(e=>e.WorkId==rework.WorkId&&e.OperationKey==request.OperationKey&&e.EventType=="REPAIR_REINSPECTION_FAILED").SnapshotJson=System.Text.Json.JsonSerializer.Serialize(new{rework.CompletedAt,rework.CompletionNote,rework.ProgressPercent});
                         rework.Status="PENDING";rework.CompletedAt=null;rework.ProgressPercent=0;
+                        foreach(var assignee in await db.WorkAssignments.Where(a=>a.WorkId==rework.WorkId&&a.AssignmentStatus=="ACTIVE").Select(a=>a.AssigneeUserId).Distinct().ToArrayAsync(ct))
+                            notifications.Add(work.BranchId,assignee,"REPAIR_REWORK_REQUIRED",rework.Title,rework.WorkId,null,request.OperationKey,true);
+                        foreach(var item in await db.WorkChecklistItems.Where(i=>i.WorkId==rework.WorkId).ToArrayAsync(ct)){
+                            audit.Add("ChecklistResult",item.WorkChecklistItemId,"REWORK_RESET",rework.BranchId,before:new{item.Outcome,item.Note,item.CheckedAt,item.CheckedBy},key:request.OperationKey);
+                            item.Outcome=null;item.Note=null;item.CheckedAt=null;item.CheckedBy=null;
+                        }
                         next="REPAIR_CREATED";recipient="MAINTENANCE_SUPERVISOR";
                     }else{next="INSPECTION_FAILED";recipient="HOUSEKEEPING_SUPERVISOR";}
                 }else{
@@ -122,6 +161,7 @@ public sealed partial class WorkService
                     if(info.Kind=="MISSING")Output.Require(await MaterialDelivered(await CurrentIssueMaterial(id,ct),ct),"ROOM_ISSUE_MATERIAL_NOT_FULFILLED");
                     else{
                         var verified=await CurrentRepair(work,ct);Output.Require(verified.Status=="COMPLETED","REPAIR_COMPLETION_REQUIRED");
+                        Output.Require(await db.WorkEvents.AnyAsync(e=>e.WorkId==verified.WorkId&&e.EventType=="TECHNICAL_REVIEW_PASSED"&&e.OccurredAt>=verified.CompletedAt,ct),"TECHNICAL_REVIEW_REQUIRED");
                         await EndAssignments(verified,Now,ct);verified.Status="CLOSED";verified.VerifiedBy=actor.Id;verified.VerifiedAt=Now;verified.ClosedAt=Now;
                         Event(verified,"VERIFY",request.OperationKey,request.Note,"COMPLETED");
                     }
@@ -138,7 +178,7 @@ public sealed partial class WorkService
         audit.Add("WorkItem",id,"ROOM_ISSUE_"+next,work.BranchId,new{status=before,stage},new{work.Status,stage=next},request.OperationKey);
         await db.SaveChangesAsync(ct);
         var flowStatus=next switch{"REJECTED"=>"REJECTED","INSPECTION_PASSED"=>"COMPLETED","INSPECTION_REQUESTED"=>"PENDING_REINSPECTION","MATERIAL_REQUESTED"=>"PENDING_STOREKEEPER","REPAIR_REQUESTED"=>"PENDING_MAINTENANCE_SUPERVISOR","REPAIR_CREATED"=>command is "create-repair" or "start-repair"?"IN_PROGRESS":"ACCEPTED","INSPECTION_FAILED"=>"REWORK_REQUIRED",_=>"PENDING_SUPERVISOR"};
-        var actingRole=command is "create-repair" or "start-repair"||command=="report-remedy"&&info.Kind=="BROKEN"?"MAINTENANCE_SUPERVISOR":command=="report-remedy"?"STOREKEEPER":"HOUSEKEEPING_SUPERVISOR";
+        var actingRole=command is "create-repair" or "start-repair" or "reopen-technical-review"||command=="report-remedy"&&info.Kind=="BROKEN"?"MAINTENANCE_SUPERVISOR":command=="report-remedy"?"STOREKEEPER":"HOUSEKEEPING_SUPERVISOR";
         await requests.RecordDomainTransition(work,info.Kind=="BROKEN"?"ROOM_EQUIPMENT_DAMAGE":"ROOM_DURABLE_ITEM_MISSING",flowStatus,finished?null:recipient,command,actingRole,request.OperationKey,request.Note,ct,documentId:materialId);
         await RecordRoomIssueChildren(work,info.Kind,command,actingRole,request,materialId,ct);
         if(finished){

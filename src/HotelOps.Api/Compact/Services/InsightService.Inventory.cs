@@ -7,7 +7,7 @@ namespace HotelOps.Api.Compact.Services;
 public sealed partial class InsightService
 {
     private sealed record StockRow(long WarehouseId,string Warehouse,long ItemId,string Item,string Code,string Unit,
-        decimal BaseQty,decimal? MinimumQty,decimal? TargetQty,DateTime? LastMovement,bool IsActive);
+        decimal BaseQty,decimal? MinimumQty,decimal? TargetQty,DateTime? LastMovement,bool IsActive,decimal AvailableQty=0);
 
     private async Task<StockRow[]> StockRows(long branchId,CancellationToken ct)
     {
@@ -15,7 +15,7 @@ public sealed partial class InsightService
         // Only ledger/policy pairs establish branch stock. Items themselves are a shared catalog.
         var pairs=db.VStockBalances.Where(b=>b.BranchId==branchId).Select(b=>new{b.WarehouseId,b.ItemId})
             .Union(db.InventoryPolicies.Where(p=>p.BranchId==branchId).Select(p=>new{p.WarehouseId,p.ItemId}));
-        return await (from pair in pairs
+        var rows=await (from pair in pairs
             join w in db.Warehouses on pair.WarehouseId equals w.WarehouseId
             join i in db.InventoryItems on pair.ItemId equals i.ItemId
             join u in db.ReferenceValues on i.BaseUnitId equals u.ReferenceId
@@ -24,7 +24,15 @@ public sealed partial class InsightService
                 db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Sum(m=>(decimal?)m.SignedBaseQty)??0,
                 db.InventoryPolicies.Where(p=>p.BranchId==branchId&&p.WarehouseId==w.WarehouseId&&p.ItemId==i.ItemId).Select(p=>(decimal?)p.MinimumQty).SingleOrDefault(),
                 db.InventoryPolicies.Where(p=>p.BranchId==branchId&&p.WarehouseId==w.WarehouseId&&p.ItemId==i.ItemId).Select(p=>(decimal?)p.TargetQty).SingleOrDefault(),
-                db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Max(m=>(DateTime?)m.OccurredAt),i.IsActive)).ToArrayAsync(ct);
+                db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Max(m=>(DateTime?)m.OccurredAt),i.IsActive,0)).ToArrayAsync(ct);
+        var reusable=await db.ItemLifecycleProfiles.Where(p=>p.BranchId==branchId&&p.Classification=="REUSABLE").Select(p=>p.ItemId).ToArrayAsync(ct);
+        for(var index=0;index<rows.Length;index++){
+            var row=rows[index];var available=reusable.Contains(row.ItemId)
+                ?await db.ReusablePositions.Where(p=>p.BranchId==branchId&&p.ItemId==row.ItemId&&p.WarehouseId==row.WarehouseId&&p.Status=="READY").SumAsync(p=>(decimal?)p.Quantity,ct)??0
+                :await StockBatchAccounting.Available(db,row.WarehouseId,row.ItemId,clock.GetUtcNow().UtcDateTime,ct);
+            rows[index]=row with{AvailableQty=available};
+        }
+        return rows;
     }
 
     public async Task<object> Inventory(long branchId,CancellationToken ct)
@@ -44,14 +52,14 @@ public sealed partial class InsightService
             trackedItems=stock.Select(x=>x.ItemId).Distinct().Count(),
             stockedItems=stock.Where(x=>x.BaseQty>0).Select(x=>x.ItemId).Distinct().Count(),
             emptyItems=stock.GroupBy(x=>x.ItemId).Count(g=>g.Sum(x=>x.BaseQty)==0),
-            lowStock=stock.Count(x=>x.MinimumQty!=null&&x.BaseQty<x.MinimumQty),
+            lowStock=stock.Count(x=>x.MinimumQty!=null&&x.AvailableQty<x.MinimumQty),
             pendingRequests=canMr?(int?)await documents.CountAsync(d=>d.Kind=="MATERIAL_REQUEST"&&(d.Status=="APPROVED"||d.Status=="PARTIALLY_ISSUED"),ct):null,
             receipts=await documents.CountAsync(d=>d.Kind=="RECEIPT"&&d.PostedAt>=start,ct),
             issues=await documents.CountAsync(d=>d.Kind=="ISSUE"&&d.PostedAt>=start,ct),
             transfers=await documents.CountAsync(d=>d.Kind=="TRANSFER"&&d.PostedAt>=start,ct),
             openStocktakes=await documents.CountAsync(d=>d.Kind=="STOCKTAKE"&&(d.Status=="IN_PROGRESS"||d.Status=="COUNTED"),ct),
             openReplenishments=canReplenishment?(int?)await documents.CountAsync(d=>d.Kind=="REPLENISHMENT"&&(d.Status=="REQUESTED"||d.Status=="PARTIALLY_RECEIVED"),ct):null},
-            lowStock=stock.Where(x=>x.MinimumQty!=null&&x.BaseQty<x.MinimumQty).OrderBy(x=>x.BaseQty).Take(10),pending,recent,timeline};
+            lowStock=stock.Where(x=>x.MinimumQty!=null&&x.AvailableQty<x.MinimumQty).OrderBy(x=>x.AvailableQty).Take(10),pending,recent,timeline};
     }
 
     public async Task<object> Ledger(long branchId,long warehouseId,long itemId,int page,CancellationToken ct)

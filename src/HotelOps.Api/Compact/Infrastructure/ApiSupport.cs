@@ -24,7 +24,7 @@ public sealed class Actor(IHttpContextAccessor accessor)
 }
 public static class Output
 {
-    private static readonly HashSet<string> Secret = ["PasswordHash","SecurityStamp","TokenHash","StorageKey"];
+    private static readonly HashSet<string> Secret = ["PasswordHash","SecurityStamp","TokenHash","StorageKey","ProtectedToken","PasswordFingerprint"];
     public static ResourceDto Record<T>(T entity) where T:class => new(typeof(T).Name,
         entity.GetType().GetProperties(BindingFlags.Instance|BindingFlags.Public)
         .Where(p=>!Secret.Contains(p.Name) && (p.PropertyType.IsValueType || p.PropertyType==typeof(string) || p.PropertyType==typeof(byte[])))

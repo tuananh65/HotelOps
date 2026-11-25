@@ -11,6 +11,20 @@ This document records confirmed requirement clarifications and pending changes t
 
 These notes do not replace the complete SRS or the final approved Permission Matrix.
 
+### Approved Compact Project 2 revision — 25 November 2026
+
+For `src/HotelOps.Api/Compact` and `frontend/src/compact`, the Owner has approved the [Master Prompt V2](../restructure-v2/OWNER_REQUEST.md), [decisions D01–D12](../restructure-v2/DECISION_AND_BLOCKER_REGISTER.md) and the [additional UI/workflow decisions](../restructure-v2/OWNER_UX_DELTA_20261125.md). These sources supersede conflicting draft statements below for Project 2 only. Project 1/Rebuild is outside this change.
+
+- Consolidate Department Head into Operation Manager; OM manages branch planning/configuration and only reads ordinary interdepartmental requests. Inventory write-off and transfer approvals retain their specific workflows.
+- Retain Maintenance Supervisor and Maintenance Staff. Do not convert technical staff into housekeeping staff. Internal repairs require assigned staff, a completion checklist and independent technical review before housekeeping inspection.
+- Reserve the room maximum at assignment; after the actual room assessment, reserve only the shortage and release the excess. Consume only what is actually replenished. Rework must not consume the same replenishment twice.
+- Distinguish consumables, reusable items and assets. Preserve FIFO/FEFO, expiry and batch provenance. Damaged reusable items remain owned until the branch OM approves and the write-off commits.
+- Transfer between branches records requested, approved, shipped and actually received quantities separately. Unreceived quantities remain in transit pending reconciliation; do not invent loss or a return to source.
+- Account invitations and password recovery use one-time tokens and a local SMTP sink during testing. Enforce first-login password change in the backend. Login and recovery identify accounts by **Username only**, not EmployeeCode, per the Owner's later instruction.
+- Persist notifications and deliver them through authenticated SignalR with branch/recipient scope. AI provides advice only; statistical/rule fallback must be labeled. External AI and live email remain blocked by external configuration, not by missing business implementation authorization.
+
+Implementation evidence and limitations are recorded in [API changes](../restructure-v2/API_CHANGE_REGISTER.md), [database delta](../restructure-v2/DATABASE_SCHEMA_DELTA.md), [UC mapping](../restructure-v2/UC_CHANGE_MAPPING.md) and [E2E results](../restructure-v2/E2E_TEST_RESULTS.md). Approval of requirements is not a declaration that every test has passed. The older Reception/DH pending notes below remain historical context, not a reason to postpone the approved Compact work.
+
 ### Approved Reception clarification — 20 November 2026
 
 The user approved the check-in proposal, now archived at `RECEPTION-CHECKIN-PROPOSAL.md`.

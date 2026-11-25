@@ -1,0 +1,7 @@
+Đã triển khai chọn nhiều nhân viên, áp dụng lịch theo tháng, xử lý mốc lễ và cấu hình ca theo quyền hiện có.
+
+- **Passed:** TypeScript, biên dịch riêng Workday, 15 kiểm tra logic và 2 bộ kiểm thử trình duyệt.
+- Full build và API/SQL thật **chưa chạy**, theo giới hạn nhiệm vụ.
+- Mốc âm lịch mới xác minh cho 2027; các năm khác có thông báo thiếu dữ liệu.
+
+Danh sách tệp, kết quả kiểm chứng và hướng dẫn tích hợp nằm trong [báo cáo bàn giao](D:/SEP490/Projects/TestFE/HotelOps/plans/reports/implementation-261123-0943-workday-refinements.md).

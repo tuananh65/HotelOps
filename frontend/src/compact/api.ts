@@ -10,6 +10,7 @@ export type Page<T = Resource> = {
 const key = "hotelops.compact.session";
 let token = sessionStorage.getItem(key) || "";
 export const hasSession = () => !!token;
+export const sessionToken = () => token;
 export function session(value: string) {
   token = value;
   value ? sessionStorage.setItem(key, value) : sessionStorage.removeItem(key);

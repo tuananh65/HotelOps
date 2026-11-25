@@ -46,7 +46,7 @@ public sealed partial class InsightService
                 .Select(x=>new ActionCenterItem("work",x.w.WorkId,x.w.Kind,x.w.Title,x.w.Status,x.h.OccurredAt,x.w.DueAt,false)).ToArrayAsync(ct)));
         }
         if(await access.Allows("INVENTORY_VIEW",branchId,ct:ct)){
-            lowStock=(await StockRows(branchId,ct)).Count(s=>s.MinimumQty!=null&&s.BaseQty<s.MinimumQty);
+            lowStock=(await StockRows(branchId,ct)).Count(s=>s.MinimumQty!=null&&s.AvailableQty<s.MinimumQty);
             var discrepancies=StocktakeDifferenceLines(branchId).Select(x=>x.DocumentId).Distinct();
             var stocktakes=db.InventoryDocuments.AsNoTracking().Where(d=>discrepancies.Contains(d.DocumentId));
             groups.Add(new("STOCKTAKE_DIFFERENCES",await stocktakes.CountAsync(ct),await stocktakes.OrderBy(d=>d.CreatedAt).Take(10)

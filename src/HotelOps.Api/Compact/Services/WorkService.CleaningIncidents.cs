@@ -14,7 +14,7 @@ public sealed partial class WorkService
             where link.BranchId == branch && link.Relation == "SOURCE" && issue.Kind == "INCIDENT"
                 && issue.Status != "CLOSED" && issue.Status != "CANCELLED"
                 && (target.Kind == "CLEANING" || target.Kind == "REWORK")
-                && db.WorkEvents.Any(e => e.WorkId == issue.WorkId && e.EventType == "ROOM_ISSUE_REPORTED")
+                && db.WorkEvents.Any(e => e.WorkId == issue.WorkId && (e.EventType == "ROOM_ISSUE_REPORTED" || e.EventType == "LEGACY_ROOM_ISSUE_RECOVERED"))
             select new { issue.WorkId, Root = target.Kind == "REWORK" ? target.ParentWorkId!.Value : target.WorkId,
                 Stage = db.WorkEvents.Where(e => e.WorkId == issue.WorkId && e.EventType.StartsWith("ROOM_ISSUE_"))
                     .OrderByDescending(e => e.WorkEventId).Select(e => e.EventType).First() }).ToArrayAsync(ct);
@@ -25,19 +25,24 @@ public sealed partial class WorkService
         return issues.GroupBy(i => i.Root).Where(g => g.All(i => !actionable.Contains(i.Stage)&&!delivered.Contains(i.WorkId))).Select(g => g.Key).ToArray();
     }
     private IQueryable<WorkItem> CleaningIssues(long workId)=>db.WorkItems.Where(i=>i.Kind=="INCIDENT"
-        &&db.WorkEvents.Any(e=>e.WorkId==i.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED")
+        &&i.RoomId!=null
         &&db.WorkLinks.Any(l=>l.SourceWorkId==i.WorkId&&l.BranchId==i.BranchId&&l.Relation=="SOURCE"
             &&(l.TargetWorkId==workId||db.WorkItems.Any(c=>c.WorkId==l.TargetWorkId&&c.ParentWorkId==workId&&c.Kind=="REWORK"))));
     private IQueryable<long> CleaningWithOpenIssues(long branch)=>db.WorkItems.Where(w=>w.BranchId==branch&&w.Kind=="CLEANING"
         &&db.WorkLinks.Any(l=>l.BranchId==branch&&l.Relation=="SOURCE"&&(l.TargetWorkId==w.WorkId||db.WorkItems.Any(c=>c.WorkId==l.TargetWorkId&&c.ParentWorkId==w.WorkId&&c.Kind=="REWORK"))
             &&db.WorkItems.Any(i=>i.WorkId==l.SourceWorkId&&i.Kind=="INCIDENT"&&i.Status!="CLOSED"&&i.Status!="CANCELLED"
-                &&db.WorkEvents.Any(e=>e.WorkId==i.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED")))).Select(w=>w.WorkId);
+                &&i.RoomId!=null))).Select(w=>w.WorkId);
     private async Task<object[]> CleaningIssueDetails(WorkItem work,CancellationToken ct)
     {
         if(work.Kind is not ("CLEANING" or "REWORK"))return [];
         var rows=await CleaningIssues(work.Kind=="REWORK"?work.ParentWorkId!.Value:work.WorkId).AsNoTracking().OrderBy(i=>i.WorkId).ToArrayAsync(ct);
         var result=new List<object>();
-        foreach(var issue in rows){var info=await IssueInfo(issue.WorkId,ct);var stage=await IssueStage(issue.WorkId,ct);
+        foreach(var issue in rows){
+            if(!await IsRoomIssue(issue.WorkId,ct)){
+                result.Add(new{issue.WorkId,issue.Title,issue.Status,kind="LEGACY",legacy=true,stage=(string?)null,readyForInspection=false});
+                continue;
+            }
+            var info=await IssueInfo(issue.WorkId,ct);var stage=await IssueStage(issue.WorkId,ct);
             var readyForInspection=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await MaterialDelivered(await CurrentIssueMaterial(issue.WorkId,ct),ct);
             result.Add(new{issue.WorkId,issue.Title,issue.Status,info.Kind,info.Quantity,info.ObjectName,stage,readyForInspection});}
         return result.ToArray();

@@ -9,6 +9,7 @@ public sealed partial class DocumentService
 {
     private async Task<string[]> Derivations(InventoryDocument d,CancellationToken ct)
     {
+        if(d.Kind is "REUSABLE_ISSUE" or "REUSABLE_RETURN")return [];
         var kinds=new List<string>();
         if(d.Kind=="TRANSFER_REQUEST"&&d.Status=="APPROVED"&&d.ClosedAt==null
             &&await access.HasRole("STOREKEEPER",d.BranchId,ct))kinds.Add("TRANSFER");
@@ -57,21 +58,30 @@ public sealed partial class DocumentService
             foreach(var kind in derivations)remaining[kind]=await Remaining(d,line,kind,ct);
             rows.Add(new{line.LineId,item.Name,item.Code,unit,balance,remaining});
         }
-        var write=await access.Allows(Permission(d.Kind,"create"),d.Kind=="TRANSFER_REQUEST"?d.DestinationBranchId:d.BranchId,d.CreatedBy==actor.Id,ct:ct);
+        var write=d.Kind is not ("REUSABLE_ISSUE" or "REUSABLE_RETURN")&&await access.Allows(Permission(d.Kind,"create"),d.Kind=="TRANSFER_REQUEST"?d.DestinationBranchId:d.BranchId,d.CreatedBy==actor.Id,ct:ct);
         if(d.Kind=="TRANSFER_REQUEST")write&=d.CreatedBy==actor.Id&&await access.HasRole("OPERATION_MANAGER",d.DestinationBranchId??d.BranchId,ct);
         else if(TransferKind(d.Kind))write&=await access.HasRole("STOREKEEPER",d.BranchId,ct);
         var independent=d.Kind is "RETURN" or "ADJUSTMENT" or "REVERSAL";
+        var consumableReduction=await ConsumableReduction(d,ct);
+        var approvalWriter=consumableReduction?await access.HasRole("OPERATION_MANAGER",d.BranchId,ct)&&await access.Allows("ROOM_SUPPLY_CONFIG",d.BranchId,ct:ct):write;
+        var canApprove=independent&&approvalWriter&&d.CreatedBy!=actor.Id&&d.ApprovedBy==null&&d.Status=="DRAFT";
         var canPost=write&&d.Status=="DRAFT"&&d.PostedAt==null&&d.Kind is "RECEIPT" or "ISSUE" or "RETURN" or "TRANSFER" or "TRANSFER_RECEIPT" or "ADJUSTMENT" or "REVERSAL"
             &&(!independent||d.ApprovedBy!=null&&d.ApprovedBy!=actor.Id);
         if(d.Kind=="ISSUE")canPost&=await access.Allows("MR_FULFILL",d.BranchId,ct:ct)&&await access.HasRole("STOREKEEPER",d.BranchId,ct);
         if(d.Kind=="RECEIPT"&&d.SourceDocumentId!=null&&await db.InventoryDocuments.AnyAsync(x=>x.DocumentId==d.SourceDocumentId&&x.Kind=="REPLENISHMENT",ct))canPost&=await access.Allows("REPLENISHMENT_RECEIVE",d.BranchId,ct:ct);
         var children=await db.InventoryDocuments.AsNoTracking().Where(x=>x.SourceDocumentId==d.DocumentId).OrderByDescending(x=>x.DocumentId).Take(50)
             .Select(x=>new{x.DocumentId,x.DocumentNo,x.Kind,x.Status,x.PostedAt}).ToArrayAsync(ct);
-        return new{lines=rows,derivations,canPost,
+        var documentCreator=await db.Users.AsNoTracking().Where(u=>u.UserId==d.CreatedBy).Select(u=>u.FullName).SingleAsync(ct);
+        var sourceRequester=d.Kind=="MATERIAL_REQUEST"&&d.ReceivingRoomId!=null
+            ?await (from w in db.WorkItems.AsNoTracking() join u in db.Users on w.CreatedBy equals u.UserId
+                where w.WorkId==d.SourceWorkId&&w.Kind=="INCIDENT"&&w.BranchId==d.BranchId&&w.RoomId==d.ReceivingRoomId
+                    &&db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED")
+                select u.FullName).SingleOrDefaultAsync(ct):null;
+        return new{lines=rows,derivations,canPost,adjustmentBatches=await AdjustmentBatches(d,ct),
             receivingRoom=await (from room in db.Rooms.AsNoTracking() join location in db.Locations on room.LocationId equals location.LocationId join branch in db.Branches on room.BranchId equals branch.BranchId where room.RoomId==d.ReceivingRoomId select branch.Name+" · "+location.Name+" · Phòng "+room.Code).SingleOrDefaultAsync(ct),
-            canApprove=independent&&write&&d.CreatedBy!=actor.Id&&d.ApprovedBy==null&&d.Status=="DRAFT",
+            canApprove,canReject=canApprove&&consumableReduction,
             canEdit=write&&d.ApprovedBy==null&&d.PostedAt==null&&d.Status is "DRAFT" or "IN_PROGRESS" or "REQUESTED",
-            creator=await db.Users.AsNoTracking().Where(u=>u.UserId==d.CreatedBy).Select(u=>u.FullName).SingleAsync(ct),
+            creator=sourceRequester??documentCreator,documentCreator,
             approver=await db.Users.AsNoTracking().Where(u=>u.UserId==d.ApprovedBy).Select(u=>u.FullName).SingleOrDefaultAsync(ct),
             sourceNumber=await db.InventoryDocuments.AsNoTracking().Where(x=>x.DocumentId==d.SourceDocumentId).Select(x=>x.DocumentNo).SingleOrDefaultAsync(ct),
             sourceWarehouse=await db.Warehouses.AsNoTracking().Where(w=>w.WarehouseId==d.SourceWarehouseId).Select(w=>w.Name).SingleOrDefaultAsync(ct),

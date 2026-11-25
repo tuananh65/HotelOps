@@ -109,7 +109,7 @@ export default function SchedulingStaff() {
                   <tr>
                     <th>Nhân viên</th>
                     <th>Vai trò / bộ phận</th>
-                    <th>Chi nhánh</th>
+                    <th>Số điện thoại</th>
                     <th>Lịch trong tuần</th>
                   </tr>
                 </thead>
@@ -128,7 +128,7 @@ export default function SchedulingStaff() {
                           {shift.role}
                           <small>{shift.department}</small>
                         </td>
-                        <td>{branchName}</td>
+                        <td>{u.phone || "Chưa cập nhật"}</td>
                         <td>
                           <button onClick={() => setEmployee(u)}>
                             {assigned(u.userId).length} ca · Xem lịch

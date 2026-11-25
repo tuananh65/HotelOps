@@ -82,7 +82,7 @@ public sealed partial class InsightService
             if(assetAllowed){var assets=await db.Assets.AsNoTracking().Where(a=>a.BranchId==b.BranchId&&a.IsActive).GroupBy(a=>a.ConditionCode).Select(g=>new{condition=g.Key,count=g.Count()}).ToArrayAsync(ct);
                 m["assets"]=assets.Sum(a=>a.count);conditions.AddRange(assets.Select(a=>(a.condition,a.count)));}
             if(stockAllowed){var stock=await StockRows(b.BranchId,ct);m["stockedItems"]=stock.Select(s=>s.ItemId).Distinct().Count();
-                m["lowStock"]=stock.Count(s=>s.MinimumQty!=null&&s.BaseQty<s.MinimumQty);
+                m["lowStock"]=stock.Count(s=>s.MinimumQty!=null&&s.AvailableQty<s.MinimumQty);
                 m["emptyStock"]=stock.Count(s=>s.BaseQty==0);foreach(var s in stock)stockItems.Add(s.ItemId);}
             if(mrAllowed)m["pendingMaterials"]=await db.InventoryDocuments.AsNoTracking().CountAsync(d=>d.BranchId==b.BranchId&&d.Kind=="MATERIAL_REQUEST"&&d.Status=="PENDING_APPROVAL",ct);
             metricRows.Add(m);summaries.Add(new{b.BranchId,b.Code,b.Name,b.Timezone,metrics=m});
@@ -115,7 +115,7 @@ public sealed partial class InsightService
     public async Task<object> OwnerStock(long? branchId,CancellationToken ct)
     {
         var ids=await ReadBranches("INVENTORY_VIEW",branchId,ct);var rows=new List<object>();
-        foreach(var id in ids)foreach(var s in await StockRows(id,ct))rows.Add(new{id,branchId=id,s.WarehouseId,s.Warehouse,s.ItemId,s.Item,s.Code,s.Unit,s.BaseQty,s.MinimumQty,s.TargetQty,s.LastMovement,s.IsActive});
+        foreach(var id in ids)foreach(var s in await StockRows(id,ct))rows.Add(new{id,branchId=id,s.WarehouseId,s.Warehouse,s.ItemId,s.Item,s.Code,s.Unit,s.BaseQty,s.AvailableQty,s.MinimumQty,s.TargetQty,s.LastMovement,s.IsActive});
         return rows;
     }
     public async Task<object> OwnerRoomLinks(long id,CancellationToken ct)

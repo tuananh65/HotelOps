@@ -5,6 +5,7 @@ import { useAuth } from "./auth";
 import { Dialog, State, useQuery } from "./ui";
 import BranchContext from "./branch-context";
 import ResetPasswordForm from "./reset-password-form";
+import AccountInvitations from "./account-invitations";
 
 const membershipNames: Record<string, string> = {
   BRANCH_ACCESS: "Truy cập chi nhánh",
@@ -133,6 +134,7 @@ export default function AccountManagement({
       }}
     >
       <State {...detail} retry={() => bump((x) => x + 1)}>
+        <AccountInvitations user={account} changed={() => { bump(x => x + 1); changed(); }} />
         <div className="account-detail-grid">
           <div>
             <small>Tài khoản</small>

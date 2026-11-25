@@ -76,9 +76,19 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
             pendingRequests=requests?(int?)await active.CountAsync(w=>w.Kind=="INTERNAL_REQUEST"&&(w.Status=="SUBMITTED"||w.Status=="PENDING_ACCEPTANCE"),ct):null,
             pendingMaterials=materials?(int?)await db.InventoryDocuments.AsNoTracking().CountAsync(d=>d.BranchId==branchId&&d.Kind=="MATERIAL_REQUEST"&&d.Status=="PENDING_APPROVAL",ct):null}};
     }
-    public async Task<object> Report(string report,long branchId,DateTime? from,DateTime? to,CancellationToken ct){
+    public async Task<object> Report(string report,long branchId,DateTime? from,DateTime? to,CancellationToken ct,bool localDates=false){
         await access.Require("REPORT_VIEW",branchId,ct:ct);var start=from??clock.GetUtcNow().UtcDateTime.AddDays(-30);var end=to??clock.GetUtcNow().UtcDateTime;
         Output.Require(start<=end&&(end-start).TotalDays<=366,"REPORT_RANGE_MAX_366_DAYS",400);
+        if(report=="operations-events"){
+            if(localDates){
+                var zone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
+                var today=WorkdayService.LocalDate(clock.GetUtcNow().UtcDateTime,zone);
+                var period=ReadPeriod(from.HasValue?DateOnly.FromDateTime(from.Value):today.AddDays(-30),
+                    to.HasValue?DateOnly.FromDateTime(to.Value):today,zone);
+                return await OperationsEvents(branchId,period.Start,period.End,ct,true);
+            }
+            return await OperationsEvents(branchId,start,end,ct);
+        }
         if(report=="transfers")return await TransferReport(branchId,start,end,ct);
         if(report=="stocktake-differences")return await StocktakeDifferencesReport(branchId,start,end,ct);
         if(report=="assets"){

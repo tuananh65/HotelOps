@@ -10,7 +10,7 @@ public sealed partial class WorkService
         await access.Require("MAINTENANCE_VIEW", branchId, ct: ct);
         await access.Require("INCIDENT_VIEW", branchId, ct: ct);
         Output.Require(await access.HasRole("MAINTENANCE_SUPERVISOR", branchId, ct), "MAINTENANCE_SUPERVISOR_REQUIRED", 403);
-        var issues = db.WorkEvents.Where(e => e.EventType == "ROOM_ISSUE_REPORTED").Select(e => e.WorkId);
+        var issues = db.WorkEvents.Where(e => e.EventType == "ROOM_ISSUE_REPORTED" || e.EventType == "LEGACY_ROOM_ISSUE_RECOVERED").Select(e => e.WorkId);
         // A room issue owns its repair attempts. Show that root once, including rework.
         var work = db.WorkItems.AsNoTracking().Where(w => w.BranchId == branchId &&
             ((w.Kind == "INCIDENT" && issues.Contains(w.WorkId) && db.WorkEvents.Any(e => e.WorkId == w.WorkId && e.EventType == "ROOM_ISSUE_REPAIR_REQUESTED")) ||

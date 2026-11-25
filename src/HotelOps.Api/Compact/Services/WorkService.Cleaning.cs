@@ -61,8 +61,10 @@ public sealed partial class WorkService
             join shift in db.WorkdayShifts on day.ShiftId equals shift.ShiftId
             join role in db.Roles on shift.RoleId equals role.RoleId
             where assignment.WorkId==workId&&assignment.AssigneeUserId==actor.Id&&assignment.AssignmentStatus=="ACTIVE"
-                &&shift.BranchId==branchId&&role.Code=="HK_STAFF"&&day.Status=="WORKING"&&day.StartedAt!=null
-                &&day.EndedAt==null
+                &&shift.BranchId==branchId&&role.Code=="HK_STAFF"&&day.StartedAt!=null
+                &&((day.Status=="WORKING"&&day.EndedAt==null)||
+                    (day.Status=="ENDED"&&day.EndedAt!=null&&assignment.AssignedAt<=day.EndedAt
+                     &&db.StaffSupplyAllocations.Any(s=>s.AssignmentId==day.AssignmentId&&s.UserId==actor.Id&&s.Status!="CLOSED")))
                 &&(day.StartedAt<=assignment.AssignedAt||
                     (db.WorkEvents.Any(e=>e.WorkId==workId&&e.EventType=="SUPPLIES_RECONCILED"&&e.RecipientUserId==actor.Id
                         &&e.OccurredAt>=day.StartedAt&&e.OccurredAt>=assignment.AssignedAt)

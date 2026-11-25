@@ -1,0 +1,8 @@
+Đã thực hiện review, cập nhật 6 tệp test và ghi [báo cáo đầy đủ](D:/SEP490/Projects/TestFE/HotelOps/plans/reports/review-261123-1016-ux-integration.md).
+
+- Build frontend: **Passed**; test logic compact: **9/9 Passed**.
+- Test tích hợp mới: **4/5 Passed**; phát hiện form khách sạn chấp nhận số điện thoại sai định dạng.
+- Chuỗi UX còn timeout tải trang; `npm test` dừng sau 12 timeout ở test giao diện cũ.
+- Backend/API/database: **Not Run**, đúng giới hạn nhiệm vụ.
+
+Chỉ sửa test và báo cáo; lỗi ứng dụng được giữ lại để người phụ trách source xử lý.

@@ -22,7 +22,7 @@ public sealed class AssetService(HotelOpsCompactDbContext db,Access access,Actor
         return new{asset=Output.Record(a),
             location=await db.Locations.AsNoTracking().Where(l=>l.LocationId==a.LocationId&&l.BranchId==a.BranchId).Select(l=>l.Name).SingleOrDefaultAsync(ct),
             room=await db.Rooms.AsNoTracking().Where(r=>r.RoomId==a.RoomId&&r.BranchId==a.BranchId).Select(r=>r.Code).SingleOrDefaultAsync(ct),
-            work=await db.WorkItems.AsNoTracking().Where(w=>w.AssetId==id&&w.BranchId==a.BranchId&&((maintenance&&w.Kind=="MAINTENANCE")||(incidents&&w.Kind=="INCIDENT"))).OrderByDescending(w=>w.WorkId).Take(100).Select(w=>new{w.WorkId,w.Kind,w.Title,w.Status,w.CompletedAt,w.VerifiedAt}).ToArrayAsync(ct),
+            work=await db.WorkItems.AsNoTracking().Where(w=>(w.AssetId==id||db.AssetEvents.Any(e=>e.AssetId==id&&e.SourceWorkId==w.WorkId&&e.EventType=="REPLACEMENT_OUT"))&&w.BranchId==a.BranchId&&((maintenance&&w.Kind=="MAINTENANCE")||(incidents&&w.Kind=="INCIDENT"))).OrderByDescending(w=>w.WorkId).Take(100).Select(w=>new{w.WorkId,w.Kind,w.Title,w.Status,w.CompletedAt,w.VerifiedAt,assetRelationship=w.AssetId==id?"CURRENT":"REPLACED"}).ToArrayAsync(ct),
             plans=await db.WorkTemplates.AsNoTracking().Where(t=>pm&&t.AssetId==id&&t.BranchId==a.BranchId&&t.Kind=="MAINTENANCE").Select(t=>new{t.WorkTemplateId,t.Title,t.NextDueAt,t.IsActive}).ToArrayAsync(ct),
             history=(await db.AssetEvents.AsNoTracking().Where(x=>x.AssetId==id).OrderByDescending(x=>x.AssetEventId).Take(200).ToArrayAsync(ct)).Select(Output.Record)};}
     public Task<object> Act(long id,string action,AssetActionRequest r,CancellationToken ct)=>atomic.Run(async()=>{

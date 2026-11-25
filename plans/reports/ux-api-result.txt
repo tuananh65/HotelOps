@@ -1,0 +1,5 @@
+Đã thực hiện nhiệm vụ: **30/30 nhóm kiểm thử API và SQL Passed** trên fixture mới có backup. API đã dừng, cổng 5192 đã giải phóng; không ghi database chính.
+
+Đã thêm `test-ux-refinements.ps1`, bổ sung switch `-UxRefinements` vào harness và ghi [báo cáo chi tiết](/D:/SEP490/Projects/TestFE/HotelOps/plans/reports/validation-261123-1016-ux-api.md).
+
+**Build: Not Run** theo yêu cầu. Ba tệp source mới hơn assembly đã kiểm thử; cần build bản tích hợp cuối rồi chạy lại để xác nhận các thay đổi đó.

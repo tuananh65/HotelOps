@@ -130,7 +130,7 @@ export default function InventoryDashboard() {
                       </small>
                     </span>
                     <strong>
-                      {row.baseQty} {row.unit}
+                      {row.availableQty ?? row.baseQty} {row.unit} khả dụng
                     </strong>
                   </a>
                 ))}

@@ -20,6 +20,7 @@ public partial class HotelOpsCompactDbContext
         var balance=model.Entity<StaffSupplyBalance>();balance.ToTable("staff_supply_balances");balance.HasKey(x=>x.BalanceId);balance.Property(x=>x.RowVersion).IsRowVersion();
         var reservation=model.Entity<SupplyReservation>();reservation.ToTable("supply_reservations");reservation.HasKey(x=>x.ReservationId);
         reservation.Property(x=>x.Status).HasMaxLength(20).IsUnicode(false);reservation.Property(x=>x.RowVersion).IsRowVersion();
+        reservation.Property(x=>x.UsableQuantity).HasPrecision(18,4);
         var ledger=model.Entity<StaffSupplyLedger>();ledger.ToTable("staff_supply_ledger");ledger.HasKey(x=>x.LedgerId);ledger.Property(x=>x.Kind).HasMaxLength(20).IsUnicode(false);
         var document=model.Entity<SupplyStockDocument>();document.ToTable("supply_stock_documents");document.HasKey(x=>x.DocumentId);document.Property(x=>x.DocumentId).ValueGeneratedNever();document.Property(x=>x.Purpose).HasMaxLength(20).IsUnicode(false);
         foreach(var type in new[]{typeof(SupplyConfiguration),typeof(StaffSupplyAllocation),typeof(StaffSupplyBalance),typeof(SupplyReservation),typeof(StaffSupplyLedger),typeof(SupplyStockDocument)})

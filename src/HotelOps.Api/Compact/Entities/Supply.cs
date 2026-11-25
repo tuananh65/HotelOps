@@ -47,6 +47,7 @@ public sealed class StaffSupplyBalance
     public decimal Reserved { get; set; }
     public decimal Used { get; set; }
     public decimal Returned { get; set; }
+    public decimal ReclassifiedQuantity { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }
 public sealed class SupplyReservation
@@ -58,6 +59,9 @@ public sealed class SupplyReservation
     public int Capacity { get; set; }
     public decimal PerGuestQuantity { get; set; }
     public decimal Quantity { get; set; }
+    public decimal? UsableQuantity { get; set; }
+    public DateTime? AssessedAt { get; set; }
+    public long? AssessedBy { get; set; }
     public string Status { get; set; } = "RESERVED";
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }

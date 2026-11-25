@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace HotelOps.Api.Compact;
 
@@ -26,6 +27,16 @@ public static class CompactHost
             options=>ProxyConfiguration.Configure(options,builder.Configuration));
         builder.Services.AddHttpsRedirection(options=>options.HttpsPort=443);
         builder.Services.AddSingleton(TimeProvider.System);
+        var dataProtection=builder.Services.AddDataProtection().SetApplicationName("HotelOps.Compact");
+        if(builder.Configuration["Email:DataProtectionKeysPath"] is {Length:>0} keyPath)dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keyPath));
+        builder.Services.AddScoped<AccountInvitationService>();
+        builder.Services.AddScoped<InventoryLifecycleService>();
+        builder.Services.AddScoped<ReusableInventoryService>();
+        builder.Services.AddHttpClient("hotelops-advisory",client=>client.Timeout=TimeSpan.FromSeconds(25));
+        builder.Services.AddScoped<IAdvisoryProvider,ConfiguredAdvisoryProvider>();
+        builder.Services.AddScoped<AdvisoryService>();
+        builder.Services.AddScoped<IInvitationEmail,SmtpInvitationEmail>();
+        builder.Services.AddHostedService<InvitationDeliveryWorker>();
         builder.Services.AddScoped<Actor>();builder.Services.AddScoped<Access>();builder.Services.AddScoped<Atomic>();builder.Services.AddScoped<Audit>();
         builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
         builder.Services.Configure<PasswordHasherOptions>(o=>o.IterationCount=210000);
@@ -38,6 +49,8 @@ public static class CompactHost
         builder.Services.AddScoped<LowStockService>();
         builder.Services.AddScoped<AssetService>();builder.Services.AddScoped<TemplateService>();builder.Services.AddScoped<InsightService>();
         builder.Services.AddScoped<NotificationService>();builder.Services.AddScoped<EvidenceService>();
+        builder.Services.AddSingleton<NotificationRealtimeReader>();
+        builder.Services.AddSignalR(options=>options.MaximumParallelInvocationsPerClient=1);
         builder.Services.AddScoped<WorkdayService>();
         builder.Services.AddScoped<ShiftExpiryService>();
         builder.Services.AddHostedService<ShiftExpiryWorker>();
@@ -50,6 +63,8 @@ public static class CompactHost
         builder.Services.AddOpenApi();
         builder.Services.AddRateLimiter(o=>{
             o.RejectionStatusCode=429;
+            o.AddPolicy("advisory",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"unknown",
+                _=>new FixedWindowRateLimiterOptions{PermitLimit=10,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
             o.AddPolicy("account-reset",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"unknown",
                 _=>new FixedWindowRateLimiterOptions{PermitLimit=5,Window=TimeSpan.FromMinutes(1),QueueLimit=0}));
             o.AddPolicy("login",ctx=>RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString()??"unknown",
@@ -79,8 +94,29 @@ public static class CompactHost
             await next();
         });
         app.UseAuthorization();
+        // A published frontend is optional: API-only deployments keep their
+        // existing routes, while local Release can serve the built SPA.
+        var frontendIndex=app.Environment.WebRootFileProvider.GetFileInfo("index.html");
+        if(frontendIndex.Exists && frontendIndex.PhysicalPath is { } indexPath)
+        {
+            app.UseWhen(ctx=>!ctx.Request.Path.StartsWithSegments("/api"),frontend=>{
+                frontend.UseDefaultFiles();
+                frontend.UseStaticFiles();
+            });
+            app.MapFallback("{*path:nonfile}",async context=>{
+                if(context.Request.Path.StartsWithSegments("/api") ||
+                   (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method)))
+                {
+                    context.Response.StatusCode=StatusCodes.Status404NotFound;
+                    return;
+                }
+                await Results.File(indexPath,"text/html; charset=utf-8").ExecuteAsync(context);
+            });
+        }
         if(app.Environment.IsDevelopment())app.MapOpenApi();
-        app.MapGet("/health",()=>new{status="ok",schema="3.0.0",tables=49});
+        app.MapGet("/health",()=>new{status="ok",schema="3.0.0",tables=57,delta="restructure-v2-in-progress"});
+        app.MapHub<HotelOps.Api.Compact.Realtime.NotificationHub>("/api/v2/realtime/notifications",
+            options=>options.Transports=Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling);
         app.MapControllers();await app.RunAsync();
     }
     private sealed class CompactControllersOnly:IApplicationFeatureProvider<ControllerFeature>

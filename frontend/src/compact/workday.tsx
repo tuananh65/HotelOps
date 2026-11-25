@@ -10,6 +10,10 @@ import { Badge, ConfirmPopup, Dialog, Empty, History, State, useQuery } from "./
 const time = (n: number) =>
   `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 const audienceKey = (shift: Row) => `${shift.departmentId}:${shift.roleId}`;
+const visibleAssignment = (assignment: Row) => assignment.status !== "CANCELLED" || assignment.expiredWithoutStart === true;
+const assignmentStatus = (assignment: Row) => assignment.expiredWithoutStart === true
+  ? "Đã kết thúc · chưa vào ca"
+  : assignment.status;
 function days(start: string) {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(`${start}T12:00:00`);
@@ -95,7 +99,7 @@ export default function Workday() {
   };
   const mine = (a: Row) => a.userId === profile.user.fields.userId;
   const dailyAssignments = (data?.assignments ?? []).filter(
-    (a: Row) => a.status !== "CANCELLED" && a.workDate === date,
+    (a: Row) => visibleAssignment(a) && a.workDate === date,
   );
   if (settings && data?.canManage)
     return (
@@ -111,7 +115,7 @@ export default function Workday() {
       <div className="page-heading workday-controls">
         <PageTitle>
           <h1>Lịch làm việc</h1>
-          <p>Phân ca theo tuần · Nhân viên buồng phòng kết thúc ca sau khi hoàn tất công việc</p>
+          <p>Phân ca theo tuần · Ca tự kết thúc khi hết giờ; vật tư còn giữ được đối soát riêng</p>
         </PageTitle>
         {data?.canManage && (
           <label className="workday-audience">
@@ -179,7 +183,7 @@ export default function Workday() {
             {data.active && (
               <section className="active-shift shift-working">
                 <div>
-                  <strong>Ca đang hoạt động: {data.active.name}</strong>
+                  <strong>{data.active.status === "ENDED" ? "Ca đã kết thúc, chờ đối soát" : "Ca đang hoạt động"}: {data.active.name}</strong>
                   <p>
                     Từ {timestamp(data.active.startedAt)} · Thời gian công việc
                     được quản lý riêng.
@@ -190,12 +194,12 @@ export default function Workday() {
                   disabled={pending}
                   onClick={() => setEnding(true)}
                 >
-                  Kết thúc ca
+                  {data.active.status === "ENDED" ? "Đối soát và hoàn trả vật tư" : "Kết thúc ca"}
                 </button>}
-                {!data.active.canEnd && <p role="status">Hoàn tất công việc, xử lý vật tư giữ chỗ và yêu cầu bổ sung còn mở trước khi kết thúc ca.</p>}
+                {!data.active.canEnd && <p role="status">Hoàn tất hoặc bàn giao công việc, xử lý vật tư giữ chỗ và yêu cầu bổ sung còn mở để đối soát vật tư.</p>}
               </section>
             )}
-            {ending && data.active && <ConfirmPopup title="Kết thúc ca" disabled={!data.active.canEnd} pending={pending} cancel={()=>setEnding(false)} confirm={()=>{if(data.active.canEnd)mutate(`workday/assignments/${data.active.assignmentId}/end`,action(data.active.rowVersion));}}><p>Vật tư chưa sử dụng sẽ được hoàn trả về kho khi kết thúc ca.</p>{error&&<AlertPopup>{error}</AlertPopup>}</ConfirmPopup>}
+            {ending && data.active && <ConfirmPopup title={data.active.status === "ENDED" ? "Đối soát vật tư cuối ca" : "Kết thúc ca"} disabled={!data.active.canEnd} pending={pending} cancel={()=>setEnding(false)} confirm={()=>{if(data.active.canEnd)mutate(`workday/assignments/${data.active.assignmentId}/end`,action(data.active.rowVersion));}}><p>Xác nhận hoàn trả vật tư chưa sử dụng về kho. Ca đã hết giờ vẫn giữ nguyên thời điểm kết thúc.</p>{error&&<AlertPopup>{error}</AlertPopup>}</ConfirmPopup>}
             <div className="section-title">
               <h2>
                 {data.canManage
@@ -257,8 +261,9 @@ export default function Workday() {
                             (a: Row) =>
                               a.shiftId === s.shiftId &&
                               a.workDate === d &&
-                              a.status !== "CANCELLED",
+                              visibleAssignment(a),
                           );
+                          const occupied = rows.filter((a: Row) => a.status !== "CANCELLED").length;
                           return (
                             <td
                               key={d}
@@ -266,7 +271,7 @@ export default function Workday() {
                               className={d === data.today ? "today" : ""}
                             >
                               <span className="capacity">
-                                {rows.length}/{s.capacity}
+                                {occupied}/{s.capacity}
                               </span>
                               {rows.map((a: Row) => (
                                 <button
@@ -278,13 +283,13 @@ export default function Workday() {
                                   }}
                                 >
                                   <strong>{a.fullName}</strong>
-                                  <Badge value={a.status} />
+                                  <Badge value={assignmentStatus(a)} />
                                 </button>
                               ))}
                               {s.isActive && d === data.today && s.endMinute <= data.currentMinute && <small>Ca đã hết giờ</small>}
                               {(d > data.today || (d === data.today && s.endMinute > data.currentMinute)) &&
                                 s.isActive &&
-                                rows.length < s.capacity && (
+                                occupied < s.capacity && (
                                   <button
                                     className="add-shift"
                                     aria-label={`Phân ${s.name} ngày ${d}`}
@@ -327,7 +332,7 @@ export default function Workday() {
                           <p>
                             {time(s.startMinute)}–{time(s.endMinute)}
                           </p>
-                          <Badge value={a.status} />
+                          <Badge value={assignmentStatus(a)} />
                           {calendar.data?.markers
                             .filter((m) => m.date === a.workDate)
                             .map((m) => (
@@ -394,8 +399,9 @@ export default function Workday() {
         >
           <h3>{detail.fullName}</h3>
           <p>
-            {detail.workDate} · <Badge value={detail.status} />
+            {detail.workDate} · <Badge value={assignmentStatus(detail)} />
           </p>
+          {detail.expiredWithoutStart === true && <p>Ca đã quá giờ kết thúc 1 giờ và được hệ thống đóng tự động. Nhân viên chưa vào ca; không ghi nhận thời gian làm việc.</p>}
           <p>
             Bắt đầu: {timestamp(detail.startedAt)}
             <br />
@@ -443,7 +449,9 @@ export default function Workday() {
           )}
           <h3>Lịch sử</h3>
           <State {...history}>
-            <History rows={history.data || []} />
+            <History rows={(history.data || []).map((row: Row) => row.action === "AUTO_CANCEL_EXPIRED"
+              ? { ...row, action: "Tự động kết thúc ca chưa bắt đầu" }
+              : row)} />
           </State>
           {error && (
             <AlertPopup>

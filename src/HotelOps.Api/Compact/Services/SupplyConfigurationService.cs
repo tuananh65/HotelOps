@@ -25,7 +25,8 @@ public sealed class SupplyConfigurationService(HotelOpsCompactDbContext db,Acces
         Output.Require(r.SupplyGroup is "A" or "B" or "C","INVALID_SUPPLY_GROUP",400);
         Output.Require((r.ItemId!=null) != (r.AssetId!=null),"ONE_SUPPLY_SUBJECT_REQUIRED",400);
         Output.Require(r.InitialQuantity>=0&&r.MinimumStock>=0&&r.PerGuestQuantity>=0&&new[]{r.InitialQuantity,r.MinimumStock,r.PerGuestQuantity}.All(SupplyMath.ValidQuantity),"INVALID_SUPPLY_QUANTITY",400);
-        Output.Require(r.SupplyGroup=="A"||r.InitialQuantity==0&&r.PerGuestQuantity==0,"NON_FILL_SUPPLY_CANNOT_AUTO_ISSUE",400);
+        var reusable=r.ItemId!=null&&await db.ItemLifecycleProfiles.AsNoTracking().AnyAsync(p=>p.BranchId==r.BranchId&&p.ItemId==r.ItemId&&p.Classification=="REUSABLE",ct);
+        Output.Require(r.SupplyGroup=="A"||r.PerGuestQuantity==0&&(r.InitialQuantity==0||r.SupplyGroup=="B"&&reusable),"NON_FILL_SUPPLY_CANNOT_AUTO_ISSUE",400);
         Output.Require(r.AssetId==null||r.SupplyGroup=="C","ASSET_REQUIRES_EXTERNAL_REPAIR_GROUP",400);
         if(r.ItemId!=null){
             var item=await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x=>x.ItemId==r.ItemId&&x.IsActive,ct)??throw new ApiException(409,"ITEM_UNAVAILABLE");
@@ -112,7 +113,7 @@ public sealed class SupplyConfigurationService(HotelOpsCompactDbContext db,Acces
 public static class SupplyMath
 {
     public static bool ValidQuantity(decimal quantity)=>quantity>=0&&quantity<=99999999999999.9999m&&decimal.Round(quantity,4)==quantity;
-    public static decimal Remaining(StaffSupplyBalance b)=>b.InitialIssued+b.AdditionalIssued-b.Used-b.Returned;
-    public static decimal Available(StaffSupplyBalance b)=>Remaining(b)-b.Reserved;
+    public static decimal Remaining(StaffSupplyBalance b)=>b.InitialIssued+b.AdditionalIssued-b.Used-b.Returned-b.ReclassifiedQuantity;
+    public static decimal Available(StaffSupplyBalance b)=>Math.Max(0,Remaining(b)-b.Reserved);
     public static decimal Required(int capacity,decimal perGuest){Output.Require(capacity>0&&perGuest>0,"ROOM_SUPPLY_CAPACITY_INVALID");var value=capacity*perGuest;Output.Require(ValidQuantity(value),"INVALID_SUPPLY_QUANTITY",400);return value;}
 }

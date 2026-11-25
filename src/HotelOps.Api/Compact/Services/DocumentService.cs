@@ -5,7 +5,7 @@ using HotelOps.Api.Compact.Infrastructure;
 using HotelOps.Api.Compact.Security;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Compact.Services;
-public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock,NotificationService notifications)
+public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock,NotificationService notifications,IConfiguration? configuration=null)
 {
     private static string Permission(string kind,string action)=>kind switch{
         "MATERIAL_REQUEST"=>action=="read"?"MR_VIEW":action=="approve"||action=="reject"?"MR_APPROVE_L1":"MR_CREATE",
@@ -18,11 +18,15 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
         "STOCKTAKE"=>action=="read"?"INVENTORY_VIEW":"STOCKTAKE_PERFORM",
         "ADJUSTMENT"=>action=="read"?"INVENTORY_VIEW":"STOCK_ADJUST_POST",
         "REVERSAL"=>action=="read"?"INVENTORY_VIEW":"STOCK_REVERSE",
+        "REUSABLE_ISSUE" or "REUSABLE_RETURN"=>action=="read"?"INVENTORY_VIEW":throw new ApiException(403,"USE_REUSABLE_CUSTODY_WORKFLOW"),
         _=>throw new ApiException(400,"UNKNOWN_DOCUMENT_KIND")};
     public async Task<InventoryDocument> Load(long id,string action,CancellationToken ct){
         var d=await db.InventoryDocuments.SingleOrDefaultAsync(x=>x.DocumentId==id,ct)??throw new ApiException(404,"DOCUMENT_NOT_FOUND");
         if(action!="read")await GuardWorkflowDocumentMutation(d,ct);
         if(TransferKind(d.Kind)){await TransferAuthority(d,action,ct);return d;}
+        if(action is "approve" or "reject"&&await ConsumableReduction(d,ct)){
+            await access.RequireRolePermission("OPERATION_MANAGER","ROOM_SUPPLY_CONFIG",d.BranchId,ct);return d;
+        }
         Output.Require(d.Kind!="MATERIAL_REQUEST"||action!="post","MATERIAL_REQUEST_NOT_STOCK_DOCUMENT",403);
         if(d.Kind=="MATERIAL_REQUEST"&&action is "create" or "submit" or "cancel")
             Output.Require(d.CreatedBy==actor.Id,"DOCUMENT_OWNER_REQUIRED",403);
@@ -122,16 +126,22 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             case "approve":
                 Output.Require(d.Kind is "MATERIAL_REQUEST" or "TRANSFER_REQUEST" or "ADJUSTMENT" or "RETURN" or "REVERSAL"&&d.Status is "PENDING_APPROVAL" or "DRAFT","INVALID_DOCUMENT_TRANSITION");
                 Output.Require(d.CreatedBy!=actor.Id,"INDEPENDENT_APPROVER_REQUIRED",403);
+                if(d.Kind=="ADJUSTMENT")Output.Require(d.ApprovedBy==null,"DOCUMENT_ALREADY_APPROVED");
+                if(d.Kind=="ADJUSTMENT"&&await (from l in db.InventoryDocumentLines join s in db.InventoryDocumentLines on l.SourceLineId equals s.LineId
+                    where l.DocumentId==d.DocumentId&&s.CountedQty<s.ExpectedQty&&db.ItemLifecycleProfiles.Any(p=>p.BranchId==d.BranchId&&p.ItemId==l.ItemId&&p.Classification=="CONSUMABLE") select l.LineId).AnyAsync(ct))
+                    await ValidateSavedAdjustmentBatches(d,ct);
                 if(d.Kind=="TRANSFER_REQUEST"){Output.Require(d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");await ValidateTransferLines(d,lines,ct);}
                 if(d.Kind=="MATERIAL_REQUEST")await access.RequireRolePermission("STOREKEEPER","MR_APPROVE_L1",d.BranchId,ct);
                 d.ApprovedBy=actor.Id;d.ApprovedAt=now;if(d.Kind is "MATERIAL_REQUEST" or "TRANSFER_REQUEST")d.Status="APPROVED";
                 if(r.ApprovedLines!=null)Output.Require(r.ApprovedLines.Count==lines.Length&&r.ApprovedLines.Select(x=>x.LineId).Distinct().Count()==lines.Length,"ALL_APPROVAL_LINES_REQUIRED",400);
+                if(d.Kind=="ADJUSTMENT"&&r.ApprovedLines!=null)Output.Require(lines.All(l=>r.ApprovedLines.SingleOrDefault(a=>a.LineId==l.LineId)?.Quantity==l.ActualQty),"ADJUSTMENT_FULL_APPROVAL_REQUIRED",400);
                 foreach(var l in lines){var quantity=r.ApprovedLines==null?l.RequestedQty??l.ActualQty:r.ApprovedLines.SingleOrDefault(x=>x.LineId==l.LineId)?.Quantity??-1;
                     Output.Require(quantity>=0&&quantity<=(l.RequestedQty??l.ActualQty),"APPROVED_QUANTITY_EXCEEDS_REQUEST",400);l.ApprovedQty=quantity;}
                 if(d.Kind=="TRANSFER_REQUEST"){Output.Require(lines.Any(l=>l.ApprovedQty>0),"APPROVAL_QUANTITY_REQUIRED",400);await ValidateTransferApprovalStock(d,lines,ct);}
                 break;
             case "reject":
-                Output.Reason(r.Reason);Output.Require(d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");d.Status="REJECTED";d.Reason=r.Reason;break;
+                Output.Reason(r.Reason);Output.Require(d.Status=="PENDING_APPROVAL"||d.Status=="DRAFT"&&d.ApprovedBy==null&&await ConsumableReduction(d,ct),"INVALID_DOCUMENT_TRANSITION");
+                Output.Require(d.CreatedBy!=actor.Id,"INDEPENDENT_APPROVER_REQUIRED",403);d.Status="REJECTED";d.Reason=r.Reason;break;
             case "request-information":
                 Output.Reason(r.Reason);Output.Require(d.Kind=="MATERIAL_REQUEST"&&d.Status=="PENDING_APPROVAL","INVALID_DOCUMENT_TRANSITION");d.Status="NEEDS_INFORMATION";break;
             case "count":Output.Require(d.Kind=="STOCKTAKE"&&d.Status=="IN_PROGRESS"&&lines.All(l=>l.CountedQty!=null),"COUNT_INCOMPLETE");d.Status="COUNTED";break;
@@ -151,6 +161,7 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
     },ct);
     private async Task Post(InventoryDocument d,InventoryDocumentLine[] lines,ActionRequest r,CancellationToken ct)
     {
+        await StaffSupplyService.Lock(db,ct);
         Output.Require(d.Status=="DRAFT"&&d.PostedAt==null,"DOCUMENT_ALREADY_POSTED");
         Output.Require(d.Kind is "RECEIPT" or "ISSUE" or "RETURN" or "TRANSFER" or "TRANSFER_RECEIPT" or "ADJUSTMENT" or "REVERSAL","DOCUMENT_NOT_POSTABLE");
         if(d.Kind is "ADJUSTMENT" or "RETURN" or "REVERSAL")Output.Require(d.ApprovedBy!=null&&d.ApprovedBy!=actor.Id,"INDEPENDENT_APPROVAL_REQUIRED");
@@ -186,6 +197,8 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             Output.Require(!await db.InventoryDocuments.AnyAsync(x=>x.SourceDocumentId==source.DocumentId&&x.PostedAt!=null&&x.Kind!="REVERSAL",ct),"DOCUMENT_HAS_POSTED_DEPENDENTS");
         }
         if(d.Kind=="TRANSFER_RECEIPT")Output.Require(source!.Kind=="TRANSFER"&&source.PostedAt!=null&&source.DestinationWarehouseId==d.DestinationWarehouseId,"TRANSFER_DESTINATION_MISMATCH");
+        // Direct API creation must retain receipt/discrepancy evidence too, not only Derive.
+        if(d.Kind=="TRANSFER_RECEIPT")Output.Reason(r.Reason??d.Reason);
         if(d.Kind=="RETURN")Output.Require(source!.Kind=="ISSUE"&&source.PostedAt!=null&&source.SourceWarehouseId==d.DestinationWarehouseId,"RETURN_SOURCE_MISMATCH");
         if(d.Kind=="ADJUSTMENT")Output.Require(source!.Kind=="STOCKTAKE"&&source.Status=="COUNTED"&&source.SourceWarehouseId==warehouse,"STOCKTAKE_REQUIRED");
         var pending=new List<StockMovement>();
@@ -205,6 +218,7 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
                 Output.Require(used+qty<=original!.ActualQty*original.ConversionFactor,"SOURCE_QUANTITY_EXCEEDED");
             }
             if(d.Kind=="ADJUSTMENT"){
+                Output.Require(l.ApprovedQty==l.ActualQty,"ADJUSTMENT_FULL_APPROVAL_REQUIRED");
                 var difference=(original!.CountedQty-original.ExpectedQty)*original.ConversionFactor;
                 Output.Require(difference!=null&&Math.Abs(difference.Value)==qty,"ADJUSTMENT_MUST_MATCH_COUNT");
                 Output.Require(!await db.InventoryDocumentLines.AnyAsync(x=>x.SourceLineId==original.LineId&&db.StockMovements.Any(m=>m.LineId==x.LineId),ct),"COUNT_ALREADY_ADJUSTED");
@@ -224,7 +238,8 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             Output.Require(balance+group.Sum(m=>m.SignedBaseQty)>=0,"STOCK_INSUFFICIENT");
         }
         d.PostedBy=actor.Id;d.PostedAt=clock.GetUtcNow().UtcDateTime;d.Status=d.Kind=="TRANSFER"?"IN_TRANSIT":"POSTED";
-        await db.SaveChangesAsync(ct);db.StockMovements.AddRange(pending);await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
+        foreach(var movement in pending){db.StockMovements.Add(movement);await db.SaveChangesAsync(ct);await new StockBatchAccounting(db,clock).Post(d,movement,ct);}
         var fulfillmentSource=source;
         if(d.Kind=="REVERSAL"&&source?.SourceDocumentId!=null)
             fulfillmentSource=await db.InventoryDocuments.SingleAsync(x=>x.DocumentId==source.SourceDocumentId,ct);
@@ -238,7 +253,13 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
             foreach(var line in originals){var received=await (from m in db.StockMovements join l in db.InventoryDocumentLines on m.LineId equals l.LineId where l.SourceLineId==line.LineId&&!db.StockMovements.Any(x=>x.ReversalOfMovementId==m.MovementId) select (decimal?)m.SignedBaseQty).SumAsync(ct)??0;full&=received>=line.ActualQty*line.ConversionFactor;any|=received>0;}
             fulfillmentSource.Status=full?"FULLY_RECEIVED":any?"PARTIALLY_RECEIVED":"REQUESTED";
         }
-        await new LowStockService(db,notifications,clock).Reconcile(ct,d.BranchId);
+        // Shipment/receipt changes pending quantities at both ends even though only one
+        // warehouse ledger moves. Refresh both branches inside the posting transaction.
+        var alertBranches=new HashSet<long>{d.BranchId};
+        if(d.Kind=="TRANSFER"&&d.DestinationBranchId is long destinationBranch)alertBranches.Add(destinationBranch);
+        if(d.Kind=="TRANSFER_RECEIPT"&&source!=null)alertBranches.Add(source.BranchId);
+        var lowStock=new LowStockService(db,notifications,clock,configuration);
+        foreach(var branch in alertBranches.Order())await lowStock.Reconcile(ct,branch);
     }
     private async Task ApprovalAuthority(InventoryDocument d,CancellationToken ct)
     {

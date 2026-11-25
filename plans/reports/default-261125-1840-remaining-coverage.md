@@ -1,0 +1,23 @@
+﻿# Remaining coverage audit — 25/11/2026 18:40
+
+Read-only audit of E2E-01/02/03/07/19/47/48. No operational or TEST mutations, no runtime competing with parent. No proven new implementation defect found; absence of evidence is not implementation failure.
+
+| Case | Evidence actually present | Smallest justified closure |
+|---|---|---|
+| 01 | Role docs state DH already merged into OM; role-scope runtime covers OM request read-only and config/scheduling indirectly. Recovery artifact only establishes maintenance count. | Read-only role/membership/grant snapshot for DH/OM plus existing OM scheduling/config browser evidence. Do not claim maintenance-recovery.json proves DH merge. |
+| 02 | maintenance-recovery.json APPLIED recovered_users=10; role-provenance.json identifies original memberships; recovery SQL uses P0 audit, does not update password hash. Synthetic maintenance actor works. | Record pre/post credential fingerprint equality without exposing hashes and role membership delta from verified migration audit; use recovered actor session to inspect actual allowed work UI on TEST. Existing synthetic actor does not prove recovered-account provenance. No password reset needed. |
+| 03 | maintenance-report-ui-seventeen-pass.json tests1,6,7 explicitly cover separate roles, assignment, wrong executors, staff checklist/repair, supervisor technical review, with browser assertions. | May mark PASS for the exact Master 'Maintenance Supervisor quản lý đội kỹ thuật' scenario on synthetic TEST. Keep recovered-account provenance in E2E-02 and complete foreign-branch matrix in E2E-47; those are not extra prerequisites invented for every E2E-03 run. |
+| 07 | Username recovery19 proves password revocation. realtime-reviewed15 role revocation directly mutates user_roles and proves notification visibility removal only, restoring same connection afterward. | Admin role-change endpoint on new TEST account with two active sessions: assert sessions revoked/old HTTP401, browser logout, hub stops; verify database session timestamps. Direct SQL role-revoke fixture does not prove account-management session invalidation. |
+| 19 | inventory43 tests9/10 prove excluded expired/quarantined availability and insufficient-usable rollback. Current housekeeping and transfer runners do not contain expiry mutation for staff-held/transfer-source cases. | Minimal exact Master closure: UI attempt issue where remaining quantity is expired, check error and unchanged ledger. Held expiry/transfer expiry are useful separate robustness cases, not literal extra E2E-19 criteria. Do not mark UI PASS from read-only low-stock inbox. |
+| 47 | RS10 + inventory/request UI + maintenance/transfer denials provide scattered positive/negative branch and role checks. | Enumerate implemented request-family routes × allowed roles/branches from current service policy; table actual artifact assertions vs untested. Execute missing denies using synthetic actors; verify no mutation on rejected transitions. No current evidence supports complete nine-role matrix. |
+| 48 | ledger-reconciliation-current.json at11:58 covers all TEST consumable warehouse/held/reserved/reusable warehouse plus mapped movements, FK/CHECK, all zero mismatch. It is not just a fixture audit. Latest unit155/3skip is newer than E2E doc127. | Rerun existing read-only reconciliation after current probes, extend asset-source mapping and in-transit ownership accounting if full-system claim desired. Preserve legacy-review exclusions as owner-approved pending physical reconciliation, not software defect or permission to auto-repair. Existing mapped-movement INNER JOIN does not detect completely unmapped legacy rows. |
+
+## Scope and validation
+
+Master part4 section37 gives scenario names and API/DB/UI evidence fields; it does not require recovered-account provenance in each maintenance scenario or every expiry path in E2E-19. Keep separate validation goals explicit to avoid artificial blockers. E2E-03 is the only reviewed case eligible for scoped PASS now; others still have material evidence gaps.
+
+Reviewed sources: OWNER_REQUEST_PART_4.md; E2E_CASE_EVIDENCE.md; ROLE_MIGRATION_RECOVERY_REPORT.md; ROLE_PERMISSION_BEFORE_AFTER.md; INVENTORY_RECONCILIATION.md; v2-ledger-reconciliation.sql; v2-recover-maintenance.sql; v2-realtime-fixture.ps1; maintenance-report-ui-seventeen-pass.json and cited role/ledger artifacts.
+
+node --check scripts/verification/v2-housekeeping-runtime.mjs: PASS.
+node --check scripts/verification/v2-realtime-runtime.mjs: PASS.
+No production edits, build or runtime test run in this audit. No unresolved owner questions.

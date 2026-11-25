@@ -207,10 +207,7 @@ export default function Templates() {
               <select name="kind">
                 {form === "checklist" ? (
                   <>
-                    <option value="CLEANING">Dọn phòng</option>
-                    <option value="INSPECTION">Kiểm tra phòng</option>
-                    <option value="MAINTENANCE">Bảo trì</option>
-                    <option value="OPERATIONAL">Công việc</option>
+                    {(query.data?.checklistKinds || []).map((kind: string) => <option key={kind} value={kind}>{({CLEANING:"Dọn phòng",INSPECTION:"Kiểm tra phòng",MAINTENANCE:"Bảo trì",OPERATIONAL:"Công việc"} as Row)[kind]}</option>)}
                   </>
                 ) : (
                   <>

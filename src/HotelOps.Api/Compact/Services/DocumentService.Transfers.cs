@@ -14,15 +14,21 @@ public sealed partial class DocumentService
 
     // The only cross-branch read exception: related transfer documents, never arbitrary stock ledgers.
     // NotificationService can call this static helper without a circular DI dependency.
-    public static async Task<bool> CanReadTransfer(HotelOpsCompactDbContext db,Access access,InventoryDocument d,CancellationToken ct)
+    public static async Task<bool> CanReadTransfer(HotelOpsCompactDbContext db,Access access,InventoryDocument d,CancellationToken ct,
+        Func<string,long,CancellationToken,Task<bool>>? allows=null,
+        Func<string,long,CancellationToken,Task<bool>>? hasRole=null,
+        Func<long,CancellationToken,Task<InventoryDocument?>>? document=null)
     {
         if(!TransferKind(d.Kind))return false;
+        allows??=(code,branch,token)=>access.Allows(code,branch,ct:token);
+        hasRole??=access.HasRole;
+        document??=(id,token)=>db.InventoryDocuments.AsNoTracking().SingleOrDefaultAsync(x=>x.DocumentId==id,token);
         var source=d.Kind=="TRANSFER_RECEIPT"&&d.SourceDocumentId!=null
-            ? await db.InventoryDocuments.AsNoTracking().SingleOrDefaultAsync(x=>x.DocumentId==d.SourceDocumentId&&x.Kind=="TRANSFER",ct):d;
-        if(source==null)return false;
+            ? await document(d.SourceDocumentId.Value,ct):d;
+        if(source==null||(d.Kind=="TRANSFER_RECEIPT"&&d.SourceDocumentId!=null&&source.Kind!="TRANSFER"))return false;
         foreach(var branch in new[]{source.BranchId,source.DestinationBranchId??source.BranchId}.Distinct())
-            if(await access.Allows("INVENTORY_VIEW",branch,ct:ct)
-                &&(await access.HasRole("OPERATION_MANAGER",branch,ct)||await access.HasRole("STOREKEEPER",branch,ct)))return true;
+            if(await allows("INVENTORY_VIEW",branch,ct)
+                &&(await hasRole("OPERATION_MANAGER",branch,ct)||await hasRole("STOREKEEPER",branch,ct)))return true;
         return false;
     }
 
@@ -47,8 +53,11 @@ public sealed partial class DocumentService
         var ids=warehouses.Select(w=>w.WarehouseId).ToArray();
         var items=await db.InventoryItems.AsNoTracking().Where(i=>i.IsActive).Select(i=>new{i.ItemId,i.Code,i.Name,i.BaseUnitId}).ToArrayAsync(ct);
         var itemIds=items.Select(i=>i.ItemId).ToArray();
-        var balances=await db.StockMovements.AsNoTracking().Where(m=>ids.Contains(m.WarehouseId)&&itemIds.Contains(m.ItemId))
-            .GroupBy(m=>new{m.WarehouseId,m.ItemId}).Select(g=>new{g.Key.WarehouseId,g.Key.ItemId,availableBaseQty=g.Sum(m=>m.SignedBaseQty)}).ToArrayAsync(ct);
+        var positions=await db.StockMovements.AsNoTracking().Where(m=>ids.Contains(m.WarehouseId)&&itemIds.Contains(m.ItemId))
+            .Select(m=>new{m.WarehouseId,m.ItemId}).Distinct().ToArrayAsync(ct);
+        var balances=new List<object>();
+        foreach(var position in positions)balances.Add(new{position.WarehouseId,position.ItemId,
+            availableBaseQty=await StockBatchAccounting.Available(db,position.WarehouseId,position.ItemId,clock.GetUtcNow().UtcDateTime,ct)});
         var units=await db.ReferenceValues.AsNoTracking().Where(u=>u.Kind=="UOM"&&u.IsActive)
             .Select(u=>new{u.ReferenceId,u.Name,u.BaseUnitId,u.ConversionFactor}).ToArrayAsync(ct);
         return new{warehouses,items,units,balances};
@@ -91,7 +100,7 @@ public sealed partial class DocumentService
     private async Task ValidateTransferApprovalStock(InventoryDocument d,InventoryDocumentLine[] lines,CancellationToken ct)
     {
         foreach(var group in lines.GroupBy(l=>l.ItemId)){
-            var available=await db.StockMovements.Where(m=>m.WarehouseId==d.SourceWarehouseId&&m.ItemId==group.Key).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
+            var available=await StockBatchAccounting.Available(db,d.SourceWarehouseId!.Value,group.Key,clock.GetUtcNow().UtcDateTime,ct);
             Output.Require(group.Sum(l=>(l.ApprovedQty??0)*l.ConversionFactor)<=available,"STOCK_INSUFFICIENT");
         }
     }
@@ -174,8 +183,34 @@ public sealed partial class DocumentService
                 :children.Any(x=>x.Status=="DRAFT")?"PREPARING":"APPROVED";
         }
         return new{sourceBranchId=source.BranchId,destinationBranchId=source.DestinationBranchId,workflowStatus=workflow,
+            progress=await TransferProgress(source,ct),
             canApprove=approve,canReject=approve,canSubmit=canCreate&&d.Status=="DRAFT",canEdit=canCreate&&d.Status=="DRAFT",
             canCancel=canCreate&&!postedChild&&d.Status is "DRAFT" or "PENDING_APPROVAL" or "APPROVED",
             children=children.Select(x=>TransferStatusProjection.Record(x,x.DocumentId,statuses)).ToArray()};
+    }
+
+    // A shortage remains owned/in transit under D12. This is a read-only projection;
+    // neither a partial receipt nor its display can write off or return the remainder.
+    private async Task<object[]> TransferProgress(InventoryDocument source,CancellationToken ct)
+    {
+        var lines=await db.InventoryDocumentLines.AsNoTracking().Where(l=>l.DocumentId==source.DocumentId).OrderBy(l=>l.LineNo).ToArrayAsync(ct);
+        var progress=new List<object>();
+        foreach(var line in lines){
+            var shipmentLines=source.Kind=="TRANSFER"?new[]{line.LineId}:
+                await (from l in db.InventoryDocumentLines join d in db.InventoryDocuments on l.DocumentId equals d.DocumentId
+                    where l.SourceLineId==line.LineId&&d.SourceDocumentId==source.DocumentId&&d.Kind=="TRANSFER"&&d.PostedAt!=null
+                    select l.LineId).ToArrayAsync(ct);
+            var shipped=-(await db.StockMovements.AsNoTracking().Where(m=>shipmentLines.Contains(m.LineId)
+                &&!db.StockMovements.Any(r=>r.ReversalOfMovementId==m.MovementId)).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0)/line.ConversionFactor;
+            var received=(await (from l in db.InventoryDocumentLines join d in db.InventoryDocuments on l.DocumentId equals d.DocumentId
+                join m in db.StockMovements on l.LineId equals m.LineId
+                where l.SourceLineId!=null&&shipmentLines.Contains(l.SourceLineId.Value)&&d.Kind=="TRANSFER_RECEIPT"&&d.PostedAt!=null
+                    &&!db.StockMovements.Any(r=>r.ReversalOfMovementId==m.MovementId)
+                select (decimal?)m.SignedBaseQty).SumAsync(ct)??0)/line.ConversionFactor;
+            progress.Add(new{line.LineId,line.ItemId,name=await db.InventoryItems.AsNoTracking().Where(i=>i.ItemId==line.ItemId).Select(i=>i.Name).SingleAsync(ct),
+                requestedQuantity=line.RequestedQty??line.ActualQty,approvedQuantity=line.ApprovedQty,
+                shippedQuantity=shipped,receivedQuantity=received,pendingReconciliationQuantity=Math.Max(0,shipped-received)});
+        }
+        return progress.ToArray();
     }
 }

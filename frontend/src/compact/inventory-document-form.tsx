@@ -413,7 +413,7 @@ export default function InventoryDocumentForm({
           name="reason"
           minLength={10}
           maxLength={2000}
-          required={["cancel", "close"].includes(form.type)}
+          required={["cancel", "close", "reject"].includes(form.type)}
         />
       </label>
       <ConfirmationActions pending={pending} cancel={cancel}/>

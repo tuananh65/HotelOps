@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Compact.Services;
 public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic atomic,Actor actor,Audit audit,
-    IPasswordHasher<User> passwords,TimeProvider clock)
+    IPasswordHasher<User> passwords,TimeProvider clock,AccountInvitationService? invitations=null)
 {
     public async Task<object> RolePermissions(long roleId,CancellationToken ct){
         await access.Require("ROLE_MANAGE",ct:ct);
@@ -73,6 +73,7 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
     public Task<object> Create(CreateAccountRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("USER_MANAGE",ct:ct);
         Output.Require(AccountPasswordPolicy.IsValid(request.Password),"PASSWORD_POLICY_NOT_MET",400);
+        Output.Require(!string.IsNullOrWhiteSpace(request.Email),"INVITATION_EMAIL_REQUIRED",400);
         var username=request.Username.Trim();
         Output.Require(username.Length is >0 and <=100,"INVALID_USERNAME",400);
         // Serialize allocation across API instances; the existing unique index is the final guard.
@@ -111,6 +112,7 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
         audit.Add("User",user.UserId,"CREATE",request.BranchId);
         audit.Add("Membership",membership.MembershipId,"GRANT",request.BranchId);
         if(employment!=null)audit.Add("Membership",employment.MembershipId,"GRANT",request.BranchId);
+        if(invitations!=null)await invitations.Queue(user,ct);
         return (object)Output.Record(user);},ct);
     public Task<object> Status(long id,string action,ActionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("USER_MANAGE",ct:ct);var user=await db.Users.SingleOrDefaultAsync(u=>u.UserId==id,ct)??throw new ApiException(404,"NOT_FOUND");
@@ -144,13 +146,16 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
         if(role.Code=="SYS_ADMIN")Output.Require(request.BranchId==null&&request.ExpiresAt==null,"SYSTEM_ADMIN_REQUIRES_DURABLE_GLOBAL_ASSIGNMENT",400);
         var assignment=new UserRole{UserId=id,RoleId=request.RoleId,BranchId=request.BranchId,ExpiresAt=request.ExpiresAt,
             AssignedAt=clock.GetUtcNow().UtcDateTime,AssignedBy=actor.Id};db.UserRoles.Add(assignment);await db.SaveChangesAsync(ct);
+        await RevokeAccessSessions([id],ct);
         audit.Add("UserRole",assignment.UserRoleId,"GRANT",request.BranchId);return (object)Output.Record(assignment);},ct);
     public Task<object> RevokeRole(long id,VersionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("ROLE_MANAGE",ct:ct);var role=await db.UserRoles.FindAsync([id],ct)??throw new ApiException(404,"NOT_FOUND");
         Output.Version(role.RowVersion,request.RowVersion);await ProtectAdmin(role.UserId,id,ct);
         await GuardWorkday(role.UserId,ct);
         Output.Require(!await db.WorkAssignments.AnyAsync(a=>a.AssigneeUserId==role.UserId&&a.AssignmentStatus=="ACTIVE",ct),"USER_HAS_ACTIVE_ASSIGNMENTS");
-        role.RevokedAt=clock.GetUtcNow().UtcDateTime;audit.Add("UserRole",id,"REVOKE",role.BranchId);return (object)new {revoked=true};},ct);
+        role.RevokedAt=clock.GetUtcNow().UtcDateTime;
+        await RevokeAccessSessions([role.UserId],ct);
+        audit.Add("UserRole",id,"REVOKE",role.BranchId);return (object)new {revoked=true};},ct);
     public Task<object> ConfigureRole(long roleId,IReadOnlyList<GrantRequest> request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.Require("ROLE_MANAGE",ct:ct);var role=await db.Roles.FindAsync([roleId],ct)??throw new ApiException(404,"ROLE_NOT_FOUND");
         Output.Require(role.Code!="SYS_ADMIN","SYSTEM_ADMIN_GRANTS_IMMUTABLE");
@@ -160,7 +165,22 @@ public sealed class UserService(HotelOpsCompactDbContext db,Access access,Atomic
         Output.Require(request.Select(r=>r.PermissionId).Distinct().Count()==request.Count,"DUPLICATE_PERMISSION",400);
         db.RolePermissions.RemoveRange(await db.RolePermissions.Where(r=>r.RoleId==roleId).ToArrayAsync(ct));await db.SaveChangesAsync(ct);
         db.RolePermissions.AddRange(request.Select(r=>new RolePermission{RoleId=roleId,PermissionId=r.PermissionId,DataScope=r.DataScope}));
+        var now=clock.GetUtcNow().UtcDateTime;
+        var affectedUsers=await db.UserRoles.Where(r=>r.RoleId==roleId&&r.RevokedAt==null&&r.AssignedAt<=now
+            &&(r.ExpiresAt==null||r.ExpiresAt>now)).Select(r=>r.UserId).Distinct().ToArrayAsync(ct);
+        await RevokeAccessSessions(affectedUsers,ct);
         audit.Add("Role",roleId,"CONFIGURE_PERMISSIONS",after:request);return (object)new {configured=true};},ct);
+    // Role changes and session invalidation commit together through Atomic. A
+    // rejected/rolled-back mutation must leave all existing sessions usable.
+    private async Task RevokeAccessSessions(long[] userIds,CancellationToken ct)
+    {
+        if(userIds.Length==0)return;
+        var now=clock.GetUtcNow().UtcDateTime;
+        foreach(var user in await db.Users.Where(u=>userIds.Contains(u.UserId)).ToArrayAsync(ct))
+            user.SecurityStamp=Guid.NewGuid();
+        foreach(var session in await db.UserSessions.Where(s=>userIds.Contains(s.UserId)&&s.RevokedAt==null).ToArrayAsync(ct))
+            session.RevokedAt=now;
+    }
     private async Task GuardWorkday(long userId,CancellationToken ct) => Output.Require(
         !await db.WorkdayAssignments.AnyAsync(a=>a.UserId==userId&&(a.Status=="WORKING"||a.Status=="PLANNED"),ct),"USER_HAS_WORKDAY_RESPONSIBILITIES");
     private async Task ProtectAdmin(long userId,long? assignmentId,CancellationToken ct)

@@ -10,6 +10,7 @@ import { ConfirmationActions, Dialog, History, State, useQuery, Pager, Empty, Ba
 import { SlidersHorizontal } from "lucide-react";
 import { assetConditionLabel, assetConditions } from "./asset-presentation";
 import AssetConditionBar from "./asset-condition-bar";
+import ReplacementQueue from "./asset-replacement";
 export default function Assets({
   maintenance = false,
   readScope,
@@ -125,6 +126,7 @@ export default function Assets({
           </button>
         )}
       </PageToolbar>
+      {readScope===undefined&&can("ASSET_MANAGE",false)&&branchRoles.some(r=>r.code==="OPERATION_MANAGER")&&<ReplacementQueue branch={branch!}/>}
       {(maintenance || groupedByRoom) && filters && (
         <PageToolbar>
           <label>
@@ -223,7 +225,7 @@ export default function Assets({
                     <td>{a.assetCode}</td>
                     <td>{assetConditionLabel(a.conditionCode)}</td>
                     {groupedByRoom && (
-                      <td>{a.isActive ? "Đang sử dụng" : "Đã ngừng"}</td>
+                      <td>{a.conditionCode === "PENDING_INSPECTION" ? "Chưa đưa vào sử dụng" : a.isActive ? "Đang sử dụng" : "Đã ngừng"}</td>
                     )}
                     <td>
                       <button
@@ -294,8 +296,9 @@ export default function Assets({
               <>
                 <p>
                   {asset.assetCode} · {assetConditionLabel(asset.conditionCode)}{" "}
-                  · {asset.isActive ? "Đang sử dụng" : "Đã ngừng sử dụng"}
+                  · {asset.conditionCode === "PENDING_INSPECTION" ? "Chưa đưa vào sử dụng" : asset.isActive ? "Đang sử dụng" : "Đã ngừng sử dụng"}
                 </p>
+                {asset.conditionCode === "PENDING_INSPECTION" && <p>Hồ sơ chuyển từ sổ vật tư, đang chờ kiểm kê thực tế. Chưa xác nhận vị trí và tình trạng; không phải tài sản được nhập thêm.</p>}
                 <div className="toolbar">
                   {(maintenance || groupedByRoom) && (
                     <section>
@@ -312,7 +315,7 @@ export default function Assets({
                           key={w.workId}
                           href={`#work?kind=${w.kind}&id=${w.workId}`}
                         >
-                          <span>{w.title}</span>
+                          <span>{w.title}{w.assetRelationship==="REPLACED"&&" · Đánh giá thiết bị cũ trước khi thay"}</span>
                           <Badge value={w.status} />
                         </a>
                       ))}

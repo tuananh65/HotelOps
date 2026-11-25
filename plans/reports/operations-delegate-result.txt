@@ -1,0 +1,7 @@
+Đã triển khai tài sản nhóm theo phòng, nhãn tiếng Việt, thanh Tốt/Hỏng/Khác, thống kê mặc định ngày và chọn tuần/tháng theo múi giờ chi nhánh, cùng component cấu hình OM.
+
+- Typecheck, 2 unit test, 6 kiểm tra kỳ C# và browser fixture: **Passed**.
+- Full build/test solution, API và SQL thật: **chưa chạy**, đúng giới hạn phân công.
+- Phiên chính còn nối controller, điều hướng và sửa bố cục `work.tsx`.
+
+Danh sách file và hướng dẫn tích hợp trong [báo cáo bàn giao](D:/SEP490/Projects/TestFE/HotelOps/plans/reports/operations-261123-0943-integration.md). Không commit/push/deploy.

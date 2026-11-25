@@ -25,3 +25,16 @@ test('deployment never calls schema install or resets SQL volumes',()=>{
  assert.ok(!deploy.includes('init-database'));assert.ok(!deploy.includes('migrate-database'));
  assert.ok(!deploy.includes('down -v'));assert.match(deploy,/backup-database/);assert.match(deploy,/healthcheck/);
 });
+test('fresh V2 schema includes lifecycle, assessment, invitations and maintenance staff without legacy fixture recovery',()=>{
+ const sql=run('schema-only','HotelOpsCompactCiTest');
+ for(const table of ['item_lifecycle_profiles','stock_batches','stock_batch_entries','staff_batch_balances','reusable_positions','reusable_movements','reusable_write_offs','account_invitations'])
+  assert.ok(sql.includes(`CREATE TABLE dbo.${table}(`),table);
+ assert.match(sql,/VALUES\('MAINTENANCE_STAFF',N'Nhân viên bảo trì',1\)/);
+ assert.match(sql,/V2 schema table count mismatch/);
+ assert.ok(!sql.includes('-- v2-recover-maintenance.sql'));
+ assert.ok(!sql.includes('-- v2-kettle-pending-assets.sql'));
+ assert.ok(!sql.includes('Approved mapping identity does not match this baseline'));
+ assert.ok(!sql.includes('HotelOpsCompactWorkdayTestV22611250010'));
+ const health=fs.readFileSync('deployment/healthcheck.sh','utf8');
+ assert.match(health,/x\.tables===57/);
+});

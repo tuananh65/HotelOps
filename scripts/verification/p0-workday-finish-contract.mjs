@@ -6,9 +6,11 @@ const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'ut
 const service = read('src/HotelOps.Api/Compact/Services/WorkdayService.cs');
 const supplies = read('src/HotelOps.Api/Compact/Services/StaffSupplyService.cs');
 const expiry = read('src/HotelOps.Api/Compact/Services/ShiftExpiryService.cs');
-assert.match(expiry, /role\.Code != "HK_STAFF"/);
+assert.doesNotMatch(expiry, /role\.Code != "HK_STAFF"/);
+assert.match(expiry, /Attendance expires for every role/);
 assert.ok(service.indexOf('var previous=await db.WorkdayEvents') < service.indexOf('Output.Version(row.RowVersion,request.RowVersion)'));
-assert.match(service, /await supplies\.End\(id,request.OperationKey,ct\);\s*row.Status="ENDED";row.EndedAt=Now/);
+assert.match(service, /await supplies\.End\(id,request.OperationKey,ct\);\s*row.Status="ENDED";row.EndedAt\?\?=Now/);
+assert.match(service, /PREVIOUS_SHIFT_RECONCILIATION_REQUIRED/);
 assert.match(service, /canEnd=endBlockedReason==null/);
 assert.match(supplies, /RequestWorkflowService.RefillType/);
 assert.match(supplies, /work.Status!="PENDING_INSPECTION"&&work.Status!="PENDING_REINSPECTION"&&work.Status!="PENDING_VERIFICATION"/);

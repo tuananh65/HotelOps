@@ -7,9 +7,25 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Compact.Services;
 public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock)
 {
+    private async Task<string[]> ChecklistKinds(long branch,CancellationToken ct)
+    {
+        if(!await access.Allows("CHECKLIST_MANAGE",branch,ct:ct))return [];
+        var now=clock.GetUtcNow().UtcDateTime;
+        var roles=await (from ur in db.UserRoles.AsNoTracking() join r in db.Roles on ur.RoleId equals r.RoleId
+            join grant in db.RolePermissions on r.RoleId equals grant.RoleId join p in db.Permissions on grant.PermissionId equals p.PermissionId
+            where ur.UserId==actor.Id&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&r.IsActive&&p.IsActive&&p.Code=="CHECKLIST_MANAGE"
+                &&((grant.DataScope=="ALL"&&ur.BranchId==null)||((grant.DataScope=="BRANCH"||grant.DataScope=="ALL")&&ur.BranchId==branch))
+            select r.Code).Distinct().ToArrayAsync(ct);
+        if(roles.Any(r=>r!="HOUSEKEEPING_SUPERVISOR"&&r!="MAINTENANCE_SUPERVISOR"))return ["CLEANING","INSPECTION","MAINTENANCE","OPERATIONAL"];
+        var kinds=new List<string>();
+        if(roles.Contains("HOUSEKEEPING_SUPERVISOR"))kinds.AddRange(["CLEANING","INSPECTION"]);
+        if(roles.Contains("MAINTENANCE_SUPERVISOR"))kinds.Add("MAINTENANCE");
+        return kinds.ToArray();
+    }
     public async Task<object> ChecklistDetail(long id,CancellationToken ct){
         var template=await db.ChecklistTemplates.AsNoTracking().SingleOrDefaultAsync(t=>t.ChecklistTemplateId==id,ct)??throw new ApiException(404,"CHECKLIST_NOT_FOUND");
         await access.Require("CHECKLIST_MANAGE",template.BranchId,ct:ct);
+        Output.Require((await ChecklistKinds(template.BranchId,ct)).Contains(template.Kind),"CHECKLIST_KIND_PERMISSION_DENIED",403);
         return new{template=Output.Record(template),items=(await db.ChecklistItems.AsNoTracking().Where(i=>i.ChecklistTemplateId==id).OrderBy(i=>i.LineNo).ToArrayAsync(ct)).Select(Output.Record)};
     }
     private async Task Validate(TemplateRequest r,CancellationToken ct){
@@ -29,15 +45,18 @@ public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Ac
     }
     public async Task<object> List(long branchId,CancellationToken ct){
         var checklists=await access.Allows("CHECKLIST_MANAGE",branchId,ct:ct);
+        var checklistKinds=await ChecklistKinds(branchId,ct);
         var maintenance=await access.Allows("PM_MANAGE",branchId,ct:ct);
         var tasks=await access.Allows("TASK_MANAGE",branchId,ct:ct);
         Output.Require(checklists||maintenance||tasks,"PERMISSION_DENIED",403);
         return new{
-        checklists=(await db.ChecklistTemplates.AsNoTracking().Where(t=>checklists&&t.BranchId==branchId).ToArrayAsync(ct)).Select(Output.Record),
+        checklistKinds,
+        checklists=(await db.ChecklistTemplates.AsNoTracking().Where(t=>checklists&&t.BranchId==branchId&&checklistKinds.Contains(t.Kind)).ToArrayAsync(ct)).Select(Output.Record),
         schedules=(await db.WorkTemplates.AsNoTracking().Where(t=>t.BranchId==branchId&&((maintenance&&t.Kind=="MAINTENANCE")||(tasks&&t.Kind=="OPERATIONAL"))).ToArrayAsync(ct)).Select(Output.Record)};}
     public Task<object> Checklist(ChecklistCreateRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         if(string.IsNullOrWhiteSpace(r.Code))r=r with{Code=$"CHK-{Guid.NewGuid():N}"[..20]};
         await access.Require("CHECKLIST_MANAGE",r.BranchId,ct:ct);Output.Require(r.Items.Count is >0 and <=200&&r.Items.All(i=>!string.IsNullOrWhiteSpace(i.Description)&&i.Weight>=0),"CHECKLIST_ITEMS_REQUIRED",400);
+        Output.Require((await ChecklistKinds(r.BranchId,ct)).Contains(r.Kind),"CHECKLIST_KIND_PERMISSION_DENIED",403);
         Output.Require(!string.IsNullOrWhiteSpace(r.Code)&&!string.IsNullOrWhiteSpace(r.Name),"CHECKLIST_CODE_NAME_REQUIRED",400);
         Output.Require(!await db.ChecklistTemplates.AnyAsync(t=>t.BranchId==r.BranchId&&t.Code==r.Code&&t.Kind!=r.Kind,ct),"CHECKLIST_KIND_MISMATCH");
         var version=(await db.ChecklistTemplates.Where(t=>t.BranchId==r.BranchId&&t.Code==r.Code).MaxAsync(t=>(int?)t.VersionNo,ct)??0)+1;

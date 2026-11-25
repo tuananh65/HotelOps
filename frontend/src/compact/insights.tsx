@@ -11,7 +11,10 @@ import OperationalCharts from "./operational-charts";
 import OperationsMetrics, { OperationsMetricDetails } from "./operations-metrics";
 import StatChart from "./stat-chart";
 import { assetConditionLabel } from "./asset-presentation";
+import { downloadReportCsv } from "./report-csv";
 const reportLabels: Record<string, string> = {
+                            category: "Nhóm sự việc", occurredAt: "Thời điểm", subject: "Nội dung",
+                            action: "Diễn biến", person: "Nhân viên", detail: "Chi tiết",
                             lineId: "Dòng", item: "Vật tư", unit: "Đơn vị", kind: "Loại",
                             sourceBranchId: "Chi nhánh xuất", destinationBranchId: "Chi nhánh nhận", sourceDocumentId: "Chứng từ nguồn",
                             requestedBaseQty: "Đề nghị", approvedBaseQty: "Đã duyệt", actualBaseQty: "Thực xuất/nhận", receivedBaseQty: "Đã nhận",
@@ -64,6 +67,7 @@ export default function Insights({
     (r) => r.branchId === null || r.branchId === branch,
   );
   const available = [
+    ["operations-events", "Hoạt động khách sạn", "REPORT_VIEW"],
     ["tasks", "Công việc", "TASK_VIEW"],
     ["cleaning", "Dọn phòng", "CLEANING_VIEW"],
     ["incidents", "Sự cố", "INCIDENT_VIEW"],
@@ -99,7 +103,7 @@ export default function Insights({
     mode === "notifications"
       ? `notifications?${readScope === 0 ? "" : `branchId=${readScope ?? branch}&`}page=${notificationPage}`
       : mode === "reports"
-        ? `insights/reports/${report}?branchId=${branch}&from=${from}T00:00:00Z&to=${to}T23:59:59Z`
+        ? `insights/reports/${report}?branchId=${branch}&from=${from}T00:00:00Z&to=${to}T23:59:59Z${report === "operations-events" ? "&localDates=true" : ""}`
         : `insights/${mode}?branchId=${branch}${mode === "audit" ? `&page=${auditPage}&search=${encodeURIComponent(auditSearch)}` : operationsManager && can("TASK_VIEW", false) ? `&taskPeriod=${taskPeriod}` : ""}`;
   const query = useQuery(path, revision);
   const titles = {
@@ -131,6 +135,9 @@ export default function Insights({
           </p>
         </PageTitle>
       </div>
+      {mode === "reports" && report === "operations-events" && (
+        <p className="hint">Sự việc được ghi nhận theo ngày tại chi nhánh. Hiển thị tối đa 10.000 sự kiện gần nhất; chọn khoảng ngày ngắn hơn để xem chi tiết.</p>
+      )}
       {mode === "reports" && (
         <PageToolbar className="report-controls">
           <label className="search">
@@ -188,29 +195,8 @@ export default function Insights({
           <button
             disabled={query.loading || !!query.error || !rows.length}
             onClick={() => {
-              const keys = Object.keys(rows[0]).filter(
-                  (k) => k !== "rowVersion",
-                ),
-                cell = (v: unknown) =>
-                  '"' +
-                  String(v ?? "")
-                    .replace(/^[=+@-]/, "'$&")
-                    .replaceAll('"', '""') +
-                  '"',
-                csv = [
-                  keys.map(cell).join(","),
-                  ...rows.map((r) => keys.map((k) => cell(r[k])).join(",")),
-                ].join("\r\n");
-              const href = URL.createObjectURL(
-                  new Blob(["\uFEFF" + csv], {
-                    type: "text/csv;charset=utf-8",
-                  }),
-                ),
-                link = document.createElement("a");
-              link.href = href;
-              link.download = `hotelops-${report}-${dateKey()}.csv`;
-              link.click();
-              setTimeout(() => URL.revokeObjectURL(href), 1000);
+              downloadReportCsv(rows.map(({ rowVersion: _version, ...record }) => record),
+                `hotelops-${report}-${dateKey()}`);
             }}
           >
             Xuất CSV
@@ -279,6 +265,9 @@ export default function Insights({
                         setPending(true);
                         setError("");
                         try {
+                          if(operationsManager&&r.notificationType?.startsWith("REPLACEMENT_")){
+                            location.hash=`assets?replacement=${r.workId}`;return;
+                          }
                           if (r.notificationType?.startsWith("ROOM_ISSUE_")) {
                             location.hash = `room-issues?id=${r.workId}`;
                             return;

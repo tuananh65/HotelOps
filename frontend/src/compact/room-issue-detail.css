@@ -1,0 +1,24 @@
+/* Isolate the incident drawer from workspace columns and horizontal sections. */
+.room-issue-search { display: grid; gap: 8px; width: min(100%, 480px); margin-bottom: 20px; }
+.room-issue-drawer .room-issue-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  min-width: 0;
+}
+.room-issue-detail > :is(section, form, div) {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.room-issue-detail > section,
+.room-issue-detail .room-issue-history,
+.room-issue-history > article {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.room-issue-detail > button { align-self: flex-start; }
+.room-issue-detail p { margin: 0; overflow-wrap: anywhere; }
+.room-issue-history > article { border-left: 2px solid var(--line); padding: 12px 16px; }

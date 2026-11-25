@@ -14,13 +14,20 @@ public sealed partial class WorkService
     private async Task RecordRoomIssueChildren(WorkItem root,string kind,string command,string actingRole,
         RoomIssueActionRequest input,long? documentId,CancellationToken ct)
     {
-        if(kind=="BROKEN"&&command is "create-repair" or "start-repair" or "report-remedy" or "inspection-fail" or "inspection-pass"){
+        if(kind=="BROKEN"&&command is "create-repair" or "start-repair" or "report-remedy" or "inspection-fail" or "inspection-pass" or "reopen-technical-review"){
             var repair=await CurrentRepair(root,ct);
             var status=command switch{
                 "create-repair" or "start-repair"=>"IN_PROGRESS",
-                "report-remedy"=>"PENDING_REINSPECTION","inspection-fail"=>"REWORK_REQUIRED",_=>"COMPLETED"};
+                "report-remedy"=>"PENDING_REINSPECTION","inspection-fail" or "reopen-technical-review"=>"REWORK_REQUIRED",_=>"COMPLETED"};
             var queue=status=="COMPLETED"?null:status=="PENDING_REINSPECTION"?"HOUSEKEEPING_SUPERVISOR":"MAINTENANCE_SUPERVISOR";
             await ChildTransition(root,repair,"MAINTENANCE_REMEDIATION",status,queue,command,actingRole,input,ct);
+        }
+
+        if(command=="reopen-technical-review"){
+            foreach(var flow in await db.RequestWorkflows.Where(r=>r.ParentRequestWorkId==root.WorkId&&r.RequestType=="ROOM_REINSPECTION"&&r.Status=="PENDING_REINSPECTION").ToArrayAsync(ct)){
+                var inspection=await db.WorkItems.SingleAsync(w=>w.WorkId==flow.WorkId,ct);
+                await ChildTransition(root,inspection,"ROOM_REINSPECTION","CANCELLED",null,command,actingRole,input,ct);
+            }
         }
 
         if(command=="request-material"){

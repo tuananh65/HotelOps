@@ -1,0 +1,7 @@
+Đã triển khai phạm vi `accounts.md`: mã nhân viên tự sinh, mật khẩu 8 ký tự/checklist, kiểm tra trùng, gán chi nhánh atomic, điện thoại/STT/bộ lọc và hồ sơ cá nhân.
+
+- TypeScript, biên dịch riêng C#, kiểm thử policy/DTO và trình duyệt: **Passed**.
+- Biên dịch API chung: **Failed** do phương thức trùng trong `WorkdayController.cs`, ngoài phạm vi phụ trách.
+- SQL thực chưa kiểm chứng; parent tiếp tục tích hợp menu hồ sơ/checklist đăng nhập.
+
+[Chi tiết tệp, cảnh báo và hướng dẫn tích hợp](D:/SEP490/Projects/TestFE/HotelOps/plans/reports/implementation-261123-0942-accounts.md). Không commit/push/publish.

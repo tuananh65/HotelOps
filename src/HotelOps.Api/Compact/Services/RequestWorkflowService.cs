@@ -66,6 +66,9 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         var broad=await access.HasRole("OPERATION_MANAGER",branch,ct)||await access.Allows("IR_VIEW",null,ct:ct);
         var incidents=await access.Allows("INCIDENT_VIEW",branch,ct:ct);
         var query=db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branch&&(w.Kind=="INTERNAL_REQUEST"||incidents&&w.Kind=="INCIDENT"||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)));
+        if(await access.HasRole("OPERATION_MANAGER",branch,ct)&&!await access.Allows("IR_VIEW",null,ct:ct))
+            query=query.Where(w=>w.Kind=="INTERNAL_REQUEST"&&(!db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)
+                ||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.RequestType=="GENERAL_INTERNAL_REQUEST"||r.RequestType==ReplenishmentType))));
         var legacy=InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now);
         return query.Where(w=>db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)
             ? broad||w.CreatedBy==actor.Id||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.HandlerUserId==actor.Id||r.QueueRoleId!=null&&roles.Contains(r.QueueRoleId.Value)))

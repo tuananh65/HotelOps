@@ -352,6 +352,7 @@ function CreateAccountForm({
           <input
             name="email"
             type="email"
+            required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             maxLength={254}

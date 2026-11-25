@@ -17,7 +17,9 @@ public sealed class AuthService(HotelOpsCompactDbContext db,Atomic atomic,Actor 
     {
         var outcome=await atomic.Run(async()=>{
             var now=clock.GetUtcNow().UtcDateTime;
-            var user=await db.Users.SingleOrDefaultAsync(u=>u.Username==request.Username.Trim(),ct);
+            var identifier=request.Username.Trim();
+            // Owner decision 25 Nov: login uses Username only, never EmployeeCode aliases.
+            var user=await db.Users.SingleOrDefaultAsync(u=>u.Username==identifier,ct);
             var result=passwords.VerifyHashedPassword(user??Dummy,user?.PasswordHash??DummyHash,request.Password);
             if(user==null || user.AccountStatus!="ACTIVE" || user.EmploymentStatus!="ACTIVE" || user.DeletedAt!=null)
                 return (object)new LoginFailure(401,"INVALID_CREDENTIALS");

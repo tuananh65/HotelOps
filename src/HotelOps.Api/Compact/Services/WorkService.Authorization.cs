@@ -19,6 +19,6 @@ public sealed partial class WorkService
         // Enforce workflow restrictions even if an obsolete or additional grant survives migration.
         Output.Require(!await IsReadOnlyWorkActor(kind,branchId,ct),"WORK_ROLE_READ_ONLY",403);
         if(kind=="MAINTENANCE")
-            Output.Require(await access.HasRole("MAINTENANCE_SUPERVISOR",branchId,ct),"MAINTENANCE_SUPERVISOR_REQUIRED",403);
+            Output.Require(await access.HasRole("MAINTENANCE_SUPERVISOR",branchId,ct)||await access.HasRole("MAINTENANCE_STAFF",branchId,ct),"MAINTENANCE_ROLE_REQUIRED",403);
     }
 }

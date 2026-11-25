@@ -61,7 +61,7 @@ public sealed partial class RoomService(HotelOpsCompactDbContext db,Access acces
                 db.RoomBlocks.Add(new RoomBlock{BranchId=room.BranchId,RoomId=id,SourceWorkId=r.SourceWorkId,Reason=r.Reason!,BlockedBy=actor.Id,BlockedAt=now});
             }else{
                 Output.Require(!await db.WorkItems.AnyAsync(w=>w.RoomId==id&&!WorkRules.Terminal.Contains(w.Status)
-                    &&db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED"),ct),"BLOCKING_WORK_NOT_VERIFIED");
+                    &&db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&(e.EventType=="ROOM_ISSUE_REPORTED"||e.EventType=="LEGACY_ROOM_ISSUE_RECOVERED")),ct),"BLOCKING_WORK_NOT_VERIFIED");
                 var blocks=await db.RoomBlocks.Where(x=>x.RoomId==id&&x.ReleasedAt==null).ToArrayAsync(ct);
                 Output.Require(blocks.Length>0,"NO_ACTIVE_BLOCK");
                 foreach(var block in blocks){

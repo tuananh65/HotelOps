@@ -23,6 +23,7 @@ import {
   type InventoryGroup,
 } from "./inventory-document-model";
 import InventoryDocumentForm from "./inventory-document-form";
+import BatchAdjustment from "./batch-adjustment";
 
 const titles = {
   transactions: "Nhập / Xuất / Chuyển kho",
@@ -115,6 +116,7 @@ export default function InventoryDocuments({
     const hasLines = detail.data.lines.length > 0;
     if (context.canApprove && hasLines)
       commands.push(["approve", "Duyệt chứng từ"]);
+    if (context.canReject && hasLines) commands.push(["reject", "Từ chối đề nghị"]);
     if (context.canPost && hasLines) commands.push(["post", "Xác nhận ghi sổ"]);
     if (
       doc.kind === "STOCKTAKE" &&
@@ -355,6 +357,7 @@ export default function InventoryDocuments({
                     <dl className="inventory-context">
                       <dt>Người tạo</dt>
                       <dd>{context.creator}</dd>
+                      {context.documentCreator&&context.documentCreator!==context.creator&&<><dt>Người lập chứng từ</dt><dd>{context.documentCreator}</dd></>}
                       <dt>Người duyệt</dt>
                       <dd>{context.approver || "Chưa duyệt"}</dd>
                       {context.receivingRoom && <><dt>Địa điểm cấp</dt><dd><strong>{context.receivingRoom}</strong></dd></>}
@@ -522,6 +525,7 @@ export default function InventoryDocuments({
                     ))}
                   </section>
                 )}
+                {context?.adjustmentBatches&&<BatchAdjustment document={doc} plan={context.adjustmentBatches} editable={context.canEdit} changed={()=>bump(n=>n+1)}/>}
                 <h3>Lịch sử chứng từ</h3>
                 <History rows={fields(detail.data?.events)} />
               </>

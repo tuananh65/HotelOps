@@ -8,6 +8,8 @@ namespace HotelOps.Api.Compact.Services;
 public sealed partial class WorkService
 {
     private static string RoomIssueCode(long branch,string kind)=>$"ROOM_ISSUE_{branch}_{kind}";
+    private static bool IsRoomIssueType(string code,long branch)=>code.StartsWith($"ROOM_ISSUE_{branch}_",StringComparison.Ordinal)
+        &&(code.EndsWith("_BROKEN",StringComparison.Ordinal)||code.EndsWith("_MISSING",StringComparison.Ordinal));
     private sealed record RoomIssueFormSettings(RoomIssueImpactOption[]? Impacts=null,bool RequireNote=false);
     private static RoomIssueFormSettings RoomIssueForm(string? json)=>string.IsNullOrWhiteSpace(json)?new():JsonSerializer.Deserialize<RoomIssueFormSettings>(json,new JsonSerializerOptions{PropertyNameCaseInsensitive=true})??new();
     private static RoomIssueImpactOption[] IssueImpacts(string? json)=>RoomIssueForm(json).Impacts??[
@@ -20,21 +22,26 @@ public sealed partial class WorkService
     public async Task<object> RoomIssueTypes(long branch,CancellationToken ct)
     {
         if(!await access.Allows("IR_CREATE",branch,true,ct:ct))await access.Require("INCIDENT_VIEW",branch,ct:ct);
-        var codes=new[]{RoomIssueCode(branch,"BROKEN"),RoomIssueCode(branch,"MISSING")};
-        return (await db.ReferenceValues.AsNoTracking().Where(r=>r.Kind=="WORK_CATEGORY"&&codes.Contains(r.Code)).OrderBy(r=>r.SortOrder).ToArrayAsync(ct))
+        var prefix=$"ROOM_ISSUE_{branch}_";
+        return (await db.ReferenceValues.AsNoTracking().Where(r=>r.Kind=="WORK_CATEGORY"&&r.Code.StartsWith(prefix)&&(r.Code.EndsWith("_BROKEN")||r.Code.EndsWith("_MISSING"))).OrderBy(r=>r.SortOrder).ThenBy(r=>r.Name).ToArrayAsync(ct))
             .Select(r=>new{r.ReferenceId,r.Name,r.IsActive,description=RoomIssueDescription(r.SettingsJson),impacts=IssueImpacts(r.SettingsJson),requireNote=RoomIssueForm(r.SettingsJson).RequireNote,kind=r.Code.EndsWith("_BROKEN")?"BROKEN":"MISSING",rowVersion=Convert.ToBase64String(r.RowVersion)});
     }
     private static string? RoomIssueDescription(string? json){if(string.IsNullOrEmpty(json))return null;using var doc=JsonDocument.Parse(json);return doc.RootElement.TryGetProperty("description",out var value)?value.GetString():null;}
     public Task<object> SaveRoomIssueType(long branch,RoomIssueTypeRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         await access.RequireRolePermission("OPERATION_MANAGER","ROOM_SUPPLY_CONFIG",branch,ct);
         Output.Require(request.Kind is "BROKEN" or "MISSING","ROOM_ISSUE_TYPE_INVALID",400);
-        var code=RoomIssueCode(branch,request.Kind);
-        var row=await db.ReferenceValues.SingleOrDefaultAsync(r=>r.Kind=="WORK_CATEGORY"&&r.Code==code,ct);
+        Output.Require(!request.CreateNew||request.ReferenceId==null&&request.RowVersion==null,"ROOM_ISSUE_TYPE_INVALID",400);
+        // Keep the code within reference_values.code (60), including bigint branch IDs.
+        var code=request.CreateNew?$"ROOM_ISSUE_{branch}_{Guid.NewGuid().ToString("N")[..20]}_{request.Kind}":RoomIssueCode(branch,request.Kind);
+        var row=request.ReferenceId is long id
+            ? await db.ReferenceValues.SingleOrDefaultAsync(r=>r.ReferenceId==id&&r.Kind=="WORK_CATEGORY",ct)??throw new ApiException(404,"ROOM_ISSUE_TYPE_NOT_FOUND")
+            : await db.ReferenceValues.SingleOrDefaultAsync(r=>r.Kind=="WORK_CATEGORY"&&r.Code==code,ct);
+        Output.Require(row==null||IsRoomIssueType(row.Code,branch)&&row.Code.EndsWith("_"+request.Kind,StringComparison.Ordinal),"ROOM_ISSUE_TYPE_INVALID",400);
         if(row==null){Output.Require(request.RowVersion==null,"STALE_ROW_VERSION");row=new ReferenceValue{Kind="WORK_CATEGORY",Code=code,SortOrder=request.Kind=="BROKEN"?0:1};db.ReferenceValues.Add(row);}
         else {Output.Require(request.RowVersion!=null,"STALE_ROW_VERSION");Output.Version(row.RowVersion,request.RowVersion!);}
         var name=request.Name.Trim();Output.Require(name.Length>0,"NAME_REQUIRED",400);
-        var other=RoomIssueCode(branch,request.Kind=="BROKEN"?"MISSING":"BROKEN");
-        Output.Require(!await db.ReferenceValues.AnyAsync(r=>r.Kind=="WORK_CATEGORY"&&r.Code==other&&r.Name==name,ct),"DUPLICATE_NAME",409);
+        var prefix=$"ROOM_ISSUE_{branch}_";
+        Output.Require(!await db.ReferenceValues.AnyAsync(r=>r.Kind=="WORK_CATEGORY"&&r.Code.StartsWith(prefix)&&r.Code!=row.Code&&r.Name==name,ct),"DUPLICATE_NAME",409);
         var impacts=request.Impacts??IssueImpacts(row.SettingsJson);
         Output.Require(impacts.Length==2&&impacts.Select(i=>i.Code).Distinct().Count()==2&&impacts.All(i=>i.Code is "READINESS" or "SAFETY"&& !string.IsNullOrWhiteSpace(i.Name)&&i.Name.Trim().Length<=120)&&(!request.IsActive||impacts.Any(i=>i.IsActive)),"ROOM_ISSUE_IMPACT_CONFIGURATION_INVALID",400);
         row.Name=name;row.IsActive=request.IsActive;row.SettingsJson=JsonSerializer.Serialize(new{branchId=branch,roomIssueKind=request.Kind,description=request.Description?.Trim(),impacts,requireNote=request.RequireNote});
@@ -58,8 +65,21 @@ public sealed partial class WorkService
         var assignedItems=await RoomIssuedItems(branch,roomId,ct);
         var durableIds=await db.SupplyConfigurations.AsNoTracking().Where(c=>c.BranchId==branch&&c.IsCurrent&&c.IsActive&&c.SupplyGroup=="B"&&c.ItemId!=null).Select(c=>c.ItemId!.Value).ToArrayAsync(ct);
         var items=assignedItems.Where(i=>durableIds.Contains(i.ItemId)).ToArray();
-        return new{room.RoomId,room.Code,rowVersion=Convert.ToBase64String(room.RowVersion),assets,items};
+        var assessed=await AssessedConsumableItems(branch,roomId,workId,ct);
+        items=items.Concat(assessed).DistinctBy(i=>i.ItemId).ToArray();
+        return new{room.RoomId,room.Code,rowVersion=Convert.ToBase64String(room.RowVersion),assets,items,people=await IncidentPeople(branch,ct)};
     }
+    private sealed record IncidentPerson(long UserId,string FullName);
+    private Task<IncidentPerson[]> IncidentPeople(long branch,CancellationToken ct)=>db.Users.AsNoTracking()
+        .Where(u=>u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
+            &&db.Memberships.Any(m=>m.UserId==u.UserId&&m.BranchId==branch&&m.Kind=="BRANCH_ACCESS"&&m.ValidFrom<=Now&&(m.ValidTo==null||m.ValidTo>Now)))
+        .OrderBy(u=>u.FullName).Select(u=>new IncidentPerson(u.UserId,u.FullName)).ToArrayAsync(ct);
+    private Task<RoomIssuedItem[]> AssessedConsumableItems(long branch,long roomId,long? workId,CancellationToken ct)=>
+        (from r in db.SupplyReservations.AsNoTracking() join b in db.StaffSupplyBalances on r.BalanceId equals b.BalanceId
+         join i in db.InventoryItems on b.ItemId equals i.ItemId
+         where r.WorkId==workId&&r.RoomId==roomId&&r.Status=="RESERVED"&&r.AssessedAt!=null&&r.Quantity>0&&i.IsActive
+            &&db.ItemLifecycleProfiles.Any(p=>p.BranchId==branch&&p.ItemId==i.ItemId&&p.Classification=="CONSUMABLE")
+         select new RoomIssuedItem(i.ItemId,i.Name)).Distinct().ToArrayAsync(ct);
     // Only posted room deliveries, minus their posted returns/reversals. Warehouse balance is not room possession.
     private sealed record RoomIssuedItem(long ItemId,string Name);
     private async Task<RoomIssuedItem[]> RoomIssuedItems(long branch,long roomId,CancellationToken ct)

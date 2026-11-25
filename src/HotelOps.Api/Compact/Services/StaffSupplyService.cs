@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Compact.Services;
 
-public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock,DocumentService documents,LowStockService lowStock)
+public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,TimeProvider clock,DocumentService documents)
 {
     private DateTime Now=>clock.GetUtcNow().UtcDateTime;
     // One short application lock gives all writers a consistent lock order, including reassignments.
@@ -49,14 +49,15 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
         await ActiveShift(assignment,shift,ct);
         var existing=await db.StaffSupplyAllocations.SingleOrDefaultAsync(x=>x.AssignmentId==assignmentId,ct);
         if(existing!=null)return await Dto(existing,ct);
-        return await Allocate(assignment,shift,false,ct);
+        return await Allocate(assignment,shift,ct);
     },ct);
 
     // Caller holds the supply lock and outer serializable transaction. Recovery must roll back
     // the allocation AND stock issue if any item or the ensuing room reservation is unavailable.
-    private async Task<StaffSupplyAllocationDto> Allocate(WorkdayAssignment assignment,WorkdayShift shift,bool requireFull,CancellationToken ct)
+    private async Task<StaffSupplyAllocationDto> Allocate(WorkdayAssignment assignment,WorkdayShift shift,CancellationToken ct)
     {
-        var config=await db.SupplyConfigurations.AsNoTracking().Where(x=>x.BranchId==shift.BranchId&&x.IsCurrent&&x.IsActive&&x.SupplyGroup=="A").OrderBy(x=>x.ItemId).ToArrayAsync(ct);
+        var config=await db.SupplyConfigurations.AsNoTracking().Where(x=>x.BranchId==shift.BranchId&&x.IsCurrent&&x.IsActive&&x.SupplyGroup=="A"
+            &&db.ItemLifecycleProfiles.Any(p=>p.BranchId==x.BranchId&&p.ItemId==x.ItemId&&p.Classification=="CONSUMABLE")).OrderBy(x=>x.ItemId).ToArrayAsync(ct);
         var allocation=new StaffSupplyAllocation{BranchId=shift.BranchId,UserId=assignment.UserId,AssignmentId=assignment.AssignmentId,CreatedAt=Now};
         db.StaffSupplyAllocations.Add(allocation);await db.SaveChangesAsync(ct);
         var balances=new List<StaffSupplyBalance>();
@@ -65,20 +66,11 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
             balances.Add(new StaffSupplyBalance{AllocationId=allocation.AllocationId,ConfigurationId=c.ConfigurationId,ItemId=c.ItemId!.Value,WarehouseId=c.WarehouseId!.Value,UnitId=c.UnitId!.Value,InitialTarget=c.InitialQuantity,PerGuestQuantity=c.PerGuestQuantity});
         }
         db.StaffSupplyBalances.AddRange(balances);await db.SaveChangesAsync(ct);
-        var shortages=new List<long>();
-        foreach(var b in balances)if(!await WarehouseAvailable(b,ct)||await Stock(b,ct)<b.InitialTarget)shortages.Add(b.ItemId);
-        if(config.Length==0||shortages.Count>0){
-            if(requireFull)throw new ApiException(409,config.Length==0?"SUPPLY_CONFIGURATION_REQUIRED":"STOCK_INSUFFICIENT");
-            allocation.ShortageReason=config.Length==0?"SUPPLY_CONFIGURATION_REQUIRED":"STOCK_INSUFFICIENT:"+string.Join(',',shortages);
-            audit.Add("StaffSupplyAllocation",allocation.AllocationId,"INITIAL_SHORT",allocation.BranchId,after:new{allocation.ShortageReason});
-            await db.SaveChangesAsync(ct);await lowStock.InitialShortage(allocation,ct);
-        }else{
-            var key=Guid.NewGuid();
-            var lines=await documents.PostStaffSupply(allocation,balances.Select(b=>(b,b.InitialTarget)).ToArray(),"INITIAL",key,null,ct);
-            foreach(var b in balances){b.InitialIssued=b.InitialTarget;Ledger(b,"INITIAL",b.InitialTarget,key,documentLineId:lines[b.BalanceId]);}
-            allocation.Status="OPEN";
-            audit.Add("StaffSupplyAllocation",allocation.AllocationId,"INITIAL_ISSUED",allocation.BranchId,key:key);
-        }
+        // Snapshot only: actual stock is issued when a cleaning task is accepted.
+        var reusable=await ReusableShiftConfiguration(allocation.BranchId,ct);
+        audit.Add("StaffSupplyAllocation",allocation.AllocationId,"REUSABLE_CONFIGURATION_SNAPSHOT",allocation.BranchId,after:reusable);
+        allocation.Status="OPEN";
+        audit.Add("StaffSupplyAllocation",allocation.AllocationId,"TASK_SUPPLY_SNAPSHOT",allocation.BranchId);
         await db.SaveChangesAsync(ct);return await Dto(allocation,ct);
     }
 
@@ -96,12 +88,14 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
         var selected=new List<(StaffSupplyBalance Balance,decimal Quantity)>();
         foreach(var request in requested){
             var b=balances.SingleOrDefault(x=>x.ItemId==request.ItemId)??throw new ApiException(409,"SUPPLY_ITEM_NOT_IN_SHIFT_SNAPSHOT");
+            Output.Require(await db.ItemLifecycleProfiles.AnyAsync(p=>p.BranchId==a.BranchId&&p.ItemId==b.ItemId&&p.Classification=="CONSUMABLE",ct),"USE_REUSABLE_CUSTODY_WORKFLOW");
             Output.Require(await WarehouseAvailable(b,ct),"WAREHOUSE_UNAVAILABLE");Output.Require(await Stock(b,ct)>=request.Quantity,"STOCK_INSUFFICIENT");
             selected.Add((b,request.Quantity));
         }
         var lines=await documents.PostStaffSupply(a,selected,"ADDITIONAL",key,requestWorkId,ct);
         foreach(var (b,quantity) in selected){b.AdditionalIssued+=quantity;Ledger(b,"ADDITIONAL",quantity,key,documentLineId:lines[b.BalanceId],workId:requestWorkId);}
-        a.Status=balances.All(b=>SupplyMath.Remaining(b)>=b.InitialTarget)?"OPEN":a.Status;
+        // Legacy SHORT allocations now replenish per task; no initial-kit threshold or handover.
+        a.Status="OPEN";
         if(a.Status=="OPEN")a.ShortageReason=null;
         audit.Add("StaffSupplyAllocation",a.AllocationId,"REFILLED",a.BranchId,key:key);await db.SaveChangesAsync(ct);return await Dto(a,ct);
     },ct);
@@ -112,14 +106,14 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
             join template in db.WorkdayShifts on assignment.ShiftId equals template.ShiftId
             join role in db.Roles on template.RoleId equals role.RoleId
             where assignment.AssignmentId==assignmentId select new {assignment.UserId,assignment.Status,template.BranchId,role.Code}).SingleAsync(ct);
-        if(shift.Status!="WORKING")return "SHIFT_NOT_WORKING";
+        if(shift.Status!="WORKING"&&!(shift.Status=="ENDED"&&await db.StaffSupplyAllocations.AnyAsync(a=>a.AssignmentId==assignmentId&&a.Status!="CLOSED",ct)))return "SHIFT_NOT_WORKING";
         if(shift.Code!="HK_STAFF")return null;
         if(await (from assignment in db.WorkAssignments.AsNoTracking() join work in db.WorkItems on assignment.WorkId equals work.WorkId
             where assignment.AssigneeUserId==shift.UserId&&assignment.AssignmentStatus=="ACTIVE"&&work.BranchId==shift.BranchId
                 &&!WorkRules.Terminal.Contains(work.Status)&&work.Status!="PENDING_INSPECTION"&&work.Status!="PENDING_REINSPECTION"&&work.Status!="PENDING_VERIFICATION"
             select work.WorkId).AnyAsync(ct))return "SHIFT_WORK_OPEN";
         var allocationIds=db.StaffSupplyAllocations.Where(a=>a.AssignmentId==assignmentId).Select(a=>a.AllocationId);
-        var balances=db.StaffSupplyBalances.Where(b=>allocationIds.Contains(b.AllocationId));
+        var balances=db.StaffSupplyBalances.Where(b=>allocationIds.Contains(b.AllocationId)&&db.ItemLifecycleProfiles.Any(p=>p.BranchId==shift.BranchId&&p.ItemId==b.ItemId&&p.Classification=="CONSUMABLE"));
         if(await balances.AnyAsync(b=>b.Reserved>0,ct)||await db.SupplyReservations.AnyAsync(r=>r.Status=="RESERVED"&&balances.Any(b=>b.BalanceId==r.BalanceId),ct))return "SUPPLY_RESERVATIONS_OPEN";
         if(await db.RequestWorkflows.AnyAsync(r=>r.AllocationId!=null&&allocationIds.Contains(r.AllocationId.Value)
             &&r.RequestType==RequestWorkflowService.RefillType&&r.Status!="FULFILLED"&&r.Status!="COMPLETED"&&r.Status!="REJECTED"&&r.Status!="CANCELLED",ct))return "REFILL_REQUEST_OPEN";
@@ -129,18 +123,26 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
     // Call BEFORE ending workday; recheck under the same stock lock as refill/consumption.
     internal Task<StaffSupplyAllocationDto?> End(long assignmentId,Guid key,CancellationToken ct)=>atomic.Run(async()=>{
         Output.Key(key);await Lock(db,ct);
+        var a=await db.StaffSupplyAllocations.SingleOrDefaultAsync(x=>x.AssignmentId==assignmentId,ct);
+        if(a!=null){
+            Output.Require(a.UserId==actor.Id,"SUPPLY_OWNER_REQUIRED",403);await access.Require("ATTENDANCE_RECORD",a.BranchId,true,ct);
+            if(a.Status=="CLOSED")return await Dto(a,ct);
+            var oldWorks=await db.WorkItems.Where(w=>db.SupplyReservations.Any(r=>r.WorkId==w.WorkId&&r.Status=="RESERVED"&&db.StaffSupplyBalances.Any(b=>b.BalanceId==r.BalanceId&&b.AllocationId==a.AllocationId))).ToArrayAsync(ct);
+            foreach(var work in oldWorks)await ReleaseReclassifiedReservations(work,Guid.NewGuid(),ct);
+        }
         var blocker=await EndBlocker(assignmentId,ct);
         Output.Require(blocker==null,blocker??"SHIFT_WORK_OPEN");
-        var a=await db.StaffSupplyAllocations.SingleOrDefaultAsync(x=>x.AssignmentId==assignmentId,ct);
         if(a==null)return null;
         Output.Require(a.UserId==actor.Id,"SUPPLY_OWNER_REQUIRED",403);await access.Require("ATTENDANCE_RECORD",a.BranchId,true,ct);
         if(a.Status=="CLOSED")return await Dto(a,ct);
         var balances=await db.StaffSupplyBalances.Where(x=>x.AllocationId==a.AllocationId).ToArrayAsync(ct);
         Output.Require(balances.All(x=>x.Reserved==0)&&!await db.SupplyReservations.AnyAsync(r=>r.Status=="RESERVED"&&db.StaffSupplyBalances.Any(b=>b.BalanceId==r.BalanceId&&b.AllocationId==a.AllocationId),ct),"SUPPLY_RESERVATIONS_OPEN");
-        Output.Require(await db.WorkdayAssignments.AnyAsync(x=>x.AssignmentId==assignmentId&&x.UserId==a.UserId&&x.Status=="WORKING",ct),"ACTIVE_SHIFT_REQUIRED");
+        Output.Require(await db.WorkdayAssignments.AnyAsync(x=>x.AssignmentId==assignmentId&&x.UserId==a.UserId&&(x.Status=="WORKING"||x.Status=="ENDED"),ct),"ACTIVE_SHIFT_REQUIRED");
         Output.Require(!await (from assignment in db.WorkAssignments join work in db.WorkItems on assignment.WorkId equals work.WorkId where assignment.AssigneeUserId==a.UserId&&assignment.AssignmentStatus=="ACTIVE"&&work.BranchId==a.BranchId&&(work.Kind=="CLEANING"||work.Kind=="REWORK")&&!WorkRules.Terminal.Contains(work.Status)&&work.Status!="PENDING_INSPECTION"&&work.Status!="PENDING_REINSPECTION" select work.WorkId).AnyAsync(ct),"CLEANING_WORK_OPEN");
-        var remaining=balances.Where(x=>SupplyMath.Remaining(x)>0).Select(x=>(x,SupplyMath.Remaining(x))).ToArray();
+        var consumables=await db.ItemLifecycleProfiles.Where(p=>p.BranchId==a.BranchId&&p.Classification=="CONSUMABLE").Select(p=>p.ItemId).ToArrayAsync(ct);
+        var remaining=balances.Where(x=>consumables.Contains(x.ItemId)&&SupplyMath.Remaining(x)>0).Select(x=>(x,SupplyMath.Remaining(x))).ToArray();
         if(remaining.Length>0){var lines=await documents.PostStaffSupply(a,remaining,"RETURN",key,null,ct);foreach(var (b,quantity) in remaining){b.Returned+=quantity;Ledger(b,"RETURN",quantity,key,documentLineId:lines[b.BalanceId]);}}
+        await ReturnReusable(a,key,ct);
         a.Status="CLOSED";a.ClosedAt=Now;a.ShortageReason=null;
         audit.Add("StaffSupplyAllocation",a.AllocationId,"RETURNED_CLOSED",a.BranchId,key:key);await db.SaveChangesAsync(ct);return await Dto(a,ct);
     },ct);
@@ -149,7 +151,8 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
     {
         await access.Eligible(assignment.UserId,shift.BranchId,ct);
         Output.Require(await db.Roles.AnyAsync(r=>r.RoleId==shift.RoleId&&r.Code=="HK_STAFF"&&r.IsActive,ct),"HOUSEKEEPING_SHIFT_REQUIRED");
-        Output.Require(assignment.Status=="WORKING"&&assignment.StartedAt!=null&&assignment.EndedAt==null&&shift.IsActive,"ACTIVE_SHIFT_REQUIRED");
+        Output.Require(assignment.StartedAt!=null&&shift.IsActive&&
+            ((assignment.Status=="WORKING"&&assignment.EndedAt==null)||(allowFinishing&&assignment.Status=="ENDED"&&assignment.EndedAt!=null)),"ACTIVE_SHIFT_REQUIRED");
         var now=Now;
         Output.Require(await (from ur in db.UserRoles join role in db.Roles on ur.RoleId equals role.RoleId where ur.UserId==assignment.UserId&&ur.BranchId==shift.BranchId&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&role.Code=="HK_STAFF"&&role.IsActive select ur.UserRoleId).AnyAsync(ct),"HK_STAFF_REQUIRED",403);
         var zone=TimeZoneInfo.FindSystemTimeZoneById(await db.Branches.Where(x=>x.BranchId==shift.BranchId).Select(x=>x.Timezone).SingleAsync(ct));
@@ -160,7 +163,16 @@ public sealed partial class StaffSupplyService(HotelOpsCompactDbContext db,Acces
     private async Task AllocationActive(StaffSupplyAllocation a,CancellationToken ct,bool allowFinishing=false){Output.Require(a.Status!="CLOSED","SUPPLY_ALLOCATION_CLOSED");var assignment=await db.WorkdayAssignments.SingleAsync(x=>x.AssignmentId==a.AssignmentId,ct);await ActiveShift(assignment,await db.WorkdayShifts.SingleAsync(x=>x.ShiftId==assignment.ShiftId,ct),ct,allowFinishing);}
     private async Task<StaffSupplyAllocation> LoadAllocation(long id,CancellationToken ct)=>await db.StaffSupplyAllocations.SingleOrDefaultAsync(x=>x.AllocationId==id,ct)??throw new ApiException(404,"SUPPLY_ALLOCATION_NOT_FOUND");
     private Task<bool> WarehouseAvailable(StaffSupplyBalance b,CancellationToken ct)=>db.Warehouses.AnyAsync(x=>x.WarehouseId==b.WarehouseId&&x.IsActive,ct);
-    private async Task<decimal> Stock(StaffSupplyBalance b,CancellationToken ct)=>await db.StockMovements.Where(x=>x.WarehouseId==b.WarehouseId&&x.ItemId==b.ItemId).SumAsync(x=>(decimal?)x.SignedBaseQty,ct)??0;
+    private Task<decimal> Stock(StaffSupplyBalance b,CancellationToken ct)=>StockBatchAccounting.Available(db,b.WarehouseId,b.ItemId,Now,ct);
     private void Ledger(StaffSupplyBalance b,string kind,decimal quantity,Guid key,long? workId=null,long? reservationId=null,long? documentLineId=null)=>db.StaffSupplyLedgers.Add(new StaffSupplyLedger{BalanceId=b.BalanceId,Kind=kind,Quantity=quantity,OperationKey=key,WorkId=workId,ReservationId=reservationId,DocumentLineId=documentLineId,ActorUserId=actor.Id,OccurredAt=Now});
-    private async Task<StaffSupplyAllocationDto> Dto(StaffSupplyAllocation a,CancellationToken ct){var rows=await (from b in db.StaffSupplyBalances.AsNoTracking() join item in db.InventoryItems on b.ItemId equals item.ItemId where b.AllocationId==a.AllocationId orderby item.Name select new{b,item.Code,item.Name}).ToArrayAsync(ct);return new(a.AllocationId,a.BranchId,a.UserId,a.AssignmentId,a.Status,a.ShortageReason,a.CreatedAt,a.ClosedAt,Convert.ToBase64String(a.RowVersion),rows.Select(x=>new StaffSupplyBalanceDto(x.b.BalanceId,x.b.ItemId,x.Code,x.Name,x.b.UnitId,x.b.WarehouseId,x.b.InitialTarget,x.b.InitialIssued,x.b.AdditionalIssued,x.b.Reserved,x.b.Used,x.b.Returned,SupplyMath.Remaining(x.b),SupplyMath.Available(x.b),Convert.ToBase64String(x.b.RowVersion))).ToArray());}
+    private async Task<StaffSupplyAllocationDto> Dto(StaffSupplyAllocation a,CancellationToken ct)
+    {
+        var rows=await (from b in db.StaffSupplyBalances.AsNoTracking() join item in db.InventoryItems on b.ItemId equals item.ItemId
+            where b.AllocationId==a.AllocationId&&db.ItemLifecycleProfiles.Any(p=>p.BranchId==a.BranchId&&p.ItemId==b.ItemId&&p.Classification=="CONSUMABLE")
+            orderby item.Name select new{b,item.Code,item.Name}).ToArrayAsync(ct);
+        var lines=new List<StaffSupplyBalanceDto>();
+        foreach(var x in rows)lines.Add(new(x.b.BalanceId,x.b.ItemId,x.Code,x.Name,x.b.UnitId,x.b.WarehouseId,x.b.InitialTarget,x.b.InitialIssued,x.b.AdditionalIssued,
+            x.b.Reserved,x.b.Used,x.b.Returned,SupplyMath.Remaining(x.b),await StockBatchAccounting.StaffAvailable(db,x.b,Now,ct),Convert.ToBase64String(x.b.RowVersion)));
+        return new(a.AllocationId,a.BranchId,a.UserId,a.AssignmentId,a.Status,a.ShortageReason,a.CreatedAt,a.ClosedAt,Convert.ToBase64String(a.RowVersion),lines);
+    }
 }

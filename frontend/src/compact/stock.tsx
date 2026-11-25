@@ -1,4 +1,7 @@
 import PageTitle from "./page-title";
+import InventoryLifecycle from "./inventory-lifecycle";
+import ReusableInventory from "./reusable-inventory";
+import AdvisoryPanel from "./advisory-panel";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
 import { useAuth } from "./auth";
@@ -22,6 +25,9 @@ export default function Stock({ readScope }: { readScope?: number }) {
     .filter((r) => r.branchId == null || r.branchId === branch)
     .every((r) => r.code === "STOREKEEPER");
   const [page, setPage] = useState(1);
+  const [batchView, setBatchView] = useState(false);
+  const [reusableView, setReusableView] = useState(false);
+  const [advisoryView, setAdvisoryView] = useState(false);
   const [revision, bump] = useState(0),
     [search, setSearch] = useState(
       new URLSearchParams(location.hash.split("?")[1]).get("search") || "",
@@ -54,16 +60,23 @@ export default function Stock({ readScope }: { readScope?: number }) {
         (r) =>
           (!warehouse || r.warehouseId === Number(warehouse)) &&
           (readScope !== undefined || currentWarehouses.some((w: Row) => w.warehouseId === r.warehouseId)) &&
-          (!low || (r.minimumQty != null && r.baseQty < r.minimumQty)),
+          (!low || (r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty)),
       )
       .sort((a, b) =>
         sort === "quantity"
-          ? a.baseQty - b.baseQty
+          ? (a.availableQty ?? a.baseQty) - (b.availableQty ?? b.baseQty)
           : String(a.item).localeCompare(String(b.item), "vi"),
       ) || [];
+  if (batchView) return <><button onClick={() => setBatchView(false)}>Quay lại tồn kho</button><InventoryLifecycle branch={branch}/></>;
+  if (reusableView) return <><button onClick={() => setReusableView(false)}>Quay lại tồn kho</button><ReusableInventory branch={branch}/></>;
+  if (advisoryView) return <><button onClick={() => setAdvisoryView(false)}>Quay lại tồn kho</button><AdvisoryPanel key={branch} branch={branch} allowTransfer={mayEdit && can("TRANSFER_REQUEST_CREATE", false)}/></>;
   return (
     <>
       <div className="page-heading">
+        {readScope === undefined && <button onClick={() => setBatchView(true)}>Lô và hạn sử dụng</button>}
+        {readScope === undefined && <button onClick={() => setReusableView(true)}>Vật tư tái sử dụng</button>}
+        {readScope === undefined && <button onClick={() => setAdvisoryView(true)}>Dự báo và đề xuất</button>}
+        {readScope === undefined && mayEdit && <a className="button" href="#stocktaking?kind=ADJUSTMENT">Duyệt giảm vật tư tiêu hao</a>}
         <PageTitle>
           <h1>Tồn kho vật tư</h1>
           <p>Số lượng theo đơn vị cơ sở, tính từ chứng từ đã ghi sổ</p>
@@ -165,7 +178,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
             </thead>
             <tbody>
               {rows.slice((page - 1) * 25, page * 25).map((r, index) => (
-                <tr key={`${r.warehouseId}-${r.itemId}`} className={r.minimumQty != null && r.baseQty < r.minimumQty ? "stock-below-minimum" : undefined}>
+                <tr key={`${r.warehouseId}-${r.itemId}`} className={r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty ? "stock-below-minimum" : undefined}>
                   <td data-label="STT">{(page - 1) * 25 + index + 1}</td>
                   {readScope !== undefined && (
                     <td data-label="Chi nhánh">{profile.branches.find((b) => b.branchId === r.branchId)
@@ -175,7 +188,8 @@ export default function Stock({ readScope }: { readScope?: number }) {
                   <td data-label="Vật tư">{r.item}</td>
                   <td className="numeric" data-label="Tồn cơ sở">
                     {Number(r.baseQty || 0).toLocaleString("vi-VN")}
-                    {r.minimumQty != null && r.baseQty < r.minimumQty && <small>Dưới tối thiểu</small>}
+                    {r.availableQty != null && <small>Có thể cấp: {Number(r.availableQty).toLocaleString("vi-VN")}</small>}
+                    {r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty && <small>Dưới tối thiểu</small>}
                   </td>
                   <td data-label="Đơn vị">{r.unit || "—"}</td>
                   <td data-label="Tối thiểu">{mayEdit && r.isActive !== false ? <button aria-label={`Sửa tối thiểu ${r.item}`} onClick={() => setEditing(r)}>{r.minimumQty ?? 0} · Sửa</button> : r.minimumQty ?? "—"}</td>

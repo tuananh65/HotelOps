@@ -1,23 +1,28 @@
 import { usePagedRows } from "./use-paged-rows";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ApiError, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
 import { ConfirmationActions, Dialog, Empty, State, useQuery } from "./ui";
 import { AlertPopup } from "./alert-popup";
-import PageTitle from "./page-title";
+import PageTitle, { PageTitleTarget } from "./page-title";
 import Work from "./work";
 import Documents from "./documents";
 import RoomIssues from "./room-issues";
+import ReusableInventory from "./reusable-inventory";
+import ReplacementQueue, { ReplacementPanel } from "./asset-replacement";
+import { useDomainRequests } from "./use-domain-requests";
 import "./requests.css";
 
 const types:Record<string,string>={CONSUMABLE_REFILL_REQUEST:"Bổ sung tiêu hao",WAREHOUSE_REPLENISHMENT_REQUEST:"Bổ sung hàng cho kho",GENERAL_INTERNAL_REQUEST:"Yêu cầu nội bộ",INCIDENT:"Sự cố phòng"};
 const statuses:Record<string,string>={PENDING_SUPERVISOR:"Chờ giám sát xác nhận",PENDING_STOREKEEPER:"Chờ kho cấp phát",PENDING_OPERATIONS_MANAGER:"Chờ quản lý vận hành xác nhận",PENDING_RECEIPT:"Chờ nhận hàng thực tế",FULFILLED:"Đã cấp phát",COMPLETED:"Đã hoàn thành",REJECTED:"Đã từ chối",CANCELLED:"Đã hủy"};
 const actions:Record<string,string>={claim:"Nhận xử lý",release:"Trả về hàng đợi",approve:"Xác nhận yêu cầu",reject:"Từ chối",issue:"Xác nhận cấp phát",cancel:"Hủy yêu cầu",receive:"Ghi nhận hàng thực nhận"};
-const roles:Record<string,string>={HOUSEKEEPING_SUPERVISOR:"Giám sát buồng phòng",STOREKEEPER:"Thủ kho",OPERATION_MANAGER:"Quản lý vận hành",HK_STAFF:"Nhân viên buồng phòng",MAINTENANCE_SUPERVISOR:"Giám sát bảo trì",RECEPTION:"Lễ tân"};
+const roles:Record<string,string>={HOUSEKEEPING_SUPERVISOR:"Giám sát buồng phòng",STOREKEEPER:"Thủ kho",OPERATION_MANAGER:"Quản lý vận hành",HK_STAFF:"Nhân viên buồng phòng",MAINTENANCE_SUPERVISOR:"Trưởng đội bảo trì",RECEPTION:"Lễ tân"};
 const queues=[['all','Tất cả trong quyền'],['mine','Tôi đã gửi'],['action','Cần tôi xử lý'],['progress','Đang xử lý'],['completed','Hoàn thành'],['rejected','Từ chối']];
 const roomTypes:Record<string,string>={ROOM_DURABLE_ITEM_MISSING:"Báo thiếu đồ dùng",ROOM_EQUIPMENT_DAMAGE:"Báo thiết bị hỏng",DURABLE_ITEM_REMEDIATION:"Bổ sung đồ dùng cho phòng",MAINTENANCE_REMEDIATION:"Khắc phục thiết bị",ROOM_REINSPECTION:"Kiểm tra lại phòng"};
 Object.assign(types,roomTypes);
-Object.assign(statuses,{ACCEPTED:"Đã tiếp nhận",PENDING_MAINTENANCE_SUPERVISOR:"Chờ giám sát bảo trì",PENDING_REINSPECTION:"Chờ kiểm tra lại",REWORK_REQUIRED:"Cần khắc phục lại"});
+Object.assign(types,{REUSABLE_WRITE_OFF:"Ghi giảm vật tư tái sử dụng",ASSET_REPLACEMENT:"Thay mới tài sản"});
+Object.assign(statuses,{APPROVED:"Đã ghi giảm",REPLACEMENT_CONFIRMED:"Chờ OM xử lý",REPLACEMENT_APPROVED:"Đã đồng ý thay mới",REPLACEMENT_REJECTED:"Đã từ chối",REPLACEMENT_INSTALLED:"Đã thay thực tế",REPLACEMENT_PROPOSED:"Chờ giám sát xác nhận"});
+Object.assign(statuses,{ACCEPTED:"Đã tiếp nhận",PENDING_MAINTENANCE_SUPERVISOR:"Chờ trưởng đội bảo trì",PENDING_REINSPECTION:"Chờ kiểm tra lại",REWORK_REQUIRED:"Cần khắc phục lại"});
 const textStatus=(value:string)=>statuses[value]||({OPEN:"Mới",IN_PROGRESS:"Đang xử lý",CLOSED:"Đã đóng",PENDING:"Chờ xử lý"} as Record<string,string>)[value]||value;
 function requestError(error:unknown){const labels:Record<string,string>={REQUEST_ALREADY_CLAIMED:"Yêu cầu đã được người khác tiếp nhận. Tải lại để xem người đang xử lý.",ACTIVE_SHIFT_REQUIRED:"Ca đã hết giờ hoặc chưa bắt đầu; không thể cấp thêm vật tư vào ca này.",STOCK_INSUFFICIENT:"Kho không đủ số lượng để cấp phát.",INVALID_REQUEST_QUANTITIES:"Chọn ít nhất một vật tư với số lượng lớn hơn 0.",IDEMPOTENCY_KEY_REUSED:"Nội dung lần gửi lại đã thay đổi. Đóng và mở lại biểu mẫu trước khi gửi.",REQUEST_READ_ONLY:"Bạn chỉ được xem yêu cầu này.",USE_REQUEST_WORKFLOW:"Mở yêu cầu trong hộp yêu cầu để xử lý đúng quy trình."};return error instanceof ApiError&&labels[error.code]?labels[error.code]:message(error);}
 
@@ -29,7 +34,12 @@ export default function Requests(){
   const [id,setId]=useState(Number(params.get('id'))||0),[create,setCreate]=useState(params.get('create')||''),[command,setCommand]=useState(''),[error,setError]=useState(''),[pending,setPending]=useState(false);
   const [sort,setSort]=useState('latest');
   const list=usePagedRows(`requests?branchId=${branch}&queue=${queue}&search=${encodeURIComponent(search)}`,revision);
-  const ordered=[...(list.data||[])].sort((a,b)=>sort==='title'?a.title.localeCompare(b.title,'vi'):sort==='oldest'?a.workId-b.workId:b.workId-a.workId);
+  const domains=useDomainRequests(revision,queue,search);
+  const [replacement,setReplacement]=useState<number|null>(null);
+  const previousBranch=useRef(branch);
+  useEffect(()=>{if(previousBranch.current===branch)return;previousBranch.current=branch;setId(0);setReplacement(null);setCommand('');setCreate('');setError('');setPage(1);},[branch]);
+  const inbox={loading:list.loading||domains.loading,error:list.error||domains.error};
+  const ordered=[...(list.data||[]),...domains.data].sort((a,b)=>sort==='title'?a.title.localeCompare(b.title,'vi'):(sort==='oldest'?1:-1)*(new Date(a.updatedAt).getTime()-new Date(b.updatedAt).getTime()));
   const pageRows=ordered.slice((page-1)*25,page*25);
   const allowed=useQuery(`requests/types?branchId=${branch}`,revision);
   const detail=useQuery(id?`requests/${id}`:null,revision);
@@ -44,19 +54,23 @@ export default function Requests(){
     catch(e){setError(requestError(e));bump(n=>n+1);}finally{setPending(false);}
   }
   function open(row:Row){
+    if(row.domain==='replacement'){setReplacement(row.workId);return;}
+    if(row.domain==='write-offs'){setTab('write-offs');return;}
     if(row.structured){setId(row.workId);return;}
     location.hash=row.requestType==='INCIDENT'?`work?kind=INCIDENT&id=${row.workId}`:`requests?tab=ordinary&id=${row.workId}&legacy=1`;
   }
   return <div className="request-workspace">
     <PageTitle><h1>Yêu cầu nội bộ</h1><p>Theo dõi người xử lý, cấp phát và kết quả trong cùng một nơi</p></PageTitle>
-    <nav className="request-tabs" aria-label="Nhóm yêu cầu">{[['inbox','Hộp yêu cầu'],['ordinary','Yêu cầu thông thường'],...(can('MR_VIEW')?[['materials','Vật tư & chứng từ']]:[]),...(can('INCIDENT_VIEW')||can('IR_CREATE')?[['rooms','Sự cố phòng']]:[])].map(([key,name])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setId(0);setCreate('');}}>{name}</button>)}</nav>
-    {tab==='ordinary'?<Work onlyKind="INTERNAL_REQUEST" personal={!manager} />:tab==='materials'?<Documents materialOnly />:tab==='rooms'?<RoomIssues />:<>
+    <nav className="request-tabs" aria-label="Nhóm yêu cầu">{[['inbox','Hộp yêu cầu'],['ordinary','Yêu cầu thông thường'],...(can('MR_VIEW')?[['materials','Vật tư & chứng từ']]:[]),...(can('INCIDENT_VIEW')||can('IR_CREATE')?[['rooms','Sự cố phòng']]:[]),...(domains.writeOffAccess?[['write-offs','Ghi giảm vật tư']]:[]),...(domains.replacementAccess?[['replacements','Thay tài sản']]:[])].map(([key,name])=><button key={key} aria-pressed={tab===key} onClick={()=>{setTab(key);setId(0);setCreate('');bump(n=>n+1);}}>{name}</button>)}</nav>
+    <PageTitleTarget.Provider value={null}>
+    {tab==='ordinary'?<Work onlyKind="INTERNAL_REQUEST" personal={!manager} />:tab==='materials'?<Documents materialOnly />:tab==='rooms'?<RoomIssues />:tab==='write-offs'&&domains.writeOffAccess?<ReusableInventory key={branch} branch={branch} initialTab="write-offs"/>:tab==='replacements'&&domains.replacementAccess?<ReplacementQueue key={branch} branch={branch}/>:<>
       <div className="toolbar"><label>Tìm yêu cầu<input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Tên yêu cầu…"/></label><button aria-expanded={filters} onClick={()=>setFilters(!filters)}>Bộ lọc</button>{(allowed.data||[]).length>0&&<button className="primary" onClick={()=>{setCreate(allowed.data[0].code);setError('');}}>Tạo yêu cầu</button>}</div>
       {filters&&<div className="toolbar"><label>Hàng đợi<select value={queue} onChange={e=>{setQueue(e.target.value);setPage(1);}}>{queues.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><label>Sắp xếp<select value={sort} onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="latest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="title">Tên yêu cầu</option></select></label><button onClick={()=>{setSearch('');setQueue('all');setSort('latest');setPage(1);}}>Đặt lại</button></div>}
       {error&&<AlertPopup>{error}</AlertPopup>}
-      <State {...list} retry={()=>bump(n=>n+1)}>{pageRows.length?<table><thead><tr><th>Yêu cầu</th><th>Loại</th><th>Trạng thái</th><th>Người / bộ phận xử lý</th><th>Cập nhật</th></tr></thead><tbody>{pageRows.map((r:Row)=><tr key={r.workId}><td data-label="Yêu cầu"><button className="request-title" onClick={()=>open(r)}>{r.title}</button></td><td data-label="Loại">{types[r.requestType]||r.requestType}</td><td data-label="Trạng thái"><span className="badge">{textStatus(r.status)}</span></td><td data-label="Xử lý">{roles[r.queueRole]||'—'}{r.handlerUserId?` · ${r.handlerName || 'Nhân viên '+r.handlerUserId}`:''}</td><td data-label="Cập nhật">{timestamp(r.updatedAt)}</td></tr>)}</tbody></table>:<Empty>Chưa có yêu cầu trong phạm vi đã chọn.</Empty>}
+      <State {...inbox} retry={()=>bump(n=>n+1)}>{pageRows.length?<table><thead><tr><th>Yêu cầu</th><th>Loại</th><th>Trạng thái</th><th>Người / bộ phận xử lý</th><th>Cập nhật</th></tr></thead><tbody>{pageRows.map((r:Row)=><tr key={r.requestKey||`request:${r.workId}`}><td data-label="Yêu cầu"><button className="request-title" onClick={()=>open(r)}>{r.title}</button></td><td data-label="Loại">{types[r.requestType]||r.requestType}</td><td data-label="Trạng thái"><span className="badge">{textStatus(r.status)}</span></td><td data-label="Xử lý">{roles[r.queueRole]||'—'}{r.handlerUserId?` · ${r.handlerName || 'Nhân viên '+r.handlerUserId}`:''}</td><td data-label="Cập nhật">{timestamp(r.updatedAt)}</td></tr>)}</tbody></table>:<Empty>Chưa có yêu cầu trong phạm vi đã chọn.</Empty>}
       <div className="toolbar"><span>{ordered.length} yêu cầu · Trang {page}/{Math.max(1,Math.ceil((ordered.length)/25))}</span><button disabled={page<=1||list.loading} onClick={()=>setPage(page-1)}>Trước</button><button disabled={page*25>=(ordered.length)||list.loading} onClick={()=>setPage(page+1)}>Tiếp</button></div></State>
     </>}
+    {replacement&&domains.replacementAccess&&<Dialog title="Đề xuất thay tài sản" close={()=>setReplacement(null)}><ReplacementPanel key={`${branch}:${replacement}`} id={replacement} onSaved={()=>bump(n=>n+1)}/></Dialog>}
     {create&&<CreateRequest key={create} type={create} choices={allowed.data||[]} allocationId={Number(params.get('allocation'))||0} change={setCreate} close={()=>setCreate('')} saved={workId=>{setCreate('');setId(workId);bump(n=>n+1);}}/>}
     {!!id&&tab==='inbox'&&<Dialog title={data?.request?.title||'Chi tiết yêu cầu'} className="room-drawer" close={()=>!pending&&setId(0)}><State {...detail} retry={()=>bump(n=>n+1)}>{data&&<>
       <p><span className="badge">{textStatus(data.request.status)}</span></p><p className="request-meta">{roles[data.request.queueRole]||'Đã kết thúc xử lý'}{data.request.handlerUserId?` · ${data.request.handlerName || 'Nhân viên '+data.request.handlerUserId}`:''}</p>{data.description&&<p>{data.description}</p>}
@@ -75,6 +89,7 @@ export default function Requests(){
       <label>{command==='reject'?'Lý do từ chối':'Ghi chú'}<textarea name="reason" required={command==='reject'} minLength={command==='reject'?10:undefined} maxLength={2000}/></label>
       {error&&<AlertPopup>{error}</AlertPopup>}<ConfirmationActions pending={pending} cancel={()=>setCommand('')}/>
     </form></Dialog>}
+    </PageTitleTarget.Provider>
   </div>;
 }
 

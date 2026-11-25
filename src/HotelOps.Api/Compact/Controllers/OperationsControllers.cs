@@ -7,16 +7,21 @@ namespace HotelOps.Api.Compact.Controllers;
 [ApiController,Authorize,Route("api/v2/work")]
 public sealed class WorkController(WorkService service):ControllerBase
 {
+    [HttpGet("replacements")]public Task<object> Replacements(long branchId,CancellationToken ct)=>service.ReplacementQueue(branchId,ct);
+    [HttpGet("{id:long}/replacement")]public Task<object> Replacement(long id,CancellationToken ct)=>service.ReplacementDetail(id,ct);
+    [HttpPost("{id:long}/replacement/{command}")]public Task<object> ReplaceAsset(long id,string command,ReplacementRequest request,CancellationToken ct)=>service.ReplaceAsset(id,command,request,ct);
     [HttpGet("internal-request-types")]public Task<object> InternalRequestTypes(long branchId,CancellationToken ct)=>service.InternalRequestTypes(branchId,ct);
     [HttpPost("internal-request-types")]public Task<object> CreateInternalRequestType(long branchId,InternalRequestTypeRequest request,CancellationToken ct)=>service.SaveInternalRequestType(branchId,null,request,ct);
     [HttpPut("internal-request-types/{id:long}")]public Task<object> UpdateInternalRequestType(long branchId,long id,InternalRequestTypeRequest request,CancellationToken ct)=>service.SaveInternalRequestType(branchId,id,request,ct);
     [HttpGet("room-issue-types")]public Task<object> RoomIssueTypes(long branchId,CancellationToken ct)=>service.RoomIssueTypes(branchId,ct);
     [HttpPut("room-issue-types")]public Task<object> RoomIssueType(long branchId,RoomIssueTypeRequest request,CancellationToken ct)=>service.SaveRoomIssueType(branchId,request,ct);
     [HttpGet("room-issue-objects")]public Task<object> RoomIssueObjects(long branchId,long roomId,CancellationToken ct,long? workId=null)=>service.RoomIssueObjects(branchId,roomId,ct,workId);
-    [HttpGet("room-issues")]public Task<object> RoomIssues(long branchId,CancellationToken ct)=>service.RoomIssues(branchId,ct);
+    [HttpGet("room-issues")]public Task<object> RoomIssues(long branchId,CancellationToken ct,int? page=null,string? search=null)=>service.RoomIssues(branchId,ct,page,search);
     [HttpGet("maintenance-inbox")]public Task<object> MaintenanceInbox(long branchId,CancellationToken ct,string queue="all",int page=1,string? search=null)=>service.MaintenanceInbox(branchId,queue,page,search,ct);
     [HttpPost("room-issues")]public Task<object> CreateRoomIssue(RoomIssueCreateRequest request,CancellationToken ct)=>service.CreateRoomIssue(request,ct);
     [HttpGet("room-issues/{id:long}")]public Task<object> RoomIssueDetail(long id,CancellationToken ct)=>service.RoomIssueDetail(id,ct);
+    [HttpPost("room-issues/{id:long}/recover")]public Task<object> RecoverRoomIssue(long id,LegacyRoomIssueRecoveryRequest request,CancellationToken ct)=>service.RecoverLegacyRoomIssue(id,request,ct);
+    [HttpPost("room-issues/{id:long}/investigation")]public Task<object> Investigate(long id,IncidentInvestigationRequest request,CancellationToken ct)=>service.Investigate(id,request,ct);
     [HttpPost("room-issues/{id:long}/{command}")]public Task<object> RoomIssueAction(long id,string command,RoomIssueActionRequest request,CancellationToken ct)=>service.ActRoomIssue(id,command,request,ct);
     [HttpPost("{id:long}/inspection-result")]public Task<object> InspectionResult(long id,PaperInspectionRequest request,CancellationToken ct)=>service.PaperInspection(id,request,ct);
     [HttpPost("{id:long}/confirm-room-issue")]public Task<object> ConfirmRoomIssue(long id,ActionRequest request,CancellationToken ct)=>service.ConfirmCleaningIssue(id,request,ct);
@@ -36,6 +41,8 @@ public sealed class WorkController(WorkService service):ControllerBase
     [HttpPost]public Task<object> Create(CreateWorkRequest request,CancellationToken ct)=>service.Create(request,ct);
     [HttpPost("{id:long}/actions/{command}")]public Task<object> Act(long id,string command,ActionRequest request,CancellationToken ct)=>service.Act(id,command,request,ct);
     [HttpPut("{id:long}/checklist/{itemId:long}")]public Task<object> Checklist(long id,long itemId,ChecklistResultRequest request,CancellationToken ct)=>service.Checklist(id,itemId,request,ct);
+    [HttpGet("{id:long}/execution-checklists")]public Task<object> ExecutionChecklists(long id,CancellationToken ct)=>service.ExecutionChecklistOptions(id,ct);
+    [HttpPost("{id:long}/execution-checklist")]public Task<object> AttachChecklist(long id,AttachChecklistRequest request,CancellationToken ct)=>service.AttachExecutionChecklist(id,request,ct);
     [HttpPost("{id:long}/findings")]public Task<object> Finding(long id,FindingRequest request,CancellationToken ct)=>service.Finding(id,request,ct);
     [HttpPost("{id:long}/findings/{findingId:long}/resolve")]public Task<object> Resolve(long id,long findingId,ActionRequest request,CancellationToken ct)=>service.ResolveFinding(id,findingId,request,ct);
     [HttpPost("{id:long}/links")]public Task<object> Link(long id,LinkRequest request,CancellationToken ct)=>service.Link(id,request,ct);
@@ -59,6 +66,7 @@ public sealed class DocumentsController(DocumentService service,WorkService work
     [HttpPut("{id:long}/lines/{lineId:long}")]public Task<object> Line(long id,long lineId,DocumentLineRequest request,CancellationToken ct)=>service.Line(id,lineId,request,ct);
     [HttpPost("{id:long}/actions/{command}")]public Task<object> Act(long id,string command,ActionRequest request,CancellationToken ct)=>work.ActDocument(id,command,request,ct);
     [HttpPost("{id:long}/derive")]public Task<object> Derive(long id,DeriveDocumentRequest request,CancellationToken ct)=>service.Derive(id,request,ct);
+    [HttpPut("{id:long}/adjustment-batches")]public Task<object> SelectBatches(long id,BatchAdjustmentRequest request,CancellationToken ct)=>service.SelectAdjustmentBatches(id,request,ct);
 }
 [ApiController,Authorize,Route("api/v2/assets")]
 public sealed class AssetsController(AssetService service):ControllerBase
@@ -96,7 +104,7 @@ public sealed class InsightsController(InsightService service):ControllerBase
     [HttpGet("housekeeping")]public Task<object> Housekeeping(long branchId,CancellationToken ct)=>service.Housekeeping(branchId,ct);
     [HttpGet("ledger")]public Task<object> Ledger(long branchId,long warehouseId,long itemId,CancellationToken ct,int page=1)=>service.Ledger(branchId,warehouseId,itemId,page,ct);
     [HttpGet("dashboard")]public Task<object> Dashboard(long branchId,CancellationToken ct,string? taskPeriod=null)=>service.Dashboard(branchId,ct,taskPeriod);
-    [HttpGet("reports/{report}")]public Task<object> Report(string report,long branchId,DateTime? from,DateTime? to,CancellationToken ct)=>service.Report(report,branchId,from,to,ct);
+    [HttpGet("reports/{report}")]public Task<object> Report(string report,long branchId,DateTime? from,DateTime? to,CancellationToken ct,bool localDates=false)=>service.Report(report,branchId,from,to,ct,localDates);
     [HttpGet("audit")]public Task<object> Audit(long branchId,CancellationToken ct,int page=1,string? search=null)=>service.Audit(branchId,page,ct,search);
     [HttpGet("time")]public Task<object> Time(long branchId,long? userId,CancellationToken ct)=>service.Time(branchId,userId,ct);
 }

@@ -15,11 +15,23 @@ public sealed partial class DocumentService
         var item=await db.InventoryItems.SingleOrDefaultAsync(i=>i.ItemId==request.ItemId&&i.IsActive,ct)??throw new ApiException(409,"ITEM_UNAVAILABLE");
         Output.Require(item.BaseUnitId==request.UnitId&&await db.ReferenceValues.AnyAsync(u=>u.ReferenceId==request.UnitId&&u.Kind=="UOM"&&u.IsActive,ct),"BASE_UNIT_REQUIRED",400);
         Output.Require(await db.Warehouses.AnyAsync(w=>w.WarehouseId==request.WarehouseId&&w.BranchId==work.BranchId&&w.IsActive,ct),"WAREHOUSE_UNAVAILABLE");
-        Output.Require(await db.SupplyConfigurations.AnyAsync(c=>c.BranchId==work.BranchId&&c.ItemId==item.ItemId&&c.SupplyGroup=="B"&&c.IsCurrent&&c.IsActive,ct),"DURABLE_SUPPLY_CONFIGURATION_REQUIRED");
+        var consumable=await db.ItemLifecycleProfiles.AnyAsync(p=>p.BranchId==work.BranchId&&p.ItemId==item.ItemId&&p.Classification=="CONSUMABLE",ct);
+        await StaffSupplyService.Lock(db,ct);
+        var report=await db.WorkEvents.AsNoTracking().SingleAsync(e=>e.WorkId==work.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED",ct);
+        var info=System.Text.Json.JsonSerializer.Deserialize<RoomIssueQuantityRules.Report>(report.SnapshotJson!)!;
+        Output.Require(info.Kind=="MISSING"&&info.ItemId==item.ItemId,"ROOM_ISSUE_OBJECT_NOT_IN_ROOM");
+        var committed=await RoomIssueQuantityRules.Committed(db,[work.WorkId],item.ItemId,ct);
+        RoomIssueQuantityRules.RequireWithin(request.Quantity!.Value,info.Quantity-committed,"REMEDIATION_EXCEEDS_REPORTED_MISSING");
+        if(consumable){
+            var outstanding=await RoomIssueQuantityRules.AssessedOutstanding(db,work.BranchId,work.RoomId!.Value,info.CleaningWorkId,item.ItemId,ct);
+            var related=await RoomIssueQuantityRules.Reports(db,work.BranchId,work.RoomId.Value,info.CleaningWorkId,item.ItemId,ct);
+            var total=await RoomIssueQuantityRules.Committed(db,related.Select(r=>r.WorkId).Append(work.WorkId).Distinct().ToArray(),item.ItemId,ct);
+            RoomIssueQuantityRules.RequireWithin(request.Quantity.Value,outstanding-total,"REMEDIATION_EXCEEDS_ASSESSED_MISSING");
+        }else Output.Require(await db.SupplyConfigurations.AnyAsync(c=>c.BranchId==work.BranchId&&c.ItemId==item.ItemId&&c.SupplyGroup=="B"&&c.IsCurrent&&c.IsActive,ct),"DURABLE_SUPPLY_CONFIGURATION_REQUIRED");
         var department=await db.Departments.Where(d=>d.BranchId==work.BranchId&&d.Code=="HK"&&d.IsActive).Select(d=>(long?)d.DepartmentId).SingleOrDefaultAsync(ct);
         Output.Require(department!=null,"HOUSEKEEPING_DEPARTMENT_REQUIRED");
         var document=new InventoryDocument{BranchId=work.BranchId,DocumentNo=Guid.NewGuid().ToString("N"),Kind="MATERIAL_REQUEST",Status="DRAFT",DepartmentId=department,
-            SourceWarehouseId=request.WarehouseId,SourceWorkId=work.WorkId,ReceivingRoomId=work.RoomId,CreatedBy=actor.Id,CreatedAt=clock.GetUtcNow().UtcDateTime,Reason=request.Note};
+            SourceWarehouseId=request.WarehouseId,SourceWorkId=work.WorkId,ReceivingRoomId=work.RoomId,CreatedBy=work.CreatedBy,CreatedAt=clock.GetUtcNow().UtcDateTime,Reason=request.Note};
         db.InventoryDocuments.Add(document);await db.SaveChangesAsync(ct);
         db.InventoryDocumentLines.Add(new InventoryDocumentLine{DocumentId=document.DocumentId,BranchId=work.BranchId,LineNo=1,ItemId=item.ItemId,UnitId=item.BaseUnitId,
             ConversionFactor=1,ActualQty=request.Quantity!.Value,RequestedQty=request.Quantity.Value});
@@ -30,13 +42,14 @@ public sealed partial class DocumentService
     // Called only inside the room-issue transaction, never exposed as a document action.
     internal async Task AuthorizeRoomRemediation(long documentId,CancellationToken ct)
     {
+        Output.Require(db.Database.CurrentTransaction!=null,"WORKFLOW_TRANSACTION_REQUIRED");
         var d=await db.InventoryDocuments.SingleAsync(x=>x.DocumentId==documentId,ct);
         await access.RequireRolePermission("HOUSEKEEPING_SUPERVISOR","IR_PROCESS",d.BranchId,ct);
-        Output.Require(d.Kind=="MATERIAL_REQUEST"&&d.Status=="DRAFT"&&d.CreatedBy==actor.Id&&d.ReceivingRoomId!=null,"ROOM_ISSUE_WRONG_STAGE");
+        Output.Require(d.Kind=="MATERIAL_REQUEST"&&d.Status=="DRAFT"&&d.ReceivingRoomId!=null,"ROOM_ISSUE_WRONG_STAGE");
         var work=await db.WorkItems.SingleAsync(w=>w.WorkId==d.SourceWorkId,ct);
         var stage=await db.WorkEvents.Where(e=>e.WorkId==work.WorkId&&e.EventType.StartsWith("ROOM_ISSUE_"))
             .OrderByDescending(e=>e.WorkEventId).Select(e=>e.EventType).FirstOrDefaultAsync(ct);
-        Output.Require(work.Kind=="INCIDENT"&&work.BranchId==d.BranchId&&work.RoomId==d.ReceivingRoomId
+        Output.Require(work.Kind=="INCIDENT"&&work.BranchId==d.BranchId&&work.RoomId==d.ReceivingRoomId&&d.CreatedBy==work.CreatedBy
             &&stage is "ROOM_ISSUE_APPROVED" or "ROOM_ISSUE_MATERIAL_REQUESTED" or "ROOM_ISSUE_INSPECTION_FAILED","ROOM_ISSUE_WRONG_STAGE");
         var report=await db.WorkEvents.SingleAsync(e=>e.WorkId==work.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED",ct);
         using var info=System.Text.Json.JsonDocument.Parse(report.SnapshotJson!);

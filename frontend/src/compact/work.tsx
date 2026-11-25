@@ -1,4 +1,8 @@
 import { AlertPopup } from "./alert-popup";
+import RoomSupplyAssessment from "./room-supply-assessment";
+import ReusableInventory from "./reusable-inventory";
+import ExecutionChecklistPicker from "./execution-checklist-picker";
+import { ReplacementPanel } from "./asset-replacement";
 import PageTitle from "./page-title";
 import "./housekeeping-mobile.css";
 import "./housekeeping-workspace.css";
@@ -391,7 +395,7 @@ export default function Work({
     )
       choices.push("handover-accept", "handover-reject");
   }
-  const roomIssue = w?.kind === "INCIDENT" && events.some(e=>e.eventType==="ROOM_ISSUE_REPORTED");
+  const roomIssue = w?.kind === "INCIDENT" && events.some(e=>["ROOM_ISSUE_REPORTED","LEGACY_ROOM_ISSUE_RECOVERED"].includes(e.eventType));
   if (roomIssue) choices.length=0;
   async function mutate(path: string, body: Row, method = "POST") {
     if (pending) return;
@@ -537,17 +541,6 @@ export default function Work({
           <button aria-expanded={filters} onClick={() => setFilters(!filters)}>
             <SlidersHorizontal size={18} /> Bộ lọc
             {status || department ? " •" : ""}
-          </button>
-        )}
-        {!personal && !requestPersonal && !receptionOnly && (
-          <button
-            aria-pressed={mine}
-            onClick={() => {
-              setMine(!mine);
-              setPage(1);
-            }}
-          >
-            {mine ? "Đang xem việc của tôi" : "Đang xem trong phạm vi quyền"}
           </button>
         )}
       </PageToolbar>}
@@ -1593,7 +1586,11 @@ export default function Work({
                       )}
                   </section>
                 )}
-                {!paperHousekeeping && <><h3>Checklist</h3>
+                {w.kind === "CLEANING" && <RoomSupplyAssessment workId={w.workId} editable={!!canExecute && w.status === "IN_PROGRESS"} />}
+                {canExecute && ["CLEANING", "REWORK"].includes(w.kind) && w.status === "IN_PROGRESS" && <ReusableInventory branch={w.branchId} work={w}/>}
+                {w.kind==="MAINTENANCE"&&w.assetId&&<ReplacementPanel id={w.workId} onSaved={()=>bump(n=>n+1)}/>}
+                {canExecute && ["CLEANING", "REWORK", "MAINTENANCE"].includes(w.kind) && !w.checklistTemplateId && ["ASSIGNED", "PENDING_ACCEPTANCE", "ACCEPTED", "PENDING", "IN_PROGRESS"].includes(w.status) && <ExecutionChecklistPicker work={w} onSaved={() => bump(n => n + 1)} />}
+                {w.kind !== "INSPECTION" && <><h3>Checklist</h3>
                 {fields(detail.data?.checklist).map((c) => (
                   <div className="check-item" key={c.workChecklistItemId}>
                     <div>

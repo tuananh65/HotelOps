@@ -29,8 +29,8 @@ public sealed partial class StaffSupplyService
         Output.Require(!await db.StaffSupplyAllocations.AnyAsync(a=>a.AssignmentId==day.AssignmentId,ct),"LEGACY_SUPPLY_INITIALIZATION_NOT_ALLOWED");
         var shift=await db.WorkdayShifts.SingleAsync(s=>s.ShiftId==day.ShiftId,ct);
         await ActiveShift(day,shift,ct,allowFinishing:true);
-        var allocation=await Allocate(day,shift,true,ct);
-        audit.Add("StaffSupplyAllocation",allocation.AllocationId,"LEGACY_INITIAL_ISSUED",work.BranchId,
+        var allocation=await Allocate(day,shift,ct);
+        audit.Add("StaffSupplyAllocation",allocation.AllocationId,"LEGACY_TASK_SNAPSHOT",work.BranchId,
             after:new{workId,userId,day.AssignmentId,reason,cutover,configurationSnapshot="Current configuration at explicit reconciliation; no historical consumption inferred"},key:key);
         await db.SaveChangesAsync(ct);
     }

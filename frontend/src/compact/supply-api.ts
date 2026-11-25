@@ -24,7 +24,7 @@ export type SupplyLedger = {
   reservationId: number | null; documentLineId: number | null; actorUserId: number; occurredAt: string;
 };
 export const supplyGroups: Record<SupplyGroup, string> = {
-  A: "A · Vật tư cấp theo ca", B: "B · Đồ dùng bền", C: "C · Thiết bị sửa chữa bên ngoài",
+  A: "A · Vật tư cấp theo công việc", B: "B · Đồ dùng bền", C: "C · Thiết bị sửa chữa bên ngoài",
 };
 export const supplyQuantity = (value: number) => value.toLocaleString("vi-VN", { maximumFractionDigits: 4 });
 export const saveSupplyConfiguration = (body: SaveSupplyConfiguration) => api<SupplyConfiguration>("supplies/configuration", body, "PUT");
@@ -32,10 +32,10 @@ export function supplyMessage(error: unknown): string {
   const code = error instanceof ApiError ? error.code : typeof error === "string" ? error : "";
   const labels: Record<string, string> = {
     STALE_ROW_VERSION: "Cấu hình đã thay đổi. Đóng biểu mẫu và tải lại trước khi sửa.",
-    SUPPLY_CONFIGURATION_REQUIRED: "Chi nhánh chưa cấu hình vật tư cấp đầu ca.",
+    SUPPLY_CONFIGURATION_REQUIRED: "Chi nhánh chưa cấu hình định mức vật tư cho phòng.",
     STOCK_INSUFFICIENT: "Kho chưa đủ vật tư để cấp. Gửi yêu cầu bổ sung để được xử lý.",
     INVALID_SUPPLY_QUANTITY: "Số lượng phải không âm và có tối đa bốn chữ số thập phân.",
-    FILL_SUPPLY_CONFIGURATION_INCOMPLETE: "Chọn đơn vị và nhập định mức cấp đầu ca / mỗi khách lớn hơn không.",
+    FILL_SUPPLY_CONFIGURATION_INCOMPLETE: "Chọn đơn vị và nhập định mức cho mỗi khách lớn hơn không.",
     BRANCH_REQUIRES_ONE_ACTIVE_WAREHOUSE: "Chi nhánh phải có đúng một kho hoạt động. Vui lòng kiểm tra cấu hình kho của chi nhánh.",
     SUPPLY_BASE_UNIT_REQUIRED: "Sử dụng đúng đơn vị cơ sở của vật tư.",
     WAREHOUSE_UNAVAILABLE: "Kho đã ngừng hoạt động hoặc không thuộc chi nhánh này.",

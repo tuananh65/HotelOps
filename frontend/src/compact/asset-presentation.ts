@@ -1,4 +1,5 @@
 export const assetConditions: Record<string, string> = {
+  PENDING_INSPECTION: "Chờ kiểm kê thực tế",
   GOOD: "Tốt",
   FAIR: "Trung bình",
   POOR: "Kém",

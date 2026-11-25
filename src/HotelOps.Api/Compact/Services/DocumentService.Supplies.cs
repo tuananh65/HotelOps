@@ -33,10 +33,14 @@ public sealed partial class DocumentService
             }
             await db.SaveChangesAsync(ct);
             document.Status="POSTED";document.PostedAt=now;document.PostedBy=actor.Id;await db.SaveChangesAsync(ct);
-            foreach(var (balance,line) in lines){db.StockMovements.Add(new StockMovement{BranchId=allocation.BranchId,LineId=line.LineId,WarehouseId=group.Key,ItemId=line.ItemId,SignedBaseQty=(incoming?1:-1)*line.ActualQty,CreatedBy=actor.Id,OccurredAt=now});result.Add(balance.BalanceId,line.LineId);}
+            foreach(var (balance,line) in lines){
+                var movement=new StockMovement{BranchId=allocation.BranchId,LineId=line.LineId,WarehouseId=group.Key,ItemId=line.ItemId,SignedBaseQty=(incoming?1:-1)*line.ActualQty,CreatedBy=actor.Id,OccurredAt=now};
+                db.StockMovements.Add(movement);await db.SaveChangesAsync(ct);
+                await new StockBatchAccounting(db,clock).Post(document,movement,ct,balance.BalanceId);result.Add(balance.BalanceId,line.LineId);
+            }
             await db.SaveChangesAsync(ct);
             await Event(document,"SUPPLY_POSTED",key,document.Reason,ct);
-            await new LowStockService(db,notifications,clock).SupplyPosted(allocation,document,purpose,ct);
+            await new LowStockService(db,notifications,clock,configuration).SupplyPosted(allocation,document,purpose,ct);
         }
         return result;
     }

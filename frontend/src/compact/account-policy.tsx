@@ -46,6 +46,8 @@ export function PasswordChecklist({
 }
 
 const accountErrors: Record<string, string> = {
+  INVITATION_INVALID_OR_EXPIRED: "Liên kết không hợp lệ, đã sử dụng hoặc hết hạn. Liên hệ quản trị để nhận lời mời mới.",
+  INVITATION_EMAIL_REQUIRED: "Cần email hợp lệ để gửi lời mời thiết lập tài khoản.",
   USERNAME_ALREADY_USED:
     "Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác.",
   EMAIL_ALREADY_USED: "Email đã được sử dụng bởi tài khoản khác.",
