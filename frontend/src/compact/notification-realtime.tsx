@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { HubConnectionBuilder, HttpTransportType, LogLevel } from "@microsoft/signalr";
-import { sessionToken } from "./api";
+import { api, sessionToken } from "./api";
 import { AlertPopup } from "./alert-popup";
 
 type Pulse = { eventId: string; unreadCount: number; notificationIds: number[] };
@@ -14,6 +14,10 @@ export function useNotificationRealtime(branch: number) {
     const seen = new Set<number>();
     let initialized = false, lastEvent = "";
     setCount(0); setNotice(null);
+    const refreshCount=()=>api<{count:number}>(`notifications/unread${branch?`?branchId=${branch}`:''}`).then(data=>{if(!disposed)setCount(data.count);}).catch(()=>{});
+    void refreshCount();
+    const countTimer=setInterval(refreshCount,30000);
+    window.addEventListener('compact:notification-read',refreshCount);
     const connection = new HubConnectionBuilder()
       .withUrl("/api/v2/realtime/notifications", {
         accessTokenFactory: sessionToken,
@@ -54,7 +58,7 @@ export function useNotificationRealtime(branch: number) {
     connection.onreconnected(subscribe);
     connection.onclose(scheduleRetry);
     void start();
-    return () => { disposed = true; clearTimeout(retry); subscription?.dispose(); void connection.stop(); };
+    return () => { disposed = true; clearTimeout(retry);clearInterval(countTimer);window.removeEventListener('compact:notification-read',refreshCount); subscription?.dispose(); void connection.stop(); };
   }, [branch]);
   return { count, popup: notice ? <AlertPopup key={notice.id}>{notice.text}</AlertPopup> : null };
 }

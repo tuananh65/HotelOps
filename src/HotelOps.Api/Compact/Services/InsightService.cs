@@ -29,7 +29,8 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
         // A dashboard grant does not grant access to the underlying operational domains.
         object? rooms=null,work=null,stock=null;
         if(await access.Allows("ROOM_VIEW",branchId,ct:ct))rooms=await db.VRoomReadinesses.Where(x=>x.BranchId==branchId).GroupBy(x=>new{Readiness=x.OperationalStatus=="RESERVED"?"RESERVED":x.Readiness,x.IsOccupied}).Select(g=>new{g.Key.Readiness,g.Key.IsOccupied,Count=g.Count()}).ToArrayAsync(ct);
-        if(await access.Allows("TASK_VIEW",branchId,ct:ct)){
+        var operationalTasks= !await access.HasRole("OPERATION_MANAGER",branchId,ct)&&await access.Allows("TASK_VIEW",branchId,ct:ct);
+        if(operationalTasks){
             var query=db.WorkItems.AsNoTracking().Where(x=>x.BranchId==branchId&&x.Kind=="OPERATIONAL");
             if(taskPeriod!=null){
                 var timezone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
@@ -53,7 +54,7 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
                 underfilledShifts=shifts.Sum(s=>Enumerable.Range(0,7).Count(i=>(counts.FirstOrDefault(c=>c.ShiftId==s.ShiftId&&c.WorkDate==start.AddDays(i))?.Count??0)<s.Capacity)),
                 assignedSlots=await week.CountAsync(ct),capacity=shifts.Sum(s=>s.Capacity)*7};
         }
-        var tasks=await access.Allows("TASK_VIEW",branchId,ct:ct);
+        var tasks=operationalTasks;
         var requests=await access.Allows("IR_VIEW",branchId,ct:ct);
         var materials=await access.Allows("MR_VIEW",branchId,ct:ct);
         var active=InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now).Where(w=>w.BranchId==branchId&&!WorkRules.Terminal.Contains(w.Status));
@@ -125,6 +126,7 @@ public sealed partial class InsightService(HotelOpsCompactDbContext db,Access ac
             return rows.Select(d=>TransferStatusProjection.Record(d,d.DocumentId,statuses));
         }
         var kind=report switch{"tasks"=>"OPERATIONAL","cleaning"=>"CLEANING","incidents"=>"INCIDENT","maintenance"=>"MAINTENANCE","requests"=>"INTERNAL_REQUEST",_=>throw new ApiException(404,"REPORT_NOT_FOUND")};
+        Output.Require(kind!="OPERATIONAL"||!await access.HasRole("OPERATION_MANAGER",branchId,ct),"WORK_ROLE_READ_ONLY",403);
         await access.Require(WorkRules.Permission(kind,"read"),branchId,ct:ct);
         return await InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,clock.GetUtcNow().UtcDateTime).Where(w=>w.BranchId==branchId&&w.Kind==kind&&w.CreatedAt>=start&&w.CreatedAt<=end)
             .OrderBy(w=>w.WorkId).Take(10000).Select(w=>new{w.WorkId,w.WorkNo,w.Status,w.Title,w.CreatedAt,w.CompletedAt,w.VerifiedAt,w.DueAt,

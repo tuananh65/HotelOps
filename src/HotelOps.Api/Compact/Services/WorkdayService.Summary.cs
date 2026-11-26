@@ -28,7 +28,7 @@ public sealed partial class WorkdayService
             where a.UserId == actor.Id && s.BranchId == branch && a.WorkDate >= firstDay && a.WorkDate <= today
                 && (a.Status == "ENDED" || a.Status == "WORKING")
             select new AttendanceEntry(a.WorkDate, a.Status, a.StartedAt, a.EndedAt)).ToArrayAsync(ct);
-        return new(branch, timezone, Now, [AttendanceTotal("WEEK", week, week.AddDays(6), entries),
+        return new(branch, timezone, Now, [AttendanceTotal("DAY", today, today, entries),AttendanceTotal("WEEK", week, week.AddDays(6), entries),
             AttendanceTotal("MONTH", month, month.AddMonths(1).AddDays(-1), entries)]);
     }
 }

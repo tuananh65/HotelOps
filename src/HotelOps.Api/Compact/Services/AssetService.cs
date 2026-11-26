@@ -10,12 +10,31 @@ public sealed class AssetService(HotelOpsCompactDbContext db,Access access,Actor
     public async Task<object> List(long branchId,CancellationToken ct)
     {
         await access.Require("ASSET_VIEW",branchId,ct:ct);
-        return await db.Assets.AsNoTracking().Where(a=>a.BranchId==branchId)
+        var assets = await db.Assets.AsNoTracking().Where(a=>a.BranchId==branchId)
             .OrderBy(a=>a.RoomId).ThenBy(a=>a.Name).ThenBy(a=>a.AssetId)
             .Select(a=>new {a.AssetId,a.BranchId,a.AssetCode,a.Name,a.SerialNumber,a.ConditionCode,a.IsActive,a.RoomId,a.LocationId,
                 roomCode=db.Rooms.Where(r=>r.RoomId==a.RoomId&&r.BranchId==branchId).Select(r=>r.Code).FirstOrDefault(),
+                roomLocationId=db.Rooms.Where(r=>r.RoomId==a.RoomId&&r.BranchId==branchId).Select(r=>(long?)r.LocationId).FirstOrDefault(),
                 locationName=db.Locations.Where(l=>l.LocationId==a.LocationId&&l.BranchId==branchId).Select(l=>l.Name).FirstOrDefault()})
             .ToArrayAsync(ct);
+        var locations = await db.Locations.AsNoTracking().Where(l => l.BranchId == branchId)
+            .Select(l => new { l.LocationId, l.ParentLocationId, l.Kind, l.Name }).ToDictionaryAsync(l => l.LocationId, ct);
+        long? Floor(long? location)
+        {
+            var visited = new HashSet<long>();
+            while (location is long id && visited.Add(id) && locations.TryGetValue(id, out var node))
+            {
+                if (node.Kind == "FLOOR") return id;
+                location = node.ParentLocationId;
+            }
+            return null;
+        }
+        return assets.Select(a => {
+            var floorId = Floor(a.roomLocationId ?? a.LocationId);
+            return new { a.AssetId, a.BranchId, a.AssetCode, a.Name, a.SerialNumber, a.ConditionCode, a.IsActive,
+                a.RoomId, a.LocationId, a.roomCode, a.locationName, floorId,
+                floorName = floorId is long id ? locations[id].Name : null };
+        }).ToArray();
     }
     public async Task<object> Detail(long id,CancellationToken ct){var a=await db.Assets.SingleOrDefaultAsync(x=>x.AssetId==id,ct)??throw new ApiException(404,"ASSET_NOT_FOUND");await access.Require("ASSET_VIEW",a.BranchId,ct:ct);
         var maintenance=await access.Allows("MAINTENANCE_VIEW",a.BranchId,ct:ct);var incidents=await access.Allows("INCIDENT_VIEW",a.BranchId,ct:ct);var pm=await access.Allows("PM_MANAGE",a.BranchId,ct:ct);

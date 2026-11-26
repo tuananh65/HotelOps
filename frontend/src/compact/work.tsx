@@ -173,6 +173,7 @@ export default function Work({
     new URLSearchParams(location.hash.split("?")[1]).get("queue") || "",
   );
   const commandText = (command: string) =>
+    kind === "MAINTENANCE" && command === "complete" ? "Đã sửa chữa thành công" :
     ["CLEANING", "REWORK"].includes(kind) && command === "assign" && assignments.some(a => a.assignmentStatus === "ACTIVE")
       ? "Phân công lại"
       : coordinator && kind === "MAINTENANCE"
@@ -327,7 +328,9 @@ export default function Work({
           !(a === "pause" && ["CLEANING", "REWORK"].includes(w.kind)) &&
           !(a === "cancel" && ["CLEANING", "REWORK", "INSPECTION"].includes(w.kind)) &&
           !(w.kind === "INSPECTION" && a !== "cancel") &&
-          !(maintenanceSupervisor && w.kind === "MAINTENANCE" && ["assign", "verify", "reopen", "cancel"].includes(a)) &&
+          !(w.kind === "MAINTENANCE" && a === "verify") &&
+          !(maintenanceSupervisor && w.kind === "MAINTENANCE" && !["assign", "reopen", "cancel"].includes(a)) &&
+          !(w.kind === "MAINTENANCE" && a === "unrepairable" && !w.assetId) &&
           !(
             a === "assign" &&
             ((["CLEANING", "REWORK"].includes(w.kind) &&
@@ -368,7 +371,7 @@ export default function Work({
   const reportIncident = w?.roomId && detail.data?.capabilities?.canReportRoomIssue === true
     ? <a className="button-link incident-action" href={`#room-issues?room=${w.roomId}&create=1&work=${w.workId}&workKind=${w.kind}`}>Báo sự cố</a> : null;
   const canExecute =
-    w && !readOnlyWork && !!ownAssignment && can(permission(w.kind, "execute"), true);
+    w && !readOnlyWork && !(maintenanceSupervisor && w.kind === "MAINTENANCE") && !!ownAssignment && can(permission(w.kind, "execute"), true);
   if (canExecute && !paperHousekeeping && ["IN_PROGRESS", "INSPECTING"].includes(w.status))
     choices.push("progress");
   if (w && !readOnlyWork && !(maintenanceSupervisor && w.kind === "MAINTENANCE") && !terminal.includes(w.status) && (!["CLEANING", "REWORK"].includes(w.kind) ||
@@ -790,7 +793,7 @@ export default function Work({
                       <Badge
                         value={
                           r.kind === "MAINTENANCE" && r.status === "COMPLETED"
-                            ? "Chờ nghiệm thu"
+                            ? r.result === "FAIL" ? "Không thể sửa chữa — Cần thay thế" : "Đã sửa chữa thành công"
                             : housekeepingStaff && ["ASSIGNED", "PENDING_ACCEPTANCE"].includes(r.status) ? "Chờ nhận" : r.completedWithIncident?"Đã dọn xong — phòng gặp sự cố":r.status
                         }
                       />
@@ -1484,6 +1487,7 @@ export default function Work({
                           minLength={10}
                           maxLength={2000}
                           required={
+                            (kind === "MAINTENANCE" && ["complete", "unrepairable"].includes(command)) ||
                             command.startsWith("handover-") ||
                             [
                               "pause",
@@ -1586,8 +1590,8 @@ export default function Work({
                       )}
                   </section>
                 )}
-                {w.kind === "CLEANING" && <RoomSupplyAssessment workId={w.workId} editable={!!canExecute && w.status === "IN_PROGRESS"} />}
-                {canExecute && ["CLEANING", "REWORK"].includes(w.kind) && w.status === "IN_PROGRESS" && <ReusableInventory branch={w.branchId} work={w}/>}
+                {w.kind === "CLEANING" && <RoomSupplyAssessment key={`${w.workId}-${w.status}`} workId={w.workId} editable={!!canExecute && w.status === "IN_PROGRESS"} />}
+                {canExecute && ["CLEANING", "REWORK"].includes(w.kind) && w.status === "IN_PROGRESS" && <ReusableInventory branch={w.branchId} work={{...w, roomCapacity:detail.data?.context?.roomCapacity}}/>}
                 {w.kind==="MAINTENANCE"&&w.assetId&&<ReplacementPanel id={w.workId} onSaved={()=>bump(n=>n+1)}/>}
                 {canExecute && ["CLEANING", "REWORK", "MAINTENANCE"].includes(w.kind) && !w.checklistTemplateId && ["ASSIGNED", "PENDING_ACCEPTANCE", "ACCEPTED", "PENDING", "IN_PROGRESS"].includes(w.status) && <ExecutionChecklistPicker work={w} onSaved={() => bump(n => n + 1)} />}
                 {w.kind !== "INSPECTION" && <><h3>Checklist</h3>

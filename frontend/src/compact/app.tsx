@@ -1,4 +1,5 @@
 import { AlertPopup } from "./alert-popup";
+import ShiftCommandGuard from "./shift-command-guard";
 import { useNotificationRealtime } from "./notification-realtime";
 import PageTitle, { PageTitleTarget } from "./page-title";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -49,8 +50,7 @@ const Workday = lazy(() => import("./workday")),
   Management = lazy(() => import("./management")),
   HotelWorkspace = lazy(() => import("./hotel-workspace")),
   Catalog = lazy(() => import("./catalog")),
-  Stock = lazy(() => import("./stock")),
-  Templates = lazy(() => import("./templates"));
+  Stock = lazy(() => import("./stock"));
 const PersonalOverview = lazy(() => import("./personal-overview"));
 const HousekeepingPersonal = lazy(() => import("./housekeeping-personal"));
 const RoomIssues = lazy(() => import("./room-issues"));
@@ -62,6 +62,7 @@ const OwnerWorkspace = lazy(() => import("./owner-workspace"));
 const HousekeepingWorkspace = lazy(() => import("./housekeeping-workspace"));
 const CleaningPersonal = lazy(() => import("./cleaning-personal"));
 const PersonalProfile = lazy(() => import("./personal-profile"));
+const WeeklyCalendar = lazy(() => import("./weekly-calendar"));
 const OperationsWorkspace = lazy(() => import("./operations-workspace"));
 const AttendanceSummary = lazy(() => import("./attendance-summary"));
 const SupplyConfiguration = lazy(() => import("./supply-configuration"));
@@ -70,6 +71,7 @@ const InternalSettings = lazy(() => import("./internal-settings"));
 const OperationsConfiguration = lazy(() => import("./operations-configuration"));
 function Shell() {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { profile, branch, setBranch, can, canGlobal, logout } = useAuth();
   const realtime = useNotificationRealtime(branch);
   const [ownerScope, setOwnerScope] = useState(0);
@@ -223,13 +225,13 @@ function Shell() {
                   id: "replenishment",
                   name: "Bổ sung vật tư",
                   icon: Truck,
-                  show: can("REPLENISHMENT_VIEW", false),
+                  show: false,
                 },
                 {
                   id: "history",
                   name: "Lịch sử & Chứng từ",
                   icon: History,
-                  show: can("INVENTORY_VIEW", false),
+                  show: false,
                 },
               ]
             : housekeepingSupervisor
@@ -319,7 +321,7 @@ function Shell() {
                       {id:"dashboard",name:"Tổng quan vận hành",icon:LayoutDashboard,show:can("DASHBOARD_VIEW",false)},
                       {id:"rooms",name:"Tình trạng phòng",icon:BedDouble,show:can("ROOM_VIEW",false)},
                       {id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:can("SHIFT_MANAGE",false)},
-                      {id:"work",name:"Nhân sự & Công việc",icon:Users,show:can("TASK_VIEW",false)||can("SHIFT_MANAGE",false)},
+                      {id:"work",name:"Nhân sự",icon:Users,show:can("SHIFT_MANAGE",false)},
                       {id:"housekeeping",name:"Buồng phòng & Bảo trì",icon:ListChecks,show:["CLEANING_VIEW","INSPECTION_VIEW","MAINTENANCE_VIEW","INCIDENT_VIEW"].some(p=>can(p,false))},
                       {id:"requests",name:"Yêu cầu nội bộ",icon:Inbox,show:can("IR_VIEW",false)},
                       {id:"assets",name:"Tài sản",icon:Boxes,show:can("ASSET_VIEW",false)},
@@ -397,13 +399,12 @@ function Shell() {
                           ),
                         },
                         {
-                          id: "templates",
-                          name: "Checklist & lịch định kỳ",
+                          id: "configuration",
+                          name: "Cấu hình",
                           icon: ListChecks,
                           show: [
                             "CHECKLIST_MANAGE",
                             "PM_MANAGE",
-                            "TASK_MANAGE",
                           ].some((p) => can(p, false)),
                         },
                         {
@@ -420,9 +421,9 @@ function Shell() {
                         },
                       ]
   ).filter((n) => n.show);
-  if (can("CHECKLIST_MANAGE", false) && !nav.some(n => n.id === "templates"))
-    nav.push({id:"templates",name:"Checklist",icon:ListChecks,show:true});
-  if (operationsManager && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)))
+  if (can("CHECKLIST_MANAGE", false) && !nav.some(n => n.id === "configuration"))
+    nav.push({id:"configuration",name:"Cấu hình checklist",icon:ListChecks,show:true});
+  if (operationsManager && !nav.some(n => n.id === "configuration") && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)))
     nav.push({id:"configuration",name:"Cấu hình",icon:Settings,show:true});
   if (!operationsManager && can("ROOM_SUPPLY_CONFIG",false)) nav.push({id:"supply-config",name:"Cấu hình vật tư",icon:Settings,show:true});
   if (storekeeper && can("ATTENDANCE_RECORD")) nav.push({id:"workday",name:"Lịch làm việc",icon:CalendarDays,show:true});
@@ -433,6 +434,7 @@ function Shell() {
   const params = new URLSearchParams(route.split("?")[1]);
   const kind = params.get("kind");
   let requestedPage = page;
+  if (page === "templates" && (can("CHECKLIST_MANAGE", false) || can("PM_MANAGE", false))) requestedPage = "configuration";
   if(operationsManager&&page==="documents"&&kind==="ADJUSTMENT")requestedPage="stocktaking";
   if (maintenanceSupervisor && ["room-issues","in-progress"].includes(page)) requestedPage="work";
   if (operationsManager && ["supply-config","internal-settings"].includes(page)) requestedPage="configuration";
@@ -445,7 +447,7 @@ function Shell() {
   if (page==="work" && kind==="INTERNAL_REQUEST" && can("IR_VIEW")) requestedPage="requests";
   if (operationsManager && (page==="technical" || (page==="work" && ["CLEANING","REWORK","INSPECTION","INCIDENT","MAINTENANCE"].includes(kind || "")))) requestedPage="housekeeping";
   const extraPages: Record<string,boolean> = {
-    configuration:operationsManager && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)),
+    configuration:can("CHECKLIST_MANAGE",false)||can("PM_MANAGE",false)||operationsManager && ["SHIFT_MANAGE","ROOM_SUPPLY_CONFIG","IR_VIEW"].some(p=>can(p,false)),
     "room-issues":can("INCIDENT_VIEW") || can("IR_CREATE") || (storekeeper && can("MR_FULFILL",false)),
     "supply-config":can("ROOM_SUPPLY_CONFIG",false),
     "internal-settings":operationsManager && can("IR_VIEW",false),
@@ -573,7 +575,9 @@ function Shell() {
             </button>
             <div className="topbar-heading" ref={setTitleTarget} />
             <div className="topbar-account">
+              {!ownerOnly&&!operationsManager&&can("ATTENDANCE_RECORD")&&<button aria-label="Lịch làm việc tuần" onClick={()=>setCalendarOpen(true)}><CalendarDays size={20}/></button>}
               <button
+                className="notification-bell"
                 aria-label="Thông báo"
                 onClick={() => navigate("notifications")}
               >
@@ -608,6 +612,7 @@ function Shell() {
             tabIndex={-1}
             key={`${branch}-${ownerOnly ? ownerScope : ""}-${active}-${location.hash.split("?")[1] || ""}`}
           >
+            <ShiftCommandGuard page={active}/>
             {error && (
               <AlertPopup>
                 {error}
@@ -668,7 +673,6 @@ function Shell() {
                   : active === "settings" ? <Catalog mode="settings" />
                   : active === "supplies" ? <Catalog mode="supplies" inventoryMode={storekeeper} />
                   : active === "stock" ? (can("INVENTORY_VIEW",false)?<Stock />:<Documents materialOnly />)
-                  : active === "templates" ? <Templates />
                   : active === "rooms" ? <Rooms />
                   : active === "workday" ? <Workday />
                   : active === "cleaning" ? <CleaningPersonal />
@@ -688,6 +692,7 @@ function Shell() {
           <PersonalProfile close={() => setProfileOpen(false)} />
         </Suspense>
       )}
+      {calendarOpen&&<Suspense fallback={<p role="status">Đang tải lịch…</p>}><WeeklyCalendar close={()=>setCalendarOpen(false)}/></Suspense>}
     </PageTitleTarget.Provider>
   );
 }

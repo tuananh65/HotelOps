@@ -6,11 +6,12 @@ using HotelOps.Api.Compact.Infrastructure;
 using HotelOps.Api.Compact.Security;
 using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Compact.Services;
-public sealed class EvidenceService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,WorkService work,DocumentService documents,IWebHostEnvironment env,IConfiguration config)
+public sealed class EvidenceService(HotelOpsCompactDbContext db,Access access,Actor actor,Atomic atomic,Audit audit,WorkService work,DocumentService documents,IWebHostEnvironment env,IConfiguration config,TimeProvider clock)
 {
     private string Root=>Path.GetFullPath(config["Compact:EvidenceDirectory"]??Path.Combine(env.ContentRootPath,"App_Data","compact-evidence"));
     private async Task Owner(long branch,long? workId,long? documentId,long? assetId,bool write,CancellationToken ct){
         Output.Require(new[]{workId,documentId,assetId}.Count(x=>x!=null)==1,"ONE_OWNER_REQUIRED",400);
+        if(write)await ShiftCommandAccess.Require(db,actor.Id,branch,clock.GetUtcNow().UtcDateTime,ct);
         if(workId!=null){
             var w=await work.Load(workId.Value,"read",ct);Output.Require(w.BranchId==branch,"BRANCH_MISMATCH",404);
             if(write){

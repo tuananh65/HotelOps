@@ -1,0 +1,19 @@
+<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="fixture" style="padding:12px"></main><script type="module">
+import React,{useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import AssetTree from '/src/compact/asset-tree.tsx';
+import {StocktakeItems} from '/src/compact/stocktake-items.tsx';
+import OwnerOverview from '/src/compact/owner-overview.tsx';
+import StatChart from '/src/compact/stat-chart.tsx';
+import '/src/compact/compact.css';
+import '/src/compact/dashboard-colors.css';
+const h=React.createElement;
+const assets=[{assetId:1,assetCode:'A1',name:'Điều hòa',floorId:1,floorName:'Tầng 1',roomId:1,roomCode:'101',conditionCode:'FAULTY',isActive:true},{assetId:2,assetCode:'A2',name:'Ấm đun',floorId:null,roomId:null,conditionCode:'PENDING_INSPECTION',isActive:true}];
+function Fixture(){const [saved,setSaved]=useState(false);const mode=new URLSearchParams(location.search).get('mode');
+ if(mode==='workload')return h(StatChart,{title:'Khối lượng dọn phòng (công việc)',rows:[{name:'Chưa giao',value:2},{name:'Đang dọn',value:4},{name:'Chờ kiểm tra',value:1}],href:'#cleaning'});
+ if(mode==='assets')return h(AssetTree,{rows:assets,allRows:assets,branchName:'Chi nhánh kiểm thử',select:id=>document.body.dataset.selected=String(id)});
+ if(mode==='stocktake')return saved?h('p',null,'Đã thêm vật tư'):h(StocktakeItems,{doc:{documentId:17,rowVersion:'AQ=='},items:[{itemId:1,code:'S1',name:'Dầu gội'},{itemId:2,code:'S2',name:'Nước uống'},{itemId:3,code:'S3',name:'Bàn chải'}],existing:[{itemId:3}],close:()=>setSaved(true),saved:()=>setSaved(true)});
+ return h(OwnerOverview,{scope:0});
+}
+createRoot(document.getElementById('fixture')).render(h(Fixture));
+</script></body></html>

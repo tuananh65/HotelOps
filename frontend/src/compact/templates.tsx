@@ -5,7 +5,7 @@ import { useState } from "react";
 import { api, fields, message, timestamp, type Row } from "./api";
 import { useAuth } from "./auth";
 import { Dialog, Empty, State, useQuery } from "./ui";
-export default function Templates() {
+export default function Templates({ embedded = false }: { embedded?: boolean } = {}) {
   const { branch, can } = useAuth();
   const [revision, bump] = useState(0),
     [form, setForm] = useState(""),
@@ -28,19 +28,19 @@ export default function Templates() {
   }
   return (
     <>
-      <div className="page-heading">
+      {!embedded && <div className="page-heading">
         <PageTitle>
-          <h1>Checklist & lịch định kỳ</h1>
+          <h1>Mẫu & lịch bảo trì</h1>
           <p>
             Mẫu đã công bố được lưu theo phiên bản; công việc đang chạy giữ
             nguyên checklist.
           </p>
         </PageTitle>
-      </div>
+      </div>}
       <PageToolbar
         actions={
           <>
-            {can("CHECKLIST_MANAGE", false) && (
+            {can("CHECKLIST_MANAGE", false) && (query.data?.checklistKinds || []).includes("MAINTENANCE") && (
               <button
                 onClick={() => {
                   setForm("checklist");
@@ -50,7 +50,7 @@ export default function Templates() {
                 + Tạo checklist
               </button>
             )}
-            {(can("PM_MANAGE", false) || can("TASK_MANAGE", false)) && (
+            {can("PM_MANAGE", false) && (
               <button
                 onClick={() => {
                   setForm("schedule");
@@ -84,7 +84,7 @@ export default function Templates() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fields(query.data?.checklists).map((r) => (
+                  {fields(query.data?.checklists).filter(r => r.kind === "MAINTENANCE").map((r) => (
                     <tr key={r.checklistTemplateId}>
                       <td>{r.code}</td>
                       <td>{r.name}</td>
@@ -96,7 +96,7 @@ export default function Templates() {
                 </tbody>
               </table>
             </div>
-            {!query.data?.checklists?.length && <Empty />}
+            {!fields(query.data?.checklists).some(r => r.kind === "MAINTENANCE") && <Empty />}
           </>
         )}
         <h2>Lịch công việc định kỳ</h2>
@@ -112,7 +112,7 @@ export default function Templates() {
               </tr>
             </thead>
             <tbody>
-              {fields(query.data?.schedules).map((r) => (
+              {fields(query.data?.schedules).filter(r => r.kind === "MAINTENANCE").map((r) => (
                 <tr key={r.workTemplateId}>
                   <td>{r.title}</td>
                   <td>
@@ -153,7 +153,7 @@ export default function Templates() {
             </tbody>
           </table>
         </div>
-        {!query.data?.schedules?.length && <Empty />}
+        {!fields(query.data?.schedules).some(r => r.kind === "MAINTENANCE") && <Empty />}
       </State>
       {form && (
         <Dialog
@@ -207,15 +207,12 @@ export default function Templates() {
               <select name="kind">
                 {form === "checklist" ? (
                   <>
-                    {(query.data?.checklistKinds || []).map((kind: string) => <option key={kind} value={kind}>{({CLEANING:"Dọn phòng",INSPECTION:"Kiểm tra phòng",MAINTENANCE:"Bảo trì",OPERATIONAL:"Công việc"} as Row)[kind]}</option>)}
+                    {(query.data?.checklistKinds || []).filter((kind: string) => kind === "MAINTENANCE").map((kind: string) => <option key={kind} value={kind}>Bảo trì</option>)}
                   </>
                 ) : (
                   <>
                     {can("PM_MANAGE", false) && (
                       <option value="MAINTENANCE">Bảo trì</option>
-                    )}
-                    {can("TASK_MANAGE", false) && (
-                      <option value="OPERATIONAL">Công việc</option>
                     )}
                   </>
                 )}

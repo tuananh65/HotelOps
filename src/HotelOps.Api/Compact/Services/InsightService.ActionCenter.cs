@@ -11,17 +11,6 @@ public sealed partial class InsightService
         if(!await access.HasRole("OPERATION_MANAGER",branchId,ct))return null;
         var groups=new List<ActionCenterGroup>();
         var assets=0;var retired=0;var lowStock=0;var inTransit=0;
-        if(await access.Allows("TASK_VIEW",branchId,ct:ct)){
-            var canManage=await access.Allows("TASK_MANAGE",branchId,ct:ct);
-            var tasks=db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branchId&&w.Kind=="OPERATIONAL"&&!WorkRules.Terminal.Contains(w.Status));
-            foreach(var category in new[]{"UNASSIGNED_TASKS","TASKS_TO_VERIFY","OVERDUE_TASKS"}){
-                var query=category=="UNASSIGNED_TASKS"?tasks.Where(w=>w.Status=="PENDING_ASSIGNMENT")
-                    :category=="TASKS_TO_VERIFY"?tasks.Where(w=>w.Status=="PENDING_VERIFICATION"):tasks.Where(w=>w.DueAt<now);
-                var rows=await query.OrderBy(w=>w.DueAt).ThenBy(w=>w.WorkId).Take(10)
-                    .Select(w=>new ActionCenterItem("work",w.WorkId,w.Kind,w.Title,w.Status,w.CreatedAt,w.DueAt,canManage)).ToArrayAsync(ct);
-                groups.Add(new(category,await query.CountAsync(ct),rows));
-            }
-        }
         if(await access.Allows("ASSET_VIEW",branchId,ct:ct)){
             var all=db.Assets.AsNoTracking().Where(a=>a.BranchId==branchId);
             assets=await all.CountAsync(a=>a.IsActive,ct);retired=await all.CountAsync(a=>!a.IsActive,ct);
@@ -36,7 +25,7 @@ public sealed partial class InsightService
         }
         if(await access.Allows("SHIFT_MANAGE",branchId,ct:ct)){
             var kinds=new List<string>();
-            foreach(var kind in new[]{"CLEANING","REWORK","OPERATIONAL","INTERNAL_REQUEST"})
+            foreach(var kind in new[]{"CLEANING","REWORK","INTERNAL_REQUEST"})
                 if(await access.Allows(WorkRules.Permission(kind,"read"),branchId,ct:ct))kinds.Add(kind);
             var visible=InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now);
             var pending=from h in db.VBacklogHandovers.AsNoTracking() join w in visible on h.WorkId equals w.WorkId
@@ -62,10 +51,6 @@ public sealed partial class InsightService
         // P0 supersedes the earlier material-approval tile: OM only approves stock replenishment.
         if(await access.Allows("IR_VIEW",branchId,ct:ct)){
             var canApprove=await access.Allows("REPLENISHMENT_APPROVE",branchId,ct:ct);
-            if(canApprove){
-                try{await WorkdayAuthority.Require(db,access,actor,clock,branchId,"OPERATION_MANAGER",ct);}
-                catch(ApiException error) when(error.Status is 403 or 409){canApprove=false;}
-            }
             var replenishments=from r in db.RequestWorkflows.AsNoTracking() join w in db.WorkItems on r.WorkId equals w.WorkId
                 where r.BranchId==branchId&&r.RequestType==RequestWorkflowService.ReplenishmentType&&r.Status=="PENDING_OPERATIONS_MANAGER"
                 select new{r,w};

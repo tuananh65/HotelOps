@@ -1,5 +1,8 @@
 # Development và Production chạy local
 
+> Cập nhật26/11/2026: Đã được Owner cho phép và đã áp dụng Note25_11 vào HotelOpsCompactDB cùng Production local https://localhost:5080. Backup CHECKSUM/VERIFYONLY, healthcheck và browser smoke đã đạt. Chi tiết: docs/changes/note-25-11/05_PRODUCTION_DEPLOYMENT.md. Các dòng chưa triển khai bên dưới là trạng thái lịch sử trước cập nhật này.
+
+
 Ngày 25/11/2026, Owner xác nhận cả hai môi trường chạy trên máy local. Giữ nhánh `feature/project2-role-alignment-20261123`; tên môi trường không phải yêu cầu đổi Git branch. Không triển khai EC2.
 
 | Môi trường | Web | API | Database riêng |
@@ -30,6 +33,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/local/run-local.ps1 
 Thêm `-Environment Development` hoặc `-Environment Production` để chọn riêng. Không chạy Start khi môi trường đã chạy: script từ chối cổng đang được dùng. Stop chỉ dừng PID có thời gian tạo khớp metadata của launcher, không dừng server khác. Tiến trình chạy nền, log và metadata ở `artifacts/local-runtime/`; connection string chỉ được truyền qua environment của process, không ghi vào metadata.
 
 ## Build lại sau khi sửa source
+
+Từ Note 25_11, Development dùng `.artifacts/runtime-development/api`, tách khỏi `.artifacts/runtime-production/api`. Có thể publish và khởi động lại riêng Development mà không ghi đè DLL của Production đang chạy:
+
+```powershell
+dotnet publish src/HotelOps.Api/HotelOps.Api.csproj -c Release -o .artifacts/runtime-development/api
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/local/run-local.ps1 -Action Stop -Environment Development
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/local/run-local.ps1 -Action Start -Environment Development
+```
+
+Database Development đã áp dụng `note-25-11-refill-om.sql` sau backup CHECKSUM/VERIFYONLY. Production `HotelOpsCompactDB` chưa áp dụng patch này; không chạy release mới lên Production trước khi backup và áp dụng patch tương ứng.
 
 Dừng hai môi trường trước khi ghi đè thư mục publish. Không chạy lại bước restore/khởi tạo session khi chỉ cập nhật code.
 

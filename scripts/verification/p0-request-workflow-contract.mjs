@@ -21,20 +21,21 @@ export async function verifyRequestWorkflow(clients, fixture) {
   const heldBefore = await fixture.readAdditionalIssued();
   const createBody = { allocationId: fixture.allocationId, items: amounts, reason: 'Bổ sung vật tư cho ca đang làm', operationKey: randomUUID() };
   let refill = ok(await hk('POST', `${root}/refills`, createBody));
-  assert.equal(refill.request.status, 'PENDING_SUPERVISOR');
+  assert.equal(refill.request.status, 'PENDING_OPERATIONS_MANAGER');
   const refillId = refill.request.workId;
   const retryCreate = ok(await hk('POST', `${root}/refills`, createBody));
   assert.equal(retryCreate.request.workId, refillId);
   denied(await hk('POST', `${root}/refills`, { ...createBody, operationKey: randomUUID() }));
   denied(await hk('POST', `${root}/refills`, { ...createBody, allocationId: fixture.foreignAllocationId, operationKey: randomUUID() }));
-  denied(await action(om, refill, 'approve'));
+  denied(await action(supervisor, refill, 'approve'));
+  denied(await action(foreignOm, refill, 'approve'));
   denied(await action(store, refill, 'issue'));
   const outdated = refill;
-  refill = ok(await action(supervisor, refill, 'approve'));
+  refill = ok(await action(om, refill, 'approve'));
   assert.equal(refill.request.workId, refillId);
   assert.equal(refill.request.status, 'PENDING_STOREKEEPER');
   assert.equal(refill.request.queueRole, 'STOREKEEPER');
-  denied(await action(supervisor, outdated, 'approve'));
+  denied(await action(om, outdated, 'approve'));
   assert.equal(await fixture.readStock(), stockBeforeRefill, 'Approval must not issue stock');
   const issueBody = { rowVersion: refill.request.rowVersion, operationKey: randomUUID() };
   refill = ok(await store('POST', `${root}/${refillId}/actions/issue`, issueBody));
@@ -45,7 +46,7 @@ export async function verifyRequestWorkflow(clients, fixture) {
   assert.equal(issueRetry.history.length, refill.history.length);
   assert.equal(await fixture.readStock(), stockBeforeRefill - 2, 'Retry must not deduct again');
   assert.equal(await fixture.readAdditionalIssued(), heldBefore + 2, 'Retry must not add again');
-  assert.ok(refill.history.some(e => e.previousQueue === 'HOUSEKEEPING_SUPERVISOR' && e.newQueue === 'STOREKEEPER'));
+  assert.ok(refill.history.some(e => e.previousQueue === 'OPERATION_MANAGER' && e.newQueue === 'STOREKEEPER'));
 
   const beforeReceipt = await fixture.readStock();
   let replenishment = ok(await store('POST', `${root}/replenishments`, {

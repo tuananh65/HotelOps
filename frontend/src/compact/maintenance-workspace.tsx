@@ -25,7 +25,7 @@ export default function MaintenanceWorkspace() {
     history.replaceState(null, "", "#work");
   }
   return <>
-    <PageTitle><h1>Công việc bảo trì</h1><p>Tiếp nhận sự cố, giám sát sửa chữa và theo dõi kiểm tra trong cùng một nơi</p></PageTitle>
+    <PageTitle><h1>Công việc bảo trì</h1><p>Phân công sửa chữa, theo dõi kết quả và xử lý yêu cầu thay thế tài sản</p></PageTitle>
     <div className="tabs housekeeping-tabs" role="group" aria-label="Trạng thái bảo trì">
       {tabs.map(([key, name]) => <button key={key} aria-pressed={queue === key} onClick={() => setQueue(key)}>{name} <b>{query.data?.counts?.filter((c: Row) => key === "all" ? c.queue !== "done" : c.queue === key).reduce((n: number, c: Row) => n + c.count, 0) ?? "—"}</b></button>)}
     </div>

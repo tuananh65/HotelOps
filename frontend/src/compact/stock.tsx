@@ -1,7 +1,7 @@
 import PageTitle from "./page-title";
 import InventoryLifecycle from "./inventory-lifecycle";
 import ReusableInventory from "./reusable-inventory";
-import AdvisoryPanel from "./advisory-panel";
+import CrossBranchStock from "./cross-branch-stock";
 import PageToolbar from "./page-toolbar";
 import { useState } from "react";
 import { useAuth } from "./auth";
@@ -14,20 +14,19 @@ import { AlertPopup } from "./alert-popup";
 import { supplyMessage } from "./supply-api";
 import "./stock.css";
 export default function Stock({ readScope }: { readScope?: number }) {
-  const { branch, profile, setBranch, can } = useAuth();
+  const { branch, profile, can } = useAuth();
   const [switching, setSwitching] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const warehouses = useQuery(readScope === undefined ? `catalog/warehouses?branchId=${branch}&pageSize=100` : null);
   const currentWarehouses = warehouses.data?.items.map((r: Row) => r.fields).filter((r: Row) => r.isActive) || [];
   const mayEdit = readScope === undefined && can("ROOM_SUPPLY_CONFIG", false) && profile.roles.some(r => r.code === "OPERATION_MANAGER" && (r.branchId == null || r.branchId === branch));
-  const allowedBranches = profile.branches.filter(b => profile.grants.some(g => g.code === "INVENTORY_VIEW" && g.dataScope !== "OWN" && (g.branchId == null || g.branchId === b.branchId)));
+  const canCrossBranch = readScope === undefined && can("TRANSFER_REQUEST_CREATE", false) && profile.roles.some(r => r.code === "OPERATION_MANAGER" && (r.branchId == null || r.branchId === branch));
   const storekeeper = profile.roles
     .filter((r) => r.branchId == null || r.branchId === branch)
     .every((r) => r.code === "STOREKEEPER");
   const [page, setPage] = useState(1);
   const [batchView, setBatchView] = useState(false);
   const [reusableView, setReusableView] = useState(false);
-  const [advisoryView, setAdvisoryView] = useState(false);
   const [revision, bump] = useState(0),
     [search, setSearch] = useState(
       new URLSearchParams(location.hash.split("?")[1]).get("search") || "",
@@ -69,13 +68,12 @@ export default function Stock({ readScope }: { readScope?: number }) {
       ) || [];
   if (batchView) return <><button onClick={() => setBatchView(false)}>Quay lại tồn kho</button><InventoryLifecycle branch={branch}/></>;
   if (reusableView) return <><button onClick={() => setReusableView(false)}>Quay lại tồn kho</button><ReusableInventory branch={branch}/></>;
-  if (advisoryView) return <><button onClick={() => setAdvisoryView(false)}>Quay lại tồn kho</button><AdvisoryPanel key={branch} branch={branch} allowTransfer={mayEdit && can("TRANSFER_REQUEST_CREATE", false)}/></>;
   return (
     <>
       <div className="page-heading">
         {readScope === undefined && <button onClick={() => setBatchView(true)}>Lô và hạn sử dụng</button>}
         {readScope === undefined && <button onClick={() => setReusableView(true)}>Vật tư tái sử dụng</button>}
-        {readScope === undefined && <button onClick={() => setAdvisoryView(true)}>Dự báo và đề xuất</button>}
+        {mayEdit && <a className="button" href="#requests?tab=inbox">Duyệt vật tư tiêu hao</a>}
         {readScope === undefined && mayEdit && <a className="button" href="#stocktaking?kind=ADJUSTMENT">Duyệt giảm vật tư tiêu hao</a>}
         <PageTitle>
           <h1>Tồn kho vật tư</h1>
@@ -84,7 +82,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
       </div>
       <div className="stock-context">
         <div><small>Kho đang xem</small><strong>{readScope !== undefined ? (warehouse ? query.data?.find(r => r.warehouseId === Number(warehouse))?.warehouse : "Các kho trong phạm vi đã chọn") : currentWarehouses.length ? currentWarehouses.map((w: Row) => w.name).join(" · ") : warehouses.loading ? "Đang tải kho…" : "Chưa có kho hoạt động"}</strong></div>
-        {readScope === undefined && <button onClick={() => setSwitching(true)}>Xem kho chi nhánh khác</button>}
+        {canCrossBranch && <button onClick={() => setSwitching(true)}>Xem kho chi nhánh khác</button>}
       </div>
       {!!warehouses.error && <State {...warehouses}>{null}</State>}
       <PageToolbar>
@@ -189,7 +187,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
                   <td className="numeric" data-label="Tồn cơ sở">
                     {Number(r.baseQty || 0).toLocaleString("vi-VN")}
                     {r.availableQty != null && <small>Có thể cấp: {Number(r.availableQty).toLocaleString("vi-VN")}</small>}
-                    {r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty && <small>Dưới tối thiểu</small>}
+                    {r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty && <small>Tồn khả dụng dưới tối thiểu</small>}
                   </td>
                   <td data-label="Đơn vị">{r.unit || "—"}</td>
                   <td data-label="Tối thiểu">{mayEdit && r.isActive !== false ? <button aria-label={`Sửa tối thiểu ${r.item}`} onClick={() => setEditing(r)}>{r.minimumQty ?? 0} · Sửa</button> : r.minimumQty ?? "—"}</td>
@@ -210,11 +208,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
         {!rows.length && <Empty>Chưa có tồn kho phù hợp với bộ lọc.</Empty>}
         <Pager page={page} total={rows.length} pageSize={25} onPage={setPage} />
       </State>
-      {switching && <Dialog title="Xem kho chi nhánh khác" close={() => setSwitching(false)}>
-        <p>Chọn chi nhánh được cấp quyền xem tồn kho.</p>
-        <div className="stock-branch-list">{allowedBranches.map(b => <button key={b.branchId} disabled={b.branchId === branch} onClick={() => { setSwitching(false); setBranch(b.branchId); }}>{b.name}{b.branchId === branch ? " · Đang xem" : ""}</button>)}</div>
-        {allowedBranches.length < 2 && <p>Tài khoản hiện chỉ được xem kho của chi nhánh này.</p>}
-      </Dialog>}
+      {switching && canCrossBranch && <Dialog title="Xem kho chi nhánh khác" close={() => setSwitching(false)}><CrossBranchStock branch={branch} /></Dialog>}
       {editing && <MinimumEditor row={editing} branch={branch} close={() => setEditing(null)} saved={() => { setEditing(null); bump(n => n + 1); }} />}
       {selected && (
         <Dialog

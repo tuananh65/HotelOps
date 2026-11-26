@@ -53,7 +53,10 @@ export async function api<T = any>(
     throw new ApiError(0, "NETWORK_UNAVAILABLE");
   }
   const data = await response.json().catch(() => null);
+  if(response.ok && method!=="GET" && /^notifications\/\d+\/(read|acknowledge)$/.test(path))
+    window.dispatchEvent(new Event("compact:notification-read"));
   if (!response.ok) {
+    if (data?.title === "ACTIVE_SHIFT_REQUIRED") window.dispatchEvent(new Event("compact:shift-required"));
     if (response.status === 401 && path !== "auth/login") {
       session("");
       window.dispatchEvent(new Event("compact:expired"));

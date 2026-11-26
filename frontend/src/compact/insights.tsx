@@ -266,7 +266,7 @@ export default function Insights({
                         setError("");
                         try {
                           if(operationsManager&&r.notificationType?.startsWith("REPLACEMENT_")){
-                            location.hash=`assets?replacement=${r.workId}`;return;
+                            location.hash=`requests?domain=replacement&id=${r.workId}`;return;
                           }
                           if (r.notificationType?.startsWith("ROOM_ISSUE_")) {
                             location.hash = `room-issues?id=${r.workId}`;

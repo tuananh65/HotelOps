@@ -9,6 +9,7 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
 {
     public void Add(long branch,long recipient,string type,string title,long? work,long? document,Guid key,bool ack=false)
     {
+        title=NotificationText.Title(type,title);
         if(db.Notifications.Local.Any(n=>n.RecipientUserId==recipient&&n.EventKey==key))return;
         db.Notifications.Add(new Notification{BranchId=branch,RecipientUserId=recipient,NotificationType=type,Title=title,Message=title,WorkId=work,DocumentId=document,EventKey=key,RequiresAcknowledgment=ack,AvailableAt=clock.GetUtcNow().UtcDateTime});
     }
@@ -24,7 +25,7 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
             select u.UserId).Distinct().ToArrayAsync(ct);
         foreach(var user in recipients)Add(branch,user,type,title,work,document,key);
     }
-    public async Task<int> UnreadCount(long branchId,CancellationToken ct){
+    public async Task<int> UnreadCount(long? branchId,CancellationToken ct){
         var now=clock.GetUtcNow().UtcDateTime;
         var rows=await InBranch(branchId).Where(n=>n.RecipientUserId==actor.Id&&n.ReadAt==null&&n.AvailableAt<=now&&(n.ExpiresAt==null||n.ExpiresAt>now)).ToArrayAsync(ct);
         var checks=new VisibilityChecks(db,access);var count=0;foreach(var n in rows)if(await Visible(n,ct,checks))count++;return count;
@@ -52,7 +53,16 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
         if(ids.Length>0)await db.Notifications.Where(n=>ids.Contains(n.NotificationId)&&n.RecipientUserId==actor.Id&&n.DeliveredAt==null)
             .ExecuteUpdateAsync(set=>set.SetProperty(n=>n.DeliveredAt,now),ct);
         var visibleIds=visible.Select(n=>n.NotificationId).ToArray();
-        return new{items=(await db.Notifications.AsNoTracking().Where(n=>visibleIds.Contains(n.NotificationId)&&n.RecipientUserId==actor.Id).OrderByDescending(n=>n.NotificationId).ToArrayAsync(ct)).Select(Output.Record),page,pageSize,hasMore=candidates.Length==pageSize};
+        return new{items=(await db.Notifications.AsNoTracking().Where(n=>visibleIds.Contains(n.NotificationId)&&n.RecipientUserId==actor.Id).OrderByDescending(n=>n.NotificationId).ToArrayAsync(ct)).Select(Present),page,pageSize,hasMore=candidates.Length==pageSize};
+    }
+    private static ResourceDto Present(Notification notification)
+    {
+        var fields=Output.Record(notification).Fields.ToDictionary(x=>x.Key,x=>x.Value);
+        if(System.Text.RegularExpressions.Regex.IsMatch(notification.Title,@"\b(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})\b")){
+            fields["title"]=NotificationText.Title(notification.NotificationType,notification.Title);
+            fields["message"]=NotificationText.Title(notification.NotificationType,notification.Message);
+        }
+        return new ResourceDto(nameof(Notification),fields);
     }
     // Initial shift kits are no longer issued. Retain their historical alerts in the database,
     // but exclude obsolete shortage requests from both inbox paging and realtime counts.

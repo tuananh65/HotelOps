@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AttendanceSummary from "./attendance-summary";
 import { metricClass } from "./metric-tone";
 import {
   BedDouble,
@@ -13,7 +12,7 @@ import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 import MetricHeading from "./metric-heading";
 import StatChart from "./stat-chart";
-import { Badge, Dialog, Empty, State, useQuery } from "./ui";
+import { Dialog, State, useQuery } from "./ui";
 import { dateKey, timestamp, type Row } from "./api";
 import { downloadReportCsv } from "./report-csv";
 
@@ -259,7 +258,6 @@ export default function OwnerOverview({
           </>
         )}
       </State>
-      {!branchesOnly && <AttendanceSummary />}
       {data && !query.error && (
         <State {...query}>
           <>
@@ -299,38 +297,7 @@ export default function OwnerOverview({
                 rows={timelineRows(data, group, "completed")}
               />
             </div>
-            <div className="chart-grid">
-              {[
-                ["critical", "Sự cố nghiêm trọng"],
-                ["attention", "Công việc quá hạn cần chú ý"],
-              ].map(([key, name]) => (
-                <section className="panel" key={key}>
-                  <h2>{name}</h2>
-                  {data[key].map((w: Row) => (
-                    <a
-                      className="overview-task"
-                      key={`${w.branchId}-${w.workId}`}
-                      href={`#work?kind=${w.kind}&id=${w.workId}`}
-                    >
-                      <span>
-                        {w.title}
-                        <small>
-                          {w.branch} · {timestamp(w.dueAt)}
-                        </small>
-                      </span>
-                      <Badge
-                        value={
-                          w.kind === "MAINTENANCE" && w.status === "COMPLETED"
-                            ? "Chờ nghiệm thu"
-                            : w.status
-                        }
-                      />
-                    </a>
-                  ))}
-                  {!data[key].length && <Empty />}
-                </section>
-              ))}
-            </div>
+
           </>
         </State>
       )}

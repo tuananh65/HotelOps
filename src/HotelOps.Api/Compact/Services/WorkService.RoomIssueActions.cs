@@ -77,6 +77,7 @@ public sealed partial class WorkService
                 next="REPAIR_REQUESTED";recipient="MAINTENANCE_SUPERVISOR";break;
             case "create-repair":
                 await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_ASSIGN",work.BranchId,ct);
+                Output.Require(!request.ExternalRepair,"MAINTENANCE_STAFF_EXECUTION_REQUIRED",400);
                 Output.Require(stage=="ROOM_ISSUE_REPAIR_REQUESTED","ROOM_ISSUE_WRONG_STAGE");
                 Output.Require(!await db.WorkItems.AnyAsync(w=>w.ParentWorkId==id&&w.Kind=="MAINTENANCE"&&w.Status!="CLOSED"&&w.Status!="CANCELLED",ct),"MAINTENANCE_ALREADY_ACTIVE");
                 var title=$"Khắc phục · {work.Title}";
@@ -111,6 +112,7 @@ public sealed partial class WorkService
                 next="MATERIAL_REQUESTED";recipient="STOREKEEPER";break;
             case "report-remedy":
                 Output.Reason(request.Note);
+                Output.Require(info.Kind!="BROKEN","MAINTENANCE_STAFF_RESULT_REQUIRED",403);
                 if(info.Kind=="BROKEN"){
                     await access.RequireRolePermission("MAINTENANCE_SUPERVISOR","MAINTENANCE_EXECUTE",work.BranchId,ct);
                     Output.Require(stage=="ROOM_ISSUE_REPAIR_CREATED","ROOM_ISSUE_WRONG_STAGE");

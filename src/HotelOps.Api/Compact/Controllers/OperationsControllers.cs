@@ -111,6 +111,7 @@ public sealed class InsightsController(InsightService service):ControllerBase
 [ApiController,Authorize,Route("api/v2/notifications")]
 public sealed class NotificationsController(NotificationService service):ControllerBase
 {
+    [HttpGet("unread")]public async Task<object> Unread(CancellationToken ct,long? branchId=null)=>new{count=await service.UnreadCount(branchId,ct)};
     [HttpGet]public Task<object> Inbox(CancellationToken ct,int page=1,int pageSize=50,long? branchId=null)=>service.Inbox(page,pageSize,ct,branchId);
     [HttpPost("{id:long}/read")]public Task<object> Read(long id,CancellationToken ct)=>service.Read(id,false,ct);
     [HttpPost("{id:long}/acknowledge")]public Task<object> Acknowledge(long id,CancellationToken ct)=>service.Read(id,true,ct);

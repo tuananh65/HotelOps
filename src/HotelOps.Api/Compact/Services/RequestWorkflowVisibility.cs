@@ -15,7 +15,7 @@ internal static class RequestWorkflowVisibility
         if(!await access.Allows("IR_VIEW",flow.BranchId,true,ct:ct))return false;
         if(await access.Allows("IR_VIEW",null,ct:ct))return true;
         // Ordinary requests are read-only for OM. Warehouse replenishment is a separate explicitly owned workflow.
-        if(await access.HasRole("OPERATION_MANAGER",flow.BranchId,ct))return flow.RequestType is "GENERAL_INTERNAL_REQUEST" or "WAREHOUSE_REPLENISHMENT_REQUEST";
+        if(await access.HasRole("OPERATION_MANAGER",flow.BranchId,ct))return flow.RequestType is "GENERAL_INTERNAL_REQUEST" or "WAREHOUSE_REPLENISHMENT_REQUEST" or "CONSUMABLE_REFILL_REQUEST";
         if(flow.RequestType=="MAINTENANCE_REMEDIATION"&&await access.Allows("MAINTENANCE_VIEW",flow.BranchId,true,ct:ct)
             &&await db.WorkAssignments.AnyAsync(a=>a.WorkId==workId&&a.AssigneeUserId==user&&a.AssignmentStatus=="ACTIVE",ct))return true;
         if(await db.WorkItems.AnyAsync(w=>w.WorkId==workId&&w.CreatedBy==user,ct)||flow.HandlerUserId==user)return true;

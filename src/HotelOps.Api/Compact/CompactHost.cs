@@ -59,7 +59,8 @@ public static class CompactHost
         builder.Services.AddAuthentication(SessionAuthentication.SchemeName)
             .AddScheme<AuthenticationSchemeOptions,SessionAuthentication>(SessionAuthentication.SchemeName,_=>{});
         builder.Services.AddAuthorization();
-        builder.Services.AddControllers().ConfigureApplicationPartManager(m=>m.FeatureProviders.Add(new CompactControllersOnly()));
+        builder.Services.AddScoped<ShiftCommandFilter>();
+        builder.Services.AddControllers(options=>options.Filters.AddService<ShiftCommandFilter>()).ConfigureApplicationPartManager(m=>m.FeatureProviders.Add(new CompactControllersOnly()));
         builder.Services.AddOpenApi();
         builder.Services.AddRateLimiter(o=>{
             o.RejectionStatusCode=429;

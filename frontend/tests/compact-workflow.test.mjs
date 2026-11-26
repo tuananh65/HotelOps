@@ -36,7 +36,7 @@ test("review permissions stay independent from execution", () => {
   assert.equal(permission("OPERATIONAL", "verify"), "TASK_MANAGE");
   assert.equal(permission("INTERNAL_REQUEST", "verify"), "IR_CREATE");
 });
-test("maintenance review supports acceptance or rework only after completion", () => {
+test("completed maintenance has no extra lead verification step", () => {
   const completed = nextCommands(
     "MAINTENANCE",
     "COMPLETED",
@@ -44,7 +44,7 @@ test("maintenance review supports acceptance or rework only after completion", (
     false,
     false,
   );
-  assert.ok(completed.includes("verify") && completed.includes("reopen"));
+  assert.ok(!completed.includes("verify"));
   assert.ok(!completed.includes("assign") && !completed.includes("start"));
   assert.ok(
     !nextCommands("MAINTENANCE", "IN_PROGRESS", false, false, false).includes(

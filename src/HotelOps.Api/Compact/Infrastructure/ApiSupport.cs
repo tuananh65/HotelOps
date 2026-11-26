@@ -17,6 +17,8 @@ public sealed class ApiException(int status, string code, string? detail = null)
 }
 public sealed class Actor(IHttpContextAccessor accessor)
 {
+    public bool IsBusinessCommand => accessor.HttpContext is { } context &&
+        HotelOps.Api.Compact.Security.ShiftCommandAccess.IsBusinessCommand(context.Request.Method,context.Request.Path.Value??"");
     public long Id => long.TryParse(accessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier),out var id)
         ? id : throw new ApiException(401,"AUTHENTICATION_REQUIRED");
     public long SessionId => long.TryParse(accessor.HttpContext?.User.FindFirstValue("session_id"),out var id)

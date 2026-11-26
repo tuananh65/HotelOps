@@ -5,6 +5,7 @@ import { api, ApiError, message, timestamp, type Row } from "./api";
 import { ConfirmationActions, Dialog, Empty, Pager, State, useQuery } from "./ui";
 import PageTitle from "./page-title";
 import AdvisoryPanel from "./advisory-panel";
+import { ReplacementPanel } from "./asset-replacement";
 import "./housekeeping-mobile.css";
 import "./room-issue-detail.css";
 
@@ -38,7 +39,6 @@ export default function RoomIssues({detailOnly=false,selectedId,onClose,onChange
   const options=useQuery(isHead?`workspace/options?branchId=${branch}`:null,revision);
   const data=detail.data,w=data?.work?.fields,stage=data?.stage?.replace("ROOM_ISSUE_","");
   const technicians=useQuery(data?.lead&&data?.canCreateRepair?`work/technicians?branchId=${branch}`:null,revision);
-  const [externalRepair,setExternalRepair]=useState(false);
   const [cause,setCause]=useState("UNKNOWN");
   const rows=(list.data?.items||[]) as Row[];
   const selectedType=(types.data||[]).find((t:Row)=>String(t.referenceId)===typeId);
@@ -102,10 +102,9 @@ export default function RoomIssues({detailOnly=false,selectedId,onClose,onChange
         {isHead&&["REPORTED","INSPECTION_FAILED"].includes(stage)&&<button className="primary" disabled={pending||!canHandle} onClick={()=>setConfirmation("approve")}>Xác nhận báo cáo</button>}
         {isHead&&stage==="REPORTED"&&<button disabled={pending||!canHandle} onClick={()=>setConfirmation("reject")}>Từ chối báo cáo</button>}
         {isHead&&stage==="APPROVED"&&data.info.kind==="BROKEN"&&<button disabled={pending||!canHandle} onClick={()=>setConfirmation("send-repair")}>Gửi trưởng đội bảo trì khắc phục</button>}
-        {data.lead&&data.canCreateRepair&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act("create-repair",{userId:externalRepair?null:Number(f.get("technician")),externalRepair,note:f.get("note")});}}>
+        {data.lead&&data.canCreateRepair&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act("create-repair",{userId:Number(f.get("technician")),note:f.get("note")});}}>
           <h3>Tiếp nhận và phân công sửa chữa</h3>
-          <label>Hình thức<select value={externalRepair?"external":"internal"} onChange={e=>setExternalRepair(e.target.value==="external")}><option value="internal">Đội bảo trì nội bộ</option><option value="external">Dịch vụ bên ngoài</option></select></label>
-          {!externalRepair&&<State {...technicians}><label>Nhân viên bảo trì<select name="technician" required defaultValue=""><option value="">Chọn người thực hiện</option>{technicians.data?.items?.filter((t:Row)=>t.userId!==profile.user.fields.userId).map((t:Row)=><option key={t.userId} value={t.userId}>{t.fullName} · {t.open} việc đang mở</option>)}</select></label></State>}
+          <State {...technicians}><label>Nhân viên bảo trì<select name="technician" required defaultValue=""><option value="">Chọn người thực hiện</option>{technicians.data?.items?.filter((t:Row)=>t.userId!==profile.user.fields.userId).map((t:Row)=><option key={t.userId} value={t.userId}>{t.fullName} · {t.open} việc đang mở</option>)}</select></label></State>
           <label>Hướng dẫn xử lý<textarea name="note" maxLength={2000}/></label>
           <button disabled={pending||!canHandle}>Tiếp nhận và giao sửa chữa</button>
         </form>}
@@ -118,14 +117,13 @@ export default function RoomIssues({detailOnly=false,selectedId,onClose,onChange
           <label>Số lượng<input name="quantity" type="number" min="0.001" step="0.001" required defaultValue={1}/></label>
           <p>Chỉ yêu cầu số lượng thực sự còn thiếu. Kho tiếp nhận và ghi nhận cấp phát thực tế.</p><button disabled={pending||(!canHandle&&!data.canReplaceMaterial)}>Tạo và gửi yêu cầu vật tư</button>
         </form></State>}
-        {!!data.maintenance.length&&<section><h3>Công việc bảo trì</h3>{data.maintenance.map((m:Row)=><p key={m.workId}>{can("MAINTENANCE_VIEW")?<a href={`#work?kind=MAINTENANCE&id=${m.workId}`}>{m.title}</a>:m.title} · {m.status==="CLOSED"?"Đã nghiệm thu":m.status==="COMPLETED"?"Chờ nghiệm thu":"Đang xử lý"}</p>)}</section>}
+        {!!data.maintenance.length&&<section><h3>Công việc bảo trì</h3>{data.maintenance.map((m:Row)=><div key={m.workId}><p>{can("MAINTENANCE_VIEW")?<a href={`#work?kind=MAINTENANCE&id=${m.workId}`}>{m.title}</a>:m.title} · {m.result==="FAIL"?"Không thể sửa chữa — Cần thay thế":m.status==="CLOSED"?"Đã kiểm tra đạt":m.status==="COMPLETED"?"Đã sửa xong — Chờ kiểm tra phòng":"Đang xử lý"}</p>{data.lead&&m.result==="FAIL"&&<ReplacementPanel id={m.workId} onSaved={()=>bump(n=>n+1)}/>}</div>)}</section>}
         {!!data.materials.length&&<section><h3>Yêu cầu bổ sung</h3>{data.materials.map((d:Row)=><p key={d.documentId}>{can("MR_VIEW")?<a href={`#documents?kind=MATERIAL_REQUEST&id=${d.documentId}`}>Mở phiếu vật tư</a>:"Phiếu vật tư"} · {d.status==="FULLY_ISSUED"?"Đã cấp đủ":"Đang xử lý"}</p>)}</section>}
-        {data.lead&&stage==="REPAIR_CREATED"&&data.maintenance.some((m:Row)=>m.status==="PENDING"&&m.externalRepair&&m.currentAssignee)&&<button disabled={pending||!canHandle} onClick={()=>act("start-repair")}>Bắt đầu giám sát sửa chữa</button>}
         {data.lead&&stage==="INSPECTION_REQUESTED"&&data.info.kind==="BROKEN"&&data.maintenance.some((m:Row)=>m.status==="COMPLETED"&&!m.technicalReviewed)&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act("reopen-technical-review",{note:f.get("note")});}}>
           <p>Phiếu cũ chưa có nghiệm thu kỹ thuật. Mở lại để thực hiện checklist và gửi nghiệm thu theo quy trình hiện tại.</p>
           <label>Lý do mở lại<textarea name="note" required minLength={10} maxLength={2000}/></label><button disabled={pending}>Mở lại kiểm tra kỹ thuật</button>
         </form>}
-        {((data.lead&&stage==="REPAIR_CREATED"&&data.maintenance.some((m:Row)=>["IN_PROGRESS","COMPLETED"].includes(m.status)))||(data.store&&stage==="MATERIAL_REQUESTED"))&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act("report-remedy",{note:f.get("note"),documentId:Number(f.get("documentId"))||null});}}>
+        {data.store&&stage==="MATERIAL_REQUESTED"&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);act("report-remedy",{note:f.get("note"),documentId:Number(f.get("documentId"))||null});}}>
           <h3>{data.lead?"Nghiệm thu kỹ thuật":"Báo cáo đã khắc phục"}</h3>{data.store&&<label>Phiếu đã cấp đủ<select name="documentId" required defaultValue=""><option value="">Chọn phiếu</option>{data.materials.filter((d:Row)=>d.status==="FULLY_ISSUED").map((d:Row)=> <option key={d.documentId} value={d.documentId}>Phiếu đã cấp đủ #{d.documentId}</option>)}</select></label>}
           <label>Kết quả sửa chữa / bổ sung thực tế<textarea name="note" required minLength={10} maxLength={2000}/></label><button disabled={pending||!canHandle}>Gửi giám sát buồng phòng kiểm tra</button>
         </form>}

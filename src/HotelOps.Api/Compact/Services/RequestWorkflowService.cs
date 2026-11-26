@@ -40,7 +40,7 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         Output.Require(queue is "mine" or "action" or "progress" or "completed" or "rejected" or "all","INVALID_REQUEST_QUEUE",400);
         var query=await Visible(branch,ct);
         var roleIds=await ActorRoles(branch,ct);
-        if(queue=="action"&&await access.HasRole("OPERATION_MANAGER",branch,ct))query=query.Where(w=>db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&r.RequestType==ReplenishmentType));
+        if(queue=="action"&&await access.HasRole("OPERATION_MANAGER",branch,ct))query=query.Where(w=>db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.RequestType==ReplenishmentType||r.RequestType==RefillType)));
         // Reads expose stale claims to the next shift without silently changing their owner.
         var reclaimable=queue=="action"?await ReclaimableRequests(branch,roleIds,ct):Array.Empty<long>();
         query=queue switch{
@@ -68,7 +68,7 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         var query=db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branch&&(w.Kind=="INTERNAL_REQUEST"||incidents&&w.Kind=="INCIDENT"||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)));
         if(await access.HasRole("OPERATION_MANAGER",branch,ct)&&!await access.Allows("IR_VIEW",null,ct:ct))
             query=query.Where(w=>w.Kind=="INTERNAL_REQUEST"&&(!db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)
-                ||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.RequestType=="GENERAL_INTERNAL_REQUEST"||r.RequestType==ReplenishmentType))));
+                ||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.RequestType=="GENERAL_INTERNAL_REQUEST"||r.RequestType==ReplenishmentType||r.RequestType==RefillType))));
         var legacy=InternalRequestVisibility.Apply(db.WorkItems.AsNoTracking(),db,actor.Id,now);
         return query.Where(w=>db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId)
             ? broad||w.CreatedBy==actor.Id||db.RequestWorkflows.Any(r=>r.WorkId==w.WorkId&&(r.HandlerUserId==actor.Id||r.QueueRoleId!=null&&roles.Contains(r.QueueRoleId.Value)))
@@ -134,6 +134,12 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
 
     private async Task<long[]> ActiveQueueHandlers(long branch,long roleId,CancellationToken ct)
     {
+        if(await db.Roles.AnyAsync(r=>r.RoleId==roleId&&r.Code=="OPERATION_MANAGER"&&r.IsActive,ct))
+            return await (from ur in db.UserRoles.AsNoTracking() join u in db.Users on ur.UserId equals u.UserId
+                where ur.RoleId==roleId&&ur.BranchId==branch&&ur.AssignedAt<=Now&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>Now)
+                    &&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null
+                    &&db.Memberships.Any(m=>m.UserId==u.UserId&&m.BranchId==branch&&m.Kind=="BRANCH_ACCESS"&&m.ValidFrom<=Now&&(m.ValidTo==null||m.ValidTo>Now))
+                select u.UserId).Distinct().ToArrayAsync(ct);
         var now=Now;var zone=TimeZoneInfo.FindSystemTimeZoneById(await db.Branches.Where(b=>b.BranchId==branch&&b.IsActive).Select(b=>b.Timezone).SingleAsync(ct));
         var candidates=await (from a in db.WorkdayAssignments.AsNoTracking() join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
             join r in db.Roles on s.RoleId equals r.RoleId

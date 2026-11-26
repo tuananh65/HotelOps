@@ -7,7 +7,7 @@ import PageTitle from "./page-title";
 import PageToolbar from "./page-toolbar";
 
 type Item = { description: string; isRequired: boolean; weight: number };
-export default function HousekeepingChecklists() {
+export default function HousekeepingChecklists({ embedded = false }: { embedded?: boolean } = {}) {
   const { branch } = useAuth();
   const [revision, bump] = useState(0),
     [search, setSearch] = useState(""),
@@ -75,10 +75,10 @@ export default function HousekeepingChecklists() {
   }
   return (
     <>
-      <PageTitle>
+      {!embedded && <PageTitle>
         <h1>Mẫu checklist</h1>
         <p>Mẫu đã công bố được giữ nguyên; thay đổi bằng phiên bản mới</p>
-      </PageTitle>
+      </PageTitle>}
       <PageToolbar
         actions={
           <button className="primary" onClick={() => edit()}>

@@ -58,6 +58,7 @@ public sealed class InventoryLifecycleService(HotelOpsCompactDbContext db,Access
     public Task<object> VerifyBatch(long id,BatchMetadataRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         await StaffSupplyService.Lock(db,ct);var batch=await db.StockBatches.SingleOrDefaultAsync(b=>b.BatchId==id,ct)??throw new ApiException(404,"BATCH_NOT_FOUND");
         await access.RequireRolePermission("STOREKEEPER","INVENTORY_VIEW",batch.BranchId,ct);Output.Version(batch.RowVersion,r.RowVersion);Output.Reason(r.Reason);
+        await ShiftCommandAccess.Require(db,actor.Id,batch.BranchId,Now,ct);
         Output.Require(r.Status is "READY" or "QUARANTINED" or "EXPIRED","INVALID_BATCH_STATUS",400);
         Output.Require(r.ReceivedAt<=Now&&r.ReceivedAt.Year>=2000&&!string.IsNullOrWhiteSpace(r.LotNumber),"BATCH_METADATA_REQUIRED",400);
         var p=await db.ItemLifecycleProfiles.SingleAsync(p=>p.BranchId==batch.BranchId&&p.ItemId==batch.ItemId,ct);var today=DateOnly.FromDateTime(Now.AddHours(7));

@@ -63,6 +63,7 @@ public sealed class ReusableInventoryService(HotelOpsCompactDbContext db,Access 
     public Task<object> Move(long id,ReusableMoveRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         await StaffSupplyService.Lock(db,ct);var source=await db.ReusablePositions.SingleOrDefaultAsync(p=>p.PositionId==id,ct)??throw new ApiException(404,"CUSTODY_NOT_FOUND");
         var store=await Store(source.BranchId,ct);
+        await ShiftCommandAccess.Require(db,actor.Id,source.BranchId,Now,ct);
         if(!store){
             await access.RequireRolePermission("HK_STAFF","CLEANING_EXECUTE",source.BranchId,ct);
             Output.Require(r.WorkId!=null&&await db.WorkItems.AnyAsync(w=>w.WorkId==r.WorkId&&w.BranchId==source.BranchId&&(w.Kind=="CLEANING"||w.Kind=="REWORK")&&w.Status=="IN_PROGRESS"
@@ -94,6 +95,7 @@ public sealed class ReusableInventoryService(HotelOpsCompactDbContext db,Access 
     public Task<object> Propose(long id,ReusableWriteOffRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         await StaffSupplyService.Lock(db,ct);var source=await db.ReusablePositions.SingleOrDefaultAsync(p=>p.PositionId==id,ct)??throw new ApiException(404,"CUSTODY_NOT_FOUND");
         Output.Require(await Store(source.BranchId,ct),"STOREKEEPER_REQUIRED",403);var hash=Payload($"write-off:{id}",r);
+        await ShiftCommandAccess.Require(db,actor.Id,source.BranchId,Now,ct);
         if(await Already(r.OperationKey,hash,ct))return (object)new{alreadyApplied=true};
         Output.Version(source.RowVersion,r.RowVersion);Output.Reason(r.Reason);Output.Require(source.Status=="DAMAGED","DAMAGED_ITEMS_REQUIRED");
         var pending=await db.ReusableWriteOffs.Where(w=>w.PositionId==id&&w.Status=="PENDING").SumAsync(w=>(decimal?)w.Quantity,ct)??0;
