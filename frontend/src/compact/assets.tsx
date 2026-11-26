@@ -10,7 +10,7 @@ import { ConfirmationActions, Dialog, History, State, useQuery, Pager, Empty, Ba
 import { SlidersHorizontal } from "lucide-react";
 import { assetConditionLabel, assetConditions } from "./asset-presentation";
 import AssetConditionBar from "./asset-condition-bar";
-import ReplacementQueue from "./asset-replacement";
+import AssetTree from "./asset-tree";
 export default function Assets({
   maintenance = false,
   readScope,
@@ -126,7 +126,6 @@ export default function Assets({
           </button>
         )}
       </PageToolbar>
-      {readScope===undefined&&can("ASSET_MANAGE",false)&&branchRoles.some(r=>r.code==="OPERATION_MANAGER")&&<ReplacementQueue branch={branch!}/>}
       {(maintenance || groupedByRoom) && filters && (
         <PageToolbar>
           <label>
@@ -172,19 +171,7 @@ export default function Assets({
         </PageToolbar>
       )}
       <State {...query} retry={() => bump((n) => n + 1)}>
-        {groupedByRoom && (
-          <AssetConditionBar
-            rows={rows
-              .filter((a) => a.isActive)
-              .map((a) => ({ condition: a.conditionCode, count: 1 }))}
-          />
-        )}
-        {groupedByRoom && (
-          <p className="hint">
-            Nhóm theo phòng · Thống kê theo kết quả tìm kiếm và bộ lọc, chỉ tính
-            tài sản đang sử dụng.
-          </p>
-        )}
+        {groupedByRoom ? <AssetTree rows={rows} allRows={query.data || []} branchName={profile.branches.find(b => b.branchId === branch)?.name || "Chi nhánh"} select={assetId => { setId(assetId); setCommand(""); setError(""); }}/> : <>
         <div className="table-scroll">
           <table>
             <thead>
@@ -270,6 +257,8 @@ export default function Assets({
           pageSize={25}
           onPage={setPage}
         />
+        </>}
+        {groupedByRoom && <AssetConditionBar rows={rows.filter(a => a.isActive).map(a => ({ condition: a.conditionCode, count: 1 }))}/>}
       </State>
       {editing && (
         <Catalog

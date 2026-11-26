@@ -93,16 +93,34 @@ export default function Requests(){
   </div>;
 }
 
-function CreateRequest({type,choices,allocationId,change,close,saved}:{type:string;choices:Row[];allocationId:number;change:(v:string)=>void;close:()=>void;saved:(id:number)=>void}){
-  const {branch,profile}=useAuth();const refill=type==='CONSUMABLE_REFILL_REQUEST';
-  const [allocation,setAllocation]=useState(allocationId),[warehouse,setWarehouse]=useState(''),[pending,setPending]=useState(false),[error,setError]=useState(''),[key]=useState(()=>crypto.randomUUID());
-  const source=useQuery(refill?`supplies/allocations?branchId=${branch}&userId=${profile.user.fields.userId}`:`workspace/options?branchId=${branch}`);
-  const allocations=(refill?source.data||[]:[]).filter((r:Row)=>r.status!=='CLOSED');const chosen=allocations.find((r:Row)=>r.allocationId===allocation);
-  const lines:Row[]=refill?chosen?.items||[]:source.data?.items||[];
-  async function submit(f:FormData){if(pending)return;setPending(true);setError('');try{const result=await api(`requests/${refill?'refills':'replenishments'}`,{operationKey:key,reason:f.get('reason'),...(refill?{allocationId:allocation}:{branchId:branch,warehouseId:Number(warehouse)}),items:lines.map(r=>({itemId:r.itemId,quantity:Number(f.get(`qty-${r.itemId}`))})).filter(r=>r.quantity>0)});saved(result.request?.workId??result.workId);}catch(e){setError(requestError(e));}finally{setPending(false);}}
-  return <Dialog title="Tạo yêu cầu nội bộ" close={()=>!pending&&close()}><form onSubmit={e=>{e.preventDefault();void submit(new FormData(e.currentTarget));}}><label>Loại yêu cầu<select value={type} onChange={e=>change(e.target.value)}>{choices.map(r=><option key={r.code} value={r.code}>{r.name}</option>)}</select></label><State {...source}>
-    {refill?<label>Vật tư của ca<select required value={allocation||''} onChange={e=>setAllocation(Number(e.target.value))}><option value="">Chọn ca đang giữ vật tư</option>{allocations.map((r:Row)=><option key={r.allocationId} value={r.allocationId}>Ca bắt đầu {timestamp(r.createdAt)}</option>)}</select></label>:<label>Kho nhận<select required value={warehouse} onChange={e=>setWarehouse(e.target.value)}><option value="">Chọn kho</option>{(source.data?.warehouses||[]).map((r:Row)=><option key={r.warehouseId} value={r.warehouseId}>{r.name}</option>)}</select></label>}
-    <p>Nhập số lượng đề nghị, để 0 với mặt hàng không cần bổ sung.</p><div className="request-lines">{lines.map(r=><label className="request-line" key={r.itemId}><span>{r.name}{refill&&<small> · Khả dụng: {r.available}</small>}</span><input aria-label={`Số lượng ${r.name}`} name={`qty-${r.itemId}`} type="number" min={0} step="0.0001" defaultValue={0}/></label>)}</div>
-    {!lines.length&&<Empty>Chưa có vật tư phù hợp để gửi yêu cầu.</Empty>}<label>Lý do yêu cầu<textarea name="reason" required minLength={10} maxLength={2000}/></label>{error&&<AlertPopup>{error}</AlertPopup>}<button className="primary" disabled={pending||!choices.some(r=>r.code===type)||!lines.length}>{pending?'Đang gửi…':'Gửi yêu cầu'}</button>
-  </State></form></Dialog>;
+function CreateRequest({type,choices,change,close,saved}:{type:string;choices:Row[];allocationId:number;change:(v:string)=>void;close:()=>void;saved:(id:number)=>void}){
+  const {branch}=useAuth();const refill=type==='CONSUMABLE_REFILL_REQUEST';
+  const [warehouse,setWarehouse]=useState(''),[pending,setPending]=useState(false),[error,setError]=useState(''),[key]=useState(()=>crypto.randomUUID());
+  const [selected,setSelected]=useState<Record<number,boolean>>({});
+  const [quantities,setQuantities]=useState<Record<number,string>>({});
+  const source=useQuery(refill?`requests/refill-options?branchId=${branch}`:`workspace/options?branchId=${branch}`,0,false);
+  const lines:Row[]=source.data?.items||[];
+  async function submit(f:FormData){
+    if(pending)return;
+    const items=lines.filter(r=>selected[r.itemId]).map(r=>({itemId:r.itemId,quantity:Number(quantities[r.itemId])}));
+    if(!items.length||items.some(r=>!Number.isFinite(r.quantity)||r.quantity<=0)){setError('Chọn ít nhất một vật tư và nhập số lượng lớn hơn 0.');return;}
+    setPending(true);setError('');
+    try{const result=await api(`requests/${refill?'refills':'replenishments'}`,{operationKey:key,reason:f.get('reason'),...(refill?{allocationId:source.data.allocationId}:{branchId:branch,warehouseId:Number(warehouse)}),items});saved(result.request?.workId??result.workId);}
+    catch(e){setError(requestError(e));}finally{setPending(false);}
+  }
+  return <Dialog title={refill?'Yêu cầu vật tư tiêu hao':'Tạo yêu cầu nội bộ'} close={()=>!pending&&close()}><form onSubmit={e=>{e.preventDefault();void submit(new FormData(e.currentTarget));}}>
+    {choices.length>1&&<label>Loại yêu cầu<select value={type} onChange={e=>change(e.target.value)}>{choices.map(r=><option key={r.code} value={r.code}>{r.name}</option>)}</select></label>}
+    <State {...source}>
+      {refill?source.data&&<p>Ca hiện tại: <strong>{source.data.shiftName}</strong> · Bắt đầu {timestamp(source.data.startedAt)}</p>:<label>Kho nhận<select required value={warehouse} onChange={e=>setWarehouse(e.target.value)}><option value="">Chọn kho</option>{(source.data?.warehouses||[]).map((r:Row)=><option key={r.warehouseId} value={r.warehouseId}>{r.name}</option>)}</select></label>}
+      <p>Chọn vật tư cần lấy và số lượng. Quản lý vận hành duyệt trước khi thủ kho cấp phát.</p>
+      <div className="table-scroll"><table><thead><tr><th>Chọn</th><th>Vật tư</th><th>Đơn vị</th><th>Số lượng cần lấy</th></tr></thead><tbody>{lines.map(r=><tr key={r.itemId}>
+        <td><input type="checkbox" aria-label={`Chọn ${r.name}`} checked={!!selected[r.itemId]} onChange={e=>setSelected(old=>({...old,[r.itemId]:e.target.checked}))}/></td>
+        <td>{r.name}</td><td>{r.unit||'Đơn vị cơ sở'}</td>
+        <td><input aria-label={`Số lượng ${r.name}`} type="number" min="0.0001" max="999999999" step="0.0001" disabled={!selected[r.itemId]||pending} required={!!selected[r.itemId]} value={quantities[r.itemId]??''} onChange={e=>setQuantities(old=>({...old,[r.itemId]:e.target.value}))}/></td>
+      </tr>)}</tbody></table></div>
+      {!lines.length&&<Empty>Chưa có vật tư phù hợp để gửi yêu cầu.</Empty>}
+      <label>Lý do yêu cầu<textarea name="reason" required minLength={10} maxLength={2000}/></label>
+      {error&&<AlertPopup>{error}</AlertPopup>}
+      <button className="primary" disabled={pending||!choices.some(r=>r.code===type)||!lines.some(r=>selected[r.itemId])}>{pending?'Đang gửi…':'Gửi yêu cầu'}</button>
+    </State></form></Dialog>;
 }

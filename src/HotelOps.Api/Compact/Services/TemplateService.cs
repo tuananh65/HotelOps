@@ -29,7 +29,7 @@ public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Ac
         return new{template=Output.Record(template),items=(await db.ChecklistItems.AsNoTracking().Where(i=>i.ChecklistTemplateId==id).OrderBy(i=>i.LineNo).ToArrayAsync(ct)).Select(Output.Record)};
     }
     private async Task Validate(TemplateRequest r,CancellationToken ct){
-        Output.Require(r.Kind is "MAINTENANCE" or "OPERATIONAL","SCHEDULE_KIND_UNSUPPORTED",400);
+        Output.Require(r.Kind=="MAINTENANCE","SCHEDULE_KIND_UNSUPPORTED",400);
         Output.Require(!string.IsNullOrWhiteSpace(r.Code)&&!string.IsNullOrWhiteSpace(r.Title),"SCHEDULE_CODE_TITLE_REQUIRED",400);
         Output.Require(r.Frequency is "DAILY" or "WEEKLY" or "MONTHLY"&&r.FrequencyInterval is >0 and <=365&&r.NextDueAt!=null,"INVALID_SCHEDULE",400);
         if(r.AssetId!=null)Output.Require(await db.Assets.AnyAsync(a=>a.AssetId==r.AssetId&&a.BranchId==r.BranchId&&a.IsActive,ct),"ASSET_UNAVAILABLE");

@@ -106,8 +106,13 @@ public sealed partial class DocumentService(HotelOpsCompactDbContext db,Access a
         line.UnitCost=r.UnitCost;line.SourceLineId=r.SourceLineId;line.CountedQty=r.CountedQty;
         if(d.Kind=="STOCKTAKE"){
             Output.Require(d.SourceWarehouseId!=null&&r.CountedQty!=null,"WAREHOUSE_AND_COUNT_REQUIRED",400);
-            var balance=await db.StockMovements.Where(m=>m.WarehouseId==d.SourceWarehouseId&&m.ItemId==r.ItemId).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
-            line.ExpectedQty=balance/factor;
+            Output.Require(!await db.InventoryDocumentLines.AnyAsync(l=>l.DocumentId==id&&l.ItemId==r.ItemId&&l.LineId!=line.LineId,ct),"DUPLICATE_STOCKTAKE_ITEM",409);
+            // A count edits the observed quantity, never silently refreshes the stock snapshot.
+            // Posting adjustments still rejects stock movements made since this snapshot.
+            if(lineId==null||line.ExpectedQty==null){
+                var balance=await db.StockMovements.Where(m=>m.WarehouseId==d.SourceWarehouseId&&m.ItemId==r.ItemId).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
+                line.ExpectedQty=balance/factor;
+            }
         }
         if(r.SourceLineId!=null)Output.Require(await db.InventoryDocumentLines.AnyAsync(l=>l.LineId==r.SourceLineId&&l.DocumentId==d.SourceDocumentId&&l.ItemId==r.ItemId,ct),"SOURCE_LINE_MISMATCH");
         if(lineId==null)db.InventoryDocumentLines.Add(line);db.Entry(d).Property(x=>x.Reason).IsModified=true;

@@ -24,7 +24,8 @@ public sealed class OperationsWorker(IServiceScopeFactory scopes,ILogger<Operati
         await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
         // Serialize workers across instances using an existing SQL application lock, not another table.
         await db.Database.ExecuteSqlRawAsync("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'Compact.OperationsWorker',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=0; IF @r<0 THROW 51400,'Worker is already running.',1;",ct);
-        var templates=await db.WorkTemplates.Where(t=>t.IsActive&&t.NextDueAt<=now&&(t.Kind=="OPERATIONAL"||t.Kind=="MAINTENANCE")&&db.Branches.Any(b=>b.BranchId==t.BranchId&&b.IsActive)).OrderBy(t=>t.NextDueAt).Take(50).ToArrayAsync(ct);
+        // Operational scheduling was retired by NOTE-03. Keep its templates/history unchanged.
+        var templates=await db.WorkTemplates.Where(t=>t.IsActive&&t.NextDueAt<=now&&t.Kind=="MAINTENANCE"&&db.Branches.Any(b=>b.BranchId==t.BranchId&&b.IsActive)).OrderBy(t=>t.NextDueAt).Take(50).ToArrayAsync(ct);
         foreach(var t in templates){
             var due=t.NextDueAt!.Value;
             if(!await db.WorkItems.AnyAsync(w=>w.WorkTemplateId==t.WorkTemplateId&&w.OccurrenceAt==due,ct)){
@@ -39,7 +40,7 @@ public sealed class OperationsWorker(IServiceScopeFactory scopes,ILogger<Operati
             }
             t.NextDueAt=t.Frequency switch{"DAILY"=>due.AddDays(t.FrequencyInterval??1),"WEEKLY"=>due.AddDays(7*(t.FrequencyInterval??1)),"MONTHLY"=>due.AddMonths(t.FrequencyInterval??1),_=>throw new InvalidOperationException("Unsupported recurrence")};
         }
-        foreach(var w in await db.WorkItems.Where(w=>w.DueAt<now&&!WorkRules.Terminal.Contains(w.Status)).OrderBy(w=>w.DueAt).Take(500).ToArrayAsync(ct)){
+        foreach(var w in await db.WorkItems.Where(w=>w.Kind!="OPERATIONAL"&&w.DueAt<now&&!WorkRules.Terminal.Contains(w.Status)).OrderBy(w=>w.DueAt).Take(500).ToArrayAsync(ct)){
             var key=Key($"overdue:{w.WorkId}:{w.DueAt:O}");
             if(!await db.Notifications.AnyAsync(n=>n.EventKey==key,ct))await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"assign"),"WORK_OVERDUE",w.Title,w.WorkId,null,key,ct);
         }

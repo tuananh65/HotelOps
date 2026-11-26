@@ -12,18 +12,16 @@ import {
   ArrowLeftRight,
   ClipboardCheck,
   Truck,
-  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "./auth";
 import { timestamp, type Row } from "./api";
 import { Badge, Empty, State, useQuery } from "./ui";
 import PageTitle from "./page-title";
-import PageToolbar from "./page-toolbar";
 import MetricHeading from "./metric-heading";
 import { documentNames, documentHref } from "./inventory-document-model";
 
 export default function InventoryDashboard() {
-  const { branch, can } = useAuth();
+  const { branch } = useAuth();
   const [revision, bump] = useState(0);
   const query = useQuery(`insights/inventory?branchId=${branch}`, revision);
   const data = query.data;
@@ -45,23 +43,7 @@ export default function InventoryDashboard() {
         <h1>Tổng quan kho</h1>
         <p>Tồn kho và chứng từ trong chi nhánh</p>
       </PageTitle>
-      <PageToolbar>
-        {can("STOCK_RECEIPT_POST") && (
-          <a className="button-link" href="#transactions?kind=RECEIPT">
-            Nhập kho
-          </a>
-        )}
-        {can("MR_FULFILL") && (
-          <a className="button-link" href="#fulfillment">
-            Cấp phát vật tư
-          </a>
-        )}
-        {can("ATTENDANCE_RECORD") && (
-          <a className="button-link" href="#workday">
-            <CalendarDays size={16} /> Lịch cá nhân
-          </a>
-        )}
-      </PageToolbar>
+
       <State {...query} retry={() => bump((x) => x + 1)}>
         {data && (
           <>

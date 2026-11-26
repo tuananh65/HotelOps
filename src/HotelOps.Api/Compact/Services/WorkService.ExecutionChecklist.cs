@@ -10,7 +10,7 @@ public sealed partial class WorkService
     private Task<bool> EligibleMaintenanceAssignee(long userId,long branchId,CancellationToken ct)=>
         (from ur in db.UserRoles.AsNoTracking() join role in db.Roles on ur.RoleId equals role.RoleId
         where ur.UserId==userId&&ur.BranchId==branchId&&ur.RevokedAt==null&&ur.AssignedAt<=Now&&(ur.ExpiresAt==null||ur.ExpiresAt>Now)&&role.IsActive
-            &&(role.Code=="MAINTENANCE_STAFF"||(role.Code=="MAINTENANCE_SUPERVISOR"&&userId==actor.Id)) select ur.UserRoleId).AnyAsync(ct);
+            &&role.Code=="MAINTENANCE_STAFF" select ur.UserRoleId).AnyAsync(ct);
 
     private async Task SnapshotExecutionChecklist(WorkItem work,long templateId,CancellationToken ct)
     {
@@ -46,4 +46,11 @@ public sealed partial class WorkService
         audit.Add("WorkItem",id,"EXECUTION_CHECKLIST_ATTACHED",work.BranchId,after:new{request.ChecklistTemplateId});
         await db.SaveChangesAsync(ct);return (object)Output.Record(work);
     },ct);
+}
+
+public static class ExecutionChecklistPolicy
+{
+    // Cleaning may omit a checklist, but an explicitly attached template remains binding.
+    public static bool RequiresSnapshot(string kind,bool hasTemplate)=>
+        kind=="MAINTENANCE"||(kind is "CLEANING" or "REWORK")&&hasTemplate;
 }

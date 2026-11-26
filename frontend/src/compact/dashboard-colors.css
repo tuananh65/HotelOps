@@ -36,3 +36,28 @@
 .attendance-summary + .operations-metrics-details {
   margin-top: 24px;
 }
+
+.branch-metrics > .metric-card,
+.metrics > .metric-card {
+  min-height: 72px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-top-width: 3px;
+}
+.metric-card .metric-heading { margin: 0; font-size: 14px; line-height: 1.35; gap: 8px; }
+.metric-card .metric-icon { width: 30px; height: 30px; flex: 0 0 30px; }
+.metric-card .branch-metric-value, .metric-card .metric { margin: 0; font-size: 28px; line-height: 1.1; }
+.attendance-chart-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr); gap: 16px; margin: 12px 0; }
+.attendance-chart-grid .panel { margin: 0; padding: 12px; }
+.attendance-hours { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px; }
+.attendance-hours > strong { font-size: 32px; color: #21665e; }
+.personal-week-calendar { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin-top: 16px; }
+.personal-week-calendar > section { border: 1px solid var(--border,#d5e2df); border-radius: 10px; padding: 12px; }
+.personal-week-calendar h3 { font-size: 15px; margin: 0 0 12px; }
+.personal-week-calendar article { padding: 10px 0; border-top: 1px solid var(--border,#d5e2df); }
+.personal-week-calendar p { margin: 5px 0; }
+.attendance-summary .tabs { flex-wrap: wrap; }
+@media(max-width:600px) { .attendance-chart-grid { grid-template-columns: 1fr; } .branch-metrics > .metric-card { padding: 10px; } }

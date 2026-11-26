@@ -2,14 +2,14 @@ import { AlertPopup } from "./alert-popup";
 import "./shift-status.css";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, message, type Row, timestamp } from "./api";
-export function useQuery<T = any>(path: string | null, revision = 0) {
+export function useQuery<T = any>(path: string | null, revision = 0, realtime = true) {
   const [notificationRevision, setNotificationRevision] = useState(0);
   useEffect(() => {
-    if (!path || !/^(work|requests|room-issues|insights|notifications|documents|rooms|inventory|staff-supplies|reusable-inventory)([/?-]|$)/.test(path)) return;
+    if (!realtime || !path || !/^(work|requests|room-issues|insights|notifications|documents|rooms|inventory|staff-supplies|reusable-inventory)([/?-]|$)/.test(path)) return;
     const refresh = () => setNotificationRevision(value => value + 1);
     window.addEventListener("compact:notification-change", refresh);
     return () => window.removeEventListener("compact:notification-change", refresh);
-  }, [path]);
+  }, [path, realtime]);
   const [state, set] = useState<{
     data?: T;
     error?: unknown;

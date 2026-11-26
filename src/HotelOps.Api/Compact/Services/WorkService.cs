@@ -13,13 +13,21 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
     public async Task<WorkItem> Load(long id,string action,CancellationToken ct)
     {
         var w=await db.WorkItems.SingleOrDefaultAsync(x=>x.WorkId==id,ct)??throw new ApiException(404,"WORK_NOT_FOUND");
+        Output.Require(w.Kind!="OPERATIONAL"||!await access.HasRole("OPERATION_MANAGER",w.BranchId,ct),"WORK_ROLE_READ_ONLY",403);
         if(action!="read")Output.Require(!await requests.IsManagedRequest(id,ct),"USE_REQUEST_WORKFLOW",403);
         if(action=="read"){
             var visible=await RequestWorkflowVisibility.CanRead(db,access,actor.Id,id,Now,ct);
             if(visible!=null){Output.Require(visible.Value,"REQUEST_VISIBILITY_DENIED",403);return w;}
         }
         if(action!="read")await RequireWorkMutation(w.Kind,w.BranchId,ct);
+        if(w.Kind=="MAINTENANCE"&&action is "execute" or "accept" or "start" or "resume" or "pause" or "progress" or "complete" or "unrepairable"){
+            Output.Require(await access.HasRole("MAINTENANCE_STAFF",w.BranchId,ct)
+                &&!await access.HasRole("MAINTENANCE_SUPERVISOR",w.BranchId,ct),"MAINTENANCE_STAFF_EXECUTION_REQUIRED",403);
+            await WorkdayAuthority.Require(db,access,actor,clock,w.BranchId,"MAINTENANCE_STAFF",ct);
+        }
         var owns=await Owns(w,ct);
+        if(w.Kind=="MAINTENANCE"&&(action=="read"||action=="unrepairable"&&w.Status=="COMPLETED"&&w.Result=="FAIL"))
+            owns=owns||await db.WorkAssignments.AnyAsync(a=>a.WorkId==id&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="COMPLETED",ct);
         if(action=="read" && w.Kind is "CLEANING" or "REWORK") owns=owns||await db.WorkEvents.AnyAsync(e=>e.WorkId==id&&e.EventType=="COMPLETE"&&e.ActorUserId==actor.Id,ct);
         if(action=="read"&&w.Kind=="INTERNAL_REQUEST"){
             Output.Require(await VisibleRequests(db.WorkItems.AsNoTracking()).AnyAsync(x=>x.WorkId==id,ct),"REQUEST_VISIBILITY_DENIED",403);
@@ -33,13 +41,15 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
     }
     public async Task<object> List(long? branchId,string kind,string? status,int page,int pageSize,CancellationToken ct,bool mine=false,string? search=null,long? departmentId=null,bool overdue=false,bool assignedToMe=false,string sort="latest",DateTime? from=null,DateTime? to=null,long? priorityId=null,string? queue=null,bool historyMine=false,bool cleaningCurrent=false)
     {
+        if(kind=="OPERATIONAL"&&branchId is long operationBranch)
+            Output.Require(!await access.HasRole("OPERATION_MANAGER",operationBranch,ct),"WORK_ROLE_READ_ONLY",403);
         var permission=WorkRules.Permission(kind,"read");var all=await access.Allows(permission,branchId,ct:ct);
         if(!all)await access.Require(permission,branchId,true,ct);
         Output.Require(!cleaningCurrent||kind is "CLEANING" or "REWORK","CLEANING_KIND_REQUIRED",400);
         var query=db.WorkItems.AsNoTracking().Where(w=>(branchId==null?db.Branches.Any(b=>b.BranchId==w.BranchId&&b.IsActive):w.BranchId==branchId)&&(cleaningCurrent?(w.Kind=="CLEANING"||w.Kind=="REWORK"):w.Kind==kind));
         if(cleaningCurrent)query=query.Where(w=>!WorkRules.Terminal.Contains(w.Status));
         if(kind=="INTERNAL_REQUEST")query=VisibleRequests(query);
-        if(!all||mine)query=query.Where(w=>w.CreatedBy==actor.Id||db.WorkAssignments.Any(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&(a.AssignmentStatus=="ACTIVE"||(kind=="INTERNAL_REQUEST"&&(a.AssignmentStatus=="COMPLETED"||(w.Status=="CANCELLED"&&a.AssignmentStatus=="CANCELLED")))))
+        if(!all||mine)query=query.Where(w=>w.CreatedBy==actor.Id||db.WorkAssignments.Any(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&(a.AssignmentStatus=="ACTIVE"||((kind=="INTERNAL_REQUEST"||kind=="MAINTENANCE")&&(a.AssignmentStatus=="COMPLETED"||(w.Status=="CANCELLED"&&a.AssignmentStatus=="CANCELLED")))))
             ||db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="HANDOVER_OFFERED"&&e.RecipientUserId==actor.Id&&!db.WorkEvents.Any(d=>d.RelatedEventId==e.WorkEventId&&(d.EventType=="HANDOVER_ACCEPTED"||d.EventType=="HANDOVER_REJECTED"))));
         if(assignedToMe)query=query.Where(w=>db.WorkAssignments.Any(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&(a.AssignmentStatus=="ACTIVE"||(a.AssignmentStatus=="COMPLETED"&&(kind!="MAINTENANCE"||w.Status=="CLOSED"||w.Status=="COMPLETED")))));
         if(historyMine)query=query.Where(w=>db.WorkAssignments.Any(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id));
@@ -77,6 +87,7 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
             : [];
         var context=await (from b in db.Branches.AsNoTracking() where b.BranchId==w.BranchId
             select new {branch=b.Name,room=db.Rooms.Where(r=>r.RoomId==w.RoomId).Select(r=>r.Code).FirstOrDefault(),
+                roomCapacity=(from r in db.Rooms join t in db.RoomTypes on r.RoomTypeId equals t.RoomTypeId where r.RoomId==w.RoomId select (int?)t.Capacity).FirstOrDefault(),
                 floor=(from r in db.Rooms join l in db.Locations on r.LocationId equals l.LocationId where r.RoomId==w.RoomId select l.Name).FirstOrDefault()}).SingleAsync(ct);
         var canCoordinate=w.Kind=="INTERNAL_REQUEST"&&await RequestAuthority(w,ct);
         var readOnlyActor=await IsReadOnlyWorkActor(w.Kind,w.BranchId,ct);
@@ -186,7 +197,7 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
             where ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&role.IsActive&&p.Code==code&&p.IsActive
             &&((ur.BranchId==null&&grant.DataScope=="ALL")||(ur.BranchId==branchId&&(grant.DataScope=="ALL"||grant.DataScope=="BRANCH"||grant.DataScope=="OWN")))
             &&user.AccountStatus=="ACTIVE"&&user.EmploymentStatus=="ACTIVE"&&user.DeletedAt==null
-            &&(kind!="MAINTENANCE"||role.Code=="MAINTENANCE_STAFF"||(role.Code=="MAINTENANCE_SUPERVISOR"&&user.UserId==actor.Id))
+            &&(kind!="MAINTENANCE"||role.Code=="MAINTENANCE_STAFF")
             &&!db.UserRoles.Any(blocked=>blocked.UserId==user.UserId&&blocked.RevokedAt==null&&blocked.AssignedAt<=now&&(blocked.ExpiresAt==null||blocked.ExpiresAt>now)
                 &&(blocked.BranchId==null||blocked.BranchId==branchId)&&db.Roles.Any(br=>br.RoleId==blocked.RoleId&&br.IsActive
                     &&(br.Code=="OWNER"||((kind=="INCIDENT"||kind=="INTERNAL_REQUEST")&&br.Code=="OPERATION_MANAGER"))))
@@ -280,18 +291,19 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
         if(w.Kind is "CLEANING" or "REWORK")return await Act(w.WorkId,"assign",new ActionRequest(Convert.ToBase64String(w.RowVersion),Guid.NewGuid(),UserId:r.AssigneeUserId,DurationMinutes:r.DurationMinutes),ct);
         return (object)Output.Record(w);
     },ct);
-    public Task<object> Act(long id,string action,ActionRequest r,CancellationToken ct)=>ActCore(id,action,r,ct);
+    public Task<object> Act(long id,string action,ActionRequest r,CancellationToken ct)=>action=="unrepairable"?CompleteUnrepairable(id,r,ct):ActCore(id,action,r,ct);
     private Task<object> ActCore(long id,string action,ActionRequest r,CancellationToken ct,bool roomWorkflow=false)=>atomic.Run(async()=>{
         if(action is "assign" or "accept" or "start" or "handover-accept" or "handover-offer")await StaffSupplyService.Lock(db,ct);
         var w=await Load(id,action is "handover-accept" or "handover-reject"?"read":action,ct);
         Output.Require(!await requests.IsManagedRequest(id,ct),"USE_REQUEST_WORKFLOW",403);
         await RequireWorkMutation(w.Kind,w.BranchId,ct);
         Output.Key(r.OperationKey);
-        if(action=="complete"&&w.Kind is "CLEANING" or "REWORK"){
+        if(action=="complete"&&w.Kind is "CLEANING" or "REWORK" or "MAINTENANCE"){
             var previous=await db.WorkEvents.AsNoTracking().SingleOrDefaultAsync(e=>e.WorkId==id&&e.ActorUserId==actor.Id&&e.OperationKey==r.OperationKey,ct);
             if(previous!=null){Output.Require(previous.EventType=="COMPLETE"&&previous.Reason==r.Reason,"IDEMPOTENCY_KEY_REUSED");return (object)Output.Record(w);}
         }
         Output.Version(w.RowVersion,r.RowVersion);Output.Key(r.OperationKey);
+        Output.Require(w.Kind!="MAINTENANCE"||action!="verify","MAINTENANCE_STAFF_RESULT_REQUIRED",403);
         if(w.Kind=="MAINTENANCE"&&action is "complete" or "verify")await RequireReplacementSettled(id,ct);
         if(w.Kind=="MAINTENANCE")Output.Require(!action.StartsWith("handover-"),"MAINTENANCE_HANDOVER_NOT_SUPPORTED",403);
         Output.Require(w.Kind!="INCIDENT"||!await IsRoomIssue(id,ct),"ROOM_ISSUE_USE_WORKFLOW",409);
@@ -410,15 +422,20 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
                     await db.SaveChangesAsync(ct);
                 }
                 if(!operationalSelfReview)Output.Require(!await db.WorkAssignments.AnyAsync(x=>x.WorkId==id&&x.AssigneeUserId==actor.Id,ct),"INDEPENDENT_VERIFIER_REQUIRED",403);
-                if(w.Kind=="INCIDENT")Output.Require(!await db.WorkItems.AnyAsync(x=>x.ParentWorkId==id&&x.Kind=="MAINTENANCE"&&x.Status!="CLOSED"&&x.Status!="CANCELLED",ct),"MAINTENANCE_NOT_VERIFIED");
+                if(w.Kind=="INCIDENT")Output.Require(!await db.WorkItems.AnyAsync(x=>x.ParentWorkId==id&&x.Kind=="MAINTENANCE"&&x.Status!="CLOSED"&&x.Status!="CANCELLED"
+                    &&!(x.Status=="COMPLETED"&&x.Result=="PASS")
+                    &&!(x.Status=="COMPLETED"&&x.Result=="FAIL"&&db.WorkLinks.Any(l=>l.TargetWorkId==x.WorkId&&l.Relation=="SOURCE"
+                        &&db.WorkItems.Any(replacement=>replacement.WorkId==l.SourceWorkId&&replacement.ParentWorkId==id&&replacement.Status=="COMPLETED"&&replacement.Result=="PASS"))),ct),"MAINTENANCE_NOT_VERIFIED");
                 w.VerifiedBy=actor.Id;w.VerifiedAt=now;w.ClosedAt=now;
             }
             if(action=="reopen"&&w.Kind=="MAINTENANCE")Output.Require(!await db.WorkAssignments.AnyAsync(x=>x.WorkId==id&&x.AssigneeUserId==actor.Id,ct),"INDEPENDENT_VERIFIER_REQUIRED",403);
             if(action=="complete"){
-                if(w.Kind is "CLEANING" or "REWORK" or "MAINTENANCE")
+                if(w.Kind=="MAINTENANCE")Output.Reason(r.Reason);
+                if(ExecutionChecklistPolicy.RequiresSnapshot(w.Kind,w.ChecklistTemplateId!=null))
                     Output.Require(w.ChecklistTemplateId!=null&&await db.WorkChecklistItems.AnyAsync(x=>x.WorkId==id&&x.RequiredSnapshot,ct),"EXECUTION_CHECKLIST_REQUIRED");
                 Output.Require(!await db.WorkChecklistItems.AnyAsync(x=>x.WorkId==id&&x.RequiredSnapshot&&(x.Outcome==null||(w.Kind!="INSPECTION"&&x.Outcome!="PASS")),ct),"CHECKLIST_INCOMPLETE");
                 w.CompletedAt=now;w.CompletionNote=r.Reason;w.ProgressPercent=100;
+                if(w.Kind=="MAINTENANCE")w.Result="PASS";
                 if(w.Kind is "CLEANING" or "REWORK"&&await CleaningIssues(w.Kind=="REWORK"?w.ParentWorkId!.Value:id).AnyAsync(i=>i.Status!="CLOSED"&&i.Status!="CANCELLED",ct))
                     Event(w,"CLEANING_WITH_INCIDENT",Guid.NewGuid(),"Hoàn thành vệ sinh, phòng có sự cố cần giám sát kiểm tra",w.Status);
             }
@@ -443,7 +460,7 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
             if(action=="reopen"){w.VerifiedAt=null;w.VerifiedBy=null;w.ClosedAt=null;w.CompletedAt=null;w.ProgressPercent=0;
                 if(a==null){w.Status=w.Kind=="OPERATIONAL"?"PENDING_ASSIGNMENT":next;next=w.Status;}}
             w.Status=next;
-            if(next is "CLOSED" or "CANCELLED" or "PASSED" or "FAILED")await EndAssignments(w,now,ct);
+            if(next is "CLOSED" or "CANCELLED" or "PASSED" or "FAILED"||w.Kind=="MAINTENANCE"&&next=="COMPLETED")await EndAssignments(w,now,ct);
         }
         db.Entry(w).Property(x=>x.Title).IsModified=true;
         Event(w,action.ToUpperInvariant(),r.OperationKey,r.Reason,before);
@@ -452,8 +469,9 @@ public sealed partial class WorkService(HotelOpsCompactDbContext db,Access acces
             var recipient=a?.AssigneeUserId??await db.WorkAssignments.Where(x=>x.WorkId==id).OrderByDescending(x=>x.AssignmentId).Select(x=>(long?)x.AssigneeUserId).FirstOrDefaultAsync(ct);
             if(recipient!=null)notifications.Add(w.BranchId,recipient.Value,"MAINTENANCE_"+action.ToUpperInvariant(),w.Title,id,null,r.OperationKey);
         }
-        if(action=="complete"&&w.Kind is "OPERATIONAL" or "MAINTENANCE")await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"verify"),"PENDING_VERIFICATION",w.Title,w.WorkId,null,r.OperationKey,ct);
+        if(action=="complete"&&w.Kind=="OPERATIONAL")await notifications.ForPermission(w.BranchId,WorkRules.Permission(w.Kind,"verify"),"PENDING_VERIFICATION",w.Title,w.WorkId,null,r.OperationKey,ct);
         await db.SaveChangesAsync(ct);
+        if(action=="complete"&&w.Kind=="MAINTENANCE")await MaintenanceSucceeded(w,r,ct);
         if(action=="pass"&&w.RoomId!=null)await readiness.Reevaluate(w.RoomId.Value,id,r.OperationKey,"INSPECTION_PASSED",ct);
         return (object)Output.Record(w);
     },ct);

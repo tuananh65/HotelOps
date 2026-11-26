@@ -17,9 +17,11 @@ public sealed partial class RequestWorkflowService
         Output.Require(!await db.RequestWorkflows.AnyAsync(r=>r.AllocationId==allocation.AllocationId&&r.RequestType==RefillType&&!Finished.Contains(r.Status),ct),"REFILL_REQUEST_ALREADY_OPEN");
         var snapshot=await db.StaffSupplyBalances.Where(b=>b.AllocationId==allocation.AllocationId).ToArrayAsync(ct);
         Output.Require(input.Items.All(i=>snapshot.Any(b=>b.ItemId==i.ItemId)),"SUPPLY_ITEM_NOT_IN_SHIFT_SNAPSHOT");
+        var consumables=await db.ItemLifecycleProfiles.AsNoTracking().Where(p=>p.BranchId==allocation.BranchId&&p.Classification=="CONSUMABLE").Select(p=>p.ItemId).ToArrayAsync(ct);
+        Output.Require(input.Items.All(i=>consumables.Contains(i.ItemId)),"CONSUMABLE_ITEMS_REQUIRED",400);
         var work=await NewWork(allocation.BranchId,"Yêu cầu bổ sung tiêu hao",reason,null,ct);
-        var flow=new RequestWorkflow{WorkId=work.WorkId,BranchId=work.BranchId,RequestType=RefillType,Status="PENDING_SUPERVISOR",AllocationId=allocation.AllocationId,CorrelationId=Guid.NewGuid(),UpdatedAt=Now};
-        await Route(flow,Supervisor,ct);db.RequestWorkflows.Add(flow);await db.SaveChangesAsync(ct);
+        var flow=new RequestWorkflow{WorkId=work.WorkId,BranchId=work.BranchId,RequestType=RefillType,Status="PENDING_OPERATIONS_MANAGER",AllocationId=allocation.AllocationId,CorrelationId=Guid.NewGuid(),UpdatedAt=Now};
+        await Route(flow,"OPERATION_MANAGER",ct);db.RequestWorkflows.Add(flow);await db.SaveChangesAsync(ct);
         foreach(var requested in input.Items){var b=snapshot.Single(x=>x.ItemId==requested.ItemId);db.RequestWorkflowLines.Add(new RequestWorkflowLine{WorkId=work.WorkId,ItemId=b.ItemId,UnitId=b.UnitId,RequestedQuantity=requested.Quantity,StockAtRequest=SupplyMath.Available(b),MinimumAtRequest=0});}
         await Record(flow,work,"CREATE_REFILL",await Role("HK_STAFF",ct),input.OperationKey,hash,null,null,null,null,reason,ct);
         return await Detail(work.WorkId,ct);
@@ -61,19 +63,18 @@ public sealed partial class RequestWorkflowService
     }
 
     private static string HandlerRole(RequestWorkflow flow)=>flow.Status switch{
-        "PENDING_SUPERVISOR" when flow.RequestType==RefillType=>Supervisor,
         "PENDING_STOREKEEPER" when flow.RequestType==RefillType=>"STOREKEEPER",
-        "PENDING_OPERATIONS_MANAGER" when flow.RequestType==ReplenishmentType=>"OPERATION_MANAGER",
+        "PENDING_OPERATIONS_MANAGER" when flow.RequestType is RefillType or ReplenishmentType=>"OPERATION_MANAGER",
         "PENDING_RECEIPT" when flow.RequestType==ReplenishmentType=>"STOREKEEPER",
         _=>throw new ApiException(409,"REQUEST_NOT_ACTIONABLE")};
 
     private async Task<long> HandlerAuthority(RequestWorkflow flow,CancellationToken ct,bool allowStaleClaim=false)
     {
-        Output.Require(flow.RequestType==ReplenishmentType||!await access.HasRole("OPERATION_MANAGER",flow.BranchId,ct),"OM_REQUEST_READ_ONLY",403);
+        Output.Require(flow.RequestType is RefillType or ReplenishmentType||!await access.HasRole("OPERATION_MANAGER",flow.BranchId,ct),"OM_REQUEST_READ_ONLY",403);
         var role=flow.RequestType is RefillType or ReplenishmentType?HandlerRole(flow):await DomainHandlerRole(flow,ct);
         var permission=role=="OPERATION_MANAGER"?"REPLENISHMENT_APPROVE":role=="STOREKEEPER"?(flow.RequestType==ReplenishmentType?"REPLENISHMENT_RECEIVE":"MR_FULFILL"):role=="MAINTENANCE_SUPERVISOR"?"MAINTENANCE_EXECUTE":"IR_PROCESS";
         await access.RequireRolePermission(role,permission,flow.BranchId,ct);
-        await WorkdayAuthority.Require(db,access,actor,clock,flow.BranchId,role,ct);
+        if(role!="OPERATION_MANAGER")await WorkdayAuthority.Require(db,access,actor,clock,flow.BranchId,role,ct);
         var roleId=await Role(role,ct);
         Output.Require(flow.QueueRoleId==roleId&&(flow.HandlerUserId==null||flow.HandlerUserId==actor.Id||allowStaleClaim&&!await HasValidHandler(flow,ct)),"REQUEST_ALREADY_CLAIMED",403);
         return roleId;

@@ -30,7 +30,11 @@ public sealed class Access(HotelOpsCompactDbContext db,Actor actor,TimeProvider 
         return paths.Any(p=>p.BranchId==branchId && (p.DataScope is "ALL" or "BRANCH" || p.DataScope=="OWN" && owns));
     }
     public async Task Require(string code,long? branchId=null,bool owns=false,CancellationToken ct=default)
-    {if(!await Allows(code,branchId,owns,ct:ct))throw new ApiException(403,"PERMISSION_DENIED");}
+    {
+        if(!await Allows(code,branchId,owns,ct:ct))throw new ApiException(403,"PERMISSION_DENIED");
+        if(actor.IsBusinessCommand&&branchId is long branch)
+            await ShiftCommandAccess.Require(db,actor.Id,branch,clock.GetUtcNow().UtcDateTime,ct,code,owns);
+    }
     public Task<bool> HasRole(string code,long branchId,CancellationToken ct){var now=clock.GetUtcNow().UtcDateTime;
         return (from ur in db.UserRoles join r in db.Roles on ur.RoleId equals r.RoleId
             where ur.UserId==actor.Id&&ur.BranchId==branchId&&ur.AssignedAt<=now&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&r.IsActive&&r.Code==code select ur.UserRoleId).AnyAsync(ct);}

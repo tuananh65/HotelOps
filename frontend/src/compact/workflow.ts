@@ -14,6 +14,7 @@ export const commands: Record<string, string> = {
   pause: "Tạm dừng",
   resume: "Tiếp tục",
   complete: "Gửi hoàn thành",
+  unrepairable: "Không thể sửa chữa — Cần thay thế",
   verify: "Xác nhận hoàn tất",
   pass: "Kết luận đạt",
   fail: "Kết luận không đạt",
@@ -94,6 +95,7 @@ export function nextCommands(
     )
       result.push("start");
     if (["IN_PROGRESS", "INSPECTING"].includes(status)) result.push("complete");
+    if (kind === "MAINTENANCE" && status === "IN_PROGRESS") result.push("unrepairable");
     if (
       status === "IN_PROGRESS" &&
       ["CLEANING", "REWORK", "MAINTENANCE", "OPERATIONAL"].includes(kind)
@@ -105,7 +107,6 @@ export function nextCommands(
   }
   if (
     (kind === "OPERATIONAL" && status === "PENDING_VERIFICATION") ||
-    (kind === "MAINTENANCE" && status === "COMPLETED") ||
     (kind === "INCIDENT" && status === "RESOLVED") ||
     (kind === "INTERNAL_REQUEST" && status === "COMPLETED" && creator)
   )

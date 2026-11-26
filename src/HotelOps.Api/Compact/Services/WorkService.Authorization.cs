@@ -11,7 +11,7 @@ public sealed partial class WorkService
          where assignment.UserId==actor.Id&&assignment.AssignedAt<=Now&&assignment.RevokedAt==null
              &&(assignment.ExpiresAt==null||assignment.ExpiresAt>Now)&&role.IsActive
              &&(assignment.BranchId==null||assignment.BranchId==branchId)
-             &&(role.Code=="OWNER"||((kind=="INCIDENT"||kind=="INTERNAL_REQUEST")&&role.Code=="OPERATION_MANAGER"))
+             &&(role.Code=="OWNER"||((kind=="INCIDENT"||kind=="INTERNAL_REQUEST"||kind=="OPERATIONAL")&&role.Code=="OPERATION_MANAGER"))
          select assignment.UserRoleId).AnyAsync(ct);
 
     private async Task RequireWorkMutation(string kind,long branchId,CancellationToken ct)

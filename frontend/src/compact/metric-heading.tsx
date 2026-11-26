@@ -11,7 +11,7 @@ export default function MetricHeading({
   return (
     <h2 className="metric-heading">
       <span className="metric-icon">
-        <Icon size={23} aria-hidden="true" />
+        <Icon size={18} aria-hidden="true" />
       </span>
       {children}
     </h2>

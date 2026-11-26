@@ -8,6 +8,7 @@ namespace HotelOps.Api.Compact.Controllers;
 [ApiController,Authorize,Route("api/v2/requests")]
 public sealed class RequestWorkflowsController(RequestWorkflowService requests):ControllerBase
 {
+    [HttpGet("refill-options")] public Task<object> RefillOptions(long branchId,CancellationToken ct)=>requests.RefillOptions(branchId,ct);
     [HttpGet] public Task<PageDto<RequestWorkflowSummary>> List(long branchId,CancellationToken ct,string queue="mine",int page=1,int pageSize=30,string? search=null)=>requests.List(branchId,queue,page,pageSize,search,ct);
     [HttpGet("types")] public Task<object> Types(long branchId,CancellationToken ct)=>requests.Types(branchId,ct);
     [HttpGet("{id:long}")] public Task<RequestWorkflowDetail> Detail(long id,CancellationToken ct)=>requests.Detail(id,ct);

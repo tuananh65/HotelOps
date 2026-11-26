@@ -23,7 +23,7 @@ export function ReplacementPanel({id,onSaved}:{id:number;onSaved?:()=>void}){
       {d.canInstall&&<><p>Chọn tài sản đã lắp tại vị trí cần thay. Người quản lý tài sản phải cập nhật vị trí thiết bị cũ và thiết bị thay trước khi xác nhận.</p>
         <label>Thiết bị thay<select name="asset" required defaultValue="" disabled={pending}><option value="">Chọn thiết bị đã lắp</option>{d.replacementAssets.map((a:Row)=><option key={a.assetId} value={a.assetId}>{a.name} · {a.assetCode}</option>)}</select></label></>}
       <div className="actions">
-        {d.canPropose&&<button value="propose" disabled={pending}>Gửi giám sát xác nhận</button>}
+        {d.canPropose&&<button value="propose" disabled={pending}>Gửi OM yêu cầu thay thế</button>}
         {d.canConfirm&&<button value="confirm" disabled={pending}>Xác nhận, gửi OM</button>}
         {d.canDecide&&<button value="approve" className="primary" disabled={pending}>Đồng ý thay mới</button>}
         {(d.canConfirm||d.canDecide)&&<button value="reject" className="danger" disabled={pending}>Từ chối</button>}

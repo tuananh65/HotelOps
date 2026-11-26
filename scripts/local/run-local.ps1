@@ -2,7 +2,8 @@ param(
  [ValidateSet('Start','Stop','Status')][string]$Action='Status',
  [ValidateSet('All','Development','Production')][string]$Environment='All',
  [string]$DevelopmentDatabase='HotelOpsCompactWorkdayTestLocalDevV2261125',
- [string]$ProductionDatabase='HotelOpsCompactDB'
+ [string]$ProductionDatabase='HotelOpsCompactDB',
+ [string]$DevelopmentPublishDirectory='.artifacts/runtime-development/api'
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -10,8 +11,8 @@ $state=Join-Path $root 'artifacts/local-runtime'
 [void][IO.Directory]::CreateDirectory($state)
 $publish=Join-Path $root '.artifacts/runtime-production/api'
 $targets=@(
- @{name='Development';database=$DevelopmentDatabase;url='http://127.0.0.1:5081';port=5081;web='http://127.0.0.1:5173'},
- @{name='Production';database=$ProductionDatabase;url='https://localhost:5080';port=5080;web='https://localhost:5080'}
+ @{name='Development';database=$DevelopmentDatabase;url='http://127.0.0.1:5081';port=5081;web='http://127.0.0.1:5173';publish=(Join-Path $root $DevelopmentPublishDirectory)},
+ @{name='Production';database=$ProductionDatabase;url='https://localhost:5080';port=5080;web='https://localhost:5080';publish=$publish}
 )|Where-Object {$Environment -eq 'All' -or $_.name -eq $Environment}
 foreach($target in $targets){
  $officialProduction=$target.name -eq 'Production' -and $target.database -eq 'HotelOpsCompactDB'
@@ -73,7 +74,7 @@ if($Action -eq 'Status'){
  }
  exit 0
 }
-if(!(Test-Path (Join-Path $publish 'HotelOps.Api.dll'))){throw 'Publish Release API first; see docs/deployment/local-development-production.md.'}
+foreach($target in $targets){if(!(Test-Path (Join-Path $target.publish 'HotelOps.Api.dll'))){throw "Publish $($target.name) API first; see docs/deployment/local-development-production.md."}}
 if($targets.name -contains 'Production' -and !(Test-Path (Join-Path $publish 'wwwroot/index.html'))){throw 'Built frontend must be copied into publish/wwwroot before Production starts.'}
 foreach($target in $targets){AssertFree $target.port}
 if($targets.name -contains 'Development'){AssertFree 5173}
@@ -82,6 +83,7 @@ $settings=Get-Content -LiteralPath $secretPath -Raw|ConvertFrom-Json
 $started=@()
 try{
  foreach($target in $targets){
+  $publish=$target.publish
   $builder=[System.Data.SqlClient.SqlConnectionStringBuilder]::new($settings.'ConnectionStrings:HotelOpsDb');$builder['Initial Catalog']=$target.database
   AssertDatabase $builder.ConnectionString $target.database
   $variables=@{

@@ -1,5 +1,7 @@
 import { AlertPopup } from "./alert-popup";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import ReceiptDraftHeader from "./receipt-draft-header";
+import { StocktakeItems, StocktakeCount } from "./stocktake-items";
 import { SlidersHorizontal, Plus } from "lucide-react";
 import { useAuth } from "./auth";
 import { api, fields, message, timestamp, type Row, type Page } from "./api";
@@ -68,6 +70,9 @@ export default function InventoryDocuments({
     target?: string;
   } | null>(null);
   const [pending, setPending] = useState(false);
+  const creatingReceipt = useRef(false);
+  const receiptKey = useRef(crypto.randomUUID());
+  const [selectItems, setSelectItems] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const query = useQuery<Page>(
@@ -111,6 +116,16 @@ export default function InventoryDocuments({
       setPending(false);
     }
   }
+  async function createReceipt() {
+    if (creatingReceipt.current) return;
+    const warehouses = (options.data?.warehouses || []).filter((w: Row) => w.isActive !== false && (w.branchId == null || w.branchId === branch));
+    if (warehouses.length !== 1) { setError("Cần cấu hình đúng một kho hoạt động trong chi nhánh trước khi tạo nhập kho."); return; }
+    creatingReceipt.current = true; setPending(true); setError("");
+    try {
+      const result = await api("documents", { branchId: branch, kind: "RECEIPT", destinationWarehouseId: warehouses[0].warehouseId, operationKey: receiptKey.current });
+      receiptKey.current = crypto.randomUUID(); setId(result.fields.documentId); bump(n => n + 1);
+    } catch (e) { setError(message(e)); } finally { creatingReceipt.current = false; setPending(false); }
+  }
   const commands: [string, string][] = [];
   if (doc && context) {
     const hasLines = detail.data.lines.length > 0;
@@ -152,7 +167,7 @@ export default function InventoryDocuments({
         <h1>{titles[group]}</h1>
         <p>Chứng từ và số lượng trong chi nhánh</p>
       </PageTitle>
-      {group === "transactions" && <p><a className="button-link" href="#documents?transfer=1">?i?u chuy?n v?t t? gi?a c? s?</a></p>}
+      {group === "transactions" && <p><a className="button-link" href="#documents?transfer=1">Điều chuyển vật tư giữa cơ sở</a></p>}
       <PageToolbar>
         {allowed.length > 1 && (
           <label>
@@ -193,7 +208,8 @@ export default function InventoryDocuments({
         {canCreate && group !== "history" && (
           <button
             className="primary"
-            onClick={() => openForm({ type: "create" })}
+            disabled={pending || options.loading}
+            onClick={() => kind === "RECEIPT" ? void createReceipt() : openForm({ type: "create" })}
           >
             <Plus size={16} /> Tạo {documentNames[kind].toLocaleLowerCase()}
           </button>
@@ -287,6 +303,7 @@ export default function InventoryDocuments({
         </PageToolbar>
       )}
       {notice && <AlertPopup tone="success">{notice}</AlertPopup>}
+      {error && !form && <AlertPopup>{error}</AlertPopup>}
       <State {...query} retry={() => bump((x) => x + 1)}>
         <div className="table-scroll">
           <table>
@@ -351,7 +368,7 @@ export default function InventoryDocuments({
                 <p>
                   {documentNames[doc.kind]} · {timestamp(doc.createdAt)}
                 </p>
-                <p>{doc.reason}</p>
+                {doc.kind === "RECEIPT" && context?.canEdit ? <ReceiptDraftHeader key={doc.documentId} doc={doc} pending={pending} submit={mutate} /> : <p>{doc.reason}</p>}
                 {context && (
                   <>
                     <dl className="inventory-context">
@@ -418,7 +435,7 @@ export default function InventoryDocuments({
                     <thead>
                       <tr>
                         <th>Vật tư / đơn vị</th>
-                        <th>Số lượng</th>
+                        {doc.kind !== "STOCKTAKE" && <th>Số lượng</th>}
                         {doc.kind === "MATERIAL_REQUEST" ? (
                           <>
                             <th>Được duyệt</th>
@@ -426,7 +443,7 @@ export default function InventoryDocuments({
                           </>
                         ) : doc.kind === "STOCKTAKE" ? (
                           <>
-                            <th>Tồn sổ / thực đếm</th>
+                            <th>Tồn hệ thống</th><th>Thực đếm</th>
                             <th>Chênh lệch</th>
                           </>
                         ) : (
@@ -454,7 +471,7 @@ export default function InventoryDocuments({
                                 {info?.code} · {info?.unit || "—"}
                               </small>
                             </td>
-                            <td>{line.requestedQty ?? line.actualQty}</td>
+                            {doc.kind !== "STOCKTAKE" && <td>{line.requestedQty ?? line.actualQty}</td>}
                             {doc.kind === "MATERIAL_REQUEST" ? (
                               <>
                                 <td>{line.approvedQty ?? "—"}</td>
@@ -469,9 +486,9 @@ export default function InventoryDocuments({
                             ) : doc.kind === "STOCKTAKE" ? (
                               <>
                                 <td>
-                                  {line.expectedQty ?? "—"} /{" "}
-                                  {line.countedQty ?? "—"}
+                                  {line.expectedQty ?? "—"}
                                 </td>
+                                <td>{context?.canEdit ? <StocktakeCount key={`${line.lineId}-${line.countedQty}`} doc={doc} line={line} pending={pending} submit={mutate} /> : line.countedQty ?? "—"}</td>
                                 <td>
                                   {line.countedQty == null ||
                                   line.expectedQty == null
@@ -501,7 +518,7 @@ export default function InventoryDocuments({
                   </table>
                 </div>
                 {context?.canEdit && !doc.sourceDocumentId && (
-                  <button onClick={() => openForm({ type: "line" })}>
+                  <button onClick={() => doc.kind === "STOCKTAKE" ? setSelectItems(true) : openForm({ type: "line" })}>
                     + Thêm vật tư
                   </button>
                 )}
@@ -533,6 +550,7 @@ export default function InventoryDocuments({
           </State>
         </Dialog>
       )}
+      {selectItems && doc && <StocktakeItems doc={doc} items={options.data?.items || []} existing={fields(detail.data?.lines)} close={() => setSelectItems(false)} saved={() => { setSelectItems(false); bump(n => n + 1); }} />}
       {form && (
         <Dialog className={["create","derive","line"].includes(form.type)?undefined:"confirmation-popup"}
           title={

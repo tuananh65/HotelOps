@@ -39,13 +39,26 @@ export function AlertPopup({
   const ref = useRef<HTMLElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const previousText = useRef("");
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const id = useId();
   // Keep the message mounted so new content reopens a dismissed notification.
   useLayoutEffect(() => {
     const text = body.current?.textContent || "";
     if (text !== previousText.current) {
       previousText.current = text;
+      clearTimeout(timer.current);
+      const owner=ref.current?.closest("dialog");
+      const first=Array.from(document.querySelectorAll<HTMLElement>(".alert-popup:not([hidden])"))
+        .find(element=>element.closest("dialog")===owner&&element.classList.contains(tone)
+          &&element.querySelector(".alert-popup-body")?.textContent===text);
+      // Deduplicate within the same modal layer; never hide a distinct actionable panel.
+      if(first&&first!==ref.current&&!body.current?.querySelector("button,input,select,textarea,a")){
+        setDismissed(true);return;
+      }
       setDismissed(false);
+      // Interactive validation/retry panels remain actionable; only passive toasts expire.
+      if (!body.current?.querySelector("button,input,select,textarea,a"))
+        timer.current = setTimeout(() => setDismissed(true), 5000);
     }
     arrangeAlerts();
   });
@@ -56,6 +69,7 @@ export function AlertPopup({
     window.visualViewport?.addEventListener("resize", arrangeAlerts);
     window.visualViewport?.addEventListener("scroll", arrangeAlerts);
     return () => {
+      clearTimeout(timer.current);
       observer.disconnect();
       window.removeEventListener("resize", arrangeAlerts);
       window.visualViewport?.removeEventListener("resize", arrangeAlerts);

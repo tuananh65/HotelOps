@@ -6,6 +6,8 @@ namespace HotelOps.Api.Compact.Controllers;
 [ApiController,Authorize,Route("api/v2/workday")]
 public sealed class WorkdayController(WorkdayService service):ControllerBase
 {
+    [HttpGet("command-access")] public Task<object> CommandAccess(long branchId,CancellationToken ct)=>service.CommandAccess(branchId,ct);
+    [HttpGet("personnel")] public Task<PersonnelRow[]> Personnel(long branchId,CancellationToken ct)=>service.Personnel(branchId,ct);
     [HttpGet("personal-summary")] public Task<AttendanceSummaryDto> PersonalSummary(long branchId,CancellationToken ct)=>service.PersonalSummary(branchId,ct);
     [HttpGet] public Task<object> Week(long branchId,DateOnly date,CancellationToken ct)=>service.Week(branchId,date,ct);
     [HttpGet("candidates")] public Task<object> Candidates(long shiftId,DateOnly date,CancellationToken ct)=>service.Candidates(shiftId,date,ct);

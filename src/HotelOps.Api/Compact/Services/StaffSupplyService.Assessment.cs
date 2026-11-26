@@ -20,6 +20,7 @@ public sealed partial class StaffSupplyService
         await access.Require("CLEANING_VIEW",work.BranchId,owns,ct);
         Output.Require(work.Kind=="CLEANING","CLEANING_WORK_REQUIRED",400);
         if(edit){
+            await HotelOps.Api.Compact.Security.ShiftCommandAccess.Require(db,actor.Id,work.BranchId,Now,ct);
             Output.Require(owns,"ASSIGNEE_REQUIRED",403);
             await access.Require("CLEANING_EXECUTE",work.BranchId,true,ct);
             Output.Require(work.Status=="IN_PROGRESS","WORK_NOT_IN_PROGRESS");
@@ -59,7 +60,7 @@ public sealed partial class StaffSupplyService
             var balance=await db.StaffSupplyBalances.SingleAsync(x=>x.BalanceId==row.BalanceId,ct);
             var allocation=await LoadAllocation(balance.AllocationId,ct);
             Output.Require(allocation.UserId==actor.Id,"SUPPLY_OWNER_REQUIRED",403);
-            await AllocationActive(allocation,ct,allowFinishing:true);
+            await AllocationActive(allocation,ct);
             var delta=missing-row.Quantity;
             Output.Require(delta<=await StockBatchAccounting.StaffAvailable(db,balance,Now,ct),"STAFF_SUPPLIES_INSUFFICIENT");
             balance.Reserved+=delta;

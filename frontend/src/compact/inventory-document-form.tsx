@@ -274,7 +274,7 @@ export default function InventoryDocumentForm({
               rowVersion: doc!.rowVersion,
               itemId,
               unitId: form.line?.unitId || baseItem.baseUnitId,
-              quantity: Number(quantity),
+              quantity: actualKind === "STOCKTAKE" ? form.line?.actualQty || 1 : Number(quantity),
               unitCost: data.get("unitCost")
                 ? Number(data.get("unitCost"))
                 : null,
@@ -303,7 +303,7 @@ export default function InventoryDocumentForm({
             ))}
           </select>
         </label>
-        <label>
+        {actualKind !== "STOCKTAKE" && <><label>
           Số lượng · {unit?.name}
           <input
             type="number"
@@ -324,6 +324,7 @@ export default function InventoryDocumentForm({
             defaultValue={form.line?.unitCost ?? ""}
           />
         </label>
+        </>}
         {actualKind === "STOCKTAKE" && (
           <label>
             Số lượng thực đếm · {unit?.name}

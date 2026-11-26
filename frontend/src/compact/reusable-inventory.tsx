@@ -11,7 +11,7 @@ export default function ReusableInventory({ branch, work, initialTab = "position
   const { profile, can } = useAuth();
   const store = profile.roles.some(r => r.code === "STOREKEEPER" && r.branchId === branch) && can("STOCK_ISSUE_POST", false);
   const manager = profile.roles.some(r => r.code === "OPERATION_MANAGER" && r.branchId === branch) && can("ROOM_SUPPLY_CONFIG", false);
-  const [revision, bump] = useState(0), [tab, setTab] = useState(initialTab);
+  const [revision, bump] = useState(0), [tab, setTab] = useState(manager && !work && initialTab === "write-offs" ? "positions" : initialTab);
   const [action, setAction] = useState<{ row: Row; type: string; key: string } | null>(null);
   const [status, setStatus] = useState(""), [place, setPlace] = useState("room");
   const [pending, setPending] = useState(false), [error, setError] = useState("");
@@ -25,7 +25,8 @@ export default function ReusableInventory({ branch, work, initialTab = "position
   const currentPage = Math.min(page, Math.max(1, Math.ceil(extraRows.length / 25)));
   const visibleRows = extraRows.slice((currentPage - 1) * 25, currentPage * 25);
   const document = useQuery(documentId ? `documents/${documentId}` : null);
-  const positions: Row[] = (query.data?.positions || []).filter((r: Row) => !work || r.roomId === work.roomId || r.userId != null);
+  const positions: Row[] = (query.data?.positions || []).filter((r: Row) => !work || r.roomId === work.roomId || r.userId === profile.user.fields.userId);
+  const legacyPositions = work ? positions.filter(r => r.status === "LEGACY_REVIEW" && r.quantity > 0) : [];
   const transitions = (r: Row) => (next[r.status] || []).filter(s => store || !!work && ["IN_USE", "DIRTY", "DAMAGED"].includes(s) && r.status !== "LEGACY_REVIEW");
   const begin = (row: Row, type: string) => {
     const target = transitions(row)[0] || "";
@@ -36,14 +37,16 @@ export default function ReusableInventory({ branch, work, initialTab = "position
   const options: Row[] = destinations.data?.[locationType === "staff" ? "staff" : locationType === "room" ? "rooms" : "warehouses"] || [];
   return <section>
     <h2>Vật tư tái sử dụng</h2>
+    {work?.roomCapacity && <p>Sức chứa tối đa của phòng: <strong>{work.roomCapacity} khách</strong>. Số vật tư cấp được tính theo sức chứa và định mức mỗi khách.</p>}
     <p>Cấp, thu hồi và giặt không làm giảm tổng sở hữu. Vật tư hỏng chờ OM xác nhận ghi giảm.</p>
-    {(store || manager) && <div className="actions">{[["positions", "Số dư và vị trí"], ["write-offs", "Đề nghị ghi giảm"], ["history", "Lịch sử luân chuyển"]].map(([value, label]) => <button key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</div>}
+    {(store || manager) && <div className="actions">{[["positions", manager && !work ? "Tổng hợp" : "Số dư và vị trí"], ...(!manager || work ? [["write-offs", "Đề nghị ghi giảm"]] : []), ["history", "Lịch sử luân chuyển"]].map(([value, label]) => <button key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</div>}
     {tab === "positions" ? <State {...query}>
       {!work && <div className="table-scroll"><table><thead><tr><th>Vật tư</th><th>Thuộc sở hữu</th><th>Sẵn sàng</th><th>Chờ đối soát</th><th>Đã ghi giảm</th></tr></thead><tbody>{(query.data?.totals || []).map((r: Row) => <tr key={r.itemId}><td>{r.name}</td><td>{r.owned}</td><td>{r.ready}</td><td>{r.unresolvedLegacy}</td><td>{r.writtenOff}</td></tr>)}</tbody></table></div>}
-      <div className="table-scroll"><table><thead><tr><th>Vật tư / Vị trí</th><th>Trạng thái</th><th>Số lượng</th><th>Thao tác</th></tr></thead><tbody>{positions.filter(r => r.quantity > 0).map(r => <tr key={r.positionId}>
+      {(!manager || work) && <div className="table-scroll"><table><thead><tr><th>Vật tư / Vị trí</th><th>Trạng thái</th><th>Số lượng</th><th>Thao tác</th></tr></thead><tbody>{positions.filter(r => r.quantity > 0 && (!work || r.status !== "LEGACY_REVIEW")).map(r => <tr key={r.positionId}>
         <td>{r.name}<small>{r.roomId ? "Phòng " : ""}{r.location}</small>{(query.data?.shelfPolicies || []).filter((p: Row) => p.itemId === r.itemId && p.deadline).map((p: Row) => <small key={p.itemId}>Hạn kiểm tra tồn kho nội bộ: {p.deadline}{p.overdue ? " · Quá hạn, chờ đối soát" : ""}</small>)}</td><td>{labels[r.status]}</td><td>{r.quantity}{r.pendingWriteOff > 0 && <small>Chờ ghi giảm: {r.pendingWriteOff}</small>}</td>
         <td>{(store || work?.status === "IN_PROGRESS") && transitions(r).length > 0 && <button onClick={() => begin(r, "move")}>Luân chuyển</button>}{store && r.status === "DAMAGED" && r.quantity > r.pendingWriteOff && <button onClick={() => begin(r, "write-off")}>Đề nghị ghi giảm</button>}</td>
-      </tr>)}</tbody></table></div>
+      </tr>)}</tbody></table></div>}
+      {legacyPositions.length > 0 && <details><summary>Số dư cũ chờ kiểm kê thực tế</summary><p>Các số lượng dưới đây chưa được xác minh, không phải định mức phòng và không được tính là vật tư có thể sử dụng.</p><ul>{legacyPositions.map(r => <li key={r.positionId}>{r.name}: {r.quantity} · Phòng {r.location}</li>)}</ul></details>}
     </State> : <State {...extra}><div className="table-scroll"><table><thead><tr><th>Vật tư</th><th>Số lượng</th><th>{tab === "history" ? "Thời điểm / Nội dung" : "Trạng thái / Lý do"}</th><th>Thao tác</th></tr></thead><tbody>{visibleRows.map((r: Row) => <tr key={r.writeOffId || r.reusableMovementId}>
       <td>{r.name}</td><td>{r.quantity}</td><td>{tab === "history" ? timestamp(r.occurredAt) : ({ PENDING: "Chờ OM xác nhận", APPROVED: "Đã ghi giảm", REJECTED: "Đã từ chối" } as Record<string,string>)[r.status]}{tab === "history" && <><small>{({MOVE:"Luân chuyển",RECEIPT:"Nhập mới",HANDOVER:"Bàn giao",REPLACEMENT:"Thay thế",WRITE_OFF:"Ghi giảm",LAUNDRY:"Giặt là",DAMAGE:"Ghi nhận hỏng",RECOVERY:"Phục hồi",LEGACY_OPENING:"Số dư đối soát"} as Record<string,string>)[r.kind]}</small><small>{r.source ? `${r.source.locationKey} · ${labels[r.source.status]}` : "Nhận mới"} → {r.destination?.locationKey} · {labels[r.destination?.status]}</small></>}<small>{r.reason}</small>{r.decisionReason && <small>{r.decisionReason}</small>}</td>
       <td>{r.documentId && <button onClick={() => setDocumentId(r.documentId)}>Chứng từ</button>}{manager && r.status === "PENDING" && r.createdBy !== profile.user.fields.userId && <><button className="primary" onClick={() => begin(r, "approve")}>Xác nhận</button><button className="danger" onClick={() => begin(r, "reject")}>Từ chối</button></>}</td>

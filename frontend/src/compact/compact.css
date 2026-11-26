@@ -1216,3 +1216,12 @@ dialog form {
   border-left: 1px solid var(--border, #d5e2df);
   min-width: 0;
 }
+.notification-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; }
+.notification-bell > span { position: absolute; right: -4px; top: -3px; min-width: 19px; height: 19px; padding: 0 4px; border-radius: 12px; background: #b42318; color: white; font-size: 11px; font-weight: 700; line-height: 19px; text-align: center; }
+.supply-assessment-group { border: 1px solid var(--border); border-radius: 10px; margin: 10px 0; background: white; }
+.supply-assessment-group > summary { padding: 14px; cursor: pointer; font-weight: 600; }
+.supply-assessment-group > summary small { display: block; margin-top: 4px; font-weight: 400; }
+.supply-assessment-group fieldset { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; border: 0; padding: 14px; margin: 0; }
+.supply-assessment-group label { min-width: 0; }
+.supply-assessment-group label:last-child { grid-column: 1 / -1; }
+@media(max-width:600px) { .supply-assessment-group fieldset { grid-template-columns: 1fr; } }
