@@ -1,5 +1,7 @@
 # Quy ước UX giao diện HotelOps compact
 
+Quyết định 25/11/2026 cuối ngày: công việc CLEANING/REWORK chưa gắn checklist được bỏ qua checklist khi gửi hoàn thành, kể cả chi nhánh có mẫu khác. Giao diện ghi rõ lựa chọn này và chỉ mở bộ chọn khi người dùng muốn thêm. Checklist đã gắn vẫn giữ snapshot và kiểm tra đầy đủ các mục bắt buộc; không thay đổi yêu cầu checklist của bảo trì hoặc kiểm tra phòng.
+
 ## Quyết định popup và báo sự cố — 24/11/2026, cập nhật sau cùng
 
 - Thông báo không cần xác nhận nằm phía trên, có nút × để đóng; thay thế quy ước popup góc dưới/Thu gọn trước đây. Nhiều thông báo xếp riêng theo dialog, không chồng nhau.
@@ -224,3 +226,11 @@ Xem ảnh trong `artifacts/navbar-page-titles`, `reception-rooms`, `structure-se
 - Bắt đầu ca không cấp vật tư đầu ca. Khi nhân viên nhận công việc dọn phòng, cấp phần cần thêm để đủ định mức theo sức chứa khách tối đa của phòng, tính đến vật tư khả dụng đang giữ để tránh cấp trùng.
 - Cấu hình nhóm A hiển thị định mức mỗi khách và tồn tối thiểu; bỏ trường cấp đầu ca khỏi biểu mẫu. Trường `initialQuantity` cũ được bảo toàn trong hợp đồng API để tương thích dữ liệu, không phải chỉ dẫn cấp phát mới.
 - Kiểm đếm vật tư trong phòng vẫn giải phóng phần giữ chỗ dư; tiêu hao chỉ ghi nhận số thực tế bổ sung. Lịch sử cấp phát cũ không bị đổi tên hoặc sửa số lượng.
+
+## Note 25_11 — cập nhật 26/11
+
+- Quyết định mới thay thế luồng bảo trì cũ ở trên: Trưởng đội phân công; Maintenance Staff trong ca ghi kết quả sửa được/không sửa được. Sửa được chuyển HK kiểm tra, không thêm bước trưởng đội nghiệm thu. Không sửa được giữ sự cố, trưởng đội đề nghị thay thế và OM duyệt; lần thay thế là công việc liên kết mới, không ghi đè lần sửa thất bại.
+- Kiểm đếm vật tư dùng accordion đóng mặc định, nhập số có kiểm tổng và giới hạn theo phần thiếu; giữ dữ liệu nhập khi API lỗi. Chỉ bỏ checklist khi công việc vệ sinh không gắn mẫu; bảo trì vẫn cần checklist.
+- Vật tư tiêu hao bổ sung đi qua OM duyệt rồi kho cấp. OM không xử lý yêu cầu nội bộ thông thường, không còn trang công việc OPERATIONAL.
+- Checklist cấu hình theo quyền; Owner xem tổng hợp; nhân sự OM theo chi nhánh; cây tài sản giữ cả tài sản chưa bố trí. Thông báo thụ động tự đóng 5 giây, xác nhận không tự đóng.
+- Thao tác nghiệp vụ cần ca thực, đúng vai trò/quyền/chi nhánh và thời gian. Giao diện khóa lệnh, API kiểm lại độc lập; không khóa đọc dữ liệu hoặc quản trị OM/Owner/Admin.
