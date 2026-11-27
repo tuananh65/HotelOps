@@ -1,4 +1,4 @@
-﻿import {test} from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {chromium,expect} from '@playwright/test';
@@ -6,7 +6,7 @@ import {chromium,expect} from '@playwright/test';
 const catalog={configured:true,roles:[{roleId:1,name:'Lễ tân'}],recipientRoles:[{roleId:2,name:'Giám sát'}],departments:[{departmentId:10,name:'Tiền sảnh'},{departmentId:20,name:'Buồng phòng'}],recipients:[{userId:7,fullName:'Nguyễn An',employeeCode:'NV7',roleIds:[2]}],items:[{referenceId:8,name:'Hỗ trợ khách',description:'Nêu phòng và nhu cầu',senderRoleIds:[1],senderDepartmentIds:[10],recipientRoleIds:[2],requireDescription:true,isActive:true,rowVersion:'v1'}]};
 const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {Auth} from './src/compact/auth';import Settings from './src/compact/internal-settings';import Fields from './src/compact/request-recipient-fields';createRoot(document.getElementById('root')).render(location.hash==='#fields'?<form><Fields catalog={${JSON.stringify(catalog)}} departments={${JSON.stringify(catalog.departments)}}/></form>:<Auth><Settings section="requests"/></Auth>);`},bundle:true,write:false,outfile:'test.js',format:'iife',jsx:'automatic',define:{'process.env.NODE_ENV':'"test"','import.meta.env':'{}'}});
 test('OM edits sender department, recipient mode and required content without losing them on toggle; creator sees route',async()=>{
- const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage();const writes=[],errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>sessionStorage.setItem('hotelops.compact.session','fixture'));
