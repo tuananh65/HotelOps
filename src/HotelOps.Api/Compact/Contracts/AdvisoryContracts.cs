@@ -2,8 +2,8 @@ using System.ComponentModel.DataAnnotations;
 namespace HotelOps.Api.Compact.Contracts;
 
 public sealed record AdvisoryRequest([Range(1,long.MaxValue)]long BranchId,
-    [Required,RegularExpression("^(DEMAND|TRANSFER|INCIDENT)$")]string Kind,
-    [Range(1,90)]int Days=14,long? IncidentId=null);
+    [Required,RegularExpression("^(DEMAND|TRANSFER)$")]string Kind,
+    [Range(1,90)]int Days=14);
 public sealed record DemandEstimate(long BranchId,long WarehouseId,long ItemId,string Item,string Unit,
     int Days,decimal UsedInLast30Days,int ObservedDays,decimal Available,decimal Minimum,
     decimal ExpectedDemand,decimal ExpiringBeforeHorizon,decimal SuggestedReplenishment,string Limitation,

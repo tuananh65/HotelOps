@@ -34,7 +34,6 @@ public sealed partial class WorkService
                 ChecklistItemId=item.ChecklistItemId,DescriptionSnapshot=item.DescriptionSnapshot,RequiredSnapshot=item.RequiredSnapshot,WeightSnapshot=item.WeightSnapshot});
         Event(followup,"REPLACEMENT_APPROVED",request.OperationKey,request.Reason,null);
         db.WorkEvents.Local.Single(e=>e.WorkId==followup.WorkId&&e.EventType=="REPLACEMENT_APPROVED").SnapshotJson=JsonSerializer.Serialize(snapshot);
-        await NotifyReplacement(followup,"MAINTENANCE_SUPERVISOR",request.OperationKey,ct);
         await db.SaveChangesAsync(ct);
         return followup.WorkId;
     }

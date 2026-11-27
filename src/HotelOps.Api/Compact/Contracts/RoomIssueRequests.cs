@@ -12,4 +12,9 @@ public sealed record LegacyRoomIssueRecoveryRequest([Required] string RowVersion
     Guid OperationKey,long AssetId,[Required,StringLength(2000)] string Note);
 public sealed record RoomIssueActionRequest([Required] string RowVersion,Guid OperationKey,
     [StringLength(2000)] string? Note=null,long? UserId=null,long? DocumentId=null,string? RoomRowVersion=null,
-    long? DepartmentId=null,long? ItemId=null,long? UnitId=null,decimal? Quantity=null,long? WarehouseId=null,bool ExternalRepair=false,long? ChecklistTemplateId=null);
+    long? DepartmentId=null,long? ItemId=null,long? UnitId=null,decimal? Quantity=null,long? WarehouseId=null,bool ExternalRepair=false,long? ChecklistTemplateId=null,decimal ReturnedQuantity=0,long? ReplacementAssetId=null);
+
+public sealed record RoomIssueBatchLine(long? ItemId,long? AssetId,decimal Quantity=1);
+public sealed record RoomIssueBatchRequest(long BranchId,long RoomId,long TypeId,
+    [Required] string RoomRowVersion,Guid OperationKey,[Required] RoomIssueBatchLine[] Lines,
+    [StringLength(2000)] string? Note=null,string Impact="READINESS",long? CleaningWorkId=null,long? DetectedByUserId=null);

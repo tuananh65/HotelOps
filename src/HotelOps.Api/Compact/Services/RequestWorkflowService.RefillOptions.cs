@@ -18,6 +18,11 @@ public sealed partial class RequestWorkflowService
             where b.AllocationId==allocation.AllocationId&&i.IsActive
                 &&db.ItemLifecycleProfiles.Any(p=>p.ItemId==i.ItemId&&p.BranchId==branch&&p.Classification=="CONSUMABLE")
             orderby i.Name select new {i.ItemId,i.Name,unit=unit.Name}).ToArrayAsync(ct);
+        var reusable=await supplies.ReusableAllocationSnapshot(allocation,ct);
+        var reusableIds=reusable.Where(c=>c.ItemId!=null).Select(c=>c.ItemId!.Value).ToArray();
+        var reusableItems=await (from i in db.InventoryItems.AsNoTracking() join unit in db.ReferenceValues on i.BaseUnitId equals unit.ReferenceId
+            where reusableIds.Contains(i.ItemId)&&i.IsActive orderby i.Name select new{i.ItemId,i.Name,unit=unit.Name}).ToArrayAsync(ct);
+        items=items.Concat(reusableItems).DistinctBy(i=>i.ItemId).ToArray();
         var assignment=await db.WorkdayAssignments.AsNoTracking().SingleAsync(a=>a.AssignmentId==allocation.AssignmentId,ct);
         var shift=await db.WorkdayShifts.AsNoTracking().SingleAsync(s=>s.ShiftId==assignment.ShiftId,ct);
         return new {allocationId=allocation.AllocationId,shiftName=shift.Name,workDate=assignment.WorkDate,startedAt=assignment.StartedAt,items};

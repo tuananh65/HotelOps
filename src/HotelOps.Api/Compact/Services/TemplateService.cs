@@ -16,11 +16,14 @@ public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Ac
             where ur.UserId==actor.Id&&ur.RevokedAt==null&&ur.AssignedAt<=now&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&r.IsActive&&p.IsActive&&p.Code=="CHECKLIST_MANAGE"
                 &&((grant.DataScope=="ALL"&&ur.BranchId==null)||((grant.DataScope=="BRANCH"||grant.DataScope=="ALL")&&ur.BranchId==branch))
             select r.Code).Distinct().ToArrayAsync(ct);
-        if(roles.Any(r=>r!="HOUSEKEEPING_SUPERVISOR"&&r!="MAINTENANCE_SUPERVISOR"))return ["CLEANING","INSPECTION","MAINTENANCE","OPERATIONAL"];
-        var kinds=new List<string>();
-        if(roles.Contains("HOUSEKEEPING_SUPERVISOR"))kinds.AddRange(["CLEANING","INSPECTION"]);
-        if(roles.Contains("MAINTENANCE_SUPERVISOR"))kinds.Add("MAINTENANCE");
-        return kinds.ToArray();
+        return ChecklistKindsForRoles(roles);
+    }
+    private static string[] ChecklistKindsForRoles(IEnumerable<string> roles)
+    {
+        // Maintenance supervisors coordinate repairs but no longer configure checklists.
+        var configurationRoles=roles.Where(r=>r!="MAINTENANCE_SUPERVISOR").ToArray();
+        if(configurationRoles.Any(r=>r!="HOUSEKEEPING_SUPERVISOR"))return ["CLEANING","INSPECTION","MAINTENANCE","OPERATIONAL"];
+        return configurationRoles.Contains("HOUSEKEEPING_SUPERVISOR")?["CLEANING","INSPECTION"]:[];
     }
     public async Task<object> ChecklistDetail(long id,CancellationToken ct){
         var template=await db.ChecklistTemplates.AsNoTracking().SingleOrDefaultAsync(t=>t.ChecklistTemplateId==id,ct)??throw new ApiException(404,"CHECKLIST_NOT_FOUND");
@@ -44,8 +47,8 @@ public sealed class TemplateService(HotelOpsCompactDbContext db,Access access,Ac
             .Select(w=>new{w.WorkId,w.Kind,w.Title,w.Status,w.OccurrenceAt,w.DueAt,w.CompletedAt,w.VerifiedAt}).ToArrayAsync(ct)};
     }
     public async Task<object> List(long branchId,CancellationToken ct){
-        var checklists=await access.Allows("CHECKLIST_MANAGE",branchId,ct:ct);
         var checklistKinds=await ChecklistKinds(branchId,ct);
+        var checklists=checklistKinds.Length>0;
         var maintenance=await access.Allows("PM_MANAGE",branchId,ct:ct);
         var tasks=await access.Allows("TASK_MANAGE",branchId,ct:ct);
         Output.Require(checklists||maintenance||tasks,"PERMISSION_DENIED",403);

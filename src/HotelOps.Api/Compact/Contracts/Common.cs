@@ -9,7 +9,7 @@ public record VersionRequest([Required] string RowVersion);
 public record ActionRequest([Required] string RowVersion, Guid OperationKey, string? Reason = null,
     long? UserId = null, long? RelatedId = null, decimal? Progress = null, DateTime? DueAt = null,
     IReadOnlyList<ApprovedLineRequest>? ApprovedLines = null, long? PriorityId = null, long? SeverityId = null, long? CategoryId = null,
-    [Range(10,30)] int? DurationMinutes = null);
+    [Range(10,30)] int? DurationMinutes = null, IReadOnlyList<long>? AttachmentIds = null);
 public sealed record ApprovedLineRequest(long LineId, decimal Quantity);
 public sealed record CreateWorkRequest(long BranchId, [Required] string Kind,
     [Required, StringLength(250,MinimumLength=1)] string Title, string? Description,

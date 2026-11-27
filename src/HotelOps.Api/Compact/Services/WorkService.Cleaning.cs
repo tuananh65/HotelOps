@@ -1,4 +1,4 @@
-using HotelOps.Api.Compact.Entities;
+﻿using HotelOps.Api.Compact.Entities;
 using HotelOps.Api.Compact.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,22 +56,19 @@ public sealed partial class WorkService
     {
         await access.EligibleFor(actor.Id,branchId,"CLEANING_EXECUTE",ct);
         Output.Require(await HousekeepingStaffIds(branchId).ContainsAsync(actor.Id,ct),"CLEANING_STAFF_REQUIRED");
-        Output.Require(await (from assignment in db.WorkAssignments
-            join day in db.WorkdayAssignments on assignment.AssigneeUserId equals day.UserId
-            join shift in db.WorkdayShifts on day.ShiftId equals shift.ShiftId
-            join role in db.Roles on shift.RoleId equals role.RoleId
-            where assignment.WorkId==workId&&assignment.AssigneeUserId==actor.Id&&assignment.AssignmentStatus=="ACTIVE"
-                &&shift.BranchId==branchId&&role.Code=="HK_STAFF"&&day.StartedAt!=null
-                &&((day.Status=="WORKING"&&day.EndedAt==null)||
-                    (day.Status=="ENDED"&&day.EndedAt!=null&&assignment.AssignedAt<=day.EndedAt
-                     &&db.StaffSupplyAllocations.Any(s=>s.AssignmentId==day.AssignmentId&&s.UserId==actor.Id&&s.Status!="CLOSED")))
-                &&(day.StartedAt<=assignment.AssignedAt||
-                    (db.WorkEvents.Any(e=>e.WorkId==workId&&e.EventType=="SUPPLIES_RECONCILED"&&e.RecipientUserId==actor.Id
-                        &&e.OccurredAt>=day.StartedAt&&e.OccurredAt>=assignment.AssignedAt)
-                     &&db.SupplyReservations.Any(r=>r.WorkId==workId&&r.Status=="RESERVED"
-                        &&db.StaffSupplyBalances.Any(b=>b.BalanceId==r.BalanceId
-                            &&db.StaffSupplyAllocations.Any(s=>s.AllocationId==b.AllocationId&&s.AssignmentId==day.AssignmentId&&s.UserId==actor.Id&&s.Status!="CLOSED")))))
-            select day.AssignmentId).AnyAsync(ct),"CLEANING_ASSIGNEE_NOT_ON_SHIFT");
+        // An active assignment can carry into a later eligible shift. Its assignment
+        // timestamp is not an attendance requirement for that new shift.
+        if (await db.WorkAssignments.AnyAsync(a => a.WorkId == workId && a.BranchId == branchId
+                && a.AssigneeUserId == actor.Id && a.AssignmentStatus == "ACTIVE", ct)
+            && await HotelOps.Api.Compact.Security.ShiftCommandAccess.CanOperate(
+                db, actor.Id, branchId, Now, ct, "CLEANING_EXECUTE", owns: true)
+            && await (from day in await CurrentCleaningShift(branchId, ct)
+                join shift in db.WorkdayShifts on day.ShiftId equals shift.ShiftId
+                join role in db.Roles on shift.RoleId equals role.RoleId
+                where day.UserId == actor.Id && role.Code == "HK_STAFF" && role.IsActive
+                select day.AssignmentId).AnyAsync(ct)) return;
+        Output.Require(await HotelOps.Api.Compact.Security.CleaningContinuationAccess.CanFinishExisting(
+            db,actor,clock,workId,branchId,ct),"CLEANING_ASSIGNEE_NOT_ON_SHIFT");
     }
 
     public async Task<object> CleaningCreationOptions(long branchId, CancellationToken ct)

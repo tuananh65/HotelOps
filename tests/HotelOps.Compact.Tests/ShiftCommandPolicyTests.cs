@@ -12,7 +12,7 @@ public class ShiftCommandPolicyTests
     [InlineData("POST","/api/v2/documents/12/actions/post",true)]
     [InlineData("POST","/api/v2/auth/login",false)]
     [InlineData("POST","/api/v2/notifications/12/read",false)]
-    [InlineData("POST","/api/v2/workday/assignments/12/start",false)]
+    [InlineData("POST","/api/v2/workday/assignments/12/end",false)]
     [InlineData("PUT","/api/v2/work/room-issue-types",false)]
     [InlineData("get","/api/v2/work/12",false)]
     [InlineData("PUT","/API/v2/inventory-lifecycle/batches/12",true)]

@@ -67,7 +67,37 @@ public sealed partial class WorkService
         var items=assignedItems.Where(i=>durableIds.Contains(i.ItemId)).ToArray();
         var assessed=await AssessedConsumableItems(branch,roomId,workId,ct);
         items=items.Concat(assessed).DistinctBy(i=>i.ItemId).ToArray();
-        return new{room.RoomId,room.Code,rowVersion=Convert.ToBase64String(room.RowVersion),assets,items,people=await IncidentPeople(branch,ct)};
+        var reusableItems=await (from p in db.ReusablePositions.AsNoTracking() join i in db.InventoryItems on p.ItemId equals i.ItemId
+            where p.BranchId==branch&&p.RoomId==roomId&&p.Status=="IN_USE"&&p.Quantity>0&&i.IsActive
+                &&db.ItemLifecycleProfiles.Any(l=>l.BranchId==branch&&l.ItemId==p.ItemId&&l.Classification=="REUSABLE")
+            select new RoomIssuedItem(i.ItemId,i.Name)).Distinct().ToArrayAsync(ct);
+        var missingAssets=await db.Assets.AsNoTracking().Where(a=>a.RoomId==roomId&&a.BranchId==branch&&a.IsActive&&a.RetiredAt==null
+            &&!db.WorkItems.Any(w=>w.AssetId==a.AssetId&&w.BranchId==branch&&w.Kind=="INCIDENT"&&w.Status!="CANCELLED"
+                &&db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED"&&e.SnapshotJson!=null&&e.SnapshotJson.Contains("\"Kind\":\"MISSING\""))))
+            .OrderBy(a=>a.Name).Select(a=>new{a.AssetId,a.Name,a.AssetCode}).ToArrayAsync(ct);
+        var missingReusableItems=new List<object>();
+        if(workId!=null){
+            var sourceWork=await MissingSourceCleaning(branch,roomId,workId,ct);
+            var candidates=await (from m in db.ReusableMovements.AsNoTracking() join i in db.InventoryItems on m.ItemId equals i.ItemId
+                where m.BranchId==branch&&m.WorkId==sourceWork&&m.Kind=="REPLACEMENT"&&i.IsActive
+                select new{i.ItemId,i.Name}).Distinct().ToArrayAsync(ct);
+            foreach(var item in candidates){
+                var available=await ReusableMissingCustody.Available(db,branch,roomId,sourceWork,item.ItemId,ct);
+                missingReusableItems.Add(new{item.ItemId,item.Name,maxReportableQuantity=available.Sum(s=>s.Quantity)});
+            }
+        }
+        return new{room.RoomId,room.Code,rowVersion=Convert.ToBase64String(room.RowVersion),assets,missingAssets,items,reusableItems,missingReusableItems,people=await IncidentPeople(branch,ct)};
+    }
+    private sealed record ReplacementAssetOption(long AssetId,string Name);
+    private async Task<ReplacementAssetOption[]> MissingReplacementOptions(WorkItem work,CancellationToken ct)
+    {
+        var missing=await db.Assets.AsNoTracking().SingleAsync(a=>a.AssetId==work.AssetId,ct);
+        if(missing.AssetTypeId==null||missing.RoomId==work.RoomId)return [];
+        var claimed=await ClaimedMissingReplacements(work.WorkId,ct);
+        return await db.Assets.AsNoTracking().Where(a=>a.AssetId!=missing.AssetId&&a.BranchId==work.BranchId&&a.RoomId==work.RoomId
+            &&a.AssetTypeId==missing.AssetTypeId&&a.IsActive&&a.RetiredAt==null&&(a.ConditionCode=="GOOD"||a.ConditionCode=="FAIR")&&!claimed.Contains(a.AssetId)
+            &&!db.WorkItems.Any(w=>w.AssetId==a.AssetId&&w.Kind=="INCIDENT"&&w.Status!="CANCELLED"&&w.Status!="CLOSED"))
+            .OrderBy(a=>a.Name).Select(a=>new ReplacementAssetOption(a.AssetId,a.Name)).ToArrayAsync(ct);
     }
     private sealed record IncidentPerson(long UserId,string FullName);
     private Task<IncidentPerson[]> IncidentPeople(long branch,CancellationToken ct)=>db.Users.AsNoTracking()

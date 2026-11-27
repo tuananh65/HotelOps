@@ -23,18 +23,21 @@ public sealed class Note2511DatabaseTests
 {
     // A fixture accessor must not lose HttpContext when the asynchronous factory returns.
     private sealed class FixtureAccessor : IHttpContextAccessor { public HttpContext? HttpContext { get; set; } }
-    [Note2511DatabaseFact]
-    public async Task ConsumableRefillRequiresOperationsApprovalAndIssuesExactlyOnce()
+    [TaskSupplyDatabaseFact]
+    public async Task ConsumableRefillRejectsPartialIssueAndRecordsFullIssueOnce()
     {
-        await using var db=Open();using var timeout=new CancellationTokenSource(TimeSpan.FromMinutes(3));var ct=timeout.Token;
+        var connection=Environment.GetEnvironmentVariable("HOTELOPS_TASK_SUPPLY_TEST")!;
+        Assert.Equal("HotelOpsCompactWorkdayTestNormSql20261127",new SqlConnectionStringBuilder(connection).InitialCatalog);
+        await using var db=new HotelOpsCompactDbContext(new DbContextOptionsBuilder<HotelOpsCompactDbContext>().UseSqlServer(connection).Options);
+        using var timeout=new CancellationTokenSource(TimeSpan.FromMinutes(3));var ct=timeout.Token;
         await using var tx=await db.Database.BeginTransactionAsync(ct);
-        var (hk,shift,now)=await Prepare(db,"HK_STAFF",ct);
-        var (store,storeShift,storeNow)=await Prepare(db,"STOREKEEPER",ct);
+        var now=new DateTime(2026,11,27,3,0,0,DateTimeKind.Utc);
+        async Task<(WorkdayAssignment,WorkdayShift)> Current(string role)=>await (from day in db.WorkdayAssignments
+            join shift in db.WorkdayShifts on day.ShiftId equals shift.ShiftId join r in db.Roles on shift.RoleId equals r.RoleId
+            where day.Status=="WORKING"&&day.WorkDate==new DateOnly(2026,11,27)&&r.Code==role
+            orderby day.UserId select new ValueTuple<WorkdayAssignment,WorkdayShift>(day,shift)).FirstAsync(ct);
+        var (hk,shift)=await Current("HK_STAFF");var (store,storeShift)=await Current("STOREKEEPER");
         Assert.Equal(shift.BranchId,storeShift.BranchId);
-        // Keep both operational actors on the same simulated interval, regardless of local seed shift ordering.
-        storeShift.StartMinute=shift.StartMinute;storeShift.EndMinute=shift.EndMinute;
-        hk.Status="WORKING";hk.StartedAt=now;store.Status="WORKING";store.StartedAt=now;
-        await db.SaveChangesAsync(ct);
         async Task<(StaffSupplyService Supplies,RequestWorkflowService Requests)> Services(long userId)
         {
             var user=await db.Users.SingleAsync(u=>u.UserId==userId,ct);
@@ -48,31 +51,41 @@ public sealed class Note2511DatabaseTests
             return(supplies,new RequestWorkflowService(db,access,actor,atomic,audit,clock,supplies,documents,notifications));
         }
         var staff=await Services(hk.UserId);
-        await (Task)typeof(StaffSupplyService).GetMethod("Start",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(staff.Supplies,[hk.AssignmentId,ct])!;
+        // Allocate the complete initial kit before testing the approved refill path.
+        await (Task)typeof(StaffSupplyService).GetMethod("Lock",BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,[db,ct])!;
         var allocation=await db.StaffSupplyAllocations.SingleAsync(a=>a.AssignmentId==hk.AssignmentId,ct);
         var balance=await db.StaffSupplyBalances.FirstAsync(b=>b.AllocationId==allocation.AllocationId&&db.ItemLifecycleProfiles.Any(p=>p.BranchId==shift.BranchId&&p.ItemId==b.ItemId&&p.Classification=="CONSUMABLE"),ct);
         var before=balance.AdditionalIssued;var movements=await db.StockMovements.CountAsync(ct);
-        var created=await staff.Requests.CreateRefill(new(allocation.AllocationId,[new(balance.ItemId,1)],"Isolated SQL refill verification",Guid.NewGuid()),ct);
-        Assert.Equal("PENDING_OPERATIONS_MANAGER",created.Request.Status);Assert.Equal("OPERATION_MANAGER",created.Request.QueueRole);
+        var fractional=await Assert.ThrowsAsync<ApiException>(()=>staff.Requests.CreateRefill(new(allocation.AllocationId,[new(balance.ItemId,0.5m)],"Isolated fractional refill rejection",Guid.NewGuid()),ct));
+        Assert.Equal("SUPPLY_WHOLE_QUANTITY_REQUIRED",fractional.Code);
+        var created=await staff.Requests.CreateRefill(new(allocation.AllocationId,[new(balance.ItemId,2)],"Isolated SQL refill verification",Guid.NewGuid()),ct);
+        Assert.Equal("PENDING_STOREKEEPER",created.Request.Status);Assert.Equal("STOREKEEPER",created.Request.QueueRole);
         Assert.Equal(movements,await db.StockMovements.CountAsync(ct));
         var managerId=await (from ur in db.UserRoles join r in db.Roles on ur.RoleId equals r.RoleId join u in db.Users on ur.UserId equals u.UserId where r.Code=="OPERATION_MANAGER"&&ur.BranchId==shift.BranchId&&ur.RevokedAt==null&&u.AccountStatus=="ACTIVE" select u.UserId).FirstAsync(ct);
         var manager=await Services(managerId);
-        var approved=await manager.Requests.Act(created.Request.WorkId,"approve",new(created.Request.RowVersion,Guid.NewGuid()),ct);
-        Assert.Equal("PENDING_STOREKEEPER",approved.Request.Status);Assert.Equal("STOREKEEPER",approved.Request.QueueRole);
+        var denied=await Assert.ThrowsAsync<ApiException>(()=>manager.Requests.Act(created.Request.WorkId,"approve",new(created.Request.RowVersion,Guid.NewGuid()),ct));
+        Assert.Equal(403,denied.Status);
         Assert.Equal(movements,await db.StockMovements.CountAsync(ct));
-        var keeper=await Services(store.UserId);var request=new RequestWorkflowAction(approved.Request.RowVersion,Guid.NewGuid());
+        var keeper=await Services(store.UserId);var request=new RequestWorkflowAction(created.Request.RowVersion,Guid.NewGuid(),ApprovedItems:[new(balance.ItemId,1)]);
+        var partial=await Assert.ThrowsAsync<ApiException>(()=>keeper.Requests.Act(created.Request.WorkId,"issue",request,ct));
+        Assert.Equal("APPROVED_LINES_MISMATCH",partial.Code);
+        Assert.Equal(before,balance.AdditionalIssued);
+        Assert.Equal(movements,await db.StockMovements.CountAsync(ct));
+        Assert.Equal("PENDING_STOREKEEPER",(await db.RequestWorkflows.AsNoTracking().SingleAsync(f=>f.WorkId==created.Request.WorkId,ct)).Status);
+        request=new RequestWorkflowAction(created.Request.RowVersion,Guid.NewGuid(),ApprovedItems:[new(balance.ItemId,2)]);
         var issued=await keeper.Requests.Act(created.Request.WorkId,"issue",request,ct);
-        Assert.Equal("FULFILLED",issued.Request.Status);Assert.Equal(before+1,balance.AdditionalIssued);
+        Assert.Equal("FULFILLED",issued.Request.Status);Assert.Equal(before+2,balance.AdditionalIssued);
+        Assert.Equal(2,issued.Items.Single().RequestedQuantity);Assert.Equal(2,issued.Items.Single().ReceivedQuantity);
         var after=await db.StockMovements.CountAsync(ct);Assert.True(after>movements);
         await keeper.Requests.Act(created.Request.WorkId,"issue",request,ct);
-        Assert.Equal(after,await db.StockMovements.CountAsync(ct));Assert.Equal(before+1,balance.AdditionalIssued);
+        Assert.Equal(after,await db.StockMovements.CountAsync(ct));Assert.Equal(before+2,balance.AdditionalIssued);
         await tx.RollbackAsync(ct);
     }
     private sealed class Clock(DateTime instant):TimeProvider { public override DateTimeOffset GetUtcNow()=>new(instant,TimeSpan.Zero); }
     private static HotelOpsCompactDbContext Open()
     {
         var connection=Environment.GetEnvironmentVariable("HOTELOPS_NOTE2511_TEST")!;
-        Assert.Equal("HotelOpsCompactWorkdayTestNote2511260145",new SqlConnectionStringBuilder(connection).InitialCatalog);
+        Assert.Matches("^HotelOpsCompactWorkdayTest(?:Note2511|Auto)[0-9]+$",new SqlConnectionStringBuilder(connection).InitialCatalog);
         return new(new DbContextOptionsBuilder<HotelOpsCompactDbContext>().UseSqlServer(connection).Options);
     }
     private static async Task<(WorkdayAssignment Day,WorkdayShift Shift,DateTime Now)> Prepare(HotelOpsCompactDbContext db,string code,CancellationToken ct)
@@ -86,6 +99,7 @@ public sealed class Note2511DatabaseTests
         var date=new DateOnly(2026,12,1);
         var zone=await db.Branches.Where(b=>b.BranchId==shift.BranchId).Select(b=>b.Timezone).SingleAsync(ct);
         var now=TimeZoneInfo.ConvertTimeToUtc(date.ToDateTime(TimeOnly.MinValue).AddMinutes(shift.StartMinute+10),TimeZoneInfo.FindSystemTimeZoneById(zone));
+        await new ShiftExpiryService(db,new Atomic(db),new Clock(now)).CloseExpired(null,ct);
         var day=new WorkdayAssignment{ShiftId=shift.ShiftId,UserId=candidate.UserId,WorkDate=date,CreatedBy=candidate.UserId,CreatedAt=now,Status="PLANNED"};
         db.WorkdayAssignments.Add(day);await db.SaveChangesAsync(ct);
         return(day,shift,now);

@@ -1,14 +1,29 @@
+using System.Text.Json;
 using HotelOps.Api.Compact.Contracts;
-using HotelOps.Api.Compact.Infrastructure;
-using HotelOps.Api.Compact.Services;
 using Xunit;
 namespace HotelOps.Compact.Tests;
 public sealed class RoomSupplyAssessmentTests
 {
-    [Fact] public void OnlyUsableExistingItemsReduceRoomNeed()=>Assert.Equal(2,RoomSupplyAssessmentRules.Validate(3,new(1,1,"version",3,1,1,2)));
-    [Fact] public void PartialActualRefillCanBeRecordedWithoutInventingFullConsumption()=>Assert.Equal(2,RoomSupplyAssessmentRules.Validate(3,new(1,1,"version",1,0,0,1)));
-    [Fact] public void ExpiredAndUnusableCannotBeCountedTwice()=>Assert.Throws<ApiException>(()=>RoomSupplyAssessmentRules.Validate(3,new(1,2,"version",3,1,1,1)));
-    [Fact] public void RefillCannotExceedActualMissing()=>Assert.Throws<ApiException>(()=>RoomSupplyAssessmentRules.Validate(3,new(1,2,"version",2,0,0,2)));
-    [Fact] public void LegacyAssessmentRequiresActualCounts()=>Assert.Throws<ApiException>(()=>RoomSupplyAssessmentRules.Validate(3,new(1,1,"version")));
-    [Fact] public void NoRefillNeededWhenUsableExceedsTarget()=>Assert.Equal(0,RoomSupplyAssessmentRules.Validate(3,new(1,4,"version",4,0,0,0)));
+    [Fact]
+    public void RoomAssessmentHasNoWriteRoute()
+    {
+        var routes=typeof(HotelOps.Api.Compact.Controllers.SuppliesController).GetMethods()
+            .SelectMany(method=>method.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute),true)
+                .Cast<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>())
+            .Where(route=>route.Template?.StartsWith("room-assessments/")==true).ToArray();
+        Assert.NotEmpty(routes);
+        Assert.All(routes,route=>Assert.Equal(new[]{"GET"},route.HttpMethods));
+    }
+    [Fact]
+    public void MissingUsableQuantityRemainsNullRatherThanBeingDefaultedToZero()
+    {
+        var line=JsonSerializer.Deserialize<RoomSupplyAssessmentLine>("{\"itemId\":1}",new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.NotNull(line);Assert.Equal(1,line.ItemId);Assert.Null(line.UsableQuantity);
+    }
+    [Fact]
+    public void ExplicitZeroIsRetainedAsActualObservation()
+    {
+        var line=JsonSerializer.Deserialize<RoomSupplyAssessmentLine>("{\"itemId\":1,\"usableQuantity\":0}",new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.NotNull(line);Assert.Equal(0,line.UsableQuantity);
+    }
 }

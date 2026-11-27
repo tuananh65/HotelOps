@@ -7,10 +7,15 @@ namespace HotelOps.Api.Compact.Services;
 
 public sealed partial class WorkService
 {
-    private Task<bool> EligibleMaintenanceAssignee(long userId,long branchId,CancellationToken ct)=>
-        (from ur in db.UserRoles.AsNoTracking() join role in db.Roles on ur.RoleId equals role.RoleId
+    private async Task<bool> EligibleMaintenanceAssignee(long userId,long branchId,CancellationToken ct)=>
+        await (await CurrentMaintenanceShift(branchId,ct)).AnyAsync(a=>a.UserId==userId,ct)
+        &&await (from ur in db.UserRoles.AsNoTracking() join role in db.Roles on ur.RoleId equals role.RoleId
         where ur.UserId==userId&&ur.BranchId==branchId&&ur.RevokedAt==null&&ur.AssignedAt<=Now&&(ur.ExpiresAt==null||ur.ExpiresAt>Now)&&role.IsActive
-            &&role.Code=="MAINTENANCE_STAFF" select ur.UserRoleId).AnyAsync(ct);
+            &&role.Code=="MAINTENANCE_STAFF"
+            &&!db.UserRoles.Any(owner=>owner.UserId==userId&&owner.RevokedAt==null&&owner.AssignedAt<=Now
+                &&(owner.ExpiresAt==null||owner.ExpiresAt>Now)&&(owner.BranchId==null||owner.BranchId==branchId)
+                &&db.Roles.Any(r=>r.RoleId==owner.RoleId&&r.IsActive&&(r.Code=="OWNER"||r.Code=="MAINTENANCE_SUPERVISOR")))
+            select ur.UserRoleId).AnyAsync(ct);
 
     private async Task SnapshotExecutionChecklist(WorkItem work,long templateId,CancellationToken ct)
     {
@@ -31,6 +36,7 @@ public sealed partial class WorkService
     public async Task<object> ExecutionChecklistOptions(long id,CancellationToken ct)
     {
         var work=await Load(id,"read",ct);var kind=work.Kind=="REWORK"?"CLEANING":work.Kind;
+        Output.Require(work.Kind=="MAINTENANCE","EXECUTION_CHECKLIST_KIND_REQUIRED",400);
         return await db.ChecklistTemplates.AsNoTracking().Where(t=>t.BranchId==work.BranchId&&t.Kind==kind&&t.IsActive&&t.PublishedAt!=null
             &&db.ChecklistItems.Any(i=>i.ChecklistTemplateId==t.ChecklistTemplateId&&i.IsRequired))
             .OrderByDescending(t=>t.ChecklistTemplateId).Select(t=>new{t.ChecklistTemplateId,t.Name,t.VersionNo}).ToArrayAsync(ct);
@@ -38,7 +44,7 @@ public sealed partial class WorkService
 
     public Task<object> AttachExecutionChecklist(long id,AttachChecklistRequest request,CancellationToken ct)=>atomic.Run(async()=>{
         var work=await Load(id,"execute",ct);Output.Version(work.RowVersion,request.RowVersion);
-        Output.Require(work.Kind is "CLEANING" or "REWORK" or "MAINTENANCE","EXECUTION_CHECKLIST_KIND_REQUIRED",400);
+        Output.Require(work.Kind=="MAINTENANCE","EXECUTION_CHECKLIST_KIND_REQUIRED",400);
         Output.Require(work.Status is "ASSIGNED" or "PENDING_ACCEPTANCE" or "ACCEPTED" or "PENDING" or "IN_PROGRESS","WORK_NOT_EXECUTING");
         Output.Require(await db.WorkAssignments.AnyAsync(a=>a.WorkId==id&&a.AssignmentStatus=="ACTIVE"&&a.AssigneeUserId==actor.Id,ct),"CURRENT_ASSIGNEE_REQUIRED",403);
         Output.Require(work.ChecklistTemplateId==null&&!await db.WorkChecklistItems.AnyAsync(i=>i.WorkId==id,ct),"CHECKLIST_SNAPSHOT_IMMUTABLE");
@@ -50,7 +56,7 @@ public sealed partial class WorkService
 
 public static class ExecutionChecklistPolicy
 {
-    // Cleaning may omit a checklist, but an explicitly attached template remains binding.
+    // Execution reports use photos; legacy checklist snapshots remain available as history.
     public static bool RequiresSnapshot(string kind,bool hasTemplate)=>
-        kind=="MAINTENANCE"||(kind is "CLEANING" or "REWORK")&&hasTemplate;
+        false;
 }

@@ -49,7 +49,13 @@ public sealed partial class RequestWorkflowService
         Output.Require(status is "PENDING_SUPERVISOR" or "PENDING_STOREKEEPER" or "PENDING_MAINTENANCE_SUPERVISOR" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION" or "REWORK_REQUIRED" or "FULFILLED" or "COMPLETED" or "REJECTED" or "CANCELLED","INVALID_REQUEST_STATUS",400);
         Output.Require(queueRole is null or "HOUSEKEEPING_SUPERVISOR" or "STOREKEEPER" or "MAINTENANCE_SUPERVISOR","INVALID_REQUEST_QUEUE_ROLE",400);
         Output.Require(Finished.Contains(status)==(queueRole==null),"REQUEST_QUEUE_REQUIRED");
-        Output.Require(!await access.HasRole("OPERATION_MANAGER",root.BranchId,ct),"OM_REQUEST_READ_ONLY",403);
+        var installedByManager=actorRole=="OPERATION_MANAGER"&&action is "repair-succeeded" or "report-remedy"
+            &&status=="PENDING_REINSPECTION"&&queueRole=="HOUSEKEEPING_SUPERVISOR"
+            &&await access.Allows("ASSET_MANAGE",root.BranchId,ct:ct)
+            &&await db.WorkEvents.AnyAsync(e=>e.BranchId==root.BranchId&&e.ActorUserId==actor.Id&&e.EventType=="REPLACEMENT_INSTALLED"
+                &&db.WorkItems.Any(w=>w.WorkId==e.WorkId&&w.Kind=="MAINTENANCE"&&w.Result=="PASS"&&w.Status=="COMPLETED"
+                    &&(w.WorkId==root.WorkId||w.ParentWorkId==(parentRequestId??root.WorkId))),ct);
+        Output.Require(!await access.HasRole("OPERATION_MANAGER",root.BranchId,ct)||installedByManager,"OM_REQUEST_READ_ONLY",403);
         Output.Require(await access.HasRole(actorRole,root.BranchId,ct),"REQUEST_ACTOR_ROLE_REQUIRED",403);
         if(action is "reject" or "rework" or "fail")Output.Reason(reason);
         var hash=Hash(new{root.WorkId,type,status,queueRole,action,actorRole,reason,parentRequestId,documentId});

@@ -8,7 +8,9 @@ namespace HotelOps.Api.Compact.Services;
 public sealed partial class RequestWorkflowService
 {
     public Task<RequestWorkflowDetail> CreateRefill(CreateRefillWorkflowRequest input,CancellationToken ct)=>atomic.Run(async()=>{
-        await Lock(ct);Quantities(input.Items);var reason=Output.Reason(input.Reason);
+        await Lock(ct);Quantities(input.Items);
+        Output.Require(input.Items.All(i=>decimal.Truncate(i.Quantity)==i.Quantity),"SUPPLY_WHOLE_QUANTITY_REQUIRED",400);
+        var reason=Output.Reason(input.Reason);
         var allocation=await db.StaffSupplyAllocations.SingleOrDefaultAsync(a=>a.AllocationId==input.AllocationId,ct)??throw new ApiException(404,"SUPPLY_ALLOCATION_NOT_FOUND");
         await access.Require("IR_CREATE",allocation.BranchId,true,ct);
         Output.Require(await access.HasRole("HK_STAFF",allocation.BranchId,ct)&&!await access.HasRole("OPERATION_MANAGER",allocation.BranchId,ct)&&allocation.UserId==actor.Id,"REFILL_REQUESTER_REQUIRED",403);
@@ -16,13 +18,14 @@ public sealed partial class RequestWorkflowService
         await ActiveAllocation(allocation,ct);
         Output.Require(!await db.RequestWorkflows.AnyAsync(r=>r.AllocationId==allocation.AllocationId&&r.RequestType==RefillType&&!Finished.Contains(r.Status),ct),"REFILL_REQUEST_ALREADY_OPEN");
         var snapshot=await db.StaffSupplyBalances.Where(b=>b.AllocationId==allocation.AllocationId).ToArrayAsync(ct);
-        Output.Require(input.Items.All(i=>snapshot.Any(b=>b.ItemId==i.ItemId)),"SUPPLY_ITEM_NOT_IN_SHIFT_SNAPSHOT");
-        var consumables=await db.ItemLifecycleProfiles.AsNoTracking().Where(p=>p.BranchId==allocation.BranchId&&p.Classification=="CONSUMABLE").Select(p=>p.ItemId).ToArrayAsync(ct);
+        var reusable=await supplies.ReusableAllocationSnapshot(allocation,ct);
+        Output.Require(input.Items.All(i=>snapshot.Any(b=>b.ItemId==i.ItemId)||reusable.Any(c=>c.ItemId==i.ItemId)),"SUPPLY_ITEM_NOT_IN_SHIFT_SNAPSHOT");
+        var consumables=await db.ItemLifecycleProfiles.AsNoTracking().Where(p=>p.BranchId==allocation.BranchId&&(p.Classification=="CONSUMABLE"||p.Classification=="REUSABLE")).Select(p=>p.ItemId).ToArrayAsync(ct);
         Output.Require(input.Items.All(i=>consumables.Contains(i.ItemId)),"CONSUMABLE_ITEMS_REQUIRED",400);
         var work=await NewWork(allocation.BranchId,"Yêu cầu bổ sung tiêu hao",reason,null,ct);
-        var flow=new RequestWorkflow{WorkId=work.WorkId,BranchId=work.BranchId,RequestType=RefillType,Status="PENDING_OPERATIONS_MANAGER",AllocationId=allocation.AllocationId,CorrelationId=Guid.NewGuid(),UpdatedAt=Now};
-        await Route(flow,"OPERATION_MANAGER",ct);db.RequestWorkflows.Add(flow);await db.SaveChangesAsync(ct);
-        foreach(var requested in input.Items){var b=snapshot.Single(x=>x.ItemId==requested.ItemId);db.RequestWorkflowLines.Add(new RequestWorkflowLine{WorkId=work.WorkId,ItemId=b.ItemId,UnitId=b.UnitId,RequestedQuantity=requested.Quantity,StockAtRequest=SupplyMath.Available(b),MinimumAtRequest=0});}
+        var flow=new RequestWorkflow{WorkId=work.WorkId,BranchId=work.BranchId,RequestType=RefillType,Status="PENDING_STOREKEEPER",AllocationId=allocation.AllocationId,CorrelationId=Guid.NewGuid(),UpdatedAt=Now};
+        await Route(flow,"STOREKEEPER",ct);db.RequestWorkflows.Add(flow);await db.SaveChangesAsync(ct);
+        foreach(var requested in input.Items){var b=snapshot.SingleOrDefault(x=>x.ItemId==requested.ItemId);var c=reusable.SingleOrDefault(x=>x.ItemId==requested.ItemId);db.RequestWorkflowLines.Add(new RequestWorkflowLine{WorkId=work.WorkId,ItemId=requested.ItemId,UnitId=b?.UnitId??c!.UnitId!.Value,RequestedQuantity=requested.Quantity,StockAtRequest=b==null?0:SupplyMath.Available(b),MinimumAtRequest=0});}
         await Record(flow,work,"CREATE_REFILL",await Role("HK_STAFF",ct),input.OperationKey,hash,null,null,null,null,reason,ct);
         return await Detail(work.WorkId,ct);
     },ct);
@@ -131,8 +134,18 @@ public sealed partial class RequestWorkflowService
                 case "issue":
                     Output.Require(flow.RequestType==RefillType&&flow.Status=="PENDING_STOREKEEPER"&&flow.AllocationId!=null,"REQUEST_NOT_ISSUABLE");
                     var amounts=await db.RequestWorkflowLines.Where(l=>l.WorkId==id).ToArrayAsync(ct);
-                    Output.Require(amounts.Length>0&&amounts.All(l=>l.ApprovedQuantity>0),"APPROVED_LINES_REQUIRED");
-                    await supplies.Refill(flow.AllocationId!.Value,id,amounts.Select(l=>new SupplyIssueQuantity(l.ItemId,l.ApprovedQuantity!.Value)).ToArray(),input.OperationKey,ct);
+                    var confirmed=input.ApprovedItems??amounts.Select(l=>new SupplyIssueQuantity(l.ItemId,l.RequestedQuantity)).ToArray();
+                    Output.Require(confirmed.Count==amounts.Length&&confirmed.Select(i=>i.ItemId).Distinct().Count()==confirmed.Count
+                        &&confirmed.All(i=>i.Quantity>0&&SupplyMath.ValidQuantity(i.Quantity)&&decimal.Truncate(i.Quantity)==i.Quantity
+                            &&amounts.Any(l=>l.ItemId==i.ItemId&&i.Quantity==l.RequestedQuantity)),"APPROVED_LINES_MISMATCH",400);
+                    var issued=confirmed.Where(i=>i.Quantity>0).ToArray();Quantities(issued);
+                    foreach(var line in amounts){
+                        var quantity=confirmed.Single(i=>i.ItemId==line.ItemId).Quantity;
+                        line.ApprovedQuantity=quantity;
+                    }
+                    // Every requested line is issued in full in the same transaction.
+                    await db.SaveChangesAsync(ct);
+                    await supplies.Refill(flow.AllocationId!.Value,id,issued,input.OperationKey,ct);
                     flow.Status="FULFILLED";work.Status="CLOSED";work.CompletedAt=Now;work.ClosedAt=Now;await Route(flow,null,ct);break;
                 default:throw new ApiException(400,"UNKNOWN_REQUEST_ACTION");
             }
@@ -156,6 +169,4 @@ public sealed partial class RequestWorkflowService
         return await Detail(id,ct);
     },ct);
 
-    // Workday must check this before closing an allocation. Resolution is explicit, never silently cancelled.
-    internal Task<bool> HasOpenRefill(long allocationId,CancellationToken ct)=>db.RequestWorkflows.AnyAsync(r=>r.AllocationId==allocationId&&r.RequestType==RefillType&&!Finished.Contains(r.Status),ct);
 }

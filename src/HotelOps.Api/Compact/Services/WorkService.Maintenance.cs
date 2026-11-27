@@ -45,12 +45,13 @@ public sealed partial class WorkService
     {
         await RequireWorkMutation("MAINTENANCE",branchId,ct);
         await access.Require("MAINTENANCE_ASSIGN",branchId,ct:ct);
-        var candidates=await CandidateRows(branchId,"MAINTENANCE",ct);
+        var candidates=await CandidateRows(branchId,"MAINTENANCE",ct,onShiftOnly:true);
         var zone=await db.Branches.AsNoTracking().Where(b=>b.BranchId==branchId).Select(b=>b.Timezone).SingleAsync(ct);
         var today=WorkdayService.LocalDate(clock.GetUtcNow(),zone);
         var ids=candidates.Select(c=>c.UserId).ToArray();
-        var shifts=await (from a in db.WorkdayAssignments.AsNoTracking() join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
-            where s.BranchId==branchId&&ids.Contains(a.UserId)&&a.WorkDate==today&&a.Status!="CANCELLED"
+        var current=await CurrentMaintenanceShift(branchId,ct);
+        var shifts=await (from a in current join s in db.WorkdayShifts on a.ShiftId equals s.ShiftId
+            where ids.Contains(a.UserId)
             select new{a.UserId,a.Status,s.Name,s.StartMinute,s.EndMinute}).ToArrayAsync(ct);
         var work=await (from a in db.WorkAssignments.AsNoTracking() join w in db.WorkItems on a.WorkId equals w.WorkId
             where w.BranchId==branchId&&w.Kind=="MAINTENANCE"&&ids.Contains(a.AssigneeUserId)

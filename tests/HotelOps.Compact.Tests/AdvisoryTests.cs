@@ -4,12 +4,12 @@ using Xunit;
 namespace HotelOps.Compact.Tests;
 public sealed class AdvisoryTests
 {
-    [Fact]public void NoObservationsNeverInventUsage()=>Assert.Equal(0,AdvisoryMath.Forecast(0,30,14));
-    [Fact]public void IncidentAdviceRedactsKnownNamesContactAndRoom(){
-        var text=IncidentAdviceText.Sanitize("Nguyễn Văn An báo khói phòng 102; an@example.com; 0901234567",["Nguyễn Văn An"]);
-        Assert.DoesNotContain("Nguyễn Văn An",text);Assert.DoesNotContain("102",text);Assert.DoesNotContain("0901234567",text);Assert.DoesNotContain("an@example.com",text);
-        Assert.True(IncidentAdviceText.NeedsSafetyReview(text));
+    [Fact]public async Task RemovedIncidentAnalysisRejectsBeforeAccessingDataOrProvider(){
+        var service=new AdvisoryService(null!,null!,null!,TimeProvider.System);
+        var error=await Assert.ThrowsAsync<HotelOps.Api.Compact.Infrastructure.ApiException>(()=>service.Analyze(new(1,"INCIDENT"),CancellationToken.None));
+        Assert.Equal("ADVISORY_KIND_INVALID",error.Code);
     }
+    [Fact]public void NoObservationsNeverInventUsage()=>Assert.Equal(0,AdvisoryMath.Forecast(0,30,14));
     [Fact]public void ForecastUsesObservedUseAndExplicitPeriod()=>Assert.Equal(14,AdvisoryMath.Forecast(30,30,14));
     [Fact]public void RepeatingDailyRateDoesNotInflateExactHorizon(){
         Assert.Equal(2m,AdvisoryMath.Forecast(1m,7,14));

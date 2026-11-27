@@ -63,15 +63,21 @@ public sealed class ReusableInventoryService(HotelOpsCompactDbContext db,Access 
     public Task<object> Move(long id,ReusableMoveRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         await StaffSupplyService.Lock(db,ct);var source=await db.ReusablePositions.SingleOrDefaultAsync(p=>p.PositionId==id,ct)??throw new ApiException(404,"CUSTODY_NOT_FOUND");
         var store=await Store(source.BranchId,ct);
-        await ShiftCommandAccess.Require(db,actor.Id,source.BranchId,Now,ct);
+        if(store||r.WorkId==null||!await CleaningContinuationAccess.CanFinishExisting(db,actor,clock,r.WorkId.Value,source.BranchId,ct))
+            await ShiftCommandAccess.Require(db,actor.Id,source.BranchId,Now,ct);
         if(!store){
-            await access.RequireRolePermission("HK_STAFF","CLEANING_EXECUTE",source.BranchId,ct);
+            await access.Require("CLEANING_EXECUTE",source.BranchId,true,ct);
+            Output.Require(await access.HasRole("HK_STAFF",source.BranchId,ct),"HK_STAFF_REQUIRED",403);
             Output.Require(r.WorkId!=null&&await db.WorkItems.AnyAsync(w=>w.WorkId==r.WorkId&&w.BranchId==source.BranchId&&(w.Kind=="CLEANING"||w.Kind=="REWORK")&&w.Status=="IN_PROGRESS"
                 &&(source.UserId==actor.Id||source.RoomId==w.RoomId)&&(r.RoomId==null||r.RoomId==w.RoomId)
                 &&db.WorkAssignments.Any(a=>a.WorkId==w.WorkId&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE"),ct),"ASSIGNED_ROOM_CUSTODY_REQUIRED",403);
             Output.Require(r.UserId==null||r.UserId==actor.Id,"CUSTODY_OWNER_REQUIRED",403);
             Output.Require(r.Status is "IN_USE" or "DIRTY" or "DAMAGED","STOREKEEPER_REQUIRED",403);
+            if(source.Status=="IN_USE")Output.Require(r.UserId==actor.Id&&r.RoomId==null&&r.WarehouseId==null,"CUSTODY_OWNER_REQUIRED",403);
         }
+        var custodyUser=source.UserId??r.UserId;
+        if(custodyUser!=null)Output.Require(!await db.StaffSupplyAllocations.AnyAsync(a=>a.UserId==custodyUser&&a.BranchId==source.BranchId&&a.Status!="CLOSED"
+            &&db.AuditLogs.Any(l=>l.EntityType=="StaffSupplyAllocation"&&l.EntityKey==a.AllocationId.ToString()&&l.Action=="RETURN_SCHEDULED"),ct),"SUPPLY_RETURN_PENDING");
         var hash=Payload($"move:{id}",r);if(await Already(r.OperationKey,hash,ct))return (object)new{alreadyApplied=true};
         Output.Version(source.RowVersion,r.RowVersion);Output.Reason(r.Reason);await Destination(source.BranchId,r,ct);
         Output.Require(source.Status!="WRITTEN_OFF"&&source.Status!="IN_TRANSIT","INVALID_CUSTODY_TRANSITION");
@@ -81,17 +87,41 @@ public sealed class ReusableInventoryService(HotelOpsCompactDbContext db,Access 
             ("STAFF_HOLDING","IN_USE" or "READY" or "DAMAGED")=>true,
             ("IN_USE","DIRTY" or "DAMAGED")=>true,("DIRTY","LAUNDRY" or "DAMAGED")=>true,
             ("LAUNDRY","READY" or "DAMAGED")=>true,("DAMAGED","READY")=>store,_=>false},"INVALID_CUSTODY_TRANSITION");
+        Output.Require(r.Quantity>0&&SupplyMath.ValidQuantity(r.Quantity)&&decimal.Truncate(r.Quantity)==r.Quantity,"INVALID_SUPPLY_QUANTITY",400);
+        if(source.Status=="IN_USE")
+            Output.Require(r.Quantity<=source.Quantity-await ReportedUnavailable(source,ct),"REUSABLE_AVAILABLE_INSUFFICIENT");
         var target=await Accounting.Position(source.BranchId,source.ItemId,r.Status,r.WarehouseId,r.UserId,r.RoomId,ct);
         if(r.Replace){
             Output.Require(r.Status=="IN_USE"&&(source.Status=="READY"||source.Status=="STAFF_HOLDING"),"REPLACEMENT_SOURCE_REQUIRED");
-            var dirty=await Accounting.Position(source.BranchId,source.ItemId,"DIRTY",null,null,r.RoomId,ct);
-            await Accounting.Move(target,dirty,r.Quantity,actor.Id,r.OperationKey,"REPLACEMENT",r.Reason,ct,r.WorkId);
+            var dirty=await Accounting.Position(source.BranchId,source.ItemId,"DIRTY",null,source.UserId??actor.Id,null,ct);
+            var collected=Math.Min(Math.Max(0,target.Quantity-await ReportedUnavailable(target,ct)),r.Quantity);
+            if(collected>0)await Accounting.Move(target,dirty,collected,actor.Id,r.OperationKey,"REPLACEMENT",r.Reason,ct,r.WorkId);
         }
         await Accounting.Move(source,target,r.Quantity,actor.Id,r.OperationKey,"MOVE",r.Reason,ct,r.WorkId);
         Remember(id,source.BranchId,r.OperationKey,hash);await db.SaveChangesAsync(ct);
         await lowStock.Reconcile(ct,source.BranchId);
         return (object)new{applied=true};
     },ct);
+    internal static decimal IncidentReservedQuantity(string kind,decimal reported,decimal returned)
+        =>Math.Max(0,reported-(kind=="MISSING"?0:returned));
+    private sealed record CustodyIssue(string Kind,long? ItemId,decimal Quantity,bool Reusable,MissingDirtySource[]? DirtySources=null);
+    private async Task<decimal> ReportedUnavailable(ReusablePosition position,CancellationToken ct)
+    {
+        if(position.RoomId==null)return 0;
+        var reports=await (from e in db.WorkEvents.AsNoTracking() join w in db.WorkItems on e.WorkId equals w.WorkId
+            where w.BranchId==position.BranchId&&w.RoomId==position.RoomId&&w.Status!="CANCELLED"&&e.EventType=="ROOM_ISSUE_REPORTED"
+            select new{w.WorkId,e.SnapshotJson}).ToArrayAsync(ct);
+        decimal unavailable=0;
+        foreach(var report in reports){
+            var issue=JsonSerializer.Deserialize<CustodyIssue>(report.SnapshotJson??"{}");
+            if(issue is not{Reusable:true}||issue.ItemId!=position.ItemId||issue.DirtySources!=null)continue;
+            var returned=issue.Kind=="MISSING"?0:await db.ReusableMovements.AsNoTracking()
+                .Where(m=>m.WorkId==report.WorkId&&m.ItemId==position.ItemId&&m.Kind=="DAMAGE").SumAsync(m=>(decimal?)m.Quantity,ct)??0;
+            // Closing an incident resolves the room workflow, never its missing physical stock.
+            unavailable+=IncidentReservedQuantity(issue.Kind,issue.Quantity,returned);
+        }
+        return unavailable;
+    }
     public Task<object> Propose(long id,ReusableWriteOffRequest r,CancellationToken ct)=>atomic.Run(async()=>{
         await StaffSupplyService.Lock(db,ct);var source=await db.ReusablePositions.SingleOrDefaultAsync(p=>p.PositionId==id,ct)??throw new ApiException(404,"CUSTODY_NOT_FOUND");
         Output.Require(await Store(source.BranchId,ct),"STOREKEEPER_REQUIRED",403);var hash=Payload($"write-off:{id}",r);

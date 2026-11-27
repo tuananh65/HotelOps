@@ -18,10 +18,11 @@ public sealed class WorkController(WorkService service):ControllerBase
     [HttpGet("room-issue-objects")]public Task<object> RoomIssueObjects(long branchId,long roomId,CancellationToken ct,long? workId=null)=>service.RoomIssueObjects(branchId,roomId,ct,workId);
     [HttpGet("room-issues")]public Task<object> RoomIssues(long branchId,CancellationToken ct,int? page=null,string? search=null)=>service.RoomIssues(branchId,ct,page,search);
     [HttpGet("maintenance-inbox")]public Task<object> MaintenanceInbox(long branchId,CancellationToken ct,string queue="all",int page=1,string? search=null)=>service.MaintenanceInbox(branchId,queue,page,search,ct);
+    [HttpPost("room-issues/batch")]public Task<object> CreateRoomIssues(RoomIssueBatchRequest request,CancellationToken ct)=>service.CreateRoomIssueBatch(request,ct);
+    [HttpGet("missing-asset-purchases")]public Task<object> MissingAssetPurchases(long branchId,CancellationToken ct)=>service.MissingAssetPurchases(branchId,ct);
     [HttpPost("room-issues")]public Task<object> CreateRoomIssue(RoomIssueCreateRequest request,CancellationToken ct)=>service.CreateRoomIssue(request,ct);
     [HttpGet("room-issues/{id:long}")]public Task<object> RoomIssueDetail(long id,CancellationToken ct)=>service.RoomIssueDetail(id,ct);
     [HttpPost("room-issues/{id:long}/recover")]public Task<object> RecoverRoomIssue(long id,LegacyRoomIssueRecoveryRequest request,CancellationToken ct)=>service.RecoverLegacyRoomIssue(id,request,ct);
-    [HttpPost("room-issues/{id:long}/investigation")]public Task<object> Investigate(long id,IncidentInvestigationRequest request,CancellationToken ct)=>service.Investigate(id,request,ct);
     [HttpPost("room-issues/{id:long}/{command}")]public Task<object> RoomIssueAction(long id,string command,RoomIssueActionRequest request,CancellationToken ct)=>service.ActRoomIssue(id,command,request,ct);
     [HttpPost("{id:long}/inspection-result")]public Task<object> InspectionResult(long id,PaperInspectionRequest request,CancellationToken ct)=>service.PaperInspection(id,request,ct);
     [HttpPost("{id:long}/confirm-room-issue")]public Task<object> ConfirmRoomIssue(long id,ActionRequest request,CancellationToken ct)=>service.ConfirmCleaningIssue(id,request,ct);

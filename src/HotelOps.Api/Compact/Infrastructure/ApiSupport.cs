@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
@@ -17,6 +17,7 @@ public sealed class ApiException(int status, string code, string? detail = null)
 }
 public sealed class Actor(IHttpContextAccessor accessor)
 {
+    internal HttpRequest? Request => accessor.HttpContext?.Request;
     public bool IsBusinessCommand => accessor.HttpContext is { } context &&
         HotelOps.Api.Compact.Security.ShiftCommandAccess.IsBusinessCommand(context.Request.Method,context.Request.Path.Value??"");
     public long Id => long.TryParse(accessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier),out var id)

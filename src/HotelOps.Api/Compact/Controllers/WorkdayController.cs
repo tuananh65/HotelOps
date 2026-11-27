@@ -18,6 +18,7 @@ public sealed class WorkdayController(WorkdayService service):ControllerBase
     [HttpPut("shifts/{id:long}")] public Task<object> UpdateShift(long id,SaveWorkdayShiftRequest request,CancellationToken ct)=>service.SaveShift(id,request,ct);
     [HttpGet("calendar")] public Task<object> Calendar(long branchId,int year,CancellationToken ct)=>service.Calendar(branchId,year,ct);
     [HttpPost("assignments")] public Task<object> Assign(AssignShiftRequest request,CancellationToken ct)=>service.Assign(request,ct);
-    [HttpPost("assignments/{id:long}/{command}")] public Task<object> Action(long id,string command,ActionRequest request,CancellationToken ct)=>service.Action(id,command,request,ct);
+    [HttpPost("assignments/{id:long}/end")] public Task<object> End(long id,ActionRequest request,CancellationToken ct)=>service.Action(id,"end",request,ct);
+    [HttpPost("assignments/{id:long}/cancel")] public Task<object> Cancel(long id,ActionRequest request,CancellationToken ct)=>service.Action(id,"cancel",request,ct);
     [HttpGet("assignments/{id:long}/history")] public Task<object> History(long id,CancellationToken ct)=>service.History(id,ct);
 }

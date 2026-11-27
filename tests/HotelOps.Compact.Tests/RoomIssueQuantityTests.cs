@@ -32,4 +32,56 @@ public sealed class RoomIssueQuantityTests
     }
     [Fact] public void FullyReplenishedAssessmentDoesNotAllowAnotherReport()
         => Assert.Throws<ApiException>(()=>RoomIssueQuantityRules.RequireWithin(1,RoomIssueQuantityRules.Outstanding(1,1,0),"ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING"));
+    [Theory]
+    [InlineData(4, 4, 0, 4)]
+    [InlineData(4, 4, 4, 0)]
+    [InlineData(4, 2, 1, 1)]
+    [InlineData(4, 0, 0, 0)]
+    public void MissingBoundUsesReservedNormLessRecordedConsumption(decimal norm, decimal reserved, decimal consumed, decimal expected)
+        => Assert.Equal(expected, RoomIssueQuantityRules.ReservationOutstanding(norm, reserved, consumed));
+
+    [Theory]
+    [InlineData(4, 5, 0)]
+    [InlineData(4, 2, 3)]
+    [InlineData(4, 2, -1)]
+    [InlineData(4, -1, 0)]
+    [InlineData(4, 2, 0.00001)]
+    public void InconsistentEvidenceCannotIncreaseMissingQuantity(decimal norm, decimal reserved, decimal consumed)
+        => Assert.Equal("SUPPLY_BALANCE_INCONSISTENT", Assert.Throws<ApiException>(
+            () => RoomIssueQuantityRules.ReservationOutstanding(norm, reserved, consumed)).Code);
+
+    [Fact]
+    public void PriorReportsAndCommitmentsStillReduceTheCanonicalBound()
+    {
+        var bound = RoomIssueQuantityRules.ReservationOutstanding(4, 3, 1);
+        RoomIssueQuantityRules.RequireWithin(1, bound - 1, "ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING");
+        Assert.Throws<ApiException>(() => RoomIssueQuantityRules.RequireWithin(2, bound - 1, "ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING"));
+        var committed = RoomIssueQuantityRules.Commitment("PARTIALLY_ISSUED", 2, 1, 0);
+        Assert.Throws<ApiException>(() => RoomIssueQuantityRules.RequireWithin(1, bound - committed, "REMEDIATION_EXCEEDS_REPORTED_MISSING"));
+    }
+    [Theory]
+    [InlineData(4, null, 0, 4)]
+    [InlineData(4, null, 1, 3)]
+    [InlineData(4, null, 4, 0)]
+    [InlineData(4, 2, 0, 2)]
+    [InlineData(4, 0, 0, 0)]
+    public void PhysicalReportBeforeConfirmationUsesNormWithoutInventingCustody(
+        decimal norm, int? held, decimal replenished, decimal expected)
+        => Assert.Equal(expected, RoomIssueQuantityRules.PhysicalReportOutstanding(norm, held, replenished));
+
+    [Fact]
+    public void UnreservedReportAndRemediationCannotExceedNormLessExistingEvidence()
+    {
+        var bound = RoomIssueQuantityRules.PhysicalReportOutstanding(4, null, 1);
+        RoomIssueQuantityRules.RequireWithin(2, bound - 1, "ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING");
+        Assert.Throws<ApiException>(() => RoomIssueQuantityRules.RequireWithin(3, bound - 1, "ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING"));
+        var committed = RoomIssueQuantityRules.Commitment("PARTIALLY_ISSUED", 2, 1, 0);
+        RoomIssueQuantityRules.RequireWithin(1, bound - committed, "REMEDIATION_EXCEEDS_ASSESSED_MISSING");
+        Assert.Throws<ApiException>(() => RoomIssueQuantityRules.RequireWithin(2, bound - committed, "REMEDIATION_EXCEEDS_ASSESSED_MISSING"));
+    }
+
+    [Fact]
+    public void UnreservedReportRejectsInvalidConsumptionEvidence()
+        => Assert.Equal("SUPPLY_BALANCE_INCONSISTENT", Assert.Throws<ApiException>(() =>
+            RoomIssueQuantityRules.PhysicalReportOutstanding(4, null, 5)).Code);
 }

@@ -7,6 +7,44 @@ namespace HotelOps.Compact.Tests;
 public sealed class ShiftExpiryTests
 {
     [Theory]
+    [InlineData(-1, false)]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(479, true)]
+    [InlineData(480, false)]
+    public void ScheduledShiftAutomaticallyStartsOnlyInsideItsHours(int minutes, bool expected)
+    {
+        var row = new WorkdayAssignment { WorkDate = new(2026, 11, 26), Status = "PLANNED" };
+        var now = ShiftExpiryService.Boundary(row.WorkDate, 960, "Asia/Ho_Chi_Minh").AddMinutes(minutes);
+        Assert.Equal(expected, ShiftExpiryService.TryStart(row, 960, 1440, "Asia/Ho_Chi_Minh", now));
+        Assert.Equal(expected ? "WORKING" : "PLANNED", row.Status);
+        Assert.Equal(expected ? now : (DateTime?)null, row.StartedAt);
+        Assert.Null(row.EndedAt);
+        if (expected) Assert.False(ShiftExpiryService.TryStart(row, 960, 1440, "Asia/Ho_Chi_Minh", now.AddSeconds(1)));
+    }
+
+    [Theory]
+    [InlineData("CANCELLED")]
+    [InlineData("ENDED")]
+    [InlineData("WORKING")]
+    public void AutomaticStartNeverReopensAnEndedOrCancelledShift(string status)
+    {
+        var row = new WorkdayAssignment { WorkDate = new(2026, 11, 26), Status = status };
+        Assert.False(ShiftExpiryService.TryStart(row, 960, 1440, "Asia/Ho_Chi_Minh",
+            new DateTime(2026, 11, 26, 10, 0, 0, DateTimeKind.Utc)));
+        Assert.Equal(status, row.Status);
+    }
+
+    [Fact]
+    public void MidShiftActivationUsesObservedTimeWithoutBackdating()
+    {
+        var now = new DateTime(2026, 11, 26, 12, 0, 0, DateTimeKind.Utc);
+        var row = new WorkdayAssignment { WorkDate = new(2026, 11, 26), CreatedAt = now.AddMinutes(-1) };
+        Assert.True(ShiftExpiryService.TryStart(row, 960, 1440, "Asia/Ho_Chi_Minh", now));
+        Assert.Equal(now, row.StartedAt);
+    }
+
+    [Theory]
     [InlineData(0, "2026-11-22T17:00:00Z")]
     [InlineData(480, "2026-11-23T01:00:00Z")]
     [InlineData(1440, "2026-11-23T17:00:00Z")]

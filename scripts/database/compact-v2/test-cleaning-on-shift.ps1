@@ -34,19 +34,20 @@ function RejectCreate($code,$expected=409,$body=$null,$token=$head){
  Check $code ($errorResult.title-eq $code -and (Sql 'SELECT COUNT(*) n FROM work_items').Rows[0].n-eq $before)
 }
 $options=Call GET "/api/v2/work/cleaning-creation-options?branchId=$a" $null $head
-Check 'current supervisor sees only working HK staff in own branch' ($options.canCreate -and @($options.candidates).Count-eq 1 -and $options.candidates[0].userId-eq $hkId)
+Check 'scheduled peer automatically becomes eligible without starting shift' ($options.canCreate -and @($options.candidates).Count-eq 2 -and $hkId -in $options.candidates.userId -and $peerId -in $options.candidates.userId)
 $null=Call GET "/api/v2/work/cleaning-creation-options?branchId=$b" $null $head 403
 $other=Call GET "/api/v2/work/cleaning-creation-options?branchId=$b" $null $headB
 Check 'other branch has only its own working staff' ($other.canCreate -and @($other.candidates).Count-eq 1 -and $other.candidates[0].userId-eq $foreignId)
 $body=NewCleaningBody;$body.Remove('assigneeUserId');RejectCreate 'CLEANING_ASSIGNEE_REQUIRED' 400 $body
 $body=NewCleaningBody;$body.assigneeUserId=$foreignId;RejectCreate 'ASSIGNEE_NOT_ACTIVE_IN_BRANCH' 409 $body
+# End the automatically activated peer before testing off-shift assignment rejection.
+$null=Sql "UPDATE workday_assignments SET status='ENDED',ended_at=SYSUTCDATETIME() WHERE user_id=$peerId AND status='WORKING'"
 $body=NewCleaningBody;$body.assigneeUserId=$peerId;RejectCreate 'CLEANING_ASSIGNEE_NOT_ON_SHIFT' 409 $body
 $body=NewCleaningBody;$body.assigneeUserId=$f.workerId;RejectCreate 'CLEANING_STAFF_REQUIRED' 409 $body
 RejectCreate 'PERMISSION_DENIED' 403 (NewCleaningBody) $hk
 $null=Sql "UPDATE workday_assignments SET status='PLANNED',started_at=NULL WHERE user_id=$headId"
 $options=Call GET "/api/v2/work/cleaning-creation-options?branchId=$a" $null $head
-Check 'planned creator cannot create before starting shift' (-not $options.canCreate)
-RejectCreate 'CLEANING_CREATOR_NOT_ON_SHIFT' 403
+Check 'scheduled creator automatically operates without starting shift' $options.canCreate
 $null=Sql "UPDATE workday_assignments SET status='WORKING',started_at=DATEADD(minute,-1,SYSUTCDATETIME()) WHERE user_id=$headId"
 # Off-duty transitions after the options GET must be rechecked at POST, without partial creation.
 $null=Sql "UPDATE workday_assignments SET status='ENDED',ended_at=SYSUTCDATETIME() WHERE user_id=$hkId"
@@ -57,7 +58,7 @@ $null=Sql "UPDATE workday_assignments SET status='WORKING',ended_at=NULL,work_da
 RejectCreate 'CLEANING_ASSIGNEE_NOT_ON_SHIFT'
 $null=Sql "UPDATE workday_assignments SET work_date=DATEADD(day,2,work_date) WHERE user_id=$hkId"
 RejectCreate 'CLEANING_ASSIGNEE_NOT_ON_SHIFT'
-$null=Sql "UPDATE workday_assignments SET work_date=DATEADD(day,-1,work_date),started_at=DATEADD(hour,1,SYSUTCDATETIME()) WHERE user_id=$hkId"
+$null=Sql "UPDATE workday_assignments SET status='WORKING',ended_at=NULL,work_date=DATEADD(day,-1,work_date),started_at=DATEADD(hour,1,SYSUTCDATETIME()) WHERE user_id=$hkId"
 RejectCreate 'CLEANING_ASSIGNEE_NOT_ON_SHIFT'
 $null=Sql "UPDATE workday_assignments SET started_at=DATEADD(minute,-1,SYSUTCDATETIME()) WHERE user_id=$hkId; UPDATE users SET account_status='INACTIVE' WHERE user_id=$hkId"
 RejectCreate 'ASSIGNEE_NOT_ACTIVE_IN_BRANCH'

@@ -23,24 +23,6 @@ public sealed class AdvisoryService(HotelOpsCompactDbContext db,Access access,IA
                 evidence=await Transfers(request.BranchId,request.Days,ct);
                 explanation="Đề xuất theo quy tắc: chỉ chuyển phần dư sau mức tối thiểu, nhu cầu thống kê và yêu cầu điều chuyển đang mở. Không tự tạo phiếu hoặc phê duyệt. Nguồn chỉ gồm lô đã xác minh còn hạn qua kỳ dự báo.";
                 break;
-            case "INCIDENT":
-                await access.Require("INCIDENT_VIEW",request.BranchId,ct:ct);
-                Output.Require(request.IncidentId is >0,"INCIDENT_REQUIRED",400);
-                var issue=await db.WorkItems.AsNoTracking().SingleOrDefaultAsync(w=>w.WorkId==request.IncidentId&&w.BranchId==request.BranchId&&w.Kind=="INCIDENT",ct)??throw new ApiException(404,"WORK_NOT_FOUND");
-                var since=Now.AddDays(-90);
-                var repeats=issue.AssetId==null?0:await db.WorkItems.AsNoTracking().CountAsync(w=>w.BranchId==request.BranchId&&w.Kind=="INCIDENT"&&w.AssetId==issue.AssetId&&w.WorkId!=issue.WorkId&&w.CreatedAt>=since,ct);
-                var similar=await db.WorkItems.AsNoTracking().Where(w=>w.BranchId==request.BranchId&&w.Kind=="INCIDENT"&&w.WorkId!=issue.WorkId&&w.CreatedAt>=since&&issue.CategoryId!=null&&w.CategoryId==issue.CategoryId)
-                    .OrderByDescending(w=>w.CreatedAt).Select(w=>new{w.Status,w.CreatedAt,w.Description,w.Title}).Take(10).ToArrayAsync(ct);
-                var names=await db.Users.AsNoTracking().Where(u=>db.Memberships.Any(m=>m.UserId==u.UserId&&m.BranchId==request.BranchId)).Select(u=>u.FullName).Distinct().ToArrayAsync(ct);
-                var summary=IncidentAdviceText.Sanitize(issue.Description??issue.Title,names);
-                var category=await db.ReferenceValues.AsNoTracking().Where(r=>r.ReferenceId==issue.CategoryId).Select(r=>r.Name).SingleOrDefaultAsync(ct);
-                var safety=IncidentAdviceText.NeedsSafetyReview(summary);
-                var suggestedPriority=safety?"Cần giám sát đánh giá an toàn ngay":repeats>0?"Ưu tiên kiểm tra lỗi tái diễn":"Giám sát xác định theo mức gián đoạn thực tế";
-                var direction=safety?"Báo người phụ trách và tuân thủ quy trình an toàn của khách sạn; không kết luận an toàn từ mô tả.":repeats>0?"Đối chiếu lịch sử sửa chữa, kiểm tra nguyên nhân tái diễn theo checklist và cân nhắc đề xuất thay mới nếu không thể sửa.":"Kiểm tra thực tế, xác nhận nhóm thiết bị và thực hiện checklist kỹ thuật phù hợp trước khi kết luận.";
-                evidence=new{issue.Status,summary,suggestedCategory=category??"Chưa đủ dữ liệu phân nhóm",suggestedPriority,direction,safetyReviewRequired=safety,
-                    hasAsset=issue.AssetId!=null,repeatedAssetReportsIn90Days=repeats,similarReports=similar.Select(s=>new{s.Status,s.CreatedAt,summary=IncidentAdviceText.Sanitize(s.Description??s.Title,names)})};
-                explanation=$"Tóm tắt dữ liệu báo cáo: {summary}\nNhóm hiện có để đối chiếu: {category??"Chưa phân nhóm"}.\nƯu tiên đề xuất: {suggestedPriority}.\n{direction}\nKhông suy ra người gây sự cố từ người báo cáo. Nhóm và mức ưu tiên cần người có chuyên môn xác nhận.";
-                break;
             default:throw new ApiException(400,"ADVISORY_KIND_INVALID");
         }
         var advice=await provider.Explain(request.Kind,evidence,ct);

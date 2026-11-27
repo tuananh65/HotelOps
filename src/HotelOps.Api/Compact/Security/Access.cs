@@ -1,4 +1,4 @@
-using HotelOps.Api.Compact.Data;
+﻿using HotelOps.Api.Compact.Data;
 using HotelOps.Api.Compact.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +32,8 @@ public sealed class Access(HotelOpsCompactDbContext db,Actor actor,TimeProvider 
     public async Task Require(string code,long? branchId=null,bool owns=false,CancellationToken ct=default)
     {
         if(!await Allows(code,branchId,owns,ct:ct))throw new ApiException(403,"PERMISSION_DENIED");
-        if(actor.IsBusinessCommand&&branchId is long branch)
+        if(actor.IsBusinessCommand&&branchId is long branch
+            && !(code is "CLEANING_VIEW" or "CLEANING_EXECUTE" or "IR_CREATE" && await CleaningContinuationAccess.AllowsRequest(db,actor,clock,branch,ct)))
             await ShiftCommandAccess.Require(db,actor.Id,branch,clock.GetUtcNow().UtcDateTime,ct,code,owns);
     }
     public Task<bool> HasRole(string code,long branchId,CancellationToken ct){var now=clock.GetUtcNow().UtcDateTime;

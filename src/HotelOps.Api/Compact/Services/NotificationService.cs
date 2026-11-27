@@ -64,19 +64,19 @@ public sealed class NotificationService(HotelOpsCompactDbContext db,Actor actor,
         }
         return new ResourceDto(nameof(Notification),fields);
     }
-    // Initial shift kits are no longer issued. Retain their historical alerts in the database,
-    // but exclude obsolete shortage requests from both inbox paging and realtime counts.
-    private IQueryable<Notification> InBranch(long? branchId) => db.Notifications.AsNoTracking().Where(n=>n.NotificationType!="SUPPLY_INITIAL_SHORT").Where(n=>branchId==null||n.BranchId==branchId
+    private IQueryable<Notification> InBranch(long? branchId) => db.Notifications.AsNoTracking().Where(n=>branchId==null||n.BranchId==branchId
         ||db.InventoryDocuments.Any(d=>d.DocumentId==n.DocumentId
             &&((d.Kind=="TRANSFER_REQUEST"||d.Kind=="TRANSFER")&&d.DestinationBranchId==branchId
                 ||d.Kind=="TRANSFER_RECEIPT"&&db.InventoryDocuments.Any(source=>source.DocumentId==d.SourceDocumentId&&source.Kind=="TRANSFER"&&source.BranchId==branchId))));
     private async Task<bool> Visible(Notification n,CancellationToken ct,VisibilityChecks? snapshot=null)
     {
         var checks=snapshot??new VisibilityChecks(db,access);
+        if(n.NotificationType==ShiftExpiryService.UnfinishedAtExpiryAction)
+            return await checks.HasRole("OPERATION_MANAGER",n.BranchId,ct)||await checks.HasRole("HOUSEKEEPING_SUPERVISOR",n.BranchId,ct);
         if(n.NotificationType.StartsWith("REPLACEMENT_")&&await checks.HasRole("OPERATION_MANAGER",n.BranchId,ct))
             return await checks.Allows("ASSET_MANAGE",n.BranchId,ct:ct);
         if(n.NotificationType is "LOW_STOCK" or "EXPIRY_WARNING")return await checks.HasRole("STOREKEEPER",n.BranchId,ct)&&await checks.Allows("INVENTORY_VIEW",n.BranchId,ct:ct);
-        if(n.NotificationType=="SUPPLY_INITIAL_SHORT")return n.RecipientUserId==actor.Id&&await checks.Allows("STAFF_SUPPLY_VIEW",n.BranchId,true,ct:ct);
+        if(n.NotificationType=="SUPPLY_INITIAL_SHORT")return n.RecipientUserId==actor.Id&&(await checks.Allows("STAFF_SUPPLY_VIEW",n.BranchId,true,ct:ct)||await checks.Allows("MR_FULFILL",n.BranchId,ct:ct)||await checks.Allows("CLEANING_ASSIGN",n.BranchId,ct:ct));
         if(n.WorkId!=null){var requestAccess=await RequestWorkflowVisibility.CanRead(db,access,actor.Id,n.WorkId.Value,clock.GetUtcNow().UtcDateTime,ct);
             if(requestAccess!=null)return requestAccess.Value;
             var w=await db.WorkItems.AsNoTracking().SingleAsync(w=>w.WorkId==n.WorkId,ct);

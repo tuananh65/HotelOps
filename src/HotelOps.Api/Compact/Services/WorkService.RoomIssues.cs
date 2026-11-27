@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Compact.Services;
 public sealed partial class WorkService
 {
-    private sealed record IssueData(string Kind,long? ItemId,string ObjectName,decimal Quantity=1,string Impact="READINESS",long? CleaningWorkId=null,long? DetectedByUserId=null);
+    private sealed record IssueData(string Kind,long? ItemId,string ObjectName,decimal Quantity=1,string Impact="READINESS",long? CleaningWorkId=null,long? DetectedByUserId=null,bool Reusable=false,MissingDirtySource[]? DirtySources=null);
     private Task<bool> IsRoomIssue(long id,CancellationToken ct)=>db.WorkEvents.AnyAsync(e=>e.WorkId==id&&(e.EventType=="ROOM_ISSUE_REPORTED"||e.EventType=="LEGACY_ROOM_ISSUE_RECOVERED"),ct);
     private async Task<IssueData> IssueInfo(long id,CancellationToken ct) => JsonSerializer.Deserialize<IssueData>(
         await db.WorkEvents.Where(e=>e.WorkId==id&&(e.EventType=="ROOM_ISSUE_REPORTED"||e.EventType=="LEGACY_ROOM_ISSUE_RECOVERED")).Select(e=>e.SnapshotJson).SingleAsync(ct)
@@ -15,7 +15,8 @@ public sealed partial class WorkService
     private Task<string?> IssueStage(long id,CancellationToken ct)=>db.WorkEvents.Where(e=>e.WorkId==id&&e.EventType.StartsWith("ROOM_ISSUE_"))
         .OrderByDescending(e=>e.WorkEventId).Select(e=>e.EventType).FirstOrDefaultAsync(ct);
 
-    public Task<object> CreateRoomIssue(RoomIssueCreateRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+    public Task<object> CreateRoomIssue(RoomIssueCreateRequest request,CancellationToken ct)=>atomic.Run(()=>CreateRoomIssueCore(request,ct),ct);
+    private async Task<object> CreateRoomIssueCore(RoomIssueCreateRequest request,CancellationToken ct,bool checkRoomVersion=true){
         await access.Require("IR_CREATE",request.BranchId,true,ct);
         Output.Require(!await access.HasRole("OPERATION_MANAGER",request.BranchId,ct),"OM_REQUEST_READ_ONLY",403);
         var housekeeper=await access.HasRole("HK_STAFF",request.BranchId,ct);
@@ -23,11 +24,19 @@ public sealed partial class WorkService
         if(receptionist)Output.Require(await RoomService.ReceptionOnShift(db,actor.Id,clock,request.BranchId,ct),"RECEPTION_NOT_ON_SHIFT",403);
         Output.Require(housekeeper||receptionist||await access.HasRole("HOUSEKEEPING_SUPERVISOR",request.BranchId,ct),"ROOM_REPORTER_REQUIRED",403);
         Output.Key(request.OperationKey);
+        await StaffSupplyService.Lock(db,ct);
+        var reportPayload=JsonSerializer.Serialize(request);
+        var previousReport=await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(a=>a.ActorUserId==actor.Id&&a.OperationKey==request.OperationKey&&a.Action=="CREATE_ROOM_ISSUE",ct);
+        if(previousReport!=null){
+            Output.Require(previousReport.AfterJson==reportPayload,"IDEMPOTENCY_KEY_REUSED");
+            var existing=await db.WorkItems.SingleAsync(w=>w.WorkId==long.Parse(previousReport.EntityKey)&&w.BranchId==request.BranchId,ct);
+            return (object)Output.Record(existing);
+        }
         var detectedBy=request.DetectedByUserId??actor.Id;
         await access.Eligible(detectedBy,request.BranchId,ct);
         Output.Require(!await db.WorkEvents.AnyAsync(e=>e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct),"OPERATION_ALREADY_APPLIED");
         var room=await db.Rooms.SingleOrDefaultAsync(r=>r.RoomId==request.RoomId&&r.BranchId==request.BranchId&&r.IsActive,ct)??throw new ApiException(404,"ROOM_NOT_FOUND");
-        Output.Version(room.RowVersion,request.RoomRowVersion);
+        if(checkRoomVersion)Output.Version(room.RowVersion,request.RoomRowVersion);
         if(!receptionist){
             var context=await db.WorkItems.SingleOrDefaultAsync(w=>w.WorkId==request.CleaningWorkId&&w.BranchId==room.BranchId&&w.RoomId==room.RoomId,ct);
             Output.Require(context!=null&&await CanReportDuringHousekeeping(context,ct),"ROOM_REPORT_EXECUTION_REQUIRED",403);
@@ -45,13 +54,29 @@ public sealed partial class WorkService
         // older type configurations that previously required them.
         Output.Require(!receptionist||type!.Code.EndsWith("_BROKEN"),"RECEPTION_DAMAGE_REPORT_ONLY",403);
         Output.Require((request.AssetId!=null) != (request.ItemId!=null),"ROOM_ISSUE_OBJECT_REQUIRED",400);
+        Output.Require(!type!.Code.EndsWith("_BROKEN") || request.AssetId != null,"ROOM_ISSUE_BROKEN_ASSET_REQUIRED",400);
         await StaffSupplyService.Lock(db,ct);
+        var reusable=request.ItemId!=null&&await db.ItemLifecycleProfiles.AnyAsync(p=>p.BranchId==room.BranchId&&p.ItemId==request.ItemId&&p.Classification=="REUSABLE",ct);
         string? objectName=null;
         if(request.AssetId!=null)objectName=await db.Assets.Where(a=>a.AssetId==request.AssetId&&a.RoomId==room.RoomId&&a.BranchId==room.BranchId&&a.IsActive&&a.RetiredAt==null).Select(a=>a.Name).SingleOrDefaultAsync(ct);
         else objectName=(await RoomIssuedItems(room.BranchId,room.RoomId,ct)).FirstOrDefault(i=>i.ItemId==request.ItemId)?.Name;
         var assessedConsumable=type!.Code.EndsWith("_MISSING")&&request.ItemId!=null&&
             await db.ItemLifecycleProfiles.AnyAsync(p=>p.BranchId==room.BranchId&&p.ItemId==request.ItemId&&p.Classification=="CONSUMABLE",ct);
-        if(assessedConsumable){
+        MissingDirtySource[]? dirtySources=null;
+        if(type!.Code.EndsWith("_MISSING")&&request.AssetId!=null){
+            Output.Require(request.Quantity==1,"ASSET_QUANTITY_MUST_BE_ONE",400);
+            Output.Require(!await db.WorkItems.AnyAsync(w=>w.BranchId==room.BranchId&&w.AssetId==request.AssetId&&w.Kind=="INCIDENT"&&w.Status!="CANCELLED"
+                &&db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED"&&e.SnapshotJson!=null&&e.SnapshotJson.Contains("\"Kind\":\"MISSING\"")),ct),"MISSING_ASSET_ALREADY_REPORTED",409);
+        }
+        if(reusable){
+            Output.Require(decimal.Truncate(request.Quantity)==request.Quantity,"SUPPLY_WHOLE_QUANTITY_REQUIRED",400);
+            if(type!.Code.EndsWith("_MISSING")){
+                var sourceWork=await MissingSourceCleaning(room.BranchId,room.RoomId,request.CleaningWorkId,ct);
+                dirtySources=ReusableMissingCustody.Reserve(await ReusableMissingCustody.Available(db,room.BranchId,room.RoomId,sourceWork,request.ItemId!.Value,ct),request.Quantity);
+            }else await RequireReusableReportQuantity(room.BranchId,room.RoomId,request.ItemId!.Value,request.Quantity,ct);
+            objectName=await db.InventoryItems.Where(i=>i.ItemId==request.ItemId&&i.IsActive).Select(i=>i.Name).SingleOrDefaultAsync(ct);
+        }
+        else if(assessedConsumable){
             var outstanding=await RoomIssueQuantityRules.AssessedOutstanding(db,room.BranchId,room.RoomId,request.CleaningWorkId,request.ItemId!.Value,ct);
             var reported=await RoomIssueQuantityRules.Reports(db,room.BranchId,room.RoomId,request.CleaningWorkId,request.ItemId.Value,ct);
             RoomIssueQuantityRules.RequireWithin(request.Quantity,outstanding-reported.Sum(r=>r.Data.Quantity),"ROOM_ISSUE_EXCEEDS_ASSESSED_MISSING");
@@ -63,8 +88,8 @@ public sealed partial class WorkService
         }
         if(assessedConsumable)objectName=await db.InventoryItems.Where(i=>i.ItemId==request.ItemId).Select(i=>i.Name).SingleAsync(ct);
         Output.Require(objectName!=null,"ROOM_ISSUE_OBJECT_NOT_IN_ROOM",409);
-        var group=type!.Code.EndsWith("_BROKEN")?"C":"B";
-        Output.Require(assessedConsumable||await db.SupplyConfigurations.AnyAsync(c=>c.BranchId==room.BranchId&&c.IsCurrent&&c.IsActive&&c.SupplyGroup==group
+        var group=type!.Code.EndsWith("_BROKEN")||request.AssetId!=null?"C":"B";
+        Output.Require(reusable||assessedConsumable||request.AssetId!=null&&type.Code.EndsWith("_MISSING")||await db.SupplyConfigurations.AnyAsync(c=>c.BranchId==room.BranchId&&c.IsCurrent&&c.IsActive&&c.SupplyGroup==group
             &&c.ItemId==request.ItemId&&c.AssetId==request.AssetId,ct),"ROOM_OBJECT_CLASSIFICATION_REQUIRED",409);
         var work=new WorkItem{BranchId=room.BranchId,RoomId=room.RoomId,TurnoverNo=room.TurnoverNo,Kind="INCIDENT",Status="OPEN",WorkNo=Guid.NewGuid().ToString("N"),
             Title=$"{type!.Name} · {objectName} · Phòng {room.Code}",Description=request.Note,AssetId=request.AssetId,CategoryId=type.ReferenceId,CreatedBy=actor.Id,CreatedAt=Now};
@@ -72,22 +97,24 @@ public sealed partial class WorkService
         db.WorkItems.Add(work);await db.SaveChangesAsync(ct);
         if(request.CleaningWorkId!=null)db.WorkLinks.Add(new WorkLink{BranchId=work.BranchId,SourceWorkId=work.WorkId,TargetWorkId=request.CleaningWorkId.Value,Relation="SOURCE",CreatedBy=actor.Id,CreatedAt=Now});
         Event(work,"ROOM_ISSUE_REPORTED",request.OperationKey,request.Note,null);
-        db.WorkEvents.Local.Single(e=>e.WorkId==work.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED").SnapshotJson=JsonSerializer.Serialize(new IssueData(type.Code.EndsWith("_BROKEN")?"BROKEN":"MISSING",request.ItemId,objectName!,request.Quantity,request.Impact,request.CleaningWorkId,detectedBy));
+        db.WorkEvents.Local.Single(e=>e.WorkId==work.WorkId&&e.EventType=="ROOM_ISSUE_REPORTED").SnapshotJson=JsonSerializer.Serialize(new IssueData(type.Code.EndsWith("_BROKEN")?"BROKEN":"MISSING",request.ItemId,objectName!,request.Quantity,request.Impact,request.CleaningWorkId,detectedBy,reusable,dirtySources));
         // The report blocks release until independent inspection, without falsifying the current cleaning result.
         db.RoomBlocks.Add(new RoomBlock{RoomId=room.RoomId,BranchId=room.BranchId,SourceWorkId=work.WorkId,Reason=work.Title,BlockedBy=actor.Id,BlockedAt=Now});
         db.Entry(room).Property(r=>r.Code).IsModified=true;
-        await NotifyIssueRole(work,"HOUSEKEEPING_SUPERVISOR","ROOM_ISSUE_REPORTED",request.OperationKey,ct);
+        audit.Add("WorkItem",work.WorkId,"CREATE_ROOM_ISSUE",work.BranchId,null,request,request.OperationKey);
+        await NotifyIssueRole(work,reusable&&dirtySources==null?"STOREKEEPER":"HOUSEKEEPING_SUPERVISOR","ROOM_ISSUE_REPORTED",request.OperationKey,ct);
         await db.SaveChangesAsync(ct);
-        await requests.RecordDomainTransition(work,group=="C"?"ROOM_EQUIPMENT_DAMAGE":"ROOM_DURABLE_ITEM_MISSING","PENDING_SUPERVISOR","HOUSEKEEPING_SUPERVISOR","report",housekeeper?"HK_STAFF":receptionist?"RECEPTION":"HOUSEKEEPING_SUPERVISOR",request.OperationKey,request.Note,ct);
+        await requests.RecordDomainTransition(work,type.Code.EndsWith("_BROKEN")&&!reusable?"ROOM_EQUIPMENT_DAMAGE":"ROOM_DURABLE_ITEM_MISSING",reusable&&dirtySources==null?"PENDING_STOREKEEPER":"PENDING_SUPERVISOR",reusable&&dirtySources==null?"STOREKEEPER":"HOUSEKEEPING_SUPERVISOR","report",housekeeper?"HK_STAFF":receptionist?"RECEPTION":"HOUSEKEEPING_SUPERVISOR",request.OperationKey,request.Note,ct);
         return (object)Output.Record(work);
-    },ct);
+    }
 
     private async Task<WorkItem> LoadRoomIssue(long id,CancellationToken ct)
     {
         var work=await db.WorkItems.SingleOrDefaultAsync(w=>w.WorkId==id&&w.Kind=="INCIDENT",ct)??throw new ApiException(404,"WORK_NOT_FOUND");
         Output.Require(await IsRoomIssue(id,ct),"ROOM_ISSUE_REQUIRED",404);
+        if(work.AssetId!=null&&(await IssueInfo(id,ct)).Kind=="MISSING"&&await ReplacementManager(work.BranchId,ct))return work;
         if(await access.HasRole("STOREKEEPER",work.BranchId,ct)&&await access.Allows("MR_FULFILL",work.BranchId,ct:ct))
-            Output.Require(await db.WorkEvents.AnyAsync(e=>e.WorkId==id&&e.EventType=="ROOM_ISSUE_MATERIAL_REQUESTED",ct),"ROOM_ISSUE_NOT_ROUTED",403);
+            Output.Require((await IssueInfo(id,ct)).Reusable||await db.WorkEvents.AnyAsync(e=>e.WorkId==id&&e.EventType=="ROOM_ISSUE_MATERIAL_REQUESTED",ct),"ROOM_ISSUE_NOT_ROUTED",403);
         else if(await access.HasRole("HK_STAFF",work.BranchId,ct)||await access.HasRole("RECEPTION",work.BranchId,ct)){
             await access.Require("IR_VIEW",work.BranchId,true,ct);Output.Require(work.CreatedBy==actor.Id,"REQUEST_VISIBILITY_DENIED",403);
         }else await access.Require("INCIDENT_VIEW",work.BranchId,work.CreatedBy==actor.Id,ct);
@@ -102,7 +129,7 @@ public sealed partial class WorkService
         else if(!store)await access.Require("INCIDENT_VIEW",branch,ct:ct);
         var query=db.WorkItems.AsNoTracking().Where(w=>w.BranchId==branch&&w.Kind=="INCIDENT"
             &&w.RoomId!=null&&(!personal||w.CreatedBy==actor.Id)
-            &&(!store||db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&e.EventType=="ROOM_ISSUE_MATERIAL_REQUESTED")));
+            &&(!store||db.WorkEvents.Any(e=>e.WorkId==w.WorkId&&(e.EventType=="ROOM_ISSUE_MATERIAL_REQUESTED"||e.EventType=="ROOM_ISSUE_REPORTED"&&e.SnapshotJson!=null&&e.SnapshotJson.Contains("\"Reusable\":true")))));
         if(!string.IsNullOrWhiteSpace(search)){
             var term=search.Trim();
             query=query.Where(w=>w.Title.Contains(term)||db.Rooms.Any(r=>r.RoomId==w.RoomId&&r.Code.Contains(term)));
@@ -137,6 +164,16 @@ public sealed partial class WorkService
             &&!await db.WorkItems.AnyAsync(w=>w.ParentWorkId==id&&w.Kind=="MAINTENANCE"&&w.CreatedAt>=repairRequested&&w.Status!="CANCELLED",ct);
         var room=await db.Rooms.AsNoTracking().SingleAsync(r=>r.RoomId==work.RoomId,ct);
         return new{work=Output.Record(work),info,stage,canCreateRepair,canRequestInspection=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct)&&await MaterialDelivered(await CurrentIssueMaterial(id,ct),ct),canReplaceMaterial=stage=="ROOM_ISSUE_MATERIAL_REQUESTED"&&await CanReplaceMaterial(id,ct),room=new{room.Code,rowVersion=Convert.ToBase64String(room.RowVersion)},
+            canIssueReusable=info.Reusable&&info.DirtySources==null&&stage is "ROOM_ISSUE_REPORTED" or "ROOM_ISSUE_REPLACEMENT_REOPENED"&&await access.HasRole("STOREKEEPER",work.BranchId,ct)&&await access.Allows("MR_FULFILL",work.BranchId,ct:ct),
+            canReviewReusable=info.Reusable&&stage=="ROOM_ISSUE_INSPECTION_REQUESTED"&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct),
+            canVerifyMissingReusable=info.DirtySources!=null&&stage=="ROOM_ISSUE_REPORTED"&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct),
+            canVerifyMissingAsset=work.AssetId!=null&&info.Kind=="MISSING"&&(stage is "ROOM_ISSUE_REPORTED" or "ROOM_ISSUE_ASSET_PURCHASE_REJECTED")&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct),
+            canDecideMissingAssetPurchase=work.AssetId!=null&&info.Kind=="MISSING"&&stage=="ROOM_ISSUE_ASSET_PURCHASE_REQUESTED"&&await ReplacementManager(work.BranchId,ct),
+            canRecordMissingAssetDelivery=work.AssetId!=null&&info.Kind=="MISSING"&&(stage is "ROOM_ISSUE_ASSET_PURCHASE_APPROVED" or "ROOM_ISSUE_ASSET_DELIVERY_REJECTED")&&await ReplacementManager(work.BranchId,ct),
+            canInspectMissingAssetDelivery=work.AssetId!=null&&info.Kind=="MISSING"&&stage=="ROOM_ISSUE_ASSET_DELIVERED"&&await access.HasRole("HOUSEKEEPING_SUPERVISOR",work.BranchId,ct)&&await access.Allows("INSPECTION_PERFORM",work.BranchId,ct:ct),
+            replacementAssetId=work.AssetId!=null&&info.Kind=="MISSING"?await DeliveredMissingAsset(id,ct):null,
+            replacementAssets=work.AssetId!=null&&info.Kind=="MISSING"?await MissingReplacementOptions(work,ct):[],
+            reusableRemedy=info.Reusable?await ReusableRemedy(work,info,ct):null,
             head=false,investigation=await Investigation(id,ct),reporterUserId=work.CreatedBy,
             reporterName=await db.Users.AsNoTracking().Where(u=>u.UserId==work.CreatedBy).Select(u=>u.FullName).SingleAsync(ct),
             detectedByName=await db.Users.AsNoTracking().Where(u=>u.UserId==info.DetectedByUserId).Select(u=>u.FullName).SingleOrDefaultAsync(ct),

@@ -7,7 +7,7 @@ namespace HotelOps.Api.Compact.Services;
 public sealed partial class InsightService
 {
     private sealed record StockRow(long WarehouseId,string Warehouse,long ItemId,string Item,string Code,string Unit,
-        decimal BaseQty,decimal? MinimumQty,decimal? TargetQty,DateTime? LastMovement,bool IsActive,decimal AvailableQty=0);
+        decimal BaseQty,decimal? MinimumQty,decimal? TargetQty,DateTime? LastMovement,bool IsActive,decimal AvailableQty=0,string Classification="UNCLASSIFIED",string ExpiryPolicy="UNKNOWN",decimal BatchQuantity=0);
 
     private async Task<StockRow[]> StockRows(long branchId,CancellationToken ct)
     {
@@ -19,18 +19,22 @@ public sealed partial class InsightService
             join w in db.Warehouses on pair.WarehouseId equals w.WarehouseId
             join i in db.InventoryItems on pair.ItemId equals i.ItemId
             join u in db.ReferenceValues on i.BaseUnitId equals u.ReferenceId
+            where i.IsActive
             orderby w.Name,i.Name
             select new StockRow(w.WarehouseId,w.Name,i.ItemId,i.Name,i.Code,u.Name,
                 db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Sum(m=>(decimal?)m.SignedBaseQty)??0,
                 db.InventoryPolicies.Where(p=>p.BranchId==branchId&&p.WarehouseId==w.WarehouseId&&p.ItemId==i.ItemId).Select(p=>(decimal?)p.MinimumQty).SingleOrDefault(),
                 db.InventoryPolicies.Where(p=>p.BranchId==branchId&&p.WarehouseId==w.WarehouseId&&p.ItemId==i.ItemId).Select(p=>(decimal?)p.TargetQty).SingleOrDefault(),
-                db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Max(m=>(DateTime?)m.OccurredAt),i.IsActive,0)).ToArrayAsync(ct);
-        var reusable=await db.ItemLifecycleProfiles.Where(p=>p.BranchId==branchId&&p.Classification=="REUSABLE").Select(p=>p.ItemId).ToArrayAsync(ct);
+                db.StockMovements.Where(m=>m.WarehouseId==w.WarehouseId&&m.ItemId==i.ItemId).Max(m=>(DateTime?)m.OccurredAt),i.IsActive,0,"UNCLASSIFIED","UNKNOWN",0)).ToArrayAsync(ct);
+        var profiles=await db.ItemLifecycleProfiles.AsNoTracking().Where(p=>p.BranchId==branchId).ToDictionaryAsync(p=>p.ItemId,ct);
+        var batchQuantities=await db.StockBatches.AsNoTracking().Where(b=>b.BranchId==branchId)
+            .GroupBy(b=>new{b.WarehouseId,b.ItemId}).Select(g=>new{g.Key.WarehouseId,g.Key.ItemId,Quantity=g.Sum(b=>b.WarehouseQuantity)}).ToArrayAsync(ct);
         for(var index=0;index<rows.Length;index++){
-            var row=rows[index];var available=reusable.Contains(row.ItemId)
+            var row=rows[index];profiles.TryGetValue(row.ItemId,out var profile);var available=profile?.Classification=="REUSABLE"
                 ?await db.ReusablePositions.Where(p=>p.BranchId==branchId&&p.ItemId==row.ItemId&&p.WarehouseId==row.WarehouseId&&p.Status=="READY").SumAsync(p=>(decimal?)p.Quantity,ct)??0
                 :await StockBatchAccounting.Available(db,row.WarehouseId,row.ItemId,clock.GetUtcNow().UtcDateTime,ct);
-            rows[index]=row with{AvailableQty=available};
+            rows[index]=row with{AvailableQty=available,Classification=profile?.Classification??"UNCLASSIFIED",ExpiryPolicy=profile?.ExpiryPolicy??"UNKNOWN",
+                BatchQuantity=batchQuantities.FirstOrDefault(b=>b.WarehouseId==row.WarehouseId&&b.ItemId==row.ItemId)?.Quantity??0};
         }
         return rows;
     }

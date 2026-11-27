@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotelOps.Api.Compact.Contracts;
 using HotelOps.Api.Compact.Data;
 using HotelOps.Api.Compact.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -42,25 +41,71 @@ public static class RoomIssueQuantityRules
         return Math.Max(0,issued.Sum(i=>i.Quantity)-returned);
     }
 
+    // This is an upper bound for an explicit physical report, not an inferred room stocktake.
+    // Existing custody remains authoritative, including legacy reductions.
     internal static async Task<decimal> AssessedOutstanding(HotelOpsCompactDbContext db, long branch, long room, long? cleaning, long item, CancellationToken ct)
     {
         var rows = await (from r in db.SupplyReservations.AsNoTracking()
             join b in db.StaffSupplyBalances on r.BalanceId equals b.BalanceId
             join a in db.StaffSupplyAllocations on b.AllocationId equals a.AllocationId
             where r.WorkId == cleaning && r.RoomId == room && a.BranchId == branch && b.ItemId == item
-                && r.Status != "RELEASED" && r.AssessedAt != null
+                && r.Status != "RELEASED"
             select r).ToArrayAsync(ct);
-        Output.Require(rows.Length == 1, "ROOM_SUPPLY_ASSESSMENT_REQUIRED");
+        if (rows.Length == 0)
+        {
+            Output.Require(cleaning.HasValue && await db.WorkItems.AsNoTracking().AnyAsync(w =>
+                w.WorkId == cleaning && w.BranchId == branch && w.RoomId == room
+                && (w.Kind == "CLEANING" || w.Kind == "REWORK"), ct), "CLEANING_WORK_REQUIRED");
+            // A saved confirmation must never reopen the norm if its reservation is missing.
+            if (await db.AuditLogs.AsNoTracking().AnyAsync(a => a.EntityType == "WorkItem"
+                && a.EntityKey == cleaning!.Value.ToString() && a.Action == "SUPPLIES_CONFIRMED", ct)) return 0;
+            // Do not add an item to a legacy custody set through the configuration fallback.
+            Output.Require(!await db.SupplyReservations.AsNoTracking().AnyAsync(r =>
+                r.WorkId == cleaning && r.Status != "RELEASED", ct), "CLEANING_SUPPLY_RESERVATION_REQUIRED");
+            var capacity = await (from r in db.Rooms.AsNoTracking() join t in db.RoomTypes on r.RoomTypeId equals t.RoomTypeId
+                where r.RoomId == room && r.BranchId == branch && r.IsActive && t.IsActive
+                select t.Capacity).SingleOrDefaultAsync(ct);
+            Output.Require(capacity > 0, "ROOM_SUPPLY_CAPACITY_INVALID");
+            var owner = await db.WorkAssignments.AsNoTracking().Where(a => a.WorkId == cleaning && a.AssignmentStatus == "ACTIVE")
+                .Select(a => (long?)a.AssigneeUserId).SingleOrDefaultAsync(ct);
+            var allocation = await db.StaffSupplyAllocations.AsNoTracking().Where(a => a.UserId == owner
+                && a.BranchId == branch && a.Status != "CLOSED"
+                && db.WorkdayAssignments.Any(d => d.AssignmentId == a.AssignmentId && d.Status == "WORKING"))
+                .Select(a => (long?)a.AllocationId).SingleOrDefaultAsync(ct);
+            // Match the assessment preview: allocation snapshot first, current configuration only without allocation.
+            var perGuest = allocation.HasValue
+                ? await db.StaffSupplyBalances.AsNoTracking().Where(b => b.AllocationId == allocation && b.ItemId == item)
+                    .Select(b => (decimal?)b.PerGuestQuantity).SingleOrDefaultAsync(ct)
+                : await db.SupplyConfigurations.AsNoTracking().Where(c => c.BranchId == branch && c.ItemId == item
+                    && c.IsCurrent && c.IsActive && c.SupplyGroup == "A" && c.UnitId != null)
+                    .Select(c => (decimal?)c.PerGuestQuantity).SingleOrDefaultAsync(ct);
+            Output.Require(perGuest.HasValue, "CLEANING_SUPPLY_RESERVATION_REQUIRED");
+            var replenished = await (from l in db.StaffSupplyLedgers.AsNoTracking()
+                join b in db.StaffSupplyBalances on l.BalanceId equals b.BalanceId
+                join a in db.StaffSupplyAllocations on b.AllocationId equals a.AllocationId
+                where l.WorkId == cleaning && l.Kind == "USE" && b.ItemId == item && a.BranchId == branch
+                select (decimal?)l.Quantity).SumAsync(ct) ?? 0;
+            // Callers separately subtract prior physical reports or net material-request commitments.
+            return PhysicalReportOutstanding(SupplyMath.Required(capacity, perGuest!.Value), null, replenished);
+        }
+        Output.Require(rows.Length == 1, "CLEANING_SUPPLY_RESERVATION_REQUIRED");
         var row = rows.Single();
-        var snapshot = await db.AuditLogs.AsNoTracking()
-            .Where(a => a.EntityType == "WorkItem" && a.EntityKey == row.WorkId.ToString() && a.Action == "SUPPLIES_ASSESSED")
-            .OrderByDescending(a => a.AuditId).Select(a => a.AfterJson).FirstOrDefaultAsync(ct);
-        var assessment = snapshot == null ? null : JsonSerializer.Deserialize<AssessRoomSupplyLine[]>(snapshot,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?.SingleOrDefault(a => a.ReservationId == row.ReservationId);
-        Output.Require(assessment != null, "ROOM_SUPPLY_ASSESSMENT_REQUIRED");
-        var missing = RoomSupplyAssessmentRules.Validate(SupplyMath.Required(row.Capacity, row.PerGuestQuantity), assessment!);
-        Output.Require(missing == row.Quantity && row.UsableQuantity == assessment!.UsableQuantity, "SUPPLY_BALANCE_INCONSISTENT");
-        return Outstanding(missing, assessment!.ReplenishedQuantity!.Value, 0);
+        var used = await db.StaffSupplyLedgers.AsNoTracking()
+            .Where(l => l.ReservationId == row.ReservationId && l.BalanceId == row.BalanceId
+                && l.WorkId == row.WorkId && l.Kind == "USE")
+            .Select(l => (decimal?)l.Quantity).SumAsync(ct) ?? 0;
+        return ReservationOutstanding(SupplyMath.Required(row.Capacity, row.PerGuestQuantity), row.Quantity, used);
+    }
+
+    public static decimal PhysicalReportOutstanding(decimal required, decimal? reserved, decimal consumed)
+        => ReservationOutstanding(required, reserved ?? required, consumed);
+
+    public static decimal ReservationOutstanding(decimal required, decimal reserved, decimal consumed)
+    {
+        Output.Require(required >= 0 && reserved >= 0 && reserved <= required && consumed >= 0
+            && consumed <= reserved && SupplyMath.ValidQuantity(required)
+            && SupplyMath.ValidQuantity(reserved) && SupplyMath.ValidQuantity(consumed), "SUPPLY_BALANCE_INCONSISTENT");
+        return Outstanding(reserved, consumed, 0);
     }
 
     internal static async Task<(long WorkId, Report Data)[]> Reports(HotelOpsCompactDbContext db, long branch, long room, long? cleaning, long item, CancellationToken ct)

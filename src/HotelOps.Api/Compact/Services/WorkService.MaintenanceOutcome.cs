@@ -11,23 +11,27 @@ public sealed partial class WorkService
         .AnyAsync(w=>w.WorkId==id&&w.Kind=="MAINTENANCE"&&w.Status=="COMPLETED"&&w.Result=="FAIL",ct);
 
     private Task<object> CompleteUnrepairable(long id,ActionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+        await StaffSupplyService.Lock(db,ct);
         var work=await Load(id,"unrepairable",ct);
         Output.Require(work.Kind=="MAINTENANCE"&&work.AssetId!=null,"ASSET_MAINTENANCE_REQUIRED",400);
         Output.Key(request.OperationKey);Output.Reason(request.Reason);
         var previous=await db.WorkEvents.AsNoTracking().SingleOrDefaultAsync(e=>e.WorkId==id&&e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct);
         if(previous!=null){
-            Output.Require(previous.EventType=="MAINTENANCE_UNREPAIRABLE"&&previous.Reason==request.Reason,"IDEMPOTENCY_KEY_REUSED");
+            Output.Require(previous.EventType=="MAINTENANCE_UNREPAIRABLE"&&previous.Reason==request.Reason&&CleaningReportMatches(previous.SnapshotJson,request.AttachmentIds),"IDEMPOTENCY_KEY_REUSED");
             return (object)Output.Record(work);
         }
         Output.Version(work.RowVersion,request.RowVersion);
         Output.Require(work.Status=="IN_PROGRESS","WORK_NOT_EXECUTING");
         Output.Require(await db.WorkAssignments.AnyAsync(a=>a.WorkId==id&&a.AssigneeUserId==actor.Id&&a.AssignmentStatus=="ACTIVE"&&a.AcceptedAt!=null,ct),"CURRENT_ASSIGNEE_REQUIRED",403);
+        var assignment=await db.WorkAssignments.SingleAsync(a=>a.WorkId==id&&a.AssignmentStatus=="ACTIVE",ct);
+        var report=await ValidateMaintenanceCompletionReport(work,assignment,request,ct);
         await RequireReplacementSettled(id,ct);
         await CloseTime(work,"COMPLETE",ct);
         var before=work.Status;
         work.Status="COMPLETED";work.Result="FAIL";work.CompletedAt=Now;work.ProgressPercent=100;work.CompletionNote=request.Reason;
         await EndAssignments(work,Now,ct);
         Event(work,"MAINTENANCE_UNREPAIRABLE",request.OperationKey,request.Reason,before);
+        db.WorkEvents.Local.Single(e=>e.WorkId==id&&e.OperationKey==request.OperationKey).SnapshotJson=report;
         await SetMaintenanceAssetCondition(work,"FAULTY",request.OperationKey,request.Reason,ct);
         await NotifyReplacement(work,"MAINTENANCE_SUPERVISOR",request.OperationKey,ct);
         // End the attempt, not its incident. Keep blocks, incident state and room readiness unchanged.
@@ -35,7 +39,7 @@ public sealed partial class WorkService
         return (object)Output.Record(work);
     },ct);
 
-    private async Task MaintenanceSucceeded(WorkItem work,ActionRequest request,CancellationToken ct)
+    private async Task MaintenanceSucceeded(WorkItem work,ActionRequest request,CancellationToken ct,string actingRole="MAINTENANCE_STAFF")
     {
         await SetMaintenanceAssetCondition(work,"GOOD",request.OperationKey,request.Reason,ct);
         Event(work,"REPAIR_SUCCEEDED",Guid.NewGuid(),request.Reason,work.Status);
@@ -51,9 +55,9 @@ public sealed partial class WorkService
                 Event(incident,"ROOM_ISSUE_INSPECTION_REQUESTED",handoffKey,request.Reason,before);
                 db.Entry(incident).Property(w=>w.Title).IsModified=true;
                 await db.SaveChangesAsync(ct);
-                await requests.RecordDomainTransition(incident,"ROOM_EQUIPMENT_DAMAGE","PENDING_REINSPECTION","HOUSEKEEPING_SUPERVISOR","repair-succeeded","MAINTENANCE_STAFF",handoffKey,request.Reason,ct);
+                await requests.RecordDomainTransition(incident,"ROOM_EQUIPMENT_DAMAGE","PENDING_REINSPECTION","HOUSEKEEPING_SUPERVISOR","repair-succeeded",actingRole,handoffKey,request.Reason,ct);
                 var input=new RoomIssueActionRequest(Convert.ToBase64String(incident.RowVersion),handoffKey,request.Reason);
-                await RecordRoomIssueChildren(incident,"BROKEN","report-remedy","MAINTENANCE_STAFF",input,null,ct);
+                await RecordRoomIssueChildren(incident,"BROKEN","report-remedy",actingRole,input,null,ct);
                 await NotifyIssueRole(incident,"HOUSEKEEPING_SUPERVISOR","ROOM_ISSUE_INSPECTION_REQUESTED",handoffKey,ct);
             }else{
                 Output.Require(!await db.WorkItems.AnyAsync(w=>w.ParentWorkId==parentId&&w.WorkId!=work.WorkId&&w.Kind=="MAINTENANCE"&&w.Status!="CANCELLED"&&w.Status!="CLOSED"&&(w.Status!="COMPLETED"||w.Result!="PASS")

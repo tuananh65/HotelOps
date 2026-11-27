@@ -54,9 +54,11 @@ public sealed partial class DocumentService
         var items=await db.InventoryItems.AsNoTracking().Where(i=>i.IsActive).Select(i=>new{i.ItemId,i.Code,i.Name,i.BaseUnitId}).ToArrayAsync(ct);
         var itemIds=items.Select(i=>i.ItemId).ToArray();
         var positions=await db.StockMovements.AsNoTracking().Where(m=>ids.Contains(m.WarehouseId)&&itemIds.Contains(m.ItemId))
-            .Select(m=>new{m.WarehouseId,m.ItemId}).Distinct().ToArrayAsync(ct);
+            .Select(m=>new{m.WarehouseId,m.ItemId}).Union(db.InventoryPolicies.Where(p=>ids.Contains(p.WarehouseId)&&itemIds.Contains(p.ItemId)).Select(p=>new{p.WarehouseId,p.ItemId})).ToArrayAsync(ct);
         var balances=new List<object>();
         foreach(var position in positions)balances.Add(new{position.WarehouseId,position.ItemId,
+            baseQty=await db.StockMovements.Where(m=>m.WarehouseId==position.WarehouseId&&m.ItemId==position.ItemId).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0,
+            minimumQty=await db.InventoryPolicies.Where(p=>p.WarehouseId==position.WarehouseId&&p.ItemId==position.ItemId).Select(p=>(decimal?)p.MinimumQty).SingleOrDefaultAsync(ct),
             availableBaseQty=await StockBatchAccounting.Available(db,position.WarehouseId,position.ItemId,clock.GetUtcNow().UtcDateTime,ct)});
         var units=await db.ReferenceValues.AsNoTracking().Where(u=>u.Kind=="UOM"&&u.IsActive)
             .Select(u=>new{u.ReferenceId,u.Name,u.BaseUnitId,u.ConversionFactor}).ToArrayAsync(ct);

@@ -88,8 +88,21 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         var maySeeStock=await access.Allows("INVENTORY_VIEW",work.BranchId,ct:ct);
         foreach(var row in rows){
             var warehouse=flow.WarehouseId??await db.StaffSupplyBalances.Where(b=>b.AllocationId==flow.AllocationId&&b.ItemId==row.l.ItemId).Select(b=>(long?)b.WarehouseId).SingleOrDefaultAsync(ct);
+            var reusable=await db.ItemLifecycleProfiles.AnyAsync(p=>p.BranchId==work.BranchId&&p.ItemId==row.l.ItemId&&p.Classification=="REUSABLE",ct);
+            if(reusable&&flow.AllocationId!=null){
+                var allocation=await db.StaffSupplyAllocations.AsNoTracking().SingleAsync(a=>a.AllocationId==flow.AllocationId,ct);
+                warehouse=(await supplies.ReusableAllocationSnapshot(allocation,ct)).SingleOrDefault(c=>c.ItemId==row.l.ItemId)?.WarehouseId;
+            }
             decimal? stock=maySeeStock&&warehouse!=null?await Stock(warehouse.Value,row.l.ItemId,ct):null;
-            var received=row.l.DocumentLineId==null?0:await Received(row.l.DocumentLineId.Value,ct);
+            if(reusable&&maySeeStock&&warehouse!=null)stock=await db.ReusablePositions.Where(p=>p.BranchId==work.BranchId&&p.ItemId==row.l.ItemId&&p.WarehouseId==warehouse&&p.Status=="READY").SumAsync(p=>(decimal?)p.Quantity,ct)??0;
+            var received=flow.RequestType==RefillType
+                ?await (from ledger in db.StaffSupplyLedgers.AsNoTracking() join balance in db.StaffSupplyBalances on ledger.BalanceId equals balance.BalanceId
+                    where ledger.WorkId==id&&ledger.Kind=="ADDITIONAL"&&balance.ItemId==row.l.ItemId select (decimal?)ledger.Quantity).SumAsync(ct)??0
+                :row.l.DocumentLineId==null?0:await Received(row.l.DocumentLineId.Value,ct);
+            if(flow.RequestType==RefillType&&reusable)received+=await (from movement in db.ReusableMovements.AsNoTracking()
+                join position in db.ReusablePositions on movement.DestinationPositionId equals position.PositionId
+                where movement.WorkId==id&&movement.ItemId==row.l.ItemId&&movement.Kind=="HANDOVER"&&position.UserId==work.CreatedBy&&position.Status=="STAFF_HOLDING"
+                select (decimal?)movement.Quantity).SumAsync(ct)??0;
             items.Add(new(row.l.ItemId,row.Name,row.l.UnitId,row.l.RequestedQuantity,row.l.ApprovedQuantity,row.l.StockAtRequest,row.l.MinimumAtRequest,stock,received));
         }
         var events=await db.RequestWorkflowEvents.AsNoTracking().Where(e=>e.WorkId==id).OrderBy(e=>e.RequestEventId).ToArrayAsync(ct);
@@ -188,7 +201,9 @@ public sealed partial class RequestWorkflowService(HotelOpsCompactDbContext db,A
         if(flow.HandlerUserId is long handler)recipients.Add(handler);
         else if(flow.QueueRoleId is long queueRole){var now=Now;foreach(var user in await (from ur in db.UserRoles join u in db.Users on ur.UserId equals u.UserId where ur.BranchId==flow.BranchId&&ur.RoleId==queueRole&&ur.AssignedAt<=now&&ur.RevokedAt==null&&(ur.ExpiresAt==null||ur.ExpiresAt>now)&&u.AccountStatus=="ACTIVE"&&u.EmploymentStatus=="ACTIVE"&&u.DeletedAt==null&&db.Memberships.Any(m=>m.UserId==u.UserId&&m.BranchId==flow.BranchId&&m.Kind=="BRANCH_ACCESS"&&m.ValidFrom<=now&&(m.ValidTo==null||m.ValidTo>now)) select u.UserId).Distinct().ToArrayAsync(ct))recipients.Add(user);}
         foreach(var user in await db.RequestWorkflowEvents.Where(e=>e.WorkId==flow.WorkId).Select(e=>e.ActorUserId).Distinct().ToArrayAsync(ct))recipients.Add(user);
-        foreach(var user in recipients)notifications.Add(flow.BranchId,user,"REQUEST_WORKFLOW",work.Title,flow.WorkId,null,key);
+        var notificationTitle=flow.Status=="PENDING_REINSPECTION"
+            ?$"Sự cố đã được xử lý — cần kiểm tra lại phòng: {work.Title}":work.Title;
+        foreach(var user in recipients)notifications.Add(flow.BranchId,user,"REQUEST_WORKFLOW",notificationTitle,flow.WorkId,null,key);
         await db.SaveChangesAsync(ct);
     }
 }

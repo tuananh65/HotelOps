@@ -30,7 +30,7 @@ public static class WorkRules
             ("REWORK","accept","PENDING_ACCEPTANCE")=>"ACCEPTED",
             ("OPERATIONAL","accept","ASSIGNED")=>"ACCEPTED",
             ("INSPECTION","accept","ASSIGNED")=>"ASSIGNED",
-            ("MAINTENANCE","accept","PENDING")=>"PENDING",
+            ("MAINTENANCE","accept","PENDING")=>"IN_PROGRESS",
             ("INCIDENT","accept","OPEN")=>"OPEN",
             ("CLEANING","start","ASSIGNED")=>"IN_PROGRESS",
             ("REWORK" or "OPERATIONAL","start","ACCEPTED")=>"IN_PROGRESS",

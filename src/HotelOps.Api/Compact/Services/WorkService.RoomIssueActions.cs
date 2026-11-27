@@ -7,8 +7,10 @@ namespace HotelOps.Api.Compact.Services;
 public sealed partial class WorkService
 {
     public Task<object> ActRoomIssue(long id,string command,RoomIssueActionRequest request,CancellationToken ct)=>atomic.Run(async()=>{
+        await StaffSupplyService.Lock(db,ct);
         var work=await LoadRoomIssue(id,ct);
-        Output.Require(!await access.HasRole("OPERATION_MANAGER",work.BranchId,ct)&&!await access.HasRole("OWNER",work.BranchId,ct),"REQUEST_READ_ONLY",403);
+        var purchaseCommand=command is "approve-purchase" or "reject-purchase" or "record-delivery";
+        Output.Require((purchaseCommand||!await access.HasRole("OPERATION_MANAGER",work.BranchId,ct))&&!await access.HasRole("OWNER",work.BranchId,ct),"REQUEST_READ_ONLY",403);
         Output.Key(request.OperationKey);
         var payloadHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new{command,request}))));
         var prior=await db.WorkEvents.AsNoTracking().SingleOrDefaultAsync(e=>e.WorkId==id&&e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct);
@@ -20,6 +22,9 @@ public sealed partial class WorkService
         Output.Version(work.RowVersion,request.RowVersion);Output.Key(request.OperationKey);
         Output.Require(!await db.WorkEvents.AnyAsync(e=>e.WorkId==id&&e.ActorUserId==actor.Id&&e.OperationKey==request.OperationKey,ct),"OPERATION_ALREADY_APPLIED");
         var stage=await IssueStage(id,ct);var info=await IssueInfo(id,ct);var before=work.Status;
+        if(info.Kind=="MISSING"&&(info.DirtySources!=null||work.AssetId!=null))
+            return await ActVerifiedMissing(work,info,stage,command,request,payloadHash,ct);
+        if(info.Reusable)return await ActReusableIncident(work,info,stage,command,request,payloadHash,ct);
         var expectedRole=command is "create-repair" or "start-repair"||command=="report-remedy"&&info.Kind=="BROKEN"?"MAINTENANCE_SUPERVISOR":command=="report-remedy"?"STOREKEEPER":"HOUSEKEEPING_SUPERVISOR";
         // Older fully posted deliveries did not record the warehouse handoff. An
         // on-duty supervisor can receive these for inspection from delivery evidence.

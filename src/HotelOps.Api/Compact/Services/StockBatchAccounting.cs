@@ -14,6 +14,9 @@ internal sealed class StockBatchAccounting(HotelOpsCompactDbContext db,TimeProvi
     internal static async Task<decimal> Available(HotelOpsCompactDbContext db,long warehouse,long item,DateTime now,CancellationToken ct)
     {
         if(await (from w in db.Warehouses join p in db.ItemLifecycleProfiles on w.BranchId equals p.BranchId
+            where w.WarehouseId==warehouse&&p.ItemId==item&&p.Classification=="ASSET" select p.ItemId).AnyAsync(ct))
+            return await db.StockMovements.Where(m=>m.WarehouseId==warehouse&&m.ItemId==item).SumAsync(m=>(decimal?)m.SignedBaseQty,ct)??0;
+        if(await (from w in db.Warehouses join p in db.ItemLifecycleProfiles on w.BranchId equals p.BranchId
             where w.WarehouseId==warehouse&&p.ItemId==item&&p.Classification=="REUSABLE" select p.ItemId).AnyAsync(ct))
             {
             var branch=await db.Warehouses.Where(w=>w.WarehouseId==warehouse).Select(w=>w.BranchId).SingleAsync(ct);
@@ -45,6 +48,9 @@ internal sealed class StockBatchAccounting(HotelOpsCompactDbContext db,TimeProvi
     {
         Output.Require(db.Database.CurrentTransaction!=null,"INVENTORY_TRANSACTION_REQUIRED");await StaffSupplyService.Lock(db,ct);
         var profile=await db.ItemLifecycleProfiles.SingleOrDefaultAsync(p=>p.BranchId==movement.BranchId&&p.ItemId==movement.ItemId,ct);
+        // Asset-classified stock uses the quantity ledger. Individual asset records
+        // are registered separately; receiving stock must not invent serials or lots.
+        if(profile?.Classification=="ASSET")return;
         if(profile?.Classification=="REUSABLE"){await new ReusableAccounting(db,clock).Receipt(document,movement,ct);return;}
         Output.Require(profile?.Classification=="CONSUMABLE","CONSUMABLE_CLASSIFICATION_REQUIRED",409);
         Output.Require(!await db.StockBatchEntries.AnyAsync(e=>e.MovementId==movement.MovementId,ct),"BATCH_MOVEMENT_ALREADY_POSTED");

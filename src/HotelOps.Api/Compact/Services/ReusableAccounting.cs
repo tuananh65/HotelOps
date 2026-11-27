@@ -18,6 +18,14 @@ internal sealed class ReusableAccounting(HotelOpsCompactDbContext db,TimeProvide
         Output.Require(quantity>0&&SupplyMath.ValidQuantity(quantity),"INVALID_SUPPLY_QUANTITY",400);
         if(ReusableShelfLifePolicy.RequiresUsableStock(source?.Status,destination.Status))
             Output.Require(!await ReusableShelfLifePolicy.Overdue(db,destination.BranchId,destination.ItemId,clock.GetUtcNow().UtcDateTime,ct),"REUSABLE_SHELF_REVIEW_REQUIRED",409);
+        if(source?.Status=="DIRTY"){
+            // Only the independently verified incident may correct an encumbered pool.
+            var correcting=kind=="WRITE_OFF"&&work!=null
+                &&(await ReusableMissingCustody.Reports(db,source.BranchId,source.ItemId,ct))
+                    .Any(r=>r.WorkId==work&&r.Status is not ("CLOSED" or "CANCELLED")
+                        &&r.Data.DirtySources!.Where(s=>s.PositionId==source.PositionId).Sum(s=>s.Quantity)==quantity);
+            Output.Require(correcting||!await ReusableMissingCustody.HasPending(db,source.PositionId,ct),"MISSING_USED_VERIFICATION_PENDING",409);
+        }
         if(source!=null){Output.Require(source.BranchId==destination.BranchId&&source.ItemId==destination.ItemId&&source.PositionId!=destination.PositionId,"CUSTODY_SOURCE_MISMATCH");
             var held=await db.ReusableWriteOffs.Where(w=>w.PositionId==source.PositionId&&w.Status=="PENDING").SumAsync(w=>(decimal?)w.Quantity,ct)??0;
             Output.Require(source.Quantity-held>=quantity,"REUSABLE_AVAILABLE_INSUFFICIENT");source.Quantity-=quantity;}

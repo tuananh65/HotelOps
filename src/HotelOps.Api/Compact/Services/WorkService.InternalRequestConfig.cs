@@ -9,7 +9,7 @@ public sealed partial class WorkService
 {
     private static string RequestTypePrefix(long branch)=>$"IR_TYPE_{branch}_";
     private sealed record RequestTypeSettings(string? Description=null,long? DefaultDepartmentId=null,
-        long[]? SenderRoleIds=null,long[]? RecipientDepartmentIds=null,long[]? RecipientUserIds=null,long[]? RecipientRoleIds=null);
+        long[]? SenderRoleIds=null,long[]? RecipientDepartmentIds=null,long[]? RecipientUserIds=null,long[]? RecipientRoleIds=null,long[]? SenderDepartmentIds=null,bool RequireDescription=false);
     private static RequestTypeSettings RequestSettings(ReferenceValue row)=>
         string.IsNullOrWhiteSpace(row.SettingsJson)?new():JsonSerializer.Deserialize<RequestTypeSettings>(row.SettingsJson)??new();
     public async Task<object> InternalRequestTypes(long branch,CancellationToken ct)
@@ -22,14 +22,16 @@ public sealed partial class WorkService
             &&db.RolePermissions.Any(g=>g.RoleId==r.RoleId&&db.Permissions.Any(p=>p.PermissionId==g.PermissionId&&p.IsActive&&p.Code=="IR_CREATE")))
             .Select(r=>new{r.RoleId,r.Name,r.Code}).ToArrayAsync(ct);
         var actorRoles=await db.UserRoles.AsNoTracking().Where(r=>r.UserId==actor.Id&&(r.BranchId==branch||r.BranchId==null)&&r.RevokedAt==null&&r.AssignedAt<=Now&&(r.ExpiresAt==null||r.ExpiresAt>Now)).Select(r=>r.RoleId).ToArrayAsync(ct);
+        var departments=await db.Departments.AsNoTracking().Where(d=>d.BranchId==branch&&d.IsActive).Select(d=>new{d.DepartmentId,d.Name}).ToArrayAsync(ct);
+        var actorDepartments=await db.Memberships.AsNoTracking().Where(m=>m.UserId==actor.Id&&m.BranchId==branch&&m.Kind=="EMPLOYMENT"&&m.DepartmentId!=null&&m.ValidFrom<=Now&&(m.ValidTo==null||m.ValidTo>Now)).Select(m=>m.DepartmentId!.Value).ToArrayAsync(ct);
         var recipients=await CandidateRows(branch,"INTERNAL_REQUEST",ct);
         var recipientRoles=await RequestRecipientRoles().Select(r=>new{r.RoleId,r.Name,r.Code}).ToArrayAsync(ct);
         var candidateIds=recipients.Select(u=>u.UserId).ToArray();
         var recipientMemberships=await db.UserRoles.AsNoTracking().Where(r=>candidateIds.Contains(r.UserId)&&(r.BranchId==branch||r.BranchId==null)&&r.RevokedAt==null&&r.AssignedAt<=Now&&(r.ExpiresAt==null||r.ExpiresAt>Now))
             .Select(r=>new{r.UserId,r.RoleId}).ToArrayAsync(ct);
-        return new{configured=rows.Length>0,roles,recipientRoles,recipients=recipients.Select(u=>new{u.UserId,u.FullName,u.EmployeeCode,roleIds=recipientMemberships.Where(r=>r.UserId==u.UserId).Select(r=>r.RoleId).ToArray()}),items=rows.Where(r=>head||(r.IsActive&&(RequestSettings(r).SenderRoleIds==null||RequestSettings(r).SenderRoleIds!.Intersect(actorRoles).Any()))).Select(r=>new{
+        return new{configured=rows.Length>0,roles,departments,recipientRoles,recipients=recipients.Select(u=>new{u.UserId,u.FullName,u.EmployeeCode,roleIds=recipientMemberships.Where(r=>r.UserId==u.UserId).Select(r=>r.RoleId).ToArray()}),items=rows.Where(r=>head||(r.IsActive&&(RequestSettings(r).SenderRoleIds==null||RequestSettings(r).SenderRoleIds!.Intersect(actorRoles).Any())&&(RequestSettings(r).SenderDepartmentIds==null||RequestSettings(r).SenderDepartmentIds!.Intersect(actorDepartments).Any()))).Select(r=>new{
             r.ReferenceId,r.Name,r.IsActive,description=RequestSettings(r).Description,defaultDepartmentId=RequestSettings(r).DefaultDepartmentId,
-            senderRoleIds=RequestSettings(r).SenderRoleIds,recipientDepartmentIds=RequestSettings(r).RecipientDepartmentIds,recipientUserIds=RequestSettings(r).RecipientUserIds,recipientRoleIds=RequestSettings(r).RecipientRoleIds,
+            senderDepartmentIds=RequestSettings(r).SenderDepartmentIds,requireDescription=RequestSettings(r).RequireDescription,senderRoleIds=RequestSettings(r).SenderRoleIds,recipientDepartmentIds=RequestSettings(r).RecipientDepartmentIds,recipientUserIds=RequestSettings(r).RecipientUserIds,recipientRoleIds=RequestSettings(r).RecipientRoleIds,
             rowVersion=Convert.ToBase64String(r.RowVersion)})};
     }
     public Task<object> SaveInternalRequestType(long branch,long? id,InternalRequestTypeRequest request,CancellationToken ct)=>atomic.Run(async()=>{
@@ -43,6 +45,8 @@ public sealed partial class WorkService
         var name=request.Name.Trim();Output.Require(name.Length>0,"NAME_REQUIRED",400);
         var senders=request.SenderRoleIds?.Distinct().ToArray();var departments=request.RecipientDepartmentIds?.Distinct().ToArray();var users=request.RecipientUserIds?.Distinct().ToArray();
         var receiverRoles=request.RecipientRoleIds?.Distinct().ToArray();
+        var senderDepartments=request.SenderDepartmentIds?.Distinct().ToArray();
+        if(senderDepartments!=null)Output.Require(senderDepartments.Length>0&&await db.Departments.CountAsync(d=>senderDepartments.Contains(d.DepartmentId)&&d.BranchId==branch&&d.IsActive,ct)==senderDepartments.Length,"REQUEST_DEPARTMENT_UNAVAILABLE",400);
         if(receiverRoles!=null){
             Output.Require(receiverRoles.Length>0,"REQUEST_RECIPIENT_REQUIRED",400);
             Output.Require(await RequestRecipientRoles().CountAsync(r=>receiverRoles.Contains(r.RoleId),ct)==receiverRoles.Length,"REQUEST_RECIPIENT_ROLE_INVALID",400);
@@ -62,8 +66,8 @@ public sealed partial class WorkService
         var retainInactiveDepartment=!request.IsActive&&row!=null&&request.DefaultDepartmentId==RequestSettings(row).DefaultDepartmentId;
         if(request.DefaultDepartmentId!=null)Output.Require(await db.Departments.AnyAsync(d=>d.DepartmentId==request.DefaultDepartmentId&&d.BranchId==branch&&(d.IsActive||retainInactiveDepartment),ct),"REQUEST_DEPARTMENT_UNAVAILABLE",400);
         if(row==null){row=new ReferenceValue{Kind="WORK_CATEGORY",Code=prefix+Guid.NewGuid().ToString("N")};db.ReferenceValues.Add(row);}
-        row.Name=name;row.IsActive=request.IsActive;row.SettingsJson=JsonSerializer.Serialize(new RequestTypeSettings(request.Description?.Trim(),request.DefaultDepartmentId,senders,departments,users,receiverRoles));
-        await db.SaveChangesAsync(ct);audit.Add("InternalRequestType",row.ReferenceId,"CONFIGURE",branch,after:new{row.Name,row.IsActive,request.Description,request.DefaultDepartmentId,senders,departments,users,receiverRoles});
+        row.Name=name;row.IsActive=request.IsActive;row.SettingsJson=JsonSerializer.Serialize(new RequestTypeSettings(request.Description?.Trim(),request.DefaultDepartmentId,senders,departments,users,receiverRoles,senderDepartments,request.RequireDescription));
+        await db.SaveChangesAsync(ct);audit.Add("InternalRequestType",row.ReferenceId,"CONFIGURE",branch,after:new{row.Name,row.IsActive,request.Description,request.DefaultDepartmentId,senders,departments,users,receiverRoles,senderDepartments,request.RequireDescription});
         return (object)new{row.ReferenceId,row.Name,row.IsActive,rowVersion=Convert.ToBase64String(row.RowVersion)};
     },ct);
     private async Task ApplyInternalRequestType(WorkItem work,CancellationToken ct,long? recipientUserId=null)
@@ -77,6 +81,12 @@ public sealed partial class WorkService
             var roleIds=settings.SenderRoleIds;
             Output.Require(await db.UserRoles.AnyAsync(r=>r.UserId==actor.Id&&roleIds.Contains(r.RoleId)&&(r.BranchId==work.BranchId||r.BranchId==null)&&r.RevokedAt==null&&r.AssignedAt<=Now&&(r.ExpiresAt==null||r.ExpiresAt>Now)&&db.Roles.Any(role=>role.RoleId==r.RoleId&&role.IsActive),ct),"REQUEST_SENDER_NOT_ALLOWED",403);
         }
+        if(settings.SenderDepartmentIds!=null){
+            var permitted=await db.Memberships.AsNoTracking().Where(m=>m.UserId==actor.Id&&m.BranchId==work.BranchId&&m.Kind=="EMPLOYMENT"&&m.DepartmentId!=null&&settings.SenderDepartmentIds.Contains(m.DepartmentId.Value)&&m.ValidFrom<=Now&&(m.ValidTo==null||m.ValidTo>Now)&&db.Departments.Any(d=>d.DepartmentId==m.DepartmentId&&d.BranchId==work.BranchId&&d.IsActive)).Select(m=>m.DepartmentId).Distinct().ToArrayAsync(ct);
+            work.RequesterDepartmentId??=permitted.Length==1?permitted[0]:null;
+            Output.Require(work.RequesterDepartmentId!=null&&permitted.Contains(work.RequesterDepartmentId),"REQUESTER_DEPARTMENT_MEMBERSHIP_REQUIRED",403);
+        }
+        Output.Require(!settings.RequireDescription||!string.IsNullOrWhiteSpace(work.Description),"REQUEST_DESCRIPTION_REQUIRED",400);
         if(recipientUserId!=null){
             var allowedRoles=RequestRecipientRoles();
             var roleRecipient=settings.RecipientRoleIds!=null&&await db.UserRoles.AnyAsync(r=>r.UserId==recipientUserId&&settings.RecipientRoleIds.Contains(r.RoleId)&&(r.BranchId==work.BranchId||r.BranchId==null)&&r.RevokedAt==null&&r.AssignedAt<=Now&&(r.ExpiresAt==null||r.ExpiresAt>Now)&&allowedRoles.Any(role=>role.RoleId==r.RoleId),ct);
