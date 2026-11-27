@@ -24,13 +24,17 @@ export default function ShiftCommandGuard({ page }: {page:string}) {
     if(!applicable||allowed)return;
     const blocked=new Set<HTMLButtonElement>();
     const apply=()=>document.querySelectorAll<HTMLButtonElement>('#main-content button').forEach(button=>{
+      if(button.closest('[data-cleaning-continuation="true"]')) {
+        if(button.dataset.shiftBlocked){button.disabled=false;delete button.dataset.shiftBlocked;button.removeAttribute('title');blocked.delete(button);}
+        return;
+      }
       const text=button.textContent?.trim()||'';
       const passive=/^(Hủy$|Đóng|×$|Tìm|Lọc|Xóa bộ lọc|Xem|Mở lịch|Tuần|Hôm nay|Trước$|Tiếp$)/.test(text);
       const action=!passive&&(button.matches('.confirm-accept')||commands.test(text)||button.type==='submit'&&!!button.closest('form'));
-      if(action&&!button.disabled){button.disabled=true;button.dataset.shiftBlocked='true';button.title='Bạn cần bắt đầu ca làm việc trước khi thực hiện thao tác này';blocked.add(button);}
+      if(action&&!button.disabled){button.disabled=true;button.dataset.shiftBlocked='true';button.title='Bạn cần được phân ca và đang trong giờ ca để thực hiện thao tác này';blocked.add(button);}
     });
-    apply();const observer=new MutationObserver(apply);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
+    apply();const observer=new MutationObserver(apply);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','data-cleaning-continuation']});
     return()=>{observer.disconnect();blocked.forEach(button=>{if(button.dataset.shiftBlocked){button.disabled=false;delete button.dataset.shiftBlocked;button.removeAttribute('title');}});};
   },[applicable,allowed,page]);
-  return applicable&&!allowed?<div className="panel shift-command-notice" role="status">Bạn cần bắt đầu ca làm việc trước khi thực hiện thao tác này. <a href="#workday">Mở lịch làm việc</a></div>:null;
+  return applicable&&!allowed?<div className="panel shift-command-notice" role="status">Bạn cần được phân ca và đang trong giờ ca để thực hiện thao tác này. Liên hệ quản lý vận hành nếu cần kiểm tra phân ca.</div>:null;
 }

@@ -456,7 +456,7 @@ export default function Rooms({
           </div>
           {roomInfo(room)}
           {reception && room.canOperate !== true && (
-            <p role="status">Bạn cần bắt đầu ca và đang trong giờ làm việc để thay đổi trạng thái phòng. <a href="#workday">Mở lịch làm việc</a></p>
+            <p role="status">Bạn cần được phân ca và đang trong giờ làm việc để thay đổi trạng thái phòng. Liên hệ quản lý vận hành nếu cần kiểm tra phân ca.</p>
           )}
           {housekeeping && (
             <p>

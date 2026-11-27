@@ -4,7 +4,6 @@ import {createRoot} from 'react-dom/client';
 import {Auth} from '/src/compact/auth.tsx';
 import {AlertPopup} from '/src/compact/alert-popup.tsx';
 import {ConfirmPopup} from '/src/compact/ui.tsx';
-import Assessment from '/src/compact/room-supply-assessment.tsx';
 import Attendance from '/src/compact/attendance-summary.tsx';
 import Calendar from '/src/compact/weekly-calendar.tsx';
 import Guard from '/src/compact/shift-command-guard.tsx';
@@ -14,7 +13,6 @@ function Fixture(){const [confirm,setConfirm]=useState(true);const mode=new URLS
  if(mode==='toast')return h(AlertPopup,{tone:'success'},'Đã lưu thành công');
  if(mode==='duplicate')return h(React.Fragment,null,h(AlertPopup,{tone:'success'},'Đã lưu thành công'),h(AlertPopup,{tone:'success'},'Đã lưu thành công'));
  if(mode==='confirm')return confirm?h(ConfirmPopup,{title:'Xác nhận nghiệp vụ',confirm:()=>setConfirm(false),cancel:()=>setConfirm(false)},'Xác nhận thao tác'):h('p',null,'Đã đóng');
- if(mode==='assessment')return h(Assessment,{workId:690,editable:true});
  return h(Auth,null,mode==='calendar'?h(Calendar,{close:()=>{}}):mode==='attendance'?h(Attendance):h('main',{id:'main-content'},h(Guard,{page:'cleaning'}),h('button',{className:'primary'},'Gửi hoàn thành'),h('button',{type:'button'},'Xem chi tiết'),h('form',null,h('button',{type:'button'},'Hủy'))));
 }
 createRoot(document.getElementById('fixture')).render(h(Fixture));

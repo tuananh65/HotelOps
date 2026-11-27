@@ -60,5 +60,5 @@ export function useNotificationRealtime(branch: number) {
     void start();
     return () => { disposed = true; clearTimeout(retry);clearInterval(countTimer);window.removeEventListener('compact:notification-read',refreshCount); subscription?.dispose(); void connection.stop(); };
   }, [branch]);
-  return { count, popup: notice ? <AlertPopup key={notice.id}>{notice.text}</AlertPopup> : null };
+  return { count, popup: notice ? <AlertPopup tone="info" key={notice.id}>{notice.text}</AlertPopup> : null };
 }

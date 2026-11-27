@@ -22,3 +22,20 @@
 .room-issue-detail > button { align-self: flex-start; }
 .room-issue-detail p { margin: 0; overflow-wrap: anywhere; }
 .room-issue-history > article { border-left: 2px solid var(--line); padding: 12px 16px; }
+.room-report-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 16px; }
+.room-report-categories { display: flex; gap: 8px; flex-wrap: wrap; }
+.room-report-categories button[aria-pressed="true"] { background: var(--primary, #226b65); color: white; border-color: var(--primary, #226b65); }
+.room-report-guidance { margin: 0; padding: 12px; border-left: 3px solid #3a87b1; background: #eef7fc; color: #254c61; line-height: 1.6; }
+.room-report-item-list { display: grid; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.room-report-item { display: grid; grid-template-columns: minmax(0, 1fr) 112px; align-items: center; gap: 16px; padding: 12px 14px; background: white; }
+.room-report-item + .room-report-item { border-top: 1px solid var(--line); }
+.room-report-item.is-selected { background: #edf6f3; }
+.room-report-item-choice { display: flex !important; flex-direction: row; align-items: center; gap: 12px; margin: 0 !important; cursor: pointer; }
+.room-report-item-choice input[type="checkbox"] { width: 18px !important; height: 18px !important; min-width: 18px; margin: 0; accent-color: #226b65; }
+.room-report-item-choice span { min-width: 0; overflow-wrap: anywhere; }
+.room-report-item-choice small { display: block; margin-top: 4px; }
+.room-report-quantity { margin: 0 !important; font-size: 12px; }
+.room-report-quantity input { width: 100%; min-width: 0; box-sizing: border-box; }
+.room-report-empty { padding: 16px; margin: 0; }
+.room-report-form .room-report-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; }
+@media (max-width: 480px) { .room-report-item { grid-template-columns: minmax(0, 1fr) 86px; gap: 8px; padding: 12px 10px; } }

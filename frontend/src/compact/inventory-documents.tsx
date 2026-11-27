@@ -27,6 +27,9 @@ import {
 import InventoryDocumentForm from "./inventory-document-form";
 import BatchAdjustment from "./batch-adjustment";
 
+const staffIssueKind = "STAFF_ISSUE";
+const kindName = (kind: string) => kind === staffIssueKind ? "Cấp vật tư" : documentNames[kind];
+
 const titles = {
   transactions: "Nhập / Xuất / Chuyển kho",
   fulfillment: "Yêu cầu vật tư",
@@ -40,7 +43,7 @@ export default function InventoryDocuments({
   group: InventoryGroup;
 }) {
   const { branch, can } = useAuth();
-  const allowed = inventoryGroups[group].filter((k) =>
+  const allowed = [...inventoryGroups[group], ...(group === "transactions" ? [staffIssueKind] : [])].filter((k) =>
     can(
       k === "MATERIAL_REQUEST"
         ? "MR_VIEW"
@@ -56,6 +59,8 @@ export default function InventoryDocuments({
       : allowed[0],
   );
   const [id, setId] = useState<number | null>(Number(params.get("id")) || null);
+  const [issueId, setIssueId] = useState<string | null>(null);
+  const staffIssues = kind === staffIssueKind;
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState(false);
   const [status, setStatus] = useState("");
@@ -77,11 +82,12 @@ export default function InventoryDocuments({
   const [notice, setNotice] = useState("");
   const query = useQuery<Page>(
     kind
-      ? `documents?branchId=${branch}&kind=${kind}&page=${page}&pageSize=25&search=${encodeURIComponent(search)}&status=${status}&sort=${sort}${from ? `&from=${encodeURIComponent(new Date(`${from}T00:00:00`).toISOString())}` : ""}${to ? `&to=${encodeURIComponent(new Date(`${to}T23:59:59.999`).toISOString())}` : ""}`
+      ? `documents${staffIssues ? "/staff-issues/documents" : ""}?branchId=${branch}&kind=${kind}&page=${page}&pageSize=25&search=${encodeURIComponent(search)}&status=${status}&sort=${sort}${from ? `&from=${encodeURIComponent(new Date(`${from}T00:00:00`).toISOString())}` : ""}${to ? `&to=${encodeURIComponent(new Date(`${to}T23:59:59.999`).toISOString())}` : ""}`
       : null,
     revision,
   );
-  const detail = useQuery(id ? `documents/${id}` : null, revision);
+  const detail = useQuery(!staffIssues && id ? `documents/${id}` : null, revision);
+  const issueDetail = useQuery(staffIssues && issueId ? `documents/staff-issues/documents/${encodeURIComponent(issueId)}?branchId=${branch}` : null, revision);
   const options = useQuery(`workspace/options?branchId=${branch}`, revision);
   const doc = detail.data?.document.fields;
   const context = detail.data?.inventory;
@@ -179,12 +185,13 @@ export default function InventoryDocuments({
                 setKind(e.target.value);
                 setPage(1);
                 setId(null);
+                setIssueId(null);
                 setStatus("");
               }}
             >
               {allowed.map((k) => (
                 <option key={k} value={k}>
-                  {documentNames[k]}
+                  {kindName(k)}
                 </option>
               ))}
             </select>
@@ -195,7 +202,7 @@ export default function InventoryDocuments({
           <input
             type="search"
             value={search}
-            placeholder="Mã chứng từ, lý do…"
+            placeholder={staffIssues ? "Chứng từ, người nhận, vật tư, kho…" : "Mã chứng từ, lý do…"}
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
@@ -227,7 +234,7 @@ export default function InventoryDocuments({
               }}
             >
               <option value="">Tất cả trạng thái</option>
-              {[
+              {(staffIssues ? ["POSTED"] : [
                 "DRAFT",
                 "REQUESTED",
                 "PENDING_APPROVAL",
@@ -243,7 +250,7 @@ export default function InventoryDocuments({
                 "FULLY_RECEIVED",
                 "CLOSED",
                 "CANCELLED",
-              ].map((s) => (
+              ]).map((s) => (
                 <option key={s} value={s}>
                   {label(s)}
                 </option>
@@ -320,7 +327,7 @@ export default function InventoryDocuments({
                 <tr key={d.documentId}>
                   <td>
                     <strong>{d.documentNo}</strong>
-                    <small>{d.reason || documentNames[d.kind]}</small>
+                    <small>{d.reason || kindName(d.kind)}</small>
                   </td>
                   <td>
                     <Badge value={group === "fulfillment" && d.status === "APPROVED" ? "Chờ duyệt" : d.status} />
@@ -329,7 +336,8 @@ export default function InventoryDocuments({
                   <td>
                     <button
                       onClick={() => {
-                        setId(d.documentId);
+                        if (staffIssues) setIssueId(d.documentId);
+                        else setId(d.documentId);
                         setForm(null);
                         setError("");
                       }}
@@ -350,18 +358,36 @@ export default function InventoryDocuments({
           onPage={setPage}
         />
       </State>
-      {id && (
+      {(staffIssues ? issueId : id) && (
         <Dialog
-          title={doc?.documentNo || `Chứng từ #${id}`}
+          title={staffIssues ? issueDetail.data?.documentNo || "Cấp vật tư" : doc?.documentNo || `Chứng từ #${id}`}
           className="room-drawer inventory-document"
           close={() => {
             if (!pending) {
               setId(null);
+              setIssueId(null);
               setForm(null);
             }
           }}
         >
-          <State {...detail} retry={() => bump((x) => x + 1)}>
+          {staffIssues ? <State {...issueDetail} retry={() => bump(x => x + 1)}>
+            {issueDetail.data && <>
+              <Badge value="POSTED" />
+              <p>Cấp vật tư · {timestamp(issueDetail.data.occurredAt)}</p>
+              <dl className="inventory-context">
+                <dt>Người nhận</dt><dd>{issueDetail.data.recipient}</dd>
+                <dt>Kho xuất</dt><dd>{issueDetail.data.warehouse}</dd>
+              </dl>
+              <div className="table-scroll"><table>
+                <thead><tr><th>Vật tư / đơn vị</th><th>Số lượng thực cấp</th><th>Loại cấp</th><th>Thời điểm cấp</th></tr></thead>
+                <tbody>{issueDetail.data.items.map((line: Row) => <tr key={`${line.reusable ? "reusable" : "supply"}-${line.id}`}>
+                  <td>{line.item}<small>{line.unit}</small></td><td>{line.quantity}</td>
+                  <td>{line.reusable ? "Vật tư tái sử dụng" : line.kind === "INITIAL" ? "Bộ đầu ca" : "Cấp bổ sung"}</td>
+                  <td>{timestamp(line.occurredAt)}</td>
+                </tr>)}</tbody>
+              </table></div>
+            </>}
+          </State> : <State {...detail} retry={() => bump((x) => x + 1)}>
             {doc && (
               <>
                 <Badge value={group === "fulfillment" && doc.status === "APPROVED" ? "Chờ duyệt" : doc.status} />
@@ -547,7 +573,7 @@ export default function InventoryDocuments({
                 <History rows={fields(detail.data?.events)} />
               </>
             )}
-          </State>
+          </State>}
         </Dialog>
       )}
       {selectItems && doc && <StocktakeItems doc={doc} items={options.data?.items || []} existing={fields(detail.data?.lines)} close={() => setSelectItems(false)} saved={() => { setSelectItems(false); bump(n => n + 1); }} />}

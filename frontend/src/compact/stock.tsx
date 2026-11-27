@@ -66,6 +66,7 @@ export default function Stock({ readScope }: { readScope?: number }) {
           ? (a.availableQty ?? a.baseQty) - (b.availableQty ?? b.baseQty)
           : String(a.item).localeCompare(String(b.item), "vi"),
       ) || [];
+  if (switching && canCrossBranch) return <><button onClick={() => setSwitching(false)}>Quay lại kho chi nhánh quản lý</button><CrossBranchStock branch={branch} /></>;
   if (batchView) return <><button onClick={() => setBatchView(false)}>Quay lại tồn kho</button><InventoryLifecycle branch={branch}/></>;
   if (reusableView) return <><button onClick={() => setReusableView(false)}>Quay lại tồn kho</button><ReusableInventory branch={branch}/></>;
   return (
@@ -73,11 +74,9 @@ export default function Stock({ readScope }: { readScope?: number }) {
       <div className="page-heading">
         {readScope === undefined && <button onClick={() => setBatchView(true)}>Lô và hạn sử dụng</button>}
         {readScope === undefined && <button onClick={() => setReusableView(true)}>Vật tư tái sử dụng</button>}
-        {mayEdit && <a className="button" href="#requests?tab=inbox">Duyệt vật tư tiêu hao</a>}
-        {readScope === undefined && mayEdit && <a className="button" href="#stocktaking?kind=ADJUSTMENT">Duyệt giảm vật tư tiêu hao</a>}
         <PageTitle>
           <h1>Tồn kho vật tư</h1>
-          <p>Số lượng theo đơn vị cơ sở, tính từ chứng từ đã ghi sổ</p>
+          <p>Tồn cơ sở tính từ chứng từ đã ghi sổ. Cảnh báo dưới tối thiểu dựa trên số có thể cấp.</p>
         </PageTitle>
       </div>
       <div className="stock-context">
@@ -187,6 +186,13 @@ export default function Stock({ readScope }: { readScope?: number }) {
                   <td className="numeric" data-label="Tồn cơ sở">
                     {Number(r.baseQty || 0).toLocaleString("vi-VN")}
                     {r.availableQty != null && <small>Có thể cấp: {Number(r.availableQty).toLocaleString("vi-VN")}</small>}
+                    {Number(r.baseQty) > Number(r.availableQty ?? r.baseQty) && <small>{r.classification === "UNCLASSIFIED"
+                      ? "Chưa phân loại vật tư; chưa đủ điều kiện cấp."
+                      : r.classification === "CONSUMABLE" && r.expiryPolicy === "UNKNOWN"
+                        ? "Chưa xác định chính sách hạn dùng."
+                        : r.classification === "CONSUMABLE" && Number(r.batchQuantity) < Number(r.baseQty)
+                          ? "Tồn sổ sách chưa được đối soát đủ theo lô."
+                          : "Một phần tồn chưa đủ điều kiện cấp hoặc đã được giữ chỗ."}</small>}
                     {r.minimumQty != null && (r.availableQty ?? r.baseQty) < r.minimumQty && <small>Tồn khả dụng dưới tối thiểu</small>}
                   </td>
                   <td data-label="Đơn vị">{r.unit || "—"}</td>
@@ -208,7 +214,6 @@ export default function Stock({ readScope }: { readScope?: number }) {
         {!rows.length && <Empty>Chưa có tồn kho phù hợp với bộ lọc.</Empty>}
         <Pager page={page} total={rows.length} pageSize={25} onPage={setPage} />
       </State>
-      {switching && canCrossBranch && <Dialog title="Xem kho chi nhánh khác" close={() => setSwitching(false)}><CrossBranchStock branch={branch} /></Dialog>}
       {editing && <MinimumEditor row={editing} branch={branch} close={() => setEditing(null)} saved={() => { setEditing(null); bump(n => n + 1); }} />}
       {selected && (
         <Dialog

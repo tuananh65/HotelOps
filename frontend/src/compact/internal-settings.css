@@ -19,3 +19,8 @@
  .internal-settings td:before{content:attr(data-label);font-weight:600;flex:0 0 40%}
  .internal-settings td strong{min-width:0}
 }
+
+.internal-settings td small{display:block;margin-top:.35rem;color:var(--muted,#52656a)}
+.request-routing-reference{margin-top:1.5rem;display:grid;gap:.75rem}
+.request-routing-reference article{border:1px solid var(--border,#d4e2df);border-radius:10px;padding:1rem}
+.request-routing-reference h3{margin:0 0 .5rem;font-size:1rem}

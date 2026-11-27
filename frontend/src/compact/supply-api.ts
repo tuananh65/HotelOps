@@ -18,6 +18,8 @@ export type SupplyAllocation = {
   allocationId: number; branchId: number; userId: number; assignmentId: number;
   status: string; shortageReason: string | null; createdAt: string; closedAt: string | null;
   rowVersion: string; items: SupplyBalance[];
+  returnDueAt?: string | null;
+  reusableItems?: { positionId:number; itemId:number; code:string; name:string; status:string; quantity:number }[];
 };
 export type SupplyLedger = {
   ledgerId: number; itemId: number; kind: string; quantity: number; workId: number | null;

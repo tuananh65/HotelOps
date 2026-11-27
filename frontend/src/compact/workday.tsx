@@ -1,6 +1,7 @@
 import { AlertPopup } from "./alert-popup";
 import PageTitle from "./page-title";
 import { useEffect, useState } from "react";
+import ShiftSupplyBalances from "./shift-supply-balances";
 import WorkdayAssignment from "./workday-assignment";
 import WorkdaySettings from "./workday-settings";
 import type { WorkdayCalendar } from "./workday-scheduling";
@@ -22,7 +23,7 @@ function days(start: string) {
   });
 }
 export default function Workday() {
-  const { branch, profile } = useAuth();
+  const { branch, profile, can } = useAuth();
   const branchRoles = profile.roles.filter(r => r.branchId == null || r.branchId === branch);
   const operationsManager = branchRoles.length > 0 && branchRoles.every(r => r.code === "OPERATION_MANAGER");
   const [date, setDate] = useState(dateKey()),
@@ -35,7 +36,7 @@ export default function Workday() {
     [notice, setNotice] = useState("");
   const [settings, setSettings] = useState(false);
   const [showHistorical, setShowHistorical] = useState(false);
-  const [ending, setEnding] = useState(false);
+  const [ending, setEnding] = useState<Row | null>(null);
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (!pending && !slot && !detail && document.visibilityState === "visible") bump((n) => n + 1);
@@ -46,7 +47,7 @@ export default function Workday() {
     setSlot(null);
     setDetail(null);
     setSettings(false);
-    setEnding(false);
+    setEnding(null);
     setError("");
     setNotice("");
   }, [branch]);
@@ -82,7 +83,7 @@ export default function Workday() {
       await api(path, body);
       setSlot(null);
       setDetail(null);
-      setEnding(false);
+      setEnding(null);
       setNotice("Đã cập nhật lịch làm việc.");
       bump((x) => x + 1);
     } catch (e) {
@@ -97,7 +98,6 @@ export default function Workday() {
     d.setDate(d.getDate() + n);
     setDate(dateKey(d));
   };
-  const mine = (a: Row) => a.userId === profile.user.fields.userId;
   const dailyAssignments = (data?.assignments ?? []).filter(
     (a: Row) => visibleAssignment(a) && a.workDate === date,
   );
@@ -115,7 +115,7 @@ export default function Workday() {
       <div className="page-heading workday-controls">
         <PageTitle>
           <h1>Lịch làm việc</h1>
-          <p>Phân ca theo tuần · Ca tự kết thúc khi hết giờ; vật tư còn giữ được đối soát riêng</p>
+          <p>Ca tự có hiệu lực trong giờ được phân · Nhân viên buồng phòng chủ động kết thúc ca; vật tư tự hoàn trả sau 5 phút</p>
         </PageTitle>
         {data?.canManage && (
           <label className="workday-audience">
@@ -180,26 +180,33 @@ export default function Workday() {
       <State {...query} retry={() => bump((x) => x + 1)}>
         {data && (
           <>
-            {data.active && (
-              <section className="active-shift shift-working">
+            {(data.active ? [data.active] : []).map((shift: Row) => (
+              <section key={shift.assignmentId} className="active-shift shift-working">
                 <div>
-                  <strong>{data.active.status === "ENDED" ? "Ca đã kết thúc, chờ đối soát" : "Ca đang hoạt động"}: {data.active.name}</strong>
+                  <strong>Ca đang hoạt động: {shift.name}</strong>
                   <p>
-                    Từ {timestamp(data.active.startedAt)} · Thời gian công việc
+                    Từ {timestamp(shift.startedAt)} · Thời gian công việc
                     được quản lý riêng.
                   </p>
                 </div>
-                {data.active.canEnd && <button
+                {shift.canEnd && <button
                   className="primary"
                   disabled={pending}
-                  onClick={() => setEnding(true)}
+                  onClick={() => setEnding(shift)}
                 >
-                  {data.active.status === "ENDED" ? "Đối soát và hoàn trả vật tư" : "Kết thúc ca"}
+                  Kết thúc ca
                 </button>}
-                {!data.active.canEnd && <p role="status">Hoàn tất hoặc bàn giao công việc, xử lý vật tư giữ chỗ và yêu cầu bổ sung còn mở để đối soát vật tư.</p>}
+                {!shift.canEnd && <p role="status">Hoàn tất hoặc bàn giao công việc trước khi kết thúc ca.</p>}
               </section>
-            )}
-            {ending && data.active && <ConfirmPopup title={data.active.status === "ENDED" ? "Đối soát vật tư cuối ca" : "Kết thúc ca"} disabled={!data.active.canEnd} pending={pending} cancel={()=>setEnding(false)} confirm={()=>{if(data.active.canEnd)mutate(`workday/assignments/${data.active.assignmentId}/end`,action(data.active.rowVersion));}}><p>Xác nhận hoàn trả vật tư chưa sử dụng về kho. Ca đã hết giờ vẫn giữ nguyên thời điểm kết thúc.</p>{error&&<AlertPopup>{error}</AlertPopup>}</ConfirmPopup>}
+            ))}
+            {ending && <ConfirmPopup title="Kết thúc ca" disabled={!ending.canEnd} pending={pending} cancel={()=>setEnding(null)} confirm={()=>{if(ending.canEnd)mutate(`workday/assignments/${ending.assignmentId}/end`,action(ending.rowVersion));}}><p>Ghi nhận giờ kết thúc thực tế khi xác nhận. Toàn bộ vật tư còn giữ sẽ tự hoàn trả sau 5 phút; yêu cầu bổ sung chưa cấp sẽ dừng. Bộ vật tư ca tiếp theo chỉ được cấp sau khi hoàn trả xong ca này.</p>{error&&<AlertPopup>{error}</AlertPopup>}</ConfirmPopup>}
+            {(data.pendingReconciliations ?? []).map((shift: Row) => <section key={shift.assignmentId} className="panel" role="status">
+              <h3>{shift.name} · Chờ tự động hoàn trả vật tư</h3>
+              <p>Đã kết thúc: {timestamp(shift.endedAt)}. Hệ thống hoàn trả sau 5 phút; bộ vật tư ca tiếp theo chỉ được cấp khi hoàn trả hoàn tất.</p>
+            </section>)}
+            {can("STAFF_SUPPLY_VIEW", true) && <ShiftSupplyBalances branch={branch} userId={profile.user.fields.userId}
+              assignmentIds={dailyAssignments.filter((item: Row) => item.userId === profile.user.fields.userId).map((item: Row) => item.assignmentId)}
+              activeId={data.active?.assignmentId} pendingReturnIds={(data.pendingReconciliations ?? []).map((item: Row) => item.assignmentId)} revision={revision} />}
             <div className="section-title">
               <h2>
                 {data.canManage
@@ -345,23 +352,6 @@ export default function Workday() {
                             ))}
                         </div>
                         <div className="toolbar">
-                          {a.status === "PLANNED" &&
-                            a.workDate === data.today &&
-                            data.currentMinute >= s.startMinute && data.currentMinute < s.endMinute &&
-                            !data.active && (
-                              <button
-                                className="primary"
-                                disabled={pending}
-                                onClick={() =>
-                                  mutate(
-                                    `workday/assignments/${a.assignmentId}/start`,
-                                    action(a.rowVersion),
-                                  )
-                                }
-                              >
-                                Bắt đầu ca
-                              </button>
-                            )}
                           <button onClick={() => setDetail(a)}>Chi tiết</button>
                         </div>
                       </article>
@@ -407,23 +397,6 @@ export default function Workday() {
             <br />
             Kết thúc: {timestamp(detail.endedAt)}
           </p>
-          {mine(detail) &&
-            detail.status === "PLANNED" &&
-            detail.workDate === data?.today &&
-            !data?.active && (
-              <button
-                className="primary"
-                disabled={pending}
-                onClick={() =>
-                  mutate(
-                    `workday/assignments/${detail.assignmentId}/start`,
-                    action(detail.rowVersion),
-                  )
-                }
-              >
-                Bắt đầu ca
-              </button>
-            )}
           {data?.canManage && detail.status === "PLANNED" && (
             <form
               onSubmit={(e) => {

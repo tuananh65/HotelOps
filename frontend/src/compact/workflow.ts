@@ -27,6 +27,8 @@ export const commands: Record<string, string> = {
   triage: "Phân loại sự cố",
   escalate: "Báo cáo vượt cấp",
   "handover-offer": "Đề nghị bàn giao",
+  "request-handover": "Đề nghị bàn giao",
+  "accept-handover-request": "Tiếp nhận bàn giao của nhân viên",
   "handover-accept": "Nhận bàn giao",
   "handover-reject": "Từ chối bàn giao",
 };

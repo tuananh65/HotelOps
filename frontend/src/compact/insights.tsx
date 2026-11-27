@@ -256,7 +256,7 @@ export default function Insights({
               <article className="panel" key={r.notificationId}>
                 <div>
                   <h3>{r.title}</h3>
-                  <p>{r.message}</p>
+                  {r.message !== r.title && <p>{r.message}</p>}
                   <small>{timestamp(r.createdAt)}</small>
                   {r.workId && (
                     <button
@@ -265,6 +265,9 @@ export default function Insights({
                         setPending(true);
                         setError("");
                         try {
+                          if(operationsManager&&r.notificationType?.startsWith("ROOM_ISSUE_ASSET_PURCHASE_")){
+                            location.hash=`requests?domain=missing-assets&id=${r.workId}`;return;
+                          }
                           if(operationsManager&&r.notificationType?.startsWith("REPLACEMENT_")){
                             location.hash=`requests?domain=replacement&id=${r.workId}`;return;
                           }
@@ -285,10 +288,10 @@ export default function Insights({
                         }
                       }}
                     >
-                      Mở công việc
+                      Chi tiết
                     </button>
                   )}
-                  {r.documentId && (
+                  {!r.workId && r.documentId && (
                     <button
                       disabled={pending}
                       onClick={async () => {
@@ -304,7 +307,7 @@ export default function Insights({
                         }
                       }}
                     >
-                      Mở yêu cầu vật tư
+                      Chi tiết
                     </button>
                   )}
                 </div>

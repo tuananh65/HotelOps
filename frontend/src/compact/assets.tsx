@@ -11,6 +11,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { assetConditionLabel, assetConditions } from "./asset-presentation";
 import AssetConditionBar from "./asset-condition-bar";
 import AssetTree from "./asset-tree";
+import { ReplacementPanel } from "./asset-replacement";
 export default function Assets({
   maintenance = false,
   readScope,
@@ -19,6 +20,7 @@ export default function Assets({
   readScope?: number;
 }) {
   const { branch, can, profile } = useAuth();
+  const [replacementId,setReplacementId]=useState(Number(new URLSearchParams(location.hash.split('?')[1]).get('replacement'))||0);
   const branchRoles = profile.roles.filter(
     (r) => r.branchId === null || r.branchId === branch,
   );
@@ -61,7 +63,10 @@ export default function Assets({
     options = useQuery(
       can("ROOM_VIEW") ? `workspace/options?branchId=${branch}` : null,
     );
+  const structureLocations = useCatalogRows(groupedByRoom ? "locations" : null, branch, revision);
+  const structureRooms = useCatalogRows(groupedByRoom ? "rooms" : null, branch, revision);
   const asset = detail.data?.asset?.fields;
+  const replacements=useQuery<Row[]>(profile.roles.some(r=>r.code==='OPERATION_MANAGER'&&(r.branchId==null||r.branchId===branch))&&can('ASSET_MANAGE')?`work/replacements?branchId=${branch}`:null,revision);
   const pendingHandover = fields(detail.data?.history).find((event) => event.handoverStatus);
   const canReceiveHandover = asset?.isActive && pendingHandover?.handoverStatus === "PENDING"
     && pendingHandover.toUserId === profile.user.fields.userId && readScope === undefined;
@@ -90,6 +95,7 @@ export default function Assets({
   const pageRows = rows.slice((currentPage - 1) * 25, currentPage * 25);
   return (
     <>
+      {!!replacementId&&can('ASSET_MANAGE')&&<Dialog title="Xác nhận thay mới tài sản" close={()=>setReplacementId(0)}><ReplacementPanel key={`${replacementId}:${revision}`} id={replacementId} installation onSaved={()=>{bump(n=>n+1);setReplacementId(0);}}/></Dialog>}
       <div className="page-heading">
         <PageTitle>
           <h1>Tài sản</h1>
@@ -171,7 +177,7 @@ export default function Assets({
         </PageToolbar>
       )}
       <State {...query} retry={() => bump((n) => n + 1)}>
-        {groupedByRoom ? <AssetTree rows={rows} allRows={query.data || []} branchName={profile.branches.find(b => b.branchId === branch)?.name || "Chi nhánh"} select={assetId => { setId(assetId); setCommand(""); setError(""); }}/> : <>
+        {groupedByRoom ? <State {...structureLocations}><State {...structureRooms}><AssetTree locations={structureLocations.data || []} rooms={structureRooms.data || []} filtered={!!search.trim() || !!condition} replacement={a => { const r=replacements.data?.find(r=>r.assetId===a.assetId&&r.status==="REPLACEMENT_APPROVED"); return r?<button className="primary" onClick={()=>setReplacementId(r.workId)}>Thay thế</button>:null; }} rows={rows} allRows={query.data || []} branchName={profile.branches.find(b => b.branchId === branch)?.name || "Chi nhánh"} select={assetId => { setId(assetId); setCommand(""); setError(""); }}/></State></State> : <>
         <div className="table-scroll">
           <table>
             <thead>

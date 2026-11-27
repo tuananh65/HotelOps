@@ -52,7 +52,7 @@ export default function HousekeepingOverview() {
             Phòng chờ kiểm tra
           </a>
         )}
-        {can("ATTENDANCE_RECORD") && (
+        {can("SHIFT_MANAGE", false) && (
           <a className="button-link" href="#workday">
             Lịch cá nhân
           </a>

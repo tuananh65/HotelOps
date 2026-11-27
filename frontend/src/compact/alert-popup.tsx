@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { X, CircleAlert, CircleCheck } from "lucide-react";
+import { X, CircleAlert, CircleCheck, Info } from "lucide-react";
 import "./alert-popup.css";
 
 // Keep alerts in their original form/dialog so modal focus and form controls work.
@@ -32,7 +32,7 @@ export function AlertPopup({
   "aria-label": title,
 }: {
   children: ReactNode;
-  tone?: "warning" | "success";
+  tone?: "info" | "warning" | "error" | "success";
   "aria-label"?: string;
 }) {
   const [dismissed, setDismissed] = useState(false);
@@ -78,17 +78,17 @@ export function AlertPopup({
       queueMicrotask(arrangeAlerts);
     };
   }, []);
-  const heading = title || (tone === "success" ? "Thông báo" : "Cảnh báo");
+  const heading = title || ({ info: "Thông báo", success: "Thành công", warning: "Cần lưu ý", error: "Không thể thực hiện" }[tone]);
   return (
     <section ref={ref} hidden={dismissed} className={`alert-popup ${tone}`} aria-label={heading}>
       <div className="alert-popup-heading">
-        {tone === "success" ? <CircleCheck size={18} aria-hidden="true" /> : <CircleAlert size={18} aria-hidden="true" />}
+        {tone === "success" ? <CircleCheck size={18} aria-hidden="true" /> : tone === "info" ? <Info size={18} aria-hidden="true" /> : <CircleAlert size={18} aria-hidden="true" />}
         <strong>{heading}</strong>
         <button type="button" aria-label="Đóng thông báo" aria-controls={id} onClick={() => setDismissed(true)}>
           <X size={18} aria-hidden="true" />
         </button>
       </div>
-      <div ref={body} id={id} className="alert-popup-body" role={tone === "success" ? "status" : "alert"}>
+      <div ref={body} id={id} className="alert-popup-body" role={tone === "success" || tone === "info" ? "status" : "alert"}>
         {children}
       </div>
     </section>

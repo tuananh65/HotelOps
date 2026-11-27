@@ -79,3 +79,7 @@ dialog.confirmation-popup {
 .confirmation-actions > button.confirm-cancel { background: #b42318; border-color: #b42318; color: white; }
 .confirmation-actions > button.confirm-accept:hover { background: #184f48; }
 .confirmation-actions > button.confirm-cancel:hover { background: #912018; }
+
+.alert-popup.warning { border-color: #d5a34e; background: #fff8e8; color: #754708; }
+.alert-popup.info { border-color: #8ab6d4; background: #eef7fd; color: #174a70; }
+.alert-popup.error { border-color: #dca79f; background: #fff4f1; color: #812c23; }

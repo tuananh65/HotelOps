@@ -50,7 +50,7 @@ export default function MaintenancePersonal() {
         <a className="button-link" href="#work">
           Công việc bảo trì
         </a>
-        {can("ATTENDANCE_RECORD") && (
+        {can("SHIFT_MANAGE", false) && (
           <a className="button-link" href="#workday">
             Lịch làm việc
           </a>
@@ -70,7 +70,7 @@ export default function MaintenancePersonal() {
                     </strong>
                   </article>
                 ))}
-              {can("ATTENDANCE_RECORD") && (
+              {can("SHIFT_MANAGE", false) && (
                 <article className={metricClass("shiftsToday")}>
                   <MetricHeading icon={CalendarDays}>Ca hôm nay</MetricHeading>
                   <strong className="branch-metric-value">
@@ -123,7 +123,7 @@ export default function MaintenancePersonal() {
                   Việc cần xử lý lại
                 </a>
               </section>
-              {can("ATTENDANCE_RECORD") && (
+              {can("SHIFT_MANAGE", false) && (
                 <section className="panel">
                   <MetricHeading icon={CalendarDays}>
                     Ca hôm nay & sắp tới

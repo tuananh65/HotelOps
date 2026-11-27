@@ -69,7 +69,7 @@ export default function HousekeepingStaff() {
             <option value="completed">Đã hoàn thành</option>
           </select>
         </label>
-        {can("ATTENDANCE_RECORD") && (
+        {can("SHIFT_MANAGE", false) && (
           <a className="button-link" href="#workday">
             Lịch cá nhân
           </a>

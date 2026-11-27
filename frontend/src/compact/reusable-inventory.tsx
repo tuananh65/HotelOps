@@ -35,7 +35,7 @@ export default function ReusableInventory({ branch, work, initialTab = "position
   };
   const locationType = status === "STAFF_HOLDING" ? "staff" : ["READY", "LAUNDRY"].includes(status) ? "warehouse" : status === "IN_USE" ? "room" : place;
   const options: Row[] = destinations.data?.[locationType === "staff" ? "staff" : locationType === "room" ? "rooms" : "warehouses"] || [];
-  return <section>
+  return <section data-cleaning-continuation={work?.canContinueCleaning ? "true" : undefined}>
     <h2>Vật tư tái sử dụng</h2>
     {work?.roomCapacity && <p>Sức chứa tối đa của phòng: <strong>{work.roomCapacity} khách</strong>. Số vật tư cấp được tính theo sức chứa và định mức mỗi khách.</p>}
     <p>Cấp, thu hồi và giặt không làm giảm tổng sở hữu. Vật tư hỏng chờ OM xác nhận ghi giảm.</p>
@@ -62,14 +62,15 @@ export default function ReusableInventory({ branch, work, initialTab = "position
           else {
             const locationId = Number(f.get("location"));
             await api(`reusable-inventory/positions/${action.row.positionId}/move`, { ...base, quantity: Number(f.get("quantity")), status,
-              warehouseId: !work && locationType === "warehouse" ? locationId : null, userId: !work && locationType === "staff" ? locationId : null,
-              roomId: work ? work.roomId : locationType === "room" ? locationId : null, workId: work?.workId || null, replace: f.get("replace") === "on" });
+              warehouseId: !work && locationType === "warehouse" ? locationId : null,
+              userId: work ? status === "IN_USE" ? null : profile.user.fields.userId : locationType === "staff" ? locationId : null,
+              roomId: work ? status === "IN_USE" ? work.roomId : null : locationType === "room" ? locationId : null, workId: work?.workId || null, replace: f.get("replace") === "on" });
           }
           setAction(null); bump(n => n + 1);
         } catch (err) { setError(message(err)); } finally { setPending(false); }
       }}>
         <p>{action.row.name}{action.type === "approve" && ` · ${action.row.quantity} đơn vị sẽ được ghi giảm khỏi tổng sở hữu.`}</p>
-        {["move", "write-off"].includes(action.type) && <label>Số lượng<input name="quantity" type="number" min="0.0001" step="0.0001" max={action.row.quantity - action.row.pendingWriteOff} required defaultValue="1"/></label>}
+        {["move", "write-off"].includes(action.type) && <label>Số lượng<input name="quantity" type="number" min="1" step="1" max={action.row.quantity - action.row.pendingWriteOff} required defaultValue="1"/></label>}
         {action.type === "move" && <>
           <label>Chuyển sang<select value={status} onChange={e => setStatus(e.target.value)}>{transitions(action.row).map(s => <option key={s} value={s}>{labels[s]}</option>)}</select></label>
           {!work && <>{["DIRTY", "DAMAGED"].includes(status) && <label>Nơi nhận<select value={place} onChange={e => setPlace(e.target.value)}><option value="room">Phòng</option><option value="warehouse">Kho</option><option value="staff">Nhân viên</option></select></label>}

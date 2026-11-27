@@ -11,8 +11,15 @@ export function useDomainRequests(revision: number, queue: string, search: strin
   const replacementAccess = role("OPERATION_MANAGER") && can("ASSET_MANAGE", false);
   const writeOffs = useQuery<Row[]>(writeOffAccess ? `reusable-inventory/write-offs?branchId=${branch}` : null, revision);
   const replacements = useQuery<Row[]>(replacementAccess ? `work/replacements?branchId=${branch}` : null, revision);
+  const missingAssets = useQuery<Row[]>(replacementAccess ? `work/missing-asset-purchases?branchId=${branch}` : null, revision);
   const userId = profile.user.fields.userId;
   const rows: Row[] = [
+    ...(missingAssets.data || []).map(r => ({
+      ...r, requestKey: `missing-asset:${r.workId}`, domain: "missing-assets",
+      requestType: "MISSING_ASSET_PURCHASE", queueRole: "OPERATION_MANAGER",
+      actionable: r.canDecide || ["ROOM_ISSUE_ASSET_PURCHASE_REQUESTED", "ROOM_ISSUE_ASSET_PURCHASE_APPROVED", "ROOM_ISSUE_ASSET_DELIVERY_REJECTED"].includes(r.status),
+      completed: r.status === "ROOM_ISSUE_INSPECTION_PASSED", rejected: ["ROOM_ISSUE_ASSET_PURCHASE_REJECTED", "ROOM_ISSUE_REJECTED"].includes(r.status),
+    })),
     ...(writeOffs.data || []).map(r => ({
       workId: r.writeOffId, requestKey: `write-off:${r.writeOffId}`, domain: "write-offs",
       requestType: "REUSABLE_WRITE_OFF", title: `Ghi giảm · ${r.name} · ${r.quantity}`,
@@ -29,8 +36,8 @@ export function useDomainRequests(revision: number, queue: string, search: strin
   ];
   const term = search.trim().toLocaleLowerCase("vi");
   return {
-    loading: writeOffs.loading || replacements.loading,
-    error: writeOffs.error || replacements.error,
+    loading: writeOffs.loading || replacements.loading || missingAssets.loading,
+    error: writeOffs.error || replacements.error || missingAssets.error,
     data: rows.filter(r => (!term || r.title.toLocaleLowerCase("vi").includes(term))
       && (queue === "mine" ? r.createdBy === userId : queue === "action" ? r.actionable
         : queue === "completed" ? r.completed : queue === "rejected" ? r.rejected

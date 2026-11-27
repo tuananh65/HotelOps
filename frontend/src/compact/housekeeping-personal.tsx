@@ -107,7 +107,7 @@ export default function HousekeepingPersonal() {
                   <Empty>Chưa có công việc đang mở được giao cho bạn.</Empty>
                 )}
               </section>
-              {can("ATTENDANCE_RECORD") && (
+              {can("SHIFT_MANAGE", false) && (
                 <section className="panel">
                   <MetricHeading icon={CalendarDays}>
                     Ca làm việc của tôi
@@ -140,9 +140,6 @@ export default function HousekeepingPersonal() {
                       tới.
                     </Empty>
                   )}
-                  <a className="button-link" href="#workday">
-                    Mở lịch làm việc
-                  </a>
                 </section>
               )}
             </div>

@@ -80,7 +80,7 @@ export default function PersonalOverview() {
         </PageTitle>
       </div>
       <PageToolbar>
-        {can("ATTENDANCE_RECORD") && (
+        {can("SHIFT_MANAGE", false) && (
           <a className="button-link" href="#workday">
             Ca làm việc của tôi
           </a>

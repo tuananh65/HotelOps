@@ -1,0 +1,8 @@
+﻿.cleaning-photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.cleaning-photo-grid figure { margin: 0; min-width: 0; }
+.cleaning-photo-grid img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
+.cleaning-photo-grid figcaption { overflow-wrap: anywhere; font-size: 12px; margin: 5px 0; }
+.cleaning-photo-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.cleaning-photo-actions label { min-width: 0; max-width: 100%; }
+.cleaning-photo-actions input { width: 100%; }
+.cleaning-report-history { margin-block: 16px; }

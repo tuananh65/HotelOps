@@ -98,7 +98,7 @@ function ConfigurationForm({ branch, initialGroup, row, options, assets, pending
     {!isAsset && <><p>Đơn vị cơ sở: <strong>{unit}</strong></p><p>Kho chi nhánh: <strong>{warehouses.length === 1 ? warehouses[0].name : "Chưa xác định được kho duy nhất"}</strong></p>{warehouses.length !== 1 && <AlertPopup>{supplyMessage("BRANCH_REQUIRES_ONE_ACTIVE_WAREHOUSE")}</AlertPopup>}
       <div className="supply-form-grid">{reusableAllocation && <label>Định mức đồ dùng<input name="initial" type="number" min="0" step="0.0001" required defaultValue={row?.initialQuantity ?? 0} disabled={pending} /></label>}{group === "A" && <label>Cho mỗi khách<input name="perGuest" type="number" min="0.0001" step="0.0001" required defaultValue={row?.perGuestQuantity || ""} disabled={pending} /></label>}<label>Tồn tối thiểu<input name="minimum" type="number" min="0" step="0.0001" required defaultValue={row?.minimumStock ?? ""} disabled={pending} /></label></div>
     </>}
-    <p className="muted">Thay đổi tạo phiên bản mới; các định mức đã lưu và giao dịch đã ghi nhận được giữ nguyên. Bắt đầu ca không cấp vật tư. Chỉ ghi nhận tiêu hao theo số thực tế bổ sung vào phòng.</p>
+    <p className="muted">Thay đổi tạo phiên bản mới; các định mức đã lưu và giao dịch đã ghi nhận được giữ nguyên. Ca tự có hiệu lực không cấp vật tư. Chỉ ghi nhận tiêu hao theo số thực tế bổ sung vào phòng.</p>
     {!!lifecycle.error && <AlertPopup>Không tải được phân loại vật tư. Vui lòng mở lại biểu mẫu.</AlertPopup>}
     <button className="primary" disabled={pending || lifecycle.loading || !!lifecycle.error || !subject || (!isAsset && warehouses.length !== 1)}>{pending ? "Đang lưu…" : "Lưu cấu hình"}</button>
   </form>;

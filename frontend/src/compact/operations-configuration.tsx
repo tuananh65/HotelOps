@@ -11,10 +11,12 @@ const HousekeepingChecklists = lazy(() => import("./housekeeping-checklists"));
 const MaintenanceTemplates = lazy(() => import("./templates"));
 
 export default function OperationsConfiguration() {
-  const { can, branch } = useAuth();
+  const { can, branch, profile } = useAuth();
+  const roles = profile.roles.filter(r => r.branchId === null || r.branchId === branch);
+  const maintenanceLead = roles.length > 0 && roles.every(r => r.code === "MAINTENANCE_SUPERVISOR");
   const tabs = [
-    { id: "checklists", name: "Checklist", show: can("CHECKLIST_MANAGE", false) },
-    { id: "maintenance", name: "Mẫu & lịch bảo trì", show: can("CHECKLIST_MANAGE", false) || can("PM_MANAGE", false) },
+    { id: "checklists", name: "Checklist", show: !maintenanceLead && can("CHECKLIST_MANAGE", false) },
+    { id: "maintenance", name: "Mẫu & lịch bảo trì", show: !maintenanceLead && (can("CHECKLIST_MANAGE", false) || can("PM_MANAGE", false)) },
     { id: "shifts", name: "Ca làm việc", show: can("SHIFT_MANAGE", false) },
     { id: "supplies", name: "Vật tư phòng", show: can("ROOM_SUPPLY_CONFIG", false) },
     { id: "requests", name: "Yêu cầu nội bộ", show: can("IR_VIEW", false) },

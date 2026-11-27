@@ -7,3 +7,46 @@
 .request-workspace>table{background:var(--surface,#fff);border:1px solid var(--border,#d4e2df);border-radius:12px;overflow:hidden}
 .request-workspace>table th:first-child{width:30%}
 .request-workspace>table th:last-child{width:17%}
+
+/* Request workflows stay centered, including the embedded room workflow. */
+.request-workspace dialog.request-dialog,
+.request-workspace .request-room-workflow dialog.room-drawer {
+  position: fixed; inset: 0; margin: auto; width: min(760px, calc(100vw - 32px));
+  height: auto; max-height: calc(100dvh - 32px); box-sizing: border-box;
+  border-radius: 12px; animation: none; overflow: auto;
+}
+.request-workspace .request-room-workflow dialog.room-drawer { width: min(920px, calc(100vw - 32px)); }
+.request-queues { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.request-queues .request-queue { min-height: 44px; border-radius: 8px; }
+.request-queues .request-queue[aria-pressed="true"] { background: var(--primary,#246b65); color: #fff; border-color: var(--primary,#246b65); }
+.request-workspace .request-status { display: inline-block; white-space: normal; line-height: 1.5; }
+.request-workspace .request-status-pending { background: #fff3d6; color: #805000; border: 1px solid #e7c879; }
+.request-workspace .request-status-progress { background: #e8f1ff; color: #245493; border: 1px solid #bfd2ef; }
+.request-workspace .request-status-done { background: #e7f4eb; color: #28613b; border: 1px solid #bddbc6; }
+.request-workspace .request-status-closed { background: #f0f1f3; color: #535b66; border: 1px solid #d6dae0; }
+.request-workspace .request-row-pending td:first-child { border-left: 3px solid #d6a53a; }
+.request-workspace .request-row-done td:first-child { border-left: 3px solid #78a989; }
+.request-workspace .request-dialog .request-lines { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.request-workspace .request-dialog .request-lines .panel { padding: 12px; margin: 0; }
+.request-workspace .request-dialog .request-lines p { margin: 6px 0 0; }
+.request-workspace .request-dialog .request-actions { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.request-workspace .request-dialog .request-actions:empty { display: none; }
+@media(max-width:640px) { .request-workspace .request-dialog .request-lines { grid-template-columns: minmax(0, 1fr); } }
+.request-create-dialog .request-item-picker { min-width: 0; border: 0; padding: 0; margin: 8px 0; }
+.request-item-picker legend { padding: 0 0 12px; font-weight: 600; }
+.request-item-picker legend span { color: var(--muted,#52666c); font-weight: 400; }
+.request-create-dialog .request-picker-row { display: grid; grid-template-columns: minmax(0,1fr) 132px; align-items: center; gap: 16px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border,#d4e2df); border-radius: 8px; }
+.request-create-dialog .request-picker-row.is-selected { background: #edf7f3; border-color: var(--primary,#246b65); }
+.request-create-dialog label.request-item-choice { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 44px; margin: 0; cursor: pointer; }
+.request-create-dialog .request-item-choice input[type="checkbox"] { width: 18px; height: 18px; min-width: 18px; min-height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: var(--primary,#246b65); }
+.request-item-choice span { min-width: 0; overflow-wrap: anywhere; }
+.request-item-choice small { display: block; color: var(--muted,#52666c); margin-top: 4px; }
+.request-create-dialog label.request-item-quantity { margin: 0; gap: 4px; font-size: 12px; }
+.request-create-dialog .request-item-quantity input { width: 100%; min-height: 44px; box-sizing: border-box; }
+.request-create-dialog input:focus-visible { outline: 2px solid var(--primary,#246b65); outline-offset: 3px; }
+@media(max-width:480px) {
+  .request-create-dialog .request-picker-row { grid-template-columns: minmax(0,1fr) 100px; gap: 8px; padding: 10px; }
+  .request-workspace dialog.request-dialog,.request-workspace .request-room-workflow dialog.room-drawer { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); }
+}
+
+.request-workspace .request-context { color: var(--muted, #526663); font-size: .9rem; line-height: 1.6; margin: 8px 0 16px; overflow-wrap: anywhere; }

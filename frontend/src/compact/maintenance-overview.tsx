@@ -76,7 +76,7 @@ export default function MaintenanceOverview({
             />
           </label>
         )}
-        {can("ATTENDANCE_RECORD") && (
+        {can("SHIFT_MANAGE", false) && (
           <a className="button-link" href="#workday">
             <CalendarDays size={16} /> Lịch cá nhân
           </a>

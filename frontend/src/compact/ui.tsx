@@ -60,7 +60,7 @@ export function State({
     );
   if (error)
     return (
-      <AlertPopup>
+      <AlertPopup tone="error">
         {message(error)} {retry && <button onClick={retry}>Thử lại</button>}
       </AlertPopup>
     );
@@ -108,6 +108,7 @@ const labels: Record<string, string> = {
   LINE_SAVED: "Đã lưu vật tư",
   ASSIGN: "Phân ca",
   START: "Bắt đầu ca",
+  AUTO_START: "Ca tự có hiệu lực",
   END: "Kết thúc ca",
   CANCEL: "Hủy ca",
   OCCUPIED: "Có khách",

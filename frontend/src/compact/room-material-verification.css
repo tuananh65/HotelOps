@@ -1,0 +1,13 @@
+.room-material-verification { margin-block: 16px; }
+.room-material-verification .material-table-scroll { overflow-x: auto; }
+.room-material-verification table { width: 100%; border-collapse: collapse; }
+.room-material-verification th, .room-material-verification td { padding: 10px; text-align: left; vertical-align: top; }
+.room-material-verification small { display: block; margin-top: 4px; }
+.room-material-verification .material-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+@media (max-width: 600px) {
+  .room-material-verification thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .room-material-verification table, .room-material-verification tbody, .room-material-verification tr { display: block; width: 100%; }
+  .room-material-verification tr { border-bottom: 1px solid var(--border, #d3dfdd); padding-block: 8px; }
+  .room-material-verification td { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; overflow-wrap: anywhere; }
+  .room-material-verification td::before { content: attr(data-label); font-weight: 600; }
+}

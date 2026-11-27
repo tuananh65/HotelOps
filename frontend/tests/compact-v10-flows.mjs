@@ -542,7 +542,7 @@ try {
     },
   );
   await check(
-    "New supervisor is eligible for approved shift and starts/ends only own shift",
+    "New supervisor shift activates automatically and only its owner can end it",
     async () => {
       const week = await call(
         "demo_head",
@@ -560,22 +560,20 @@ try {
         rowVersion: shift.rowVersion,
         operationKey: crypto.randomUUID(),
       });
+      const current = await call("demo_hks", `workday?branchId=${branch}&date=${week.today}`);
+      const started = current.assignments.find(a => a.assignmentId === assigned.fields.assignmentId);
+      expect(started.status).toBe("WORKING");
       await call(
         "demo_hk1",
-        `workday/assignments/${assigned.fields.assignmentId}/start`,
-        act(assigned.fields),
+        `workday/assignments/${assigned.fields.assignmentId}/end`,
+        act(started),
         "POST",
         403,
-      );
-      const started = await call(
-        "demo_hks",
-        `workday/assignments/${assigned.fields.assignmentId}/start`,
-        act(assigned.fields),
       );
       await call(
         "demo_hks",
         `workday/assignments/${assigned.fields.assignmentId}/end`,
-        act(started.fields),
+        act(started),
       );
       await login("demo_hks");
       await go("workday");
