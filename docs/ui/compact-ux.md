@@ -1,6 +1,26 @@
 # Quy ước UX giao diện HotelOps compact
 
-Quyết định 25/11/2026 cuối ngày: công việc CLEANING/REWORK chưa gắn checklist được bỏ qua checklist khi gửi hoàn thành, kể cả chi nhánh có mẫu khác. Giao diện ghi rõ lựa chọn này và chỉ mở bộ chọn khi người dùng muốn thêm. Checklist đã gắn vẫn giữ snapshot và kiểm tra đầy đủ các mục bắt buộc; không thay đổi yêu cầu checklist của bảo trì hoặc kiểm tra phòng.
+## Quyết định 26/11/2026 — ca tự có hiệu lực
+
+Quyết định này thay thế yêu cầu bấm bắt đầu ca trong các ghi chú lịch sử bên dưới. Sau khi quản lý phân ca, nhân viên đủ điều kiện tự có ca `WORKING` trong khung giờ được phân theo múi giờ chi nhánh. Không còn nút bắt đầu ca ở lịch hoặc chi tiết. Quyền thao tác vẫn phụ thuộc vai trò, chi nhánh, bộ phận, tài khoản và giờ ca; không mở quyền ngoài giờ.
+
+Hệ thống đồng bộ trước các API đã xác thực và mỗi 30 giây qua tác vụ nền. Ghi audit `AUTO_START` với tác nhân hệ thống; thời điểm bắt đầu là lúc hệ thống xác nhận đủ điều kiện, không ghi lùi giờ qua thời gian ngừng dịch vụ hoặc tài khoản không hợp lệ. Hết giờ tự kết thúc; ca đã kết thúc/hủy không tự mở lại. Đã loại bỏ API bắt đầu ca thủ công; lịch chỉ còn kết thúc/hủy theo quyền hiện có.
+
+Quyết định BF-03 ngày 27/11/2026: khi ca buồng phòng tự có hiệu lực, cấp đủ bộ vật tư đầu ca theo cấu hình. Nếu thiếu bất kỳ thành phần nào, không cấp bộ dở dang; ghi nhận thiếu và thông báo để yêu cầu bổ sung qua UC-153. Không tự xuất thêm vật tư tiêu hao từ kho khi nhận từng phòng.
+
+## Quyết định 27/11/2026 — tự động tiêu hao và hoàn trả vật tư
+
+CLEANING/REWORK không còn checklist thực hiện hoặc điều kiện hoàn thành dựa trên checklist. Dữ liệu lịch sử được giữ. Nhân viên gửi hoàn thành với ít nhất một ảnh PNG/JPEG hợp lệ, tối đa 10 MB mỗi ảnh; có thể xem trước, thay hoặc bỏ ảnh chưa gửi và nhập ghi chú. Giám sát tiếp tục xem ảnh và quyết định đạt/không đạt theo luồng kiểm tra/làm lại hiện có.
+
+Quyết định mới nhất: khi nhận CLEANING (hoặc START đồng thời nhận việc), hệ thống trừ đủ vật tư đang giữ theo định mức mỗi khách nhân sức chứa tối đa của loại phòng trong cùng transaction. Không tự xuất thêm từ kho. Thiếu vật tư thì không nhận việc, không ghi dở dang; hiển thị định mức, khả dụng, thiếu và lối yêu cầu bổ sung UC-153 trong ca. Hoàn thành, gửi lại và REWORK không trừ thêm bộ vật tư. Giữ lịch sử tiêu hao hợp lệ, không cộng trừ hồi tố.
+
+Bổ sung giữa ca: nhân viên chủ động gửi yêu cầu đến thủ kho. Thủ kho xác nhận số thực cấp (có thể cấp một phần, để 0 cho mặt hàng chưa giao); thao tác xác nhận đồng thời xuất kho và tăng số dư nhân viên trong một transaction. Không còn bước quản lý vận hành duyệt cho loại yêu cầu này. Yêu cầu, tiếp nhận xử lý và ghi chú không làm tăng vật tư. Hiển thị lượng đề nghị, đã cấp và chưa cấp; phần chưa cấp có thể được yêu cầu tiếp trong ca. Yêu cầu cũ còn mở được chuyển sang kho, giữ nguyên lịch sử đã duyệt. Các yêu cầu bổ sung hàng cho kho vẫn giữ luồng duyệt hiện hành.
+
+Hết giờ hoặc kết thúc ca, tự hoàn trả toàn bộ vật tư còn giữ, dừng phần yêu cầu bổ sung chưa cấp và đóng phân bổ; chạy lại không hoàn trả lần hai. Không có bước kiểm đếm thủ công, đối soát riêng hoặc xác nhận nhận trả của thủ kho.
+
+Công việc vệ sinh đã bắt đầu trong ca, có tiêu hao hợp lệ và được backend cho phép vẫn có thể tiếp tục/gửi ảnh hoàn thành sau ca mà không trừ thêm vật tư. UI chỉ mở ngoại lệ theo capabilities.canContinueCleaning của công việc, giữ nguyên quyền và phạm vi chi nhánh; nhận/bắt đầu việc mới và cấp bổ sung vẫn yêu cầu ca đang hoạt động. Nút tạm dừng tiếp tục ẩn theo UX đã chốt.
+
+Mỗi nhân viên chỉ có một bộ đếm công việc đang chạy. Báo sự cố, kiểm tra của giám sát và làm lại giữ quyền và quy trình hiện có.
 
 ## Quyết định popup và báo sự cố — 24/11/2026, cập nhật sau cùng
 
@@ -221,7 +241,7 @@ Xem ảnh trong `artifacts/navbar-page-titles`, `reception-rooms`, `structure-se
 - Audit phòng 104 (room 416) cho thấy vệ sinh 652/rework 663 đã COMPLETED, inspection 670 PASSED, nhưng incident 653 OPEN làm readiness BLOCKED. Quá hạn dọn chỉ ghi audit/thông báo, không tạo incident hoặc đổi phòng thành bảo trì. Không tự đóng sự cố chưa được xác minh để ép READY.
 
 
-## Quyết định 25/11 — cấp vật tư khi nhận công việc
+## Quyết định 25/11 — cấp vật tư khi nhận công việc (đã được thay thế ngày 27/11)
 
 - Bắt đầu ca không cấp vật tư đầu ca. Khi nhân viên nhận công việc dọn phòng, cấp phần cần thêm để đủ định mức theo sức chứa khách tối đa của phòng, tính đến vật tư khả dụng đang giữ để tránh cấp trùng.
 - Cấu hình nhóm A hiển thị định mức mỗi khách và tồn tối thiểu; bỏ trường cấp đầu ca khỏi biểu mẫu. Trường `initialQuantity` cũ được bảo toàn trong hợp đồng API để tương thích dữ liệu, không phải chỉ dẫn cấp phát mới.
@@ -234,3 +254,73 @@ Xem ảnh trong `artifacts/navbar-page-titles`, `reception-rooms`, `structure-se
 - Vật tư tiêu hao bổ sung đi qua OM duyệt rồi kho cấp. OM không xử lý yêu cầu nội bộ thông thường, không còn trang công việc OPERATIONAL.
 - Checklist cấu hình theo quyền; Owner xem tổng hợp; nhân sự OM theo chi nhánh; cây tài sản giữ cả tài sản chưa bố trí. Thông báo thụ động tự đóng 5 giây, xác nhận không tự đóng.
 - Thao tác nghiệp vụ cần ca thực, đúng vai trò/quyền/chi nhánh và thời gian. Giao diện khóa lệnh, API kiểm lại độc lập; không khóa đọc dữ liệu hoặc quản trị OM/Owner/Admin.
+
+## Quyết định 27/11 — ca buồng phòng, vật tư và sự cố
+
+Các quy tắc dưới đây thay thế phần cấp vật tư, refill và kết thúc ca cũ khi có mâu thuẫn.
+
+Luồng báo thiếu mới phân biệt đồ thay thế đã được đặt/thu tại công việc và tài sản đăng ký trong phòng. Giám sát độc lập xác minh rồi mới ghi giảm đồ cũ không thu hồi được, không trừ thêm đồ sạch. Khi báo cáo còn chờ, phần đồ bẩn liên quan chưa được trả/giặt; bộ ca sau chờ xử lý phần cũ. Công việc lịch sử chưa có chứng cứ đặt/thu không được tự tạo số đồ bẩn để báo thiếu. Báo mất/hỏng cũ chưa được xử lý đủ chặn tự đặt bộ mới vào phòng, giữ nguyên vật tư nhân viên.
+
+Tài sản thiếu được chuyển OM sau xác minh. Duyệt mua chưa đóng báo cáo. OM ghi nhận tài sản thay thế đã đăng ký và bố trí thật, đúng loại/phòng/chi nhánh, đủ điều kiện sử dụng; tài sản mất phải được cập nhật rời phòng. Giám sát kiểm tra đạt mới đóng và đánh giá lại readiness; không đạt thì OM bổ sung lại. Chặn SAFETY vẫn cần xử lý riêng theo quy tắc hiện hữu.
+
+- Ca tự có hiệu lực theo phân ca. HK Staff không phải bấm bắt đầu và không tự bị đóng ca khi hết giờ. Sau giờ chỉ tiếp tục công việc đã bắt đầu hợp lệ, không nhận/bắt đầu việc mới hoặc refill thường. Không xin duyệt overtime; hệ thống gửi thông báo OM và giám sát khi hết giờ mà còn công việc.
+- Nhân viên kết thúc ca thủ công sau khi hoàn thành hoặc được giám sát tiếp nhận bàn giao; lưu giờ kết thúc thực tế. Đề nghị bàn giao có lý do, giám sát tiếp nhận rồi phân lại hoặc để chờ, không giả hoàn thành phòng.
+- Bộ đầu ca gồm tiêu hao và reusable sạch theo cấu hình snapshot: đủ toàn bộ mới xuất, thiếu thì không xuất bộ dở dang. Yêu cầu bổ sung do kho xác nhận: xuất đủ chính yêu cầu hoặc từ chối. Các yêu cầu refill không phải quyền tự lấy hàng; từng yêu cầu cần kho xác nhận. Chỉ nhận phòng khi đủ vật tư cần thiết.
+- Tiêu hao được ghi một lần khi nhận việc theo sức chứa tối đa và định mức. Reusable chuyển đồ sạch vào phòng và thu đồ cũ thực có về nhân viên. Đồ mất/hỏng đã báo sự cố không được tự biến thành đồ bẩn thu hồi.
+- Sự cố reusable chuyển kho cấp đủ đồ khắc phục hoặc từ chối; cấp lại sau giờ được gắn với công việc đã bắt đầu, không mở refill thường. Kho ghi nhận lượng hỏng thực nhận; mất đồ không có hoàn trả giả. Giám sát kiểm tra lại; phòng còn chặn đến khi đủ điều kiện readiness. Vệ sinh hoàn thành và việc khắc phục của kho có vòng đời riêng.
+- Sau kết thúc ca hợp lệ, hệ thống lên lịch hoàn trả sau 5 phút, không cộng kho trước hạn. Tác vụ đồng bộ thực hiện khi đến hạn hoặc lần chạy tiếp theo nếu dịch vụ bị ngắt. Đồ sạch về khả dụng, bẩn/hỏng giữ trạng thái riêng. Bộ ca tiếp theo chờ phần cũ trả xong. Thời gian chờ 5 phút là quy tắc ghi nhận tự động đã được chọn, không phải bằng chứng kiểm đếm vật lý.
+- Drawer vật tư hiển thị lượng tiêu hao và số dư reusable sạch/bẩn/hỏng, thời hạn trả. Lịch sử cũ giữ nguyên; không viết lại phiếu partial thành full. Mất vật tư vẫn cần xử lý sai lệch sổ sách theo thẩm quyền, không tự ghi giảm tài sản.
+
+### Điều chỉnh màn hình công việc ngày 27/11, 12:22
+
+Chi tiết CLEANING/REWORK bỏ bảng định mức/tiêu hao và bảng luân chuyển reusable. Dữ liệu vật tư và hạch toán backend vẫn giữ. Khi đang thực hiện và có quyền hoàn thành, nút **Thêm ảnh bằng chứng** mở cùng biểu mẫu báo cáo ảnh hoàn thành: chọn nhiều PNG/JPEG, xem trước, thay/xóa trước khi gửi, tối đa 10 MB mỗi ảnh. Chọn ảnh chưa ghi hoàn thành; chỉ xác nhận gửi báo cáo mới tải ảnh và chuyển bước kiểm tra. Lịch sử ảnh vẫn hiển thị; ngoài giờ giữ điều kiện tiếp tục công việc hiện hữu.
+
+### Điều chỉnh vận hành ngày 27/11, 12:57
+
+- CLEANING/REWORK chỉ có **Đề nghị bàn giao** qua giám sát, trước khi nhận hoặc bắt đầu. Đã nhận việc không được bàn giao. Đang chờ giám sát tiếp nhận thì khóa nhận/bắt đầu ở cả UI và API. Người được phân công lại có quyền đề nghị trước nhận theo cùng quy tắc; không giới hạn công việc chỉ được bàn giao một lần suốt vòng đời.
+- Màn lịch, biểu tượng lịch tuần và liên kết lịch cá nhân không còn trong giao diện nhân viên. OM giữ quản lý phân ca. HK Staff dùng **Kết thúc ca** trên thanh đầu trang; vẫn kiểm tra việc đang mở, ghi giờ thực tế và hoàn trả sau 5 phút.
+- Yêu cầu vật tư dùng danh sách chọn gọn và ô số lượng theo từng dòng. Thủ kho tiếp nhận rồi cấp đủ/từ chối trong hộp giữa màn hình; giữ kiểm tra quyền, ca và đủ tồn kho. Chi tiết sự cố mở quy trình tại trang yêu cầu.
+- Trưởng đội bảo trì mặc định xem **Cần tôi xử lý**, có các hàng đợi và nhãn trạng thái màu kèm chữ. Bỏ cấu hình checklist của vai trò này; các vai trò có quyền độc lập khác vẫn giữ quyền của mình. Không thay bước phân công kỹ thuật viên, khắc phục và kiểm tra phòng.
+- Toast thông tin xanh dương, thành công xanh lá, cảnh báo vàng và lỗi đỏ. Thông báo có tin mới là thông tin, không phải lỗi.
+
+### Điều chỉnh yêu cầu và báo thiếu ngày 27/11, 13:32
+
+- Thủ kho mở chứng từ yêu cầu vật tư tại **Yêu cầu nội bộ → Yêu cầu vật tư**. Bỏ mục điều hướng trùng; URL `#fulfillment` và liên kết chứng từ cũ giữ ID khi chuyển sang tab. Yêu cầu bổ sung giữa ca vẫn được xử lý trong Hộp yêu cầu, vì có vòng đời người nhận xử lý riêng.
+- Các hàng đợi dùng nhãn **Tất cả**, **Đã gửi**, **Cần xử lý**, **Đang xử lý**, **Hoàn thành**, **Từ chối**. Đã gửi lọc theo người tạo, không phải trạng thái; một yêu cầu do mình gửi rồi hoàn thành có thể xuất hiện ở cả hai hàng đợi. Hoàn thành chỉ gồm yêu cầu đã kết thúc xử lý trong quyền xem.
+- **Nhận xử lý** nhận trách nhiệm, không đổi tồn kho. **Xác nhận cấp phát** ghi xuất đủ yêu cầu và cộng vật tư đang giữ của nhân viên. Phần giải thích hiện ngay trong chi tiết để tránh hiểu hai nút là một thao tác.
+- Thông báo dùng **Chi tiết**, mở đúng loại công việc, chứng từ hoặc đề xuất thay tài sản. Chi tiết công việc chia hai hàng: báo sự cố/ảnh bằng chứng ở hàng hỗ trợ, thực hiện/hoàn thành ở hàng quyết định. Màu kèm nhãn chữ; không dùng màu thay cho ý nghĩa hành động.
+- Báo thiếu có hai nhóm chọn nhiều dòng: **Vật tư thay thế** và **Tài sản trong phòng**. Số lượng nguyên dương; tài sản riêng lẻ có số lượng một. Gửi theo lô nguyên tử, giữ nội dung và khóa gửi khi kết quả mạng chưa rõ để không tạo báo cáo trùng.
+- Với vật tư thay thế, đồ sạch được ghi nhận một lần khi nhận công việc theo định mức sức chứa. Báo thiếu không xuất thêm đồ sạch. Giám sát độc lập xác minh trước khi giảm số đồ cũ không thu hồi được, truy theo lần thu đồ của công việc. Không lấy số dư của công việc/ca khác; phần đồ cũ đang chờ xác minh không được giặt hoặc tự trả thành hàng thực có.
+- Dữ liệu cũ chưa ghi nhận thu đồ không tự được tạo thành đồ bẩn. Biểu mẫu giải thích khi không có số lượng đủ căn cứ báo thiếu; không suy đoán tồn phòng hoặc viết lại lịch sử để làm xuất hiện số liệu.
+- Tài sản thiếu được giám sát xác minh rồi chuyển OM xử lý mua bổ sung. Duyệt mua không tự ghi nhận đã nhận tài sản hoặc đưa phòng về sẵn sàng. Việc ghi nhận tài sản thực tế và kiểm tra độc lập phải được hoàn tất trước khi đóng chặn sự cố.
+## Bảo trì và lịch sử cấp vật tư
+
+- Trong **Nhập / Xuất / Chuyển kho**, chọn loại chứng từ **Cấp vật tư** trong bảng chung để xem bộ đầu ca, bổ sung và vật tư tái sử dụng đã cấp thực tế. Không còn danh sách lịch sử riêng phía trên. Chi tiết có người nhận, số lượng, đơn vị, kho và thời điểm; dùng chung tìm kiếm, lọc ngày và phân trang. Nhóm theo chứng từ nguồn hoặc mã thao tác khi chưa có chứng từ, người nhận và kho; giữ đầy đủ dòng lịch sử. Đây là màn đọc, không tạo thêm giao dịch xuất.
+- Trưởng đội chỉ phân công kỹ thuật viên đang trong đúng ca bảo trì, cùng chi nhánh và có quyền thực hiện. Danh sách ưu tiên người không có công việc đang chạy, sau đó ít việc mở hơn; API kiểm tra lại điều kiện khi gửi phân công.
+- Nhân viên bảo trì được đề nghị bàn giao trước khi nhận việc. Đang chờ bàn giao thì không nhận hoặc bắt đầu; đã nhận thì không còn nút đề nghị bàn giao. Trưởng đội tiếp nhận để phân lại. Bấm **Nhận việc** không hỏi lý do và đồng thời bắt đầu thực hiện; không có bước Bắt đầu riêng. Dữ liệu đã nhận từ phiên bản cũ còn chờ bắt đầu có thao tác tiếp tục.
+- Khi thực hiện bảo trì, chỉ có một nút **Báo cáo kết quả**. Popup chọn **Sửa thành công** (ảnh bắt buộc, không yêu cầu lý do) hoặc **Không thể sửa chữa — Cần mua mới** (lý do và ảnh bắt buộc). Xác nhận gửi báo cáo sẽ hoàn thành lần sửa chữa. Không yêu cầu checklist trong luồng này; lịch sử cũ được giữ. Sửa thành công được ghi nhận trực tiếp, không chờ trưởng đội duyệt hoàn thành. Kiểm tra phòng độc lập vẫn giữ nguyên, không tự chuyển phòng về sẵn sàng.
+- Không sửa được và cần thay mới: nhân viên gửi ảnh/kết luận; trưởng đội xác nhận đề xuất thay mới và chuyển OM xử lý mua. Phê duyệt mua không thay thế bước nhận/lắp tài sản thực tế.
+- OM đồng ý thay mới không nhập lý do; lý do chỉ bắt buộc khi từ chối. Sau duyệt, mở **Tài sản**, bấm **Thay thế** ngay trên dòng đồ vật và xác nhận. Không chọn hay tạo thêm tài sản khác; giữ hồ sơ và vị trí hiện tại, chuyển tình trạng về Tốt. Hệ thống ghi lịch sử thay, thông báo sự cố đã xử lý và tạo yêu cầu giám sát buồng phòng kiểm tra lại. Chưa tự giải phóng phòng trước kiểm tra. Nhân viên bảo trì vẫn đọc được kết quả công việc mình đã thực hiện sau khi kết thúc phân công; danh sách và ảnh không hiển thị mã kỹ thuật tự sinh.
+- Loại bỏ hỗ trợ phân tích sự cố và thao tác xác minh nguyên nhân. Giữ dữ liệu lịch sử đã ghi; không xóa lịch sử khi bỏ tính năng.
+
+## Báo hỏng và thiếu đồ trong phòng
+
+Loại hỏng đồ chỉ nhận tài sản thuộc phòng, không nhận khăn/ga hoặc vật tư thay thế. Vật tư thay thế chỉ được chọn trong loại mất/thiếu đồ; giám sát xác minh trước khi ghi giảm đồ cũ. Giao diện và API cùng kiểm tra quy tắc này, kể cả gửi nhiều dòng. Báo cáo sai được hủy có lưu lịch sử; hủy một báo cáo không giải phóng các sự cố tài sản khác còn đang xử lý trong phòng.
+
+## Kho và cấu hình yêu cầu nội bộ
+
+Màn phân công bảo trì hiển thị tên công việc, vị trí/phòng hiện có và người nhận; công việc chưa gắn phòng phải nói rõ, không tự đoán phòng. Danh sách nhân viên vẫn lấy người trong ca, ưu tiên người rảnh. Trước khi xác nhận báo cáo bảo trì, không hiển thị các khối lịch sử/kết quả/ảnh rỗng; chỉ gửi ảnh trong popup Báo cáo kết quả. Sau xác nhận, mục **Kết quả xử lý** đọc trạng thái và sự kiện báo cáo đã lưu, hiển thị sửa thành công hoặc không thể sửa chữa/cần mua mới, thời điểm, ảnh và lịch sử. Không dùng lịch sử nghiệm thu cũ thay cho kết quả báo cáo.
+
+- Thủ kho không còn menu Danh mục vật tư; URL trực tiếp không mở màn này. Các bộ chọn vật tư phục vụ nghiệp vụ kho vẫn sử dụng danh mục hoạt động. OM giữ chức năng quản lý theo quyền hiện có.
+- Bảng tồn và cảnh báo hiện tại chỉ dùng vật tư hoạt động. Vật tư tạm ngừng vẫn giữ chứng từ và sổ biến động để tra cứu lịch sử. Tồn sổ có thể khác lượng đủ điều kiện cấp; giao diện giải thích khi chưa phân loại, chưa xác định chính sách hạn, chưa đối soát lô hoặc hàng bị hạn chế/giữ chỗ.
+- OM vào **Cấu hình → Yêu cầu nội bộ** để cấu hình loại yêu cầu thông thường: vai trò được gửi, bộ phận được gửi (nếu giới hạn), nơi nhận theo vai trò hoặc bộ phận/người cụ thể, hướng dẫn nội dung và mô tả bắt buộc. Vai trò và bộ phận gửi được kiểm tra đồng thời; API kiểm lại membership hiện hành, chi nhánh, người nhận và nội dung. Cấu hình cũ giữ mặc định mô tả không bắt buộc.
+- Form tạo hiển thị loại yêu cầu, phạm vi gửi, nơi nhận và nội dung cần có. Yêu cầu vật tư có nút riêng; bổ sung hàng cho kho dùng đúng tiêu đề và nêu OM duyệt trước khi kho ghi nhận hàng thực nhận.
+- Luồng bổ sung vật tư giữa ca và bổ sung hàng cho kho có mô tả riêng trong cấu hình OM. Đây là tuyến nghiệp vụ cố định, không bị thay đổi bằng cấu hình loại yêu cầu thông thường; giữ nguyên kiểm tra ca, quyền và cấp đủ hoặc từ chối.
+
+## Kho chi nhánh khác và nhập hàng sau phê duyệt
+
+- OM mở kho chi nhánh khác bằng bảng toàn màn hình có STT, vật tư, tồn cơ sở/có thể cấp, đơn vị, tối thiểu, tìm kiếm, lọc và phân trang. Chỉ xem và đề nghị điều chuyển; không có sửa định mức, biến động chi tiết hoặc thao tác ghi kho ngoài chi nhánh. Hai liên kết duyệt vật tư trên màn tồn kho đã bỏ.
+- OM không cần phân ca. Đề nghị điều chuyển kiểm tra quyền tại chi nhánh nhận; duyệt/từ chối kiểm tra chi nhánh cấp. Không mở quyền quản lý chi nhánh khác, không miễn điều kiện ca cho thủ kho.
+- Nhập hàng đã duyệt hỗ trợ đồng thời hàng ASSET, REUSABLE và CONSUMABLE. ASSET ghi sổ số lượng, không tạo lô tiêu hao hoặc tự sinh hồ sơ tài sản/số sê-ri. Vật tư tiêu hao chưa có thông tin lô/hạn vẫn theo quy tắc cách ly hiện hữu. Nhập từng phần, giới hạn số còn được nhận và chống gửi trùng vẫn giữ.
+Màn Tài sản của OM dựng cây từ toàn bộ danh mục tầng/phòng trong chi nhánh, không chỉ các vị trí đã có tài sản. Tầng/phòng chưa có tài sản vẫn hiển thị với số lượng 0 và thông báo trống. Khi tìm kiếm/lọc tình trạng, chỉ hiển thị nhánh có tài sản phù hợp; số liệu tài sản không bao gồm các vị trí trống.
+
